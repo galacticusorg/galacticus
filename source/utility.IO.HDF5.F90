@@ -113,7 +113,7 @@ module IO_HDF5
        <method description="Return the rank of a dataset." method="rank" />
        <method description="Return true if a dataset is a reference." method="isReference" />
        <method description="Return true if an object is open." method="isOpen" />
-       <method description="Return the named object." method="remove" />
+       <method description="Remove the named object." method="remove" />
        <method description="Return the object type." method="objectType" />
        <method description="Create a reference to a 1D dataset." method="createReference1D" />
        <method description="Create a reference to a 2D dataset." method="createReference2D" />
@@ -125,6 +125,8 @@ module IO_HDF5
        <method description="Flush an HDF5 file to disk." method="flush" />
        <method description="Returns the path to a given object." method="pathTo" />
        <method description="Returns the name of a given object." method="name" />
+       <method description="Returns the name of the file containing a given object." method="fileName" />
+       <method description="Return a report on the location of an object suitable for inclusion in an error message." method="locationReport" />
        <method description="Open an HDF5 file and return an appropriate HDF5 object." method="openFile" />
        <method description="Open an HDF5 group and return an appropriate HDF5 object." method="openGroup" />
        <method description="Open an HDF5 dataset." method="openDataset" />
@@ -137,6 +139,8 @@ module IO_HDF5
      procedure :: destroy                                 =>IO_HDF5_Destroy
      procedure :: name                                    =>IO_HDF5_Name
      procedure :: pathTo                                  =>IO_HDF5_Path_To
+     procedure :: fileName                                =>IO_HDF5_File_Name
+     procedure :: locationReport                          =>IO_HDF5_Location_Report
      procedure :: openFile                                =>IO_HDF5_Open_File
      procedure :: openGroup                               =>IO_HDF5_Open_Group
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
@@ -652,6 +656,37 @@ contains
     return
   end function IO_HDF5_Path_To
 
+  function IO_HDF5_File_Name(self) result (fileName)
+    !!{
+    Returns the name of the file containing {\normalfont \ttfamily self}.
+    !!}
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    class(hdf5Object    ), intent(in   ), target  :: self
+    type (varying_string)                         :: fileName
+    type (hdf5Object    )               , pointer :: parent
+
+    parent  => self
+    do while (parent%hdf5ObjectType /= hdf5ObjectTypeFile)
+       parent => parent%parentObject
+    end do
+    fileName=parent%objectName
+    return
+  end function IO_HDF5_File_Name
+
+  function IO_HDF5_Location_Report(self) result (report)
+    !!{
+    Returns a report on the location of {\normalfont \ttfamily self} suitable for inclusion in an error message.
+    !!}
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    class(hdf5Object    ), intent(in   ), target :: self
+    type (varying_string)                        :: report
+
+    report=char(10)//"   object is located in:"//self%pathTo()
+    return
+  end function IO_HDF5_Location_Report
+
   subroutine IO_HDF5_Close(self)
     !!{
     Close an HDF5 object.
@@ -820,7 +855,7 @@ contains
     call h5ldelete_f(self%objectID,objectName,errorCode)
     if (errorCode /= 0) then
        message="unable to remove '"//objectname//"' from object '"//self%objectName//"' to file"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end subroutine IO_HDF5_Remove
@@ -1166,7 +1201,7 @@ contains
     ! Decide where to open the group.
     if (.not.inObject%isOpenValue) then
        message="attempt to open group '"//trim(groupName)//"' in unopen object '"//inObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//inObject%locationReport()//{introspection:location})
     end if
     locationID  =inObject%objectID
     locationPath=inObject%pathTo()
@@ -1183,14 +1218,14 @@ contains
        call h5gopen_f(locationID,trim(groupName),groupObject%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to open group '"//trim(groupName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     else
        ! Create a group.
        call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode)
        if (errorCode < 0) then
           message="failed to make group '"//trim(groupName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1199,7 +1234,7 @@ contains
        call h5gset_comment_f(groupObject%objectID,'.',trim(commentText),errorCode)
        if (errorCode < 0) then
           message="failed to set comment for group '"//trim(groupName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1247,7 +1282,7 @@ contains
           if (objectsOverwritable.and..not.groupObject%parentObject%isOverwritable) then
              message="cannot make objects in '"//trim(groupName)//"' overwritable as objects in parent '"&
                   &//groupObject%parentObject%objectName//"' are not overwritable"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
        end if
        groupObject%isOverwritable=objectsOverwritable
@@ -1277,21 +1312,21 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="object '"//self%objectName//"' in not open"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object exists.
     call h5eset_auto_f(0,errorCode)
     if (errorCode /= 0) then
        message="failed to switch HDF5 error report off"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5gget_info_by_name_f(self%objectID,trim(groupName),storageType,linkCount,creationOrderMaximum,errorCode)
     IO_HDF5_Has_Group=(errorCode == 0)
     call h5eset_auto_f(1,errorCode)
     if (errorCode /= 0) then
        message="failed to switch HDF5 error report on"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end function IO_HDF5_Has_Group
@@ -1335,7 +1370,7 @@ contains
     end select
     else
        message="attempt to open attribute '"//trim(attributeName)//"' in unopen object '"//inObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//inObject%locationReport()//{introspection:location})
     end if
 
     ! Determine the rank and dimensions.
@@ -1344,7 +1379,7 @@ contains
        attributeRank=size(attributeDimensions)
        if (attributeRank > 7) then
           message="attributes of rank greater than 7 are not supported - attribute in question is '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        attributeDimensionsActual(1:attributeRank)=attributeDimensions
     else
@@ -1358,19 +1393,19 @@ contains
        call h5aopen_f(locationID,trim(attributeName),attributeObject%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to open attribute '"//trim(attributeName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     else
        ! Ensure that a data type was specified.
        if (.not.present(attributeDataType)) then
           message="no datatype was specified for attribute '"//trim(attributeName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Open a suitable dataspace.
        call h5screate_simple_f(attributeRank,attributeDimensionsActual,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="unable to open dataspace for attribute '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Determine the data type.
        if (present(useDataType)) then
@@ -1397,13 +1432,13 @@ contains
        call h5acreate_f(locationID,trim(attributeName),dataTypeID,dataSpaceID,attributeObject%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to create attribute '"//trim(attributeName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Close the dataspace.
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close dataspace for attribute '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1422,7 +1457,7 @@ contains
        if (isOverwritable.and..not.attributeObject%parentObject%isOverwritable) then
           message="cannot make attribute '"//trim(attributeName)//"' overwritable as objects in parent '"&
                &//attributeObject%parentObject%objectName//"' are not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        attributeObject%isOverwritable=isOverwritable
     else
@@ -1478,7 +1513,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1486,7 +1521,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a scalar integer.
           call self%assertAttributeType(H5T_NATIVE_INTEGERS,0)
@@ -1500,7 +1535,7 @@ contains
        ! Check that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -1511,7 +1546,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1519,7 +1554,7 @@ contains
     call h5awrite_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -1558,7 +1593,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1566,7 +1601,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D integer.
           call self%assertAttributeType(H5T_NATIVE_INTEGERS,1)
@@ -1582,7 +1617,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -1594,7 +1629,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1602,7 +1637,7 @@ contains
     call h5awrite_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -1642,7 +1677,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1650,7 +1685,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a scalar integer.
           call self%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
@@ -1666,7 +1701,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -1677,7 +1712,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1686,7 +1721,7 @@ contains
     errorCode=H5Awrite(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -1728,7 +1763,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1736,7 +1771,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D long integer.
           call self%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
@@ -1752,7 +1787,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -1764,7 +1799,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1777,7 +1812,7 @@ contains
     errorCode=H5Awrite(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(attributeValueContiguous)
 
@@ -1817,7 +1852,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1825,7 +1860,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a scalar double.
           call self%assertAttributeType(H5T_NATIVE_DOUBLES,0)
@@ -1841,7 +1876,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -1852,7 +1887,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1860,7 +1895,7 @@ contains
     call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -1899,7 +1934,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1907,7 +1942,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D double.
           call self%assertAttributeType(H5T_NATIVE_DOUBLES,1)
@@ -1923,7 +1958,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -1935,7 +1970,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -1943,7 +1978,7 @@ contains
     call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -1982,7 +2017,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -1990,7 +2025,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 2D double.
           call self%assertAttributeType(H5T_NATIVE_DOUBLES,2)
@@ -2006,7 +2041,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -2018,7 +2053,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -2026,7 +2061,7 @@ contains
     call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2067,19 +2102,19 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Create a custom datatype.
     call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype for attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2087,7 +2122,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a scalar character.
           call self%assertAttributeType([dataTypeID],0)
@@ -2103,7 +2138,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -2114,7 +2149,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -2122,14 +2157,14 @@ contains
     call h5awrite_f(attributeObject%objectID,dataTypeID,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2170,19 +2205,19 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Create a custom datatype.
     call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype for attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tset_size_f(dataTypeID,int(len(attributeValue),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2190,7 +2225,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (.not.self%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D character.
           call self%assertAttributeType([dataTypeID],1)
@@ -2206,7 +2241,7 @@ contains
           attributeNameActual=trim(attributeName)
        else
           message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
@@ -2218,7 +2253,7 @@ contains
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -2226,7 +2261,7 @@ contains
     call h5awrite_f(attributeObject%objectID,dataTypeID,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2307,7 +2342,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2320,18 +2355,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2345,7 +2380,7 @@ contains
             &,errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
@@ -2355,27 +2390,27 @@ contains
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sclose_f(attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           if (attributeDimensions(1) == 1) then
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar or pseudo-scalar"//self%locationReport()//self%locationReport()//{introspection:location})
           end if
        end if
     else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar"                 //{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar"                 //self%locationReport()//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2415,7 +2450,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2428,18 +2463,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2452,17 +2487,17 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Allocate the array to the appropriate size.
@@ -2476,7 +2511,7 @@ contains
          &,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2516,7 +2551,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2529,18 +2564,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2553,23 +2588,23 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Ensure that the size of the array is large enough to hold the attributes.
     if (any(shape(attributeValue) < attributeDimensions)) then
        message="array is not large enough to hold attributes from '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the attribute.
@@ -2577,7 +2612,7 @@ contains
          &,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2629,7 +2664,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2642,18 +2677,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2667,7 +2702,7 @@ contains
        errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
@@ -2677,27 +2712,27 @@ contains
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sclose_f(attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           if (attributeDimensions(1) == 1) then
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
           end if
        end if
     else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar"                 //{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar"                 //self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2739,7 +2774,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2752,18 +2787,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2776,17 +2811,17 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Allocate the array to the appropriate size.
@@ -2800,7 +2835,7 @@ contains
     errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -2843,7 +2878,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2856,18 +2891,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2880,23 +2915,23 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Ensure that the size of the array is large enough to hold the attributes.
     if (any(shape(attributeValue) < attributeDimensions)) then
        message="array is not large enough to hold attributes from '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the attribute.
@@ -2907,7 +2942,7 @@ contains
     errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     attributeValue=attributeValueContiguous
 
@@ -2958,7 +2993,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -2971,18 +3006,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -2996,7 +3031,7 @@ contains
             &,errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
@@ -3006,29 +3041,29 @@ contains
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sclose_f(attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           if (attributeDimensions(1) == 1) then
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
           end if
        else
-          call    Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//{introspection:location})
+          call    Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
        end if
     else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar"                 //{introspection:location})
+       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar"                 //self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3068,7 +3103,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -3081,18 +3116,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3105,17 +3140,17 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Allocate the array to the appropriate size.
@@ -3129,7 +3164,7 @@ contains
          &,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3169,7 +3204,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -3182,18 +3217,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3206,23 +3241,23 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Ensure that the size of the array is large enough to hold the attributes.
     if (any(shape(attributeValue) < attributeDimensions)) then
        message="array is not large enough to hold attributes from '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the attribute.
@@ -3230,7 +3265,7 @@ contains
          &,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3289,7 +3324,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Create a custom datatype. We actually make two types - one is a Fortran native type, the other is a C native type.
@@ -3305,18 +3340,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3331,7 +3366,7 @@ contains
             &,errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else if (isH5TString) then
        ! Attribute is an H5T_String (i.e. a variable length string, as is written by h5py for example). These can be read using
@@ -3339,18 +3374,18 @@ contains
        !
        ! First, construct a suitable datatype.
        call H5Tcopy_f(H5T_C_S1, stringType, errorCode)
-       if (errorCode /= 0) call Error_Report('unable to copy datatype'       //{introspection:location})
+       if (errorCode /= 0) call Error_Report('unable to copy datatype'       //self%locationReport()//{introspection:location})
        call H5Tset_cset_f  (stringType,H5T_CSET_UTF8_F   ,errorCode)
-       if (errorCode /= 0) call Error_Report('unable to set character set'   //{introspection:location})
+       if (errorCode /= 0) call Error_Report('unable to set character set'   //self%locationReport()//{introspection:location})
        call H5Tset_size_f  (stringType,h5t_variable_get(),errorCode)            
-       if (errorCode /= 0) call Error_Report('unable to set datatype size'   //{introspection:location})
+       if (errorCode /= 0) call Error_Report('unable to set datatype size'   //self%locationReport()//{introspection:location})
        call h5tset_strpad_f(stringType,H5T_STR_NULLTERM_F,errorCode)
-       if (errorCode /= 0) call Error_Report('unable to set datatype padding'//{introspection:location})
+       if (errorCode /= 0) call Error_Report('unable to set datatype padding'//self%locationReport()//{introspection:location})
        ! Read the attribute.
        errorCode=H5Aread(attributeObject%objectID,stringType,c_loc(stringBuffer))
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Extract the attribute from the buffer.
        call c_f_pointer(stringBuffer,stringBuffer_,shape=[len(attributeValue)])
@@ -3364,39 +3399,39 @@ contains
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           call h5sclose_f(attributeDataspaceID,errorCode)
           if (errorCode /= 0) then
              message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           if (attributeDimensions(1) == 1) then
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute must be a character scalar, pseudo-scalar, or variable-length string"//{introspection:location})
+             call Error_Report("attribute must be a character scalar, pseudo-scalar, or variable-length string"//self%locationReport()//{introspection:location})
           end if
        end if
     else
-       call       Error_Report("attribute must be a character scalar, or variable-length string"               //{introspection:location})
+       call       Error_Report("attribute must be a character scalar, or variable-length string"               //self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3436,7 +3471,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Create a custom datatype.
@@ -3452,18 +3487,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3476,17 +3511,17 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Allocate the array to the appropriate size.
@@ -3500,19 +3535,19 @@ contains
          &,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3552,7 +3587,7 @@ contains
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Create a custom datatype.
@@ -3568,18 +3603,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3592,23 +3627,23 @@ contains
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Ensure that the size of the array is large enough to hold the attributes.
     if (any(shape(attributeValue) < attributeDimensions)) then
        message="array is not large enough to hold attributes from '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the attribute.
@@ -3616,19 +3651,19 @@ contains
          &,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the attribute unless this was an attribute object.
@@ -3671,7 +3706,7 @@ contains
     ! Check that the object is already open.
    if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -3684,18 +3719,18 @@ contains
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3705,21 +3740,21 @@ contains
     call h5aget_type_f(attributeObject%objectID,dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not get datatype for '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Get the size of the datatype.
     call h5tget_size_f(dataTypeID,dataTypeSize,errorCode)
     if (errorCode /= 0) then
        message="can not get size of datatype for '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not close datatype of '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check for a variable length string.
@@ -3738,7 +3773,7 @@ contains
              lengthPrevious=len_trim(attributeValue)
           end if
        end do
-       if (len_trim(attributeValue) /= lengthPrevious) call Error_Report('variable length HDF5 string is too long'//{introspection:location})
+       if (len_trim(attributeValue) /= lengthPrevious) call Error_Report('variable length HDF5 string is too long'//self%locationReport()//{introspection:location})
 attributeValue=trim(attributeValue)
     else
        call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
@@ -3803,7 +3838,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -3816,18 +3851,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3837,21 +3872,21 @@ attributeValue=trim(attributeValue)
     call h5aget_type_f(attributeObject%objectID,dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not get datatype for '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Get the size of the datatype.
     call h5tget_size_f(dataTypeID,dataTypeSize,errorCode)
     if (errorCode /= 0) then
        message="can not get size of datatype for '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not close datatype of '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Call wrapper routine that will do the remainder of the read.
@@ -3917,7 +3952,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an attribute, or something else.
@@ -3930,18 +3965,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(attributeName)) then
           message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an attribute name was supplied.
        if (.not.present(attributeName)) then
           message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the attribute exists.
        if (.not.self%hasAttribute(attributeName)) then
           message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
        attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
@@ -3951,21 +3986,21 @@ attributeValue=trim(attributeValue)
     call h5aget_type_f(attributeObject%objectID,dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not get datatype for '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Get the size of the datatype.
     call h5tget_size_f(dataTypeID,dataTypeSize,errorCode)
     if (errorCode /= 0) then
        message="can not get size of datatype for '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not close datatype of '"//trim(attributeNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Call wrapper routine that will do the remainder of the read.
@@ -4018,14 +4053,14 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="object '"//self%objectName//"' in not open"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object exists.
     call h5aexists_f(self%objectID,trim(attributeName),IO_HDF5_Has_Attribute,errorCode)
     if (errorCode /= 0) then
        message="unable to check for attribute '"//trim(attributeName)//"' in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end function IO_HDF5_Has_Attribute
@@ -4056,14 +4091,14 @@ attributeValue=trim(attributeValue)
     call h5aget_type_f(attributeObject%objectID,attributeTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to get datatype of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//attributeObject%locationReport()//{introspection:location})
     end if
     isCorrectType=.false. ! Assume that it is of the incorrect type by default.
     do iType=1,size(attributeAssertedType)
        call h5tequal_f(attributeTypeID,attributeAssertedType(iType),isCorrectType,errorCode)
        if (errorCode /= 0) then
           message="unable to test datatype of attribute '"//attributeObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//attributeObject%locationReport()//{introspection:location})
        end if
        ! If a suitable type match has been found, exit the loop.
        if (isCorrectType) exit
@@ -4071,7 +4106,7 @@ attributeValue=trim(attributeValue)
     call h5tclose_f(attributeTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to close datatype of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//attributeObject%locationReport()//{introspection:location})
     end if
     if (.not.isCorrectType) then
        if (present(matches)) then
@@ -4079,7 +4114,7 @@ attributeValue=trim(attributeValue)
           return
        else
           message="attribute '"//attributeObject%objectName//"' is of incorrect type"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//attributeObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4087,17 +4122,17 @@ attributeValue=trim(attributeValue)
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//attributeObject%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_ndims_f(attributeDataspaceID,attributeRank,errorCode)
     if (errorCode /= 0) then
        message="unable to get rank of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//attributeObject%locationReport()//{introspection:location})
     end if
     call h5sclose_f(attributeDataspaceID,errorCode)
      if (errorCode /= 0) then
        message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//attributeObject%locationReport()//{introspection:location})
     end if
     if (attributeRank /= attributeAssertedRank) then
        if (present(matches)) then
@@ -4105,7 +4140,7 @@ attributeValue=trim(attributeValue)
           return
        else
           message="attribute '"//attributeObject%objectName//"' has incorrect rank"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//attributeObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4137,29 +4172,29 @@ attributeValue=trim(attributeValue)
     ! Ensure that the object is a dataset.
     if (datasetObject%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="object is not a dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     ! Ensure that the dataset is open.
     if (.not.datasetObject%isOpenValue) then
        message="attempt to get size of unopen dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     ! Get the rank of the dataset
     call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_ndims_f(datasetDataspaceID,datasetRank,errorCode)
     if (errorCode /= 0) then
        message="unable to get rank of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     if (datasetRank < dim) then
        message="dataset '"//datasetObject%objectName//"' has rank smaller than the dimension requested"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     ! Get the dimensions of the dataspace.
@@ -4168,7 +4203,7 @@ attributeValue=trim(attributeValue)
     call h5sget_simple_extent_dims_f(datasetDataspaceID,dimensions,maximumDimensions,errorCode)
     if (errorCode == -1) then
        message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     IO_HDF5_Dataset_Size=dimensions(dim)
     deallocate(       dimensions             )
@@ -4178,7 +4213,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     return
@@ -4203,25 +4238,25 @@ attributeValue=trim(attributeValue)
     ! Ensure that the object is a dataset.
     if (datasetObject%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="object is not a dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     ! Ensure that the dataset is open.
     if (.not.datasetObject%isOpenValue) then
        message="attempt to get size of unopen dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     ! Get the rank of the dataset
     call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_ndims_f(datasetDataspaceID,datasetRank,errorCode)
     if (errorCode /= 0) then
        message="unable to get rank of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     ! Return the rank.
@@ -4275,7 +4310,7 @@ attributeValue=trim(attributeValue)
     end select
     else
        message="attempt to open dataset '"//trim(datasetName)//"' in unopen object '"//inObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//inObject%locationReport()//{introspection:location})
     end if
 
     ! Determine the rank and dimensions.
@@ -4284,7 +4319,7 @@ attributeValue=trim(attributeValue)
        datasetRank=size(datasetDimensions)
        if (datasetRank > 7) then
           message="datasets of rank greater than 7 are not supported - dataset in question is '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        datasetDimensionsActual(1:datasetRank)=datasetDimensions
     else
@@ -4310,17 +4345,17 @@ attributeValue=trim(attributeValue)
        call h5dopen_f(locationID,trim(datasetName),datasetObject%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to open dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        call h5dget_create_plist_f(datasetObject%objectID,propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to get creation property list for dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        call h5eset_auto_f(0,errorCode)
        if (errorCode /= 0) then
           message="failed to switch HDF5 error report off"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        call h5pget_chunk_f(propertyList,1,chunkDimensions,errorCode)
        if (errorCode < 0) then
@@ -4332,12 +4367,12 @@ attributeValue=trim(attributeValue)
        call h5eset_auto_f(1,errorCode)
        if (errorCode /= 0) then
           message="failed to switch HDF5 error report on"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        call h5pclose_f(propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to close property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
     else
        ! Determine maximum dimensions of this dataset.
@@ -4351,14 +4386,14 @@ attributeValue=trim(attributeValue)
        call h5screate_simple_f(datasetRank,datasetDimensionsActual,dataspaceID,errorCode,datasetDimensionsMaximum)
        if (errorCode < 0) then
           message="unable to open dataspace for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        ! Determine the chunking level.
        if (present(chunkSize)) then
           ! Check that chunk size is valid.
           if (chunkSize == 0 .or. chunkSize < -1) then
              message="invalid chunk size for dataset '"//trim(datasetName)//"' at "//locationPath
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
           end if
           chunkSizeActual=chunkSize
        else
@@ -4375,7 +4410,7 @@ attributeValue=trim(attributeValue)
           ! Check that compression level is valid.
           if (compressionLevel == 0 .or. compressionLevel < -1) then
              message="invalid compression level for dataset '"//trim(datasetName)//"' at "//locationPath
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
           end if
           compressionLevelActual=compressionLevel
        else
@@ -4391,7 +4426,7 @@ attributeValue=trim(attributeValue)
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) then
           message="unable to create property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        ! Check if chunk size needs to be set.
        if (chunkSizeActual /= -1) then
@@ -4407,13 +4442,13 @@ attributeValue=trim(attributeValue)
           call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to set chunk size for dataset '"//trim(datasetName)//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
           end if
        else
           ! No chunk size was specified. This is problematic if the dataset is appendable.
           if (appendToActual) then
              message="appendable dataset '"//trim(datasetName)//"' requires a chunk size"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
           end if
        end if
 
@@ -4422,13 +4457,13 @@ attributeValue=trim(attributeValue)
           call h5pset_deflate_f(propertyList,compressionLevelActual,errorCode)
           if (errorCode < 0) then
              message="could not set compression level for dataset '"//trim(datasetName)//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
           end if
        end if
        ! Ensure that a data type was specified.
        if (.not.present(datasetDataType)) then
           message="no datatype was specified for dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        ! Determine the data type.
        if (present(useDataType)) then
@@ -4455,19 +4490,19 @@ attributeValue=trim(attributeValue)
        call h5dcreate_f(locationID,trim(datasetName),dataTypeID,dataSpaceID,datasetObject%objectID,errorCode,propertyList)
        if (errorCode /= 0) then
           message="failed to create dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        ! Close the dataspace.
        call h5sclose_f(dataSpaceID,errorCode)
        if (errorCode /= 0) then
           message="failed to close dataspace for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        ! Close the property list.
        call h5pclose_f(propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to close property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4476,7 +4511,7 @@ attributeValue=trim(attributeValue)
        call h5gset_comment_f(datasetObject%objectID,'.',trim(commentText),errorCode)
        if (errorCode < 0) then
           message="failed to set comment for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4496,7 +4531,7 @@ attributeValue=trim(attributeValue)
        if (isOverwritable.and..not.datasetObject%parentObject%isOverwritable) then
           message="cannot make dataset '"//trim(datasetName)//"' overwritable as objects in parent '"&
                &//datasetObject%parentObject%objectName//"' are not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        datasetObject%isOverwritable=isOverwritable
     else
@@ -4525,27 +4560,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="object '"//self%objectName//"' in not open"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object exists.
     call h5eset_auto_f(0,errorCode)
     if (errorCode /= 0) then
        message="failed to switch HDF5 error report off"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5dopen_f(self%objectID,trim(datasetName),datasetID,errorCode)
     IO_HDF5_Has_Dataset=(errorCode == 0)
     call h5eset_auto_f(1,errorCode)
     if (errorCode /= 0) then
        message="failed to switch HDF5 error report on"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     if (IO_HDF5_Has_Dataset) then
        call h5dclose_f(datasetID,errorCode)
        if (errorCode /= 0) then
           message="failed to close dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     return
@@ -4574,7 +4609,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="object '"//self%objectName//"' in not open"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Extract relevant location identifier and object name.
     select case(self%hdf5ObjectType)
@@ -4586,13 +4621,13 @@ attributeValue=trim(attributeValue)
        objectName        ="/"
     case default
        message="object '"//self%objectName//"' is not a group or file"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end select
     ! Get a count of the number of members in the group.
     call h5gn_members_f(locationIdentifier,char(objectName),groupMemberCount,errorCode)
     if (errorCode /= 0) then
        message="failed to get count of members in '"//trim(objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Iterate over members, counting datasets.
     datasetCount=0
@@ -4601,7 +4636,7 @@ attributeValue=trim(attributeValue)
        if (errorCode /= 0) then
           message="failed to get info on member "
           message=message//i//" in '"//trim(objectName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Count datasets.
        if (memberType == h5g_dataset_f) datasetCount=datasetCount+1
@@ -4615,7 +4650,7 @@ attributeValue=trim(attributeValue)
        if (errorCode /= 0) then
           message="failed to get info on member "
           message=message//i//" in '"//trim(objectName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Store dataset name.
        if (memberType == h5g_dataset_f) then
@@ -4651,14 +4686,14 @@ attributeValue=trim(attributeValue)
     call h5dget_type_f(datasetObject%objectID,datasetTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to get datatype of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     isCorrectType=.false. ! Assume that it is of the incorrect type by default.
     do iType=1,size(datasetAssertedType)
        call h5tequal_f(datasetTypeID,datasetAssertedType(iType),isCorrectType,errorCode)
        if (errorCode /= 0) then
           message="unable to test datatype of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
        ! If a suitable type match has been found, exit the loop.
        if (isCorrectType) exit
@@ -4666,7 +4701,7 @@ attributeValue=trim(attributeValue)
     call h5tclose_f(datasetTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to close datatype of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     if (.not.isCorrectType) then
        if (present(status)) then
@@ -4674,7 +4709,7 @@ attributeValue=trim(attributeValue)
           return
        else
           message="dataset '"//datasetObject%objectName//"' is of incorrect type"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4682,12 +4717,12 @@ attributeValue=trim(attributeValue)
     call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     call h5sget_simple_extent_ndims_f(datasetDataspaceID,datasetRank,errorCode)
     if (errorCode /= 0) then
        message="unable to get rank of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
     if (datasetRank /= datasetAssertedRank) then
        if (present(status)) then
@@ -4695,13 +4730,13 @@ attributeValue=trim(attributeValue)
           return
        else
           message="dataset '"//datasetObject%objectName//"' has incorrect rank"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
        end if
     end if
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//datasetObject%locationReport()//{introspection:location})
     end if
 
     return
@@ -4746,7 +4781,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -4762,7 +4797,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D integer.
           call self%assertDatasetType(H5T_NATIVE_INTEGERS,1)
@@ -4777,7 +4812,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -4789,7 +4824,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4799,17 +4834,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -4825,46 +4860,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -4917,7 +4952,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -4933,7 +4968,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 2D integer.
           call self%assertDatasetType(H5T_NATIVE_INTEGERS,2)
@@ -4948,7 +4983,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -4960,7 +4995,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -4970,17 +5005,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -4996,46 +5031,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=2
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -5088,7 +5123,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -5104,7 +5139,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 3D integer.
           call self%assertDatasetType(H5T_NATIVE_INTEGERS,3)
@@ -5119,7 +5154,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -5131,7 +5166,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -5141,17 +5176,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -5167,46 +5202,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=3
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_INTEGER,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -5265,20 +5300,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -5294,18 +5329,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -5320,20 +5355,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -5345,7 +5380,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -5354,7 +5389,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -5368,7 +5403,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -5377,18 +5412,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -5396,28 +5431,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -5425,25 +5460,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -5451,14 +5486,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -5469,7 +5504,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -5477,14 +5512,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -5492,7 +5527,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -5507,7 +5542,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -5561,20 +5596,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -5590,18 +5625,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -5617,20 +5652,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -5642,7 +5677,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -5651,7 +5686,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -5664,7 +5699,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -5673,18 +5708,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -5692,28 +5727,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -5721,25 +5756,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -5747,14 +5782,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -5772,14 +5807,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -5787,7 +5822,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -5802,7 +5837,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -5857,20 +5892,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -5886,18 +5921,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -5912,20 +5947,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -5937,7 +5972,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -5946,7 +5981,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -5960,7 +5995,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -5969,18 +6004,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -5988,28 +6023,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -6017,25 +6052,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -6043,14 +6078,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -6061,7 +6096,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -6069,14 +6104,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -6084,7 +6119,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -6099,7 +6134,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -6153,20 +6188,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -6182,18 +6217,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -6209,20 +6244,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -6234,7 +6269,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -6243,7 +6278,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -6256,7 +6291,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -6265,18 +6300,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -6284,28 +6319,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -6313,25 +6348,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -6339,14 +6374,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -6364,14 +6399,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -6379,7 +6414,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -6394,7 +6429,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -6446,7 +6481,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -6462,7 +6497,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D long integer.
           call self%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
@@ -6477,7 +6512,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -6489,7 +6524,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -6499,17 +6534,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -6525,27 +6560,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
@@ -6555,7 +6590,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueContiguous)
 
@@ -6563,12 +6598,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -6624,7 +6659,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -6640,7 +6675,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 2D long integer.
           call self%assertDatasetType(H5T_NATIVE_INTEGER_8S,2)
@@ -6655,7 +6690,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -6667,7 +6702,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -6677,17 +6712,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -6703,27 +6738,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=2
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset
@@ -6733,7 +6768,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueContiguous)
 
@@ -6741,12 +6776,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -6802,7 +6837,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -6818,7 +6853,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 3D long integer.
           call self%assertDatasetType(H5T_NATIVE_INTEGER_8S,3)
@@ -6833,7 +6868,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -6845,7 +6880,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -6855,17 +6890,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -6881,27 +6916,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=3
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
@@ -6911,7 +6946,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueContiguous)
 
@@ -6919,12 +6954,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -6986,27 +7021,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -7020,18 +7055,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -7046,20 +7081,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -7071,7 +7106,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -7080,7 +7115,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -7094,7 +7129,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -7103,18 +7138,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -7122,21 +7157,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -7147,7 +7182,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -7156,28 +7191,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -7185,25 +7220,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -7211,21 +7246,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -7236,7 +7271,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -7245,14 +7280,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -7263,7 +7298,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -7272,7 +7307,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     datasetValue=datasetValueContiguous
     deallocate(datasetValueContiguous)
@@ -7281,7 +7316,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -7289,7 +7324,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -7304,7 +7339,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -7360,27 +7395,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -7394,18 +7429,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -7421,20 +7456,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -7446,7 +7481,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -7455,7 +7490,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -7468,7 +7503,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -7477,18 +7512,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -7496,21 +7531,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -7521,7 +7556,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -7530,28 +7565,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -7559,25 +7594,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -7585,21 +7620,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -7610,7 +7645,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -7619,14 +7654,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -7645,14 +7680,14 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -7660,7 +7695,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -7675,7 +7710,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -7733,27 +7768,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -7767,18 +7802,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -7794,20 +7829,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -7819,7 +7854,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -7828,7 +7863,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -7841,7 +7876,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -7850,18 +7885,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -7869,21 +7904,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -7896,7 +7931,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -7905,28 +7940,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -7934,25 +7969,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -7960,21 +7995,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
            ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -7987,7 +8022,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -7996,14 +8031,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -8014,7 +8049,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -8023,7 +8058,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     datasetValue=datasetValueContiguous
     deallocate(datasetValueContiguous)
@@ -8032,7 +8067,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -8040,7 +8075,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -8055,7 +8090,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -8112,27 +8147,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -8146,18 +8181,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -8173,20 +8208,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -8198,7 +8233,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -8207,7 +8242,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -8220,7 +8255,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -8229,18 +8264,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -8248,21 +8283,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -8275,7 +8310,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -8284,28 +8319,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -8313,25 +8348,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -8339,21 +8374,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
            ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -8366,7 +8401,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -8375,14 +8410,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -8401,14 +8436,14 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -8416,7 +8451,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -8431,7 +8466,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -8489,27 +8524,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -8523,18 +8558,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -8550,20 +8585,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -8575,7 +8610,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -8584,7 +8619,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -8597,7 +8632,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -8606,18 +8641,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -8625,21 +8660,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(3))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(3,size(readSelection)*datasetDimensions(1)*datasetDimensions(2)))
@@ -8654,7 +8689,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,3,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -8663,28 +8698,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(3,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -8692,25 +8727,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -8718,21 +8753,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(3))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
            ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(3,size(readSelection)*datasetDimensions(1)*datasetDimensions(2)))
@@ -8747,7 +8782,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,3,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -8756,14 +8791,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -8782,14 +8817,14 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -8797,7 +8832,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -8812,7 +8847,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -8860,7 +8895,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -8876,7 +8911,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D double.
           call self%assertDatasetType(H5T_NATIVE_DOUBLES,1)
@@ -8891,7 +8926,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -8903,7 +8938,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -8913,17 +8948,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -8939,46 +8974,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -9040,26 +9075,26 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -9073,18 +9108,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -9100,20 +9135,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -9125,7 +9160,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -9134,7 +9169,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -9147,7 +9182,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -9156,18 +9191,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -9175,21 +9210,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
                    ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -9200,7 +9235,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -9209,28 +9244,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -9238,25 +9273,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -9264,21 +9299,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -9289,7 +9324,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -9298,14 +9333,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -9316,7 +9351,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -9324,14 +9359,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -9339,7 +9374,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -9354,7 +9389,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -9411,33 +9446,33 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -9451,18 +9486,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -9478,20 +9513,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -9503,7 +9538,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -9512,7 +9547,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -9525,7 +9560,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -9534,18 +9569,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -9553,21 +9588,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -9578,7 +9613,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -9587,28 +9622,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -9616,25 +9651,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -9642,21 +9677,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -9667,7 +9702,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -9676,14 +9711,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -9702,14 +9737,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -9717,7 +9752,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -9732,7 +9767,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -9781,7 +9816,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -9797,7 +9832,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 2D double.
           call self%assertDatasetType(H5T_NATIVE_DOUBLES,2)
@@ -9812,7 +9847,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -9824,7 +9859,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -9834,17 +9869,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Determine the dimension for appending.
        appendDimensionActual=1
@@ -9854,7 +9889,7 @@ attributeValue=trim(attributeValue)
        newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
        if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
           message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Set the hyperslab.
        hyperslabStart                             =0
@@ -9872,46 +9907,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=2
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -9974,27 +10009,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -10008,18 +10043,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -10035,20 +10070,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -10060,7 +10095,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -10069,7 +10104,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -10082,7 +10117,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -10091,18 +10126,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -10110,21 +10145,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -10137,7 +10172,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -10146,28 +10181,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -10175,25 +10210,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -10201,21 +10236,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
            ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -10228,7 +10263,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -10237,14 +10272,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -10255,7 +10290,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -10263,14 +10298,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -10278,7 +10313,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -10293,7 +10328,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -10351,27 +10386,27 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -10385,18 +10420,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -10412,20 +10447,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -10437,7 +10472,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -10446,7 +10481,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -10459,7 +10494,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -10468,18 +10503,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -10487,21 +10522,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -10514,7 +10549,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -10523,28 +10558,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -10552,25 +10587,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -10578,21 +10613,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
            ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(2,size(readSelection)*datasetDimensions(1)))
@@ -10605,7 +10640,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -10614,14 +10649,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -10640,14 +10675,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -10655,7 +10690,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -10670,7 +10705,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -10719,7 +10754,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -10735,7 +10770,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 3D double.
           call self%assertDatasetType(H5T_NATIVE_DOUBLES,3)
@@ -10750,7 +10785,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -10762,7 +10797,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -10772,17 +10807,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Determine the dimension for appending.
        appendDimensionActual=1
@@ -10792,7 +10827,7 @@ attributeValue=trim(attributeValue)
        newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
        if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
           message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Set the hyperslab.
        hyperslabStart                             =0
@@ -10810,46 +10845,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=3
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -10908,20 +10943,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -10937,18 +10972,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -10964,20 +10999,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -10989,7 +11024,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -10998,7 +11033,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11011,7 +11046,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -11020,18 +11055,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -11039,28 +11074,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(3,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -11068,25 +11103,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -11094,14 +11129,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -11112,7 +11147,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -11120,14 +11155,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -11135,7 +11170,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11150,7 +11185,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -11204,20 +11239,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -11233,18 +11268,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -11260,20 +11295,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -11285,7 +11320,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -11294,7 +11329,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11307,7 +11342,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -11316,18 +11351,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -11335,28 +11370,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(3,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -11364,25 +11399,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -11390,14 +11425,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(3,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -11416,14 +11451,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -11431,7 +11466,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11446,7 +11481,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -11495,7 +11530,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -11511,7 +11546,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 4D double.
           call self%assertDatasetType(H5T_NATIVE_DOUBLES,4)
@@ -11526,7 +11561,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -11538,7 +11573,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11548,17 +11583,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Determine the dimension for appending.
        appendDimensionActual=1
@@ -11568,7 +11603,7 @@ attributeValue=trim(attributeValue)
        newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
        if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
           message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Set the hyperslab.
        hyperslabStart                             =0
@@ -11586,46 +11621,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=4
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -11684,20 +11719,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -11713,18 +11748,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -11740,20 +11775,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -11765,7 +11800,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -11774,7 +11809,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11787,7 +11822,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -11796,18 +11831,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -11815,28 +11850,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(4,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(4,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -11844,25 +11879,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -11870,14 +11905,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(4,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -11888,7 +11923,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -11896,14 +11931,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -11911,7 +11946,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -11926,7 +11961,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -11980,20 +12015,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -12009,18 +12044,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -12036,20 +12071,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -12061,7 +12096,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -12070,7 +12105,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12083,7 +12118,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -12092,18 +12127,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -12111,28 +12146,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(4,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(4,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -12140,25 +12175,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -12166,14 +12201,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(4,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -12192,14 +12227,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -12207,7 +12242,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12222,7 +12257,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -12271,7 +12306,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -12287,7 +12322,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 5D double.
           call self%assertDatasetType(H5T_NATIVE_DOUBLES,5)
@@ -12302,7 +12337,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -12314,7 +12349,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12324,17 +12359,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Determine the dimension for appending.
        appendDimensionActual=1
@@ -12344,7 +12379,7 @@ attributeValue=trim(attributeValue)
        newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
        if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
           message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Set the hyperslab.
        hyperslabStart                             =0
@@ -12362,46 +12397,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=5
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -12460,20 +12495,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -12489,18 +12524,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -12516,20 +12551,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -12541,7 +12576,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -12550,7 +12585,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12563,7 +12598,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -12572,18 +12607,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -12591,28 +12626,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(5,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(5,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -12620,25 +12655,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -12646,14 +12681,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(5,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -12664,7 +12699,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -12672,14 +12707,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -12687,7 +12722,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12702,7 +12737,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -12756,20 +12791,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -12784,18 +12819,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -12811,20 +12846,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -12836,7 +12871,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -12845,7 +12880,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12858,7 +12893,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -12867,18 +12902,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -12886,28 +12921,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(5,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(5,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -12915,25 +12950,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -12941,14 +12976,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(5,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -12967,14 +13002,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -12982,7 +13017,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -12997,7 +13032,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -13046,7 +13081,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -13062,7 +13097,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 6D double.
           call self%assertDatasetType(H5T_NATIVE_DOUBLES,6)
@@ -13077,7 +13112,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -13089,7 +13124,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -13099,17 +13134,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Determine the dimension for appending.
        appendDimensionActual=1
@@ -13119,7 +13154,7 @@ attributeValue=trim(attributeValue)
        newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
        if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
           message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Set the hyperslab.
        hyperslabStart                             =0
@@ -13137,46 +13172,46 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=6
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,H5T_NATIVE_DOUBLE,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -13235,20 +13270,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -13264,18 +13299,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -13291,20 +13326,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -13316,7 +13351,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -13325,7 +13360,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -13338,7 +13373,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -13347,18 +13382,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -13366,28 +13401,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(6,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(6,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -13395,25 +13430,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -13421,14 +13456,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(6,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -13439,7 +13474,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -13447,14 +13482,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -13462,7 +13497,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -13477,7 +13512,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -13531,20 +13566,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -13559,18 +13594,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -13586,20 +13621,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -13611,7 +13646,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -13620,7 +13655,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -13633,7 +13668,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -13642,18 +13677,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -13661,28 +13696,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(6,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(6,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -13690,25 +13725,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -13716,14 +13751,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(6,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -13742,14 +13777,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -13757,7 +13792,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -13772,7 +13807,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -13822,7 +13857,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -13837,12 +13872,12 @@ attributeValue=trim(attributeValue)
     call h5tcopy_f(H5T_NATIVE_CHARACTER,dataTypeID,errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype for attribute '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tset_size_f(dataTypeID,int(len(datasetValue),size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size for attribute '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is a dataset, or something else.
@@ -13850,7 +13885,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D character.
           call self%assertDatasetType([dataTypeID],1)
@@ -13865,7 +13900,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -13877,7 +13912,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -13887,17 +13922,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -13913,53 +13948,53 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
     call h5dwrite_f(datasetObject%objectID,dataTypeID,datasetValue,datasetDimensions,errorCode,newDataspaceID,dataspaceID)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspaces.
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -14041,20 +14076,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -14072,18 +14107,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -14099,20 +14134,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -14124,7 +14159,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
    else
        ! Mark as not reference.
@@ -14133,7 +14168,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -14146,7 +14181,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -14155,18 +14190,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -14174,28 +14209,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -14203,25 +14238,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -14229,14 +14264,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -14247,7 +14282,7 @@ attributeValue=trim(attributeValue)
     ! Ensure that the size of the array is large enough to hold the datasets.
     if (any(shape(datasetValue) < datasetDimensions)) then
        message="array is not large enough to hold datasets from '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Read the dataset.
@@ -14255,14 +14290,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -14270,7 +14305,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -14278,12 +14313,12 @@ attributeValue=trim(attributeValue)
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine how to close the object.
@@ -14297,7 +14332,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -14352,20 +14387,20 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -14383,18 +14418,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -14410,20 +14445,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -14435,7 +14470,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
    else
        ! Mark as not reference.
@@ -14444,7 +14479,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -14457,7 +14492,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -14466,18 +14501,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -14485,28 +14520,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -14514,25 +14549,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -14540,14 +14575,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -14565,14 +14600,14 @@ attributeValue=trim(attributeValue)
          &,memorySpaceID,datasetDataspaceID)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the dataspace.
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -14580,7 +14615,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -14588,12 +14623,12 @@ attributeValue=trim(attributeValue)
     call h5tclose_f(dataTypeID(1),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tclose_f(dataTypeID(2),errorCode)
     if (errorCode < 0) then
        message="unable to close custom datatype for attribute '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine how to close the object.
@@ -14607,7 +14642,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -14647,7 +14682,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -14660,18 +14695,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -14681,21 +14716,21 @@ attributeValue=trim(attributeValue)
     call h5dget_type_f(datasetObject%objectID,dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not get datatype for '"//trim(datasetNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Get the size of the datatype.
     call h5tget_size_f(dataTypeID,dataTypeSize,errorCode)
     if (errorCode /= 0) then
        message="can not get size of datatype for '"//trim(datasetNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not close datatype of '"//trim(datasetNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Call wrapper routine that will do the remainder of the read.
@@ -14761,7 +14796,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -14774,18 +14809,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetName)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -14795,21 +14830,21 @@ attributeValue=trim(attributeValue)
     call h5dget_type_f(datasetObject%objectID,dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not get datatype for '"//trim(datasetNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Get the size of the datatype.
     call h5tget_size_f(dataTypeID,dataTypeSize,errorCode)
     if (errorCode /= 0) then
        message="can not get size of datatype for '"//trim(datasetNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the datatype.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="can not close datatype of '"//trim(datasetNameActual)//"' located in '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Call wrapper routine that will do the remainder of the read.
@@ -14893,33 +14928,33 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -14933,18 +14968,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -14960,20 +14995,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -14985,7 +15020,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -14994,7 +15029,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -15007,7 +15042,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -15016,18 +15051,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -15035,21 +15070,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -15060,7 +15095,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -15069,28 +15104,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -15098,25 +15133,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -15124,21 +15159,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -15149,7 +15184,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -15158,14 +15193,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -15182,7 +15217,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     do i=1,datasetDimensions(1)
        call c_f_pointer(datasetValueC(i)%p,datasetValue(i)%row,shape=[datasetValueC(i)%length])
@@ -15193,7 +15228,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -15201,7 +15236,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -15216,7 +15251,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -15278,33 +15313,33 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -15318,18 +15353,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -15345,20 +15380,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -15370,7 +15405,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -15379,7 +15414,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -15392,7 +15427,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -15401,18 +15436,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -15420,21 +15455,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -15445,7 +15480,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -15454,28 +15489,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -15483,25 +15518,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -15509,21 +15544,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -15534,7 +15569,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -15543,14 +15578,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -15567,7 +15602,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_VLEN_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     do i=1,datasetDimensions(1)
        call c_f_pointer(datasetValueC1(i)%p,datasetValueC2,shape=[datasetValueC1%length])
@@ -15587,7 +15622,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -15595,7 +15630,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -15610,7 +15645,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -15669,33 +15704,33 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -15709,18 +15744,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -15736,20 +15771,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -15761,7 +15796,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -15770,7 +15805,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -15783,7 +15818,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -15792,18 +15827,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -15811,21 +15846,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -15836,7 +15871,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -15845,28 +15880,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -15874,25 +15909,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -15900,21 +15935,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -15925,7 +15960,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -15934,14 +15969,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -15958,7 +15993,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     do i=1,datasetDimensions(1)
        do j=1,datasetDimensions(2)
@@ -15971,7 +16006,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -15979,7 +16014,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -15994,7 +16029,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -16047,7 +16082,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -16063,7 +16098,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D vlen double.
           call self%assertDatasetType(H5T_VLEN_DOUBLE,1)
@@ -16078,7 +16113,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -16090,7 +16125,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -16100,17 +16135,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -16126,27 +16161,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
@@ -16159,7 +16194,7 @@ attributeValue=trim(attributeValue)
     errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueC)
 
@@ -16167,12 +16202,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -16231,7 +16266,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -16247,7 +16282,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D vlen-vlen double.
           call self%assertDatasetType(H5T_VLEN_VLEN_DOUBLE,1)
@@ -16262,7 +16297,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -16274,7 +16309,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -16284,17 +16319,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -16310,27 +16345,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
@@ -16349,7 +16384,7 @@ attributeValue=trim(attributeValue)
     errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueC1)
     deallocate(datasetValueC2)
@@ -16358,12 +16393,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -16421,7 +16456,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -16437,7 +16472,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D vlen double.
           call self%assertDatasetType(H5T_VLEN_DOUBLE,2)
@@ -16452,7 +16487,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -16464,7 +16499,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -16474,17 +16509,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -16500,27 +16535,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=2
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
@@ -16535,7 +16570,7 @@ attributeValue=trim(attributeValue)
     errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueC)
 
@@ -16543,12 +16578,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -16612,33 +16647,33 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(datasetNameActual)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
     ! Only one of a subsection and a selection can be present.
     if (readSubsection.and.present(readSelection)) then
        message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -16652,18 +16687,18 @@ attributeValue=trim(attributeValue)
        ! No name should be supplied in this case.
        if (present(datasetName)) then
           message="dataset name was supplied for dataset object '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Require that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="dataset name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Check that the dataset exists.
        if (.not.self%hasDataset(datasetName)) then
           message="dataset '"//trim(datasetName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
@@ -16679,20 +16714,20 @@ attributeValue=trim(attributeValue)
        errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Now dereference the pointer.
        call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
        if (errorCode < 0) then
           message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If the dataset object was opened internally, then close it.
        if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close pointer dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Store the ID of this dataset so that we can replace it later.
@@ -16704,7 +16739,7 @@ attributeValue=trim(attributeValue)
        call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! Mark as not reference.
@@ -16713,7 +16748,7 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -16726,7 +16761,7 @@ attributeValue=trim(attributeValue)
        call h5sget_select_bounds_f(datasetDataspaceID,referenceStart,referenceEnd,errorCode)
        if (errorCode < 0) then
           message="unable to get bounds of referenced region for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Compute the dimensions of the referenced region.
        datasetDimensions=referenceEnd-referenceStart+1
@@ -16735,18 +16770,18 @@ attributeValue=trim(attributeValue)
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,referenceStart-1+readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -16754,21 +16789,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -16779,7 +16814,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -16788,28 +16823,28 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
     else
@@ -16817,25 +16852,25 @@ attributeValue=trim(attributeValue)
        call h5sget_simple_extent_dims_f(datasetDataspaceID,datasetDimensions,datasetMaximumDimensions,errorCode)
        if (errorCode < 0) then
           message="unable to get dimensions of dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! If only a subsection is to be read, then select the appropriate hyperslab.
        if (readSubsection) then
           ! Check that subsection start values are legal.
           if (any(readBegin < 1 .or. readBegin > datasetDimensions)) then
              message="requested subsection begins outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Check that subsection extent is legal.
           if (any(readCount < 1 .or. readBegin+readCount-1 > datasetDimensions)) then
              message="requested subsection count is non-positive or outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab.
           call h5sselect_hyperslab_f(datasetDataspaceID,H5S_SELECT_SET_F,readBegin-1,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select filespace hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Set the size of the data to read in.
           datasetDimensions=readCount
@@ -16843,21 +16878,21 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
           ! A selection is to be read - create a suitable dataspace selection.
           ! Check that the selection is valid.
           if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
@@ -16868,7 +16903,7 @@ attributeValue=trim(attributeValue)
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
@@ -16877,14 +16912,14 @@ attributeValue=trim(attributeValue)
           call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else
           ! Set the default memory space ID.
@@ -16901,7 +16936,7 @@ attributeValue=trim(attributeValue)
     errorCode=h5dread(datasetObject%objectID,H5T_VLEN_INTEGER8(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     do i=1,datasetDimensions(1)
        call c_f_pointer(datasetValueC(i)%p,datasetValue(i)%row,shape=[datasetValueC(i)%length])
@@ -16912,7 +16947,7 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(datasetDataspaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataspace of dataset '"//datasetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Close the memory dataspace if necessary.
@@ -16920,7 +16955,7 @@ attributeValue=trim(attributeValue)
        call h5sclose_f(memorySpaceID,errorCode)
        if (errorCode /= 0) then
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -16935,7 +16970,7 @@ attributeValue=trim(attributeValue)
           call h5dclose_f(datasetObject%objectID,errorCode)
           if (errorCode < 0) then
              message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           ! Restore the object ID of the original dataset.
           self%objectID=storedDatasetID
@@ -16988,7 +17023,7 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Determine append status.
@@ -17004,7 +17039,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (.not.(self%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        else
           ! Check that the object is a 1D vlen integer8.
           call self%assertDatasetType(H5T_VLEN_INTEGER8,1)
@@ -17019,7 +17054,7 @@ attributeValue=trim(attributeValue)
        ! Check that an dataset name was supplied.
        if (.not.present(datasetName)) then
           message="no name was supplied for dataset in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
@@ -17031,7 +17066,7 @@ attributeValue=trim(attributeValue)
        ! If this dataset if not overwritable, report an error.
        if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
           message="dataset '"//trim(datasetName)//"' is not overwritable"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
@@ -17041,17 +17076,17 @@ attributeValue=trim(attributeValue)
        call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
        if (errorCode < 0) then
           message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        call h5sclose_f(dataspaceID,errorCode)
        if (errorCode < 0) then
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        hyperslabStart      =newDatasetDimensions
        hyperslabCount      =dataSetDimensions
@@ -17067,27 +17102,27 @@ attributeValue=trim(attributeValue)
        call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
        if (errorCode < 0) then
           message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Get the dataspace for the dataset.
     call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Select hyperslab to write.
     call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode < 0) then
        message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Create a dataspace for the data to be written.
     datasetRank=1
     call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Write the dataset.
@@ -17100,7 +17135,7 @@ attributeValue=trim(attributeValue)
     errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_INTEGER8(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(datasetValueC)
 
@@ -17108,12 +17143,12 @@ attributeValue=trim(attributeValue)
     call h5sclose_f(dataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5sclose_f(newDataspaceID,errorCode)
     if (errorCode < 0) then
        message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
     ! Copy the dataset to return if necessary.
@@ -17154,19 +17189,19 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read table '"//trim(tableName)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -17176,17 +17211,17 @@ attributeValue=trim(attributeValue)
        ! Check that the dataset exists.
        if (.not.self%hasDataset(tableName)) then
           message="table '"//trim(tableName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        message="attempt to read table from '"//self%objectName//"' which is neither a file or a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Get the table dimensions.
     call h5tbget_table_info_f(self%objectID,tableName,fieldCount,recordCount,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of table '"//tableName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Determine records to read.
     if (readSubsection) then
@@ -17204,12 +17239,12 @@ attributeValue=trim(attributeValue)
     call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
     if (errorCode /= 0) then
        message="unable to get real datatype size"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tbread_field_name_f(self%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode)
     if (errorCode /= 0) then
        message="unable to read table '"//trim(tableName)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end subroutine IO_HDF5_Read_Table_Real_1D_Array_Allocatable
@@ -17239,19 +17274,19 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read table '"//trim(tableName)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -17260,17 +17295,17 @@ attributeValue=trim(attributeValue)
        ! Check that the dataset exists.
        if (.not.self%hasDataset(tableName)) then
           message="table '"//trim(tableName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        message="attempt to read table from '"//self%objectName//"' which is neither a file or a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Get the table dimensions.
     call h5tbget_table_info_f(self%objectID,tableName,fieldCount,recordCount,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of table '"//tableName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Determine records to read.
     if (readSubsection) then
@@ -17287,12 +17322,12 @@ attributeValue=trim(attributeValue)
     call h5tget_size_f(H5T_NATIVE_REAL,recordTypeSize,errorCode)
     if (errorCode /= 0) then
        message="unable to get real datatype size"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5tbread_field_name_f(self%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode)
     if (errorCode /= 0) then
        message="unable to read table '"//trim(tableName)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end subroutine IO_HDF5_Read_Table_Integer_1D_Array_Allocatable
@@ -17324,19 +17359,19 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read table '"//trim(tableName)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -17345,17 +17380,17 @@ attributeValue=trim(attributeValue)
        ! Check that the dataset exists.
        if (.not.self%hasDataset(tableName)) then
           message="table '"//trim(tableName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        message="attempt to read table from '"//self%objectName//"' which is neither a file or a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Get the table dimensions.
     call h5tbget_table_info_f(self%objectID,tableName,fieldCount,recordCount,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of table '"//tableName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Determine records to read.
     if (readSubsection) then
@@ -17372,13 +17407,13 @@ attributeValue=trim(attributeValue)
     call h5tget_size_f(H5T_NATIVE_INTEGER_8,recordTypeSize,errorCode)
     if (errorCode /= 0) then
        message="unable to get long integer datatype size"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     dataValueC=c_loc(datasetValue)
     errorCode=H5TBread_fields_name(self%objectID,trim(tableName)//C_NULL_CHAR,trim(columnName)//C_NULL_CHAR,readBeginActual,readCountActual,recordTypeSize,[0_size_t],[8_size_t],dataValueC)
     if (errorCode /= 0) then
        message="unable to read table '"//trim(tableName)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end subroutine IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable
@@ -17409,19 +17444,19 @@ attributeValue=trim(attributeValue)
     ! Check that the object is already open.
     if (.not.self%isOpenValue) then
        message="attempt to read table '"//trim(tableName)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! If a subsection is to be read, we need both start and count values.
     if (present(readBegin)) then
        if (.not.present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.true.
     else
        if (present(readCount)) then
           message="reading a subsection of dataset '"//trim(tableName)//"' requires both readBegin and readCount to be specified"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        readSubsection=.false.
     end if
@@ -17430,17 +17465,17 @@ attributeValue=trim(attributeValue)
        ! Check that the dataset exists.
        if (.not.self%hasDataset(tableName)) then
           message="table '"//trim(tableName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        message="attempt to read table from '"//self%objectName//"' which is neither a file or a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Get the table dimensions.
     call h5tbget_table_info_f(self%objectID,tableName,fieldCount,recordCount,errorCode)
     if (errorCode < 0) then
        message="unable to get dimensions of table '"//tableName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Determine records to read.
     if (readSubsection) then
@@ -17458,7 +17493,7 @@ attributeValue=trim(attributeValue)
     call h5tbread_field_name_f(self%objectID,tableName,columnName,readBeginActual,readCountActual,recordTypeSize,datasetValue,errorCode)
     if (errorCode /= 0) then
        message="unable to read table '"//trim(tableName)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Convert to Fortran form.
     do i=1,size(datasetValue)
@@ -17502,32 +17537,32 @@ attributeValue=trim(attributeValue)
     ! Check that the group is already open.
     if (.not.fromGroup%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check that the dataset is already open.
     if (.not.toDataset%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the group really is a group.
     if (fromGroup%hdf5ObjectType /= hdf5ObjectTypeGroup) then
        message="attempt to write reference '"//trim(referenceName)//"' into object '"//fromGroup%objectName//"' which is not a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the dataset really is a dataset.
     if (toDataset%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="attempt to write reference '"//trim(referenceName)//"' to object '"//toDataset%objectName//"' which is not a dataset"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Get the dataspace of the dataset.
     call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
@@ -17536,7 +17571,7 @@ attributeValue=trim(attributeValue)
     call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode /= 0) then
        message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create a dataspace for the reference dataset.
@@ -17545,21 +17580,21 @@ attributeValue=trim(attributeValue)
     call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference dataset.
     call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference.
     call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Write the reference dataset.
@@ -17567,28 +17602,28 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the reference dataset dataspace.
     call h5sclose_f(dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset.
     call h5dclose_f(dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     return
@@ -17623,32 +17658,32 @@ attributeValue=trim(attributeValue)
     ! Check that the group is already open.
     if (.not.fromGroup%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check that the dataset is already open.
     if (.not.toDataset%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the group really is a group.
     if (fromGroup%hdf5ObjectType /= hdf5ObjectTypeGroup) then
        message="attempt to write reference '"//trim(referenceName)//"' into object '"//fromGroup%objectName//"' which is not a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the dataset really is a dataset.
     if (toDataset%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="attempt to write reference '"//trim(referenceName)//"' to object '"//toDataset%objectName//"' which is not a dataset"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Get the dataspace of the dataset.
     call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
@@ -17657,7 +17692,7 @@ attributeValue=trim(attributeValue)
     call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode /= 0) then
        message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create a dataspace for the reference dataset.
@@ -17666,21 +17701,21 @@ attributeValue=trim(attributeValue)
     call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference dataset.
     call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference.
     call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Write the reference dataset.
@@ -17688,28 +17723,28 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the reference dataset dataspace.
     call h5sclose_f(dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset.
     call h5dclose_f(dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     return
@@ -17744,32 +17779,32 @@ attributeValue=trim(attributeValue)
     ! Check that the group is already open.
     if (.not.fromGroup%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check that the dataset is already open.
     if (.not.toDataset%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the group really is a group.
     if (fromGroup%hdf5ObjectType /= hdf5ObjectTypeGroup) then
        message="attempt to write reference '"//trim(referenceName)//"' into object '"//fromGroup%objectName//"' which is not a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the dataset really is a dataset.
     if (toDataset%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="attempt to write reference '"//trim(referenceName)//"' to object '"//toDataset%objectName//"' which is not a dataset"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Get the dataspace of the dataset.
     call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
@@ -17778,7 +17813,7 @@ attributeValue=trim(attributeValue)
     call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode /= 0) then
        message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create a dataspace for the reference dataset.
@@ -17787,21 +17822,21 @@ attributeValue=trim(attributeValue)
     call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference dataset.
     call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference.
     call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Write the reference dataset.
@@ -17809,28 +17844,28 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the reference dataset dataspace.
     call h5sclose_f(dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset.
     call h5dclose_f(dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     return
@@ -17865,32 +17900,32 @@ attributeValue=trim(attributeValue)
     ! Check that the group is already open.
     if (.not.fromGroup%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check that the dataset is already open.
     if (.not.toDataset%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the group really is a group.
     if (fromGroup%hdf5ObjectType /= hdf5ObjectTypeGroup) then
        message="attempt to write reference '"//trim(referenceName)//"' into object '"//fromGroup%objectName//"' which is not a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the dataset really is a dataset.
     if (toDataset%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="attempt to write reference '"//trim(referenceName)//"' to object '"//toDataset%objectName//"' which is not a dataset"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Get the dataspace of the dataset.
     call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
@@ -17899,7 +17934,7 @@ attributeValue=trim(attributeValue)
     call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode /= 0) then
        message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create a dataspace for the reference dataset.
@@ -17908,21 +17943,21 @@ attributeValue=trim(attributeValue)
     call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference dataset.
     call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference.
     call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Write the reference dataset.
@@ -17930,28 +17965,28 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the reference dataset dataspace.
     call h5sclose_f(dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset.
     call h5dclose_f(dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     return
@@ -17986,32 +18021,32 @@ attributeValue=trim(attributeValue)
     ! Check that the group is already open.
     if (.not.fromGroup%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' in unopen group '"//fromGroup%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check that the dataset is already open.
     if (.not.toDataset%isOpenValue) then
        message="attempt to write reference '"//trim(referenceName)//"' to unopen dataset '"//toDataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the group really is a group.
     if (fromGroup%hdf5ObjectType /= hdf5ObjectTypeGroup) then
        message="attempt to write reference '"//trim(referenceName)//"' into object '"//fromGroup%objectName//"' which is not a group"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Check if the dataset really is a dataset.
     if (toDataset%hdf5ObjectType /= hdf5ObjectTypeDataset) then
        message="attempt to write reference '"//trim(referenceName)//"' to object '"//toDataset%objectName//"' which is not a dataset"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Get the dataspace of the dataset.
     call h5dget_space_f(toDataset%objectID,dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to get dataspace for dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Select a hyperslab from this dataspace. Subtract one from the start position since HDF5 uses indexing beginning at 0.
@@ -18020,7 +18055,7 @@ attributeValue=trim(attributeValue)
     call h5sselect_hyperslab_f(dataSubsetSpaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
     if (errorCode /= 0) then
        message="unable to get select hyperslab in dataspace of dataset '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create a dataspace for the reference dataset.
@@ -18029,21 +18064,21 @@ attributeValue=trim(attributeValue)
     call h5screate_simple_f(datasetRank,datasetDimensions,dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference dataset.
     call h5dcreate_f(fromGroup%objectID,trim(referenceName),H5T_STD_REF_DSETREG,dataSpaceID,dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Create the reference.
     call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
     if (errorCode /= 0) then
        message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Write the reference dataset.
@@ -18051,28 +18086,28 @@ attributeValue=trim(attributeValue)
     errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to close dataset dataspace for '"//trim(toDataset%objectName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the reference dataset dataspace.
     call h5sclose_f(dataSubsetSpaceID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataspace for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     ! Close the dataset.
     call h5dclose_f(dataSetID,errorCode)
     if (errorCode /= 0) then
        message="unable to reference dataset for '"//trim(referenceName)//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
     return
@@ -18095,28 +18130,28 @@ attributeValue=trim(attributeValue)
     ! Ensure that the dataset is open.
     if (.not.dataset%isOpenValue) then
        message="attempt to check if reference on unopen dataset '"//dataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//dataset%locationReport()//{introspection:location})
     end if
 
     ! Get the type of the object
     call h5dget_type_f(dataset%objectID,dataTypeID,errorCode)
     if (errorCode < 0) then
        message="unable to get data type for dataset '"//dataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//dataset%locationReport()//{introspection:location})
     end if
 
     ! Test the type.
     call h5tequal_f(dataTypeID,H5T_STD_REF_DSETREG,IO_HDF5_Is_Reference,errorCode)
     if (errorCode < 0) then
        message="unable to test data type for dataset '"//dataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//dataset%locationReport()//{introspection:location})
     end if
 
     ! Close the data type.
     call h5tclose_f(dataTypeID,errorCode)
     if (errorCode /= 0) then
        message="unable to close datatype of dataset '"//dataset%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//dataset%locationReport()//{introspection:location})
     end if
 
     return
@@ -18139,7 +18174,7 @@ attributeValue=trim(attributeValue)
     call h5ocopy_f(self%objectID,source,targetObject%objectID,source,errorCode)
     if (errorCode < 0) then
        message="unable to copy object '"//source//"' from '"//self%objectName//"' to '"//targetObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end subroutine IO_HDF5_Copy
@@ -18181,7 +18216,7 @@ attributeValue=trim(attributeValue)
     Make a deep copy of the object, with a new HDF5 object identifier.
     !!}
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char        , var_str, operator(//)
     implicit none
     class(hdf5Object) , intent(in   ) :: self
     type (hdf5Object) , intent(inout) :: destination
@@ -18218,7 +18253,7 @@ attributeValue=trim(attributeValue)
        case (hdf5ObjectTypeAttribute)
           destination               =self%parentObject%openAttribute(char(self%objectName)                                         ,     isOverwritable=self%isOverwritable            )
        case default
-          call Error_Report('unknown HDF5 object type'//{introspection:location})
+          call Error_Report(var_str('unknown HDF5 object type')//self%locationReport()//{introspection:location})
        end select
     end if
     return
