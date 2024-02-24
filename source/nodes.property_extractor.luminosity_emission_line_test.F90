@@ -187,7 +187,8 @@ contains
     call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized', self%ionizingLuminosityHydrogenNormalized )
     self%metallicityPopulationMinimum=minval(self%metallicities)
     self%metallicityPopulationMaximum=maxval(self%metallicities)
-    
+    self%agePopulationMaximum        =maxval(self%ages         )
+
     allocate(                                          &
          &   luminosities                           &
          &   (                                         &
