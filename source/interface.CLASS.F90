@@ -103,7 +103,7 @@ contains
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
        command='cd '//classPath//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
-       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^CCFLAG = "/"CCFLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
+       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
        command=command//' "/ Makefile.tmp; make -f Makefile.tmp -j1 class'
        call System_Command_Do(char(command),status);

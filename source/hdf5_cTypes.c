@@ -7,3 +7,8 @@ hid_t H5T_C_S1_Get(void)
 {
   return H5T_C_S1;
 }
+
+size_t H5T_Variable_Get(void)
+{
+  return H5T_VARIABLE;
+}

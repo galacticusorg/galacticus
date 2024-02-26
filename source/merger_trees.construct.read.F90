@@ -798,7 +798,7 @@ contains
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowBranchJumps.and..not.self%presetMergerTimes) then
        message=displayMagenta()//'WARNING:'//displayReset()//' allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
-       message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
+       message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jumps from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach "1" because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
        message=message//' ---           ---'//char(10)
        message=message//' |1|<==========|a|'//char(10)
        message=message//' ---           ---'//char(10)
@@ -813,6 +813,9 @@ contains
        message=message//' ---     ---   ---'//{introspection:location}//char(10)
        call Warn(message)
     end if
+    ! Disallow always promoting the most massive progenitor if subhalo promotions are not allowed.
+    if (self%alwaysPromoteMostMassive.and..not.self%allowSubhaloPromotions) &
+         & call Error_Report('[alwaysPromoteMostMassive]=true requires [allowSubhaloPromotions]=true - in order to always promote the most massive progenitor it must be allowed to promote subhalos'//{introspection:location})
     ! Perform sanity checks if subhalos are not included.
     if (self%mergerTreeImporter_%treesHaveSubhalos() == booleanFalse) then
        if (self%presetMergerTimes   ) call Error_Report('cannot preset merger times as no subhalos are present; try setting [presetMergerTimes]=false'      //{introspection:location})
@@ -1395,7 +1398,7 @@ contains
     !!{
     Create a sorted list of node indices with an index into the original array.
     !!}
-    use :: Error          , only : Warn
+    use :: Error                     , only : Warn
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
