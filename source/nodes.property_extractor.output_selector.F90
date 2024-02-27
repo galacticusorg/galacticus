@@ -82,20 +82,38 @@ contains
        <objectBuilder class="nodePropertyExtractor" name="extractor_%extractor_" source="parameters" copy="i" />
        !!]
     end do
-    allocate(self%redshifts(parameters%count('redshifts',zeroIfNotPresent=.true.)))
     !![
     <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
-    <inputParameter>
-     <name>redshifts</name>
-     <variable>self%redshifts</variable>
-     <description>A list of (space-separated) redshifts at which properties should be output.</description>
-     <source>parameters</source>
-    </inputParameter>
     !!]
-    allocate(self%times(size(self%redshifts)))
-    do i=1,size(self%redshifts)
-       self%times(i)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshifts(i)))
-    end do
+    if (parameters%isPresent('redshifts')) then
+       if (parameters%isPresent('times')) call Error_Report("only one of 'redshifts' and 'times' may be specified"//{introspection:location})
+       allocate(self%redshifts(parameters%count('redshifts')))
+       !![
+       <inputParameter>
+	 <name>redshifts</name>
+	 <variable>self%redshifts</variable>
+	 <description>A list of (space-separated) redshifts at which properties should be output.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+       allocate(self%times(size(self%redshifts)))
+       do i=1,size(self%redshifts)
+          self%times(i)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshifts(i)))
+       end do
+    else if (parameters%isPresent('times')) then
+       if (parameters%isPresent('redshifts')) call Error_Report("only one of 'redshifts' and 'times' may be specified"//{introspection:location})
+       allocate(self%times(parameters%count('times')))
+       !![
+       <inputParameter>
+	 <name>times</name>
+	 <variable>self%times</variable>
+	 <description>A list of (space-separated) times at which properties should be output.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    else
+       call Error_Report("either 'redshifts' or 'times' must be specified"//{introspection:location})
+    end if
     !![
     <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
     !!]
