@@ -45,6 +45,10 @@ on:
       install: # Specify packages to install
         required: false
         type: string
+      needsIRATE: # Set to 0/1 to indicate if the IRATE package should be installed
+        required: false
+        default: 0
+        type: string
 defaults:
   run:
     shell: bash
@@ -94,6 +98,23 @@ jobs:
         run: |
           apt -y update && apt -y upgrade
           apt -y install ${{ inputs.install }}
+      - name: Install IRATE
+        if: ${{ format('{0}',inputs.needsIRATE) == '1' }}
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python2-minimal python2-dev python-setuptools libhdf5-dev curl libntirpc-dev
+          curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+          python2 get-pip.py
+          pip2 install numpy h5py
+          pip2 install Cython --install-option="--no-cython-compile"
+          eval `ssh-agent -s`
+          ssh-add - <<< '${{ secrets.IRATE_DEPLOY_PRIVATE_KEY }}'
+          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git clone git@github.com:galacticusorg/irate-format.git
+          cd irate-format
+          # For some reason install fails on the first attempt - so try twice.
+          CFLAGS=-I/usr/include/ntirpc/ python2 setup.py install || true
+          CFLAGS=-I/usr/include/ntirpc/ python2 setup.py install
+          cd -
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
         run: |

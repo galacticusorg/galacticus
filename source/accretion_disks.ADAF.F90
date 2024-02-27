@@ -71,7 +71,7 @@
   <enumeration>
    <name>adafTable</name>
    <description>Enumeration of ADAF look-up tables.</description>
-   <visbility>private</visbility>
+   <visibility>private</visibility>
    <indexing>1</indexing>
    <entry label="powerJet"  />
    <entry label="rateSpinUp"/>

@@ -18,12 +18,31 @@ runs:
         echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
         echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
         echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp" >> $GITHUB_ENV
+        os_ver=$(sw_vers -productVersion)
+        IFS='.' read -r -a ver <<< "$os_ver"
+        echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
     - name: Install MacPorts
       shell: bash
       run: |
-        curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
-        sudo installer -pkg ./MacPorts-2.7.1-11-BigSur.pkg -target /
-        rm ./MacPorts-2.7.1-11-BigSur.pkg
+        if [[ "${OS_VER}" -eq 11 ]]; then
+           macportsversion=2.7.1
+           macportsbase=2.7.1-11-BigSur
+        elif [[ "${OS_VER}" -eq 12 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-12-Monterey
+        elif [[ "${OS_VER}" -eq 13 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-13-Ventura
+        elif [[ "${OS_VER}" -eq 14 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-14-Sonoma
+        else
+           echo Unknown MacOS version: ${os_ver}
+           exit 1
+        fi
+        curl -L https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
+        sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
+        rm ./MacPorts-${macportsbase}.pkg
     - name: Install guile
       shell: bash
       run: sudo port install guile18
@@ -105,12 +124,17 @@ runs:
         cd ann_1.1.2
         sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
         make macosx-g++
-        cp bin/* /usr/local/bin/.
-        cp lib/* /usr/local/lib/.
-        cp -R include/* /usr/local/include/.
+        sudo cp bin/* /usr/local/bin/.
+        sudo cp lib/* /usr/local/lib/.
+        sudo cp -R include/* /usr/local/include/.
     - name: Install IO::Socket::SSL
       shell: bash
       run: |
+        if [[ "${OS_VER}" -ge 14 ]]; then
+           # For OS version 14 and above install OpenSSL and specify the exact version to use.
+           sudo port install openssl11
+           export OPENSSL_PREFIX=/opt/local/libexec/openssl11
+        fi
         curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
         tar xvfz Net-SSLeay-1.90.tar.gz
         cd Net-SSLeay-1.90
@@ -146,11 +170,18 @@ runs:
         sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
         sudo perl -MCPAN -e 'force("install","Text::Table")'
         sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
-        sudo perl -MCPAN -e 'install Path::Tiny'
-        sudo perl -MCPAN -e 'install PkgConfig'
-        sudo perl -MCPAN -e 'install Alien::Base::Wrapper'
+        sudo perl -MCPAN -e 'force("install","Path::Tiny")'
+        sudo perl -MCPAN -e 'force("install","PkgConfig")'
+        sudo perl -MCPAN -e 'force("install","Alien::Base::Wrapper")'
         sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
-        sudo perl -MCPAN -e 'install XML::LibXML::SAX'
+        sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX")'
+        sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX::Parser")'
+        if [[ "${OS_VER}" -ge 12 ]]; then
+           # For OS versions 12 and above we need to ensure that the ParserDetails.ini is set up.
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()" 
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" 
+        fi
         sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
         sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
         sudo perl -MCPAN -e 'force("install","Text::Template")'
@@ -166,5 +197,5 @@ runs:
         sudo perl -MCPAN -e 'force("install","Clone")'
         sudo perl -MCPAN -e 'force("install","IO::Scalar")'
         sudo perl -MCPAN -e 'force("install","Regexp::Common")'
-        sudo perl -MCPAN -e 'install LaTeX::Encode'
-        sudo perl -MCPAN -e 'install Sub::Identify'
+        sudo perl -MCPAN -e 'force("install","LaTeX::Encode")'
+        sudo perl -MCPAN -e 'force("install","Sub::Identify")'
