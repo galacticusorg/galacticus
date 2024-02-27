@@ -21,9 +21,8 @@
   Implements a supernovae type Ia class based on \cite{nagashima_metal_2005}.
   !!}
 
-  use :: Stellar_Astrophysics                      , only : stellarAstrophysicsClass
-  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass
-  use :: Numerical_Integration                     , only : integrator
+  use :: Stellar_Astrophysics , only : stellarAstrophysicsClass
+  use :: Numerical_Integration, only : integrator
   
   !![
   <supernovaeTypeIa name="supernovaeTypeIaNagashima2005">
@@ -39,7 +38,6 @@
      !!}
      private
      class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
-     class           (initialMassFunctionClass), pointer                   :: initialMassFunction_ => null()
      type            (integrator              ), allocatable               :: integrator_
      double precision                                                      :: totalYield
      double precision                          , allocatable, dimension(:) :: elementYield
@@ -66,9 +64,9 @@
   end interface supernovaeTypeIaNagashima2005
 
   ! Sub-module-scope variables used in integration.
-  class           (supernovaeTypeIaNagashima2005), pointer :: self_
-  double precision                                         :: massSecondary
-  !$omp threadprivate(self_,massSecondary)
+  class           (initialMassFunctionClass), pointer :: initialMassFunction__
+  double precision                                    :: massSecondary
+  !$omp threadprivate(initialMassFunction__,massSecondary)
 
   ! Parameters of the distribution of binaries from Nagashima et al. (2005; MNRAS; 358; 1427; eqn. 17).
   double precision, parameter :: primaryMassMaximum=6.0d0
@@ -86,31 +84,27 @@ contains
     type (supernovaeTypeIaNagashima2005)                :: self
     type (inputParameters              ), intent(inout) :: parameters
     class(stellarAstrophysicsClass     ), pointer       :: stellarAstrophysics_
-    class(initialMassFunctionClass     ), pointer       :: initialMassFunction_
 
     !![
     <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
-    <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
     !!]
-    self=supernovaeTypeIaNagashima2005(stellarAstrophysics_,initialMassFunction_)
+    self=supernovaeTypeIaNagashima2005(stellarAstrophysics_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="stellarAstrophysics_"/>
-    <objectDestructor name="initialMassFunction_"/>
     !!]
     return
   end function nagashima2005ConstructorParameters
 
-  function nagashima2005ConstructorInternal(stellarAstrophysics_,initialMassFunction_) result(self)
+  function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     !!}
     implicit none
     type (supernovaeTypeIaNagashima2005)                        :: self
     class(stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
-    class(initialMassFunctionClass     ), intent(in   ), target :: initialMassFunction_
     !![
-    <constructorAssign variables="*stellarAstrophysics_, *initialMassFunction_"/>
+    <constructorAssign variables="*stellarAstrophysics_"/>
     !!]
 
     self%initialized=.false.
@@ -127,7 +121,6 @@ contains
 
     !![
     <objectDestructor name="self%stellarAstrophysics_"/>
-    <objectDestructor name="self%initialMassFunction_"/>
     !!]
     return
   end subroutine nagashima2005Destructor
@@ -198,7 +191,7 @@ contains
     return
   end subroutine nagashima2005MassInitialRange
   
-  double precision function nagashima2005Number(self,initialMass,age,metallicity)
+  double precision function nagashima2005Number(self,initialMassFunction_,initialMass,age,metallicity)
     !!{
     Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
     {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The
@@ -207,6 +200,7 @@ contains
     !!}
     implicit none
     class           (supernovaeTypeIaNagashima2005), intent(inout), target :: self
+    class           (initialMassFunctionClass     ), intent(inout), target :: initialMassFunction_
     double precision                               , intent(in   )         :: age                         , initialMass, &
          &                                                                    metallicity
     double precision                                                       :: massFractionSecondaryMinimum
@@ -216,13 +210,13 @@ contains
        ! The secondary has evolved off of the main sequence. Integrate over all possible secondary mass fractions, μ=m₂/m_b. The
        ! minimum secondary mass fraction is determined by the maximum possible primary mass (i.e. the maximum mass in the initial
        ! mass function).
-       self_                        => self
+       initialMassFunction__        => initialMassFunction_
        massSecondary                =  initialMass
-       massFractionSecondaryMinimum =  +1.0d0                                       &
-            &                          /(                                           &
-            &                            +1.0d0                                     &
-            &                            +self%initialMassFunction_%massMaximum  () &
-            &                            /                          massSecondary   &
+       massFractionSecondaryMinimum =  +1.0d0                                  &
+            &                          /(                                      &
+            &                            +1.0d0                                &
+            &                            +initialMassFunction_%massMaximum  () &
+            &                            /                     massSecondary   &
             &                           )
        nagashima2005Number          =  self%integrator_%integrate(massFractionSecondaryMinimum,0.5d0)       
     else
@@ -258,11 +252,11 @@ contains
        ! to our secondaries. As such, we must:
        !   1. divide the integrand given by Nagashima et al. (2005) by φ(m₂) (as it will later be multiplied by it), and;
        !   2. multiply the integrand by dm_b/dm₂ = 1/υ to convert from integration over m_b to integration over m₂.
-       integrand=+                           typeIaNormalization                             &
-            &    *self_%initialMassFunction_%phi                     (massBinary           ) &
-            &    /self_%initialMassFunction_%phi                     (massSecondary        ) &
-            &    *                           massFractionDistribution(massFractionSecondary) &
-            &    /                           massFractionSecondary
+       integrand=+                      typeIaNormalization                             &
+            &    *initialMassFunction__%phi                     (massBinary           ) &
+            &    /initialMassFunction__%phi                     (massSecondary        ) &
+            &    *                      massFractionDistribution(massFractionSecondary) &
+            &    /                      massFractionSecondary
     else
        integrand=0.0d0
     end if
@@ -285,7 +279,7 @@ contains
 
   end function nagashima2005NumberIntegrand
 
-  double precision function nagashima2005Yield(self,initialMass,age,metallicity,atomIndex)
+  double precision function nagashima2005Yield(self,initialMassFunction_,initialMass,age,metallicity,atomIndex)
     !!{
     Compute the cumulative yield from Type Ia supernovae originating per unit interval of secondary star mass with given
     {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The
@@ -295,7 +289,8 @@ contains
     !!}
     implicit none
     class           (supernovaeTypeIaNagashima2005), intent(inout)           :: self
-    double precision                               , intent(in   )           :: age        , initialMass, &
+    class           (initialMassFunctionClass     ), intent(inout)           :: initialMassFunction_
+    double precision                               , intent(in   )           :: age                 , initialMass, &
          &                                                                      metallicity
     integer                                        , intent(in   ), optional :: atomIndex
     double precision                                                         :: yield
@@ -308,6 +303,6 @@ contains
        ! No atomic index given, therefore return total metal yield.
        yield=self%totalYield
     end if
-    nagashima2005Yield=self%number(initialMass,age,metallicity)*yield
+    nagashima2005Yield=self%number(initialMassFunction_,initialMass,age,metallicity)*yield
     return
   end function nagashima2005Yield

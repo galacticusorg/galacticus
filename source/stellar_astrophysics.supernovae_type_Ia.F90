@@ -25,6 +25,7 @@ module Supernovae_Type_Ia
   !!{
   Implements a class for calculations of Type Ia supernovae.
   !!}
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass
   implicit none
   private
 
@@ -48,14 +49,16 @@ module Supernovae_Type_Ia
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout), target :: initialMassFunction_                  </argument>
+    <argument>double precision                          , intent(in   )         :: initialMass         , age, metallicity</argument>
    </method>
    <method name="yield" >
     <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   )           :: initialMass, age, metallicity</argument>
-    <argument>integer         , intent(in   ), optional :: atomIndex</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout)           :: initialMassFunction_                  </argument>
+    <argument>double precision                          , intent(in   )           :: initialMass         , age, metallicity</argument>
+    <argument>integer                                   , intent(in   ), optional :: atomIndex                             </argument>
    </method>
   </functionClass>
   !!]

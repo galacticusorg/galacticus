@@ -150,7 +150,7 @@ program Test_Initial_Mass_Functions
   call Unit_Tests_Begin_Group('Type Ia SNe')
   call Unit_Tests_Begin_Group('Nagashima et al. (2005)')
   stellarAstrophysics_          =stellarAstrophysicsFile      ('%DATASTATICPATH%/stellarAstrophysics/stellarPropertiesPortinariChiosiBressan1998.xml')
-  supernovaeTypeIaNagashima2005_=supernovaeTypeIaNagashima2005(stellarAstrophysics_,imfPiecewisePowerLaw)
+  supernovaeTypeIaNagashima2005_=supernovaeTypeIaNagashima2005(stellarAstrophysics_)
   call integrator_%toleranceSet(1.0d-6,1.0d-6)
   call integrator_%integrandSet(numberTypeIaSNeIntegrand)
   do i=1,size(ageTypeIa)
@@ -192,8 +192,8 @@ contains
     implicit none
     double precision, intent(in   ) :: massSecondary
 
-    numberTypeIaSNeIntegrand=+supernovaeTypeIaNagashima2005_%number(massSecondary,ageTypeIa(i),metallicitySolar)  &
-         &                   *imfPiecewisePowerLaw              %phi   (massSecondary                )
+    numberTypeIaSNeIntegrand=+supernovaeTypeIaNagashima2005_%number(imfPiecewisePowerLaw,massSecondary,ageTypeIa(i),metallicitySolar)  &
+         &                   *imfPiecewisePowerLaw          %phi   (                     massSecondary                              )
     return
   end function numberTypeIaSNeIntegrand
 

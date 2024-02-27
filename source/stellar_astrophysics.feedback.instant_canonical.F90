@@ -64,15 +64,17 @@ contains
     return
   end function instantCanonicalConstructorParameters
 
-  double precision function instantCanonicalEnergyInputCumulative(self,initialMass,age,metallicity)
+  double precision function instantCanonicalEnergyInputCumulative(self,initialMassFunction_,initialMass,age,metallicity)
     !!{
     Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     !!}
     implicit none
     class           (stellarFeedbackInstantCanonical), intent(inout), target :: self
-    double precision                                 , intent(in   )         :: age        , initialMass, &
+    class           (initialMassFunctionClass       ), intent(inout)         :: initialMassFunction_
+    double precision                                 , intent(in   )         :: age                 , initialMass, &
          &                                                                      metallicity
-
+    !$GLC attributes unused :: self, initialMassFunction_, initialMass, age, metallicity
+    
     instantCanonicalEnergyInputCumulative=feedbackEnergyInputAtInfinityCanonical
     return
   end function instantCanonicalEnergyInputCumulative
