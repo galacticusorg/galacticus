@@ -92,13 +92,20 @@ contains
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an SIDMIsothermal kinematic distribution.
     !!}
+    use :: ISO_Varying_String, only : char
     implicit none
     class(kinematicsDistributionSIDMIsothermal), intent(inout) :: self
     class(coordinate                          ), intent(in   ) :: coordinates
     class(massDistributionClass               ), intent(inout) :: massDistributionEmbedding
 
     select type (massDistributionEmbedding)
-    class is (massDistributionSphericalSIDMIsothermal)
+    class is (massDistributionSphericalSIDMIsothermal       )
+       if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
+          velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       else
+          velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
+       end if
+    class is (massDistributionSphericalSIDMIsothermalBaryons)
        if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
           velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
        else
@@ -106,7 +113,7 @@ contains
        end if
     class default
        velocityDispersion=0.0d0
-       call Error_Report('expecting an SIDMIsothermal mass distribution'//{introspection:location})
+       call Error_Report('expecting an SIDMIsothermal mass distribution but found type "'//char(massDistributionEmbedding%objectType())//'"'//{introspection:location})
     end select
     return
   end function sidmIsothermalVelocityDispersion1D
