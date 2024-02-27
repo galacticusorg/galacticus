@@ -119,7 +119,8 @@
        \end{verbatim}
       The `power` dataset should tabulate the transferred power spectrum as a function of $(k,z)$ where $k$ is wavenumber and $z$
       is redshift.
-   </description>
+    </description>
+    <runTimeFileDependencies paths="fileName"/>
   </powerSpectrumPrimordialTransferred>
   !!]
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredFile

@@ -27,6 +27,7 @@ Contains a module which implements an N-body data importer for Gadget binary fil
   !![
   <nbodyImporter name="nbodyImporterGadgetBinary">
    <description>An importer for Gadget binary files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetBinary

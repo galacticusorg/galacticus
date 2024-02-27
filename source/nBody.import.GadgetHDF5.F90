@@ -27,6 +27,7 @@ Contains a module which implements an N-body data importer for Gadget HDF5 files
   !![
   <nbodyImporter name="nbodyImporterGadgetHDF5">
    <description>An importer for Gadget HDF5 files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetHDF5

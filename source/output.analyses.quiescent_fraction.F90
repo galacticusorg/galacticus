@@ -29,6 +29,7 @@
   !![
   <outputAnalysis name="outputAnalysisQuiescentFraction">
    <description>A quiescent fraction output analysis class.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisQuiescentFraction

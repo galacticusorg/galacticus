@@ -148,11 +148,11 @@ contains
     !!]
 
     self%initialized=.false.
-    self%fileName   =inputPath(pathTypeDataDynamic)                   // &
-         &           'intergalacticMedium/'                           // &
-         &           self%objectType      (                          )// &
-         &           '_'                                              // &
-         &           self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName   =inputPath(pathTypeDataDynamic)                                                       // &
+         &           'intergalacticMedium/'                                                               // &
+         &           self%objectType      (                                                              )// &
+         &           '_'                                                                                  // &
+         &           self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &           '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     return

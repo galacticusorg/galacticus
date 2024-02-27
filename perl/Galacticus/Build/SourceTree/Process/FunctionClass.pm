@@ -190,11 +190,18 @@ sub Process_FunctionClass {
 	    my $descriptorCode;
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
 	    my %addSubParameters;
-	    my $addLabel         = 0;
-	    my $rankMaximum      = 0;
-	    my $descriptorUsed   = 0;
+	    my $addLabel                  = 0;
+	    my $rankMaximum               = 0;
+	    my $descriptorUsed            = 0;
+	    my $fileModificationCodeAdded = 0;
 	    my $descriptorLinkedListVariables;
 	    @{$descriptorLinkedListVariables} = ();
+	    $descriptorCode .= "logical :: includeFileModificationTimes_\n";
+	    $descriptorCode .= "if (present(includeFileModificationTimes)) then\n";
+	    $descriptorCode .= " includeFileModificationTimes_=includeFileModificationTimes\n";
+	    $descriptorCode .= "else\n";
+	    $descriptorCode .= " includeFileModificationTimes_=.false.\n";
+	    $descriptorCode .= "end if\n";
 	    $descriptorCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
@@ -625,7 +632,7 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters)\n";
+				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters,includeClass,includeFileModificationTimes)\n";
 				}
 			    }
 			    # Handle linked lists.
@@ -637,7 +644,7 @@ sub Process_FunctionClass {
 			}
 			# If the parent constructor was used, call its descriptor method.
 			if ( $parentConstructorUsed ) {
-			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
+			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.,includeFileModificationTimes=includeFileModificationTimes)\n";
 			}
 		    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
 			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."': parameter-based constructor not found");
@@ -645,6 +652,41 @@ sub Process_FunctionClass {
 			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."' because:\n   ".join("\n   ",@failureMessage));
 		    }
 		}
+		# Add run-time file dependency modification times if needed.
+		{
+		    $code::type = $nonAbstractClass->{'name'};
+		    my $class = $nonAbstractClass;
+		    while ( $class ) {
+			if ( exists($class->{'runTimeFileDependencies'}) ) {
+			    unless ( $fileModificationCodeAdded ) {
+				$descriptorCode                      = "integer :: status\ncharacter(len=30) :: timeModification\ninteger :: countRunTimeFileDependency=0\ntype(varying_string) :: fileDependencyParameterName\n".$descriptorCode;
+				$descriptorModules{'File_Utilities' } = 1;
+				$descriptorModules{'String_Handling'} = 1;
+				$descriptorModules{'Error'          } = 1;
+				$fileModificationCodeAdded            = 1;
+			    }
+			    $descriptorCode .= "if (includeFileModificationTimes_) then\n";
+			    my @paths = split(" ",$class->{'runTimeFileDependencies'}->{'paths'});
+			    foreach $code::path ( @paths ) {
+				$code::introspection = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
+				$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+timeModification=File_Modification_Time(self%{$path},status)
+if (status == errorStatusSuccess) then
+ countRunTimeFileDependency=countRunTimeFileDependency+1
+ fileDependencyParameterName=var_str("runTimeFileDependency")//countRunTimeFileDependency
+ call descriptor%addParameter(char(fileDependencyParameterName),char(self%{$path}//": "//trim(timeModification)))
+else if (status /= errorStatusNotExist) then
+ call Error_Report('unable to get file modification time'//{$introspection})
+end if
+CODE
+			    }
+			    $descriptorCode .= "end if\n";
+			}
+			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		    }
+
+		}
+		# Call any special descriptor function.
 		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
 		    if ( exists($nonAbstractClass->{'descriptorSpecial'}) );
 	    }
@@ -670,7 +712,7 @@ sub Process_FunctionClass {
 		type        => "void",
 		pass        => "yes",
 		modules     => join(" ",keys(%descriptorModules)),
-		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass" ],
+		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass, includeFileModificationTimes" ],
 		code        => $descriptorCode
 	    };
 	    # Add a "hashedDescriptor" method.
@@ -691,7 +733,7 @@ type   (varying_string )       :: descriptorString
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
 call setLiveNodeLists(descriptor%document,.false.)
-call self%descriptor(descriptor)
+call self%descriptor(descriptor,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
 descriptorString=descriptor%serializeToString()
 call descriptor%destroy()
 if (present(includeSourceDigest)) then
@@ -740,7 +782,7 @@ CODE
 		type        => "type(varying_string)",
 		pass        => "yes",
 		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
-		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
+		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes" ],
 		code        => $hashedDescriptorCode
 	    };
 	    # Add a "objectType" method.

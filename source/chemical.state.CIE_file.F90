@@ -138,6 +138,7 @@
     and electron density. Otherwise, interpolation is linear in these quantities. The
     electron density is scaled assuming a linear dependence on hydrogen density.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </chemicalState>
   !!]
   type, extends(chemicalStateClass) :: chemicalStateCIEFile

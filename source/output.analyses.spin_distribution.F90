@@ -26,6 +26,7 @@
   !![
   <outputAnalysis name="outputAnalysisSpinDistribution">
    <description>A stellar mass function output analysis class.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisSpinDistribution

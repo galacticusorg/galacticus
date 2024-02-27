@@ -379,7 +379,7 @@ contains
     if (self%fileNameInitialized) return
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") &
-         & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+         & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
     ! Expand file name.
     self%fileName=File_Name_Expand(char(self%fileName))
     ! Ensure directory exists.

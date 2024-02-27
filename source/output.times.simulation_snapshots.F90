@@ -20,6 +20,7 @@
   !![
   <outputTimes name="outputTimesSimulationSnapshots">
    <description>An output times class which matches output times to snapshot times of a simulation.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesSimulationSnapshots
