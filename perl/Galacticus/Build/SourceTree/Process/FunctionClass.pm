@@ -632,7 +632,8 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters,includeClass,includeFileModificationTimes)\n";
+                                    # Always include the class for composited objects - this ensures that the object is actually created.
+				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)\n";
 				}
 			    }
 			    # Handle linked lists.
