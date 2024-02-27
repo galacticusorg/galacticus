@@ -660,13 +660,13 @@ sub Process_FunctionClass {
 		    while ( $class ) {
 			if ( exists($class->{'runTimeFileDependencies'}) ) {
 			    unless ( $fileModificationCodeAdded ) {
-				$descriptorCode                      = "integer :: status\ncharacter(len=30) :: timeModification\ninteger :: countRunTimeFileDependency=0\ntype(varying_string) :: fileDependencyParameterName\n".$descriptorCode;
+				$descriptorCode                      = "integer :: status\ncharacter(len=30) :: timeModification\ninteger :: countRunTimeFileDependency\ntype(varying_string) :: fileDependencyParameterName\n".$descriptorCode;
 				$descriptorModules{'File_Utilities' } = 1;
 				$descriptorModules{'String_Handling'} = 1;
 				$descriptorModules{'Error'          } = 1;
 				$fileModificationCodeAdded            = 1;
 			    }
-			    $descriptorCode .= "if (includeFileModificationTimes_) then\n";
+			    $descriptorCode .= "if (includeFileModificationTimes_) then\ncountRunTimeFileDependency=0\n";
 			    my @paths = split(" ",$class->{'runTimeFileDependencies'}->{'paths'});
 			    foreach $code::path ( @paths ) {
 				$code::introspection = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
@@ -685,7 +685,6 @@ CODE
 			}
 			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		    }
-
 		}
 		# Call any special descriptor function.
 		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
