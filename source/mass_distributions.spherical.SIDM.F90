@@ -63,6 +63,7 @@ contains
     use :: Numerical_Constants_Prefixes    , only : centi                                      , kilo
     use :: Numerical_Constants_Astronomical, only : megaParsec                                 , massSolar
     use :: Root_Finder                     , only : rootFinder                                 , rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: ISO_Varying_String              , only : char
     implicit none
     class           (massDistributionSphericalSIDM), intent(inout), target :: self
     type            (rootFinder                   ), save                  :: finder
@@ -79,7 +80,7 @@ contains
             &        *kilo                                              &
             &        *massSolar
     class default
-       call Error_Report('expected self-interacting dark matter particle'//{introspection:location})
+       call Error_Report('expected self-interacting dark matter particle but found type "'//char(darkMatterParticle_%objectType())//'"'//{introspection:location})
     end select
     if (.not.finderInitialized) then
        finder=rootFinder(                                             &
