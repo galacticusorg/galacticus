@@ -731,19 +731,40 @@ contains
     time} in a spherical mass distribution using a numerical
     calculation.
     !!}
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder                     , only : rangeExpandMultiplicative      , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
+    use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
+    class           (massDistributionSpherical   ), intent(inout), target   :: self
     double precision                              , intent(in   )           :: time
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                              , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                              , parameter               :: toleranceAbsolute  =0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder                  )                          :: finder
+    type            (coordinateSpherical         )                          :: coordinates
+    double precision                                                        :: timeFreefallMinimum
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
+    radius=0.0d0
+    if (.not.self%matches(componentType,massType)) return
+    coordinates=[0.0d0,0.0d0,0.0d0]
+    if (self%densityGradientRadial(coordinates,logarithmic=.true.) == 0.0d0) then
+       ! For mass distributions with a constant density core, the potential in the center is harmonic. This means there is a
+       ! minimum to the freefall time as a function of radius. Compute that minimum here so that we can return a zero radius for
+       ! times less than this.
+       timeFreefallMinimum=+sqrt(                                 &
+            &                    + 3.0d0                          &
+            &                    /16.0d0                          &
+            &                    *Pi                              &
+            &                    /gravitationalConstantGalacticus &
+            &                    /self%density(coordinates)       &
+            &                   )                                 &
+            &              *Mpc_per_km_per_s_To_Gyr
+    else
+       timeFreefallMinimum=+0.0d0
+    end if   
+    if (time < timeFreefallMinimum) return
+    self_  => self
     time_  =  time
     finder =  rootFinder(                                                             &
          &               rootFunction                 =rootRadiusFreefall           , &
