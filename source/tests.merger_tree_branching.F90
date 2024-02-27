@@ -353,8 +353,7 @@ program Tests_Merger_Tree_Branching
      call Assert('Smooth accretion rate'     ,smoothAccretionRate     ,smoothAccretionRateTargetGeneral     ,relTol=2.5d-2)
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_End_Group  (                                             )
-     call Unit_Tests_Begin_Group("First crossing distribution (numerical)"              )
-     write (400,*) "variance , uncon_num, con_num, uncon_alytc, con_alytc"
+     call Unit_Tests_Begin_Group("First crossing distribution (numerical)"    )
      varianceParent    =cosmologicalMassVarianceFilteredPower_%rootVariance(massParent    ,time)**2
      varianceResolution=cosmologicalMassVarianceFilteredPower_%rootVariance(massResolution,time)**2
      do j=1,countVariance
@@ -369,7 +368,6 @@ program Tests_Merger_Tree_Branching
         branchingRateUnconstrainedNumerical(j)=excursionSetFirstCrossingFarahiMidpoint_              %rate(varianceParent,variance_(j),time,node)
         branchingRateConstrainedNumerical  (j)=excursionSetFirstCrossingFarahiMidpointBrownianBridge_%rate(varianceParent,variance_(j),time,node)
         branchingRateConstrainedAnalytic   (j)=excursionSetFirstCrossingLinearBarrierBrownianBridge_ %rate(varianceParent,variance_(j),time,node)
-        write (400,*) variance_(j),",",branchingRateUnconstrainedNumerical(j),",",branchingRateConstrainedNumerical(j),",",branchingRateUnconstrainedAnalytic(j),",",branchingRateConstrainedAnalytic(j)
      end do
      errorMaximumUnconstrained=maxval(                                                                                                                                         &
           &                                abs(branchingRateUnconstrainedNumerical-branchingRateUnconstrainedAnalytic)/branchingRateUnconstrainedAnalytic                      &
