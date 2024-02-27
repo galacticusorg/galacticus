@@ -257,7 +257,7 @@ contains
 
   double precision function sphericalTruncatedExponentialMassTotal(self,componentType,massType) result(mass)
     !!{
-    Return the total mass in a trunacted mass distribution.
+    Return the total mass in a truncated mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalTruncatedExponential), intent(inout)           :: self
