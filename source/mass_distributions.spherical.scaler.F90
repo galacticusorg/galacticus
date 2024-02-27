@@ -41,21 +41,29 @@
      class           (massDistributionSpherical), pointer :: massDistribution_   => null()
      double precision                                     :: factorScalingLength          , factorScalingMass
    contains
-     final     ::                            sphericalScalerDestructor
-     procedure :: massTotal               => sphericalScalerMassTotal
-     procedure :: density                 => sphericalScalerDensity
-     procedure :: densitySphericalAverage => sphericalScalerDensitySphericalAverage
-     procedure :: densityGradientRadial   => sphericalScalerDensityGradientRadial
-     procedure :: densityRadialMoment     => sphericalScalerDensityRadialMoment
-     procedure :: massEnclosedBySphere    => sphericalScalerMassEnclosedBySphere
-     procedure :: rotationCurve           => sphericalScalerRotationCurve
-     procedure :: rotationCurveGradient   => sphericalScalerRotationCurveGradient
-     procedure :: potential               => sphericalScalerPotential
-     procedure :: radiusHalfMass          => sphericalScalerRadiusHalfMass
-     procedure :: tidalTensor             => sphericalScalerTidalTensor
-     procedure :: acceleration            => sphericalScalerAcceleration
-     procedure :: positionSample          => sphericalScalerPositionSample
-     procedure :: isDimensionless         => sphericalScalerIsDimensionless
+     final     ::                                      sphericalScalerDestructor
+     procedure :: massTotal                         => sphericalScalerMassTotal
+     procedure :: density                           => sphericalScalerDensity
+     procedure :: densityGradientRadial             => sphericalScalerDensityGradientRadial
+     procedure :: densityRadialMoment               => sphericalScalerDensityRadialMoment
+     procedure :: massEnclosedBySphere              => sphericalScalerMassEnclosedBySphere
+     procedure :: velocityRotationCurveMaximum      => sphericalScalerVelocityRotationCurveMaximum
+     procedure :: radiusRotationCurveMaximum        => sphericalScalerRadiusRotationCurveMaximum
+     procedure :: radiusEnclosingMass               => sphericalScalerRadiusEnclosingMass
+     procedure :: radiusEnclosingDensity            => sphericalScalerRadiusEnclosingDensity
+     procedure :: radiusFromSpecificAngularMomentum => sphericalScalerRadiusFromSpecificAngularMomentum
+     procedure :: fourierTransform                  => sphericalScalerFourierTransform
+     procedure :: radiusFreefall                    => sphericalScalerRadiusFreefall
+     procedure :: radiusFreefallIncreaseRate        => sphericalScalerRadiusFreefallIncreaseRate
+     procedure :: energyPotential                   => sphericalScalerEnergyPotential
+     procedure :: densitySphericalAverage           => sphericalScalerDensitySphericalAverage
+     procedure :: rotationCurve                     => sphericalScalerRotationCurve
+     procedure :: rotationCurveGradient             => sphericalScalerRotationCurveGradient
+     procedure :: potential                         => sphericalScalerPotential
+     procedure :: radiusHalfMass                    => sphericalScalerRadiusHalfMass
+     procedure :: tidalTensor                       => sphericalScalerTidalTensor
+     procedure :: acceleration                      => sphericalScalerAcceleration
+     procedure :: positionSample                    => sphericalScalerPositionSample
   end type massDistributionSphericalScaler
 
   interface massDistributionSphericalScaler
@@ -121,6 +129,7 @@ contains
  
     self%componentType=self%massDistribution_%componentType
     self%     massType=self%massDistribution_%     massType
+    self%dimensionless=.false.
     return
   end function sphericalScalerConstructorInternal
 
@@ -136,17 +145,6 @@ contains
     !!]
     return
   end subroutine sphericalScalerDestructor
-
-  logical function sphericalScalerIsDimensionless(self)
-    !!{
-    Return the dimensional status.
-    !!}
-    implicit none
-    class(massDistributionSphericalScaler), intent(inout) :: self
-
-    sphericalScalerIsDimensionless=.false.
-    return
-  end function sphericalScalerIsDimensionless
 
   double precision function sphericalScalerMassTotal(self,componentType,massType)
     !!{
@@ -456,3 +454,187 @@ contains
          &                        *self                  %factorScalingLength
     return
   end function sphericalScalerPositionSample
+
+  double precision function sphericalScalerFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+    !!{
+    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical, scaled mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: radiusOuter  , wavenumber
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    fourierTransform=self%massDistribution_%fourierTransform(radiusOuter/self%factorScalingLength,wavenumber*self%factorScalingLength,componentType,massType)
+    return
+  end function sphericalScalerFourierTransform
+
+  double precision function sphericalScalerRadiusFreefall(self,time,componentType,massType) result(radius)
+    !!{
+    Compute the freefall radius at the given {\normalfont \ttfamily time} in a spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: time
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    
+    radius=+self%massDistribution_%radiusFreefall(                                    &
+         &                                        +time                               &
+         &                                        *sqrt(                              &
+         &                                              +self%factorScalingMass       &
+         &                                              /self%factorScalingLength**3  &
+         &                                             )                            , &
+         &                                        componentType                     , &
+         &                                        massType                            &
+         &                                       )                                    &
+         & *                                       self%factorScalingLength
+    return
+  end function sphericalScalerRadiusFreefall
+  
+  double precision function sphericalScalerRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+    !!{
+    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
+    distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout)           :: self
+    double precision                                 , intent(in   )           :: time
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    radiusIncreaseRate=+self%massDistribution_%radiusFreefallIncreaseRate(                                    &
+         &                                                                +time                               &
+         &                                                                *sqrt(                              &
+         &                                                                      +self%factorScalingMass       &
+         &                                                                      /self%factorScalingLength**3  &
+         &                                                                     )                            , &
+         &                                                                componentType                     , &
+         &                                                                massType                            &
+         &                                                               )                                    &
+         &             *                                                   sqrt(                              &
+         &                                                                      +self%factorScalingLength**5  &
+         &                                                                      /self%factorScalingMass       &
+         &                                                                     )
+    return
+  end function sphericalScalerRadiusFreefallIncreaseRate
+
+  double precision function sphericalScalerEnergyPotential(self,radiusOuter) result(energy)
+    !!{
+    Compute the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout) :: self
+    double precision                                 , intent(in   ) :: radiusOuter
+
+    energy =+self%massDistribution_%energyPotential(radiusOuter/self%factorScalingLength   ) &
+         &  *                                                   self%factorScalingMass  **2  &
+         &  /                                                   self%factorScalingLength
+    return
+  end function sphericalScalerEnergyPotential
+
+  double precision function sphericalScalerVelocityRotationCurveMaximum(self,componentType,massType) result(velocity)
+    !!{
+    Return the peak velocity in the rotation curve for an spherical scaled mass distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout)           :: self
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    velocity=+self%massDistribution_%velocityRotationCurveMaximum(componentType,massType) &
+         &   *sqrt(                                                                       &
+         &         +self%factorScalingMass                                                &
+         &         /self%factorScalingLength                                              &
+         &        )
+    return
+  end function sphericalScalerVelocityRotationCurveMaximum
+
+  double precision function sphericalScalerRadiusRotationCurveMaximum(self,componentType,massType) result(radius)
+    !!{
+    Return the peak velocity in the rotation curve for an spherical scaled mass distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout), target   :: self
+    type (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    radius=+self%massDistribution_%radiusRotationCurveMaximum(componentType,massType) &
+         & *self%factorScalingLength
+    return
+  end function sphericalScalerRadiusRotationCurveMaximum
+
+  double precision function sphericalScalerRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+    !!{
+    Computes the radius enclosing a given mass or mass fraction for spherical scaled mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout), target   :: self
+    double precision                                 , intent(in   ), optional :: mass         , massFractional
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    if (present(massFractional)) then
+       radius=+self%massDistribution_%radiusEnclosingMass(                                  &
+            &                                             massFractional=massFractional   , &
+            &                                             componentType=componentType     , &
+            &                                             massType=massType                 &
+            &                                            )
+    else if (present(mass)) then
+       radius=+self%massDistribution_%radiusEnclosingMass(                                  &
+            &                                             mass=mass*self%factorScalingMass, &
+            &                                             componentType=componentType     , &
+            &                                             massType=massType                 &
+            &                                            )
+    else
+       radius=+0.0d0
+       call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
+    end if
+    radius=+radius                   &
+         & *self%factorScalingLength
+    return
+  end function sphericalScalerRadiusEnclosingMass
+  
+  double precision function sphericalScalerRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+    !!{
+    Computes the radius enclosing a given mean density for spherical scaled mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: density
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    radius=+self%massDistribution_%radiusEnclosingDensity(                              &
+         &                                                +density                      &
+         &                                                *self%factorScalingLength**3  &
+         &                                                /self%factorScalingMass     , &
+         &                                                componentType               , &
+         &                                                massType                      &
+         &                                               )                              &
+         & *                                               self%factorScalingLength
+    return
+  end function sphericalScalerRadiusEnclosingDensity
+
+  double precision function sphericalScalerRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+    !!{
+    Computes the radius corresponding to a given specific angular momentum for sphericalScaler mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: angularMomentumSpecific
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    
+    radius=+self%massDistribution_%radiusFromSpecificAngularMomentum(                                 &
+         &                                                           +angularMomentumSpecific         &
+         &                                                           /sqrt(                           &
+         &                                                                 +self%factorScalingMass    &
+         &                                                                 *self%factorScalingLength  &
+         &                                                           )                              , &
+         &                                                           componentType                  , &
+         &                                                           massType                         &
+         &                                                          )                                 &
+         & *                                                                self%factorScalingLength
+    return
+  end function sphericalScalerRadiusFromSpecificAngularMomentum
