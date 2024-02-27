@@ -276,6 +276,7 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionNFW         ), intent(inout), target   :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
@@ -291,14 +292,22 @@ contains
     if (.not.self%matches(componentType,massType)) return
     radiusScaleFree      =+coordinates%rSpherical()         &
          &                /self       %scaleLength
-    densityGradientRadial=-self       %densityNormalization &
-         &                /self       %scaleLength          &
-         &                /             radiusScaleFree **2 &
-         &                *(1.0d0+3.0d0*radiusScaleFree)    &
-         &                /(1.0d0+      radiusScaleFree)**3
-    if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
-         &                                  /self       %density              (coordinates) &
-         &                                  *coordinates%rSpherical           (           )
+    if (radiusScaleFree <= 0.0d0) then
+       if (logarithmic_) then
+          densityGradientRadial=-1.0d0
+       else
+          call Error_Report('gradient is divergent at r=0'//{introspection:location})
+       end if
+    else
+       densityGradientRadial=-self       %densityNormalization &
+            &                /self       %scaleLength          &
+            &                /             radiusScaleFree **2 &
+            &                *(1.0d0+3.0d0*radiusScaleFree)    &
+            &                /(1.0d0+      radiusScaleFree)**3
+       if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
+            &                                  /self       %density              (coordinates) &
+            &                                  *coordinates%rSpherical           (           )
+    end if
     return
   end function nfwDensityGradientRadial
 
