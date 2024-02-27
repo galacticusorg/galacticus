@@ -115,15 +115,17 @@ contains
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galactic_Structure_Options, only : weightByMass
-    use :: Mass_Distributions        , only : massDistributionSpherical, massDistributionSphericalScaler
+    use :: Mass_Distributions        , only : massDistributionSpherical, massDistributionSphericalScaler, kinematicsDistributionSphericalScaler, kinematicsDistributionClass
     use :: Error                     , only : Error_Report
     implicit none
-    class           (massDistributionClass          ), pointer                 :: massDistribution_
-    class           (darkMatterProfileDarkMatterOnly), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
-    integer                                          , intent(in   ), optional :: weightIndex
-    class           (massDistributionClass          ), pointer                 :: massDistributionDMO
+    class  (massDistributionClass                ), pointer                 :: massDistribution_
+    type   (kinematicsDistributionSphericalScaler), pointer                 :: kinematicsDistribution_
+    class  (kinematicsDistributionClass          ), pointer                 :: kinematicsDistributionDMO
+    class  (darkMatterProfileDarkMatterOnly      ), intent(inout)           :: self
+    type   (treeNode                             ), intent(inout), target   :: node
+    type   (enumerationWeightByType              ), intent(in   ), optional :: weightBy
+    integer                                       , intent(in   ), optional :: weightIndex
+    class  (massDistributionClass                ), pointer                 :: massDistributionDMO
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -133,7 +135,8 @@ contains
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
     ! Get the dark matter-only mass distribution.
-    massDistributionDMO => self%darkMatterProfileDMO_%get(node,weightBy,weightIndex)
+    massDistributionDMO       => self               %darkMatterProfileDMO_%get                   (node,weightBy,weightIndex)
+    kinematicsDistributionDMO => massDistributionDMO                      %kinematicsDistribution(                         )
     if (.not.associated(massDistributionDMO)) return
     select type (massDistributionDMO)
     class is (massDistributionSpherical)
@@ -153,11 +156,28 @@ contains
 	  </referenceConstruct>
           !!]
        end select
+       allocate(kinematicsDistribution_)
+       !![
+       <referenceConstruct object="kinematicsDistribution_">
+	 <constructor>
+           kinematicsDistributionSphericalScaler(                                                        &amp;
+	        &amp;                            factorScalingLength    =     1.0d0                    , &amp;
+	        &amp;                            factorScalingMass      =self%darkMatterFraction       , &amp;
+	        &amp;                            kinematicsDistribution_=     kinematicsDistributionDMO  &amp;
+                &amp;                           )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+       call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+       !![
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
     class default
        call Error_Report('a spherical mass distribution is required'//{introspection:location})
     end select
     !![
-    <objectDestructor name="massDistributionDMO"/>
+    <objectDestructor name="massDistributionDMO"      />
+    <objectDestructor name="kinematicsDistributionDMO"/>
     !!]
     return
   end function darkMatterOnlyGet
