@@ -68,9 +68,9 @@
   integer, parameter :: velocityDispersion1DTableRadiusPointsPerDecade    =100
   integer, parameter :: velocityDispersion1DTableLengthResolutionPointsPerDecade=100
 
-  class(kinematicsDistributionFiniteResolutionNFW), pointer :: self_
+  class(kinematicsDistributionFiniteResolutionNFW   ), pointer :: self_
   class(massDistributionSphericalFiniteResolutionNFW), pointer :: massDistributionEmbedding_
-  integer                                                                   :: iLengthResolution_
+  integer                                                      :: iLengthResolution_
   !$omp threadprivate(iLengthResolution_,self_,massDistributionEmbedding_)
 
 contains
@@ -98,7 +98,11 @@ contains
     !!}
     implicit none
     type(kinematicsDistributionFiniteResolutionNFW) :: self
-    
+
+    self%velocityDispersion1DRadiusMinimum          =+huge(0.0d0)
+    self%velocityDispersion1DRadiusMaximum          =-huge(0.0d0)
+    self%velocityDispersion1DLengthResolutionMinimum=+huge(0.0d0)
+    self%velocityDispersion1DLengthResolutionMaximum=-huge(0.0d0)
     return
   end function finiteResolutionNFWConstructorInternal
   
@@ -119,19 +123,19 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout)                      :: self
-    class           (coordinate               ), intent(in   )                      :: coordinates
-    class           (massDistributionClass    ), intent(inout)                      :: massDistributionEmbedding
-    double precision                                         , parameter      :: lengthResolutionScaleFreeSmall=1.0d-3
-    integer         (c_size_t                               ), dimension(0:1) :: jLengthResolution
-    double precision                                         , dimension(0:1) :: hLengthResolution
-    integer                                                                   :: iLengthResolution
+    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout)  :: self
+    class           (coordinate                               ), intent(in   )  :: coordinates
+    class           (massDistributionClass                    ), intent(inout)  :: massDistributionEmbedding
+    double precision                                           , parameter      :: lengthResolutionScaleFreeSmall=1.0d-3
+    integer         (c_size_t                                 ), dimension(0:1) :: jLengthResolution
+    double precision                                           , dimension(0:1) :: hLengthResolution
+    integer                                                                     :: iLengthResolution
     double precision :: radiusScaleFree, radiusScaleFreeEffective
 
     select type (massDistributionEmbedding)
     class is (massDistributionSphericalFiniteResolutionNFW)
-    if (     coordinates%rSpherical()     /= self%velocityDispersion1DRadiusPrevious) then
-       self%velocityDispersion1DRadiusPrevious =                            coordinates%rSpherical()
+    if (coordinates%rSpherical() /= self%velocityDispersion1DRadiusPrevious) then
+       self%velocityDispersion1DRadiusPrevious=coordinates%rSpherical()
        ! Compute the effective radius. In the core of the profile the velocity dispersion must become constant. Therefore, we
        ! limit the smallest radius we consider to a small fraction of the core radius. Below this radius a constant velocity
        ! dispersion is assumed.
@@ -144,15 +148,15 @@ contains
        jLengthResolution(1)=jLengthResolution(0)+1
        self%velocityDispersion1DPrevious=0.0d0
        do iLengthResolution=0,1
-          self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                                                                                                                     &
-               &                                +self%velocityDispersion1DTableRadiusInterpolator%interpolate(radiusScaleFreeEffective,self%velocityDispersion1DTable(:,jLengthResolution(iLengthResolution))) &
-               &                                *                                                                                                                               hLengthResolution(iLengthResolution)
+          self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                                                                                                                             &
+               &                            +self%velocityDispersion1DTableRadiusInterpolator%interpolate(radiusScaleFreeEffective,self%velocityDispersion1DTable(:,jLengthResolution(iLengthResolution))) &
+               &                            *                                                                                                                       hLengthResolution(iLengthResolution)
        end do
-       self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious &
-            &                                *sqrt(                                 &
-            &                                      +gravitationalConstantGalacticus &
-            &                                      *massDistributionEmbedding%densityNormalization       &
-            &                                      /massDistributionEmbedding%radiusScale**2&
+       self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                       &
+            &                            *sqrt(                                                   &
+            &                                  +gravitationalConstantGalacticus                   &
+            &                                  *massDistributionEmbedding%densityNormalization    &
+            &                                  /massDistributionEmbedding%radiusScale         **2 &
             &)
     end if
     velocityDispersion=self%velocityDispersion1DPrevious
@@ -170,31 +174,31 @@ contains
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout), target :: self
-    class           (massDistributionSphericalFiniteResolutionNFW    ), intent(inout), target :: massDistributionEmbedding
-    double precision                                         , intent(in   )         :: radius               , radiusCore
-    double precision                                         , parameter             :: radiusTiny   =1.0d-1
-    type            (integrator                             ), save                  :: integrator_
-    logical                                                  , save                  :: initialized  =.false.
+    class           (kinematicsDistributionFiniteResolutionNFW   ), intent(inout), target :: self
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: massDistributionEmbedding
+    double precision                                              , intent(in   )         :: radius                           , radiusCore
+    double precision                                              , parameter             :: radiusTiny               =1.0d-1
+    type            (integrator                                  ), save                  :: integrator_
+    logical                                                       , save                  :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
-    logical                                                                          :: retabulate
-    integer                                                                          :: iLengthResolution          , iRadius              , &
-         &                                                                              i
-    double precision                                                                 :: jeansIntegral        , jeansIntegralPrevious, &
-         &                                                                              radiusLower          , radiusUpper          , &
-         &                                                                              radiusOuter          , density
+    logical                                                                               :: retabulate
+    integer                                                                               :: iLengthResolution                , iRadius              , &
+         &                                                                                   i
+    double precision                                                                      :: jeansIntegral                    , jeansIntegralPrevious, &
+         &                                                                                   radiusLower                      , radiusUpper          , &
+         &                                                                                   radiusOuter                      , density
 
     do i=1,2
        retabulate=.false.
        if (.not.self%velocityDispersion1DTableInitialized) then
           retabulate=.true.
-       else if (                                                             &
-            &    radius     < self%velocityDispersion1DRadiusMinimum     &
-            &   .or.                                                         &
-            &    radius     > self%velocityDispersion1DRadiusMaximum     &
-            &   .or.                                                         &
+       else if (                                                               &
+            &    radius     < self%velocityDispersion1DRadiusMinimum           &
+            &   .or.                                                           &
+            &    radius     > self%velocityDispersion1DRadiusMaximum           &
+            &   .or.                                                           &
             &    radiusCore < self%velocityDispersion1DLengthResolutionMinimum &
-            &   .or.                                                         &
+            &   .or.                                                           &
             &    radiusCore > self%velocityDispersion1DLengthResolutionMaximum &
             &  ) then
           retabulate=.true.
@@ -204,22 +208,22 @@ contains
     end do
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       self%velocityDispersion1DRadiusMinimum       =min(0.5d0*radius    ,self%velocityDispersion1DRadiusMinimum    )
-       self%velocityDispersion1DRadiusMaximum       =max(2.0d0*radius    ,self%velocityDispersion1DRadiusMaximum    )
+       self%velocityDispersion1DRadiusMinimum             =min(0.5d0*radius    ,self%velocityDispersion1DRadiusMinimum          )
+       self%velocityDispersion1DRadiusMaximum             =max(2.0d0*radius    ,self%velocityDispersion1DRadiusMaximum          )
        self%velocityDispersion1DLengthResolutionMinimum   =min(0.5d0*radiusCore,self%velocityDispersion1DLengthResolutionMinimum)
        self%velocityDispersion1DLengthResolutionMaximum   =max(2.0d0*radiusCore,self%velocityDispersion1DLengthResolutionMaximum)
-       self%velocityDispersion1DTableRadiusCount    =int(log10(self%velocityDispersion1DRadiusMaximum    /self%velocityDispersion1DRadiusMinimum    )*dble(velocityDispersion1DTableRadiusPointsPerDecade    ))+1
+       self%velocityDispersion1DTableRadiusCount          =int(log10(self%velocityDispersion1DRadiusMaximum          /self%velocityDispersion1DRadiusMinimum          )*dble(velocityDispersion1DTableRadiusPointsPerDecade          ))+1
        self%velocityDispersion1DTableLengthResolutionCount=int(log10(self%velocityDispersion1DLengthResolutionMaximum/self%velocityDispersion1DLengthResolutionMinimum)*dble(velocityDispersion1DTableLengthResolutionPointsPerDecade))+1
        if (allocated(self%velocityDispersion1DTableRadius)) then
           deallocate(self%velocityDispersion1DTableLengthResolution)
           deallocate(self%velocityDispersion1DTableRadius    )
           deallocate(self%velocityDispersion1DTable          )
        end if
-       allocate(self%velocityDispersion1DTableLengthResolution(                                              self%velocityDispersion1DTableLengthResolutionCount))
-       allocate(self%velocityDispersion1DTableRadius    (self%velocityDispersion1DTableRadiusCount                                                  ))
-       allocate(self%velocityDispersion1DTable          (self%velocityDispersion1DTableRadiusCount,self%velocityDispersion1DTableLengthResolutionCount))
+       allocate(self%velocityDispersion1DTableLengthResolution(                                          self%velocityDispersion1DTableLengthResolutionCount))
+       allocate(self%velocityDispersion1DTableRadius          (self%velocityDispersion1DTableRadiusCount                                                    ))
+       allocate(self%velocityDispersion1DTable                (self%velocityDispersion1DTableRadiusCount,self%velocityDispersion1DTableLengthResolutionCount))
        ! Create a range of radii and core radii.
-       self%velocityDispersion1DTableRadius    =Make_Range(self%velocityDispersion1DRadiusMinimum    ,self%velocityDispersion1DRadiusMaximum    ,self%velocityDispersion1DTableRadiusCount    ,rangeType=rangeTypeLogarithmic)
+       self%velocityDispersion1DTableRadius          =Make_Range(self%velocityDispersion1DRadiusMinimum          ,self%velocityDispersion1DRadiusMaximum          ,self%velocityDispersion1DTableRadiusCount          ,rangeType=rangeTypeLogarithmic)
        self%velocityDispersion1DTableLengthResolution=Make_Range(self%velocityDispersion1DLengthResolutionMinimum,self%velocityDispersion1DLengthResolutionMaximum,self%velocityDispersion1DTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
        ! Initialize integrator if necessary.
        if (.not.initialized) then
@@ -235,12 +239,12 @@ contains
           jeansIntegralPrevious=0.0d0
           do iRadius=self%velocityDispersion1DTableRadiusCount,1,-1
              ! For radii that are tiny compared to the core radius the velocity dispersion become almost constant. Simply assume this to avoid floating point errors.
-             if     (                                                                                                                          &
-                  &   self%velocityDispersion1DTableRadius(iRadius) < radiusTiny                                                           &
-                  &  .and.                                                                                                                     &
+             if     (                                                                                                                              &
+                  &   self%velocityDispersion1DTableRadius(iRadius) < radiusTiny                                                                   &
+                  &  .and.                                                                                                                         &
                   &   self%velocityDispersion1DTableRadius(iRadius) < radiusTiny*self%velocityDispersion1DTableLengthResolution(iLengthResolution) &
-                  &  .and.                                                                                                                     &
-                  &   iRadius                                           < self%velocityDispersion1DTableRadiusCount                        &
+                  &  .and.                                                                                                                         &
+                  &   iRadius                                       < self%velocityDispersion1DTableRadiusCount                                    &
                   & ) then
                 self%velocityDispersion1DTable(iRadius,iLengthResolution)=self%velocityDispersion1DTable(iRadius+1,iLengthResolution)
              else
@@ -250,28 +254,28 @@ contains
                 else
                    radiusUpper=self%velocityDispersion1DTableRadius(iRadius+1)
                 end if
-                radiusLower                                            =self       %velocityDispersion1DTableRadius(                                                         iRadius     )
-                density                                                =massDistributionEmbedding       %densityScaleFree                   (radiusLower,self%velocityDispersion1DTableLengthResolution(iLengthResolution))
-                jeansIntegral                                          =integrator_%integrate                          (radiusLower,     radiusUpper                                         )
+                radiusLower                                              =self                     %velocityDispersion1DTableRadius(                                                           iRadius           )
+                density                                                  =massDistributionEmbedding%densityScaleFree               (radiusLower,self%velocityDispersion1DTableLengthResolution(iLengthResolution))
+                jeansIntegral                                            =integrator_              %integrate                      (radiusLower,     radiusUpper                                                 )
                 self%velocityDispersion1DTable(iRadius,iLengthResolution)=+sqrt(                         &
-                     &                                                        +(                       &
-                     &                                                          +jeansIntegral         &
-                     &                                                          +jeansIntegralPrevious &
-                     &                                                         )                       &
-                     &                                                        /density                 &
-                     &                                                       )
-                jeansIntegralPrevious                                  =+jeansIntegralPrevious &
-                     &                                                  +jeansIntegral
+                     &                                                          +(                       &
+                     &                                                            +jeansIntegral         &
+                     &                                                            +jeansIntegralPrevious &
+                     &                                                           )                       &
+                     &                                                          /density                 &
+                     &                                                         )
+                jeansIntegralPrevious                                    =+jeansIntegralPrevious &
+                     &                                                    +jeansIntegral
              end if
           end do
        end do
        ! Build interpolators.
        if (allocated(self%velocityDispersion1DTableLengthResolutionInterpolator)) deallocate(self%velocityDispersion1DTableLengthResolutionInterpolator)
-       if (allocated(self%velocityDispersion1DTableRadiusInterpolator    )) deallocate(self%velocityDispersion1DTableRadiusInterpolator    )
+       if (allocated(self%velocityDispersion1DTableRadiusInterpolator          )) deallocate(self%velocityDispersion1DTableRadiusInterpolator          )
        allocate(self%velocityDispersion1DTableLengthResolutionInterpolator)
-       allocate(self%velocityDispersion1DTableRadiusInterpolator    )
+       allocate(self%velocityDispersion1DTableRadiusInterpolator          )
        self%velocityDispersion1DTableLengthResolutionInterpolator=interpolator(self%velocityDispersion1DTableLengthResolution)
-       self%velocityDispersion1DTableRadiusInterpolator    =interpolator(self%velocityDispersion1DTableRadius    )
+       self%velocityDispersion1DTableRadiusInterpolator          =interpolator(self%velocityDispersion1DTableRadius          )
        ! Specify that tabulation has been made.
        self%velocityDispersion1DTableInitialized=.true.
        call self%storeVelocityDispersionTable()
@@ -289,7 +293,7 @@ contains
     if (radius > 0.0d0) then
        jeansEquationIntegrand=+massDistributionEmbedding_%massEnclosedScaleFree(radius,self_%velocityDispersion1DTableLengthResolution(iLengthResolution_))    &
             &                 *massDistributionEmbedding_%densityScaleFree     (radius,self_%velocityDispersion1DTableLengthResolution(iLengthResolution_))    &
-            &                 /                            radius                                                             **2
+            &                 /                                                 radius                                                                     **2
     else
        jeansEquationIntegrand=0.0d0
     end if
@@ -308,9 +312,9 @@ contains
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
-    type (lockDescriptor                         )                :: fileLock
-    type (hdf5Object                             )                :: file
-    type (varying_string                         )                :: fileName
+    type (lockDescriptor                           )                :: fileLock
+    type (hdf5Object                               )                :: file
+    type (varying_string                           )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
@@ -324,8 +328,8 @@ contains
     !$ call hdf5Access%set()
     call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(self%velocityDispersion1DTableLengthResolution,'radiusCore'        )
-    call file%writeDataset(self%velocityDispersion1DTableRadius    ,'radius'            )
-    call file%writeDataset(self%velocityDispersion1DTable          ,'velocityDispersion')
+    call file%writeDataset(self%velocityDispersion1DTableRadius          ,'radius'            )
+    call file%writeDataset(self%velocityDispersion1DTable                ,'velocityDispersion')
     call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
@@ -334,18 +338,18 @@ contains
 
   subroutine finiteResolutionNFWRestoreVelocityDispersionTable(self)
     !!{
-    Restore the tabulated velocity dispersion data from file, returning true if successful.
+    Restore the tabulated velocity dispersion data from file.
     !!}
-    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists    , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
-    type (lockDescriptor                         )                :: fileLock
-    type (hdf5Object                             )                :: file
-    type (varying_string                         )                :: fileName
+    type (lockDescriptor                           )                :: fileLock
+    type (hdf5Object                               )                :: file
+    type (varying_string                           )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)                   // &
          &   'darkMatter/'                                    // &
@@ -364,24 +368,24 @@ contains
        !$ call hdf5Access%set()
        call file%openFile(char(fileName))
        call file%readDataset('radiusCore'        ,self%velocityDispersion1DTableLengthResolution)
-       call file%readDataset('radius'            ,self%velocityDispersion1DTableRadius    )
-       call file%readDataset('velocityDispersion',self%velocityDispersion1DTable          )
+       call file%readDataset('radius'            ,self%velocityDispersion1DTableRadius          )
+       call file%readDataset('velocityDispersion',self%velocityDispersion1DTable                )
        call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
-       self%velocityDispersion1DTableRadiusCount    =size(self%velocityDispersion1DTableRadius    )
+       self%velocityDispersion1DTableRadiusCount          =size(self%velocityDispersion1DTableRadius          )
        self%velocityDispersion1DTableLengthResolutionCount=size(self%velocityDispersion1DTableLengthResolution)
-       self%velocityDispersion1DRadiusMinimum       =self%velocityDispersion1DTableRadius    (                                                1)
-       self%velocityDispersion1DRadiusMaximum       =self%velocityDispersion1DTableRadius    (self%velocityDispersion1DTableRadiusCount    )
-       self%velocityDispersion1DLengthResolutionMinimum   =self%velocityDispersion1DTableLengthResolution(                                                1)
+       self%velocityDispersion1DRadiusMinimum             =self%velocityDispersion1DTableRadius          (                                                  1)
+       self%velocityDispersion1DRadiusMaximum             =self%velocityDispersion1DTableRadius          (self%velocityDispersion1DTableRadiusCount          )
+       self%velocityDispersion1DLengthResolutionMinimum   =self%velocityDispersion1DTableLengthResolution(                                                  1)
        self%velocityDispersion1DLengthResolutionMaximum   =self%velocityDispersion1DTableLengthResolution(self%velocityDispersion1DTableLengthResolutionCount)
        if (allocated(self%velocityDispersion1DTableLengthResolutionInterpolator)) deallocate(self%velocityDispersion1DTableLengthResolutionInterpolator)
-       if (allocated(self%velocityDispersion1DTableRadiusInterpolator    )) deallocate(self%velocityDispersion1DTableRadiusInterpolator    )
+       if (allocated(self%velocityDispersion1DTableRadiusInterpolator          )) deallocate(self%velocityDispersion1DTableRadiusInterpolator          )
        allocate(self%velocityDispersion1DTableLengthResolutionInterpolator)
-       allocate(self%velocityDispersion1DTableRadiusInterpolator    )
+       allocate(self%velocityDispersion1DTableRadiusInterpolator          )
        self%velocityDispersion1DTableLengthResolutionInterpolator=interpolator(self%velocityDispersion1DTableLengthResolution)
-       self%velocityDispersion1DTableRadiusInterpolator    =interpolator(self%velocityDispersion1DTableRadius    )
-       self%velocityDispersion1DTableInitialized           =.true.
+       self%velocityDispersion1DTableRadiusInterpolator          =interpolator(self%velocityDispersion1DTableRadius          )
+       self%velocityDispersion1DTableInitialized                 =.true.
     end if    
     return
   end subroutine finiteResolutionNFWRestoreVelocityDispersionTable
