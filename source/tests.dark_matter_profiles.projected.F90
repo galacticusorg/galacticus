@@ -66,7 +66,7 @@ program Test_Dark_Matter_Profiles_Projected
   type            (multiCounter                                                  )                          :: instance
   
   call displayVerbositySet(verbosityLevelStandard)
-  call Unit_Tests_Begin_Group("Tidal track dark matter profiles")
+  call Unit_Tests_Begin_Group("Projected dark matter profiles")
   parameters=inputParameters(var_str('testSuite/parameters/darkMatterProfilesProjected.xml'))
   call eventsHooksInitialize()
   call Functions_Global_Set             (          )
@@ -163,7 +163,6 @@ program Test_Dark_Matter_Profiles_Projected
   </referenceConstruct>
   !!]
   ! Begin tests.
-  call Unit_Tests_Begin_Group("Projected density"    )
   instance        =multiCounter([1_c_size_t])
   densityProjected=nodePropertyExtractorProjectedDensity_%extract(node__,basic__%time(),instance)
   massProjected   =nodePropertyExtractorProjectedMass_   %extract(node__,basic__%time(),instance)  
