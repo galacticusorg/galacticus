@@ -85,7 +85,7 @@ contains
     !!]
     self=darkMatterProfileSIDMIsothermal(darkMatterProfile_,darkMatterParticle_)
     !![
-    <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"/>
     <objectDestructor name="darkMatterProfile_" />
     !!]
@@ -176,7 +176,6 @@ contains
               &amp;                                         )
 	    </constructor>
 	  </referenceConstruct>
-	  <objectDestructor name="massDistribution_"/>
           !!]
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
