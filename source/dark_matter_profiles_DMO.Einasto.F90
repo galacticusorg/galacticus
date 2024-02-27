@@ -88,7 +88,10 @@ contains
     implicit none
     type (darkMatterProfileDMOEinasto)                        :: self
     class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
-
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_"/>
+    !!]
+    
     ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
     ! a treeNode to process, it should have been initialized by now.
     if     (                                                                                                            &
