@@ -28,6 +28,7 @@ Contains a module which implements an N-body data importer for IRATE files.
   !![
   <nbodyImporter name="nbodyImporterIRATE">
    <description>An importer for IRATE files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterIRATE

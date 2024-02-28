@@ -201,11 +201,11 @@ contains
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
     self%normalizationMatterDominated=+self%linearGrowthCollisionlessMatter_%value(timeNow,normalize=normalizeMatterDominated) &
          &                            /self%linearGrowthCollisionlessMatter_%value(timeNow                                   )
-    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
-         &                      'largeScaleStructure/'                           // &
-         &                      self%objectType      (                          )// &
-         &                      '_'                                              // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
+         &                      'largeScaleStructure/'                                                               // &
+         &                      self%objectType      (                                                              )// &
+         &                      '_'                                                                                  // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     return

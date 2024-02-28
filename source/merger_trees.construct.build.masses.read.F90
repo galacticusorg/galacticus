@@ -24,6 +24,7 @@
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" abstract="yes">
    <description>A merger tree masses class which samples masses from a distribution.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeBuildMasses>
   !!]
   type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesRead

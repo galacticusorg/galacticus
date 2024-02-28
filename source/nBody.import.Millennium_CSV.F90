@@ -27,6 +27,7 @@ Contains a module which implements an N-body data importer for Millennium databa
   !![
   <nbodyImporter name="nbodyImporterMillenniumCSV">
    <description>An importer for Millennium database CSV files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMillenniumCSV

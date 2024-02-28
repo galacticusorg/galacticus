@@ -25,9 +25,10 @@
 
   !![
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile">
-   <description>
-    This class initializes all chains to values read from a parameter file.
-  </description>
+    <description>
+      This class initializes all chains to values read from a parameter file.
+    </description>
+    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeParameterFile

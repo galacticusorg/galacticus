@@ -126,6 +126,7 @@
    <deepCopy>
      <increment variables="document%copyCount" atomic="yes"/>
    </deepCopy>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified

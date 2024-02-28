@@ -24,6 +24,7 @@
   !![
   <accretionDiskSpectra name="accretionDiskSpectraFile">
    <description>Accretion disk spectra are interpolated from tables read from file.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </accretionDiskSpectra>
   !!]
 

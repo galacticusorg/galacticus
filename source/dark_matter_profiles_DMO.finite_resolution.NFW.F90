@@ -1414,11 +1414,11 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'VelocityDispersion_'                            // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &   'darkMatter/'                                                                        // &
+         &   self%objectType      (                                                              )// &
+         &   'VelocityDispersion_'                                                                // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.

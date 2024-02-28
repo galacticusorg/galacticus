@@ -165,7 +165,7 @@ contains
     return
   end subroutine multivariateNormalFunctionChanged
 
-  subroutine multivariateNormalDescriptor(self,descriptor,includeClass)
+  subroutine multivariateNormalDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -174,7 +174,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
     type            (inputParameters                            ), intent(inout)               :: descriptor
-    logical                                                      , intent(in   ), optional     :: includeClass
+    logical                                                      , intent(in   ), optional     :: includeClass  , includeFileModificationTimes
     character       (len=18                                     )                              :: parameterLabel
     type            (inputParameters                            )                              :: parameters
     double precision                                             , allocatable, dimension(:  ) :: means

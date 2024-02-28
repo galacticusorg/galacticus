@@ -59,6 +59,7 @@
     during its lifetime. The {\normalfont \ttfamily source} and {\normalfont \ttfamily url} tags are not used, but are strongly
     recommended to provide a reference to the origin of the stellar data.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </stellarAstrophysics>
   !!]
   type, extends(stellarAstrophysicsClass) :: stellarAstrophysicsFile

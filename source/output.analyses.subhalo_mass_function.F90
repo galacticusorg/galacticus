@@ -32,6 +32,7 @@
    <stateStorable>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </stateStorable>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSubhaloMassFunction

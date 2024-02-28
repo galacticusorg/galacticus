@@ -26,6 +26,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
    <description>A posterior sampling likelihood class which implements a likelihood for halo mass functions.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodHaloMassFunction

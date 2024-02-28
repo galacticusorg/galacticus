@@ -26,6 +26,7 @@
   !![
   <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
    <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSubhaloVMaxVsMass
