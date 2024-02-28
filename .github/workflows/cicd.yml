@@ -962,7 +962,8 @@ jobs:
                 test-inactiveNumerics.pl,
                 test-impulsiveHeating.pl,
                 test-haloTriaxiality.pl,
-                test-parallelTreeBuild.pl ]
+                test-parallelTreeBuild.pl,
+                test-duplicatedOutputPropertyName.pl ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

@@ -963,6 +963,7 @@ contains
     !!{
     Set names for the properties.
     !!}
+    use :: Display                 , only : displayGreen              , displayReset
     use :: Error                   , only : Error_Report
     use :: Galacticus_Nodes        , only : treeNode
     use :: Hashes                  , only : doubleHash                , rank1DoubleHash
@@ -1113,6 +1114,33 @@ contains
     class default
        call Error_Report('unsupported property extractor class'//{introspection:location})
     end select
+    ! Verify that no names are duplicated.
+    if (self%integerPropertyCount > 0) then
+       do i=1,self%integerPropertyCount
+          if     (                                                                                                                                       &
+               &   (self%integerPropertyCount > 1 .and. any(self%integerProperty(i+1:self%integerPropertyCount)%name == self%integerProperty(i)%name))   &
+               &  .or.                                                                                                                                   &
+               &   (self% doublePropertyCount > 0 .and. any(self% doubleProperty(  1:self% doublePropertyCount)%name == self%integerProperty(i)%name))   &
+               & ) call Error_Report(                                                                                                                    &
+               &                     "duplicate property name '"//trim(self%integerProperty(i)%name)//"' detected"//char(10)                          // &
+               &                     displayGreen()//'  HELP: '//displayReset()                                                                       // &
+               &                     "This can happen if you have multiple copies of identical `nodePropertyExtractor` objects in your parameter file"// &
+               &                     {introspection:location}                                                                                            &
+               &                    )
+       end do
+    end if
+    if (self% doublePropertyCount > 0) then
+       do i=1,self% doublePropertyCount
+          if     (                                                                                                                                       &
+               &   (self% doublePropertyCount > 1 .and. any(self% doubleProperty(i+1:self% doublePropertyCount)%name == self% doubleProperty(i)%name))   &
+               & ) call Error_Report(                                                                                                                    &
+               &                     "duplicate property name '"//trim(self% doubleProperty(i)%name)//"' detected"//char(10)                          // &
+               &                     displayGreen()//'  HELP: '//displayReset()                                                                       // &
+               &                     "This can happen if you have multiple copies of identical `nodePropertyExtractor` objects in your parameter file"// &
+               &                     {introspection:location}                                                                                            &
+               &                    )
+       end do
+    end if
     return
   end subroutine standardPropertyNamesEstablish
 
