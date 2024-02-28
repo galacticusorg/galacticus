@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708716766901,
+  "lastUpdate": 1709078511751,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "aef062b6a32bd9371c923188c298cf19e6bfd206",
-          "message": "fix: Correct comment",
-          "timestamp": "2023-05-24T16:42:17-07:00",
-          "tree_id": "7201af723f187860e72f6dc20e96f5bfc85bb605",
-          "url": "https://github.com/galacticusorg/galacticus/commit/aef062b6a32bd9371c923188c298cf19e6bfd206"
-        },
-        "date": 1684990705041,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.412,
-            "unit": "seconds",
-            "range": 0.0785977098900179
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8788,6 +8758,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23917.6920299257,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fe19e1a2fd3a716ef1ef35aed4e29eaf049dbf9d",
+          "message": "Merge pull request #567 from galacticusorg/featOutputSelectorTimes\n\nAllow specifying output selection via time in addition to redshift",
+          "timestamp": "2024-02-27T18:11:12Z",
+          "tree_id": "6f70047c8290171cd9eb1c3d8b80811457587cd9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fe19e1a2fd3a716ef1ef35aed4e29eaf049dbf9d"
+        },
+        "date": 1709078509989,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.403,
+            "unit": "seconds",
+            "range": 0.0786898976993246
           }
         ]
       }
