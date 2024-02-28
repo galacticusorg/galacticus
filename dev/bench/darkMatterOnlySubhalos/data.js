@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709078517932,
+  "lastUpdate": 1709104159368,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "8f480a1febb414ac44d775d13442a70f918a0d59",
-          "message": "feat: Allow instances of the `mergerTreeEvolveProfilerSimple` class to automatically reduce onto the object from which they were deep-copied\n\nIf they were deep-copied reduction is performed (atomically) back onto the originating object. Otherwise, results are written to file. This allows multiple deep-copied `mergerTreeEvolveProfilerSimple` objects to accumulate data independently, and to then combine those results for eventual writing to file by the ultimate originating object.",
-          "timestamp": "2023-05-25T16:34:23Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/8f480a1febb414ac44d775d13442a70f918a0d59"
-        },
-        "date": 1685044123866,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 48.834,
-            "unit": "seconds",
-            "range": 0.0334424879477016
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8788,6 +8760,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23831.3622333974,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c851a21a3844ce74c1c35fb4f767761e802e6798",
+          "message": "Merge pull request #568 from galacticusorg/featRunTimeFileDependencies\n\nAdd runtime file dependencies to `functionClass` `descriptor` methods",
+          "timestamp": "2024-02-28T04:05:28Z",
+          "tree_id": "403b915da36aa6ddf0c127bb18c7f568bd796bb7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c851a21a3844ce74c1c35fb4f767761e802e6798"
+        },
+        "date": 1709104157880,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.446,
+            "unit": "seconds",
+            "range": 0.0643303971700487
           }
         ]
       }
