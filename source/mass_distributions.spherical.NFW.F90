@@ -877,8 +877,8 @@ contains
        do i=1,countRadii
           timesFreefall(i)=timeFreefallScaleFree(radii(i))
        end do
-       self%timeFreefallScaleFreeMinimum=timesFreefall(   countRadii      )
-       self%timeFreefallScaleFreeMaximum=timesFreefall(            1      )
+       self%timeFreefallScaleFreeMinimum=timesFreefall(            1      )
+       self%timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
        self%timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
     end if
     return
