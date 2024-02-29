@@ -82,7 +82,7 @@ program Test_Dark_Matter_Profiles_Generic
        &                                                                                            radiusFromSpecificAngularMomentumNumerical       , radiusFromSpecificAngularMomentum            , &
        &                                                                                            densityLogSlopeNumerical                         , densityLogSlope
   double precision                                                                , dimension(9) :: scaleFractional=[0.01d0,0.03d0,0.10d0,0.30d0,1.00d0,3.00d0,10.0d0,30.0d0,100.0d0]
-  type            (coordinateSpherical                                           )               :: coordinates
+  type            (coordinateSpherical                                           )               :: coordinates                                      , coordinatesOuter
   
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Generic dark matter profiles")
@@ -188,10 +188,11 @@ program Test_Dark_Matter_Profiles_Generic
   call basic_            %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %massSet            (massVirial                           )
-  radiusVirial =+darkMatterHaloScale_%radiusVirial      (node_)
-  timeDynamical=+darkMatterHaloScale_%timescaleDynamical(node_)
-  radiusScale  =+radiusVirial &
-       &        /concentration
+  radiusVirial    =+darkMatterHaloScale_%radiusVirial      (node_)
+  timeDynamical   =+darkMatterHaloScale_%timescaleDynamical(node_)
+  radiusScale     =+radiusVirial &
+       &           /concentration
+  coordinatesOuter=[radiusVirial,0.0d0,0.0d0]
   call darkMatterProfile_%scaleSet(radiusScale )
   call darkMatterProfile_%shapeSet(shapeProfile)
   call Unit_Tests_Begin_Group("Isothermal profile"   )
@@ -203,8 +204,8 @@ program Test_Dark_Matter_Profiles_Generic
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                     )
         enclosedMassNumerical                     (i)=massDistribution_      %massEnclosedBySphereNumerical             (                                                                                    scaleFractional(i)*radiusScale                     )
-        potential                                 (i)=massDistribution_      %potential                                 (                                                                                    coordinates                                        )
-        potentialNumerical                        (i)=massDistribution_      %potentialNumerical                        (                                                                                    coordinates                                        )
+        potential                                 (i)=massDistribution_      %potentialDifference                       (                                                                                    coordinates                     ,coordinatesOuter  )
+        potentialNumerical                        (i)=massDistribution_      %potentialDifferenceNumerical              (                                                                                    coordinates                     ,coordinatesOuter  )
         velocityCircular                          (i)=massDistribution_      %rotationCurve                             (                                                                                    scaleFractional(i)*radiusScale                     )
         velocityCircularNumerical                 (i)=massDistribution_      %rotationCurveNumerical                    (                                                                                    scaleFractional(i)*radiusScale                     )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D                      (                                                                                    coordinates                     ,massDistribution_ )
@@ -224,8 +225,6 @@ program Test_Dark_Matter_Profiles_Generic
         densityLogSlope                           (i)=massDistribution_      %densityGradientRadial                     (                                                                                    coordinates                     ,logarithmic=.true.)
         densityLogSlopeNumerical                  (i)=massDistribution_      %densityGradientRadialNumerical            (                                                                                    coordinates                     ,logarithmic=.true.)
      end do
-     potential         =potential         -potential         (1)
-     potentialNumerical=potentialNumerical-potentialNumerical(1)
      call Skip  ("Energy                          , E   ","isothermal profile assumes virial equilibrium")
      call Skip  ("Radial moment                   , ℛ₁ " ,"1ˢᵗ moment diverges for isothermal profile"    )
      call Assert("Radial moment                   , ℛ₂ " ,massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
@@ -257,8 +256,8 @@ program Test_Dark_Matter_Profiles_Generic
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                     )
         enclosedMassNumerical                     (i)=massDistribution_      %massEnclosedBySphereNumerical             (                                                                                    scaleFractional(i)*radiusScale                     )
-        potential                                 (i)=massDistribution_      %potential                                 (                                                                                    coordinates                                        )
-        potentialNumerical                        (i)=massDistribution_      %potentialNumerical                        (                                                                                    coordinates                                        )
+        potential                                 (i)=massDistribution_      %potentialDifference                       (                                                                                    coordinates                     ,coordinatesOuter  )
+        potentialNumerical                        (i)=massDistribution_      %potentialDifferenceNumerical              (                                                                                    coordinates                     ,coordinatesOuter  )
         velocityCircular                          (i)=massDistribution_      %rotationCurve                             (                                                                                    scaleFractional(i)*radiusScale                     )
         velocityCircularNumerical                 (i)=massDistribution_      %rotationCurveNumerical                    (                                                                                    scaleFractional(i)*radiusScale                     )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D                      (                                                                                    coordinates                     ,massDistribution_ )
@@ -278,8 +277,6 @@ program Test_Dark_Matter_Profiles_Generic
         densityLogSlope                           (i)=massDistribution_      %densityGradientRadial                     (                                                                                    coordinates                     ,logarithmic=.true.)
         densityLogSlopeNumerical                  (i)=massDistribution_      %densityGradientRadialNumerical            (                                                                                    coordinates                     ,logarithmic=.true.)
      end do
-     potential         =potential         -potential         (1)
-     potentialNumerical=potentialNumerical-potentialNumerical(1)
      call Assert("Energy                          , E   ",massDistribution_%energyNumerical                    (            radiusVirial,massDistribution_),massDistribution_%energy                    (            radiusVirial,massDistribution_),relTol=1.0d-3              )
      call Assert("Radial moment                   , ℛ₁  ",massDistribution_%densityRadialMomentNumerical       (1.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₂  ",massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
@@ -311,8 +308,8 @@ program Test_Dark_Matter_Profiles_Generic
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                     )
         enclosedMassNumerical                     (i)=massDistribution_      %massEnclosedBySphereNumerical             (                                                                                    scaleFractional(i)*radiusScale                     )
-        potential                                 (i)=massDistribution_      %potential                                 (                                                                                    coordinates                                        )
-        potentialNumerical                        (i)=massDistribution_      %potentialNumerical                        (                                                                                    coordinates                                        )
+        potential                                 (i)=massDistribution_      %potentialDifference                       (                                                                                    coordinates                     ,coordinatesOuter  )
+        potentialNumerical                        (i)=massDistribution_      %potentialDifferenceNumerical              (                                                                                    coordinates                     ,coordinatesOuter  )
         velocityCircular                          (i)=massDistribution_      %rotationCurve                             (                                                                                    scaleFractional(i)*radiusScale                     )
         velocityCircularNumerical                 (i)=massDistribution_      %rotationCurveNumerical                    (                                                                                    scaleFractional(i)*radiusScale                     )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D                      (                                                                                    coordinates                     ,massDistribution_ )
@@ -332,8 +329,6 @@ program Test_Dark_Matter_Profiles_Generic
         densityLogSlope                           (i)=massDistribution_      %densityGradientRadial                     (                                                                                    coordinates                     ,logarithmic=.true.)
         densityLogSlopeNumerical                  (i)=massDistribution_      %densityGradientRadialNumerical            (                                                                                    coordinates                     ,logarithmic=.true.)
      end do
-     potential         =potential         -potential         (1)
-     potentialNumerical=potentialNumerical-potentialNumerical(1)
      call Assert("Energy                          , E   ",massDistribution_%energyNumerical                    (            radiusVirial,massDistribution_),massDistribution_%energy                    (            radiusVirial,massDistribution_),relTol=1.0d-3              )
      call Assert("Radial moment                   , ℛ₁  ",massDistribution_%densityRadialMomentNumerical       (1.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₂  ",massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
@@ -361,12 +356,12 @@ program Test_Dark_Matter_Profiles_Generic
   kinematicsDistribution_ => massDistribution_         %kinematicsDistribution(     )
   select type (massDistribution_)
   class is (massDistributionSpherical)
-     do i=1,size(scaleFractional)
+     do i=size(scaleFractional),1,-1
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                     )
         enclosedMassNumerical                     (i)=massDistribution_      %massEnclosedBySphereNumerical             (                                                                                    scaleFractional(i)*radiusScale                     )
-        potential                                 (i)=massDistribution_      %potential                                 (                                                                                    coordinates                                        )
-        potentialNumerical                        (i)=massDistribution_      %potentialNumerical                        (                                                                                    coordinates                                        )
+        potential                                 (i)=massDistribution_      %potentialDifference                       (                                                                                    coordinates                     ,coordinatesOuter  )
+        potentialNumerical                        (i)=massDistribution_      %potentialDifferenceNumerical              (                                                                                    coordinates                     ,coordinatesOuter  )
         velocityCircular                          (i)=massDistribution_      %rotationCurve                             (                                                                                    scaleFractional(i)*radiusScale                     )
         velocityCircularNumerical                 (i)=massDistribution_      %rotationCurveNumerical                    (                                                                                    scaleFractional(i)*radiusScale                     )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D                      (                                                                                    coordinates                     ,massDistribution_ )
@@ -386,8 +381,6 @@ program Test_Dark_Matter_Profiles_Generic
         densityLogSlope                           (i)=massDistribution_      %densityGradientRadial                     (                                                                                    coordinates                     ,logarithmic=.true.)
         densityLogSlopeNumerical                  (i)=massDistribution_      %densityGradientRadialNumerical            (                                                                                    coordinates                     ,logarithmic=.true.)
      end do
-     potential         =potential         -potential         (1)
-     potentialNumerical=potentialNumerical-potentialNumerical(1)
      call Assert("Energy                          , E   ",massDistribution_%energyNumerical                    (            radiusVirial,massDistribution_),massDistribution_%energy                    (            radiusVirial,massDistribution_),relTol=1.0d-3              )
      call Assert("Radial moment                   , ℛ₁  ",massDistribution_%densityRadialMomentNumerical       (1.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₂  ",massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
@@ -490,8 +483,8 @@ program Test_Dark_Matter_Profiles_Generic
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                     )
         enclosedMassNumerical                     (i)=massDistribution_      %massEnclosedBySphereNumerical             (                                                                                    scaleFractional(i)*radiusScale                     )
-        potential                                 (i)=massDistribution_      %potential                                 (                                                                                    coordinates                                        )
-        potentialNumerical                        (i)=massDistribution_      %potentialNumerical                        (                                                                                    coordinates                                        )
+        potential                                 (i)=massDistribution_      %potentialDifference                       (                                                                                    coordinates                     ,coordinatesOuter  )
+        potentialNumerical                        (i)=massDistribution_      %potentialDifferenceNumerical              (                                                                                    coordinates                     ,coordinatesOuter  )
         velocityCircular                          (i)=massDistribution_      %rotationCurve                             (                                                                                    scaleFractional(i)*radiusScale                     )
         velocityCircularNumerical                 (i)=massDistribution_      %rotationCurveNumerical                    (                                                                                    scaleFractional(i)*radiusScale                     )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D                      (                                                                                    coordinates                     ,massDistribution_ )
@@ -511,8 +504,6 @@ program Test_Dark_Matter_Profiles_Generic
         densityLogSlope                           (i)=massDistribution_      %densityGradientRadial                     (                                                                                    coordinates                     ,logarithmic=.true.)
         densityLogSlopeNumerical                  (i)=massDistribution_      %densityGradientRadialNumerical            (                                                                                    coordinates                     ,logarithmic=.true.)
      end do
-     potential         =potential         -potential         (1)
-     potentialNumerical=potentialNumerical-potentialNumerical(1)
      call Assert("Energy                          , E   ",massDistribution_%energyNumerical                    (            radiusVirial,massDistribution_),massDistribution_%energy                    (            radiusVirial,massDistribution_),relTol=1.0d-3              )
      call Assert("Radial moment                   , ℛ₁  ",massDistribution_%densityRadialMomentNumerical       (1.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₂  ",massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
