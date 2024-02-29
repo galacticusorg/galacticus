@@ -51,7 +51,8 @@
    contains
      !![
      <methods>
-       <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free Einasto mass distribution."/>
+       <method method="timeFreefallTabulate"         description="Tabulate the freefall time as a function of radius in a scale-free Einasto mass distribution."/>
+       <method method="timeFreefallScaleFreeMinimum" description="Compute the minimum freefall time in a scale-free Einasto mass distribution."                 />
      </methods>
      !!]
      procedure :: massTotal                         => einastoMassTotal
@@ -65,6 +66,7 @@
      procedure :: radiusFreefall                    => einastoRadiusFreefall
      procedure :: radiusFreefallIncreaseRate        => einastoRadiusFreefallIncreaseRate
      procedure :: timeFreefallTabulate              => einastoTimeFreefallTabulate
+     procedure :: timeFreefallMinimum               => einastoTimeFreefallMinimum
      procedure :: potential                         => einastoPotential
      procedure :: descriptor                        => einastoDescriptor
   end type massDistributionEinasto
@@ -238,6 +240,10 @@ contains
     self%timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
     self%timeFreefallScaleFreeRadiusMinimum           =+2.0d0
     self%timeFreefallScaleFreeRadiusMaximum           =+0.5d0
+    self%massScaleFreeMinimum                         =+huge(0.0d0)
+    self%massScaleFreeMaximum                         =-huge(0.0d0)
+    self%massScaleFreeRadiusMinimum                   =+2.0d0
+    self%massScaleFreeRadiusMaximum                   =+0.5d0
     return
   end function massDistributionEinastoConstructorInternal
 
@@ -306,11 +312,15 @@ contains
     if (.not.self%matches(componentType,massType)) return
     radiusScaleFree      =+coordinates%rSpherical()             &
          &                /self       %scaleLength
-    densityGradientRadial=-2.0d0                                &
-         &                *radiusScaleFree**self%shapeParameter
-    if (.not.logarithmic_) densityGradientRadial=+            densityGradientRadial              &
-         &                                       *self       %density              (coordinates) &
-         &                                       /coordinates%rSpherical           (           )
+    if (radiusScaleFree <= 0.0d0) then
+       densityGradientRadial=+0.0d0
+    else
+       densityGradientRadial=-2.0d0                                &
+            &                *radiusScaleFree**self%shapeParameter
+       if (.not.logarithmic_) densityGradientRadial=+            densityGradientRadial              &
+            &                                       *self       %density              (coordinates) &
+            &                                       /coordinates%rSpherical           (           )
+    end if
     return
   end function einastoDensityGradientRadial
 
@@ -643,27 +653,35 @@ contains
 
   double precision function potentialScaleFree(radius,shapeParameter) result(potential)
     !!{
-    Compute the potential in a scale-free Einasto mass distribution.
+    Compute the potential in a scale-free Einasto mass distribution. Uses the results from \cite{retana-montenegro_analytical_2012},
+    their equations (19) and (20), but with different normalizations for the density and scale radius.
     !!}
-    use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete_Complementary
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Gamma_Functions         , only : Gamma_Function, Gamma_Function_Incomplete, Gamma_Function_Incomplete_Complementary
     implicit none
     double precision, intent(in   ) :: radius, shapeParameter
 
     if (radius <= 0.0d0) then
-       potential=-((2.0d0/shapeParameter)**(1.0d0/shapeParameter))                                                            &
-            &    *  Gamma_Function                         (2.0d0/shapeParameter                                            )
+       potential=-2.0d0                                  **(+1.0d0-2.0d0/shapeParameter                                            ) &
+            &    *shapeParameter                         **(       2.0d0/shapeParameter                                            ) &
+            &    *exp                                      (       2.0d0/shapeParameter                                            ) &
+            &    *Pi                                                                                                                 &
+            &    *Gamma_Function                           (+1.0d0+2.0d0/shapeParameter                                            )
     else
-       potential=-1.0d0                                                                                                       &
-            &    /radius                                                                                                      &
-            &    *(                                                                                                           &
-            &      +Gamma_Function_Incomplete_Complementary(3.0d0/shapeParameter,2.0d0*radius**shapeParameter/shapeParameter) &
-            &      *Gamma_Function                         (3.0d0/shapeParameter                                            ) &
-            &      +(                                                                                                         &
-            &        +radius                                                                                                  &
-            &        *(2.0d0/shapeParameter)**(1.0d0/shapeParameter)                                                          &
-            &       )                                                                                                         &
-            &      *Gamma_Function_Incomplete_Complementary(2.0d0/shapeParameter,2.0d0*radius**shapeParameter/shapeParameter) &
-            &      *Gamma_Function                         (2.0d0/shapeParameter                                            ) &
+       potential=-4.0d0                                                                                                              &
+            &    *Pi                                                                                                                 &
+            &    *exp(2.0d0/shapeParameter)                                                                                          &
+            &    /          shapeParameter                                                                                           &
+            &    /                                                                            radius                                 &
+            &    *(                                                                                                                  &
+            &      +                                                                          radius                                 &
+            &      *(2.0d0/shapeParameter)               **(      -2.0d0/shapeParameter                                            ) &
+            &      *Gamma_Function_Incomplete              (      +2.0d0/shapeParameter,2.0d0*radius**shapeParameter/shapeParameter) &
+            &      *Gamma_Function                         (      +2.0d0/shapeParameter                                            ) &
+            &      +shapeParameter                       **(      +3.0d0/shapeParameter                                            ) &
+            &      / 8.0d0                               **(      +1.0d0/shapeParameter                                            ) &
+            &      *Gamma_Function_Incomplete_Complementary(      +3.0d0/shapeParameter,2.0d0*radius**shapeParameter/shapeParameter) &
+            &      *Gamma_Function                         (      +3.0d0/shapeParameter                                            ) &
             &     )
     end if
     return
@@ -674,7 +692,8 @@ contains
     Compute the potential difference in a scale-free Einasto mass distribution.
     !!}
     implicit none
-    double precision, intent(in   ) :: radius1, radius2, shapeParameter
+    double precision, intent(in   ) :: radius1       , radius2, &
+         &                             shapeParameter
     
     potential=+potentialScaleFree(radius1,shapeParameter) &
          &    -potentialScaleFree(radius2,shapeParameter)
@@ -705,6 +724,10 @@ contains
          &        *Mpc_per_km_per_s_To_Gyr
     timeScaleFree=+time                                  &
          &        /timeScale
+    if (timeScaleFree <= self%timeFreefallMinimum()) then
+       radius=0.0d0
+       return
+    end if
     call self%timeFreefallTabulate(timeScaleFree)
     radius=+self%timeFreefallScaleFree_%interpolate(timeScaleFree) &
          & *self%scaleLength
@@ -736,12 +759,36 @@ contains
          &        *Mpc_per_km_per_s_To_Gyr
     timeScaleFree=+time                                  &
          &        *timeScale
+    if (timeScaleFree <= self%timeFreefallMinimum()) then
+       radiusIncreaseRate=0.0d0
+       return
+    end if
     call self%timeFreefallTabulate(timeScaleFree)
     radiusIncreaseRate=+self%timeFreefallScaleFree_%derivative(timeScaleFree) &
          &             *self%scaleLength                                      &
          &             /     timeScale
     return
   end function einastoRadiusFreefallIncreaseRate
+
+  double precision function einastoTimeFreefallMinimum(self) result(timeScaleFreeMinimum)
+    !!{
+    Compute the minimum freefall time in a scale-free Einasto profile.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class(massDistributionEinasto), intent(inout) :: self
+
+    timeScaleFreeMinimum=+sqrt(                    &
+         &                     + 3.0d0             &
+         &                     /16.0d0             &
+         &                     *Pi                 &
+         &                   )                     &
+         &               *exp(                     &
+         &                    -1.0d0               &
+         &                    /self%shapeParameter &
+         &                   )
+    return
+  end function einastoTimeFreefallMinimum
   
   subroutine einastoTimeFreefallTabulate(self,timeScaleFree)
     !!{
@@ -779,8 +826,8 @@ contains
        do i=1,countRadii
           timesFreefall(i)=timeFreefallScaleFree(radii(i))
        end do
-       self%timeFreefallScaleFreeMinimum=timesFreefall(   countRadii      )
-       self%timeFreefallScaleFreeMaximum=timesFreefall(            1      )
+       self%timeFreefallScaleFreeMinimum=timesFreefall(            1      )
+       self%timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
        self%timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
     end if
     return
