@@ -41,8 +41,9 @@ module Supernovae_Type_Ia
     <description>Return the range of initial stellar masses that contribute to the Type Ia population.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: age               , metallicity       </argument>
-    <argument>double precision, intent(  out) :: massInitialMinimum, massInitialMaximum</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout) :: initialMassFunction_                    </argument>
+    <argument>double precision                          , intent(in   ) :: age                 , metallicity       </argument>
+    <argument>double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum</argument>
    </method>
    <method name="number" >
     <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>

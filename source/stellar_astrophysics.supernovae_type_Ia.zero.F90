@@ -65,15 +65,16 @@ contains
     return
   end function zeroConstructorParameters
 
-  subroutine zeroMassInitialRange(self,age,metallicity,massInitialMinimum,massInitialMaximum)
+  subroutine zeroMassInitialRange(self,initialMassFunction_,age,metallicity,massInitialMinimum,massInitialMaximum)
     !!{
     Return the range of initial stellar masses contributing to the Type Ia population.
     !!}
     implicit none
-     class           (supernovaeTypeIaZero), intent(inout) :: self
-     double precision                      , intent(in   ) :: age               , metallicity
-     double precision                      , intent(  out) :: massInitialMinimum, massInitialMaximum
-     !$GLC attributes unused :: self, age, metallicity
+     class           (supernovaeTypeIaZero    ), intent(inout) :: self
+     class           (initialMassFunctionClass), intent(inout) :: initialMassFunction_
+     double precision                          , intent(in   ) :: age                 , metallicity
+     double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum
+     !$GLC attributes unused :: self, initialMassFunction_, age, metallicity
 
      ! The range is arbitrary as we have no Type Ias.
      massInitialMinimum=1.0d0
