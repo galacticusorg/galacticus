@@ -37,8 +37,9 @@
      class           (darkMatterProfileDMOClass), pointer                   :: darkMatterProfileDMO_         => null(), darkMatterProfileDMOUnheated => null()
      !$ integer      (omp_lock_kind            )                            :: accumulateLock
      integer                                                                :: countPointsOnTrack
+     double precision                                                       :: mu                                     , eta
      double precision                                                       :: logLikelihood_
-     double precision                           , dimension(:), allocatable :: fractionMassBound                      ,fractionVelocityMaximum                , &
+     double precision                           , dimension(:), allocatable :: fractionMassBound                      , fractionVelocityMaximum               , &
           &                                                                    fractionVelocityMaximumTarget
    contains
      final     ::                  tidalTracksVelocityMaximumDestructor
@@ -64,15 +65,28 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (outputAnalysisTidalTracksVelocityMaximum)                :: self
-    type (inputParameters                         ), intent(inout) :: parameters
-    class(darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_, darkMatterProfileDMOUnheated
+    type            (outputAnalysisTidalTracksVelocityMaximum)                :: self
+    type            (inputParameters                         ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_, darkMatterProfileDMOUnheated
+    double precision                                                          :: mu                   , eta
     
     !![
+    <inputParameter>
+      <name>mu</name>
+      <source>parameters</source>
+      <defaultValue>0.4d0</defaultValue>
+      <description>The parameter $\mu$ in the Penarrubia et al. (2010) tidal track fitting function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>eta</name>
+      <source>parameters</source>
+      <defaultValue>0.3d0</defaultValue>
+      <description>The parameter $\eta$ in the Penarrubia et al. (2010) tidal track fitting function.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"        source="parameters"                                               />
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMOUnheated" source="parameters"   parameterName="darkMatterProfileDMOUnheated"/>
     !!]
-    self=outputAnalysisTidalTracksVelocityMaximum(darkMatterProfileDMO_,darkMatterProfileDMOUnheated)
+    self=outputAnalysisTidalTracksVelocityMaximum(mu,eta,darkMatterProfileDMO_,darkMatterProfileDMOUnheated)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"       />
@@ -81,15 +95,16 @@ contains
     return
   end function tidalTracksVelocityMaximumConstructorParameters
   
-  function tidalTracksVelocityMaximumConstructorInternal(darkMatterProfileDMO_,darkMatterProfileDMOUnheated) result (self)
+  function tidalTracksVelocityMaximumConstructorInternal(mu,eta,darkMatterProfileDMO_,darkMatterProfileDMOUnheated) result (self)
     !!{
     Constructor for the ``tidalTracksVelocityMaximum'' output analysis class for internal use.
     !!}
     implicit none
     type            (outputAnalysisTidalTracksVelocityMaximum)                         :: self
     class           (darkMatterProfileDMOClass               ), intent(in   ) , target :: darkMatterProfileDMO_, darkMatterProfileDMOUnheated
+    double precision                                          , intent(in   )          :: mu                   , eta
     !![
-    <constructorAssign variables="*darkMatterProfileDMO_, *darkMatterProfileDMOUnheated"/>
+    <constructorAssign variables="mu, eta, *darkMatterProfileDMO_, *darkMatterProfileDMOUnheated"/>
     !!]
 
     !$ call OMP_Init_Lock(self%accumulateLock)
@@ -128,8 +143,7 @@ contains
     class           (nodeComponentSatellite                  ), pointer                   :: satellite
     double precision                                          , dimension(:), allocatable :: fractionMassBound_            , fractionVelocityMaximum_             , &
          &                                                                                   fractionVelocityMaximumTarget_
-    double precision                                                                      :: mu                            , eta                                  , &
-         &                                                                                   fractionMassBound             , fractionVelocityMaximum              , &
+    double precision                                                                      :: fractionMassBound             , fractionVelocityMaximum              , &
          &                                                                                   fractionVelocityMaximumTarget , varianceFractionVelocityMaximumTarget
 
     ! Skip non-satellites.
@@ -139,10 +153,8 @@ contains
     satellite               => node%satellite()
     fractionMassBound       =  satellite                      %boundMass              (    )/basic                             %mass                   (    )
     fractionVelocityMaximum =  self     %darkMatterProfileDMO_%circularVelocityMaximum(node)/self %darkMatterProfileDMOUnheated%circularVelocityMaximum(node)
-    ! Evaluate the target value. Uses the Penarrubia et al. (2010) results for now - replace with something more up to date.
-    mu                                   =0.4d0
-    eta                                  =0.3d0
-    fractionVelocityMaximumTarget        =2.0d0**mu*fractionMassBound**eta/(1.0d0+fractionMassBound)**mu
+    ! Evaluate the target value. Uses the Penarrubia et al. (2010) fitting function.
+    fractionVelocityMaximumTarget        =2.0d0**self%mu*fractionMassBound**self%eta/(1.0d0+fractionMassBound)**self%mu
     varianceFractionVelocityMaximumTarget=(0.1d0*fractionVelocityMaximumTarget)**2
     !$ call OMP_Set_Lock(self%accumulateLock)
     self%countPointsOnTrack=self%countPointsOnTrack+1
