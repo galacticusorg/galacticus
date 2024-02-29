@@ -65,15 +65,16 @@ contains
     return
   end function zeroConstructorParameters
 
-  subroutine zeroMassInitialRange(self,age,metallicity,massInitialMinimum,massInitialMaximum)
+  subroutine zeroMassInitialRange(self,initialMassFunction_,age,metallicity,massInitialMinimum,massInitialMaximum)
     !!{
     Return the range of initial stellar masses contributing to the Type Ia population.
     !!}
     implicit none
-     class           (supernovaeTypeIaZero), intent(inout) :: self
-     double precision                      , intent(in   ) :: age               , metallicity
-     double precision                      , intent(  out) :: massInitialMinimum, massInitialMaximum
-     !$GLC attributes unused :: self, age, metallicity
+     class           (supernovaeTypeIaZero    ), intent(inout) :: self
+     class           (initialMassFunctionClass), intent(inout) :: initialMassFunction_
+     double precision                          , intent(in   ) :: age                 , metallicity
+     double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum
+     !$GLC attributes unused :: self, initialMassFunction_, age, metallicity
 
      ! The range is arbitrary as we have no Type Ias.
      massInitialMinimum=1.0d0
@@ -81,30 +82,32 @@ contains
     return
   end subroutine zeroMassInitialRange
   
-  double precision function zeroNumber(self,initialMass,age,metallicity) result(number)
+  double precision function zeroNumber(self,initialMassFunction_,initialMass,age,metallicity) result(number)
     !!{
     Compute the cumulative number of Type Ia supernovae which is always zero.
     !!}
     implicit none
-    class           (supernovaeTypeIaZero), intent(inout), target :: self
-    double precision                      , intent(in   )         :: age        , initialMass, &
-         &                                                           metallicity
-    !$GLC attributes unused :: self, initialMass, age, metallicity
+    class           (supernovaeTypeIaZero    ), intent(inout), target :: self
+    class           (initialMassFunctionClass), intent(inout), target :: initialMassFunction_
+    double precision                          , intent(in   )         :: age                 , initialMass, &
+         &                                                               metallicity
+    !$GLC attributes unused :: self, initialMassFunction_, initialMass, age, metallicity
     
     number=0.0d0
     return
   end function zeroNumber
 
-  double precision function zeroYield(self,initialMass,age,metallicity,atomIndex) result(yield)
+  double precision function zeroYield(self,initialMassFunction_,initialMass,age,metallicity,atomIndex) result(yield)
     !!{
     Compute the cumulative yield from Type Ia supernovae which is always zero.
     !!}
     implicit none
-    class           (supernovaeTypeIaZero), intent(inout)           :: self
-    double precision                      , intent(in   )           :: age        , initialMass, &
-         &                                                             metallicity
-    integer                               , intent(in   ), optional :: atomIndex
-    !$GLC attributes unused :: self, initialMass, age, metallicity, atomIndex
+    class           (supernovaeTypeIaZero    ), intent(inout)           :: self
+    class           (initialMassFunctionClass), intent(inout)           :: initialMassFunction_
+    double precision                          , intent(in   )           :: age                 , initialMass, &
+         &                                                                 metallicity
+    integer                                   , intent(in   ), optional :: atomIndex
+    !$GLC attributes unused :: self, initialMassFunction_, initialMass, age, metallicity, atomIndex
     
     yield=0.0d0    
     return

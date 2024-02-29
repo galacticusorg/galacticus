@@ -137,8 +137,7 @@ call Directory_Make(char(inputPath(pathTypeDataDynamic))//'stellarPopulations/SS
        &                                                                                 stellarTracks_                       =stellarTracks_                                                                                               &
        &                                                                                )
   supernovaeTypeIa_                      =supernovaeTypeIaNagashima2005                 (                                                                                                                                                   &
-       &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                       , &
-       &                                                                                 initialMassFunction_                 =initialMassFunction_                                                                                         &
+       &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                         &
        &                                                                                )
   supernovaePopulationIII_               =supernovaePopulationIIIHegerWoosley2002       (                                                                                                                                                   &
        &                                                                                 stellarAstrophysics_                 =stellarAstrophysics_                                                                                         &
