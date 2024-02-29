@@ -54,6 +54,12 @@ module Stellar_Populations_Initial_Mass_Functions
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massInitial</argument>
    </method>
+   <method name="numberCumulative" >
+    <description>Return the integral of the initial mass function, $\int_{m_\mathrm{lower}}^{m_\mathrm{upper}} \phi(M) \mathrm{d}M$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: massLower, massUpper</argument>
+   </method>
    <method name="tabulate" >
     <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily initialMass}.</description>
     <type>void</type>
