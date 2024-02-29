@@ -53,6 +53,7 @@ program Test_Math_Special_Functions
        &                             factorials                                                                                                                                                                                  , gammaFunction                              , &
        &                             hypergeometric1F1                                                                                                                                                                           , hypergeometric2F1                          , &
        &                             incompleteComplementaryGammaFunction                                                                                                                                                        , incompleteGammaFunction                    , &
+       &                             incompleteComplementaryGammaFunction2                                                                                                                                                       , incompleteGammaFunction2                   , &
        &                             inverseGammaFunctionIncomplete                                                                                                                                                              , inverseGammaFunctionIncompleteComplementary, &
        &                             logGammaFunction                                                                                                                                                                            , sineIntegral                               , &
        &                             hypergeometric1F2                                                                                                                                                                           , hypergeometric2F1approx                    , &
@@ -90,8 +91,10 @@ program Test_Math_Special_Functions
      doubleFactorial                            (i)=Logarithmic_Double_Factorial                   (                                                   i                                       )
      gammaFunction                              (i)=Gamma_Function                                 (                                          argument(i)                                      )
      logGammaFunction                           (i)=Gamma_Function_Logarithmic                     (                                          argument(i)                                      )
-     incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                                          argument(i),2.0d0                                )
-     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                                          argument(i),2.0d0                                )
+     incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                                          argument(i), 2.0d0                               )
+     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                                          argument(i), 2.0d0                               )
+     incompleteGammaFunction2                   (i)=Gamma_Function_Incomplete                      (                                          argument(i),16.67d0                              )
+     incompleteComplementaryGammaFunction2      (i)=Gamma_Function_Incomplete_Complementary        (                                          argument(i),16.67d0                              )
      inverseGammaFunctionIncomplete             (i)=Inverse_Gamma_Function_Incomplete              (                                          argument(i),P(i)                                 )
      inverseGammaFunctionIncompleteComplementary(i)=Inverse_Gamma_Function_Incomplete_Complementary(                                          argument(i),Q(i)                                 )
      hypergeometric1F1                          (i)=Hypergeometric_1F1                             ([1.0d0            ],[2.0d0      ],        argument(i)                                      )
@@ -433,6 +436,39 @@ program Test_Math_Special_Functions
        &        0.0000464981d0                          &
        &       ],                                       &
        &       relTol=1.0d-6                            &
+       &     )
+  call Assert("incomplete gamma function, Γ(x,16.67)"     , &
+       &       incompleteGammaFunction2,                    &
+       &       [                                            &
+       &        5.758521420655205d-8,                       &
+       &        1.017530735029775d-6,                       &
+       &        9.018676651091340d-6,                       &
+       &        5.347837745800675d-5,                       &
+       &        2.387641805708268d-4,                       &
+       &        8.565070481489690d-4,                       &
+       &        2.572802648570240d-3,                       &
+       &        6.660038028430611d-3,                       &
+       &        1.517681475121466d-2,                       &
+       &        3.095177785886023d-2                        &
+       &       ],                                           &
+       &       relTol=1.0d-6                                &
+       &     )
+  call Assert("complementary gamma function, 1-Γ(x,16.67)", &
+       &       incompleteComplementaryGammaFunction2      , &
+       &       [                                            &
+       &        9.99999942414786d-1,                        &
+       &        9.99998982469265d-1,                        &
+       &        9.99990981323349d-1,                        &
+       &        9.99946521622542d-1,                        &
+       &        9.99761235819429d-1,                        &
+       &        9.99143492951851d-1,                        &
+       &        9.97427197351430d-1,                        &
+       &        9.93339961971569d-1,                        &
+       &        9.84823185248785d-1,                        &
+       &        9.69048222141140d-1                         &
+       &       ],                                           &
+       &                                                    &
+       &       relTol=1.0d-6                                &
        &     )
   call Assert("inverse incomplete gamma function, Γ⁻¹(x,2)", &
        &       inverseGammaFunctionIncomplete,               &
