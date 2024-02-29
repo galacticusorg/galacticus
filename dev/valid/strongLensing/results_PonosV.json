@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageAbove" : 93.75,
-      "target" : 0.006,
-      "percentageBelow" : 6.25
+   "slope" : {
+      "model" : 0.853369397484648,
+      "target" : 0.85
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c851a21a3844ce74c1c35fb4f767761e802e6798",
-      "id" : "c851a21a3844ce74c1c35fb4f767761e802e6798",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "message" : "Merge pull request #568 from galacticusorg/featRunTimeFileDependencies",
-      "timestamp" : "Wed, 28 Feb 2024 04:05:28 +0000"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/5be0e4369d4aa4cd34b3ff88341fdb2ccb243dda",
+      "id" : "5be0e4369d4aa4cd34b3ff88341fdb2ccb243dda",
+      "timestamp" : "Thu, 29 Feb 2024 04:39:01 +0000",
+      "message" : "Merge pull request #569 from galacticusorg/featDetectDuplicatePropertyNames"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "slope" : {
-      "model" : 0.85066647809255,
-      "target" : 0.85
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 12.5,
+      "percentageAbove" : 87.5
    }
 }
