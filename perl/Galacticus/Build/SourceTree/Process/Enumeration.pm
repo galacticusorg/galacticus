@@ -319,7 +319,7 @@ sub Process_Enumerations {
 		$descriptorFunction .= "    type(varying_string) :: description\n\n";
 		my $description      = "    description=var_str(char(10))//\"Enumeration '".$node->{'directive'}->{'name'}."' has the following members:\"\n";
 		my @entries       = &List::ExtraUtils::as_array($node->{'directive'}->{'entry'});
-		my $lengthMaximum = max map {length($_)} @entries;
+		my $lengthMaximum = max map {length($_->{'label'})} @entries;
 		for(my $i=0;$i<scalar(@entries);++$i) {
 		    my $entry     = $entries[$i];
 		    my $separator = $i == scalar(@entries)-1 ? "." : ";";
