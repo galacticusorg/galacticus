@@ -39,7 +39,7 @@ my @selections = &selectSimulations(\%options);
 # Set global parameters.
 $content::countParticlesMinimum = 100  ;
 $content::fractionMassPrimary   =   0.1;
-$content::pipelinePath          = $options{'pipelinePath'  };
+$content::pipelinePath          = $options{'pipelinePath'   };
 $content::outputDirectory       = $options{'outputDirectory'};
 
 # Parse the simulations definition file.
@@ -121,11 +121,12 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
                          haloMassFunctionParameters::massMinimumParticleCount{$class} haloMassFunctionParameters::efficiencyAtMassMinimum{$class}
                          haloMassFunctionParameters::exponentMassDetection{$class}    haloMassFunctionParameters::exponentRedshiftDetection{$class}
  
+                         varianceFractionalModelDiscrepancy
+
                          {$entry->{'group'}->{'perturbation' }}
                          {$entry->{'group'}->{'isolationBias'}}
                         "/>
     <parameterInactiveMap value=""     ignoreWarnings="true"/>
-    <isActive             value="true"                      />
     <posteriorSampleLikelihood value="haloMassFunction">
       <!-- Options matched to those of Benson (2017; https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->
       <baseParametersFileName value="{$fileNameBase}"       />
@@ -165,10 +166,10 @@ CODE
   <xi:include href="{$pipelinePath}transferFunction_{$entry->{'suite'}->{'name'}}_{$entry->{'simulation'}->{'name'}}.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
 
   <!-- Detection effiency -->
-  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters::massMinimumParticleCount{$class}]" />
-  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters::efficiencyAtMassMinimum{$class}]"  />
-  <detectionExponentMass             value="=[haloMassFunctionParameters::exponentMassDetection{$class}]"    />
-  <detectionExponentRedshift         value="=[haloMassFunctionParameters::exponentRedshiftDetection{$class}]"/>
+  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters::massMinimumParticleCount{$class}]"  ignoreWarnings="true"/>
+  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters::efficiencyAtMassMinimum{$class}]"   ignoreWarnings="true"/>
+  <detectionExponentMass             value="=[haloMassFunctionParameters::exponentMassDetection{$class}]"     ignoreWarnings="true"/>
+  <detectionExponentRedshift         value="=[haloMassFunctionParameters::exponentRedshiftDetection{$class}]" ignoreWarnings="true"/>
 CODE
     if ( $content::entry->{'suite'}->{'includePerturbation'}->{'value'} eq "true" ) {
 	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
@@ -181,8 +182,8 @@ CODE
 	$base .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- Isolation bias -->
-  <isolationBias         value="=[haloMassFunctionParameters::isolationBias{$entry->{'group'}->{'labelIsolationBias'}}]"        />
-  <isolationBiasExponent value="=[haloMassFunctionParameters::isolationBiasExponent{$entry->{'group'}->{'labelIsolationBias'}}]"/>
+  <isolationBias         value="=[haloMassFunctionParameters::isolationBias{$entry->{'group'}->{'labelIsolationBias'}}]"         ignoreWarnings="true"/>
+  <isolationBiasExponent value="=[haloMassFunctionParameters::isolationBiasExponent{$entry->{'group'}->{'labelIsolationBias'}}]" ignoreWarnings="true"/>
 
 CODE
     }
@@ -229,28 +230,39 @@ my $configOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
   <!-- Likelihood -->
   <posteriorSampleLikelihood value="independentLikelihoods">
 CODE
-my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
+my $configInitializer = fill_in_string(<<'CODE', PACKAGE => 'content');
   </posteriorSampleLikelihood>
+
+  <posteriorSampleStateInitialize value="latinHypercube">
+    <maximinTrialCount value="100"/>
+  </posteriorSampleStateInitialize>   
+CODE
+my $configResumer = fill_in_string(<<'CODE', PACKAGE => 'content');
+  </posteriorSampleLikelihood>
+
+  <posteriorSampleStateInitialize value="resume">
+    <logFileRoot  value="{$outputDirectory}haloMassFunctionChains"/>
+    <restoreState value="true"                                    />
+  </posteriorSampleStateInitialize>   
+CODE
+my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- MCMC -->
   <posteriorSampleSimulation value="differentialEvolution">
-    <stepsMaximum           value="  4000"/>
-    <acceptanceAverageCount value="    10"/>
-    <stateSwapCount         value="    10"/>
-    <slowStepCount          value="    11"/>
+    <stepsMaximum           value="100000"                                  />
+    <acceptanceAverageCount value="    10"                                  />
+    <stateSwapCount         value="    10"                                  />
+    <slowStepCount          value="    11"                                  />
     <logFileRoot            value="{$outputDirectory}haloMassFunctionChains"/>
-    <reportCount            value="    10"/>
-    <sampleOutliers         value="false" />
-    <logFlushCount          value="     1"/>
+    <reportCount            value="    10"                                  />
+    <sampleOutliers         value="false"                                   />
+    <logFlushCount          value="     1"                                  />
+    <appendLogs             value="true"                                    />
 
     <posteriorSampleState value="correlation">
       <acceptedStateCount value="100"/>
     </posteriorSampleState>
 
-    <posteriorSampleStateInitialize value="latinHypercube">
-      <maximinTrialCount value="100"/>
-    </posteriorSampleStateInitialize>
-    
     <posteriorSampleConvergence value="gelmanRubin">
       <thresholdHatR              value=" 1.20"/>
       <burnCount                  value="10"   />
@@ -480,31 +492,18 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
       <slow value="true" />
     </modelParameter>
 
-    <!-- <modelParameter value="active"> -->
-    <!--   <name value="haloMassFunctionParameters::alpha"/> -->
-    <!--   <distributionFunction1DPrior value="logUniform"> -->
-    <!-- 	<limitLower value="  1.00"/> -->
-    <!-- 	<limitUpper value="100.00"/> -->
-    <!--   </distributionFunction1DPrior> -->
-    <!--   <operatorUnaryMapper value="logarithm"/> -->
-    <!--   <distributionFunction1DPerturber value="cauchy"> -->
-    <!-- 	<median value="0.0"/> -->
-    <!-- 	<scale value="1.0e-4"/> -->
-    <!--   </distributionFunction1DPerturber> -->
-    <!-- </modelParameter> -->
-
-    <!-- <modelParameter value="active"> -->
-    <!--   <name value="varianceFractionalModelDiscrepancy"/> -->
-    <!--   <distributionFunction1DPrior value="logUniform"> -->
-    <!-- 	<limitLower value="1.0e-6"/> -->
-    <!-- 	<limitUpper value="1.0e+0"/> -->
-    <!--   </distributionFunction1DPrior> -->
-    <!--   <operatorUnaryMapper value="logarithm"/> -->
-    <!--   <distributionFunction1DPerturber value="cauchy"> -->
-    <!-- 	<median value="0.0"/> -->
-    <!-- 	<scale value="1.0e-4"/> -->
-    <!--   </distributionFunction1DPerturber> -->
-    <!-- </modelParameter> -->
+    <modelParameter value="active">
+      <name value="varianceFractionalModelDiscrepancy"/>
+      <distributionFunction1DPrior value="logUniform">
+    	<limitLower value="1.0e-6"/>
+    	<limitUpper value="1.0e+0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm"/>
+      <distributionFunction1DPerturber value="cauchy">
+    	<median value="0.0"/>
+    	<scale value="1.0e-4"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
 CODE
 
 my $parametersOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
@@ -703,18 +702,27 @@ $parametersCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
 
 </parameters>
 CODE
-    
+
 # Generate the config file.
-open(my $configFile,">",$options{'outputDirectory'}."haloMassFunctionConfig.xml");
-print $configFile $configOpener;
-print $configFile $configLikelihood;
-print $configFile $configCloser;
+open(my $configFile    ,">",$options{'outputDirectory'}."haloMassFunctionConfig.xml"      );
+print $configFile     $configOpener     ;
+print $configFile     $configLikelihood ;
+print $configFile     $configInitializer;
+print $configFile     $configCloser     ;
 close($configFile);
 
+# Generate the resume file.
+open(my $resumeFile    ,">",$options{'outputDirectory'}."haloMassFunctionConfigResume.xml");
+print $resumeFile     $configOpener     ;
+print $resumeFile     $configLikelihood ;
+print $resumeFile     $configResumer    ;
+print $resumeFile     $configCloser     ;
+close($resumeFile);
+
 # Generate the parameters file.
-open(my $parametersFile,">",$options{'outputDirectory'}."haloMassFunctionParameters.xml");
-print $parametersFile $parametersOpener;
-print $parametersFile $parametersCloser;
+open(my $parametersFile,">",$options{'outputDirectory'}."haloMassFunctionParameters.xml"  );
+print $parametersFile $parametersOpener ;
+print $parametersFile $parametersCloser ;
 close($parametersFile);
 
 exit;
