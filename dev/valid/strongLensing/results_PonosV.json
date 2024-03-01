@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
    "slope" : {
-      "model" : 0.853369397484648,
+      "model" : 0.881028964972323,
       "target" : 0.85
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/5be0e4369d4aa4cd34b3ff88341fdb2ccb243dda",
-      "id" : "5be0e4369d4aa4cd34b3ff88341fdb2ccb243dda",
-      "timestamp" : "Thu, 29 Feb 2024 04:39:01 +0000",
-      "message" : "Merge pull request #569 from galacticusorg/featDetectDuplicatePropertyNames"
+      "timestamp" : "Thu, 29 Feb 2024 23:20:21 +0000",
+      "message" : "Merge pull request #570 from galacticusorg/featFlexibleTypeIaDTDs",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/ba8109553e88d7c84ab0d67ab459aa8fd692cc27",
+      "id" : "ba8109553e88d7c84ab0d67ab459aa8fd692cc27"
    },
    "surfaceDensity" : {
+      "percentageBelow" : 6.25,
       "target" : 0.006,
-      "percentageBelow" : 12.5,
-      "percentageAbove" : 87.5
-   }
+      "percentageAbove" : 93.75
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
