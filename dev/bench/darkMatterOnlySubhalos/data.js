@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709192659950,
+  "lastUpdate": 1709261411569,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a2d8a7e74a9d874470f8c44826897859bcfa719c",
-          "message": "Merge pull request #415 from galacticusorg/threadedTrees\n\nImplement threaded evolution of individual merger trees",
-          "timestamp": "2023-06-01T01:38:17Z",
-          "tree_id": "504baa893d40161972eb6332900cd5bf6dfd32d9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a2d8a7e74a9d874470f8c44826897859bcfa719c"
-        },
-        "date": 1685593562454,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.676,
-            "unit": "seconds",
-            "range": 0.0299065210282907
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8792,6 +8762,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23834.439948572,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba8109553e88d7c84ab0d67ab459aa8fd692cc27",
+          "message": "Merge pull request #570 from galacticusorg/featFlexibleTypeIaDTDs\n\nRefactor the supernovae type Ia delay time distribution class",
+          "timestamp": "2024-02-29T23:20:21Z",
+          "tree_id": "3689bf360207b35fef58f17fbf48ede2170a9fa2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ba8109553e88d7c84ab0d67ab459aa8fd692cc27"
+        },
+        "date": 1709261410060,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 43.105,
+            "unit": "seconds",
+            "range": 0.0482130687682737
           }
         ]
       }
