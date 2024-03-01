@@ -37,26 +37,19 @@
      A halo mass function class that modifies another mass function by adding in a population of pseudo-halos.
      !!}
      private
-     double precision                                   :: massZeroPointReference                , normalization            , &
-          &                                                exponentMass                          , exponentRedshift         , &
-          &                                                massParticleReference                 , exponentMassParticle     , &
-          &                                                massParticle                          , massZeroPoint            , &
-          &                                                exponentOverdensity                   , exponentNormalization    , &
-          &                                                countParticleMinimum                  , fractionVolumeUnoccupied_, &
-          &                                                fractionVolumeUnoccupiedTime
-     class           (haloMassFunctionClass  ), pointer :: massFunction_                => null()
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_          => null()
-     class           (haloEnvironmentClass   ), pointer :: haloEnvironment_             => null()
+     double precision                                   :: massZeroPointReference          , normalization        , &
+          &                                                exponentMass                    , exponentRedshift     , &
+          &                                                massParticleReference           , exponentMassParticle , &
+          &                                                massParticle                    , massZeroPoint        , &
+          &                                                exponentOverdensity             , exponentNormalization, &
+          &                                                countParticleMinimum
+     class           (haloMassFunctionClass  ), pointer :: massFunction_          => null()
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_    => null()
+     class           (haloEnvironmentClass   ), pointer :: haloEnvironment_       => null()
    contains
-     !![
-     <methods>
-       <method method="fractionVolumeUnoccupied" description="Return the fraction of volume unoccupied by real halos."/>
-     </methods>
-     !!]
      final     ::                 pseudoHalosDestructor
      procedure :: differential => pseudoHalosDifferential
      procedure :: integrated   => pseudoHalosIntegrated
-     procedure :: fractionVolumeUnoccupied => pseudoHalosFractionVolumeUnoccupied
   end type haloMassFunctionPseudoHalos
 
   interface haloMassFunctionPseudoHalos
@@ -178,7 +171,6 @@ contains
          &               +massParticle           &
          &               /massParticleReference  &
          &              )**exponentMassParticle
-    self%fractionVolumeUnoccupiedTime=-huge(0.0d0)
     return
   end function pseudoHalosConstructorInternal
 
@@ -208,7 +200,6 @@ contains
     type            (treeNode                   ), intent(inout), optional :: node
 
     massFunction=+   self%normalization                                                                            &
-         &       *   self%fractionVolumeUnoccupied(time,node)                                                      &
          &       *(                                                                                                &
          &          +self%massZeroPointReference                                                                   &
          &          /self%massZeroPoint                                                                            &
@@ -238,7 +229,6 @@ contains
     integralLow =+(massLow /self%massZeroPoint)**(self%exponentMass+1.0d0)
     integralHigh=+(massHigh/self%massZeroPoint)**(self%exponentMass+1.0d0)
     massFunction=+self%normalization                                                                                                  &
-         &       *self%fractionVolumeUnoccupied(time,node)                                                                            &
          &       *self%massZeroPoint                                                                                                  &
          &       *(                                                                                                                   &
          &         +self%massZeroPointReference                                                                                       &
@@ -257,30 +247,3 @@ contains
          &       +        self%massFunction_      %integrated          (time,massLow,massHigh,node,status)
     return
   end function pseudoHalosIntegrated
-  
-  double precision function pseudoHalosFractionVolumeUnoccupied(self,time,node) result(fractionVolumeUnoccupied)
-    !!{
-    Compute the fraction of the volume not occupied by resolve halos.
-    !!}
-    implicit none
-    class           (haloMassFunctionPseudoHalos), intent(inout), target           :: self
-    double precision                             , intent(in   )                   :: time 
-    type            (treeNode                   ), intent(inout), target, optional :: node 
-    double precision                             , parameter                       :: massInfinity=1.0d16
-    double precision                                                               :: massMinimum
-    
-    if (time /= self%fractionVolumeUnoccupiedTime) then
-       self%fractionVolumeUnoccupiedTime=time
-       massMinimum=+self%massParticle         &
-            &      *self%countParticleMinimum
-       if (massMinimum < massInfinity) then
-          self%fractionVolumeUnoccupied_=+1.0d0                                                               &
-               &                         -self%massFunction_%massFraction(time,massMinimum,massInfinity,node)
-       else
-          self%fractionVolumeUnoccupied_=+1.0d0
-       end if
-    end if
-    fractionVolumeUnoccupied=self%fractionVolumeUnoccupied_
-    return
-  end function pseudoHalosFractionVolumeUnoccupied
-  
