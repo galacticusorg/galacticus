@@ -25,6 +25,7 @@ use Galacticus::Constraints::Parameters;
 my %options;
 $options{'outputDirectory'} = getcwd()."/pipeline";
 $options{'updateResults'  } = "yes";
+$options{'callgrind'      } = "no";
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Specify the pipeline path.
@@ -103,6 +104,12 @@ foreach my $task ( @tasks ) {
     print "  Generating content...\n";
     system($pipelinePath.$task->{'label'}."GenerateContent.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options));
     print "  ...done\n";
+
+    # Construct the post-processing command and write to file.
+    my $postProcessCommand = $pipelinePath.$task->{'label'}."PostProcess.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options);
+    open(my $postProcessCommandFile,">",$options{'outputDirectory'}."/postProcessCommand.txt");
+    print $postProcessCommandFile $postProcessCommand."\n";
+    close($postProcessCommandFile);
     
     # Parse the config and base parameter files for this task.
     print "  Processing base parameter files...\n";
@@ -127,7 +134,7 @@ foreach my $task ( @tasks ) {
 
     # Create the MCMC job.
     my $job;
-    $job->{'command'   } = "Galacticus.exe ".$configFileName;
+    $job->{'command'   } = ($options{'callgrind'} eq "yes" ? "--output-filename ".$options{'outputDirectory'}."/".$task->{'label'}.".vlog valgrind --tool=callgrind " : "")."Galacticus.exe ".$configFileName;
     $job->{'launchFile'} = $options{'outputDirectory'}."/".$task->{'label'}.".sh" ;
     $job->{'logFile'   } = $options{'outputDirectory'}."/".$task->{'label'}.".log";
     $job->{'label'     } = "darkMatterPipeline".ucfirst($task->{'label'});
@@ -194,7 +201,7 @@ foreach my $task ( @tasks ) {
     # Postprocess the results.
     if ( $task->{'postprocess'} ) {
 	print "  Postprocessing...\n";
-	system($pipelinePath.$task->{'label'}."PostProcess.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options));
+	system($postProcessCommand);
 	print "  ...done\n";
     }
 }
