@@ -54,6 +54,7 @@ program Test_Dark_Matter_Profiles
   class           (nodeComponentSpheroid                                         ), pointer      :: spheroid
   double precision                                                                , parameter    :: concentration                       = 8.0d0                                                         , &
        &                                                                                            massVirial                          = 1.0d0                                                         , &
+       &                                                                                            massSmall                           = 1.0d-4                                                        , &
        ! Mass and concentration of Pippin halos (Jiang et al. 2022).
        &                                                                                            concentrationPippin                 =15.8d0                                                         , &
        &                                                                                            massVirialPippin                    =10.0d0**9.89d0                                                 , &
@@ -66,6 +67,7 @@ program Test_Dark_Matter_Profiles
        &                                                                                            radiusHalfMassDimensionlessHernquist=1.0d0/(sqrt(2.0d0)-1.0d0)
   double precision                                                                , dimension(7) :: radius                              =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
   double precision                                                                , dimension(7) :: mass                                                                                                , &
+       &                                                                                            radiusEnclosingMass                                                                                 , &
        &                                                                                            density                                                                                             , &
        &                                                                                            fourier                                                                                             , &
        &                                                                                            radialVelocityDispersion                                                                            , &
@@ -93,7 +95,8 @@ program Test_Dark_Matter_Profiles
   type            (virialDensityContrastFixed                                    ), pointer      :: virialDensityContrastPippin_
   type            (inputParameters                                               )               :: parameters
   integer                                                                                        :: i
-  double precision                                                                               :: radiusScale
+  double precision                                                                               :: radiusScale                                                                                         , &
+       &                                                                                            radiusSmall
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -271,55 +274,63 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_Begin_Group('NFW profile')
   do i=1,7
      mass                                   (i)=darkMatterProfileDMONFW_               %enclosedMass            (node,      radiusScale*radius(i))
+     radiusEnclosingMass                    (i)=darkMatterProfileDMONFW_               %radiusEnclosingMass     (node,                  mass  (i))
      density                                (i)=darkMatterProfileDMONFW_               %density                 (node,      radiusScale*radius(i))*radiusScale**3
      fourier                                (i)=darkMatterProfileDMONFW_               %kSpace                  (node,1.0d0/radiusScale/radius(i))
      radialVelocityDispersion               (i)=darkMatterProfileDMONFW_               %radialVelocityDispersion(node,      radiusScale*radius(i))
      radialVelocityDispersionSeriesExpansion(i)=darkMatterProfileDMONFWSeriesExpansion_%radialVelocityDispersion(node,      radiusScale*radius(i))
   end do
   ! Radial velocity dispersion in units of virial velocity.
-  radialVelocityDispersion               =radialVelocityDispersion               /darkMatterHaloScale_%velocityVirial(node)
-  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%velocityVirial(node)
-  call Assert(                        &
-       &      'enclosed mass'       , &
-       &      mass                  , &
-       &      [                       &
-       &       5.099550982355504d-3 , &
-       &       1.768930674181593d-2 , &
-       &       5.513246746363203d-2 , &
-       &       1.476281525188409d-1 , &
-       &       3.301489257042704d-1 , &
-       &       6.186775455118112d-1 , &
-       &       1.000000000000000d+0   &
-       &      ]                     , &
-       &      relTol=1.0d-6           &
+  radialVelocityDispersion               =radialVelocityDispersion               /darkMatterHaloScale_%velocityVirial     (node          )
+  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%velocityVirial     (node          )
+  radiusSmall                            =darkMatterProfileDMONFW_                                    %radiusEnclosingMass(node,massSmall)
+  call Assert(                         &
+       &      'enclosed mass'        , &
+       &      mass                   , &
+       &      [                        &
+       &       5.099550982355504d-3  , &
+       &       1.768930674181593d-2  , &
+       &       5.513246746363203d-2  , &
+       &       1.476281525188409d-1  , &
+       &       3.301489257042704d-1  , &
+       &       6.186775455118112d-1  , &
+       &       1.000000000000000d+0    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
        &     )
-  call Assert(                        &
-       &      'density'             , &
-       &      density               , &
-       &      [                       &
-       &       3.844641857939078d-1 , &
-       &       1.557079952465327d-1 , &
-       &       5.406527612726829d-2 , &
-       &       1.520585891079421d-2 , &
-       &       3.379079757954268d-3 , &
-       &       6.082343564317684d-4 , &
-       &       9.386332660984080d-5   &
-       &      ]                     , &
-       &      relTol=1.0d-6           &
+  call Assert(                         &
+       &      'radius enclosing mass', &
+       &      radiusEnclosingMass    , &
+       &      radius*radiusScale     , &
+       &      relTol=1.0d-6            &
        &     )
-  call Assert(                        &
-       &      'fourier'             , &
-       &      fourier               , &
-       &      [                       &
-       &       1.099052711906094d-2 , &
-       &       3.746284433831412d-2 , &
-       &       1.127728075593513d-1 , &
-       &       2.619030036621630d-1 , &
-       &       5.434560723827092d-1 , &
-       &       8.448608065763800d-1 , &
-       &       9.579597044271230d-1   &
-       &      ]                     , &
-       &      relTol=1.0d-6           &
+  call Assert(                         &
+       &      'density'              , &
+       &      density                , &
+       &      [                        &
+       &       3.844641857939078d-1  , &
+       &       1.557079952465327d-1  , &
+       &       5.406527612726829d-2  , &
+       &       1.520585891079421d-2  , &
+       &       3.379079757954268d-3  , &
+       &       6.082343564317684d-4  , &
+       &       9.386332660984080d-5    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
+       &     )
+  call Assert(                         &
+       &      'fourier'              , &
+       &      fourier                , &
+       &      [                        &
+       &       1.099052711906094d-2  , &
+       &       3.746284433831412d-2  , &
+       &       1.127728075593513d-1  , &
+       &       2.619030036621630d-1  , &
+       &       5.434560723827092d-1  , &
+       &       8.448608065763800d-1  , &
+       &       9.579597044271230d-1    &
+       &      ]                      , &
+       &      relTol=1.0d-6            &
        &     )
   call Assert(                                                     &
        &      'radial velocity dispersion (analytic            )', &
@@ -348,6 +359,12 @@ program Test_Dark_Matter_Profiles
        &       5.520559866965048d-1                                &
        &      ]                                                  , &
        &      relTol=1.0d-5                                        &
+       &     )
+  call Assert(                                                     &
+       &      'radius enclosing mass      (at small radii      )', &
+       &      radiusSmall                                        , &
+       &      5.357343922297839d-8                               , &
+       &      relTol=1.0d-6                                        &
        &     )
   call Unit_Tests_End_Group       ()
   ! Test finite resolution NFW profile.
