@@ -167,7 +167,8 @@ contains
     Compute the critical overdensity for collapse for the spherical collapse model.
     !!}
     use :: Error         , only : errorStatusSuccess
-    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor
+    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor, Directory_Make, &
+         &                        File_Path
     use :: Tables        , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
@@ -177,7 +178,10 @@ contains
     integer                                                                                        :: status
     type            (lockDescriptor                                  )                             :: fileLock
 
-    if (tableStore) call File_Lock(char(self%fileNameCriticalOverdensity),fileLock,lockIsShared=.true.)
+    if (tableStore) then
+       call Directory_Make(char(File_Path(char(self%fileNameCriticalOverdensity)))                             )
+       call File_Lock     (               char(self%fileNameCriticalOverdensity)  ,fileLock,lockIsShared=.true.)
+    end if
     call    self%restoreTable(time,criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,criticalOverdensity_,cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity                  )
@@ -192,7 +196,8 @@ contains
     Tabulate the virial density contrast for the spherical collapse model.
     !!}
     use :: Error         , only : errorStatusSuccess
-    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor
+    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor, Directory_Make, &
+         &                        File_Path
     use :: Tables        , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
@@ -202,7 +207,10 @@ contains
     integer                                                                                        :: status
     type            (lockDescriptor                                  )                             :: fileLock
 
-    if (tableStore) call File_Lock(char(self%fileNameVirialDensityContrast),fileLock,lockIsShared=.true.)
+    if (tableStore) then
+       call Directory_Make(char(File_Path(char(self%fileNameVirialDensityContrast)))                             )
+       call File_Lock     (               char(self%fileNameVirialDensityContrast)  ,fileLock,lockIsShared=.true.)
+    end if
     call    self%restoreTable(time,virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,virialDensityContrast_,cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast                  )
@@ -217,7 +225,8 @@ contains
     Tabulate the ratio of turnaround to virial radii for the spherical collapse model.
     !!}
     use :: Error         , only : errorStatusSuccess
-    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor
+    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor, Directory_Make, &
+         &                        File_Path
     use :: Tables        , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
@@ -227,7 +236,10 @@ contains
     integer                                                                                        :: status
     type            (lockDescriptor                                  )                             :: fileLock
 
-    if (tableStore) call File_Lock(char(self%fileNameRadiusTurnaround),fileLock,lockIsShared=.true.)
+    if (tableStore) then
+       call Directory_Make(char(File_Path(char(self%fileNameRadiusTurnaround)))                             )
+       call File_Lock     (               char(self%fileNameRadiusTurnaround)  ,fileLock,lockIsShared=.true.)
+    end if
     call    self%restoreTable(time,radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,radiusTurnaround_,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround                  )
