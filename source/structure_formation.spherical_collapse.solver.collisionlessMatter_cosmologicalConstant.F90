@@ -180,7 +180,7 @@ contains
 
     if (tableStore) then
        call Directory_Make(char(File_Path(char(self%fileNameCriticalOverdensity)))                             )
-       call File_Lock     (               char(self%fileNameCriticalOverdensity)  ,fileLock,lockIsShared=.true.)
+       call File_Lock     (               char(self%fileNameCriticalOverdensity)  ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
@@ -209,7 +209,7 @@ contains
 
     if (tableStore) then
        call Directory_Make(char(File_Path(char(self%fileNameVirialDensityContrast)))                             )
-       call File_Lock     (               char(self%fileNameVirialDensityContrast)  ,fileLock,lockIsShared=.true.)
+       call File_Lock     (               char(self%fileNameVirialDensityContrast)  ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
@@ -238,7 +238,7 @@ contains
 
     if (tableStore) then
        call Directory_Make(char(File_Path(char(self%fileNameRadiusTurnaround)))                             )
-       call File_Lock     (               char(self%fileNameRadiusTurnaround)  ,fileLock,lockIsShared=.true.)
+       call File_Lock     (               char(self%fileNameRadiusTurnaround)  ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
