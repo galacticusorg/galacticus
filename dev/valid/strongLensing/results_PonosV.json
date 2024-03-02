@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 12.5,
-      "percentageAbove" : 87.5
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
-      "model" : 0.773025681823683,
-      "target" : 0.85
+      "target" : 0.85,
+      "model" : 0.796718712263761
    },
    "commit" : {
-      "id" : "9a381319ea2196b3205966de35e5489e97f28118",
-      "message" : "Merge pull request #571 from galacticusorg/fixOptimizeBaryonicLSS",
-      "timestamp" : "Fri, 1 Mar 2024 20:22:50 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/9a381319ea2196b3205966de35e5489e97f28118",
       "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      }
-   }
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      },
+      "timestamp" : "Sat, 2 Mar 2024 14:57:44 +0000",
+      "message" : "Merge pull request #573 from galacticusorg/fixOptimizeBaryonicLSS",
+      "id" : "d01251743649ae4335a060127395563cfd86d513",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/d01251743649ae4335a060127395563cfd86d513"
+   },
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 87.5,
+      "percentageBelow" : 12.5
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
