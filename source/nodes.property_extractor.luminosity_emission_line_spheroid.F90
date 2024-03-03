@@ -497,7 +497,9 @@ contains
     integer         (c_size_t                                  ), dimension(:    ), allocatable :: jLines
     integer         (c_size_t                                  )                                :: iTime                                 , iMetallicity,  kWavelength          , &
          &                                                                                         counter                               , counterMaximum       , &
-         &                                                                                         iterator, iLine
+         &                                                                                         iterator
+integer(c_size_t), save :: iLine
+!$omp threadprivate(iLine)
     double precision                                                                            :: metallicityMinimum                    , metallicityMaximum
     double precision                                                              , save        :: timeMinimum                           , timeMaximum          , &
          &                                                                                         age, metallicity_
@@ -515,7 +517,7 @@ contains
     counterMaximum=product     ([size(emissionLineLuminositySpheroidMean,dim=1              ),size(starFormationHistory%data,dim=1              ),size(starFormationHistory%data,dim=2              )])
     state         =multiCounter([size(emissionLineLuminositySpheroidMean,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=2,kind=c_size_t)])
     stateLock     =ompLock     (                                                                                                                                                     )
-    !$omp parallel private (iTime,iMetallicity,iLine,metallicityMinimum,metallicityMaximum)
+    !$omp parallel private (iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
     allocate(integratorTime       )
     allocate(integratorMetallicity)
     integratorTime       =integrator(emissionLineLuminositySpheroidIntegrandTime       ,toleranceRelative=self%toleranceRelative)
