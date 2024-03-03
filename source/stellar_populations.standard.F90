@@ -408,7 +408,7 @@ contains
     if (.not.property%computed) then
        ! Check for previously computed data.
        makeFile=.false.
-       fileName=char(inputPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+       fileName=char(inputPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
        call Directory_Make(File_Path(fileName))
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
@@ -628,9 +628,9 @@ contains
     select case (indexElement_)
     case (0)
        ! Total metallicity required.
-       yieldMass=supernovaeTypeIa_%yield(massInitial,sneIaLifetime,metallicity_              )
+       yieldMass=supernovaeTypeIa_%yield(initialMassFunction_,massInitial,sneIaLifetime,metallicity_              )
     case default
-       yieldMass=supernovaeTypeIa_%yield(massInitial,sneIaLifetime,metallicity_,indexElement_)
+       yieldMass=supernovaeTypeIa_%yield(initialMassFunction_,massInitial,sneIaLifetime,metallicity_,indexElement_)
     end select
     standardIntegrandYield=+standardIntegrandYield                &
          &                 +initialMassFunction_%phi(massInitial) &
@@ -659,8 +659,8 @@ contains
        ! In the standard calculation, simply use the current lifetime.
        lifetime=lifetime_
     end if
-    standardIntegrandEnergyOutput=+initialMassFunction_%phi                  (massInitial                      ) &
-         &                        *stellarFeedback_    %energyInputCumulative(massInitial,lifetime,metallicity_)
+    standardIntegrandEnergyOutput=+initialMassFunction_%phi                  (                     massInitial                      ) &
+         &                        *stellarFeedback_    %energyInputCumulative(initialMassFunction_,massInitial,lifetime,metallicity_)
     return
   end function standardIntegrandEnergyOutput
 

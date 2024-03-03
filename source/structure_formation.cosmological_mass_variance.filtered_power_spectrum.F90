@@ -371,11 +371,11 @@ contains
     end if
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
-    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
-         &                      'largeScaleStructure/'                           // &
-         &                      self%objectType      (                          )// &
-         &                      '_'                                              // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
+         &                      'largeScaleStructure/'                                                               // &
+         &                      self%objectType      (                                                              )// &
+         &                      '_'                                                                                  // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     if (present(transferFunction_)) then
@@ -1428,7 +1428,7 @@ contains
     return
   end function filteredPowerRemakeTable
 
-  subroutine filteredPowerDescriptor(self,descriptor,includeClass)
+  subroutine filteredPowerDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -1436,7 +1436,7 @@ contains
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeClass
+    logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 
@@ -1461,11 +1461,11 @@ contains
     call    parameters%addParameter('nonMonotonicIsFatal'   ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%monotonicInterpolation
     call    parameters%addParameter('monotonicInterpolation',trim(adjustl(parameterLabel)))
-    call    self%cosmologyParameters_                       %descriptor(parameters)
-    call    self%cosmologyFunctions_                        %descriptor(parameters)
-    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)
-    call    self%linearGrowth_                              %descriptor(parameters)
-    call    self%powerSpectrumWindowFunction_               %descriptor(parameters)
-    call    self%transferFunction_                          %descriptor(parameters)
+    call    self%cosmologyParameters_                       %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%cosmologyFunctions_                        %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%linearGrowth_                              %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%powerSpectrumWindowFunction_               %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%transferFunction_                          %descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine filteredPowerDescriptor

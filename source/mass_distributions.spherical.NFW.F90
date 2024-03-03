@@ -551,8 +551,8 @@ contains
          &  *massEnclosedScaleFree(radius)    &
          &  /                      radius **3
     return
-  end function densityEnclosedScaleFree
-  
+  end function densityEnclosedScaleFree  
+
   double precision function nfwRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for nfw mass distributions.
@@ -1034,10 +1034,11 @@ contains
     implicit none
     class    (massDistributionNFW), intent(inout)           :: self
     type     (inputParameters    ), intent(inout)           :: descriptor
-    logical                       , intent(in   ), optional :: includeClass
+    logical                       , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18             )                          :: parameterLabel
     type     (inputParameters    )                          :: parameters
-
+    !$GLC attributes unused :: includeFileModificationTimes
+    
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','NFW')
     parameters=descriptor%subparameters('massDistribution')
     write (parameterLabel,'(e17.10)') self%densityNormalization

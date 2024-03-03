@@ -175,11 +175,11 @@ contains
     !!]
 
     ! File name for tabulation.
-    self%fileName=inputPath(pathTypeDataDynamic)                   // &
-         &        'darkMatterHalos/'                               // &
-         &        self%objectType      (                          )// &
-         &        '_'                                              // &
-         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &        'darkMatterHalos/'                                                                   // &
+         &        self%objectType      (                                                              )// &
+         &        '_'                                                                                  // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &        '.hdf5'
     ! Initialize tabulations.
     self%densityContrastTableTimeMinimum= 1.0d-03

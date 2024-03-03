@@ -41,6 +41,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
    <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution

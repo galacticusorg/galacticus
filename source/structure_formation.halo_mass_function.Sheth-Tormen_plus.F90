@@ -348,7 +348,7 @@ contains
     return
   end function shethTormenPlusNormalization
 
-  subroutine shethTormenPlusDescriptor(self,descriptor,includeClass)
+  subroutine shethTormenPlusDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -356,7 +356,7 @@ contains
     implicit none
     class    (haloMassFunctionShethTormenPlus), intent(inout)           :: self
     type     (inputParameters                ), intent(inout)           :: descriptor
-    logical                                   , intent(in   ), optional :: includeClass
+    logical                                   , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                         )                          :: parameterLabel
     type     (inputParameters                )                          :: parameters
 
@@ -376,8 +376,8 @@ contains
     call parameters%addParameter('q'            ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%normalizationValue
     call parameters%addParameter('normalization',trim(adjustl(parameterLabel)))
-    call self%cosmologyParameters_     %descriptor(parameters)
-    call self%cosmologicalMassVariance_%descriptor(parameters)
-    call self%criticalOverdensity_     %descriptor(parameters)
+    call self%cosmologyParameters_     %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call self%cosmologicalMassVariance_%descriptor(parameters,includeClass,includeFileModificationTimes)
+    call self%criticalOverdensity_     %descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine shethTormenPlusDescriptor

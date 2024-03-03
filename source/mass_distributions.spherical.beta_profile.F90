@@ -755,7 +755,7 @@ contains
     return
   end function betaProfileDensitySquareIntegral
   
-  subroutine betaProfileDescriptor(self,descriptor,includeClass)
+  subroutine betaProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -763,10 +763,11 @@ contains
     implicit none
     class    (massDistributionBetaProfile), intent(inout)           :: self
     type     (inputParameters            ), intent(inout)           :: descriptor
-    logical                               , intent(in   ), optional :: includeClass
+    logical                               , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                     )                          :: parameterLabel
     type     (inputParameters            )                          :: parameters
-
+    !$GLC attributes unused :: includeFileModificationTimes
+    
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','betaProfile')
     parameters=descriptor%subparameters('massDistribution')
     write (parameterLabel,'(e17.10)') self%densityNormalization

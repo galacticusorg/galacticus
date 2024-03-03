@@ -28,32 +28,48 @@ program Test_Initial_Mass_Functions
   use :: Display                                   , only : displayVerbositySet             , verbosityLevelStandard
   use :: Numerical_Integration2                    , only : integratorCompositeTrapezoidal1D
   use :: NUmerical_Constants_Astronomical          , only : metallicitySolar
-  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionBPASS        , initialMassFunctionBaugh2005TopHeavy, initialMassFunctionChabrier2001   , initialMassFunctionClass            , &
-          &                                                 initialMassFunctionKennicutt1983, initialMassFunctionKroupa2001       , initialMassFunctionMillerScalo1979, initialMassFunctionPiecewisePowerLaw, &
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionBPASS        , initialMassFunctionBaugh2005TopHeavy, initialMassFunctionChabrier2001        , initialMassFunctionClass            , &
+          &                                                 initialMassFunctionKennicutt1983, initialMassFunctionKroupa2001       , initialMassFunctionMillerScalo1979     , initialMassFunctionPiecewisePowerLaw, &
           &                                                 initialMassFunctionSalpeter1955 , initialMassFunctionScalo1986
-  use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
+  use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005   , supernovaeTypeIaPowerLawDTD         , supernovaeTypeIaPowerLawDTDDifferential, supernovaeTypeIaClass
   use :: Stellar_Astrophysics                      , only : stellarAstrophysicsFile
-  use :: Unit_Tests                                , only : Assert                          , Unit_Tests_Begin_Group              , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Unit_Tests                                , only : Assert                          , Unit_Tests_Begin_Group              , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
-  class           (initialMassFunctionClass            ), pointer      :: imf
-  type            (initialMassFunctionChabrier2001     ), target       :: imfChabrier2001
-  type            (initialMassFunctionPiecewisePowerLaw), target       :: imfPiecewisePowerLaw
-  type            (initialMassFunctionSalpeter1955     ), target       :: imfSalpeter1955
-  type            (initialMassFunctionBPASS            ), target       :: imfBPASS
-  type            (initialMassFunctionBaugh2005TopHeavy), target       :: imfBaugh2005TopHeavy
-  type            (initialMassFunctionKennicutt1983    ), target       :: imfKennicutt1983
-  type            (initialMassFunctionKroupa2001       ), target       :: imfKroupa2001
-  type            (initialMassFunctionMillerScalo1979  ), target       :: imfMillerScalo1979
-  type            (initialMassFunctionScalo1986        ), target       :: imfScalo1986
-  type            (stellarAstrophysicsFile             )               :: stellarAstrophysics_
-  type            (supernovaeTypeIaNagashima2005       )               :: supernovaeTypeIaNagashima2005_
-  type            (integratorCompositeTrapezoidal1D    )               :: integrator_
+  class           (initialMassFunctionClass               ), pointer      :: imf
+  type            (initialMassFunctionChabrier2001        ), target       :: imfChabrier2001
+  type            (initialMassFunctionPiecewisePowerLaw   ), target       :: imfPiecewisePowerLaw
+  type            (initialMassFunctionSalpeter1955        ), target       :: imfSalpeter1955
+  type            (initialMassFunctionBPASS               ), target       :: imfBPASS
+  type            (initialMassFunctionBaugh2005TopHeavy   ), target       :: imfBaugh2005TopHeavy
+  type            (initialMassFunctionKennicutt1983       ), target       :: imfKennicutt1983
+  type            (initialMassFunctionKroupa2001          ), target       :: imfKroupa2001
+  type            (initialMassFunctionMillerScalo1979     ), target       :: imfMillerScalo1979
+  type            (initialMassFunctionScalo1986           ), target       :: imfScalo1986
+  type            (stellarAstrophysicsFile                )               :: stellarAstrophysics_
+  type            (supernovaeTypeIaNagashima2005          ), target       :: supernovaeTypeIaNagashima2005_
+  type            (supernovaeTypeIaPowerLawDTD            ), target       :: supernovaeTypeIaPowerLawDTD_
+  type            (supernovaeTypeIaPowerLawDTDDifferential), target       :: supernovaeTypeIaPowerLawDTDDifferential_
+  class           (supernovaeTypeIaClass                  ), pointer      :: supernovaeTypeIa_
+  type            (integratorCompositeTrapezoidal1D       )               :: integrator_
   ! Values of the cumulative number of type Ia SNe read from Figure 6 of Nagashima et al (2005; MNRAS; 363; 31;
-  ! https://ui.adsabs.harvard.edu/abs/2005MNRAS.363L..31N) at 0.1, 1, and 10Gyr.
-  double precision                                      , dimension(3) :: ageTypeIa                     =[1.0d-1,1.0d+0,1.0d+1]                    , &
-       &                                                                  numberTypeIaSNeNagashima2005  =[6.0d-6,6.6d-4,2.2d-3]
-  double precision                                                     :: massInInitialMassFunction                            , numberTypeIaSNe   , &
-       &                                                                  massInitialMinimum                                   , massInitialMaximum
+  ! https://ui.adsabs.harvard.edu/abs/2005MNRAS.363L..31N) at 0.1, 1, and 10Gyr, and for a power-law delay time distribution.
+  double precision                                      , dimension(3) :: ageTypeIa                     =[                                          &
+       &                                                                                                  1.000000000000000d-1,                     &
+       &                                                                                                  1.000000000000000d+0,                     &
+       &                                                                                                  1.000000000000000d+1                      &
+       &                                                                                                 ]                    ,                     &
+       &                                                                  numberTypeIaSNeNagashima2005  =[                                          &
+       &                                                                                                  6.000000000000000d-6,                     &
+       &                                                                                                  6.600000000000000d-4,                     &
+       &                                                                                                  2.200000000000000d-3                      &
+       &                                                                                                 ]                    ,                     &
+       &                                                                  numberTypeIaSNePowerLawDTD    =[                                          &
+       &                                                                                                  2.334828201481421d-4,                     &
+       &                                                                                                  7.581754850034585d-4,                     &
+       &                                                                                                  1.204761370427590d-3                      &
+       &                                                                                                 ]
+  double precision                                                     :: massInInitialMassFunction                           , numberTypeIaSNe   , &
+       &                                                                  massInitialMinimum                                  , massInitialMaximum
   integer                                                              :: i
   character       (len=12                              )               :: label
   
@@ -149,12 +165,13 @@ program Test_Initial_Mass_Functions
   call Unit_Tests_End_Group()
   call Unit_Tests_Begin_Group('Type Ia SNe')
   call Unit_Tests_Begin_Group('Nagashima et al. (2005)')
-  stellarAstrophysics_          =stellarAstrophysicsFile      ('%DATASTATICPATH%/stellarAstrophysics/stellarPropertiesPortinariChiosiBressan1998.xml')
-  supernovaeTypeIaNagashima2005_=supernovaeTypeIaNagashima2005(stellarAstrophysics_,imfPiecewisePowerLaw)
+  stellarAstrophysics_           =  stellarAstrophysicsFile      ('%DATASTATICPATH%/stellarAstrophysics/stellarPropertiesPortinariChiosiBressan1998.xml')
+  supernovaeTypeIaNagashima2005_ =  supernovaeTypeIaNagashima2005(stellarAstrophysics_)
+  supernovaeTypeIa_              => supernovaeTypeIaNagashima2005_
   call integrator_%toleranceSet(1.0d-6,1.0d-6)
   call integrator_%integrandSet(numberTypeIaSNeIntegrand)
   do i=1,size(ageTypeIa)
-     call supernovaeTypeIaNagashima2005_%massInitialRange(ageTypeIa(i),metallicitySolar,massInitialMinimum,massInitialMaximum)
+     call supernovaeTypeIaNagashima2005_%massInitialRange(imfPiecewisePowerLaw,ageTypeIa(i),metallicitySolar,massInitialMinimum,massInitialMaximum)
      massInitialMinimum=max(massInitialMinimum,imfPiecewisePowerLaw%massMinimum())
      massInitialMaximum=min(massInitialMaximum,imfPiecewisePowerLaw%massMaximum())
      numberTypeIaSNe=integrator_%evaluate(                    &
@@ -165,6 +182,40 @@ program Test_Initial_Mass_Functions
      ! The tolerance for this test is (very) low. Nagashima et al. (2005) do not specify what they use for M(t) - the mass of a
      ! star leaving the main sequence at time t). Therefore, the best we can do is an approximate comparison.
      call Assert('Cumulative number of Type Ia SNe at age '//trim(label)//'Gyr',numberTypeIaSNe,numberTypeIaSNeNagashima2005(i),relTol=0.5d0)
+  end do
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Begin_Group('Power law delay time distribution')
+  supernovaeTypeIaPowerLawDTD_ =  supernovaeTypeIaPowerLawDTD(40.0d-3,-1.07d0,0.21d-3)
+  supernovaeTypeIa_            => supernovaeTypeIaPowerLawDTD_
+  call integrator_%toleranceSet(1.0d-6,1.0d-6)
+  call integrator_%integrandSet(numberTypeIaSNeIntegrand)
+  do i=1,size(ageTypeIa)
+     call supernovaeTypeIaPowerLawDTD_%massInitialRange(imfPiecewisePowerLaw,ageTypeIa(i),metallicitySolar,massInitialMinimum,massInitialMaximum)
+     massInitialMinimum=max(massInitialMinimum,imfPiecewisePowerLaw%massMinimum())
+     massInitialMaximum=min(massInitialMaximum,imfPiecewisePowerLaw%massMaximum())
+     numberTypeIaSNe=integrator_%evaluate(                    &
+          &                               massInitialMinimum, &
+          &                               massInitialMaximum  &
+          &                              )  
+     write (label,'(f4.1)') ageTypeIa(i)
+     call Assert('Cumulative number of Type Ia SNe at age '//trim(label)//'Gyr',numberTypeIaSNe,numberTypeIaSNePowerLawDTD(i),relTol=1.0d-3)
+  end do
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Begin_Group('Power law delay time distribution (differential)')
+  supernovaeTypeIaPowerLawDTDDifferential_ =  supernovaeTypeIaPowerLawDTDDifferential(40.0d-3,-1.07d0,0.21d-3)
+  supernovaeTypeIa_                        => supernovaeTypeIaPowerLawDTDDifferential_
+  call integrator_%toleranceSet(1.0d-6,1.0d-6)
+  call integrator_%integrandSet(numberTypeIaSNeIntegrand)
+  do i=1,size(ageTypeIa)
+     call supernovaeTypeIaPowerLawDTDDifferential_%massInitialRange(imfPiecewisePowerLaw,ageTypeIa(i),metallicitySolar,massInitialMinimum,massInitialMaximum)
+     massInitialMinimum=max(massInitialMinimum,imfPiecewisePowerLaw%massMinimum())
+     massInitialMaximum=min(massInitialMaximum,imfPiecewisePowerLaw%massMaximum())
+     numberTypeIaSNe=integrator_%evaluate(                    &
+          &                               massInitialMinimum, &
+          &                               massInitialMaximum  &
+          &                              )  
+     write (label,'(f4.1)') ageTypeIa(i)
+     call Assert('Cumulative number of Type Ia SNe at age '//trim(label)//'Gyr',numberTypeIaSNe,numberTypeIaSNePowerLawDTD(i),relTol=1.0d-3)
   end do
   call Unit_Tests_End_Group()
   call Unit_Tests_End_Group()
@@ -192,8 +243,8 @@ contains
     implicit none
     double precision, intent(in   ) :: massSecondary
 
-    numberTypeIaSNeIntegrand=+supernovaeTypeIaNagashima2005_%number(massSecondary,ageTypeIa(i),metallicitySolar)  &
-         &                   *imfPiecewisePowerLaw              %phi   (massSecondary                )
+    numberTypeIaSNeIntegrand=+supernovaeTypeIa_   %number(imfPiecewisePowerLaw,massSecondary,ageTypeIa(i),metallicitySolar)  &
+         &                   *imfPiecewisePowerLaw%phi   (                     massSecondary                              )
     return
   end function numberTypeIaSNeIntegrand
 

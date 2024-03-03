@@ -105,6 +105,7 @@ Contains a module which implements an N-body data importer for Rockstar files.
   !![
   <nbodyImporter name="nbodyImporterRockstar">
    <description>An importer for Rockstar files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRockstar
