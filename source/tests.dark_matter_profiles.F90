@@ -60,7 +60,7 @@ program Test_Dark_Matter_Profiles
   class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistribution_
   double precision                                                                , parameter    :: concentration                       = 8.0d0                                                         , &
        &                                                                                            massVirial                          = 1.0d0                                                         , &
-       &                                                                                            massSmall                           = 1.0d-4                                                        , &
+       &                                      massSmall                           = 1.0d-4                                                        , &
        ! Mass and concentration of Pippin halos (Jiang et al. 2022).
        &                                                                                            concentrationPippin                 =15.8d0                                                         , &
        &                                                                                            massVirialPippin                    =10.0d0**9.89d0                                                 , &
@@ -74,7 +74,6 @@ program Test_Dark_Matter_Profiles
   double precision                                                                , dimension(7) :: radius                              =[0.125000d0,0.25000d0,0.50000d0,1.00000d0,2.00000d0,4.00000d0,8.00000d0]
   double precision                                                                , dimension(7) :: timeFreefall
   double precision                                                                , dimension(7) :: mass                                                                                                , &
-       &                                                                                            radiusEnclosingMass                                                                                 , &
        &                                                                                            density                                                                                             , &
        &                                                                                            radiusRecoveredFromMass                                                                             , &
        &                                                                                            radiusRecoveredFromDensity                                                                          , &
@@ -120,8 +119,8 @@ program Test_Dark_Matter_Profiles
        &                                                                                            energyPotentialNumerical                                                                            , &
        &                                                                                            energyKineticNumerical                                                                              , &
        &                                                                                            densityNormalization                          , &
+       &                                      radiusSmall
 
-       &                                                                                            radiusSmall
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -286,6 +285,7 @@ program Test_Dark_Matter_Profiles
         fourier                                   (i)=massDistribution_      %fourierTransform                 (radiusVirial,1.0d0                                       /radiusScale   /radius      (i)                      )
         radialVelocityDispersion                  (i)=kinematicsDistribution_%velocityDispersion1D             (                                                                         coordinates        ,massDistribution_)
      end do
+     radiusSmall             =massDistribution_%radiusEnclosingMass         (massSmall                              )
      radiusVelocityMaximum   =massDistribution_%radiusRotationCurveMaximum  (                                       )
      velocityMaximum         =massDistribution_%velocityRotationCurveMaximum(                                       )
      velocityMaximumIndirect =massDistribution_%rotationCurve               (radiusVelocityMaximum                  )
@@ -320,6 +320,12 @@ program Test_Dark_Matter_Profiles
        &      radiusRecoveredFromMass, &
        &      radius                 , &
        &      relTol=1.0d-6            &
+       &     )
+  call Assert(                                          &
+       &      'radius enclosing mass (at small radii)', &
+       &      radiusSmall                             , &
+       &      5.357343922297839d-8                    , &
+       &      relTol=1.0d-6                             &
        &     )
   call Assert(                         &
        &      'density'              , &
@@ -1312,8 +1318,6 @@ program Test_Dark_Matter_Profiles
        &      -4.412912928902085d-2, &
        &      relTol=1.0d-6          &
        &     )
-=======
->>>>>>> master
   call Assert(                         &
        &      'fourier'              , &
        &      fourier                , &
@@ -1388,12 +1392,6 @@ program Test_Dark_Matter_Profiles
        &       5.520559866965048d-1                                &
        &      ]                                                  , &
        &      relTol=1.0d-5                                        &
-       &     )
-  call Assert(                                                     &
-       &      'radius enclosing mass      (at small radii      )', &
-       &      radiusSmall                                        , &
-       &      5.357343922297839d-8                               , &
-       &      relTol=1.0d-6                                        &
        &     )
   call Unit_Tests_End_Group       ()
   ! Test finite resolution NFW profile.

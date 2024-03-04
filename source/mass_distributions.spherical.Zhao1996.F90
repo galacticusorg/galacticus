@@ -1586,7 +1586,7 @@ contains
     return
   end function zhao1996EnergyKinetic
   
-  subroutine zhao1996Descriptor(self,descriptor,includeClass)
+  subroutine zhao1996Descriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -1594,7 +1594,7 @@ contains
     implicit none
     class    (massDistributionZhao1996), intent(inout)           :: self
     type     (inputParameters         ), intent(inout)           :: descriptor
-    logical                            , intent(in   ), optional :: includeClass
+    logical                            , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                  )                          :: parameterLabel
     type     (inputParameters         )                          :: parameters
 
@@ -1606,4 +1606,4 @@ contains
     call parameters%addParameter('scaleLength'         ,trim(adjustl(parameterLabel)))
     return
   end subroutine zhao1996Descriptor
-
+  

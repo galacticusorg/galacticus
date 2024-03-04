@@ -1025,7 +1025,7 @@ contains
          return
   end function burkertEnergyPotential
   
-  subroutine burkertDescriptor(self,descriptor,includeClass)
+  subroutine burkertDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -1033,7 +1033,7 @@ contains
     implicit none
     class    (massDistributionBurkert), intent(inout)           :: self
     type     (inputParameters    ), intent(inout)           :: descriptor
-    logical                       , intent(in   ), optional :: includeClass
+    logical                       , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18             )                          :: parameterLabel
     type     (inputParameters    )                          :: parameters
 

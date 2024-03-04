@@ -698,7 +698,7 @@ contains
     return
   end function isothermalPositionSample
 
-  subroutine isothermalDescriptor(self,descriptor,includeClass)
+  subroutine isothermalDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -706,7 +706,7 @@ contains
     implicit none
     class    (massDistributionIsothermal), intent(inout)           :: self
     type     (inputParameters           ), intent(inout)           :: descriptor
-    logical                              , intent(in   ), optional :: includeClass
+    logical                              , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                    )                          :: parameterLabel
     type     (inputParameters           )                          :: parameters
 

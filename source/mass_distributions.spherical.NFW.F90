@@ -435,10 +435,11 @@ contains
     use :: Error                   , only : Error_Report
     implicit none
     class           (massDistributionNFW         ), intent(inout), target   :: self
-    double precision                              , intent(in   ), optional :: mass         , massFractional
+    double precision                              , intent(in   ), optional :: mass                     , massFractional
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: mass_
+    double precision                                , parameter             :: massScaleFreeSmall=3.0d-4
+    double precision                                                        :: mass_                    , massScaleFree
 
     if (.not.self%matches(componentType,massType)) then
        radius=0.0d0
@@ -452,21 +453,36 @@ contains
     else
        call Error_Report('either mass or massFractional must be supplied'//{introspection:location})
     end if
-    radius=-self%scaleLength                             &
-         & *(                                            &
-         &   +1.0d0                                      &
-         &   /Lambert_W0(                                &
-         &               -exp(                           &
-         &                    -     1.0d0                &
-         &                    -     mass_                &
-         &                    /     4.0d0                &
-         &                    /     Pi                   &
-         &                    /self%densityNormalization &
-         &                    /self%scaleLength**3 &
-         &                   )                           &
-         &              )                                &
-         &   +1.0d0                                      &
-         &  )
+    massScaleFree=+     mass_                &
+         &        /     4.0d0                &
+         &        /     Pi                   &
+         &        /self%densityNormalization &
+         &        /self%scaleLength**3
+    if (massScaleFree < massScaleFreeSmall) then
+       ! Use a series solution for very small radii.
+       radius=+                     sqrt(2.0d0)*massScaleFree**0.5d0 &
+            & +    4.0d0/     3.0d0            *massScaleFree        &
+            & +   13.0d0/     9.0d0/sqrt(2.0d0)*massScaleFree**1.5d0 &
+            & +   92.0d0/   135.0d0            *massScaleFree**2     &
+            & +  313.0d0/   540.0d0/sqrt(2.0d0)*massScaleFree**2.5d0 &
+            & + 1928.0d0/  8505.0d0            *massScaleFree**3     &
+            & +56201.0d0/340200.0d0/sqrt(2.0d0)*massScaleFree**3.5d0 &
+            & +  358.0d0/  1701.0d0            *massScaleFree**4
+    else
+       radius=-self%scaleLength                 &
+            & *(                                &
+            &   +1.0d0                          &
+            &   /Lambert_W0(                    &
+            &               -exp(               &
+            &                    -1.0d0         &
+            &                    -massScaleFree &
+            &                   )               &
+            &              )                    &
+            &   +1.0d0                          &
+            &  )
+    end if
+    radius=+radius           &
+         & *self%scaleLength
     return
   end function nfwRadiusEnclosingMass
   
@@ -1026,7 +1042,7 @@ contains
     return
   end function nfwEnergyKinetic
 
-  subroutine nfwDescriptor(self,descriptor,includeClass)
+  subroutine nfwDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
