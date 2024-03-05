@@ -127,9 +127,9 @@ sub Launch {
 	print $pbsFile "#PBS -V\n";
 	# Find the working directory - we support either PBS or SLURM environment variables here.
 	print $pbsFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
-	print $pbsFile " cd \$PBS_O_WORKDIR\n";
+	print $pbsFile " cd \"\${PBS_O_WORKDIR}\"\n";
 	print $pbsFile "elif [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
-	print $pbsFile " cd \$SLURM_SUBMIT_DIR\n";
+	print $pbsFile " cd \"\${SLURM_SUBMIT_DIR}\"\n";
 	print $pbsFile "fi\n";
 	print $pbsFile "export ".$_."\n"
 	    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
@@ -430,9 +430,9 @@ sub SubmitJobs {
 		print $scriptFile "#PBS -V\n";
 		# Find the working directory - we support either PBS or SLURM environment variables here.
 		print $scriptFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
-		print $scriptFile " cd \$PBS_O_WORKDIR\n";
+		print $scriptFile " cd \"\${PBS_O_WORKDIR}\"\n";
 		print $scriptFile "elif [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
-		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
+		print $scriptFile " cd \"\${SLURM_SUBMIT_DIR}\"\n";
 		print $scriptFile "fi\n";
 		print $scriptFile "export ".$_."\n"
 		    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
