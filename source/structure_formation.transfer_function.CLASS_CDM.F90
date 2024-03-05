@@ -151,6 +151,8 @@ contains
     self%wavenumberMaximum=+classWavenumberMaximumLimit                                        &
          &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
     self%wavenumberMaximumReached=.false.
+    ! Set smooth extrapolation beyond the maximum wavenumber.
+    self%factorWavenumberSmoothExtrapolation=2.0d0
     return
   end function classCDMConstructorInternal
 

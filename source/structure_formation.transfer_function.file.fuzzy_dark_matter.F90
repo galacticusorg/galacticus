@@ -175,7 +175,7 @@ contains
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class           (darkMatterParticleClass            ), pointer       :: darkMatterParticle_
     type            (varying_string                     )                :: fileName
-    double precision                                                     :: redshift
+    double precision                                                     :: redshift            , factorWavenumberSmoothExtrapolation
 
     !![
     <inputParameter>
@@ -189,11 +189,17 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The redshift of the transfer function to read.</description>
     </inputParameter>
+    <inputParameter>
+      <name>factorWavenumberSmoothExtrapolation</name>
+      <source>parameters</source>
+      <defaultValue>2.0d0</defaultValue>
+      <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=${\normalfont \ttfamily [factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=transferFunctionFileFuzzyDarkMatter(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
+    self=transferFunctionFileFuzzyDarkMatter(char(fileName),redshift,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -203,19 +209,19 @@ contains
     return
   end function fileFuzzyDarkMatterConstructorParameters
 
-  function fileFuzzyDarkMatterConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
+  function fileFuzzyDarkMatterConstructorInternal(fileName,redshift,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !!{
     Internal constructor for the fileFuzzyDarkMatter transfer function class.
     !!}
     implicit none
     type            (transferFunctionFileFuzzyDarkMatter)                        :: self
     character       (len=*                              ), intent(in   )         :: fileName
-    double precision                                     , intent(in   )         :: redshift
+    double precision                                     , intent(in   )         :: redshift            , factorWavenumberSmoothExtrapolation
     class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
     !![
-    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    <constructorAssign variables="fileName, redshift, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
     !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))

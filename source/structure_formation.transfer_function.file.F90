@@ -146,14 +146,16 @@
      !!}
      private
      type            (enumerationTransferFunctionTypeType)                            :: transferFunctionType
-     class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_                => null()
-     class           (transferFunctionClass              ), pointer                   :: transferFunctionReference          => null()
+     class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_                 => null()
+     class           (transferFunctionClass              ), pointer                   :: transferFunctionReference           => null()
      type            (varying_string                     )                            :: fileName
      type            (table1DGeneric                     )                            :: transfer
-     logical                                                                          :: massHalfModeAvailable                       , massQuarterModeAvailable, &
-          &                                                                              transferFunctionReferenceAvailable
-     double precision                                                                 :: time                                        , redshift                , &
-          &                                                                              massHalfMode                                , massQuarterMode
+     logical                                                                          :: massHalfModeAvailable                        , massQuarterModeAvailable, &
+          &                                                                              transferFunctionReferenceAvailable           , extrapolateSmooth
+     double precision                                                                 :: time                                         , redshift                , &
+          &                                                                              massHalfMode                                 , massQuarterMode         , &
+          &                                                                              factorWavenumberSmoothExtrapolation          , slopeSmooth             , &
+          &                                                                              wavenumberLogarithmicSmooth                  , transferLogarithmicSmooth
      double precision                                     , allocatable, dimension(:) :: wavenumbersLocalMinima_
    contains
      !![
@@ -198,7 +200,7 @@ contains
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class           (transferFunctionClass   ), pointer       :: transferFunctionReference
     type            (varying_string          )                :: fileName                 , transferFunctionType
-    double precision                                          :: redshift
+    double precision                                          :: redshift                 , factorWavenumberSmoothExtrapolation
 
     !![
     <inputParameter>
@@ -218,6 +220,12 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The redshift of the transfer function to read.</description>
     </inputParameter>
+    <inputParameter>
+      <name>factorWavenumberSmoothExtrapolation</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=${\normalfont \ttfamily [factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
@@ -230,7 +238,7 @@ contains
     end if
     !![
     <conditionalCall>
-      <call>self=transferFunctionFile(char(fileName),enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
+      <call>self=transferFunctionFile(char(fileName),enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
       <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -245,7 +253,7 @@ contains
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,transferFunctionType,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
+  function fileConstructorInternal(fileName,transferFunctionType,redshift,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
     !!{
     Internal constructor for the file transfer function class.
     !!}
@@ -253,13 +261,13 @@ contains
     type            (transferFunctionFile               )                                  :: self
     character       (len=*                              ), intent(in   )                   :: fileName
     type            (enumerationTransferFunctionTypeType), intent(in   )                   :: transferFunctionType
-    double precision                                     , intent(in   )                   :: redshift
+    double precision                                     , intent(in   )                   :: redshift                 , factorWavenumberSmoothExtrapolation
     class           (cosmologyParametersClass           ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), intent(in   ), target           :: cosmologyFunctions_
     class           (transferFunctionClass              ), intent(in   ), target, optional :: transferFunctionReference
     integer                                                                                :: status
     !![
-    <constructorAssign variables="fileName, transferFunctionType, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
+    <constructorAssign variables="fileName, transferFunctionType, redshift, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
@@ -289,7 +297,7 @@ contains
     use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
+    use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
     implicit none
     class           (transferFunctionFile            ), intent(inout)             :: self
     character       (len=*                           ), intent(in   )             :: fileName
@@ -300,7 +308,7 @@ contains
     double precision                                  , parameter                 :: toleranceUniformity     =1.0d-6
     double precision                                                              :: HubbleConstant                 , OmegaBaryon              , &
          &                                                                           OmegaMatter                    , OmegaDarkEnergy          , &
-         &                                                                           temperatureCMB
+         &                                                                           temperatureCMB                 , slope
     type            (enumerationExtrapolationTypeType)                            :: extrapolateWavenumberLow       , extrapolateWavenumberHigh
     integer                                                                       :: versionNumber                  , i                        , &
          &                                                                           countLocalMinima
@@ -381,8 +389,19 @@ contains
     end select
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
-    wavenumberLogarithmic=log(wavenumber)
+   wavenumberLogarithmic=log(wavenumber)
     transferLogarithmic  =log(transfer  )
+    ! If smooth extrapolation to high wavenumbers is required, find the wavenumbers over which to average the slope.
+    self%extrapolateSmooth=extrapolateWavenumberHigh == extrapolationTypeExtrapolate .and. self%factorWavenumberSmoothExtrapolation > 0.0d0
+    if (self%extrapolateSmooth) then
+       do i=size(wavenumber),1,-1
+          if (wavenumber(i) < wavenumber(size(wavenumber))/self%factorWavenumberSmoothExtrapolation) exit
+       end do
+       self%slopeSmooth                =+log(transfer  (size(wavenumber))/transfer  (i)) &
+            &                           /log(wavenumber(size(wavenumber))/wavenumber(i))
+       self%wavenumberLogarithmicSmooth=+log(wavenumber(size(wavenumber))              )
+       self%transferLogarithmicSmooth  =+log(transfer  (size(wavenumber))              )
+    end if
     ! Create the table.
     call self%transfer%create  (                                                    &
          &                      wavenumberLogarithmic                             , &
@@ -446,8 +465,14 @@ contains
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
+    double precision                                      :: wavenumberLogarithmic
 
-    fileValue=exp(self%transfer%interpolate(log(wavenumber)))
+    wavenumberLogarithmic=log(wavenumber)
+    if (self%extrapolateSmooth .and. wavenumberLogarithmic > self%wavenumberLogarithmicSmooth) then
+       fileValue=exp(self%transferLogarithmicSmooth+self%slopeSmooth*(wavenumberLogarithmic-self%wavenumberLogarithmicSmooth))
+    else
+       fileValue=exp(self%transfer%interpolate(wavenumberLogarithmic))
+    end if
     if (self%transferFunctionReferenceAvailable)                           &
          & fileValue=+                               fileValue             &
          &           *self%transferFunctionReference%    value(wavenumber)
@@ -461,12 +486,17 @@ contains
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    
-    fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    double precision                                      :: wavenumberLogarithmic
+
+    wavenumberLogarithmic=log(wavenumber)
+    if (self%extrapolateSmooth .and. wavenumberLogarithmic > self%wavenumberLogarithmicSmooth) then
+       fileLogarithmicDerivative=+self%slopeSmooth
+    else
+       fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    end if
     if (self%transferFunctionReferenceAvailable) &
          & fileLogarithmicDerivative=+                               fileLogarithmicDerivative             &
          &                           +self%transferFunctionReference%    logarithmicDerivative(wavenumber)
-
     return
   end function fileLogarithmicDerivative
   
