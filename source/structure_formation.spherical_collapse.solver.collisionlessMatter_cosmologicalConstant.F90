@@ -77,6 +77,7 @@
 
   ! Resolution of tabulated solutions.
   integer         , parameter :: tablePointsPerDecade=1000
+  integer         , parameter :: tablePointsPerOctave= 300
 
   ! Variables used in root finding.
   double precision            :: OmegaDarkEnergyEpochal, OmegaMatterEpochal, &
@@ -165,20 +166,28 @@ contains
     !!{
     Compute the critical overdensity for collapse for the spherical collapse model.
     !!}
-    use :: Error , only : errorStatusSuccess
-    use :: Tables, only : table1D
+    use :: Error         , only : errorStatusSuccess
+    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor, Directory_Make, &
+         &                        File_Path
+    use :: Tables        , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
     logical                                                                        , intent(in   ) :: tableStore
     class           (table1D                                         ), allocatable, intent(inout) :: criticalOverdensity_
     integer                                                                                        :: status
+    type            (lockDescriptor                                  )                             :: fileLock
 
+    if (tableStore) then
+       call Directory_Make(char(File_Path(char(self%fileNameCriticalOverdensity)))                             )
+       call File_Lock     (               char(self%fileNameCriticalOverdensity)  ,fileLock,lockIsShared=.false.)
+    end if
     call    self%restoreTable(time,criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,criticalOverdensity_,cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity                  )
        call self%storeTable  (     criticalOverdensity_,self%fileNameCriticalOverdensity                 ,tableStore       )
     end if
+    if (tableStore) call File_Unlock(fileLock)
     return
   end subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity
 
@@ -186,20 +195,28 @@ contains
     !!{
     Tabulate the virial density contrast for the spherical collapse model.
     !!}
-    use :: Error , only : errorStatusSuccess
-    use :: Tables, only : table1D
+    use :: Error         , only : errorStatusSuccess
+    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor, Directory_Make, &
+         &                        File_Path
+    use :: Tables        , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
     logical                                                                        , intent(in   ) :: tableStore
     class           (table1D                                         ), allocatable, intent(inout) :: virialDensityContrast_
     integer                                                                                        :: status
+    type            (lockDescriptor                                  )                             :: fileLock
 
+    if (tableStore) then
+       call Directory_Make(char(File_Path(char(self%fileNameVirialDensityContrast)))                             )
+       call File_Lock     (               char(self%fileNameVirialDensityContrast)  ,fileLock,lockIsShared=.false.)
+    end if
     call    self%restoreTable(time,virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,virialDensityContrast_,cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast                  )
        call self%storeTable  (     virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore       )
     end if
+    if (tableStore) call File_Unlock(fileLock)
     return
   end subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast
 
@@ -207,20 +224,28 @@ contains
     !!{
     Tabulate the ratio of turnaround to virial radii for the spherical collapse model.
     !!}
-    use :: Error , only : errorStatusSuccess
-    use :: Tables, only : table1D
+    use :: Error         , only : errorStatusSuccess
+    use :: File_Utilities, only : File_Lock         , File_Unlock, lockDescriptor, Directory_Make, &
+         &                        File_Path
+    use :: Tables        , only : table1D
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)             , intent(inout) :: self
     double precision                                                               , intent(in   ) :: time
     logical                                                                        , intent(in   ) :: tableStore
     class           (table1D                                         ), allocatable, intent(inout) :: radiusTurnaround_
     integer                                                                                        :: status
+    type            (lockDescriptor                                  )                             :: fileLock
 
+    if (tableStore) then
+       call Directory_Make(char(File_Path(char(self%fileNameRadiusTurnaround)))                             )
+       call File_Lock     (               char(self%fileNameRadiusTurnaround)  ,fileLock,lockIsShared=.false.)
+    end if
     call    self%restoreTable(time,radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore,status)
     if (status /= errorStatusSuccess) then
        call self%tabulate    (time,radiusTurnaround_,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround                  )
        call self%storeTable  (     radiusTurnaround_,self%fileNameRadiusTurnaround                 ,tableStore       )
     end if
+    if (tableStore) call File_Unlock(fileLock)
     return
   end subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround
 
@@ -803,8 +828,8 @@ contains
     !!{
     Attempt to restore a table from file.
     !!}
-    use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
     use :: Error             , only : errorStatusFail, errorStatusSuccess
+    use :: File_Utilities    , only : File_Exists
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char           , varying_string
@@ -818,14 +843,11 @@ contains
     integer                                                                        , intent(  out) :: status
     type            (hdf5Object                                      )                             :: file
     double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
-    type            (lockDescriptor                                  )                             :: fileLock
     !$GLC attributes unused :: self
 
     status=errorStatusFail
     if (.not.tableStore) return
     if (File_Exists(fileName)) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        call file%openFile(char(fileName))
        call file%readDataset('time',timeTable)
@@ -850,7 +872,6 @@ contains
        end if
        call file%close()
        !$ call hdf5Access%unset()
-       call File_Unlock(fileLock)
     end if
     return
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
@@ -859,8 +880,7 @@ contains
     !!{
     Store a table to file.
     !!}
-    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
-          &                           lockDescriptor
+    use :: File_Utilities    , only : Directory_Make, File_Path
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char          , varying_string
@@ -871,19 +891,15 @@ contains
     type   (varying_string                                  ), intent(in   ) :: fileName
     logical                                                  , intent(in   ) :: tableStore
     type   (hdf5Object                                      )                :: file
-    type   (lockDescriptor                                  )                :: fileLock
     !$GLC attributes unused :: self
 
     if (.not.tableStore) return
     call Directory_Make(char(File_Path(char(fileName))))
-    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock     (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
     call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value'                                  )
     call file%close       (                                                                                      )
     !$ call hdf5Access%unset()
-    call File_Unlock(fileLock)
     return
   end subroutine cllsnlssMttCsmlgclCnstntStoreTable

@@ -183,6 +183,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      darkMatterParticle_                =darkMatterParticleCDM_                     , &
           &                                                                                                                      intergalacticMediumFilteringMass_  =intergalacticMediumFilteringMassGnedin2000_, &
           &                                                                                                                      tableStore                         =.false.                                    , &
+          &                                                                                                                      energyFixedAt                      =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      normalization                      =1.0d0                                        &
           &                                                                                                                     )
      virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                  &
