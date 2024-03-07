@@ -149,7 +149,7 @@ contains
          &                                                                      nodeHostCurrent
     double precision                                                         :: radiusRelative , velocityRelative
 
-    ! Find the host node. Seek the descendent of the node closest in time to our satellite node. This is necessary as satellites
+    ! Find the host node. Seek the descendant of the node closest in time to our satellite node. This is necessary as satellites
     ! can evolve ahead of their hosts.
     basic            => node%basic ()
     nodeHostPrevious => node%parent
