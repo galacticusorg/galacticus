@@ -47,8 +47,7 @@ size_t mallinfo2_c() {
 #ifdef mallinfo2_available
   struct mallinfo2 info;
   info = mallinfo2();
-  return info.1ordblks+info.usmblks+info.hblkhd;
-#else
+  return info.uordblks+info.usmblks+info.hblkhd;                                                                                                                                                                                                                               #else
   struct mallinfo info;
   info = mallinfo();
   size_t uordblks = info.uordblks;
