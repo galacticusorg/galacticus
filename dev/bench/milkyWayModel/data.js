@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709847129162,
+  "lastUpdate": 1709881822482,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "9bc93f77147ac2c9e30a6debc1767e11b70214c3",
-          "message": "fix: Correct equation, and improve model description",
-          "timestamp": "2023-06-08T08:39:10-07:00",
-          "tree_id": "4c3a18f7c504d6ed8c1af559994b7cf600955a92",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9bc93f77147ac2c9e30a6debc1767e11b70214c3"
-        },
-        "date": 1686250144502,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 218.031,
-            "unit": "seconds",
-            "range": 0.175940046606163
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.7627012674009,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "05526e1732a8eea0cf597557561ecd170cccbfc7",
+          "message": "Merge pull request #574 from galacticusorg/featRamPressurePosition\n\nAdd a ram pressure force class which uses relative positions",
+          "timestamp": "2024-03-08T04:04:16Z",
+          "tree_id": "b6e25e2eeca8b4854f2df2c45009fdc0c0b8969b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/05526e1732a8eea0cf597557561ecd170cccbfc7"
+        },
+        "date": 1709881821731,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 191.995,
+            "unit": "seconds",
+            "range": 0.115232373927156
           }
         ]
       }
