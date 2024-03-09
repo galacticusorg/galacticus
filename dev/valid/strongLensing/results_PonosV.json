@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
    "slope" : {
-      "model" : 0.796718712263761,
-      "target" : 0.85
+      "target" : 0.85,
+      "model" : 0.833036979573026
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "percentageBelow" : 12.5,
-      "percentageAbove" : 87.5,
-      "target" : 0.006
+   "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/cd809cf990fd32e4d6950fa725537232b4d2c208",
+      "id" : "cd809cf990fd32e4d6950fa725537232b4d2c208",
+      "timestamp" : "Fri, 8 Mar 2024 21:26:02 +0000",
+      "author" : {
+         "email" : "abenson@carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "message" : "feat: Add a merger tree operator to prune branches below a mass threshold and after the final output time"
    },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/05526e1732a8eea0cf597557561ecd170cccbfc7",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      },
-      "message" : "Merge pull request #574 from galacticusorg/featRamPressurePosition",
-      "timestamp" : "Fri, 8 Mar 2024 04:04:16 +0000",
-      "id" : "05526e1732a8eea0cf597557561ecd170cccbfc7"
-   }
+   "surfaceDensity" : {
+      "percentageBelow" : 0,
+      "target" : 0.006,
+      "percentageAbove" : 100
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
