@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1709881825372,
+  "lastUpdate": 1709944144869,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "d7e8d701de321cad9797a17d560893304a79bdfb",
-          "message": "fix: Serialize deadlock reporting in threaded tree evolution",
-          "timestamp": "2023-06-08T13:50:40-07:00",
-          "tree_id": "86a1940c08b46a1edd34e0bc30a6b2c7f898f1cb",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d7e8d701de321cad9797a17d560893304a79bdfb"
-        },
-        "date": 1686268513549,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 48.587,
-            "unit": "seconds",
-            "range": 0.0224521713859421
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8792,6 +8762,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 23965.5932725254,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "cd809cf990fd32e4d6950fa725537232b4d2c208",
+          "message": "feat: Add a merger tree operator to prune branches below a mass threshold and after the final output time",
+          "timestamp": "2024-03-08T21:26:02Z",
+          "tree_id": "8df396ca2f6f923003c691d78bb79edefea0ee22",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cd809cf990fd32e4d6950fa725537232b4d2c208"
+        },
+        "date": 1709944143458,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 42.357,
+            "unit": "seconds",
+            "range": 0.0870293054088249
           }
         ]
       }
