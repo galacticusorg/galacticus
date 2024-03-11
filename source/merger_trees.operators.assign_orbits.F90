@@ -118,7 +118,7 @@ contains
          &                                                            mergee
     class  (nodeComponentSatellite        ), pointer               :: satellite               , satelliteProgenitor
     class  (nodeComponentBasic            ), pointer               :: basic                   , basicProgenitor
-    type   (mergerTreeWalkerIsolatedNodes  )                        :: treeWalker
+    type   (mergerTreeWalkerIsolatedNodes )                        :: treeWalker
     type   (keplerOrbit                   )                        :: virialOrbitNode         , virialOrbitProgenitor
     logical                                                        :: satelliteProgenitorFound
     !$GLC attributes unused :: self
@@ -132,7 +132,7 @@ contains
             &  .and.                                        &
             &   .not.           node%isPrimaryProgenitor()  &
             & ) then
-          satellite   => node     %satellite  (autoCreate=.true.)
+          satellite       => node     %satellite  (autoCreate=.true.)
           virialOrbitNode =  satellite%virialOrbit(                 )
           if (.not.virialOrbitNode%isDefined()) then
              ! Check for a primary progenitor with a pre-existing satellite.
