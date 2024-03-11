@@ -958,6 +958,7 @@ jobs:
                 test-checkpointing.pl,
                 test-stellar-mass-weighted-ages.pl,
                 test-tidalTracks.pl,
+                test-transferFunctionHalfModeSlope.pl,
                 test-galacticStructureStateDeallocateBug.pl,
                 test-inactiveNumerics.pl,
                 test-impulsiveHeating.pl,
