@@ -117,7 +117,7 @@ contains
     class           (mergerTreeOperatorPruneByMassAndTime), intent(inout), target :: self
     type            (mergerTree                          ), intent(inout), target :: tree
     type            (treeNode                            ), pointer               :: nodeNext    , nodeBranch     , &
-         &                                                                           node
+         &                                                                           node        , nodeRoot
     class           (nodeComponentBasic                  ), pointer               :: basic       , basicChild     , &
          &                                                                           basicBranch
     type            (mergerTree                          ), pointer               :: currentTree , treeNext
@@ -129,7 +129,10 @@ contains
     double precision                                                              :: timeFinal
     logical                                                                       :: pruneBranch , nodesRemain    , &
          &                                                                           keepTree
-    
+
+    ! Make a copy of the root node.
+    allocate(nodeRoot)
+    call tree%nodeBase%copyNodeTo(nodeRoot)
     ! Get the final output time.
     timeFinal=self%outputTimes_%time(self%outputTimes_%count())    
     ! Walk the trees.
@@ -214,37 +217,49 @@ contains
        currentTree => treeNext
     end do
     ! Create new trees.
-    nodeRootCurrent          => nodeRootHead
-    tree           %nextTree => null()
-    currentTree              => null()
-    do while (associated(nodeRootCurrent))
-       if (.not.associated(currentTree)) then
-          currentTree => tree
-       else
-          allocate(currentTree%nextTree)
-          currentTree                  => currentTree%nextTree
-          currentTree%firstTree        => tree
-          currentTree%hostUniverse     => tree%hostUniverse
-          currentTree%event            => null()
-          currentTree%nextTree         => null()
-          currentTree%index            =  tree%index
-          currentTree%volumeWeight     =  tree%volumeWeight
-          currentTree%initializedUntil =  tree%initializedUntil
-          call currentTree%properties%initialize()
-          allocate(currentTree%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
-          !$omp critical(mergerTreeOperatorMassAndTimeeepCopyReset)
-          !![
-          <deepCopyReset variables="tree%randomNumberGenerator_"/>
-          <deepCopy source="tree%randomNumberGenerator_" destination="currentTree%randomNumberGenerator_"/>
-          <deepCopyFinalize variables="currentTree%randomNumberGenerator_"/>
-          !!]
-          !$omp end critical(mergerTreeOperatorMassAndTimeeepCopyReset)
-       end if
-       currentTree    %nodeBase => nodeRootCurrent%node
-       nodeRootNext             => nodeRootCurrent%next
-       deallocate(nodeRootCurrent)
-       nodeRootCurrent          => nodeRootNext
-    end do
+    if (associated(nodeRootHead)) then    
+       nodeRootCurrent          => nodeRootHead
+       tree           %nextTree => null()
+       currentTree              => null()
+       do while (associated(nodeRootCurrent))
+          if (.not.associated(currentTree)) then
+             currentTree => tree
+          else
+             allocate(currentTree%nextTree)
+             currentTree                  => currentTree%nextTree
+             currentTree%firstTree        => tree
+             currentTree%hostUniverse     => tree%hostUniverse
+             currentTree%event            => null()
+             currentTree%nextTree         => null()
+             currentTree%index            =  tree%index
+             currentTree%volumeWeight     =  tree%volumeWeight
+             currentTree%initializedUntil =  tree%initializedUntil
+             call currentTree%properties%initialize()
+             allocate(currentTree%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
+             !$omp critical(mergerTreeOperatorMassAndTimeeepCopyReset)
+             !![
+             <deepCopyReset variables="tree%randomNumberGenerator_"/>
+             <deepCopy source="tree%randomNumberGenerator_" destination="currentTree%randomNumberGenerator_"/>
+             <deepCopyFinalize variables="currentTree%randomNumberGenerator_"/>
+             !!]
+             !$omp end critical(mergerTreeOperatorMassAndTimeeepCopyReset)
+          end if
+          currentTree    %nodeBase => nodeRootCurrent%node
+          nodeRootNext             => nodeRootCurrent%next
+          deallocate(nodeRootCurrent)
+          nodeRootCurrent          => nodeRootNext
+       end do
+       deallocate(nodeRoot)
+    else
+       ! No tree remains - insert a single node to make an inert tree.
+       tree    %nodeBase   => nodeRoot
+       tree    %nextTree   => null()
+       tree    %event      => null()
+       nodeRoot%parent     => null()
+       nodeRoot%firstChild => null()
+       nodeRoot%sibling    => null()
+       nodeRoot%event      => null()
+    end if
     ! Reassign host tree pointers.
     currentTree => tree
     do while (associated(currentTree))
