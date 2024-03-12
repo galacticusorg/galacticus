@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710201805897,
+  "lastUpdate": 1710229937564,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "50c07f709063ddfe99b7fd3b569745b0e29c3010",
-          "message": "feat: Add a `galacticFilter` that passes only nodes on the constrained branch",
-          "timestamp": "2023-06-21T15:52:30Z",
-          "tree_id": "9315f145782b85c53b3e476562ad4e173eac805b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/50c07f709063ddfe99b7fd3b569745b0e29c3010"
-        },
-        "date": 1687382848221,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 242.237,
-            "unit": "seconds",
-            "range": 0.281517495016391
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.8576064687717,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3ce8807226eb572cd2e69f27dff0e01ddefd9efd",
+          "message": "Merge pull request #576 from galacticusorg/featTransferFunctionHalfModeSlope\n\nAdd a new transfer function class",
+          "timestamp": "2024-03-12T04:50:30Z",
+          "tree_id": "7a1d0cad97095dc74297e74aad36509622d468a8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3ce8807226eb572cd2e69f27dff0e01ddefd9efd"
+        },
+        "date": 1710229937117,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 161.902,
+            "unit": "seconds",
+            "range": 0.194225641976331
           }
         ]
       }
