@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710229934700,
+  "lastUpdate": 1710229940622,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "50c07f709063ddfe99b7fd3b569745b0e29c3010",
-          "message": "feat: Add a `galacticFilter` that passes only nodes on the constrained branch",
-          "timestamp": "2023-06-21T15:52:30Z",
-          "tree_id": "9315f145782b85c53b3e476562ad4e173eac805b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/50c07f709063ddfe99b7fd3b569745b0e29c3010"
-        },
-        "date": 1687382851715,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.6748844868819,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.9524525639199,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23715.206261202,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8792,6 +8753,45 @@ window.BENCHMARK_DATA = {
             "value": 42.991,
             "unit": "seconds",
             "range": 0.054725679529596
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3ce8807226eb572cd2e69f27dff0e01ddefd9efd",
+          "message": "Merge pull request #576 from galacticusorg/featTransferFunctionHalfModeSlope\n\nAdd a new transfer function class",
+          "timestamp": "2024-03-12T04:50:30Z",
+          "tree_id": "7a1d0cad97095dc74297e74aad36509622d468a8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3ce8807226eb572cd2e69f27dff0e01ddefd9efd"
+        },
+        "date": 1710229939869,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 58.1861260232079,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 26.1066812232021,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24332.6544323823,
+            "unit": "-logℒ"
           }
         ]
       }
