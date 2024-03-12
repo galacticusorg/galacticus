@@ -561,6 +561,78 @@ jobs:
           name: galacticus-tools-MacOS
           path: './datasets/toolsMacOS.zip'
       - run: echo "This job's status is ${{ job.status }}."
+  Build-Tools-MacOS-M1:
+    runs-on: macos-14
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Set up build environment
+        uses: ./.github/actions/buildMacOS
+      - name: Build Galacticus
+        run: |
+          make -j3 Galacticus.exe
+      - name: Build tools
+        run: |
+          export GALACTICUS_EXEC_PATH=`pwd`
+          export FCCOMPILER=gfortran-11
+          export CCOMPILER=gcc-11
+          export CPPCOMPILER=g++-11
+          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
+          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
+          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
+          ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
+          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
+          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH
+          zip -r toolsMacOSM1.zip \
+            dynamic/CAMB-${cambVersion}/fortran/camb \
+            dynamic/AxionCAMB/camb \
+            dynamic/class_public-${classVersion}/class \
+            dynamic/RecFast/recfast.exe \
+            dynamic/RecFast/currentVersion \
+            dynamic/c${cloudyVersion}/source/cloudy.exe \
+            dynamic/c${cloudyVersion}/data \
+            dynamic/fsps-${fspsVersion}/src/autosps.exe \
+            dynamic/fsps-${fspsVersion}/dust \
+            dynamic/fsps-${fspsVersion}/data \
+            dynamic/fsps-${fspsVersion}/nebular \
+            dynamic/fsps-${fspsVersion}/SPECTRA \
+            dynamic/fsps-${fspsVersion}/OUTPUTS \
+            dynamic/fsps-${fspsVersion}/ISOCHRONES
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: galacticus-tools-MacOS-M1
+          path: './datasets/toolsMacOSM1.zip'
+      - run: echo "This job's status is ${{ job.status }}."
   # Benchmarks
   Benchmark-Dark-Matter-Only-Subhalos:
     needs: Build-Executable-Linux
@@ -1437,6 +1509,7 @@ jobs:
              Build-Executable-MacOS-M1,
              Build-Library-MacOS,
              Build-Tools-MacOS,
+             Build-Tools-MacOS-M1,
              Profile-Dark-Matter-Only-Subhalos,
              Profile-Milky-Way-Model,
              Profile-Milky-Way-SIDM-Model,
@@ -1521,12 +1594,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: galacticus-tools-MacOS
+      - name: Download artifacts (tools-macos-m1)
+        uses: actions/download-artifact@v4
+        with:
+          name: galacticus-tools-MacOS-M1
       - name: Upload assets to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./debugSymbolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
+          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@v4
         with:
