@@ -1,23 +1,23 @@
 window.PONOSV_DATA = {
-   "slope" : {
-      "target" : 0.85,
-      "model" : 0.800888567212155
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "surfaceDensity" : {
-      "percentageAbove" : 87.5,
-      "percentageBelow" : 12.5,
+      "percentageBelow" : 6.25,
+      "percentageAbove" : 93.75,
       "target" : 0.006
    },
    "commit" : {
-      "id" : "bb772e3b66b51f8c2e5081f5488ac8b90202d224",
-      "message" : "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/bb772e3b66b51f8c2e5081f5488ac8b90202d224",
-      "timestamp" : "Mon, 11 Mar 2024 20:41:09 +0000",
+      "timestamp" : "Tue, 12 Mar 2024 04:50:30 +0000",
+      "message" : "Merge pull request #576 from galacticusorg/featTransferFunctionHalfModeSlope",
+      "id" : "3ce8807226eb572cd2e69f27dff0e01ddefd9efd",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/3ce8807226eb572cd2e69f27dff0e01ddefd9efd",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
+         "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       }
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "slope" : {
+      "model" : 0.912851509601648,
+      "target" : 0.85
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
