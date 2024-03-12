@@ -129,7 +129,7 @@ contains
     <constructorAssign variables="*transferFunctionCDM, massHalfMode, slopeHalfMode, time, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
-    ! Compute the corrsponding redshift.
+    ! Compute the corresponding redshift.
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     ! Compute the parameters for the underlying Murgia et al. (2017) transfer function.
     wavenumberHalfMode=+Pi                                                    &
