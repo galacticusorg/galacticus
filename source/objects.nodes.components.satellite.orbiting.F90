@@ -225,7 +225,7 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter             , inputParameters
-    use :: Events_Hooks    , only : satellitePreHostChangeEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, openMPThreadBindingAtLevel
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(inputParameters)                :: subParameters
@@ -242,6 +242,7 @@ contains
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
        <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="subParameters"/>
        !!]
+       call          nodePromotionEvent%attach(thread,nodePromotion         ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
        call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
@@ -259,7 +260,7 @@ contains
     Uninitializes the tree node orbiting satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
-    use :: Events_Hooks    , only : satellitePreHostChangeEvent
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -273,7 +274,8 @@ contains
        <objectDestructor name="galacticStructure_"    />
        !!]
        if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
-    end if
+       if (         nodePromotionEvent%isAttached(thread,nodePromotion         )) call          nodePromotionEvent%detach(thread,nodePromotion         )
+   end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
 
@@ -423,8 +425,8 @@ contains
              nodeHost => node%parent
           else
              nodeHost => node%parent%firstChild
-          end if          
-          orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
+          end if
+          orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)          
           ! Store the orbit.
           call satellite%virialOrbitSet(orbit)          
        end if
@@ -432,6 +434,34 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
   
+  subroutine nodePromotion(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    from the parent.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite, nodeComponentSatelliteOrbiting
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentSatellite)               , pointer :: satellite, satelliteParent
+    !$GLC attributes unused :: self
+
+    satelliteParent => node%parent%satellite()
+    select type (satelliteParent)
+    type is (nodeComponentSatelliteOrbiting)
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          ! This is as expected - nothing to do.
+       class default
+          call Error_Report('multiple satellite components defined on branch'//{introspection:location})
+       end select
+       call node%parent%satelliteMove(node,overwrite=.true.)
+    end select
+    return
+  end subroutine nodePromotion
+
   subroutine satellitePreHostChange(self,node,nodeHostNew)
     !!{
     A satellite is about to move to a new host, adjust its position and velocity appropriately

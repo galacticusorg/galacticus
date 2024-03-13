@@ -26,7 +26,8 @@ module Node_Component_Satellite_Standard
   !!}
   implicit none
   private
-  public :: Node_Component_Satellite_Standard_Initialize, Node_Component_Satellite_Standard_Inactive, Node_Component_Satellite_Standard_Scale_Set
+  public :: Node_Component_Satellite_Standard_Initialize         , Node_Component_Satellite_Standard_Inactive, Node_Component_Satellite_Standard_Scale_Set, Node_Component_Satellite_Standard_Thread_Initialize, &
+       &    Node_Component_Satellite_Standard_Thread_Uninitialize
 
   !![
   <component>
@@ -58,6 +59,10 @@ module Node_Component_Satellite_Standard
 
   ! Record of whether satellite bound mass is an inactive variable.
   logical :: inactiveBoundMass
+
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
 
 contains
 
@@ -91,6 +96,75 @@ contains
     end if
     return
   end subroutine Node_Component_Satellite_Standard_Initialize
+
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
+    !!{
+    Initializes the tree node standard satellite module.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    !$GLC attributes unused :: parameters
+
+    if (defaultSatelliteComponent%standardIsActive()) then
+       call nodePromotionEvent%attach(thread,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSatelliteStandard')
+    end if
+    return
+  end subroutine Node_Component_Satellite_Standard_Thread_Initialize
+
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
+    !!{
+    Uninitializes the tree node standard satellite module.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Events_Hooks    , only : nodePromotionEvent
+    implicit none
+
+    if (defaultSatelliteComponent%standardIsActive()) then
+       if (nodePromotionEvent%isAttached(thread,nodePromotion)) call nodePromotionEvent%detach(thread,nodePromotion)
+    end if
+    return
+  end subroutine Node_Component_Satellite_Standard_Thread_Uninitialize
+
+  subroutine nodePromotion(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    from the parent.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite, nodeComponentSatelliteStandard
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentSatellite)               , pointer :: satellite, satelliteParent
+    !$GLC attributes unused :: self
+
+    satelliteParent => node%parent%satellite()
+    select type (satelliteParent)
+    type is (nodeComponentSatelliteStandard)
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          ! This is as expected - nothing to do.
+       class default
+          call Error_Report('multiple satellite components defined on branch'//{introspection:location})
+       end select
+       call node%parent%satelliteMove(node,overwrite=.true.)
+    end select
+    return
+  end subroutine nodePromotion
   
   !![
   <inactiveSetTask>
