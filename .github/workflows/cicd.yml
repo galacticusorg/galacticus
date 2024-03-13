@@ -579,7 +579,8 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j3 Galacticus.exe
+          make -j3 Galacticus.exe 2>&1 | tee build.log
+          ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
       - name: Build tools
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
@@ -598,16 +599,6 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
           set -o pipefail
-          # BEGIN DEBUG
-          echo OTOOL
-          otool -L Galacticus.exe
-          echo DYLD_LIBRARY_PATH $DYLD_LIBRARY_PATH
-          echo QHULL LIBS
-          ls /usr/local/lib/libqhull_r.so*
-          echo LIBRARY LINK
-          export BUILDPATH=./work/build
-          ./scripts/build/libraryDependencies.pl Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/  -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DQHULLAVAIL -DMATHEVALAVAIL
-          # END DEBUG
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
