@@ -599,10 +599,16 @@ jobs:
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
           set -o pipefail
           # BEGIN DEBUG
+          echo OTOOL
           otool -L Galacticus.exe
           echo DYLD_LIBRARY_PATH $DYLD_LIBRARY_PATH
+          echo QHULL LIBS
           ls /usr/local/lib/libqhull_r.so*
-          ./Galacticus.exe parameters/report.xml
+          echo LOCAL LIBS
+          ls lib/
+          echo LIBRARY LINK
+          export BUILDPATH=./work/build
+          ./scripts/build/libraryDependencies.pl Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/  -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DQHULLAVAIL -DMATHEVALAVAIL
           # END DEBUG
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
