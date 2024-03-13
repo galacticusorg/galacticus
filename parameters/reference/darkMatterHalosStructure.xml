@@ -10,10 +10,10 @@
     <concentrationMaximum value="100.0"/>
     <darkMatterProfileScaleRadius value="johnson2021">
       <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
-      <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
-      <energyBoost      value="0.6773"/>
-      <massExponent     value="1.5552"/>
-      <unresolvedEnergy value="0.5500"/> 
+      <!-- Best-fit values of the parameters are taken from https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations.                   -->
+      <energyBoost      value="0.797003643180003"/>
+      <massExponent     value="2.168409985653090"/>
+      <unresolvedEnergy value="0.550000000000000"/>
       <darkMatterProfileScaleRadius value="ludlow2016"          >
 	<C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
 	<f                                  value="  0.07534"    />
