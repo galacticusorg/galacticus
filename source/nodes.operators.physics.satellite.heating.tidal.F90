@@ -36,7 +36,7 @@
      private
      class           (satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
      class           (galacticStructureClass        ), pointer :: galacticStructure_         => null()
-     double precision                                          :: timeScaleDecay
+     double precision                                          :: efficiencyDecay
      logical                                                   :: applyPreInfall
    contains
      final     ::                          satelliteTidalHeatingRateDestructor
@@ -64,14 +64,14 @@ contains
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
     class           (galacticStructureClass           ), pointer       :: galacticStructure_
-    double precision                                                   :: timeScaleDecay
+    double precision                                                   :: efficiencyDecay
     logical                                                            :: applyPreInfall
 
     !![
     <inputParameter>
-      <name>timeScaleDecay</name>
+      <name>efficiencyDecay</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Time scale in units of the orbital time for the decay of tidal tensor integral.</description>
+      <description>Efficiency of the decay of tidal tensor integral.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -83,11 +83,7 @@ contains
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
     <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-    ! Validate the parameters.
-    if (timeScaleDecay <= 0.0d0) then
-       call Error_Report('parameter [timeScaleDecay] must be positive'//{introspection:location})
-    end if
-    self=nodeOperatorSatelliteTidalHeating(timeScaleDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_)
+    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalHeatingRate_"/>
@@ -96,7 +92,7 @@ contains
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
-  function satelliteTidalHeatingRateConstructorInternal(timeScaleDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_) result(self)
+  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
     !!}
@@ -104,10 +100,10 @@ contains
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
     class           (satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
     class           (galacticStructureClass           ), intent(in   ), target :: galacticStructure_
-    double precision                                   , intent(in   )         :: timeScaleDecay
+    double precision                                   , intent(in   )         :: efficiencyDecay
     logical                                            , intent(in   )         :: applyPreInfall
     !![
-    <constructorAssign variables="timeScaleDecay, applyPreInfall, *satelliteTidalHeatingRate_, *galacticStructure_"/>
+    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *galacticStructure_"/>
     !!]
 
     return
@@ -203,8 +199,8 @@ contains
     ! Calculate integrated tidal tensor, and heating rates.
     call satellite%tidalTensorPathIntegratedRate(                                                   &
          &                                       +tidalTensor                                       &
-         &                                       -tidalTensorPathIntegrated                         &
-         &                                       /self%timeScaleDecay                               &
+         &                                       -self%efficiencyDecay                              &
+         &                                       *tidalTensorPathIntegrated                         &
          &                                       /orbitalPeriod                                     &
          &                                      )
     call satellite%tidalHeatingNormalizedRate   (                                                   &
