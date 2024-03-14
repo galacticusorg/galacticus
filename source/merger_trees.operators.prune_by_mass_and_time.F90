@@ -136,9 +136,10 @@ contains
     ! Get the final output time.
     timeFinal=self%outputTimes_%time(self%outputTimes_%count())    
     ! Walk the trees.
-    treeWalker   =  mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
-    nodesRemain  =  treeWalker%next(node)
-    nodeRootHead => null()
+    treeWalker      =  mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    nodesRemain     =  treeWalker%next(node)
+    nodeRootHead    => null()
+    nodeRootCurrent => null()
     do while (nodesRemain)
        nodesRemain=treeWalker%next(nodeNext)
        ! Skip nodes with no child
