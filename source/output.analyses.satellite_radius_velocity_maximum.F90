@@ -38,11 +38,10 @@
      class           (darkMatterProfileDMOClass), pointer                   :: darkMatterProfileDMO_               => null(), darkMatterProfileDMOUnheated => null()
      class           (outputTimesClass         ), pointer                   :: outputTimes_                        => null()
      type            (varying_string           )                            :: fileName
-     type            (interpolator             )                            :: interpolator_
+     type            (interpolator             )                            :: interpolator_                                , interpolatorError_
      !$ integer      (omp_lock_kind            )                            :: accumulateLock
      double precision                                                       :: logLikelihood_
-     double precision                                                       :: relativeUncertainty                          , relativeModelUncertainty                   , &
-          &                                                                    radiusVelocityMaximumInitial
+     double precision                                                       :: relativeModelUncertainty                     , radiusVelocityMaximumInitial
      double precision                           , dimension(:), allocatable :: time                                         , fractionRadiusVelocityMaximum              , &
           &                                                                    fractionRadiusVelocityMaximumTarget          , varianceFractionRadiusVelocityMaximumTarget
    contains
@@ -72,22 +71,16 @@ contains
     implicit none
     type            (outputAnalysisSatelliteRadiusVelocityMaximum)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
-    class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_, darkMatterProfileDMOUnheated
+    class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_   , darkMatterProfileDMOUnheated
     class           (outputTimesClass                            ), pointer       :: outputTimes_
     type            (varying_string                              )                :: fileName
-    double precision                                                              :: relativeUncertainty  , relativeModelUncertainty
+    double precision                                                              :: relativeModelUncertainty
 
     !![
     <inputParameter>
       <name>fileName</name>
       <source>parameters</source>
       <description>The name of the file from which to read the target dataset.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>relativeUncertainty</name>
-      <defaultValue>0.1d0</defaultValue>
-      <description>Relative uncertainty of the data points.</description>
-      <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>relativeModelUncertainty</name>
@@ -99,7 +92,7 @@ contains
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMOUnheated" source="parameters"   parameterName="darkMatterProfileDMOUnheated"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"                 source="parameters"                                               />
     !!]
-    self=outputAnalysisSatelliteRadiusVelocityMaximum(fileName,relativeUncertainty,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_)
+    self=outputAnalysisSatelliteRadiusVelocityMaximum(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"       />
@@ -109,7 +102,7 @@ contains
     return
   end function satelliteRadiusVelocityMaximumConstructorParameters
   
-  function satelliteRadiusVelocityMaximumConstructorInternal(fileName,relativeUncertainty,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
+  function satelliteRadiusVelocityMaximumConstructorInternal(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
     !!{
     Constructor for the ``satelliteRadiusVelocityMaximum'' output analysis class for internal use.
     !!}
@@ -120,38 +113,43 @@ contains
     implicit none
     type            (outputAnalysisSatelliteRadiusVelocityMaximum)                              :: self
     type            (varying_string                              ), intent(in   )               :: fileName
-    class           (darkMatterProfileDMOClass                   ), intent(in   ), target       :: darkMatterProfileDMO_        , darkMatterProfileDMOUnheated
+    class           (darkMatterProfileDMOClass                   ), intent(in   ), target       :: darkMatterProfileDMO_             , darkMatterProfileDMOUnheated
     class           (outputTimesClass                            ), intent(inout), target       :: outputTimes_
-    double precision                                              , intent(in   )               :: relativeUncertainty          , relativeModelUncertainty
+    double precision                                              , intent(in   )               :: relativeModelUncertainty
     type            (hdf5Object                                  )                              :: file
-    double precision                                              , allocatable  , dimension(:) :: time                         , radiusVelocityMaximum       , &
-         &                                                                                         fractionRadiusVelocityMaximum
+    double precision                                              , allocatable  , dimension(:) :: time                              , radiusVelocityMaximum       , &
+         &                                                                                         fractionRadiusVelocityMaximum     , radiusVelocityMaximumError  , &
+         &                                                                                         fractionRadiusVelocityMaximumError
     integer         (c_size_t                                    )                              :: i
     !![
-    <constructorAssign variables="fileName, relativeUncertainty, relativeModelUncertainty, *darkMatterProfileDMO_, *darkMatterProfileDMOUnheated, *outputTimes_"/>
+    <constructorAssign variables="fileName, relativeModelUncertainty, *darkMatterProfileDMO_, *darkMatterProfileDMOUnheated, *outputTimes_"/>
     !!]
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName)         ,readOnly=.true.               )
-    call file%readDataset('time'                 ,         time                 )
-    call file%readDataset('radiusVelocityMaximum',         radiusVelocityMaximum)
-    call file%close      (                                                      )
+    call file%openFile   (char(fileName)              ,readOnly=.true.                    )
+    call file%readDataset('time'                      ,         time                      )
+    call file%readDataset('radiusVelocityMaximum'     ,         radiusVelocityMaximum     )
+    call file%readDataset('radiusVelocityMaximumError',         radiusVelocityMaximumError)
+    call file%close      (                                                                )
     !$ call hdf5Access%unset()
-    allocate(fractionRadiusVelocityMaximum(size(radiusVelocityMaximum)))
-    self%radiusVelocityMaximumInitial=radiusVelocityMaximum(1)
-    fractionRadiusVelocityMaximum    =radiusVelocityMaximum   /self%radiusVelocityMaximumInitial
+    allocate(fractionRadiusVelocityMaximum     (size(radiusVelocityMaximum)))
+    allocate(fractionRadiusVelocityMaximumError(size(radiusVelocityMaximum)))
+    self%radiusVelocityMaximumInitial =radiusVelocityMaximum(1)
+    fractionRadiusVelocityMaximum     =radiusVelocityMaximum     /self%radiusVelocityMaximumInitial
+    fractionRadiusVelocityMaximumError=radiusVelocityMaximumError/self%radiusVelocityMaximumInitial
     ! Build interpolator.
-    self%interpolator_=interpolator(time,log(fractionRadiusVelocityMaximum),interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeExtrapolate)
+    self%interpolator_     =interpolator(time,log(fractionRadiusVelocityMaximum     ),interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeExtrapolate)
+    self%interpolatorError_=interpolator(time,log(fractionRadiusVelocityMaximumError),interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeExtrapolate)
     allocate(self%time                                       (outputTimes_%count()))
     allocate(self%fractionRadiusVelocityMaximum              (outputTimes_%count()))
     allocate(self%fractionRadiusVelocityMaximumTarget        (outputTimes_%count()))
     allocate(self%varianceFractionRadiusVelocityMaximumTarget(outputTimes_%count()))
     do i=1, outputTimes_%count()
-       self%time                               (i)=                                   outputTimes_%time(i)
-       self%fractionRadiusVelocityMaximumTarget(i)=exp(self%interpolator_%interpolate(outputTimes_%time(i)))
+       self%time                                       (i)=                                        outputTimes_%time(i)
+       self%fractionRadiusVelocityMaximumTarget        (i)=exp(self%interpolator_     %interpolate(outputTimes_%time(i)))
+       self%varianceFractionRadiusVelocityMaximumTarget(i)=exp(self%interpolatorError_%interpolate(outputTimes_%time(i)))**2
     end do
-    self%varianceFractionRadiusVelocityMaximumTarget=(self%relativeUncertainty*self%fractionRadiusVelocityMaximumTarget)**2
     !$ call OMP_Init_Lock(self%accumulateLock)
     self%fractionRadiusVelocityMaximum=0.0d0
     self%logLikelihood_               =0.0d0

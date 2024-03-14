@@ -34,15 +34,14 @@
      An output analysis class that computes satellite bound mass fraction as a function of time.
      !!}
      private
-     class           (outputTimesClass), pointer                   :: outputTimes_            => null()
+     class           (outputTimesClass), pointer                   :: outputTimes_             => null()
      type            (varying_string  )                            :: fileName
-     type            (interpolator    )                            :: interpolator_
+     type            (interpolator    )                            :: interpolator_                     , interpolatorError_
      !$ integer      (omp_lock_kind   )                            :: accumulateLock
      double precision                                              :: logLikelihood_
-     double precision                                              :: relativeUncertainty              , relativeModelUncertainty       , &
-          &                                                           boundMassInitial
-     double precision                  , dimension(:), allocatable :: time                             , fractionBoundMass              , &
-          &                                                           fractionBoundMassTarget          , varianceFractionBoundMassTarget
+     double precision                                              :: relativeModelUncertainty          , boundMassInitial
+     double precision                  , dimension(:), allocatable :: time                              , fractionBoundMass              , &
+          &                                                           fractionBoundMassTarget           , varianceFractionBoundMassTarget
    contains
      final     ::                  satelliteBoundMassDestructor
      procedure :: analyze       => satelliteBoundMassAnalyze
@@ -72,18 +71,12 @@ contains
     type            (inputParameters                 ), intent(inout) :: parameters
     class           (outputTimesClass                ), pointer       :: outputTimes_
     type            (varying_string                  )                :: fileName
-    double precision                                                  :: relativeUncertainty, relativeModelUncertainty
+    double precision                                                  :: relativeModelUncertainty
 
     !![
     <inputParameter>
       <name>fileName</name>
       <description>The name of the file from which to read the target dataset.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>relativeUncertainty</name>
-      <defaultValue>0.1d0</defaultValue>
-      <description>Relative uncertainty of the data points.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -94,7 +87,7 @@ contains
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisSatelliteBoundMass(fileName,relativeUncertainty,relativeModelUncertainty,outputTimes_)
+    self=outputAnalysisSatelliteBoundMass(fileName,relativeModelUncertainty,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -102,7 +95,7 @@ contains
     return
   end function satelliteBoundMassConstructorParameters
   
-  function satelliteBoundMassConstructorInternal(fileName,relativeUncertainty,relativeModelUncertainty,outputTimes_) result (self)
+  function satelliteBoundMassConstructorInternal(fileName,relativeModelUncertainty,outputTimes_) result (self)
     !!{
     Constructor for the ``satelliteBoundMass'' output analysis class for internal use.
     !!}
@@ -114,36 +107,41 @@ contains
     type            (outputAnalysisSatelliteBoundMass)                              :: self
     type            (varying_string                  ), intent(in   )               :: fileName
     class           (outputTimesClass                ), intent(inout), target       :: outputTimes_
-    double precision                                  , intent(in   )               :: relativeUncertainty, relativeModelUncertainty
+    double precision                                  , intent(in   )               :: relativeModelUncertainty
     type            (hdf5Object                      )                              :: file
-    double precision                                  , allocatable  , dimension(:) :: time               , boundMass               , &
-         &                                                                             fractionBoundMass
+    double precision                                  , allocatable  , dimension(:) :: time                    , boundMass               , &
+         &                                                                             fractionBoundMass       , boundMassError          , &
+         &                                                                             fractionBoundMassError
     integer         (c_size_t                        )                              :: i
     !![
-    <constructorAssign variables="fileName, relativeUncertainty, relativeModelUncertainty, *outputTimes_"/>
+    <constructorAssign variables="fileName, relativeModelUncertainty, *outputTimes_"/>
     !!]
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName),readOnly=.true.   )
-    call file%readDataset('time'        ,         time     )
-    call file%readDataset('boundMass'   ,         boundMass)
-    call file%close      (                                 )
+    call file%openFile   (char(fileName)  ,readOnly=.true.        )
+    call file%readDataset('time'          ,         time          )
+    call file%readDataset('boundMass'     ,         boundMass     )
+    call file%readDataset('boundMassError',         boundMassError)
+    call file%close      (                                        )
     !$ call hdf5Access%unset()
-    allocate(fractionBoundMass(size(boundMass)))
-    self%boundMassInitial=boundMass(1)
-    fractionBoundMass    =boundMass   /self%boundMassInitial
+    allocate(fractionBoundMass     (size(boundMass)))
+    allocate(fractionBoundMassError(size(boundMass)))
+    self%boundMassInitial =boundMass(1)
+    fractionBoundMass     =boundMass     /self%boundMassInitial
+    fractionBoundMassError=boundMassError/self%boundMassInitial
     ! Build interpolator.
-    self%interpolator_=interpolator(time,log(fractionBoundMass),interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeExtrapolate)
+    self%interpolator_     =interpolator(time,log(fractionBoundMass     ),interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeExtrapolate)
+    self%interpolatorError_=interpolator(time,log(fractionBoundMassError),interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeExtrapolate)
     allocate(self%time                           (outputTimes_%count()))
     allocate(self%fractionBoundMass              (outputTimes_%count()))
     allocate(self%fractionBoundMassTarget        (outputTimes_%count()))
     allocate(self%varianceFractionBoundMassTarget(outputTimes_%count()))
     do i=1, outputTimes_%count()
-       self%time                   (i)=                                   outputTimes_%time(i)
-       self%fractionBoundMassTarget(i)=exp(self%interpolator_%interpolate(outputTimes_%time(i)))
+       self%time                           (i)=                                        outputTimes_%time(i)
+       self%fractionBoundMassTarget        (i)=exp(self%interpolator_     %interpolate(outputTimes_%time(i)))
+       self%varianceFractionBoundMassTarget(i)=exp(self%interpolatorError_%interpolate(outputTimes_%time(i)))**2
     end do
-    self%varianceFractionBoundMassTarget=(self%relativeUncertainty*self%fractionBoundMassTarget)**2
     !$ call OMP_Init_Lock(self%accumulateLock)
     self%fractionBoundMass=0.0d0
     self%logLikelihood_   =0.0d0
