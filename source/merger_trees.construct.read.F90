@@ -1619,6 +1619,7 @@ contains
          &                                                                                     nodeNew
     class           (nodeComponentBasic       ), pointer                                    :: basic
     integer         (c_size_t                 )                                             :: iNode
+    integer                                                                                 :: i
     logical                                                                                 :: isolatedProgenitorExists, nodeIsMostMassive, &
          &                                                                                     progenitorIsIsolated
     type            (progenitorIterator       )                                             :: progenitors
@@ -1672,6 +1673,12 @@ contains
                    if (isolatedProgenitorExists) then
                       allocate(nodeNew)
                       call nodeList(descendantNode%isolatedNodeIndex)%node%copyNodeTo(nodeNew)
+                      if (nodeNew%satelliteCount() > 0) then
+                         ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+                         do i=nodeNew%satelliteCount(),1,-1
+                            call nodeNew%satelliteRemove(i)
+                         end do
+                      end if
                       nodeNew                                         %sibling        => nodeList(descendantNode%isolatedNodeIndex)%node%firstChild
                       nodeNew                                         %parent         => nodeList(descendantNode%isolatedNodeIndex)%node
                       nodeNew                                         %firstSatellite => null()
