@@ -225,10 +225,13 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter             , inputParameters
-    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, openMPThreadBindingAtLevel, subhaloPromotionEvent, &
+         &                          dependencyDirectionBefore  , dependencyExact
+
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(inputParameters)                :: subParameters
+    type(dependencyExact), dimension(1)  :: dependenciesSubhaloPromotion
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Find our parameters.
@@ -242,8 +245,10 @@ contains
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
        <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="subParameters"/>
        !!]
-       call          nodePromotionEvent%attach(thread,nodePromotion         ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
-       call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting')
+       dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
+       call       subhaloPromotionEvent%attach(thread,subhaloPromotion      ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting',dependencies=dependenciesSubhaloPromotion)
+       call          nodePromotionEvent%attach(thread,nodePromotion         ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
+       call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
@@ -260,7 +265,7 @@ contains
     Uninitializes the tree node orbiting satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
-    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, subhaloPromotionEvent
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -273,6 +278,7 @@ contains
        <objectDestructor name="virialOrbit_"          />
        <objectDestructor name="galacticStructure_"    />
        !!]
+       if (      subhaloPromotionEvent%isAttached(thread,subhaloPromotion      )) call       subhaloPromotionEvent%detach(thread,subhaloPromotion      )
        if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
        if (         nodePromotionEvent%isAttached(thread,nodePromotion         )) call          nodePromotionEvent%detach(thread,nodePromotion         )
    end if
@@ -461,6 +467,20 @@ contains
     end select
     return
   end subroutine nodePromotion
+
+  subroutine subhaloPromotion(self,node,nodePromotion)
+    !!{
+    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).    
+    !!}
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), pointer :: node, nodePromotion
+     !$GLC attributes unused :: self, nodePromotion
+    
+    call node%satelliteRemove(1)
+    return
+  end subroutine subhaloPromotion
 
   subroutine satellitePreHostChange(self,node,nodeHostNew)
     !!{
