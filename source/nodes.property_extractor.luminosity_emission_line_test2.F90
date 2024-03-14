@@ -16,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+!+    Contributions to this file made by: Sachi Weerasooriya
   !!{
   Contains a module which implements a property extractor class for the emission line luminosity of a component.
   !!}
@@ -150,20 +150,18 @@ contains
     use :: Error, only : Error_Report
     use :: Input_Paths                               , only : inputPath                       , pathTypeDataStatic
     implicit none
-    type            (nodePropertyExtractorLuminosityEmissionLine      )               :: self
-    type            (enumerationComponentTypeType              ), intent(in   )               :: component
-    type            (varying_string                      ), intent(in   ), dimension(:)           :: lineNames
-    class           (starFormationHistoryClass                 ), intent(in   ), target       :: starFormationHistory_
-    class           (outputTimesClass                          ), intent(in   ), target       :: outputTimes_
-    class           (hiiRegionLuminosityFunctionClass          ), intent(in   ), target       :: hiiRegionLuminosityFunction_
-    class           (nodeComponentDisk       )                  , pointer               :: disk
-    class           (nodeComponentSpheroid  )                  , pointer               :: spheroid
-    double precision                                            , intent(in   )               :: toleranceRelative    
-    double precision                                            ,                             :: deltaIonizingFluxHydrogen, rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum 
-    double precision                                            , allocatable  , dimension(:) :: ionizingFluxHydrogen
-    double precision                                            , allocatable  , dimension(:,:) :: ionizingLuminosityHydrogenNormalized
+    type            (nodePropertyExtractorLuminosityEmissionLine      )                             :: self
+    type            (enumerationComponentTypeType              ), intent(in   )                     :: component
+    type            (varying_string                            ), intent(in   ), dimension(:)       :: lineNames
+    class           (starFormationHistoryClass                 ), intent(in   ), target             :: starFormationHistory_
+    class           (outputTimesClass                          ), intent(in   ), target             :: outputTimes_
+    class           (hiiRegionLuminosityFunctionClass          ), intent(in   ), target             :: hiiRegionLuminosityFunction_
+    double precision                                            , intent(in   )                     :: toleranceRelative    
+    double precision                                            ,                                   :: deltaIonizingFluxHydrogen, rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum 
+    double precision                                            , allocatable  , dimension(:)       :: ionizingFluxHydrogen
+    !double precision                                           , allocatable  , dimension(:,:)     :: ionizingLuminosityHydrogenNormalized
     double precision                                            , allocatable  , dimension(:,:,:,:) :: luminosities
-    type     (hdf5Object              )                :: emissionLinesFile, lines
+    type     (hdf5Object                                       )                                    :: emissionLinesFile, lines
     integer :: i
     !![
     <constructorAssign variables="lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_,*hiiRegionLuminosityFunction_"/>
@@ -310,7 +308,7 @@ contains
     double precision                          , dimension(:,:,:), pointer               :: luminosityTemplate_
     double precision                          , dimension(:,:,:), target  , allocatable :: luminosityTemplate
     type            (history                 )                                          :: starFormationHistory
-    integer                                                                             :: indexTemplate       , iLines, k
+    integer                                                                             :: indexTemplate       , iLines
     !$GLC attributes unused :: instance
 
     allocate(emissionLineLuminosityExtract(self%countLines))
@@ -511,8 +509,7 @@ contains
     logical                                                     , intent(in   )   , optional    :: parallelize
     type            (integrator                                ), allocatable     , save        :: integratorTime                        , integratorMetallicity
     type (interpolator), allocatable, save :: interpolatorTime, interpolatorMetallicity
-    integer         (c_size_t                                  ), dimension(:    ), allocatable :: jLines
-    integer         (c_size_t                                  )                                :: iTime                                 , iMetallicity,  kWavelength          , &
+    integer         (c_size_t                                  )                                :: iTime                                 , iMetallicity        , &
          &                                                                                         counter                               , counterMaximum       , &
          &                                                                                         iterator
     integer(c_size_t), save :: iLine
