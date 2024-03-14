@@ -38,7 +38,7 @@
   <mergerTreeMassResolution value="fixed">
     <!-- All trees are set to have the same halo mass resolution. -->
     <!-- A relatively coarse mass resolution is used to allow the model to run in reasonable time. -->
-    <massResolution value="1.0e8"/>
+    <massResolution value="8.0e7"/>
   </mergerTreeMassResolution>
 
   <!-- Output epochs -->
