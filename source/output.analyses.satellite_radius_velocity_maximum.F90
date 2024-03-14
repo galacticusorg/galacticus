@@ -41,7 +41,8 @@
      type            (interpolator             )                            :: interpolator_
      !$ integer      (omp_lock_kind            )                            :: accumulateLock
      double precision                                                       :: logLikelihood_
-     double precision                                                       :: relativeUncertainty                          , radiusVelocityMaximumInitial
+     double precision                                                       :: relativeUncertainty                          , relativeModelUncertainty                   , &
+          &                                                                    radiusVelocityMaximumInitial
      double precision                           , dimension(:), allocatable :: time                                         , fractionRadiusVelocityMaximum              , &
           &                                                                    fractionRadiusVelocityMaximumTarget          , varianceFractionRadiusVelocityMaximumTarget
    contains
@@ -74,7 +75,7 @@ contains
     class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_, darkMatterProfileDMOUnheated
     class           (outputTimesClass                            ), pointer       :: outputTimes_
     type            (varying_string                              )                :: fileName
-    double precision                                                              :: relativeUncertainty
+    double precision                                                              :: relativeUncertainty  , relativeModelUncertainty
 
     !![
     <inputParameter>
@@ -88,11 +89,17 @@ contains
       <description>Relative uncertainty of the data points.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>relativeModelUncertainty</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Relative model uncertainty.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"        source="parameters"                                               />
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMOUnheated" source="parameters"   parameterName="darkMatterProfileDMOUnheated"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"                 source="parameters"                                               />
     !!]
-    self=outputAnalysisSatelliteRadiusVelocityMaximum(fileName,relativeUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_)
+    self=outputAnalysisSatelliteRadiusVelocityMaximum(fileName,relativeUncertainty,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"       />
@@ -102,7 +109,7 @@ contains
     return
   end function satelliteRadiusVelocityMaximumConstructorParameters
   
-  function satelliteRadiusVelocityMaximumConstructorInternal(fileName,relativeUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
+  function satelliteRadiusVelocityMaximumConstructorInternal(fileName,relativeUncertainty,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
     !!{
     Constructor for the ``satelliteRadiusVelocityMaximum'' output analysis class for internal use.
     !!}
@@ -115,13 +122,13 @@ contains
     type            (varying_string                              ), intent(in   )               :: fileName
     class           (darkMatterProfileDMOClass                   ), intent(in   ), target       :: darkMatterProfileDMO_        , darkMatterProfileDMOUnheated
     class           (outputTimesClass                            ), intent(inout), target       :: outputTimes_
-    double precision                                              , intent(in   )               :: relativeUncertainty
+    double precision                                              , intent(in   )               :: relativeUncertainty          , relativeModelUncertainty
     type            (hdf5Object                                  )                              :: file
     double precision                                              , allocatable  , dimension(:) :: time                         , radiusVelocityMaximum       , &
          &                                                                                         fractionRadiusVelocityMaximum
     integer         (c_size_t                                    )                              :: i
     !![
-    <constructorAssign variables="fileName, relativeUncertainty, *darkMatterProfileDMO_, *darkMatterProfileDMOUnheated, *outputTimes_"/>
+    <constructorAssign variables="fileName, relativeUncertainty, relativeModelUncertainty, *darkMatterProfileDMO_, *darkMatterProfileDMOUnheated, *outputTimes_"/>
     !!]
 
     ! Read properties from the file.
@@ -172,12 +179,13 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    !$ use :: OMP_Lib         , only : OMP_Set_Lock      , OMP_Unset_Lock
+    use    :: Numerical_Constants_Math, only : Pi
+    !$ use :: OMP_Lib                 , only : OMP_Set_Lock, OMP_Unset_Lock
     implicit none
     class           (outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     integer         (c_size_t                                    ), intent(in   ) :: iOutput
-    double precision                                                              :: fractionRadiusVelocityMaximum
+    double precision                                                              :: fractionRadiusVelocityMaximum, varianceFractionRadiusVelocityMaximum
 
     ! Skip non-satellites.
     if (.not.node%isSatellite()) return
@@ -185,13 +193,22 @@ contains
     fractionRadiusVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum(node)/self%darkMatterProfileDMOUnheated%radiusCircularVelocityMaximum(node)
     !$ call OMP_Set_Lock(self%accumulateLock)
     self%fractionRadiusVelocityMaximum(iOutput)=fractionRadiusVelocityMaximum
-    self%logLikelihood_                        =+self%logLikelihood_                                         &
-         &                                      -0.5d0                                                       &
-         &                                      *(                                                           &
-         &                                        +fractionRadiusVelocityMaximum                             &
-         &                                        -self%fractionRadiusVelocityMaximumTarget        (iOutput) &
-         &                                       )**2                                                        &
-         &                                      /  self%varianceFractionRadiusVelocityMaximumTarget(iOutput)
+    ! Add model uncertainty.
+    varianceFractionRadiusVelocityMaximum      =+self%varianceFractionRadiusVelocityMaximumTarget(iOutput) &
+         &                                      +(                                                         &
+         &                                         self%relativeModelUncertainty                           &
+         &                                        *fractionRadiusVelocityMaximum                           &
+         &                                       )**2
+    self%logLikelihood_                        =+self%logLikelihood_                                       &
+         &                                      -0.5d0                                                     &
+         &                                      *(                                                         &
+         &                                        +(                                                       &
+         &                                          +fractionRadiusVelocityMaximum                         &
+         &                                          -self%fractionRadiusVelocityMaximumTarget    (iOutput) &
+         &                                         )**2                                                    &
+         &                                        /             varianceFractionRadiusVelocityMaximum      &
+         &                                        +log(2.0d0*Pi*varianceFractionRadiusVelocityMaximum)     &
+         &                                       )
     !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine satelliteRadiusVelocityMaximumAnalyze

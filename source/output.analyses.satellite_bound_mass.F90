@@ -39,7 +39,8 @@
      type            (interpolator    )                            :: interpolator_
      !$ integer      (omp_lock_kind   )                            :: accumulateLock
      double precision                                              :: logLikelihood_
-     double precision                                              :: relativeUncertainty              , boundMassInitial
+     double precision                                              :: relativeUncertainty              , relativeModelUncertainty       , &
+          &                                                           boundMassInitial
      double precision                  , dimension(:), allocatable :: time                             , fractionBoundMass              , &
           &                                                           fractionBoundMassTarget          , varianceFractionBoundMassTarget
    contains
@@ -71,7 +72,7 @@ contains
     type            (inputParameters                 ), intent(inout) :: parameters
     class           (outputTimesClass                ), pointer       :: outputTimes_
     type            (varying_string                  )                :: fileName
-    double precision                                                  :: relativeUncertainty
+    double precision                                                  :: relativeUncertainty, relativeModelUncertainty
 
     !![
     <inputParameter>
@@ -85,9 +86,15 @@ contains
       <description>Relative uncertainty of the data points.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>relativeModelUncertainty</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Relative model uncertainty.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisSatelliteBoundMass(fileName,relativeUncertainty,outputTimes_)
+    self=outputAnalysisSatelliteBoundMass(fileName,relativeUncertainty,relativeModelUncertainty,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -95,7 +102,7 @@ contains
     return
   end function satelliteBoundMassConstructorParameters
   
-  function satelliteBoundMassConstructorInternal(fileName,relativeUncertainty,outputTimes_) result (self)
+  function satelliteBoundMassConstructorInternal(fileName,relativeUncertainty,relativeModelUncertainty,outputTimes_) result (self)
     !!{
     Constructor for the ``satelliteBoundMass'' output analysis class for internal use.
     !!}
@@ -107,13 +114,13 @@ contains
     type            (outputAnalysisSatelliteBoundMass)                              :: self
     type            (varying_string                  ), intent(in   )               :: fileName
     class           (outputTimesClass                ), intent(inout), target       :: outputTimes_
-    double precision                                  , intent(in   )               :: relativeUncertainty
+    double precision                                  , intent(in   )               :: relativeUncertainty, relativeModelUncertainty
     type            (hdf5Object                      )                              :: file
-    double precision                                  , allocatable  , dimension(:) :: time               , boundMass, &
+    double precision                                  , allocatable  , dimension(:) :: time               , boundMass               , &
          &                                                                             fractionBoundMass
     integer         (c_size_t                        )                              :: i
     !![
-    <constructorAssign variables="fileName, relativeUncertainty, *outputTimes_"/>
+    <constructorAssign variables="fileName, relativeUncertainty, relativeModelUncertainty, *outputTimes_"/>
     !!]
 
     ! Read properties from the file.
@@ -162,14 +169,15 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Galacticus_Nodes, only : nodeComponentSatellite
-    !$ use :: OMP_Lib         , only : OMP_Set_Lock      , OMP_Unset_Lock
+    use    :: Galacticus_Nodes        , only : nodeComponentSatellite
+    use    :: Numerical_Constants_Math, only : Pi
+    !$ use :: OMP_Lib                 , only : OMP_Set_Lock          , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisSatelliteBoundMass), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
     integer         (c_size_t                        ), intent(in   ) :: iOutput
     class           (nodeComponentSatellite          ), pointer       :: satellite
-    double precision                                                  :: fractionMassBound
+    double precision                                                  :: fractionMassBound, varianceFractionBoundMass
 
     ! Skip non-satellites.
     if (.not.node%isSatellite()) return
@@ -178,13 +186,22 @@ contains
     fractionMassBound =  satellite%boundMass()/self%boundMassInitial
     !$ call OMP_Set_Lock(self%accumulateLock)
     self%fractionBoundMass(iOutput)=fractionMassBound
+    ! Add model uncertainty.
+    varianceFractionBoundMass      =+  self%varianceFractionBoundMassTarget(iOutput) &
+         &                          +(                                               &
+         &                             self%relativeModelUncertainty                 &
+         &                            *fractionMassBound                             &
+         &                           )**2
     self%logLikelihood_            =+self%logLikelihood_                             &
          &                          -0.5d0                                           &
          &                          *(                                               &
-         &                            +fractionMassBound                             &
-         &                            -self%fractionBoundMassTarget        (iOutput) &
-         &                           )**2                                            &
-         &                          /  self%varianceFractionBoundMassTarget(iOutput)
+         &                            +(                                             &
+         &                              +fractionMassBound                           &
+         &                              -self%fractionBoundMassTarget      (iOutput) &
+         &                             )**2                                          &
+         &                            /             varianceFractionBoundMass        &
+         &                            +log(2.0d0*Pi*varianceFractionBoundMass)       &
+         &                           )
     !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine satelliteBoundMassAnalyze
