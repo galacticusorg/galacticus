@@ -5,7 +5,8 @@
 
   <!-- Satellite orbit options -->
   <virialOrbit value="spinCorrelated">
-    <alpha             value="0.47263"  /> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+    <!-- Best fit value for correlation with host spin from https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations. -->
+    <alpha value="0.155573112534425" />
     <virialOrbit value="jiang2014" >
       <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
       <bRatioHigh             value="+2.88333 +4.06371 +3.86726"/>
@@ -24,18 +25,18 @@
   </virialOrbit>
  
   <!-- Orbiting model of satellites -->
-  <!-- Values are taken from Yang et al. (2021; https://ui.adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) using results for gamma=2.5
-       from the Caterpillar simulations. But note that we use gamma=1.5 here instead as suggested Weinberg 1994a,b, and Gnedin and
-       Ostriker 1999 as discussed in Yang et al. -->
+  <!-- Values taken from Yang et al. (2020; MNRAS; 498; 3902; http://adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) approximately
+       interpolated betweeing their gamma=0.0 and 2.5 cases (using the Caterpillar simulations as calibration target) to
+       approximately match our choice of gamma=1.5 using the Caterpillar simulations as calibration target.  -->
   <satelliteDynamicalFriction value="chandrasekhar1943">
-    <logarithmCoulomb value="1.53"/>
+    <logarithmCoulomb value="1.35"/>
   </satelliteDynamicalFriction>
   <satelliteTidalHeatingRate  value="gnedin1999"       >
-    <epsilon          value="0.50"/>
+    <epsilon          value="2.70"/>
     <gamma            value="1.50"/>
   </satelliteTidalHeatingRate>
   <satelliteTidalStripping    value="zentner2005"      >
-    <efficiency       value="2.86"/>
+    <efficiency       value="2.95"/>
   </satelliteTidalStripping>
 
   <!-- Substructure hierarchy options -->
