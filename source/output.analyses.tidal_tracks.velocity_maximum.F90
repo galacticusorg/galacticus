@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+
   !!{
   Implements an output analysis class that computes subhalo $V_\mathrm{max}$ vs. $M_\mathrm{bound}$ tidal tracks.
   !!}
@@ -75,13 +77,13 @@ contains
       <name>mu</name>
       <source>parameters</source>
       <defaultValue>0.4d0</defaultValue>
-      <description>The parameter $\mu$ in the Penarrubia et al. (2010) tidal track fitting function.</description>
+      <description>The parameter $\mu$ in the \cite{penarrubia_impact_2010} tidal track fitting function.</description>
     </inputParameter>
     <inputParameter>
       <name>eta</name>
       <source>parameters</source>
       <defaultValue>0.3d0</defaultValue>
-      <description>The parameter $\eta$ in the Penarrubia et al. (2010) tidal track fitting function.</description>
+      <description>The parameter $\eta$ in the \cite{penarrubia_impact_2010} tidal track fitting function.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"        source="parameters"                                               />
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMOUnheated" source="parameters"   parameterName="darkMatterProfileDMOUnheated"/>
@@ -154,7 +156,9 @@ contains
     fractionMassBound       =  satellite                      %boundMass              (    )/basic                             %mass                   (    )
     fractionVelocityMaximum =  self     %darkMatterProfileDMO_%circularVelocityMaximum(node)/self %darkMatterProfileDMOUnheated%circularVelocityMaximum(node)
     ! Evaluate the target value. Uses the Penarrubia et al. (2010) fitting function.
-    fractionVelocityMaximumTarget        =2.0d0**self%mu*fractionMassBound**self%eta/(1.0d0+fractionMassBound)**self%mu
+    fractionVelocityMaximumTarget        =+ 2.0d0                   **self%mu  &
+         &                                *       fractionMassBound **self%eta &
+         &                                /(1.0d0+fractionMassBound)**self%mu
     varianceFractionVelocityMaximumTarget=(0.1d0*fractionVelocityMaximumTarget)**2
     !$ call OMP_Set_Lock(self%accumulateLock)
     self%countPointsOnTrack=self%countPointsOnTrack+1

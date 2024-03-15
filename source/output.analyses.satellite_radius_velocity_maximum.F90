@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Xiaolong Du
+  
   !!{
   Implements an output analysis class that computes satellite radius fraction at which the maximum circular velocity is reached.
   !!}
@@ -219,7 +221,7 @@ contains
     !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
     implicit none
     class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
-    class(outputAnalysisClass                   ), intent(inout) :: reduced
+    class(outputAnalysisClass                         ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisSatelliteRadiusVelocityMaximum)

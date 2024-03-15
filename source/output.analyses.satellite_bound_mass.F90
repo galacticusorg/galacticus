@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Xiaolong Du
+  
   !!{
   Implements an output analysis class that computes satellite bound mass fraction.
   !!}
@@ -109,8 +111,8 @@ contains
     class           (outputTimesClass                ), intent(inout), target       :: outputTimes_
     double precision                                  , intent(in   )               :: relativeModelUncertainty
     type            (hdf5Object                      )                              :: file
-    double precision                                  , allocatable  , dimension(:) :: time                    , boundMass               , &
-         &                                                                             fractionBoundMass       , boundMassError          , &
+    double precision                                  , allocatable  , dimension(:) :: time                    , boundMass     , &
+         &                                                                             fractionBoundMass       , boundMassError, &
          &                                                                             fractionBoundMassError
     integer         (c_size_t                        )                              :: i
     !![
@@ -180,8 +182,9 @@ contains
     ! Skip non-satellites.
     if (.not.node%isSatellite()) return
     ! Extract the bound mass fraction.
-    satellite         => node%satellite()
-    fractionMassBound =  satellite%boundMass()/self%boundMassInitial
+    satellite         =>  node     %satellite       ()
+    fractionMassBound =  +satellite%boundMass       () &
+         &               /self     %boundMassInitial
     !$ call OMP_Set_Lock(self%accumulateLock)
     self%fractionBoundMass(iOutput)=fractionMassBound
     ! Add model uncertainty.

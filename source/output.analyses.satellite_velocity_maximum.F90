@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Xiaolong Du
+  
   !!{
   Implements an output analysis class that computes satellite maximum circular velocity fraction.
   !!}

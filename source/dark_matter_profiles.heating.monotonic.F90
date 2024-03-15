@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Xiaolong Du.
+
   !!{
   A dark matter halo profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
   !!}
@@ -228,7 +230,9 @@ contains
             &                          *0.5d0                                             &
             &                          *gravitationalConstantGalacticus                   &
             &                          *(                                                 &
-            &                            +4.0d0*Pi*radius                                 &
+            &                            +4.0d0                                           &
+            &                            *Pi                                              &
+            &                            *                                        radius  &
             &                            *darkMatterProfileDMO_%density     (node,radius) &
             &                            -darkMatterProfileDMO_%enclosedMass(node,radius) &
             &                            /radius**2                                       &
@@ -269,7 +273,7 @@ contains
             &                                                                                 radius               , &
             &                                                                                 darkMatterProfileDMO_  &
             &                                                                                )                       &
-            &                          *radius                                                                       &
+            &                          *                                                      radius                 &
             &                          +self%darkMatterProfileHeating_%specificEnergy        (                       &
             &                                                                                 node                 , &
             &                                                                                 radius               , &
@@ -277,7 +281,9 @@ contains
             &                                                                                )                       &
             &                          *(                                                                            &
             &                            +1.0d0                                                                      &
-            &                            -4.0d0*Pi*radius**3                                                         &
+            &                            -4.0d0                                                                      &
+            &                            *Pi                                                                         &
+            &                            *                                                    radius**3              &
             &                            *darkMatterProfileDMO_       %density               (                       &
             &                                                                                 node                 , &
             &                                                                                 radius                 &
@@ -295,7 +301,7 @@ contains
     !!{
     Determines if the no shell crossing assumption is valid.
     !!}
-    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Root_Finder                     , only : rangeExpandMultiplicative      , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileHeatingMonotonic), intent(inout), target :: self
@@ -345,7 +351,7 @@ contains
             &                                                                                   radius                , &
             &                                                                                   darkMatterProfileDMO__  &
             &                                                                                  )                        &
-            &                           *radius                                                                         &
+            &                           *                                                       radius                  &
             &                           +self_%darkMatterProfileHeating_%specificEnergy        (                        &
             &                                                                                   node_                 , &
             &                                                                                   radius                , &
@@ -353,7 +359,9 @@ contains
             &                                                                                  )                        &
             &                           *(                                                                              &
             &                             +1.0d0                                                                        &
-            &                             -4.0d0*Pi*radius**3                                                           &
+            &                             -4.0d0                                                                        &
+            &                             *Pi                                                                           &
+            &                             *                                                     radius**3               &
             &                             *darkMatterProfileDMO__       %density               (                        &
             &                                                                                   node_                 , &
             &                                                                                   radius                  &

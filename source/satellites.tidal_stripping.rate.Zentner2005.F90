@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
 
   !!{
   Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
@@ -37,10 +37,10 @@
     where $\alpha=${\normalfont \ttfamily [efficiency]}, $T_\mathrm{loss}$ is the time scale of mass loss, and $r_\mathrm{tidal}$
     is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
     \begin{equation}
-    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_c\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c}\omega^2-d^2\Phi/dr^2}\right)^{1/3},
     \end{equation}
     where $\omega$ is the orbital angular velocity of the satellite, $\Phi(r)$ is the gravitational potential due to the host,
-    and $\gamma_c$ is the efficiency of the centrifugal force when computing the tidal radius.
+    and $\gamma_\mathrm{c}$ is the efficiency of the centrifugal force when computing the tidal radius.
 
     By default, $T_\mathrm{loss}$ is taken to be the orbital time scale
     \begin{equation}
@@ -102,7 +102,7 @@ contains
     <inputParameter>
       <name>useDynamicalTimeScale</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the mass outside the tidal radius is assumed to be lost on dynamical time scale computed at the tidal radius.</description>
+      <description>If true, the mass outside the tidal radius is assumed to be lost on dynamical time scale computed at the tidal radius. Otherwise, mass loss occurs on the orbital timescale of the satellite.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
@@ -198,10 +198,10 @@ contains
     ! Check whether to use the dynamical time scale or the orbital time scale for mass loss rate.
     if (self%useDynamicalTimeScale .and. massEnclosedTidalRadius > 0.0d0) then
        timeScaleMassLoss=+sqrt(                                 &
-            &                  +3.0d0                           &
+            &                  + 3.0d0                          &
+            &                  /16.0d0                          &
             &                  *Pi                              &
             &                  *radiusTidal**3                  &
-            &                  /16.0d0                          &
             &                  /gravitationalConstantGalacticus &
             &                  /massEnclosedTidalRadius         &
             &                 )                                 &

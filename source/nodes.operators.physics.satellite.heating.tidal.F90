@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+
   !!{
   Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
   !!}
@@ -71,7 +73,7 @@ contains
     <inputParameter>
       <name>efficiencyDecay</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Efficiency of the decay of tidal tensor integral.</description>
+      <description>Efficiency of the decay of the tidal tensor integral.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -198,10 +200,10 @@ contains
          &               )
     ! Calculate integrated tidal tensor, and heating rates.
     call satellite%tidalTensorPathIntegratedRate(                                                   &
-         &                                       +tidalTensor                                       &
+         &                                       +     tidalTensor                                  &
          &                                       -self%efficiencyDecay                              &
-         &                                       *tidalTensorPathIntegrated                         &
-         &                                       /orbitalPeriod                                     &
+         &                                       *     tidalTensorPathIntegrated                    &
+         &                                       /     orbitalPeriod                                &
          &                                      )
     call satellite%tidalHeatingNormalizedRate   (                                                   &
          &                                       +self%satelliteTidalHeatingRate_%heatingRate(node) &
