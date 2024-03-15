@@ -68,10 +68,10 @@ contains
           ! Check for existence of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
-             call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status)
+             call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status,retries=5,retryWait=60)
              if (status /= 0) then
                 ! Try the "old/" subdirectory. Sometimes the source is moved to this path prior to a new release.
-                call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status)
+                call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status,retries=5,retryWait=60)
                 if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
              end if
           end if
