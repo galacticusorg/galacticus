@@ -20,6 +20,7 @@
 //% Implements Fortran-callable wrappers around the Linux mallinfo2() function.
 
 #ifdef __APPLE__
+#include <stdlib.h>
 #include <malloc/malloc.h>
 #else
 #include <malloc.h>
