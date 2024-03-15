@@ -34,9 +34,9 @@
      A dark matter profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
      !!}
      private
-     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
      type            (rootFinder                   )          :: finder
-     double precision                                         :: radiusShellCrossing      , energyPerturbationShellCrossing
+     double precision                                         :: radiusShellCrossing                , energyPerturbationShellCrossing
      integer         (kind_int8                    )          :: lastUniqueID
    contains
      !![
