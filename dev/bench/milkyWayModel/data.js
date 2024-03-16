@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710570816007,
+  "lastUpdate": 1710616350331,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "7d940aeeeaf9329a8f1906a02e3dfcfa95caf915",
-          "message": "Merge pull request #426 from galacticusorg/metaPropertyComponentFix\n\nMake meta-property set/get functions respect the active componens list",
-          "timestamp": "2023-06-23T16:40:35Z",
-          "tree_id": "98b2947cebf7e0015c188941db9c3fb899e192ec",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7d940aeeeaf9329a8f1906a02e3dfcfa95caf915"
-        },
-        "date": 1687556876324,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 121.512,
-            "unit": "seconds",
-            "range": 0.389830219454792
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.0112889620655,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "4372afab9f39d21a430619ea863635c6ee61f9df",
+          "message": "feat: Validate using distribution of slopes",
+          "timestamp": "2024-03-16T15:11:30Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4372afab9f39d21a430619ea863635c6ee61f9df"
+        },
+        "date": 1710616349593,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 409.705,
+            "unit": "seconds",
+            "range": 0.24837974957316
           }
         ]
       }
