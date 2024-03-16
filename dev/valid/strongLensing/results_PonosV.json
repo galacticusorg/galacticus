@@ -1,23 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageAbove" : 50,
-      "percentageBelow" : 50,
-      "target" : 0.006
+   "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/4372afab9f39d21a430619ea863635c6ee61f9df",
+      "id" : "4372afab9f39d21a430619ea863635c6ee61f9df",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
+      },
+      "timestamp" : "Sat, 16 Mar 2024 08:11:30 -0700",
+      "message" : "feat: Validate using distribution of slopes"
    },
    "slope" : {
-      "target" : 0.85,
-      "model" : 0.676543096082303
+      "percentageAbove" : 46.1538461538462,
+      "percentageBelow" : 53.8461538461538,
+      "target" : 0.85
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "commit" : {
-      "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/97efa132bd8578fd83bf04303d8c060c210aba3f",
-      "id" : "97efa132bd8578fd83bf04303d8c060c210aba3f",
-      "timestamp" : "Sat, 16 Mar 2024 02:37:27 +0000",
-      "message" : "Merge pull request #583 from galacticusorg/orbitCalibration"
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 50,
+      "percentageAbove" : 50
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
