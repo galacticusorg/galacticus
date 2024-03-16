@@ -117,7 +117,7 @@ $$
 	<strong>&Sigma;<sub>sub</sub> (% of realizations above/below PonosV [<span id="ponosv-normalization-target"></span> kpc<sup>-2</sup>]):</strong> <span id="ponosv-normalization"></span>
       </div>
       <div class="header-item">
-	<strong>&alpha; (Galacticus/PonosV):</strong> <span id="ponosv-slope"></span>
+	<strong>&alpha; (% of realizations above/below PonosV [<span id="ponosv-slope-target"></span>):</strong> <span id="ponosv-slope"></span>
       </div>
     </main>
     <script type="text/javascript"
@@ -159,8 +159,11 @@ $$
           parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
           parameterLink.textContent = data.parameterFile;
 
+const ponosVSlopeTarget = document.getElementById('ponosv-slope-target');
+          ponosVSlopeTarget.textContent = data.slope.target.toFixed(2);
+
           const ponosVSlope = document.getElementById('ponosv-slope');
-          ponosVSlope.textContent = data.slope.model.toFixed(2)+" / "+data.slope.target.toFixed(2);
+          ponosVSlope.textContent = data.slope.percentageAbove.toFixed(1)+" / "+data.slope.percentageBelow.toFixed(1);
 
           const ponosVNormalizationTarget = document.getElementById('ponosv-normalization-target');
           ponosVNormalizationTarget.textContent = data.surfaceDensity.target.toFixed(3);
