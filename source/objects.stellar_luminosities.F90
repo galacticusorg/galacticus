@@ -73,8 +73,8 @@ module Stellar_Luminosities_Structure
      The stellar luminosities structure.
      !!}
      private
-     double precision, allocatable, dimension(:) :: luminosityValue
-     type            (enumerationFrameType                      )                            :: frame
+     double precision                      , allocatable, dimension(:) :: luminosityValue
+     type            (enumerationFrameType)                            :: frame
    contains
      !![
      <methods>
@@ -146,6 +146,7 @@ module Stellar_Luminosities_Structure
      procedure, nopass :: name                  => Stellar_Luminosities_Name
      procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
+  
   ! Arrays which hold the luminosity specifications.
   integer                                                                                        :: luminosityCount                                      , luminosityCountUnmapped
   integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
@@ -169,6 +170,7 @@ module Stellar_Luminosities_Structure
   ! Stellar population postprocessor builder used during initialization and state restoration.
   class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder__
   !$omp threadprivate(stellarPopulationSpectraPostprocessorBuilder__)
+
 contains
 
   !![
@@ -199,7 +201,7 @@ contains
     character       (len=10                                           )                            :: redshiftLabel
     type            (varying_string                                   )                            :: luminosityOutputOptionText
     integer         (c_size_t                                         ), allocatable, dimension(:) :: luminosityTimeIndex
-    type            (varying_string                                   )                            :: frame
+
     ! Get luminosity output option.
     !![
     <inputParameter>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Sachi Weerasooriya
+
 !!{
 Contains a module which provides a class that implements HII region luminosity functions.
 !!}
 
-module hii_Region_Luminosity_Functions
+module HII_Region_Luminosity_Functions
   !!{
   Provides a class that implements HII region luminosity functions.
   !!}
-
   private
 
   !![
   <functionClass>
    <name>hiiRegionLuminosityFunction</name>
-   <descriptiveName>HII region emission line luminosity function.</descriptiveName>
+   <descriptiveName>HII region luminosity function.</descriptiveName>
    <description>Class providing models of luminosity function for emission line.</description>
    <default>powerLaw</default>
    <method name="cumulativeDistributionFunction">
@@ -49,4 +50,4 @@ module hii_Region_Luminosity_Functions
   </functionClass>
   !!]
 
-end module hii_Region_Luminosity_Functions
+end module HII_Region_Luminosity_Functions

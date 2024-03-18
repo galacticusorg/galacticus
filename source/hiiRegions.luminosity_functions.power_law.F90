@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,6 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!+    Contributions to this file made by: Sachi Weerasooriya
 
   !!{
   Implementation of a power law luminosity function for HII regions.
@@ -110,6 +112,7 @@ contains
     <constructorAssign variables=" rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, exponent"/>
     !!]
 
+    ! Normalize to unit probability.
     self%normalization=+(                                                                &
          &               +self%rateHydrogenIonizingPhotonsMaximum**(1.0d0-self%exponent) &
          &               -self%rateHydrogenIonizingPhotonsMinimum**(1.0d0-self%exponent) &
@@ -118,7 +121,7 @@ contains
     return
   end function powerLawCumulativeLuminosityConstructorInternal
 
-  double precision function powerLawCumulativeDistributionFunction(self,rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum) result(luminosityFunctionIntegrated)
+  double precision function powerLawCumulativeDistributionFunction(self,rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) result(distributionFunction)
     !!{
     Returns the fraction of HII regions in the given range of luminosity.
     !!}
@@ -130,19 +133,19 @@ contains
     rateHydrogenIonizingPhotonsMinimum_=max(rateHydrogenIonizingPhotonsMinimum,self%rateHydrogenIonizingPhotonsMinimum)
     rateHydrogenIonizingPhotonsMaximum_=min(rateHydrogenIonizingPhotonsMaximum,self%rateHydrogenIonizingPhotonsMaximum)
     if (rateHydrogenIonizingPhotonsMaximum_ > rateHydrogenIonizingPhotonsMinimum_) then
-       luminosityFunctionIntegrated=+(                                                            &
-            &                         +rateHydrogenIonizingPhotonsMaximum_**(1.0d0-self%exponent) & 
-            &                         -rateHydrogenIonizingPhotonsMinimum_**(1.0d0-self%exponent) &
-            &                        )                                                            &
-            &                       /                                       (1.0d0-self%exponent) &
-            &                       /self%normalization
+       distributionFunction=+(                                                            &
+            &                 +rateHydrogenIonizingPhotonsMaximum_**(1.0d0-self%exponent) & 
+            &                 -rateHydrogenIonizingPhotonsMinimum_**(1.0d0-self%exponent) &
+            &                )                                                            &
+            &               /                                       (1.0d0-self%exponent) &
+            &               /self%normalization
     else
-       luminosityFunctionIntegrated=+0.0d0
+       distributionFunction=+0.0d0
     end if
     return
   end function powerLawCumulativeDistributionFunction
 
-  double precision function powerLawCumulativeLuminosity(self,rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum) result(luminosity)
+  double precision function powerLawCumulativeLuminosity(self,rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) result(luminosity)
     !!{
     Returns the total luminosity, $Q_\mathrm{H}$ of HII regions in the given range of luminosity.
     !!}

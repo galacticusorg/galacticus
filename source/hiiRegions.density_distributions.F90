@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Sachi Weerasooriya
+
 !!{
-Contains a module which provides a class that implements the distribution of luminosity function.
+Provides a class that implements the distribution of HII region densities.
 !!}
 
-module hii_Region_Density_Distributions
+module HII_Region_Density_Distributions
   !!{
   Provides a class that implements calculations for hydrogen density distribution in a HII region.
   !!}
@@ -31,19 +33,19 @@ module hii_Region_Density_Distributions
   !![
   <functionClass>
    <name>hiiRegionDensityDistribution</name>
-   <descriptiveName>HII region density distribution.</descriptiveName>
+   <descriptiveName>HII region density distribution</descriptiveName>
    <description>
-    Class providing models for density distribution of hydrogen.
+    Class providing models for the distribution of HII region hydrogen density.
    </description>
-   <default>densityDistribution</default>
-   <method name="densityFunction" >
-    <description>Return the density distribution of HII regions in galaxies. </description>
+   <default>deltaFunction</default>
+   <method name="cumulativeDensityFunction" >
+    <description>Return the cumulative distribution of HII region hydrogen density between a minimum and maximum $n_\mathrm{H}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: densityHydrogen </argument>
+    <argument>double precision, intent(in   ) :: densityHydrogenMinimum, densityHydrogenMaximum</argument>
    </method>
   </functionClass>
   !!]
 
-end module hii_Region_Density_Distributions
+end module HII_Region_Density_Distributions
 

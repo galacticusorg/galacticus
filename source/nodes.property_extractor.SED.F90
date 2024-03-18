@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -103,8 +103,8 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily sed} property extractor class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters          , only : inputParameter                , inputParameters
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
+    use :: Input_Parameters              , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode
     use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
     implicit none
     type            (nodePropertyExtractorSED                  )                :: self
@@ -249,8 +249,8 @@ contains
     !!{
     Return the number of array elements in the {\normalfont \ttfamily sed} property extractors.
     !!}
-    use :: Error, only : Error_Report
-    use :: Stellar_Luminosities_Structure, only : frameRest, frameObserved 
+    use :: Error                         , only : Error_Report
+    use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
     implicit none
     integer         (c_size_t                )                              :: sedSize
     class           (nodePropertyExtractorSED), intent(inout)               :: self
@@ -406,8 +406,8 @@ contains
     !!{
     Return wavelengths at which the SED is tabulated.
     !!}
-    use :: Error, only : Error_Report
-    use :: Stellar_Luminosities_Structure, only : frameRest, frameObserved
+    use :: Error                         , only : Error_Report
+    use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved
     implicit none
     double precision                          , dimension(:) , allocatable :: sedWavelengths
     class           (nodePropertyExtractorSED), intent(inout)              :: self
@@ -598,15 +598,15 @@ contains
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
-    use    :: Abundances_Structure , only : abundances             , metallicityTypeLinearByMassSolar, adjustElementsReset
-    use    :: Display              , only : displayIndent          , displayUnindent                 , displayCounter     , displayCounterClear, &
-         &                                  verbosityLevelWorking
-    use    :: Error                , only : Error_Report
-    use    :: Histories            , only : history
-    use    :: Numerical_Integration, only : integrator
-    use    :: Multi_Counters       , only : multiCounter
-    use    :: Locks                , only : ompLock
-    use :: Stellar_Luminosities_Structure, only : frameRest, frameObserved
+    use    :: Abundances_Structure          , only : abundances           , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use    :: Display                       , only : displayIndent        , displayUnindent                 , displayCounter     , displayCounterClear, &
+         &                                           verbosityLevelWorking
+    use    :: Error                         , only : Error_Report
+    use    :: Histories                     , only : history
+    use    :: Numerical_Integration         , only : integrator
+    use    :: Multi_Counters                , only : multiCounter
+    use    :: Locks                         , only : ompLock
+    use    :: Stellar_Luminosities_Structure, only : frameRest            , frameObserved
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     double precision                                            , dimension(:,:,:), allocatable :: sedLuminosityMean
