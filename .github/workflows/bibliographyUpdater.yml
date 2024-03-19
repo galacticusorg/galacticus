@@ -19,6 +19,9 @@ jobs:
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Install tools
         run: |
           sudo apt -y update
