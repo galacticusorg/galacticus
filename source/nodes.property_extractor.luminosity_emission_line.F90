@@ -17,130 +17,101 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
-!!    Andrew Benson <abenson@carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  !+    Contributions to this file made by: Sachi Weerasooriya
 
-!!{
-Implements an emission line luminosity node property extractor class.
-!!}
-
-  use    :: Numerical_Interpolation          , only : interpolator
-  use    :: ISO_Varying_String               , only : varying_string
-  !$ use :: OMP_Lib                          , only : omp_lock_kind
-  use    :: Output_Times                     , only : outputTimesClass
-  use    :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
-  use    :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
-  use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
-
-  !![
-  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
-    <description>
-      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
-      \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
-      attenuation for emission line luminosities can be specified via the {\normalfont \ttfamily depthOpticalISMCoefficient}
-      parameter.
-    </description>
-  </nodePropertyExtractor>
-  !!]
-  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLine
+  !!{
+  Contains a module which implements a property extractor class for the emission line luminosity of a component.
+  !!}
+  use :: Galactic_Structure_Options     , only : enumerationComponentTypeType
+  use :: Output_Times                   , only : outputTimesClass
+  use :: Star_Formation_Histories       , only : starFormationHistoryClass
+  use :: HII_Region_Luminosity_Functions, only : hiiRegionLuminosityFunctionClass
+  use :: Star_Formation_Histories       , only : starFormationHistoryClass
+  
+  type:: emissionLineLuminosityTemplate
      !!{
-     A stellar luminosity output analysis property extractor class.
+     Type used to store luminosity templates for emission lines.
      !!}
      private
-     class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_        => null()
-     class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_    => null()
-     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_ => null()
-     class           (outputTimesClass                  ), pointer                             :: outputTimes_                   => null()
-     type            (varying_string                    )                                      :: name_                                   , description_
-     type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
-     double precision                                    , allocatable, dimension(:          ) :: metallicity                             , densityHydrogen             , &
-          &                                                                                       ionizingFluxHydrogen                    , ionizingFluxHeliumToHydrogen, &
-          &                                                                                       ionizingFluxOxygenToHelium              , wavelength
-     double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
-     integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
-     double precision                                                 , dimension(2,3        ) :: filterExtent
-     type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
-     double precision                                                                          :: depthOpticalISMCoefficient
-     !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
-   contains
-     final     ::                lmnstyEmssnLineDestructor
-     procedure :: extract     => lmnstyEmssnLineExtract
-     procedure :: quantity    => lmnstyEmssnLineQuantity
-     procedure :: name        => lmnstyEmssnLineName
-     procedure :: description => lmnstyEmssnLineDescription
-     procedure :: unitsInSI   => lmnstyEmssnLineUnitsInSI
-  end type nodePropertyExtractorLmnstyEmssnLine
+     integer         (c_size_t)                                :: countLines            =-1_c_size_t
+     double precision          , allocatable, dimension(:,:,:) :: emissionLineLuminosity
+  end type emissionLineLuminosityTemplate
 
-  interface nodePropertyExtractorLmnstyEmssnLine
-     !!{
-     Constructors for the ``lmnstyEmssnLine'' output analysis class.
-     !!}
-     module procedure lmnstyEmssnLineConstructorParameters
-     module procedure lmnstyEmssnLineConstructorInternal
-  end interface nodePropertyExtractorLmnstyEmssnLine
-
-  ! Enumerations for galactic components and ionizing continuua.
   !![
-  <enumeration>
-   <name>component</name>
-   <description>Specifies the galactic component for emission line calculations.</description>
-   <indexing>1</indexing>
-   <entry label="disk"    />
-   <entry label="spheroid"/>
-  </enumeration>
-  <enumeration>
-   <name>ionizingContinuum</name>
-   <description>Specifies the ionizing continuum for emission line calculations.</description>
-   <indexing>1</indexing>
-   <entry label="Hydrogen"/>
-   <entry label="Helium"  />
-   <entry label="Oxygen"  />
-  </enumeration>
-  <enumeration>
-   <name>interpolant</name>
-   <description>Specifies the different interpolants for emission line calculations.</description>
-   <indexing>1</indexing>
-   <entry label="metallicity"/>
-   <entry label="density"  />
-   <entry label="hydrogen"  />
-   <entry label="helium"  />
-   <entry label="oxygen"  />
-  </enumeration>
+  <nodePropertyExtractor name="nodePropertyExtractorLuminosityEmissionLine">
+    <description>An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
+      \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed.</description>
+  </nodePropertyExtractor>
   !!]
-
+  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLuminosityEmissionLine
+     !!{
+     A property extractor class for the emission line luminosity of a component.
+     !!}
+     private
+     class           (starFormationHistoryClass       ), pointer                       :: starFormationHistory_                => null()
+     class           (outputTimesClass                ), pointer                       :: outputTimes_                         => null()
+     class           (hiiRegionLuminosityFunctionClass), pointer                       :: hiiRegionLuminosityFunction_         => null()
+     type            (enumerationComponentTypeType    )                                :: component
+     integer                                                                           :: countWavelengths                             , countLines
+     type            (varying_string                  ), allocatable, dimension(:    ) :: lineNames                                    , names_                      , &
+          &                                                                               descriptions_
+     double precision                                  , allocatable, dimension(:    ) :: metallicityBoundaries                        , metallicities               , &
+          &                                                                               ages
+     double precision                                  , allocatable, dimension(:,:,:) :: luminositiesReduced
+     double precision                                  , allocatable, dimension(:,:  ) :: ionizingLuminosityHydrogenNormalized
+     type            (emissionLineLuminosityTemplate  ), allocatable, dimension(:    ) :: templates
+     double precision                                                                  :: metallicityPopulationMinimum                 , metallicityPopulationMaximum, &
+          &                                                                               agePopulationMaximum                         , resolution                  , &
+          &                                                                               factorWavelength                             , toleranceRelative           , &
+          &                                                                               ionizingLuminosityHydrogenMean
+     logical                                                                           :: useluminosityTemplates
+   contains
+     !![
+     <methods>
+       <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
+       <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
+       <method description="Return the index of the template time to use."                                                                               method="indexTemplateTime"      />
+       <method description="Return the index of the template luminosities to use."                                                                       method="indexTemplateNode"      />
+     </methods>
+     !!]
+     final     ::                            emissionLineLuminosityDestructor
+     procedure :: historyHashedDescriptor => emissionLineLuminosityHistoryHashedDescriptor
+     procedure :: elementCount            => emissionLineLuminosityElementCount
+     procedure :: extract                 => emissionLineLuminosityExtract
+     procedure :: names                   => emissionLineLuminosityNames
+     procedure :: descriptions            => emissionLineLuminosityDescriptions
+     procedure :: unitsInSI               => emissionLineLuminosityUnitsInSI
+     procedure :: luminosityMean          => emissionLineLuminosityMean
+     procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
+     procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
+  end type nodePropertyExtractorLuminosityEmissionLine
+  
+  interface nodePropertyExtractorLuminosityEmissionLine
+     !!{
+     Constructors for the ``emissionLineLuminosity'' output analysis class.
+     !!}
+     module procedure emissionLineLuminosityConstructorParameters
+     module procedure emissionLineLuminosityConstructorInternal
+  end interface nodePropertyExtractorLuminosityEmissionLine
+      
 contains
 
-  function lmnstyEmssnLineConstructorParameters(parameters) result(self)
+  function emissionLineLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``lmnstyEmssnLine'' output analysis property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily emission line luminosity} property extractor class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLine)                              :: self
-    type            (inputParameters                     ), intent(inout)               :: parameters
-    type            (varying_string                      ), allocatable  , dimension(:) :: lineNames
-    class           (starFormationRateDisksClass         ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass     ), pointer                     :: starFormationRateSpheroids_
-    class           (stellarSpectraDustAttenuationClass  ), pointer                     :: stellarSpectraDustAttenuation_
-    class           (outputTimesClass                    ), pointer                     :: outputTimes_
-    double precision                                                                    :: depthOpticalISMCoefficient
-
+    type            (nodePropertyExtractorLuminosityEmissionLine)                              :: self
+    type            (inputParameters                            ), intent(inout)               :: parameters
+    class           (starFormationHistoryClass                  ), pointer                     :: starFormationHistory_
+    class           (outputTimesClass                           ), pointer                     :: outputTimes_
+    class           (hiiRegionLuminosityFunctionClass           ), pointer                     :: hiiRegionLuminosityFunction_
+    type            (varying_string                             ), allocatable  , dimension(:) :: lineNames
+    type            (varying_string                             )                              :: component
+    double precision                                                                           :: toleranceRelative
+    
     allocate(lineNames(parameters%count('lineNames')))
     !![
     <inputParameter>
@@ -149,490 +120,595 @@ contains
       <description>The emission lines to extract.</description>
     </inputParameter>
     <inputParameter>
-      <name>depthOpticalISMCoefficient</name>
-      <defaultValue>0.0d0</defaultValue>
+      <name>component</name>
       <source>parameters</source>
-      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+      <description>The component from which to extract star formation rate.</description>
     </inputParameter>
-    <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
-    <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
-    <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
-    <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    <inputParameter>
+      <name>toleranceRelative</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The relative tolerance used in integration over stellar population spectra.</description>
+    </inputParameter>
+    <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
+    <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
+    <objectBuilder class="hiiRegionLuminosityFunction" name="hiiRegionLuminosityFunction_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLmnstyEmssnLine(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
+    self=nodePropertyExtractorLuminosityEmissionLine(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="starFormationRateDisks_"       />
-    <objectDestructor name="starFormationRateSpheroids_"   />
-    <objectDestructor name="stellarSpectraDustAttenuation_"/>
-    <objectDestructor name="outputTimes_"                  />
+    <objectDestructor name="starFormationHistory_"       />
+    <objectDestructor name="outputTimes_"                />
+    <objectDestructor name="hiiRegionLuminosityFunction_"/>
     !!]
     return
-  end function lmnstyEmssnLineConstructorParameters
+  end function emissionLineLuminosityConstructorParameters
 
-  function lmnstyEmssnLineConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
+  function emissionLineLuminosityConstructorInternal(component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_) result(self)
     !!{
-    Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
-    use            :: Error                         , only : Error_Report
-    use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
-    use            :: HDF5_Access                   , only : hdf5Access
-    use            :: IO_HDF5                       , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Instruments_Filters           , only : Filter_Extent          , Filter_Get_Index
-    use            :: Output_Times                  , only : outputTimesClass
-    use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
-    use            :: String_Handling               , only : String_Join            , char
+    use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Constants_Astronomical, only : metallicitySolar
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
+    use :: Error                           , only : Error_Report
+    use :: Input_Paths                     , only : inputPath        , pathTypeDataStatic
     implicit none
-    type            (nodePropertyExtractorLmnstyEmssnLine)                                        :: self
-    double precision                                      , intent(in   )                         :: depthOpticalISMCoefficient
-    type            (varying_string                      ), intent(in   ), dimension(:)           :: lineNames
-    logical                                               , intent(in   ), dimension(:), optional :: outputMask
-    class           (starFormationRateDisksClass         ), intent(in   ), target                 :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass     ), intent(in   ), target                 :: starFormationRateSpheroids_
-    class           (stellarSpectraDustAttenuationClass  ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
-    class           (outputTimesClass                    ), intent(in   ), target                 :: outputTimes_
-    type            (hdf5Object                          )                                        :: emissionLinesFile             , lines, &
-         &                                                                                           lineDataset
-    integer         (c_size_t                            )                                        :: i
+    type            (nodePropertyExtractorLuminosityEmissionLine      )                             :: self
+    type            (enumerationComponentTypeType              ), intent(in   )                     :: component
+    type            (varying_string                            ), intent(in   ), dimension(:      ) :: lineNames
+    class           (starFormationHistoryClass                 ), intent(in   ), target             :: starFormationHistory_
+    class           (outputTimesClass                          ), intent(in   ), target             :: outputTimes_
+    class           (hiiRegionLuminosityFunctionClass          ), intent(in   ), target             :: hiiRegionLuminosityFunction_
+    double precision                                            , intent(in   )                     :: toleranceRelative    
+    double precision                                            ,                                   :: deltaIonizingFluxHydrogen         , rateHydrogenIonizingPhotonsMinimum, &
+         &                                                                                             rateHydrogenIonizingPhotonsMaximum 
+    double precision                                            , allocatable  , dimension(:      ) :: ionizingFluxHydrogen
+    double precision                                            , allocatable  , dimension(:,:,:,:) :: luminosities
+    type            (hdf5Object                                )                                    :: emissionLinesFile                 , lines
+    integer                                                                                         :: i
     !![
-    <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>
+    <constructorAssign variables="lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_,*hiiRegionLuminosityFunction_"/>
     !!]
-
+    
+    if     (                                                                                                    &
+         &   component /= componentTypeDisk                                                                     &
+         &  .and.                                                                                               &
+         &   component /= componentTypeSpheroid                                                                 &
+         & ) call Error_Report("only 'disk' and 'spheroid' components are supported"//{introspection:location})
+    ! Get details of the star formation rate tabulation.
+    self%metallicityBoundaries =self%starFormationHistory_%metallicityBoundaries      ()
+    self%useluminosityTemplates=self%starFormationHistory_%perOutputTabulationIsStatic()
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
+    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/cloudyTableBC2003.hdf5",readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
-    call emissionLinesFile%readDataset('metallicity'                  ,self%metallicity                 )
-    call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )
-    call emissionLinesFile%readDataset('ionizingFluxHydrogen'         ,self%ionizingFluxHydrogen        )
-    call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen' ,self%ionizingFluxHeliumToHydrogen)
-    call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'   ,self%ionizingFluxOxygenToHelium  )
-    allocate(                                          &
-         &   self%luminosity                           &
-         &   (                                         &
-         &    size(self%ionizingFluxOxygenToHelium  ), &
-         &    size(self%ionizingFluxHeliumToHydrogen), &
-         &    size(self%ionizingFluxHydrogen        ), &
-         &    size(self%densityHydrogen             ), &
-         &    size(self%metallicity                 ), &
-         &    size(self%lineNames                   )  &
-         &   )                                         &
+    call emissionLinesFile%readDataset('metallicity'                         ,self%metallicities                       )
+    call emissionLinesFile%readDataset('age'                                 ,self%ages                                )
+    call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'          ,     ionizingFluxHydrogen                )
+    call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized',self%ionizingLuminosityHydrogenNormalized)
+    self%metallicityPopulationMinimum=minval(self%metallicities)
+    self%metallicityPopulationMaximum=maxval(self%metallicities)
+    self%agePopulationMaximum        =maxval(self%ages         )
+    allocate(                                  &
+         &        luminosities                 &
+         &   (                                 &
+         &    size(self%ages                ), &
+         &    size(self%metallicities       ), &
+         &    size(     ionizingFluxHydrogen), &
+         &    size(     lineNames           )  &
+         &   )                                 &
          &  )
-    allocate(                                          &
-         &   self%wavelength                           &
-         &   (                                         &
-         &    size(self%lineNames                   )  &
-         &   )                                         &
+    allocate(                                  &
+         &   self%luminositiesReduced          &
+         &   (                                 &
+         &    size(self%ages                ), &
+         &    size(self%metallicities       ), &
+         &    size(     lineNames           )  &
+         &   )                                 &
          &  )
+    self%luminositiesReduced=0.0d0
     do i=1,size(lineNames)
-       call lines      %readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
-       lineDataset=lines%openDataset(char(self%lineNames(i)))
-       call lineDataset%readAttribute('wavelength',self%wavelength(i))
-       call lineDataset%close        (                               )
+       call lines%readDatasetStatic(char(lineNames(i)),luminosities(:,:,:,i))      
     end do
-    call lines            %close      (                                                                 )
-    call emissionLinesFile%close      (                                                                 )
+    call lines            %close()
+    call emissionLinesFile%close()
     !$ call hdf5Access%unset()
-    ! Convert parameters and luminosities to log form.
-    self%metallicity                 =log10(self%metallicity                 )
-    self%densityHydrogen             =log10(self%densityHydrogen             )
-    self%ionizingFluxHydrogen        =log10(self%ionizingFluxHydrogen        )
-    self%ionizingFluxHeliumToHydrogen=log10(self%ionizingFluxHeliumToHydrogen)
-    self%ionizingFluxOxygenToHelium  =log10(self%ionizingFluxOxygenToHelium  )
-    self%luminosity                  =log10(self%luminosity                  )
-    ! Find indices of ionizing continuua filters.
-    allocate(self%ionizingContinuumIndex(self%outputTimes_%count(),3_c_size_t))
-    do i=1,self%outputTimes_%count()
-       if (present(outputMask).and..not.outputMask(i)) then
-          self%ionizingContinuumIndex(i,:                        )=-1
-       else
-          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen%ID)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumHelium  %ID)=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  %ID)=unitStellarLuminosities%index('OxygenContinuum','rest',self%outputTimes_%redshift(i))
-       end if
+    ! Calculate emission line luminosities as a function of age and metallicity by averaging over the distribution of HII region
+    ! luminosities.
+    deltaIonizingFluxHydrogen=+ionizingFluxHydrogen(2) &
+         &                    /ionizingFluxHydrogen(1)
+    do i=1,size(ionizingFluxHydrogen)
+       rateHydrogenIonizingPhotonsMinimum=ionizingFluxHydrogen(i)/sqrt(deltaIonizingFluxHydrogen) 
+       rateHydrogenIonizingPhotonsMaximum=ionizingFluxHydrogen(i)*sqrt(deltaIonizingFluxHydrogen)
+       ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
+       self%luminositiesReduced=+self%luminositiesReduced                                                                                                                &
+            &                   +self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &  
+            &                   *                                  luminosities                  (:,:,i,:)
     end do
-    ! Read wavelength intervals of ionizing continuum filters.
-    self%filterExtent(:,ionizingContinuumHydrogen%ID)=Filter_Extent(Filter_Get_Index(var_str('Lyc'            )))
-    self%filterExtent(:,ionizingContinuumHelium  %ID)=Filter_Extent(Filter_Get_Index(var_str('HeliumContinuum')))
-    self%filterExtent(:,ionizingContinuumOxygen  %ID)=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
-    ! Initialize interpolators.
-    allocate(self%interpolator_(5))
-    self%interpolator_(interpolantMetallicity%ID)=interpolator(self%metallicity                 )
-    self%interpolator_(interpolantDensity    %ID)=interpolator(self%densityHydrogen             )
-    self%interpolator_(interpolantHydrogen   %ID)=interpolator(self%ionizingFluxHydrogen        )
-    self%interpolator_(interpolantHelium     %ID)=interpolator(self%ionizingFluxHeliumToHydrogen)
-    self%interpolator_(interpolantOxygen     %ID)=interpolator(self%ionizingFluxOxygenToHelium  )
-    !$ call OMP_Init_Lock(self%interpolateLock)
-    ! Construct name and description.
-    self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
-    self%description_="Luminosity of the "     //String_Join(lineNames,"+")//" emission line"
-    if (size(lineNames) > 1) self%description_=self%description_//"s"
-    self%description_=self%description_//" [ergs/s]"
-    return
-  end function lmnstyEmssnLineConstructorInternal
+    ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity interval spanned by the table. Also,
+    ! find the mean ionizing luminosity of HII regions in this luminosity interval.
+    rateHydrogenIonizingPhotonsMinimum =+ionizingFluxHydrogen(                        1 )/sqrt(deltaIonizingFluxHydrogen) 
+    rateHydrogenIonizingPhotonsMaximum =+ionizingFluxHydrogen(size(ionizingFluxHydrogen))*sqrt(deltaIonizingFluxHydrogen)
+    self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                &
+         &                              /self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_%cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    ! Construct property names and descriptions.
+    allocate(self%names_       (size(lineNames)))
+    allocate(self%descriptions_(size(lineNames)))
+    do i=1,size(lineNames)
+       select case (self%component%ID)
+       case (componentTypeDisk    %ID)
+          self%names_       (i)="luminosityEmissionLineDisk:"    //lineNames(i)
+       case (componentTypeSpheroid%ID)
+          self%names_       (i)="luminosityEmissionLineSpheroid:"//lineNames(i)
+       end select
+       self%descriptions_(i)="Luminosity of the "                //lineNames(i)//" emission line [ergs/s]"
+    end do
+    self%countLines=size(lineNames)
+    return    
+  end function emissionLineLuminosityConstructorInternal
 
-  subroutine lmnstyEmssnLineDestructor(self)
+  subroutine emissionLineLuminosityDestructor(self)
     !!{
-    Destructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    Destructor for the {\normalfont \ttfamily emission line luminosity} property extractor class.
     !!}
     implicit none
-    type(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
+    type(nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
 
-    !$ call OMP_Destroy_Lock(self%interpolateLock)
     !![
-    <objectDestructor name="self%starFormationRateDisks_"       />
-    <objectDestructor name="self%starFormationRateSpheroids_"   />
-    <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
-    <objectDestructor name="self%outputTimes_"                  />
+    <objectDestructor name="self%starFormationHistory_"       />
+    <objectDestructor name="self%outputTimes_"                />
+    <objectDestructor name="self%hiiRegionLuminosityFunction_"/>
     !!]
     return
-  end subroutine lmnstyEmssnLineDestructor
-
-  double precision function lmnstyEmssnLineExtract(self,node,instance)
+  end subroutine emissionLineLuminosityDestructor
+  
+  integer function emissionLineLuminosityElementCount(self,time)
     !!{
-    Implement an emission line output analysis property extractor.
+    Return the number of elements in the {\normalfont \ttfamily emissionLineLuminosity} property extractors.
     !!}
-    use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
-    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, luminosityZeroPointAB, massSolar                            , megaParsec, &
-          &                                                    metallicitySolar   , parsec
-    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen , atomicMassUnit
-    use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Constants_Physical    , only : plancksConstant
-    use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega
-    use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout), target   :: self
-    type            (treeNode                            ), intent(inout), target   :: node
-    type            (multiCounter                        ), intent(inout), optional :: instance
-    class           (nodeComponentBasic                  ), pointer                 :: basic
-    class           (nodeComponentDisk                   ), pointer                 :: disk
-    class           (nodeComponentSpheroid               ), pointer                 :: spheroid
-    double precision                                      , parameter               :: massMinimum                   =1.0d-06
-    double precision                                      , parameter               :: radiusMinimum                 =1.0d-06
-    double precision                                      , parameter               :: rateStarFormationMinimum      =1.0d-06
-    double precision                                      , parameter               :: luminosityIonizingMinimum     =1.0d-20
-    double precision                                      , parameter               :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
-    double precision                                      , parameter               :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
-    double precision                                      , parameter               :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
-    double precision                                      , parameter               :: efficiencyHIIRegion           =1.0d-02                     ! Efficiency of HII region (fraction of mass turned into stars).
-    double precision                                      , parameter               :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
-    double precision                                      , parameter               :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
-    double precision                                      , parameter               :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                      , parameter               :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm²/mag; Savage & Mathis 1979)
-    double precision                                      , parameter               :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
-    double precision                                      , parameter               :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
-         &                                                                                                            *log10(                   &
-         &                                                                                                                   +exp(              &
-         &                                                                                                                        +1.0d0        &
-         &                                                                                                                       )              &
-         &                                                                                                                  )
-    double precision                                      , parameter               :: depthOpticalNormalization     =+AVToEBV                  &
-         &                                                                                                            /NHToEBV                  &
-         &                                                                                                            *hydrogenByMassSolar      &
-         &                                                                                                            /atomicMassUnit*massSolar &
-         &                                                                                                            /(                        &
-         &                                                                                                              +parsec                 &
-         &                                                                                                              *hecto                  &
-         &                                                                                                            )**2                      &
-         &                                                                                                            /metallicityISMLocal      &
-         &                                                                                                            /depthOpticalToMagnitudes
-    type            (stellarLuminosities                 ), dimension(  2  )        :: luminositiesStellar
-    type            (abundances                          ), dimension(  2  )        :: abundancesGas
-    double precision                                      , dimension(3,2  )        :: luminosityIonizing
-    double precision                                      , dimension(  2  )        :: massGas                                                 , radius                       , &
-         &                                                                             rateStarFormation                                       , metallicityGas               , &
-         &                                                                             densityHydrogen                                         , luminosityLymanContinuum     , &
-         &                                                                             ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHelium, &
-         &                                                                             countHIIRegion                                          , densitySurfaceGas            , &
-         &                                                                             massClouds                                              , densitySurfaceClouds         , &
-         &                                                                             depthOpticalDiffuse                                     , densitySurfaceMetals         , &
-         &                                                                             ionizingFluxMultiplier
-    logical                                               , dimension(  2  )        :: isPhysical
-    integer         (c_size_t                            ), dimension(0:1,5)        :: interpolateIndex
-    double precision                                      , dimension(0:1,5)        :: interpolateFactor
-    double precision                                                                :: weight                                                  , luminosityLinePerHIIRegion
-    integer         (c_size_t                            )                          :: output
-    integer                                                                         :: component                                               , continuum                    , &
-         &                                                                             i                                                       , j                            , &
-         &                                                                             k                                                       , l                            , &
-         &                                                                             m                                                       , line
+    class     (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
+    double precision                                       , intent(in   ) :: time
+    !$GLC attributes unused :: self, time
+
+    emissionLineLuminosityElementCount=self%countLines
+    return
+  end function emissionLineLuminosityElementCount
+
+  function emissionLineLuminosityExtract(self,node,time,instance) result(luminosity)
+    !!{
+    Implement a {\normalfont \ttfamily luminosityEmissionLine} property extractor.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
+    use :: Histories                 , only : history
+    implicit none
+    double precision                                             , dimension(:  )            , allocatable :: luminosity
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)   , target                :: self
+    type            (treeNode                                   ), intent(inout)   , target                :: node
+    double precision                                             , intent(in   )                           :: time
+    type            (multiCounter                               ), intent(inout)   , optional              :: instance
+    class           (nodeComponentDisk                          )                  , pointer               :: disk
+    class           (nodeComponentSpheroid                      )                  , pointer               :: spheroid
+    double precision                                             , dimension(:,:,:), pointer               :: luminosityTemplate_
+    double precision                                             , dimension(:,:,:), target  , allocatable :: luminosityTemplate
+    type            (history                                    )                                          :: starFormationHistory
+    integer                                                                                                :: indexTemplate       , iLines
     !$GLC attributes unused :: instance
 
-    ! Retrieve components.
-    basic    => node%basic   ()
-    disk     => node%disk    ()
-    spheroid => node%spheroid()
-    ! Determine output index.
-    output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
-    ! Extract all required properties.
-    luminositiesStellar(componentDisk    %ID)=disk    %luminositiesStellar             (    )
-    luminositiesStellar(componentSpheroid%ID)=spheroid%luminositiesStellar             (    )
-    abundancesGas      (componentDisk    %ID)=disk    %abundancesGas                   (    )
-    abundancesGas      (componentSpheroid%ID)=spheroid%abundancesGas                   (    )
-    massGas            (componentDisk    %ID)=disk    %massGas                         (    )
-    massGas            (componentSpheroid%ID)=spheroid%massGas                         (    )
-    radius             (componentDisk    %ID)=disk    %radius                          (    )
-    radius             (componentSpheroid%ID)=spheroid%radius                          (    )
-    rateStarFormation  (componentDisk    %ID)=self    %starFormationRateDisks_    %rate(node)
-    rateStarFormation  (componentSpheroid%ID)=self    %starFormationRateSpheroids_%rate(node)
-    ! Extract ionizing continuum luminosities.
-    do component=1,2
-       do continuum=1,3
-          luminosityIonizing(continuum,component)=luminositiesStellar(component)%luminosity(self%ionizingContinuumIndex(output,continuum))
-       end do
-    end do
-    ! Determine if component is physically reasonable.
-    isPhysical= massGas                                            > massMinimum               &
-         &     .and.                                                                           &
-         &      radius                                             > radiusMinimum             &
-         &     .and.                                                                           &
-         &      rateStarFormation                                  > rateStarFormationMinimum  &
-         &     .and.                                                                           &
-         &      luminosityIonizing(ionizingContinuumHydrogen%ID,:) > luminosityIonizingMinimum
-    ! Convert ionizing continuum luminosities from AB units to units of photons s⁻¹.
-    forall(continuum=1:3)
-       luminosityIonizing(continuum,:)=+luminosityIonizing(continuum,:)     &
-            &                          *luminosityZeroPointAB               &
-            &                          /plancksConstant                     &
-            &                          *log(                                &
-            &                               +self%filterExtent(2,continuum) &
-            &                               /self%filterExtent(1,continuum) &
-            &                              )
-    end forall
-    !  Compute the logarithmic metallicity of the gas in each component in Solar units.
-    do component=1,2
-       if (isPhysical(component)) then
-          call abundancesGas(component)%massToMassFraction(massGas(component))
-          metallicityGas(component)=abundancesGas(component)%metallicity(metallicityTypeLogarithmicByMassSolar)
-       else
-          metallicityGas(component)=0.0d0
-       end if
-    end do
-    ! Compute the (logarithm of) hydrogen density, based on the model of Krumholz, McKee, & Tumlinson (2009) for molecular cloud
-    ! properties. The assumption is that clouds have a mean surface density, Σ, which is the larger of the gas surface density and
-    ! the critical density. Assuming spherical clouds, with a mass, M, that scales with the gas density, then we can determine
-    ! their radius, r, from that fact that Σ=M/πr², and from this determine their volume density ρ=3M/4πr³.
-    densitySurfaceGas=+0.0d0
-    where (isPhysical)
-       densitySurfaceGas              =+massGas                            &
-            &                          /2.0d0                              &
-            &                          /Pi                                 &
-            &                          /radius                     **2
-       massClouds                     =+massGMC                            &
-            &                          *densitySurfaceGas                  &
-            &                          /densitySurfaceCritical
-       densitySurfaceClouds           =+max(                               &
-            &                               +densitySurfaceCritical,       &
-            &                               +densitySurfaceGas             &
-            &                              )
-       densityHydrogen                =+log10(                             &
-            &                                 +3.0d0                       &
-            &                                 /4.0d0                       &
-            &                                 *sqrt(Pi       )             &
-            &                                 /sqrt(massClouds)            &
-            &                                 *densitySurfaceClouds**1.5d0 &
-            &                                 /megaParsec          **3     &
-            &                                 *centi               **3     &
-            &                                 *hydrogenByMassSolar         &
-            &                                 *massSolar                   &
-            &                                 /atomicMassUnit              &
-            &                                 /atomicMassHydrogen          &
-            &                                )
-       ! Compute logarithm of Lyman continuum luminosity.
-       luminosityLymanContinuum       =+log10(                                                                                    luminosityIonizing(ionizingContinuumHydrogen%ID,:)                           )
-       ! Compute helium to Lyman continuum luminosity logarithmic ratio.
-       ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium%ID,:),luminosityIonizingMinimum)/    luminosityIonizing(ionizingContinuumHydrogen%ID,:)                           )
-       ! Compute oxygen to helium continuum luminosity logarithmic ratio.
-       ratioLuminosityOxygenToHelium  =+log10(max(luminosityIonizing(ionizingContinuumOxygen%ID,:),luminosityIonizingMinimum)/max(luminosityIonizing(ionizingContinuumHelium  %ID,:),luminosityIonizingMinimum))
-       ! Compute number of HII regions.
-       countHIIRegion                 =+rateStarFormation   &
-            &                          *lifetimeHIIRegion   &
-            &                          /massHIIRegion       &
-            &                          /efficiencyHIIRegion
-       !  Convert the hydrogen ionizing luminosity to be per HII region.
-       luminosityLymanContinuum       =+luminosityLymanContinuum &
-            &                          -log10(countHIIRegion)
-    elsewhere
-       ! For non-physical components set the properties to zero. This avoids attempts to use uninitialized values in what follows.
-       luminosityLymanContinuum       =0.0d0
-       densityHydrogen                =0.0d0
-       metallicityGas                 =0.0d0
-       ratioLuminosityHeliumToHydrogen=0.0d0
-       ratioLuminosityOxygenToHelium  =0.0d0
-    end where
-    ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
-    !
-    !! Hydrogen density and H-ionizing flux are truncated at both the lower and upper extent
-    !! of the tabulated range. The assumption is that the table covers the plausible
-    !! physical range for these values. In the case of H-ionizing flux, if we truncate the
-    !! value we must then apply a multiplicative correction to the line luminosity to ensure
-    !! that we correctly account for all ionizing photons produced.
-    !!
-    !! For metallicity and the He/H and O/He ionizing flux ratios we truncate only at the
-    !! upper extent of the tabulated range. The table is assumed to be tabulated up to the
-    !! maximum physically plausible extent for these quantities. Extrapolation to lower
-    !! values should be reasonably robust (and the table is assumed to extend to
-    !! sufficiently low values that the consequences of extrapolation are unlikely to be
-    !! observationally relevant anyway).
-    where     (luminosityLymanContinuum        < self%ionizingFluxHydrogen        (                                     1 ))
-       ionizingFluxMultiplier         =10.0d0**(                                                            &
-            &                                   -self%ionizingFluxHydrogen(                             1 ) &
-            &                                   +luminosityLymanContinuum                                   &
-            &                                  )
-       luminosityLymanContinuum       =self%ionizingFluxHydrogen(                                             1 )
-    elsewhere (luminosityLymanContinuum        < self%ionizingFluxHydrogen        (size(self%ionizingFluxHydrogen        )))
-       ionizingFluxMultiplier         =10.0d0**(                                                            &
-            &                                   -self%ionizingFluxHydrogen(size(self%ionizingFluxHydrogen)) &
-            &                                   +luminosityLymanContinuum                                   &
-            &                                  )
-       luminosityLymanContinuum       =self%ionizingFluxHydrogen        (size(self%ionizingFluxHydrogen        ))
-    elsewhere
-       ionizingFluxMultiplier=1.0d0
-    end where
-    where     (densityHydrogen                 < self%densityHydrogen             (                                     1 ))
-       densityHydrogen                =self%densityHydrogen             (                                     1 )
-    elsewhere (densityHydrogen                < self%densityHydrogen              (size(self%densityHydrogen             )))
-       densityHydrogen                =self%densityHydrogen             (size(self%densityHydrogen             ))
-    end where
-    where     (metallicityGas                  > self%metallicity                 (size(self%metallicity                 )))
-       metallicityGas                 =self%metallicity                 (size(self%metallicity                 ))
-    end where
-    where     (ratioLuminosityHeliumToHydrogen > self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen)))
-       ratioLuminosityHeliumToHydrogen=self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen))
-    end where
-    where     (ratioLuminosityOxygenToHelium   > self%ionizingFluxOxygenToHelium  (size(self%ionizingFluxOxygenToHelium  )))
-       ratioLuminosityOxygenToHelium  =self%ionizingFluxOxygenToHelium  (size(self%ionizingFluxOxygenToHelium  ))
-    end where
-    ! Perform dust calculation if necessary.
-    if (self%depthOpticalISMCoefficient > 0.0d0) then
-       where (isPhysical)
-          ! Compute surface densities of metals in units of M☉ pc⁻².
-          densitySurfaceMetals           =+10.0d0**metallicityGas       &
-               &                          *        metallicitySolar     &
-               &                          *        densitySurfaceGas    &
-               &                          /        mega             **2
-          ! Compute optical depth of diffuse dust.
-          depthOpticalDiffuse            =+self%depthOpticalISMCoefficient &
-               &                          *     depthOpticalNormalization  &
-               &                          *     densitySurfaceMetals
-       end where
+    allocate(luminosity(self%countLines))
+    luminosity=0.0d0
+    ! Get the relevant star formation history.
+    select case (self%component%ID)
+    case (componentTypeDisk    %ID)
+       disk                 => node    %disk                ()
+       starFormationHistory =  disk    %starFormationHistory()
+    case (componentTypeSpheroid%ID)
+       spheroid             => node    %spheroid            ()
+       starFormationHistory =  spheroid%starFormationHistory()
+    end select
+    if (.not.starFormationHistory%exists()) return
+    ! Get the index of the template to use.
+    indexTemplate=self%indexTemplateNode(node,starFormationHistory)
+    if (indexTemplate > 0) then
+       ! Stored templates can be used, so point to the relevant set.
+       luminosityTemplate_ => self%templates(indexTemplate)%emissionLineLuminosity
     else
-       depthOpticalDiffuse            =+0.0d0
+       ! Stored templates can not be used, get the templates for this specific case, and point to them.
+       luminosityTemplate  =  self%luminosityMean(time,starFormationHistory)
+       luminosityTemplate_ => luminosityTemplate
     end if
-    ! Iterate over components.
-    lmnstyEmssnLineExtract=0.0d0
-    do component=1,2
-       if (.not.isPhysical(component)) cycle
-       ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
-       !$ call OMP_Set_Lock  (self%interpolateLock)
-       call self%interpolator_(interpolantMetallicity%ID)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity%ID),interpolateFactor(:,interpolantMetallicity%ID))
-       call self%interpolator_(interpolantDensity    %ID)%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    %ID),interpolateFactor(:,interpolantDensity    %ID))
-       call self%interpolator_(interpolantHydrogen   %ID)%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   %ID),interpolateFactor(:,interpolantHydrogen   %ID))
-       call self%interpolator_(interpolantHelium     %ID)%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     %ID),interpolateFactor(:,interpolantHelium     %ID))
-       call self%interpolator_(interpolantOxygen     %ID)%linearFactors(ratioLuminosityOxygenToHelium  (component),interpolateIndex(0,interpolantOxygen     %ID),interpolateFactor(:,interpolantOxygen     %ID))
-       !$ call OMP_Unset_Lock(self%interpolateLock)
-       interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
-       interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
-       ! Iterate over lines.
-       do line=1,size(self%luminosity,dim=6)
-          ! Interpolate in all five interpolants.
-          luminosityLinePerHIIRegion=0.0d0
-          do i=0,1
-             do j=0,1
-                do k=0,1
-                   do l=0,1
-                      do m=0,1
-                         weight                    =+                interpolateFactor(i,1)  &
-                              &                     *                interpolateFactor(j,2)  &
-                              &                     *                interpolateFactor(k,3)  &
-                              &                     *                interpolateFactor(l,4)  &
-                              &                     *                interpolateFactor(m,5)
-                         luminosityLinePerHIIRegion=+luminosityLinePerHIIRegion              &
-                              &                     +weight                                  &
-                              &                     *self%luminosity(                        &
-                              &                                      interpolateIndex (m,5), &
-                              &                                      interpolateIndex (l,4), &
-                              &                                      interpolateIndex (k,3), &
-                              &                                      interpolateIndex (j,2), &
-                              &                                      interpolateIndex (i,1), &
-                              &                                      line                    &
-                              &                                     )
-                      end do
-                   end do
-                end do
-             end do
-          end do
-          ! Compute the final luminosity in ergs s⁻¹.
-          lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                                                                                   &
-               &                 +10.0d0**luminosityLinePerHIIRegion                                                                               &
-               &                 *        ionizingFluxMultiplier                                                                      (component)  &
-               &                 *        countHIIRegion                                                                              (component)  &
-               &                 *exp(                                                                                                             &
-               &                      -self%stellarSpectraDustAttenuation_%attenuation(                                                            &
-               &                                                                       wavelength      =self               %wavelength(     line), &
-               &                                                                       age             =0.0d0                                    , &
-               &                                                                       vBandAttenuation=depthOpticalDiffuse           (component)  &
-               &                                                                      )                                                            &
-               &                     )
-       end do
+    do iLines=1,size(luminosity,dim=1)
+       luminosity(iLines)=sum(luminosityTemplate_(iLines,:,:)*starFormationHistory%data(:,:))
     end do
     return
-  end function lmnstyEmssnLineExtract
+  end function emissionLineLuminosityExtract
 
-
-  function lmnstyEmssnLineQuantity(self)
+  subroutine emissionLineLuminosityNames(self,time,names)
     !!{
-    Return the class of the emission line luminosity property.
+    Return the names of the {\normalfont \ttfamily emissionLines}.
     !!}
-    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type (enumerationOutputAnalysisPropertyQuantityType)                :: lmnstyEmssnLineQuantity
-    class(nodePropertyExtractorLmnstyEmssnLine         ), intent(inout) :: self
-    !$GLC attributes unused :: self
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                            :: self
+    double precision                                             , intent(in   )                            :: time
+    type            (varying_string                             ), intent(inout), dimension(:), allocatable :: names
+    !$GLC attributes unused :: time
 
-    lmnstyEmssnLineQuantity=outputAnalysisPropertyQuantityLuminosity
+    allocate(names(self%countLines))
+    names=self%names_
     return
-  end function lmnstyEmssnLineQuantity
-
-  function lmnstyEmssnLineName(self)
+  end subroutine emissionLineLuminosityNames
+  
+  subroutine emissionLineLuminosityDescriptions(self,time,descriptions)
     !!{
-    Return the name of the lmnstyEmssnLine property.
-    !!}
-    implicit none
-    type (varying_string                      )                :: lmnstyEmssnLineName
-    class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-
-    lmnstyEmssnLineName=self%name_
-    return
-  end function lmnstyEmssnLineName
-
-  function lmnstyEmssnLineDescription(self)
-    !!{
-    Return a description of the lmnstyEmssnLine property.
+    Return descriptions of the {\normalfont \ttfamily emission line luminosity} property.
     !!}
     implicit none
-    type (varying_string                      )                :: lmnstyEmssnLineDescription
-    class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-
-    lmnstyEmssnLineDescription=self%description_
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                            :: self
+    double precision                                             , intent(in   )                            :: time
+    type            (varying_string                             ), intent(inout), dimension(:), allocatable :: descriptions
+    !$GLC attributes unused :: self, time
+    
+    allocate(descriptions(self%countLines))
+    descriptions=self%descriptions_
     return
-  end function lmnstyEmssnLineDescription
-
-  double precision function lmnstyEmssnLineUnitsInSI(self)
-    !!{
-    Return the units of the lmnstyEmssnLine property in the SI system.
+  end subroutine emissionLineLuminosityDescriptions
+  
+  function emissionLineLuminosityUnitsInSI(self,time) result(unitsInSI)
+  !!{
+    Return the units of the {\normalfont \ttfamily emissionLineLuminosity} properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
-    class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !$GLC attributes unused :: self
+    double precision                                             , allocatable  , dimension(:) :: unitsInSI
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)               :: self
+    double precision                                             , intent(in   )               :: time
+    !$GLC attributes unused :: time
 
-    lmnstyEmssnLineUnitsInSI=ergs
+    allocate(unitsInSI(self%countLines))
+    unitsInSI=ergs
     return
-  end function lmnstyEmssnLineUnitsInSI
+  end function emissionLineLuminosityUnitsInSI
+
+  integer function emissionLineLuminosityIndexTemplateTime(self,time) result(index)
+    !!{
+    Find the index of the template emission lines to use.
+    !!}
+    use :: Numerical_Comparison, only : Values_Agree
+    implicit none
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
+    double precision                                             , intent(in   ) :: time
+    integer         (c_size_t                                   )                :: indexOutput
+
+    index=-1
+    if (.not.self%useluminosityTemplates) return
+    ! Check that the time is an output time.
+    indexOutput=self%outputTimes_%index(time,findClosest=.true.)
+    if (.not.Values_Agree(time,self%outputTimes_%time(indexOutput),relTol=1.0d-6)) return
+    index=int(indexOutput)
+    return
+  end function emissionLineLuminosityIndexTemplateTime
+
+  integer function emissionLineLuminosityIndexTemplateNode(self,node,starFormationHistory) result(index)
+    !!{
+    Find the index of the template emission line luminosity to use, and also compute the template.
+    !!}
+    use :: Display             , only : displayMessage    , verbosityLevelWorking
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Histories           , only : history
+    use :: ISO_Varying_String  , only : var_str
+    use :: HDF5_Access         , only : hdf5Access
+    use :: IO_HDF5             , only : hdf5Object
+    use :: Numerical_Comparison, only : Values_Agree
+    use :: File_Utilities      , only : File_Exists       , File_Lock            , File_Unlock, lockDescriptor
+    use :: String_Handling     , only : operator(//)
+    use :: Input_Paths         , only : inputPath         , pathTypeDataDynamic
+    implicit none
+    class    (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
+    type     (treeNode                                   ), intent(inout) :: node
+    type     (history                                    ), intent(in   ) :: starFormationHistory
+    class    (nodeComponentBasic                         ), pointer       :: basic
+    integer  (c_size_t                                   )                :: indexOutput
+    integer                                                               :: i
+    type     (lockDescriptor                             )                :: fileLock
+    type     (hdf5Object                                 )                :: file
+    type     (varying_string                             )                :: fileName
+    character(len=16                                     )                :: label
+    
+    ! Return a negative index if templates are not being used.
+    index=-1
+    if (.not.self%useluminosityTemplates) return
+    ! Check that the node exists at at output time.
+    basic       => node             %basic(                               )
+    indexOutput =  self%outputTimes_%index(basic%time(),findClosest=.true.)
+    if (.not.Values_Agree(basic%time(),self%outputTimes_%time(indexOutput),relTol=1.0d-6)) return
+    index=int(indexOutput)
+    do i=1,(self%countLines)
+       ! Ensure that the templates have been built for this index.
+       if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
+       if (.not.allocated(self%templates(index)%emissionLineLuminosity)) then
+          ! Construct the file name.
+          fileName=inputPath(pathTypeDataDynamic)                         // &
+               &        'stellarPopulations/'                             // &
+               &        self%objectType             (                    )// &
+               &        '_'                                               // &
+               &        self%historyHashedDescriptor(starFormationHistory)// &
+               &        '_'                                               // &
+               &        self%lineNames(i)                                 // &
+               &        '_'                                               // &
+               &        indexOutput                                       // &
+               &        '.hdf5'
+          ! Check if the templates can be retrieved from file.
+          !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+          call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
+          if (File_Exists(fileName)) then
+             !$ call hdf5Access%set()
+             call file%openFile(char(fileName))
+             if (file%hasDataset('luminosityTemplate')) then
+                !$omp critical(gfortranInternalIO)
+                write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+                !$omp end critical(gfortranInternalIO)
+                call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
+                call file%readDataset('luminosityTemplate',self%templates(index)%emissionLineLuminosity)
+             end if
+             call file%close()
+             !$ call hdf5Access%unset()
+          end if
+          if (.not.allocated(self%templates(index)%emissionLineLuminosity)) then
+             self%templates(index)%emissionLineLuminosity=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+             !$omp critical(gfortranInternalIO)
+             write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+             !$omp end critical(gfortranInternalIO)
+             call displayMessage("storing Emission Line Luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
+             !$ call hdf5Access%set()
+             call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+             call file%writeDataset(self%templates(index)%emissionLineLuminosity,'luminosityTemplate')
+             call file%close()
+             !$ call hdf5Access%unset()
+          end if
+          call File_Unlock(fileLock)
+       end if
+    end do
+    return
+  end function emissionLineLuminosityIndexTemplateNode
+
+  function emissionLineLuminosityMean(self,time,starFormationHistory,parallelize) result(luminosityMean)
+    !!{
+    Compute the mean luminosity of the stellar population in each bin of the star formation history.
+    !!}
+    use :: Display                , only : displayIndent        , displayUnindent, displayCounter, displayCounterClear, &
+         &                                 verbosityLevelWorking
+    use :: Error                  , only : Error_Report
+    use :: Histories              , only : history
+    use :: Numerical_Integration  , only : integrator
+    use :: Multi_Counters         , only : multiCounter
+    use :: Locks                  , only : ompLock
+    use :: Numerical_Interpolation, only : interpolator
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
+    implicit none
+    double precision                                             , dimension(:,:,:), allocatable :: luminosityMean
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                 :: self
+    double precision                                             , intent(in   )                 :: time
+    type            (history                                    ), intent(in   )                 :: starFormationHistory
+    logical                                                      , intent(in   )   , optional    :: parallelize
+    type            (integrator                                 ), save            , allocatable :: integratorTime            , integratorMetallicity
+    type            (interpolator                               ), save            , allocatable :: interpolatorTime          , interpolatorMetallicity
+    integer         (c_size_t                                   )                                :: iTime                     , iMetallicity           , &
+         &                                                                                          counter                   , counterMaximum         , &
+         &                                                                                          iterator
+    integer         (c_size_t                                   ), save                          :: iLine
+    double precision                                                                             :: metallicityMinimum        , metallicityMaximum
+    double precision                                             , save                          :: timeMinimum               , timeMaximum            , &
+         &                                                                                          age                       , metallicity_
+    character       (len=12                                     )                                :: label
+    type            (multiCounter                               )                                :: state
+    type            (ompLock                                    )                                :: stateLock
+    !$omp threadprivate(iLine,integratorTime,integratorMetallicity,interpolatorTime,interpolatorMetallicity,timeMinimum,timeMaximum,age,metallicity_)
+    !![
+    <optionalArgument name="parallelize" defaultsTo=".false." />
+    !!]
+    
+    allocate(luminosityMean(self%countLines,size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)))
+    counter       =-1
+    counterMaximum=product     ([size(luminosityMean,dim=1              ),size(starFormationHistory%data,dim=1              ),size(starFormationHistory%data,dim=2              )])
+    state         =multiCounter([size(luminosityMean,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=2,kind=c_size_t)])
+    stateLock     =ompLock ()
+    !$omp parallel private (iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
+    allocate(integratorTime       )
+    allocate(integratorMetallicity)
+    integratorTime       =integrator(emissionLineLuminosityIntegrandTime       ,toleranceRelative=self%toleranceRelative)
+    integratorMetallicity=integrator(emissionLineLuminosityIntegrandMetallicity,toleranceRelative=self%toleranceRelative)
+    allocate(interpolatorTime       )
+    allocate(interpolatorMetallicity)
+    interpolatorTime       =interpolator(self%ages         )
+    interpolatorMetallicity=interpolator(self%metallicities)
+    !$omp master
+    if (parallelize_) then
+       !$omp critical(gfortranInternalIO)
+       write (label,'(f12.8)') time
+       !$omp end critical(gfortranInternalIO)
+       call displayIndent("computing template emission line luminosities for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
+    end if
+    !$omp end master
+    ! Iterate over (time,metallicity).
+    !$omp do
+    do iterator=0,counterMaximum-1
+       call stateLock%  set()
+       if (state%increment()) then
+          iLine       =state%state(1_c_size_t)
+          iTime       =state%state(2_c_size_t)
+          iMetallicity=state%state(3_c_size_t)
+       else
+          iLine       =0_c_size_t
+          iTime       =0_c_size_t
+          iMetallicity=0_c_size_t
+          call Error_Report('unable to increment counter'//{introspection:location})
+       end if
+       call stateLock%unset()
+       if (parallelize_) then
+          !$omp atomic
+          counter=counter+1
+          call displayCounter(percentageComplete=int(100.0d0*dble(counter)/dble(counterMaximum)),isNew=counter==0,verbosity=verbosityLevelWorking)
+       end if       
+       ! Determine times.
+       if (iTime == 1) then
+          timeMinimum=                         0.0d0
+       else
+          timeMinimum=    starFormationHistory%time(iTime-1)
+       end if
+       timeMaximum   =min(starFormationHistory%time(iTime  ),time)
+       if (timeMaximum <= timeMinimum) cycle
+       ! Determine metallicities.
+       if (iMetallicity == 1) then
+          metallicityMinimum=                                                   self%metallicityPopulationMinimum
+       else
+          metallicityMinimum=min(max(self%metallicityBoundaries(iMetallicity-1),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
+       end if
+       metallicityMaximum   =min(max(self%metallicityBoundaries(iMetallicity  ),self%metallicityPopulationMinimum),self%metallicityPopulationMaximum)
+       if (metallicityMaximum > metallicityMinimum) then
+          luminosityMean(iLine,iTime,iMetallicity)=+integratorMetallicity%integrate(metallicityMinimum,metallicityMaximum) &
+               &                                            /                      (timeMaximum       -timeMinimum       ) &
+               &                                            /                      (metallicityMaximum-metallicityMinimum)
+       else
+          metallicity_                            =metallicityMinimum
+          luminosityMean(iLine,iTime,iMetallicity)=+integratorTime       %integrate(timeMinimum       ,timeMaximum       ) &
+               &                                            /                      (timeMaximum       -timeMinimum       )
+       end if
+    end do
+    !$omp end do
+    !$omp master
+    if (parallelize_) then
+       call displayCounterClear(       verbosityLevelWorking)
+       call displayUnindent    ("done",verbosityLevelWorking)
+    end if
+    !$omp end master
+    deallocate(integratorTime         )
+    deallocate(integratorMetallicity  )
+    deallocate(interpolatorTime       )
+    deallocate(interpolatorMetallicity)
+    !$omp end parallel
+    return
+
+  contains
+
+    double precision function emissionLineLuminosityIntegrandMetallicity(metallicity) result(integrand)
+      !!{
+      Integrand over metallicity of the stellar population.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: metallicity
+
+      metallicity_=metallicity
+      integrand   =integratorTime%integrate(timeMinimum,timeMaximum)
+      return
+    end function emissionLineLuminosityIntegrandMetallicity
+
+    double precision function emissionLineLuminosityIntegrandTime(timeBirth) result(integrand)
+      !!{
+      Integrand over birth time of the stellar population.
+      !!}
+      implicit none
+      double precision          , intent(in   )  :: timeBirth
+      integer                                    :: iTime                , iMetallicity
+      integer         (c_size_t), dimension(0:1) :: interpolateIndexTime , interpolateIndexMetallicity
+      double precision          , dimension(0:1) :: interpolateFactorTime, interpolateFactorMetallicity
+      
+      age    =min(                            &
+           &      +     time                  &
+           &      -     timeBirth           , &
+           &      +self%agePopulationMaximum  &
+           &     )
+      call interpolatorTime       %linearFactors(age         ,interpolateIndexTime       (0),interpolateFactorTime       )
+      call interpolatorMetallicity%linearFactors(metallicity_,interpolateIndexMetallicity(0),interpolateFactorMetallicity)
+      interpolateIndexTime       (1)=interpolateIndexTime       (0)+1
+      interpolateIndexMetallicity(1)=interpolateIndexMetallicity(0)+1
+      integrand                     =0.0d0
+      do iTime=0,1
+         do iMetallicity=0,1
+           integrand=+integrand                                                                                                              &
+                 &   +self%luminositiesReduced                 (interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity),iLine) &
+                 &   *self%ionizingLuminosityHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity)      ) &
+                 &   /self%ionizingLuminosityHydrogenMean                                                                                    &
+                 &   *     interpolateFactorTime                                    (iTime)                                                  &
+                 &   *     interpolateFactorMetallicity                                                                (iMetallicity)
+         end do
+      end do
+      return
+    end function emissionLineLuminosityIntegrandTime
+
+  end function emissionLineLuminosityMean
+
+  function emissionLineLuminosityHistoryHashedDescriptor(self,starFormationHistory) result(hashedDescriptor)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters    , only : inputParameters
+    use :: String_Handling     , only : String_C_To_Fortran
+    use :: Hashes_Cryptographic, only : Hash_MD5
+    use :: FoX_DOM             , only : setLiveNodeLists
+    use :: Histories           , only : history
+    implicit none
+    type     (varying_string                             )                :: hashedDescriptor
+    class    (nodePropertyExtractorLuminosityEmissionLine), intent(in   ) :: self
+    type     (history                                    ), intent(in   ) :: starFormationHistory
+    character(len=18                                     )                :: parameterLabel
+    type     (inputParameters                            )                :: descriptor
+    type     (varying_string                             )                :: descriptorString    , values
+    integer                                                               :: i
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+      <description>
+	Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+      </description>
+    </workaround>
+    !!]
+    ! type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
+    ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+    
+    descriptor=inputParameters()
+    call setLiveNodeLists(descriptor%document,.false.)
+    call self%starFormationHistory_       %descriptor(descriptor)
+    call self%outputTimes_                %descriptor(descriptor)
+    call self%hiiRegionLuminosityFunction_%descriptor(descriptor)
+    values=""
+    do i=1,size(self%metallicityBoundaries)
+       !$omp critical(gfortranInternalIO)
+       write (parameterLabel,'(e17.10)') self                %metallicityBoundaries(i)
+       !$omp end critical(gfortranInternalIO)
+       values=values//trim(adjustl(parameterLabel))
+       if (i < size(self%metallicityBoundaries)) values=values//":"
+    end do
+    call descriptor%addParameter('metallicity',char(values))
+    values=""
+    do i=1,size(starFormationHistory%time)
+       !$omp critical(gfortranInternalIO)
+       write (parameterLabel,'(e17.10)') starFormationHistory%time                 (i)
+       !$omp end critical(gfortranInternalIO)
+       values=values//trim(adjustl(parameterLabel))
+       if (i < size(starFormationHistory%time)) values=values//":"
+    end do
+    call descriptor%addParameter('time'       ,char(values))
+    descriptorString=descriptor%serializeToString()
+    call descriptor%destroy()
+    descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorLuminosityEmissionLine5)//"}"
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+     <description>
+      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+     </description>
+    </workaround>
+    !!]
+    hashedDescriptor=Hash_MD5(descriptorString)
+    return
+  end function emissionLineLuminosityHistoryHashedDescriptor
+
+
