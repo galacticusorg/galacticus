@@ -150,7 +150,7 @@
     <nodePropertyExtractor value="indicesTree"/>
     <nodePropertyExtractor value="massISM"/>
     <nodePropertyExtractor value="nodeIndices"/>
-    <nodePropertyExtractor value="radiusHalfMass"/>
+    <nodePropertyExtractor value="radiusHalfMassStellar"/>
     <nodePropertyExtractor value="time"/>
     <nodePropertyExtractor value="densityContrasts">
       <densityContrasts value="200.0"/>
