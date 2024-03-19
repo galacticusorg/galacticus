@@ -38,8 +38,10 @@ my $i            = -1;
 my $countUpdated =  0;
 while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
     ++$i;
-    die("failed to parse bibliography entry")
-	unless $entry->parse_ok();
+    unless ( $entry->parse_ok() ) {
+	print $entries[$i];
+	die("failed to parse bibliography entry");
+    }
     # By default, assume we can simply reuse the raw text of the existing entry.
     my $entryText = $entries[$i];
     # Check for an arXiv entry.
@@ -47,8 +49,12 @@ while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
 	my $journal = $entry->get('journal');
 	if ( $journal =~ m/arxiv/i ) {
 	    my $identifier;
-	    if ( $entry->exists('url') ) {
-		my $url = $entry->get('url');
+	    my $url;
+	    $url = $entry->get('url')
+		if ( $entry->exists('url') );
+	    $url = $entry->get('adsurl')
+		if ( $entry->exists('adsurl') );
+	    if ( defined($url) ) {
 		if ( $url =~ m/^https??:\/\/(ui\.)??adsabs\.harvard\.edu\/abs\/(.+)/ ) {
 		    # URL is an ADS arXiv reference. Extract the identifier directly.
 		    $identifier = $2;
@@ -97,12 +103,19 @@ while ( my $entry = Text::BibTeX::Entry->new($bibliography) ) {
 		close($response);
 		my $bibtexEntry = decode_json($json);
 		# If the returned record is something other than an arXiv reference, update to this new record.
-		unless ( $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+arXiv\d+\.\d+[A-Z]\}/m ) {
+		unless ( 
+		    $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+arXiv[\d\.]+[A-Z]\}/m
+		    ||
+		    $bibtexEntry->{'export'} =~ m/^\s*adsurl\s*=\s*\{https:\/\/ui\.adsabs\.harvard\.edu\/abs\/\d+astro\.ph\.\d+[A-Z]\}/m
+		    ) {
 		    # Replace the BibTeX key of this record with the original key - we do not want to have to re-write references
 		    # in all of our documentation.
 		    ++$countUpdated;
 		    my $key = $entry->key();
-		    ($entryText = $bibtexEntry->{'export'}) =~ s/^\@ARTICLE\{.*/\@article\{$key/;
+		    ($entryText = $bibtexEntry->{'export'}) =~ s/^\@ARTICLE\{.*,/\@article\{$key,/;
+
+		    print $entryText."\n";
+
 		}
 	    } else {
 		die("Failed to retrieve record identifier '".$identifier."': ".$retcode." ".$curl->strerror($retcode)." ".$curl->errbuf);
