@@ -235,8 +235,13 @@ jobs:
         uses: andstor/file-existence-action@v3
         with:
           files: warnings.md
+      - name: Output to a job summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat warnings.md >> $GITHUB_STEP_SUMMARY
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true'
+        continue-on-error: true
         uses: thollander/actions-comment-pull-request@v2
         with:
           filePath: warnings.md
