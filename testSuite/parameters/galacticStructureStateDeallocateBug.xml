@@ -140,7 +140,7 @@
   <stellarSpectraDustAttenuation value="charlotFall2000"/>
 
   <nodePropertyExtractor value="multi">
-    <nodePropertyExtractor value="radiusHalfMass"/>
+    <nodePropertyExtractor value="radiusHalfMassStellar"/>
     <nodePropertyExtractor value="virialProperties"/>
     <nodePropertyExtractor value="mostMassiveProgenitor"/>
     <nodePropertyExtractor value="starFormationRate">
