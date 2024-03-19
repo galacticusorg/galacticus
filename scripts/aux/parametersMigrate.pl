@@ -190,6 +190,11 @@ my %translations =
 	     "//galacticFilter[\@value]"                                                                      => {"descendentNode" => "descendantNode"}                           ,
 	     "//nodePropertyExtractor[\@value]"                                                               => {"descendentNode" => "descendantNode"}
 	 }
+     },
+     "beab8e9234f4f7e986ec2d90b85bf4ec7dd8580b" => {
+	 values => {
+	     "//nodePropertyExtractor[\@value]"                                                               => {"radiusHalfMass" => "radiusHalfMassStellar"}
+	 }
      }
     );
      
