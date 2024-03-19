@@ -398,7 +398,7 @@ contains
     return
   end function emissionLineLuminosityIndexTemplateTime
 
-  integer function emissionLineLuminosityIndexTemplateNode(self,node,starFormationHistory)
+  integer function emissionLineLuminosityIndexTemplateNode(self,node,starFormationHistory) result(index)
     !!{
     Find the index of the template emission line luminosity to use, and also compute the template.
     !!}
@@ -424,18 +424,18 @@ contains
     type     (varying_string                             )                :: fileName
     character(len=16                                     )                :: label
     
+    ! Return a negative index if templates are not being used.
+    index=-1
+    if (.not.self%useluminosityTemplates) return
+    ! Check that the node exists at at output time.
+    basic       => node             %basic(                               )
+    indexOutput =  self%outputTimes_%index(basic%time(),findClosest=.true.)
+    if (.not.Values_Agree(basic%time(),self%outputTimes_%time(indexOutput),relTol=1.0d-6)) return
+    index=int(indexOutput)
     do i=1,(self%countLines)
-       ! Return a negative index if templates are not being used.
-       emissionLineLuminosityIndexTemplateNode=-1
-       if (.not.self%useluminosityTemplates) return
-       ! Check that the node exists at at output time.
-       basic       => node             %basic(                               )
-       indexOutput =  self%outputTimes_%index(basic%time(),findClosest=.true.)
-       if (.not.Values_Agree(basic%time(),self%outputTimes_%time(indexOutput),relTol=1.0d-6)) return
-       emissionLineLuminosityIndexTemplateNode=int(indexOutput)
        ! Ensure that the templates have been built for this index.
        if (.not.allocated(self%templates)) allocate(self%templates(self%outputTimes_%count()))
-       if (.not.allocated(self%templates(emissionLineLuminosityIndexTemplateNode)%emissionLineLuminosity)) then
+       if (.not.allocated(self%templates(index)%emissionLineLuminosity)) then
           ! Construct the file name.
           fileName=inputPath(pathTypeDataDynamic)                         // &
                &        'stellarPopulations/'                             // &
@@ -458,20 +458,20 @@ contains
                 write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
                 !$omp end critical(gfortranInternalIO)
                 call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
-                call file%readDataset('luminosityTemplate',self%templates(emissionLineLuminosityIndexTemplateNode)%emissionLineLuminosity)
+                call file%readDataset('luminosityTemplate',self%templates(index)%emissionLineLuminosity)
              end if
              call file%close()
              !$ call hdf5Access%unset()
           end if
-          if (.not.allocated(self%templates(emissionLineLuminosityIndexTemplateNode)%emissionLineLuminosity)) then
-             self%templates(emissionLineLuminosityIndexTemplateNode)%emissionLineLuminosity=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+          if (.not.allocated(self%templates(index)%emissionLineLuminosity)) then
+             self%templates(index)%emissionLineLuminosity=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
              !$omp critical(gfortranInternalIO)
              write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
              !$omp end critical(gfortranInternalIO)
              call displayMessage("storing Emission Line Luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
              !$ call hdf5Access%set()
              call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-             call file%writeDataset(self%templates(emissionLineLuminosityIndexTemplateNode)%emissionLineLuminosity,'luminosityTemplate')
+             call file%writeDataset(self%templates(index)%emissionLineLuminosity,'luminosityTemplate')
              call file%close()
              !$ call hdf5Access%unset()
           end if
