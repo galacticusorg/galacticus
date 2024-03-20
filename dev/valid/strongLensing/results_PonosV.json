@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 50,
-      "percentageAbove" : 50
-   },
-   "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 53.8461538461538,
-      "percentageAbove" : 46.1538461538462
-   },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "id" : "7de5e4e6e3b6537ea986f05817e4ac54b8ae1604",
-      "timestamp" : "Tue, 19 Mar 2024 23:53:15 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/7de5e4e6e3b6537ea986f05817e4ac54b8ae1604",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/3ac102f22a46dd05613771c69899f2ca5b2b36c1",
+      "id" : "3ac102f22a46dd05613771c69899f2ca5b2b36c1",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abenson@carnegiescience.edu"
       },
-      "message" : "fix: Catch alternate URLs for updated bibliography entries"
+      "timestamp" : "Wed, 20 Mar 2024 05:22:40 +0000",
+      "message" : "fix: Correct LaTeX journal reference commands"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "slope" : {
+      "percentageAbove" : 46.6666666666667,
+      "percentageBelow" : 53.3333333333333,
+      "target" : 0.85
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageBelow" : 43.75,
+      "percentageAbove" : 56.25,
+      "target" : 0.006
+   }
 }
