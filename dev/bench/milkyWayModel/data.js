@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1710906937388,
+  "lastUpdate": 1710926316467,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "212e634c8a6c24f5dc09ae49ad4c9004fcc76053",
-          "message": "Merge pull request #428 from galacticusorg/checkpointing\n\nImplement (limited) checkpointing",
-          "timestamp": "2023-07-07T15:58:53Z",
-          "tree_id": "fe32efe68225e92bc677a4091a8f1b2cdabdea51",
-          "url": "https://github.com/galacticusorg/galacticus/commit/212e634c8a6c24f5dc09ae49ad4c9004fcc76053"
-        },
-        "date": 1688772304355,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 235.051,
-            "unit": "seconds",
-            "range": 0.901518108525551
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10708,6 +10678,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 11.9517585759031,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "3ac102f22a46dd05613771c69899f2ca5b2b36c1",
+          "message": "fix: Correct LaTeX journal reference commands",
+          "timestamp": "2024-03-20T05:22:40Z",
+          "tree_id": "5c3357ad8a4da33c36e1a354162d2bac4a0fa9b0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3ac102f22a46dd05613771c69899f2ca5b2b36c1"
+        },
+        "date": 1710926315646,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 426.974,
+            "unit": "seconds",
+            "range": 0.401467806925042
           }
         ]
       }
