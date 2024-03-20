@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 50,
+      "percentageAbove" : 50
+   },
+   "slope" : {
+      "target" : 0.85,
+      "percentageBelow" : 53.8461538461538,
+      "percentageAbove" : 46.1538461538462
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "timestamp" : "Mon, 18 Mar 2024 16:55:21 +0000",
+      "id" : "7de5e4e6e3b6537ea986f05817e4ac54b8ae1604",
+      "timestamp" : "Tue, 19 Mar 2024 23:53:15 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/7de5e4e6e3b6537ea986f05817e4ac54b8ae1604",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abenson@carnegiescience.edu"
       },
-      "message" : "fix(style): Formatting only",
-      "id" : "8f25c914acd1feade805f306d219c5c1c21a9ac2",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/8f25c914acd1feade805f306d219c5c1c21a9ac2"
+      "message" : "fix: Catch alternate URLs for updated bibliography entries"
    },
-   "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 57.1428571428571,
-      "percentageAbove" : 42.8571428571429
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "surfaceDensity" : {
-      "percentageAbove" : 53.125,
-      "target" : 0.006,
-      "percentageBelow" : 46.875
-   }
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
