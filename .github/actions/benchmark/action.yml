@@ -1,0 +1,53 @@
+name: Perform benchmarking of model results
+inputs:
+  name:
+    description: 'Name of the benchmark'
+    required: true
+  type:
+    description: 'Type of benchmark'
+    required: true
+  suffix:
+    description: 'Suffix for file names'
+    required: true
+  path:
+    description: 'Subpath for results'
+    required: true
+  threshold:
+    description: 'Percentage threshold for alerting'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.type }}-${{ inputs.suffix }}
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: ${{ inputs.name }}
+          tool: 'customSmallerIsBetter'
+          output-file-path: ${{ inputs.type }}_${{ inputs.suffix }}.json
+          summary-always: false
+          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
+          alert-comment-cc-users: '@abensonca'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          benchmark-data-dir-path: dev/${{ inputs.path }}/${{ inputs.suffix }}
+          gh-pages-branch: gh-pages
+          alert-threshold: ${{ inputs.threshold }}
+          max-items-in-chart: 256
+      - name: Push benchmark result
+        run: |
+          git checkout gh-pages
+          git push --set-upstream origin gh-pages
+          git checkout -
+        if: github.event_name != 'pull_request'
+      - name: Revert benchmark result
+        run: |
+          git checkout gh-pages
+          git reset --hard HEAD~1
+          git checkout -
+        if: github.event_name == 'pull_request'
