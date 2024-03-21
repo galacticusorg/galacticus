@@ -166,9 +166,9 @@ contains
     class           (darkMatterProfileDMOClass      ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                 , intent(in   ), optional       :: redshift
     double precision                                 , allocatable  , dimension(:  ) :: massesTarget            , functionTarget                  , &
-         &                                                                            functionErrorTarget
+         &                                                                              functionErrorTarget
     double precision                                 , allocatable  , dimension(:,:) :: functionCovarianceTarget
-    double precision                                                                 :: massMinimum             , massMaximum               , &
+    double precision                                                                 :: massMinimum             , massMaximum                     , &
          &                                                                              time                    , redshift_
     integer         (c_size_t                         )                              :: countMasses             , i
     type            (varying_string                   )                              :: labelTarget
@@ -353,7 +353,7 @@ contains
          &                                                                              galacticFilterSubhalos_                                         , &
          &                                                                              outputTimes_                                                    , &
          &                                                                              outputAnalysisCovarianceModelPoisson                            , &
-         &                                                         likelihoodNormalize =.true.                                                          , &
+         &                                                         likelihoodNormalize =.false.                                                         , &
          &                                                         xAxisLabel          =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
          &                                                         yAxisLabel          =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
          &                                                         xAxisIsLog          =.true.                                                          , &
