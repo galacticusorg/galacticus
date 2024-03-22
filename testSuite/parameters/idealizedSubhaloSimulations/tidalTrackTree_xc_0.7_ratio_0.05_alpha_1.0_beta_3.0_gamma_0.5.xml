@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tree initial conditions for an orbiting subhalo model -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <firstSatellite>3</firstSatellite>
+    <basic>
+      <time>1.0</time>
+      <mass>1000000000000.0</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.023686894022190656</scale>
+    </darkMatterProfile>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>39.0</time>
+      <mass>1000000000000.0</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.023686894022190656</scale>
+    </darkMatterProfile>
+  </node>
+  <node>
+    <index>3</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1000000000.0</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0012786392554240392</scale>
+    </darkMatterProfile>
+    <satellite>
+      <!-- Start the satellite at apocenter, 184kpc (as per Du et al. 2024) -->
+      <boundMass>1179390300.0</boundMass>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <position>0.18427076418754965</position> <!-- Initial orbital radius -->
+      <position>0.0</position>
+      <position>0.0</position>
+      <velocity>0.0</velocity>
+      <velocity>18.066182696405207</velocity>   <!-- Initial velocity       -->
+      <velocity>0.0</velocity>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00>
+        <x01>0.0</x01>
+        <x02>0.0</x02>
+        <x11>0.0</x11>
+        <x12>0.0</x12>
+        <x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+      <virialOrbit>
+        <radius>0.18427076418754965</radius>
+        <velocityRadial>0.0</velocityRadial>
+        <velocityTangential>18.066182696405207</velocityTangential>
+        <massHost>1000000000000.0</massHost>
+        <massSatellite>1000000000.0</massSatellite>
+      </virialOrbit>
+    </satellite>
+  </node>
+</tree>

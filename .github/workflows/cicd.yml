@@ -743,6 +743,17 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validation-PonosV
     secrets: inherit
+  Validate-Idealized-Subhalo-Simulations:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: validate-idealizedSubhaloSimulations-wrapper.pl
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validation-idealizedSubhaloSimulations
+    secrets: inherit
   # Tests
   ## Linux
   ### Test Codes
@@ -1331,30 +1342,104 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Validate-PonosV ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Validate-PonosV, Validate-Idealized-Subhalo-Simulations ]
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@v4
+      - name: 'Dark matter-only subhalos benchmarks'
+        uses: ./.github/actions/benchmark
         with:
-          name: galacticus-exec
-      - name: Download artifacts (benchmark-darkMatterOnlySubhalos)
-        uses: actions/download-artifact@v4
+          name: 'Dark matter-only subhalos benchmarks'
+          type: 'benchmark'
+          suffix: 'darkMatterOnlySubhalos'
+          path: 'bench'
+          threshold: '110%'
+      - name: 'Milky Way model benchmarks'
+        uses: ./.github/actions/benchmark
         with:
-          name: benchmark-darkMatterOnlySubhalos
-      - name: Download artifacts (benchmark-milkyWay)
-        uses: actions/download-artifact@v4
+          name: 'Milky Way model benchmarks'
+          type: 'benchmark'
+          suffix: 'milkyWay'
+          path: 'bench'
+          threshold: '150%'
+      - name: 'Dark matter-only subhalos validation'
+        uses: ./.github/actions/benchmark
         with:
-          name: benchmark-milkyWay
-      - name: Download artifacts (validation-darkMatterOnlySubhalos)
-        uses: actions/download-artifact@v4
+          name: 'Dark matter-only subhalos validation'
+          type: 'validate'
+          suffix: 'darkMatterOnlySubhalos'
+          path: 'valid'
+          threshold: '105%'
+      - name: 'Milky Way model benchmarks'
+        uses: ./.github/actions/benchmark
         with:
-          name: validation-darkMatterOnlySubhalos
-      - name: Download artifacts (validation-milkyWay)
-        uses: actions/download-artifact@v4
+          name: 'Milky Way model benchmarks'
+          type: 'validate'
+          suffix: 'milkyWayModel'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
+        uses: ./.github/actions/benchmark
         with:
-          name: validation-milkyWayModel
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.005_gamma1.5'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.01_gamma1.5'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.05_gamma0.5'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.05_gamma1.0'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma0.0'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma0.5'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma1.0'
+          path: 'valid'
+          threshold: '110%'
+      - name: 'Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)'
+          type: 'validate'
+          suffix: 'idealizedSubhaloSimulation_rpra0.4_gamma0.0'
+          path: 'valid'
+          threshold: '110%'
       - name: Download artifacts (validation-PonosV)
         uses: actions/download-artifact@v4
         with:
@@ -1363,123 +1448,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-profile
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Dark matter-only subhalos benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: benchmark_darkMatterOnlySubhalos.json
-          summary-always: false
-          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
-          gh-pages-branch: gh-pages
-          alert-threshold: 150%
-          max-items-in-chart: 256
-      - name: Push benchmark result
+      - name: Push validation results
         run: |
           git checkout gh-pages
-          git push --set-upstream origin gh-pages
-          git checkout -
-        if: github.event_name != 'pull_request'
-      - name: Revert benchmark result
-        run: |
-          git checkout gh-pages
-          git reset --hard HEAD~1
-          git checkout -
-        if: github.event_name == 'pull_request'
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Milky Way model benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: benchmark_milkyWay.json
-          summary-always: false
-          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/milkyWayModel
-          gh-pages-branch: gh-pages
-          alert-threshold: 150%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-          git checkout -
-        if: github.event_name != 'pull_request'
-      - name: Revert benchmark result
-        run: |
-          git checkout gh-pages
-          git reset --hard HEAD~1
-          git checkout -
-        if: github.event_name == 'pull_request'
-      - name: Store validation result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Dark matter-only subhalos benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: validate_darkMatterOnlySubhalos.json
-          summary-always: false
-          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/darkMatterOnlySubhalos
-          gh-pages-branch: gh-pages
-          alert-threshold: 110%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-          git checkout -
-        if: github.event_name != 'pull_request'
-      - name: Revert benchmark result
-        run: |
-          git checkout gh-pages
-          git reset --hard HEAD~1
-          git checkout -
-        if: github.event_name == 'pull_request'
-      - name: Store validation result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Milky Way model benchmarks
-          tool: 'customSmallerIsBetter'
-          output-file-path: validate_milkyWayModel.json
-          summary-always: false
-          comment-on-alert: ${{ github.triggering_actor == 'dependabot[bot]' && 'false' || 'true' }}
-          alert-comment-cc-users: '@abensonca'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          benchmark-data-dir-path: dev/bench/milkyWayModel
-          gh-pages-branch: gh-pages
-          alert-threshold: 110%
-          max-items-in-chart: 256
-      - name: Push benchmark result
-        run: |
-          git checkout gh-pages
-          git push --set-upstream origin gh-pages
-          git checkout -
-        if: github.event_name != 'pull_request'
-      - name: Revert benchmark result
-        run: |
-          git checkout gh-pages
-          git reset --hard HEAD~1
-          git checkout -
-        if: github.event_name == 'pull_request'
-      - name: Push validation result
-        run: |
-          git checkout gh-pages
-          mv results_darkMatterOnlySubhalos.json dev/valid/darkMatterOnlySubhalos/results.json
-          mv results_milkyWayModel.json          dev/valid/milkyWayModel/results.json
-          mv results_PonosV.json                 dev/valid/strongLensing/results_PonosV.json
+          mkdir -p dev/valid/darkMatterOnlySubhalos
+          mkdir -p dev/valid/milkyWayModel
+          mkdir -p dev/valid/strongLensing
+          mkdir -p dev/valid/idealizedSubhaloSimulations
+          mv results_darkMatterOnlySubhalos.json       dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_milkyWayModel.json                dev/valid/milkyWayModel/results.json
+          mv results_PonosV.json                       dev/valid/strongLensing/results_PonosV.json
+          mv results_idealizedSubhaloSimulation_*.json dev/valid/idealizedSubhaloSimulations/
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -

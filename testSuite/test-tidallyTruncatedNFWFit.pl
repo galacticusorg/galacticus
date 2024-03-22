@@ -11,10 +11,10 @@ use PDL::Ufunc;
 # Andrew Benson (15-August-2023)
 
 # Run the model.
-#system("mkdir -p outputs");
-#system("cd ..; ./Galacticus.exe testSuite/parameters/tidallyTruncatedNFWFit.xml");
-#die("FAILED: model failed to run")
-#    unless ( $? == 0 );
+system("mkdir -p outputs");
+system("cd ..; ./Galacticus.exe testSuite/parameters/tidallyTruncatedNFWFit.xml");
+die("FAILED: model failed to run")
+   unless ( $? == 0 );
 
 # Read model data.
 my $model = new PDL::IO::HDF5("outputs/tidallyTruncatedNFWFit.hdf5");
