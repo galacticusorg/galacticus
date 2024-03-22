@@ -22,7 +22,8 @@ our $lineData;
 # Get arguments.
 my %options =
     (
-     workspace => "cloudyTable/"
+     workspace => "cloudyTable/",
+     reprocess => "no"
     );
 # Parse options.
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
@@ -265,7 +266,41 @@ my $energy                      = $plancksConstant*$speedOfLight/$wavelength/$an
 ## Construct wavelength intervals.
 my $deltaWavelength             = $wavelength->copy();
 $deltaWavelength->(0:-2)       .= $wavelength->(1:-1)-$deltaWavelength->(0:-2);
-$deltaWavelength->((-1))       .=                     $deltaWavelength->((-1));
+$deltaWavelength->((-1))       .=                     $deltaWavelength->((-2));
+
+# Refine the range of metallicities, by interpolating the spectra to intermediate points.
+my $refineMetallicityBy       = 2;
+my $countRefinedMetallicities = $refineMetallicityBy*(nelem($logMetallicities)-1)+1;
+my $logMetallicitiesRefined   = pdl zeros(                                  $countRefinedMetallicities);
+my $spectraRefined            = pdl zeros($spectra->dim(0),$spectra->dim(1),$countRefinedMetallicities);
+for(my $i=0;$i<nelem($logMetallicities)-1;++$i) {
+    my $deltaLogMetallicity = $logMetallicities->(($i+1))-$logMetallicities->(($i));
+    for(my $j=0;$j<$refineMetallicityBy;++$j) {
+	(my $zero, my $nonZero) =
+	    which_both(
+		($spectra->(:,:,($i  )) <= 0.0)
+		|
+		($spectra->(:,:,($i+1)) <= 0.0)
+	    );
+	# Spectra are interpolated in log-log space where possible (i.e. where the spectrum is non-zero at both endpoints of the
+	# interpolation), and in lin-log space otherwise. Metallicities are always interpolated in log space.
+	$spectraRefined         ->(:,:,($i*$refineMetallicityBy+$j))->flat()->(   $zero) .=     +$spectra            ->(:,:,($i  ))->flat()->(   $zero)       *(1.0-($j/$refineMetallicityBy))
+	                                                                                        +$spectra            ->(:,:,($i+1))->flat()->(   $zero)       *(0.0+($j/$refineMetallicityBy));
+	$spectraRefined         ->(:,:,($i*$refineMetallicityBy+$j))->flat()->($nonZero) .= exp(
+	  	                                                                                +$spectra            ->(:,:,($i  ))->flat()->($nonZero)->log()*(1.0-($j/$refineMetallicityBy))
+	 	                                                                                +$spectra            ->(:,:,($i+1))->flat()->($nonZero)->log()*(0.0+($j/$refineMetallicityBy))
+	    );
+	$logMetallicitiesRefined->(    ($i*$refineMetallicityBy+$j))                     .=     +$logMetallicities   ->(    ($i  ))
+	                                                                                        +$deltaLogMetallicity                                         *     ($j/$refineMetallicityBy) ;
+    }
+}
+$logMetallicitiesRefined->(    (-1)) .= $logMetallicities->(    (-1));    
+$spectraRefined         ->(:,:,(-1)) .= $spectra         ->(:,:,(-1));    
+undef($logMetallicities);
+undef($spectra         );
+$logMetallicities = $logMetallicitiesRefined;
+$spectra          = $spectraRefined         ;
+
 # Evaluate the number of Lyman continuum photons emitted per second for each population (age,metallicity).
 ## Construct the integrand. Spectra are in units of L☉ Hz¯¹. We want to evaluate Qₕ = ∫_Eₕ^∞ dν S_ν/hν = ∫₀^λₕ dλ S_ν / hλ.
 my $integrand                   = $spectra*$deltaWavelength/$wavelength*$luminositySolar/$plancksConstant;
@@ -276,6 +311,9 @@ my $ionizingLuminosityPerMass   = $integrand->($hydrogenContinuum,:,:)->sumover(
 
 # Define ionizing luminosities, Qₕ, to tabulate.
 my $logHydrogenLuminosities = pdl [ 48.0, 49.0, 50.0, 51.0, 52.0 ];
+
+# Define hydrogen densities, nₕ, to tabulate.
+my $logHydrogenDensities    = pdl [  1.0,  1.5,  2.0,  2.5,  3.0 ];
 
 # Define the list of lines to extract. The following dictionary contains keys which match the line names in the Cloudy emission
 # lines output file, and values which are our internal names for these lines.
@@ -324,163 +362,210 @@ my %lineList =
      # "S  3                9533.23A" => "sulfurIII9533"
     );
 
-# Initialize the line luminosity tables.
-$lineData->{$lineList{$_}}->{'luminosity'} =
+
+if ( $options{'reprocess'} eq "yes" ) {
+    # Reprocess output files. This can be useful if some previous processing of Cloudy output files failed (we often have tens of
+    # thousands of these so some intermittment failures can occur).
+    my $tableFile         = new PDL::IO::HDF5("cloudyTable.hdf5");
+    my $lineGroup         = $tableFile->group('lines');
+    $lineData->{'status'} = $lineGroup->dataset('status')->get();
+    foreach my $lineIdentifier ( keys(%lineList) ) {
+	my $lineName = $lineList{$lineIdentifier};
+	$lineData->{$lineName}->{'luminosity'} = $lineGroup->dataset($lineName)->get();
+    }
+    my $jobNumber = -1;
+    for(my $iAge=0;$iAge<$ionizingLuminosityPerMass->dim(0);++$iAge) {
+	for(my $iMetallicity=0;$iMetallicity<$ionizingLuminosityPerMass->dim(1);++$iMetallicity) {
+	    for(my $iLogHydrogenLuminosity=0;$iLogHydrogenLuminosity<nelem($logHydrogenLuminosities);++$iLogHydrogenLuminosity) {
+		for(my $iLogHydrogenDensity=0;$iLogHydrogenDensity<nelem($logHydrogenDensities);++$iLogHydrogenDensity) {
+		    ++$jobNumber;
+		    next
+			if ( $lineData->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)) == 0 );
+		    # Reset the status before attempting to reprocess.
+		    my $statusOld = $lineData->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity))->sclr();
+		    $lineData->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)) .= 0;
+		    &linesParse(
+			"lines"        .$jobNumber.".out",
+			"continuum"    .$jobNumber.".out",
+			"emissionLines".$jobNumber.".sh" ,
+			"emissionLines".$jobNumber.".log",
+			"cloudyInput"  .$jobNumber.".txt",
+			$iAge                            ,
+			$iMetallicity                    ,
+			$iLogHydrogenLuminosity          ,
+			$iLogHydrogenDensity
+			);
+		    print "Reprocess job number ".$jobNumber." (status = ".$statusOld." ==> ".$lineData->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)).")\n";
+		}
+	    }
+	}
+    }
+} else {
+    # Compute the table.
+    # Initialize the line luminosity tables.
+    $lineData->{$lineList{$_}}->{'luminosity'} =
 	pdl zeroes
 	(
 	 nelem($ages                   ),
 	 nelem($logMetallicities       ),
-	 nelem($logHydrogenLuminosities)
+	 nelem($logHydrogenLuminosities),
+	 nelem($logHydrogenDensities   )
 	)
-    foreach ( keys(%lineList) );
+	foreach ( keys(%lineList) );
     $lineData->{'status'} =
 	pdl long zeroes
 	(
 	 nelem($ages                   ),
 	 nelem($logMetallicities       ),
-	 nelem($logHydrogenLuminosities)
+	 nelem($logHydrogenLuminosities),
+	 nelem($logHydrogenDensities   )
 	);
-
-# Begin constructing Cloudy jobs.
-## Iterate over (age,metallicity).
-my @jobs;
-my $jobNumber = -1;
-my $jobCount  = +      $ionizingLuminosityPerMass->dim(0)
-                *      $ionizingLuminosityPerMass->dim(1)
-                *nelem($logHydrogenLuminosities          );
-for(my $iAge=0;$iAge<$ionizingLuminosityPerMass->dim(0);++$iAge) {
-    for(my $iMetallicity=0;$iMetallicity<$ionizingLuminosityPerMass->dim(1);++$iMetallicity) {
-	# Normalize the spectrum - this is a convenience only as the normalization will be recomputed by Cloudy.
-	my $normalizer = $spectra->(:,($iAge),($iMetallicity))->maximum();
-	$spectra->(:,($iAge),($iMetallicity)) /= $normalizer;	
-	# Get abundances for this metallicity.
-	## Compute metallicity relative to Solar.
-	my $metallicity        = pdl 10.0**$logMetallicities->(($iMetallicity));
-	## Specify a dust-to-metals ratio. The following corresponds to the dust-to-metals ratio for the reference model of
-	# Gutkin, Charlot & Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). It differs slightly
-	# from their stated value, but agrees with out internal calculation of this value from their data.
-	my $dustToMetals       = pdl 0.401;
-	my %abundances         = &adjustAbundances(\%abundancesReference,$metallicity,$dustToMetals);
-	# Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around
-	# this, we translate our numerical age and metallicity indices into ASCII characters, by mapping digits (0→A, 1→B,
-	# etc.).
-	my $encodedAge         = join("",map {chr($_+17)} unpack("c*","$iAge"        ));
-	my $encodedMetallicity = join("",map {chr($_+17)} unpack("c*","$iMetallicity"));
-	my $depletionFileName = "grains_".$encodedAge."_".$encodedMetallicity.".dpl";
-	open(my $depletionFile,">",$options{'workspace'}.$depletionFileName);
-	foreach my $element ( sort(keys(%abundances)) ) {
-	    print $depletionFile $abundances{$element}->{'name'}." ".$abundances{$element}->{'undepletedFraction'}."\n";
-	}
-	close($depletionFile);
-	## Iterate over Qₕ.
-	for(my $iLogHydrogenLuminosity=0;$iLogHydrogenLuminosity<nelem($logHydrogenLuminosities);++$iLogHydrogenLuminosity) {
-	    # Generate a Cloudy parameter file.
-	    ++$jobNumber;
-	    print "Generating model ".$jobNumber." of ".$jobCount."\n"
-		if ( $jobNumber % 100 == 0 );
-	    my $cloudyScript;
-	    $cloudyScript .= "title emission line job number ".$jobNumber."\n";
-	    $cloudyScript .= "# [".$iAge                  ."] age     = ".$ages                   ->(($iAge                  ))."\n";
-	    $cloudyScript .= "# [".$iMetallicity          ."] log Z   = ".$logMetallicities       ->(($iMetallicity          ))."\n";
-	    $cloudyScript .= "# [".$iLogHydrogenLuminosity."] log Q_H = ".$logHydrogenLuminosities->(($iLogHydrogenLuminosity))."\n";
-	    ## Set the input spectrum for Cloudy.
-            my $counter = -1;
-	    for(my $iWavelength=nelem($wavelength)-1;$iWavelength>=0;--$iWavelength) {
-		++$counter;
-		if ( $counter % 3 == 0 ) {
-		    if ( $counter == 0 ) {
-			$cloudyScript .=  "interpolate";
-		    } else {
-			$cloudyScript .=  "\ncontinue";
-		    }
-		}
-		$cloudyScript .=  " (".$energy->(($iWavelength))." ".$spectra->(($iWavelength),($iAge),($iMetallicity))->log10().")";
-	    }
-	    $cloudyScript .= "\n";
-	    ## Set normalization of the spectrum.
-	    $cloudyScript .= "q(h) = ".$logHydrogenLuminosities->(($iLogHydrogenLuminosity))."\n";
-	    # Set the chemical composition of the HII region.
-	    # Start with Cloudy's HII region abundances - but no grains - we will add these later.
-	    $cloudyScript .= "abundances HII region no grains\n";
-	    # Set individual element abundances.
+    # Begin constructing Cloudy jobs.
+    ## Iterate over (age,metallicity).
+    my @jobs;
+    my $jobNumber = -1;
+    my $jobCount  = +      $ionizingLuminosityPerMass->dim(0)
+                    *      $ionizingLuminosityPerMass->dim(1)
+                    *nelem($logHydrogenLuminosities          )
+                    *nelem($logHydrogenDensities             );
+    for(my $iAge=0;$iAge<$ionizingLuminosityPerMass->dim(0);++$iAge) {
+	for(my $iMetallicity=0;$iMetallicity<$ionizingLuminosityPerMass->dim(1);++$iMetallicity) {
+	    # Normalize the spectrum - this is a convenience only as the normalization will be recomputed by Cloudy.
+	    my $normalizer = $spectra->(:,($iAge),($iMetallicity))->maximum();
+	    $spectra->(:,($iAge),($iMetallicity)) /= $normalizer;	
+	    # Get abundances for this metallicity.
+	    ## Compute metallicity relative to Solar.
+	    my $metallicity        = pdl 10.0**$logMetallicities->(($iMetallicity));
+	    ## Specify a dust-to-metals ratio. The following corresponds to the dust-to-metals ratio for the reference model of
+	    # Gutkin, Charlot & Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). It differs slightly
+	    # from their stated value, but agrees with out internal calculation of this value from their data.
+	    my $dustToMetals       = pdl 0.401;
+	    my %abundances         = &adjustAbundances(\%abundancesReference,$metallicity,$dustToMetals);
+	    # Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around
+	    # this, we translate our numerical age and metallicity indices into ASCII characters, by mapping digits (0→A, 1→B,
+	    # etc.).
+	    my $encodedAge         = join("",map {chr($_+17)} unpack("c*","$iAge"        ));
+	    my $encodedMetallicity = join("",map {chr($_+17)} unpack("c*","$iMetallicity"));
+	    my $depletionFileName = "grains_".$encodedAge."_".$encodedMetallicity.".dpl";
+	    open(my $depletionFile,">",$options{'workspace'}.$depletionFileName);
 	    foreach my $element ( sort(keys(%abundances)) ) {
-		# Skip hydrogen.
-		next
-		    if ( $abundances{$element}->{'atomicNumber'} < 2 );
-		# Set the abundance for this element.
-		$cloudyScript .= "element abundances ".lc($abundances{$element}->{'name'})." ".$abundances{$element}->{'logAbundanceByNumber'}."\n";
+		print $depletionFile $abundances{$element}->{'name'}." ".$abundances{$element}->{'undepletedFraction'}."\n";
 	    }
-	    # Specify Cloudy's default ISM grains, but with abundance reduced in proportion to the metallicity to retain a fixed
-	    # dust-to-metals ratio.
-	    $cloudyScript .= "grains _ISM ".$logMetallicities->(($iMetallicity))." _log\n";
-	    # Deplete metals into grains using our custom depletions file. Note that these depletions differ from those assumed by
-	    # the "grains _ISM" model above. This seems to be at the ~10% level, so we do not worry too much about this.
-	    $cloudyScript .= "metals deplete \"".$depletionFileName."\"\n";
-	    # Set HII region density - this is log₁₀(nₕ/cm¯³). Currently, we use a fixed value of nₕ = 100 cm¯³.
-	    $cloudyScript .= "hden   2.0\n";
-	    # Set other HII region propertoes.
-	    $cloudyScript .= "sphere expanding\n";
-	    $cloudyScript .= "radius 16.0\n";
-	    # Set cosmic rays (needed to avoid problems in Cloudy in neutral gas).
-	    $cloudyScript .= "cosmic rays background\n";
-	    # Set stopping criteria.
-	    $cloudyScript .= "stop temperature 1000 k\n";
-	    $cloudyScript .= "iterate to convergence\n";
-	    ## Output the continuum for refernce.
-	    $cloudyScript .= "punch continuum \"continuum".$jobNumber.".out\"\n";
-	    ## Set line output options.
-	    $cloudyScript .= "print lines faint _off\n";
-            ## WORKAROUND     
-            ## Currently disabled as Cloudy has a bug that prevents us from outputting in vacuum wavelengths. See these
-            ## two error reports:
-            ##   https://cloudyastrophysics.groups.io/g/Main/topic/101921207#5396
-            ##   https://cloudyastrophysics.groups.io/g/Main/topic/102424985#5431
-	    #$cloudyScript .= "print line vacuum\n";
-	    $cloudyScript .= "save lines, array \"lines".$jobNumber.".out\"\n";
-	    ## Write the Cloudy script to file.
-	    my $cloudyScriptFileName = "cloudyInput".$jobNumber.".txt";
-	    open(my $cloudyScriptFile,">".$options{'workspace'}.$cloudyScriptFileName);
-	    print $cloudyScriptFile $cloudyScript;
-	    close($cloudyScriptFile);
-	    ## Construct a job to run this parameter file.
-	    my %job = 
-		(
-		 launchFile   => $options{'workspace'}."emissionLines".$jobNumber.".sh" ,
-		 label        =>                       "emissionLines".$jobNumber       ,
-		 logFile      => $options{'workspace'}."emissionLines".$jobNumber.".log",
-		 command      => 
-		                 "cd ".$options{'workspace'}."; ulimit -c 0\n"                 .
-		                 $cloudyPath."/source/cloudy.exe < ".$cloudyScriptFileName."\n".
-		                 "if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"              ,
-		 ppn          => 1,
-		 walltime     => "10:00:00",
-		 onCompletion => 
-		 {
-		     function  => \&linesParse,
-		     arguments => 
-			 [
-			  "lines"        .$jobNumber.".out",
-			  "continuum"    .$jobNumber.".out",
-			  "emissionLines".$jobNumber.".sh" ,
-			  "emissionLines".$jobNumber.".log",
-			  $cloudyScriptFileName            ,
-			  $iAge                            ,
-			  $iMetallicity                    ,
-			  $iLogHydrogenLuminosity          ,
-			 ]
-		 }
-		);
-	    ## Push job to job list.
-	    push(@jobs,\%job);
+	    close($depletionFile);
+	    ## Iterate over Qₕ.
+	    for(my $iLogHydrogenLuminosity=0;$iLogHydrogenLuminosity<nelem($logHydrogenLuminosities);++$iLogHydrogenLuminosity) {
+		## Iterate over nₕ.
+		for(my $iLogHydrogenDensity=0;$iLogHydrogenDensity<nelem($logHydrogenDensities);++$iLogHydrogenDensity) {
+		    # Generate a Cloudy parameter file.
+		    ++$jobNumber;
+		    print "Generating model ".$jobNumber." of ".$jobCount."\n"
+			if ( $jobNumber % 100 == 0 );
+		    my $cloudyScript;
+		    $cloudyScript .= "title emission line job number ".$jobNumber."\n";
+		    $cloudyScript .= "# [".$iAge                  ."] age     = ".$ages                   ->(($iAge                  ))."\n";
+		    $cloudyScript .= "# [".$iMetallicity          ."] log Z   = ".$logMetallicities       ->(($iMetallicity          ))."\n";
+		    $cloudyScript .= "# [".$iLogHydrogenLuminosity."] log Q_H = ".$logHydrogenLuminosities->(($iLogHydrogenLuminosity))."\n";
+		    $cloudyScript .= "# [".$iLogHydrogenDensity   ."] log n_H = ".$logHydrogenDensities   ->(($iLogHydrogenDensity   ))."\n";
+		    ## Set the input spectrum for Cloudy.
+		    my $counter = -1;
+		    for(my $iWavelength=nelem($wavelength)-1;$iWavelength>=0;--$iWavelength) {
+			++$counter;
+			if ( $counter % 3 == 0 ) {
+			    if ( $counter == 0 ) {
+				$cloudyScript .=  "interpolate";
+			    } else {
+				$cloudyScript .=  "\ncontinue";
+			    }
+			}
+			$cloudyScript .=  " (".$energy->(($iWavelength))." ".$spectra->(($iWavelength),($iAge),($iMetallicity))->log10().")";
+		    }
+		    $cloudyScript .= "\n";
+		    ## Set normalization of the spectrum.
+		    $cloudyScript .= "q(h) = ".$logHydrogenLuminosities->(($iLogHydrogenLuminosity))."\n";
+		    # Set the chemical composition of the HII region.
+		    # Start with Cloudy's HII region abundances - but no grains - we will add these later.
+		    $cloudyScript .= "abundances HII region no grains\n";
+		    # Set individual element abundances.
+		    foreach my $element ( sort(keys(%abundances)) ) {
+			# Skip hydrogen.
+			next
+			    if ( $abundances{$element}->{'atomicNumber'} < 2 );
+			# Set the abundance for this element.
+			$cloudyScript .= "element abundances ".lc($abundances{$element}->{'name'})." ".$abundances{$element}->{'logAbundanceByNumber'}."\n";
+		    }
+		    # Specify Cloudy's default ISM grains, but with abundance reduced in proportion to the metallicity to retain a fixed
+		    # dust-to-metals ratio.
+		    $cloudyScript .= "grains _ISM ".$logMetallicities->(($iMetallicity))." _log\n";
+		    # Deplete metals into grains using our custom depletions file. Note that these depletions differ from those assumed by
+		    # the "grains _ISM" model above. This seems to be at the ~10% level, so we do not worry too much about this.
+		    $cloudyScript .= "metals deplete \"".$depletionFileName."\"\n";
+		    # Set HII region density - this is log₁₀(nₕ/cm¯³).
+		    $cloudyScript .= "hden ".$logHydrogenDensities   ->(($iLogHydrogenDensity   ))."\n";
+		    # Set other HII region properties.
+		    $cloudyScript .= "sphere expanding\n";
+		    $cloudyScript .= "radius 16.0\n";
+		    # Set cosmic rays (needed to avoid problems in Cloudy in neutral gas).
+		    $cloudyScript .= "cosmic rays background\n";
+		    # Set stopping criteria.
+		    $cloudyScript .= "stop temperature 1000 k\n";
+		    $cloudyScript .= "iterate to convergence\n";
+		    ## Output the continuum for refernce.
+		    $cloudyScript .= "punch continuum \"continuum".$jobNumber.".out\"\n";
+		    ## Set line output options.
+		    $cloudyScript .= "print lines faint _off\n";
+		    ## WORKAROUND     
+		    ## Currently disabled as Cloudy has a bug that prevents us from outputting in vacuum wavelengths. See these
+		    ## two error reports:
+		    ##   https://cloudyastrophysics.groups.io/g/Main/topic/101921207#5396
+		    ##   https://cloudyastrophysics.groups.io/g/Main/topic/102424985#5431
+		    #$cloudyScript .= "print line vacuum\n";
+		    $cloudyScript .= "save lines, array \"lines".$jobNumber.".out\"\n";
+		    ## Write the Cloudy script to file.
+		    my $cloudyScriptFileName = "cloudyInput".$jobNumber.".txt";
+		    open(my $cloudyScriptFile,">".$options{'workspace'}.$cloudyScriptFileName);
+		    print $cloudyScriptFile $cloudyScript;
+		    close($cloudyScriptFile);
+		    ## Construct a job to run this parameter file.
+		    my %job = 
+			(
+			 launchFile   => $options{'workspace'}."emissionLines".$jobNumber.".sh" ,
+			 label        =>                       "emissionLines".$jobNumber       ,
+			 logFile      => $options{'workspace'}."emissionLines".$jobNumber.".log",
+			 command      => 
+		                         "cd ".$options{'workspace'}."; ulimit -c 0\n"                 .
+		                         $cloudyPath."/source/cloudy.exe < ".$cloudyScriptFileName."\n".
+		                         "if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"              ,
+			 ppn          => 1,
+			 walltime     => "10:00:00",
+			 onCompletion => 
+			 {
+			     function  => \&linesParse,
+			     arguments => 
+				 [
+				  "lines"        .$jobNumber.".out",
+				  "continuum"    .$jobNumber.".out",
+				  "emissionLines".$jobNumber.".sh" ,
+				  "emissionLines".$jobNumber.".log",
+				  $cloudyScriptFileName            ,
+				  $iAge                            ,
+				  $iMetallicity                    ,
+				  $iLogHydrogenLuminosity          ,
+				  $iLogHydrogenDensity
+				 ]
+			 }
+			);
+		    ## Push job to job list.
+		    push(@jobs,\%job);
+		}
+	    }
 	}
     }
+    # Launch all jobs.
+    &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs);
 }
 
-# Launch all jobs.
-&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs);
-
 # Validate results.
-&validateResults($ages,$logMetallicities,$logHydrogenLuminosities,$ionizingLuminosityPerMass,$lineData);
+&validateResults($ages,$logMetallicities,$logHydrogenLuminosities,$logHydrogenDensities,$ionizingLuminosityPerMass,$lineData);
 
 # Write the line data to file.
 my $tableFile = new PDL::IO::HDF5(">cloudyTable.hdf5");
@@ -495,9 +580,14 @@ $tableFile->dataset('ionizingLuminosityHydrogen'          )->    set(           
 $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(description => "Hydrogen ionizing photon emission rate."                       );
 $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(units       => "photons s¯¹"                                                   );
 $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(unitsInSI   => 1.0                                                             );
+$tableFile->dataset('densityHydrogen'                     )->    set(               10.0**$logHydrogenDensities                                     );
+$tableFile->dataset('densityHydrogen'                     )->attrSet(description => "Hydrogen density."                                             );
+$tableFile->dataset('densityHydrogen'                     )->attrSet(units       => "cm¯³"                                                          );
+$tableFile->dataset('densityHydrogen'                     )->attrSet(unitsInSI   => 1.0e6                                                           );
+
 # Write table of ionizing rates per unit mass of stars formed.
 $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->    set(               $ionizingLuminosityPerMass                                      );
-$tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(description => "Hydrogen ionizing photon emission rate per unit mass of stars.");
+$tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(description => "Hydrogen ionizing photon emission rate per unit mass of stars.");
 $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(units       => "photons s¯¹ M☉¯¹"                                              );
 $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(unitsInSI   => 5.025125628140704e-31                                           );
 
@@ -526,15 +616,17 @@ sub linesParse {
     my $iAge                   = shift();
     my $iMetallicity           = shift();
     my $iLogHydrogenLuminosity = shift();
+    my $iLogHydrogenDensity    = shift();
     # Check for successful completion.
     my $status = $lineData
 	->{'status'}
         ->(
 	   ($iAge                  ),
 	   ($iMetallicity          ),
-	   ($iLogHydrogenLuminosity)
+	   ($iLogHydrogenLuminosity),
+	   ($iLogHydrogenDensity   )
 	);
-    my $label = $iAge." ".$iMetallicity." ".$iLogHydrogenLuminosity;
+    my $label = $iAge." ".$iMetallicity." ".$iLogHydrogenLuminosity." ".$iLogHydrogenDensity;
     system("grep -q DISASTER ".$options{'workspace'}.$logFileName);
     if ( $? == 0 ) {
 	print "FAIL (Cloudy failed disasterously): ".$label." see ".$logFileName."\n";
@@ -579,7 +671,8 @@ sub linesParse {
 		        ->(
 		    	    ($iAge                  ),
 			    ($iMetallicity          ),
-			    ($iLogHydrogenLuminosity)
+			    ($iLogHydrogenLuminosity),
+			    ($iLogHydrogenDensity   )
 			    )
 			.= 10.0**$lineLuminosity;
 		    $lineData
@@ -615,12 +708,11 @@ sub linesParse {
 		);
 	}
     }
-    # Clean up.
-# AJB HACK    unlink($options{'workspace'}.$linesFileName,$options{'workspace'}.$continuumFileName,$options{'workspace'}.$launchFileName,$options{'workspace'}.$logFileName,$options{'workspace'}.$cloudyScriptFileName)
-    unlink($options{'workspace'}.$linesFileName,$options{'workspace'}.$launchFileName,$options{'workspace'}.$logFileName,$options{'workspace'}.$cloudyScriptFileName)
-    	if (
-    	    $status == 0
-    	);
+    # # Clean up.
+    unlink($options{'workspace'}.$linesFileName,$options{'workspace'}.$continuumFileName,$options{'workspace'}.$launchFileName,$options{'workspace'}.$logFileName,$options{'workspace'}.$cloudyScriptFileName)
+      	if (
+      	    $status == 0
+      	);
 }
 
 sub adjustAbundances {
@@ -725,6 +817,7 @@ sub validateResults {
     my $ages                      = shift();
     my $logMetallicities          = shift();
     my $logHydrogenLuminosities   = shift();
+    my $logHydrogenDensities      = shift();
     my $ionizingLuminosityPerMass = shift();
     my $lineData                  = shift();
     
