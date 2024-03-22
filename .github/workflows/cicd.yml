@@ -747,7 +747,7 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-idealizedSubhaloSimulations.pl
+      file: validate-idealizedSubhaloSimulations-wrapper.pl
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
