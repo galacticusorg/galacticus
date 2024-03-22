@@ -73,6 +73,8 @@ foreach my $model ( @models ) {
 	print "FAIL: idealized subhalo validation model '".$model->{'suffix'}."' failed to run\n";
 	exit;
     }    
+    # Pause to ensure file is ready.
+    sleep(10);
     # Extract and validate the likelihoods.
     &Galacticus::Validation::extract
 	(
