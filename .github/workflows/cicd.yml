@@ -1354,6 +1354,7 @@ jobs:
           suffix: 'darkMatterOnlySubhalos'
           path: 'bench'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model benchmarks'
         uses: ./.github/actions/benchmark
         with:
@@ -1362,6 +1363,7 @@ jobs:
           suffix: 'milkyWay'
           path: 'bench'
           threshold: '150%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation'
         uses: ./.github/actions/benchmark
         with:
@@ -1370,6 +1372,7 @@ jobs:
           suffix: 'darkMatterOnlySubhalos'
           path: 'valid'
           threshold: '105%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model benchmarks'
         uses: ./.github/actions/benchmark
         with:
@@ -1378,6 +1381,7 @@ jobs:
           suffix: 'milkyWayModel'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
         uses: ./.github/actions/benchmark
         with:
@@ -1386,6 +1390,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.005_gamma1.5'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)'
         uses: ./.github/actions/benchmark
         with:
@@ -1394,6 +1399,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.01_gamma1.5'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)'
         uses: ./.github/actions/benchmark
         with:
@@ -1402,6 +1408,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.05_gamma0.5'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)'
         uses: ./.github/actions/benchmark
         with:
@@ -1410,6 +1417,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.05_gamma1.0'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)'
         uses: ./.github/actions/benchmark
         with:
@@ -1418,6 +1426,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma0.0'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)'
         uses: ./.github/actions/benchmark
         with:
@@ -1426,6 +1435,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma0.5'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)'
         uses: ./.github/actions/benchmark
         with:
@@ -1434,6 +1444,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma1.0'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)'
         uses: ./.github/actions/benchmark
         with:
@@ -1442,6 +1453,7 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.4_gamma0.0'
           path: 'valid'
           threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validation-PonosV)
         uses: actions/download-artifact@v4
         with:
