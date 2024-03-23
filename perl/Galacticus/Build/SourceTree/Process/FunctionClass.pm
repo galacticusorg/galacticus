@@ -90,6 +90,7 @@ sub Process_FunctionClass {
 	    # Parse classes.
 	    my %dependencies;
 	    my %classes;
+	    my %classCounts;
 	    foreach my $classLocation ( @classLocations ) {
 		my $classTree = &Galacticus::Build::SourceTree::ParseFile($classLocation);
 		&Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
@@ -109,7 +110,18 @@ sub Process_FunctionClass {
 		die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
 		    unless ( defined($class->{'type'}) );
 		$classes{$class->{'type'}} = $class;
+		push(@{$classCounts{$class->{'type'}}},$class->{'file'});
 	    }
+	    # Check for duplicated class names.
+	    my $duplicatesFound = 0;
+	    foreach my $className ( sort(keys(%classCounts)) ) {
+		next
+		    unless ( scalar(@{$classCounts{$className}}) > 1 );
+		$duplicatesFound = 1;
+		print "Duplicate class '".$className."' found in:\n".join("\n",map {"\t".$_} @{$classCounts{$className}})."\n";
+	    }
+	    die("ERROR: Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): duplicate classes found")
+		if ( $duplicatesFound );
 	    # Sort classes. We first impose an alphanumeric sort to ensure that the ordering is always identical for each build,
 	    # and then impose a topological sort to ensure that dependencies are correctly handled.
 	    my @unsortedClasses = sort(keys(%classes));
