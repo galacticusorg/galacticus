@@ -9,6 +9,9 @@ inputs:
   suffix:
     description: 'Suffix for file names'
     required: true
+  artifact:
+    description: 'Name of the artifact to download'
+    required: false
   path:
     description: 'Subpath for results'
     required: true
@@ -26,7 +29,7 @@ runs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.type }}-${{ inputs.suffix }}
+          name: ${{ inputs.artifact == '' && format('{0}-{1}',inputs.type,inputs.suffix) || inputs.artifact }}
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
