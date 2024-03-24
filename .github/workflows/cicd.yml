@@ -1346,6 +1346,34 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+      - name: Download artifacts (benchmark-darkMatterOnlySubhalos)
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-darkMatterOnlySubhalos
+      - name: Download artifacts (benchmark-milkyWay)
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-milkyWay
+      - name: Download artifacts (validation-darkMatterOnlySubhalos)
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-darkMatterOnlySubhalos
+      - name: Download artifacts (validation-milkyWay)
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-milkyWayModel 
+      - name: Download artifacts (validation-PonosV)
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-PonosV
+      - name: Download artifacts (validation-idealizedSubhaloSimulations)
+        uses: actions/download-artifact@v4
+        with:
+          name: validate-idealizedSubhaloSimulations
+      - name: Download artifacts (build-profile)
+        uses: actions/download-artifact@v4
+        with:
+          name: build-profile
       - name: 'Dark matter-only subhalos benchmarks'
         uses: ./.github/actions/benchmark
         with:
@@ -1387,7 +1415,6 @@ jobs:
         with:
           name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
           type: 'validate'
-          artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.005_gamma1.5'
           path: 'valid'
           threshold: '110%'
@@ -1462,14 +1489,6 @@ jobs:
           path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v4
-        with:
-          name: validate-PonosV
-      - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v4
-        with:
-          name: build-profile
       - name: Push validation results
         run: |
           git checkout gh-pages
