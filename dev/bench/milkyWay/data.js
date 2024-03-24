@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711245624758,
+  "lastUpdate": 1711273534670,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -28,6 +28,36 @@ window.BENCHMARK_DATA = {
             "value": 462.973,
             "unit": "seconds",
             "range": 0.533049810048917
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f615861cadb2a4e73c7862356394a39e77f263da",
+          "message": "Merge pull request #591 from galacticusorg/featReportDuplicateClasses\n\nImprove error reporting when duplicate classes are found",
+          "timestamp": "2024-03-24T05:37:04Z",
+          "tree_id": "7dd8521dbe621b14f19ed9f4671572b87f738798",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f615861cadb2a4e73c7862356394a39e77f263da"
+        },
+        "date": 1711273533958,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 498.492,
+            "unit": "seconds",
+            "range": 0.242329527702056
           }
         ]
       }
