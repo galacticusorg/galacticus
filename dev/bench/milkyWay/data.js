@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711273534670,
+  "lastUpdate": 1711310508198,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
@@ -58,6 +58,34 @@ window.BENCHMARK_DATA = {
             "value": 498.492,
             "unit": "seconds",
             "range": 0.242329527702056
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "dd6e1662f0acba14f218907cc55de615ce90eb9d",
+          "message": "fix: Allow explicit specification of artifact name",
+          "timestamp": "2024-03-24T16:02:18Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dd6e1662f0acba14f218907cc55de615ce90eb9d"
+        },
+        "date": 1711310507725,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 463.092,
+            "unit": "seconds",
+            "range": 0.432341994270914
           }
         ]
       }
