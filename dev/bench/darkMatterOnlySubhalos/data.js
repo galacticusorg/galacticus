@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711245620284,
+  "lastUpdate": 1711273529457,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "c7f57b8bb906b62bbb314f01962b1be69cd65ea1",
-          "message": "Merge pull request #430 from galacticusorg/nodeLabels\n\nImplement adding arbitrary labels to nodes",
-          "timestamp": "2023-07-08T05:07:56Z",
-          "tree_id": "6b3a98ab1ece20368604d970019b7965ed4fa606",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c7f57b8bb906b62bbb314f01962b1be69cd65ea1"
-        },
-        "date": 1688803555097,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.6748844868819,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.9524525639199,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23715.206261202,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8786,6 +8747,36 @@ window.BENCHMARK_DATA = {
             "value": 51.794,
             "unit": "seconds",
             "range": 0.0502035855298059
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f615861cadb2a4e73c7862356394a39e77f263da",
+          "message": "Merge pull request #591 from galacticusorg/featReportDuplicateClasses\n\nImprove error reporting when duplicate classes are found",
+          "timestamp": "2024-03-24T05:37:04Z",
+          "tree_id": "7dd8521dbe621b14f19ed9f4671572b87f738798",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f615861cadb2a4e73c7862356394a39e77f263da"
+        },
+        "date": 1711273527718,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.197,
+            "unit": "seconds",
+            "range": 0.055660578508877
           }
         ]
       }
