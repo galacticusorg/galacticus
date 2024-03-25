@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711310503551,
+  "lastUpdate": 1711392801410,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f3c02aa2df60000d3b8f0240deb27124e8d9323a",
-          "message": "fix: Update the `Merge_Models.pl` script to handle multi-dimensional datasets",
-          "timestamp": "2023-07-10T09:15:26-07:00",
-          "tree_id": "f5412ce4a4a2d468bc4e6f6c7d46a581d9b13a24",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f3c02aa2df60000d3b8f0240deb27124e8d9323a"
-        },
-        "date": 1689017074532,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.6748844868819,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.9524525639199,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23715.206261202,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8775,6 +8736,34 @@ window.BENCHMARK_DATA = {
             "value": 51.903,
             "unit": "seconds",
             "range": 0.0944145115961906
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "cacd88d86096523ba75a9a1d303d32ed0c9db97d",
+          "message": "fix: Restore artifact download in action, correct web page path, and unify Milky Way model suffixes for benchmarks and validation",
+          "timestamp": "2024-03-25T14:44:52Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cacd88d86096523ba75a9a1d303d32ed0c9db97d"
+        },
+        "date": 1711392799445,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.651,
+            "unit": "seconds",
+            "range": 0.0835038921250258
           }
         ]
       }
