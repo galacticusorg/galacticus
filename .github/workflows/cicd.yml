@@ -656,7 +656,7 @@ jobs:
       runPath: ./testSuite
       cacheData: 1
       install: time
-      uploadFile: testSuite/outputs/benchmark_milkyWay.json
+      uploadFile: testSuite/outputs/benchmark_milkyWayModel.json
       uploadName: benchmark-milkyWayModel
     secrets: inherit
   # Profiling
