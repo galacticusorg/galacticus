@@ -563,12 +563,6 @@ contains
                 do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
                    call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
                    jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
-
-
-write (0,*) "WTF ",radiusLowerJeansEquation,radiusUpperJeansEquation,jeansIntegral,toleranceRelative,status
-
-
-
                    if (status == errorStatusSuccess) then
                       exit
                    else
