@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tests of mass definition conversions -->
+<!-- 08-February-2023                     -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task                   value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"       />
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentSatellite         value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="70.20000"/>
+    <OmegaMatter     value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon     value=" 0.04550"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <haloMassFunction      value="despali2015"                              />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit   value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e10"/>
+    <massTreeMaximum value="1.0e13"/>
+    <treesPerDecade  value="20"    />
+  </mergerTreeBuildMasses>
+  
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Hot halo gas model options -->
+  <hotHaloMassDistribution value="null"          />
+
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver value="null"          />
+  <darkMatterProfile       value="darkMatterOnly"/>
+
+  <!-- Galaxy mergers -->
+  <mergerRemnantSize value="null"/>
+  
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+  </nodeOperator>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputFileName value="testSuite/outputs/massDefinitionsTimeCurrent.hdf5"/>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"         />
+    <nodePropertyExtractor value="virialProperties"    />
+    <nodePropertyExtractor value="redshift"            />
+    <nodePropertyExtractor value="redshiftLastIsolated"/>
+    <nodePropertyExtractor value="massHalo"             >
+      <useLastIsolatedTime value="false"/>
+      <virialDensityContrastDefinition value="fixed">
+	<densityType                value="mean" />
+	<densityContrastValue       value="200.0"/>
+	<turnAroundOverVirialRadius value="  2.0"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+</parameters>

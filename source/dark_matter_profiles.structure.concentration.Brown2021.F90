@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +19,7 @@
 
   !!{
   An implementation of dark matter halo profile concentrations using the
-  \cite{brown_towards_2021} algorithm.
+  \cite{brown_towards_2022} algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -30,7 +30,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationBrown2021">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{brown_towards_2021}.</description>
+   <description>Dark matter halo concentrations are computed using the algorithm of \cite{brown_towards_2022}.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -42,14 +42,14 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBrown2021
      !!{
      A dark matter halo profile concentration class implementing the algorithm of
-     \cite[][eqn. 20]{brown_towards_2021}. Specifically the concentration is given by
+     \cite[][eqn. 20]{brown_towards_2022}. Specifically the concentration is given by
      \begin{equation}
        c_\mathrm{200c} = 4.39 \nu_\mathrm{c}^{-0.87},
      \end{equation}
      where $\nu_\mathrm{c} = \delta_\mathrm{c}/\sigma_\mathrm{c}(M)$ is the peak height.
      
      This implementation accepts any \refClass{cosmologicalMassVarianceClass} object for use in computing for computing
-     $\sigma_\mathrm{c}(M)$. \emph{However}, \cite{brown_towards_2021} recommend using $\sigma_\mathrm{c}(M)$ computed using a
+     $\sigma_\mathrm{c}(M)$. \emph{However}, \cite{brown_towards_2022} recommend using $\sigma_\mathrm{c}(M)$ computed using a
      generalized top-hat window function (\refClass{powerSpectrumWindowFunctionTopHatGeneralized}) with $\mu_\mathrm{g}=0.2138$.
      !!}
      private
@@ -181,7 +181,7 @@ contains
   double precision function brown2021Concentration(self,node)
     !!{
     Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
-    using the \cite{brown_towards_2021} algorithm.
+    using the \cite{brown_towards_2022} algorithm.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
@@ -202,7 +202,7 @@ contains
   function brown2021DensityContrastDefinition(self)
     !!{
     Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{brown_towards_2021} algorithm.
+    \cite{brown_towards_2022} algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass             ), pointer       :: brown2021DensityContrastDefinition
@@ -215,7 +215,7 @@ contains
   function brown2021DarkMatterProfileDefinition(self)
     !!{
     Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{brown_towards_2021} algorithm.
+    \cite{brown_towards_2022} algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass              ), pointer       :: brown2021DarkMatterProfileDefinition

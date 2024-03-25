@@ -45,6 +45,7 @@ use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
+use Galacticus::Build::SourceTree::Process::Dependencies;
 use Galacticus::Build::SourceTree::Process::ClassDocumentation;
 use Galacticus::Build::SourceTree::Analyze::UseDuplication;
 use Encode;
@@ -346,8 +347,12 @@ sub Build_Children {
 		    $unitRawCode .= $rawLine
 			unless ( $closer );
 		} until ( eof($code) );
-		die("Build_Children: no matching unit closer was found for opener '".$opener."'")
-		    unless ( $closer );
+		unless ( $closer ) {
+		    chomp($opener);
+		    $opener =~ s/^\s*//;
+		    $opener =~ s/\s*$//;
+		    die("Build_Children: no matching unit closer was found for opener '".$opener."'");
+		}
  	    }
 	    last
 		if ( $unitFound );

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlow">
     <description>
       An implementation of a dark matter density profile which includes the accretion flow surrounding the halo. The density
-      profile is modelled as
+      profile is modeled as
       \begin{equation}
       \rho(r) = f_\mathrm{trans}(r) \rho_\mathrm{halo}(r) + \rho_\mathrm{accretion}(r),
       \end{equation}
@@ -196,15 +196,18 @@ contains
     return
   end subroutine accretionFlowDestructor
 
-  subroutine accretionFlowCalculationReset(self,node)
+  subroutine accretionFlowCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
-    type (treeNode                         ), intent(inout) :: node
+    class  (darkMatterProfileDMOAccretionFlow), intent(inout) :: self
+    type   (treeNode                         ), intent(inout) :: node
+    integer(kind_int8                        ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%genericLastUniqueID                         =uniqueID
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
@@ -399,7 +402,7 @@ contains
 
   double precision function accretionFlowRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
@@ -594,8 +597,8 @@ contains
     use :: Error           , only : Error_Report
     use :: Functions_Global, only : accretionFlowsDeepCopy_
     implicit none
-    class(darkMatterProfileDMOAccretionFlow), intent(inout) :: self
-    class(darkMatterProfileDMOClass        ), intent(inout) :: destination
+    class(darkMatterProfileDMOAccretionFlow), intent(inout), target :: self
+    class(darkMatterProfileDMOClass        ), intent(inout)         :: destination
 
     call self%darkMatterProfileDMOClass%deepCopy(destination)
     select type (destination)

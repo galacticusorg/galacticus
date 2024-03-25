@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements regular expressions by wrappring the GNU C Library implementations.
+Contains a module which implements regular expressions by wrapping the GNU C Library implementations.
 !!}
 
 ! Specify an explicit dependence on the regular_expressions.o object file.
@@ -26,7 +26,7 @@ Contains a module which implements regular expressions by wrappring the GNU C Li
 
 module Regular_Expressions
   !!{
-  Implements regular expressions by wrappring the GNU C Library implementations.
+  Implements regular expressions by wrapping the GNU C Library implementations.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_char, c_int, c_ptr, c_null_ptr
   implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@
   !![
   <chemicalState name="chemicalStateAtomicCIECloudy">
    <description>
-    A checmical state class that computes the chemical state using the {\normalfont \scshape Cloudy} code and under the
+    A chemical state class that computes the chemical state using the {\normalfont \scshape Cloudy} code and under the
     assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
     metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
     non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape

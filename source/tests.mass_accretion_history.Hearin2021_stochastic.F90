@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,7 +52,7 @@ program Test_Hearin2021_Stochastic_MAH
   double precision                                                        , dimension(2,2,3  ), parameter   :: means  =reshape(                                    &
        &                                                                                                                       [                                   &
        !                                                                                                                       Each row is the mean of the stated parameter for:
-       !                                                                                                                         early foming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
+       !                                                                                                                         early forming/low mass : early forming/high mass : late forming/low mass : late forming/high mass
        !                                                                                                                       u_early
        &                                                                                                                       +0.70d0, +3.50d0, +0.50d0, +2.81d0, &
        !                                                                                                                       u_late

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ module Geometry_Lightcones
     <argument>double precision          , intent(in   ), optional :: radiusBuffer</argument>
    </method>
    <method name="replicationCount" >
-    <description>Returns the number of times the given nodes appears in the lightone .</description>
+    <description>Returns the number of times the given nodes appears in the lightcone .</description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout) :: node</argument>

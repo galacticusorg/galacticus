@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile
      !!{
-     A property extractor class for the density at a set fo radii.
+     A property extractor class for the density at a set of radii.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
@@ -162,7 +162,7 @@ contains
 
   function densityProfileSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily densityProfile} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily densityProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                           )                :: densityProfileSize
@@ -293,18 +293,24 @@ contains
     return
   end subroutine densityProfileDescriptions
 
-  subroutine densityProfileColumnDescriptions(self,descriptions,time)
+  subroutine densityProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
-    double precision                                     , intent(in   ), optional                   :: time
-    type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorDensityProfile), intent(inout)                            :: self
+    double precision                                     , intent(in   ), optional                  :: time
+    type            (varying_string                     ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                     , intent(inout), dimension(:), allocatable :: values 
+    type            (varying_string                     ), intent(  out)                            :: valuesDescription
+    double precision                                     , intent(  out)                            :: valuesUnitsInSI
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
-    descriptions=self%radii%name
+    allocate(values      (              0))
+    valuesDescription=var_str('')
+    valuesUnitsInSI  =0.0d0
+    descriptions     =self%radii%name
     return
   end subroutine densityProfileColumnDescriptions
 

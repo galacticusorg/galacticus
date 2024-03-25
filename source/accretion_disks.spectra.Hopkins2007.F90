@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -123,7 +123,7 @@ contains
     type            (hdf5Object                     )                              :: file                              , dataset
     integer                                                                        :: fileFormatCurrentFile             , sedUnit             , &
          &                                                                            i                                 , j                   , &
-         &                                                                            ioStatus                          , wavelengthCount
+         &                                                                            status                            , wavelengthCount
     character       (len= 16                        )                              :: label
     character       (len=256                        )                              :: line
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
@@ -155,8 +155,8 @@ contains
        ! Download the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
           call Directory_Make(inputPath(pathTypeDataDynamic)//"/AGN_Spectrum")
-          call download("http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c",char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c",ioStatus)
-          if (ioStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+          call download("http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c",char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c",status=status)
+          if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Error_Report('failed to download agn_spectrum.c'//{introspection:location})
        end if
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
@@ -181,8 +181,8 @@ contains
           open(newUnit=sedUnit,file=char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
           j=wavelengthCount+1
           do
-             read(sedUnit,'(a)',iostat=ioStatus) line
-             if (ioStatus             == iostat_end) exit
+             read(sedUnit,'(a)',iostat=status) line
+             if (status               == iostat_end) exit
              if (line(1:1)            == ";"       ) cycle
              read (line,*) frequencyLogarithmic,spectrumLogarithmic
              if (frequencyLogarithmic <  0.0d0     ) cycle

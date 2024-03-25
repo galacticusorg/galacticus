@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ module Hot_Halo_Temperature_Profiles
    <name>hotHaloTemperatureProfile</name>
    <descriptiveName>Hot halo temperature profiles</descriptiveName>
    <description>
-    Class implementing hot halo temperarture profiles.
+    Class implementing hot halo temperature profiles.
    </description>
    <default>virial</default>
    <method name="temperature" >

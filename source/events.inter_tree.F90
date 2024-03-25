@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,7 @@ module Node_Events_Inter_Tree
 
   type :: interTreeTransfer
      !!{
-     Type used for transfering nodes between trees.
+     Type used for transferring nodes between trees.
      !!}
      integer(c_size_t         )          :: splitForestUniqueID
      integer(kind_int8        )          :: pairedNodeID
@@ -187,23 +187,6 @@ contains
     use :: ISO_Varying_String                 , only : assignment(=)             , operator(//)                 , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable , enumerationDeadlockStatusType
     use :: String_Handling                    , only : operator(//)
-    !![
-    <include directive="interTreeSatelliteAttach" type="moduleUse">
-    !!]
-    include 'events.inter_tree.satellite_attach.modules.inc'
-    !![
-    </include>
-    <include directive="interTreeSatelliteInsert" type="moduleUse">
-    !!]
-    include 'events.inter_tree.satellite_insert.modules.inc'
-    !![
-    </include>
-    <include directive="interTreePostProcess" type="moduleUse">
-    !!]
-    include 'events.inter_tree.post_process.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (nodeEvent                    ), intent(in   )          :: event
     type            (treeNode                     ), intent(inout), pointer :: node
@@ -238,7 +221,7 @@ contains
        timeMatchRequired  =.true.
     type is (nodeEventBranchJumpInterTree      )
        write (label,'(f12.6)') event%time
-       message='Searching for node to pull {branch jump} to descendent ['
+       message='Searching for node to pull {branch jump} to descendeat ['
        message=message//node%index()//'] in host ['//node%parent%index()//'] {event ID: '//event%ID//'} at time '//trim(label)//' Gyr'
        splitForestUniqueID=event%splitForestUniqueID
        pairedNodeID       =event%pairedNodeID
@@ -388,28 +371,34 @@ contains
                       pullNode%parent%firstSatellite => pullNode
                       ! Allow any necessary manipulation of the nodes.
                       !![
-                      <include directive="interTreeSatelliteInsert" type="functionCall" functionType="void">
-                       <functionArgs>pullNode,node</functionArgs>
-                      !!]
-                      include 'events.inter_tree.satellite_insert.inc'
-                      !![
-                      </include>
+		      <eventHook name="interTreeSatelliteInsert">
+			<import>
+			  <module name="Galacticus_Nodes" symbols="treeNode"/>
+			</import>
+			<interface>
+			  type(treeNode), intent(inout), pointer :: pullNode, node
+			</interface>
+			<callWith>pullNode,node</callWith>
+		      </eventHook>
                       !!]
                    else
                       ! Attach pulled node as the primary progenitor of the target node as it is the primary (and only progenitor).
                       pullNode%parent     => node
                       pullNode%sibling    => null()
                       node%firstChild => pullNode
-                      ! Reset the ID of the descendent to that of the progenitor to mimic what would
+                      ! Reset the ID of the descendant to that of the progenitor to mimic what would
                       ! have occurred if trees were processed unsplit. We also reset the basic mass and time last isolated for the same
                       ! reason.
                       !![
-                      <include directive="interTreeSatelliteAttach" type="functionCall" functionType="void">
-                       <functionArgs>pullNode</functionArgs>
-                      !!]
-                      include 'events.inter_tree.satellite_attach.inc'
-                      !![
-                      </include>
+		      <eventHook name="interTreeSatelliteAttach">
+			<import>
+			  <module name="Galacticus_Nodes" symbols="treeNode"/>
+			</import>
+			<interface>
+			  type(treeNode), intent(inout), pointer :: pullNode
+			</interface>
+			<callWith>pullNode</callWith>
+		      </eventHook>
                       !!]
                       pullBasic   => pullNode%basic()
                       attachBasic => node%basic()
@@ -500,12 +489,15 @@ contains
              end if
              ! Allow any postprocessing of the inter-tree transfer event that may be necessary.
              !![
-             <include directive="interTreePostProcess" type="functionCall" functionType="void">
-              <functionArgs>pullNode</functionArgs>
-             !!]
-             include 'events.inter_tree.postprocess.inc'
-             !![
-             </include>
+	     <eventHook name="interTreePostProcess">
+	       <import>
+		 <module name="Galacticus_Nodes" symbols="treeNode"/>
+	       </import>
+	       <interface>
+		 type(treeNode), intent(inout), pointer :: pullNode
+	       </interface>
+	       <callWith>pullNode</callWith>
+	     </eventHook>
              !!]
              ! Record that the event was performed, and set the deadlock status to not deadlocked since we changed the tree.
              deadlockStatus     =deadlockStatusIsNotDeadlocked

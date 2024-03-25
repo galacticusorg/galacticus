@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -401,7 +401,7 @@ module Hot_Halo_Mass_Distributions
   !!]
   double precision function hotHaloMassDistributionDensitySphericalAverage(node,radius,componentType,massType,weightBy,weightIndex)
     !!{
-    Computes the sphreically-averaged density at a given radius for a hot halo profile.
+    Computes the spherically-averaged density at a given radius for a hot halo profile.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeHotHalo, massTypeAll                 , massTypeBaryonic       , &
          &                                    massTypeGaseous        , weightByMass        , enumerationComponentTypeType, enumerationMassTypeType, &

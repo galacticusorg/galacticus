@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,8 @@
      Implementation of an output times class which generates a set of output times spaced uniformly in time.
      !!}
      private
-     double precision           :: timeMinimum, timeMaximum
+     double precision           :: timeMinimum    , timeMaximum    , &
+          &                        redshiftMinimum, redshiftMaximum
      integer         (c_size_t) :: countTimes
   end type outputTimesUniformSpacingInTime
 
@@ -46,30 +47,66 @@ contains
     Constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error           , only : Error_Report
     implicit none
     type            (outputTimesUniformSpacingInTime)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
-    double precision                                                 :: timeMinimum        , timeMaximum
+    double precision                                                 :: timeMinimum        , timeMaximum    , &
+         &                                                              redshiftMinimum    , redshiftMaximum
     integer         (c_size_t                       )                :: countTimes
-
+    
     !![
-    <inputParameter>
-      <name>timeMinimum</name>
-      <description>The minimum time at which to output.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>timeMaximum</name>
-      <description>The maximum time at which to output.</description>
-      <source>parameters</source>
-    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
+    if (parameters%isPresent('timeMinimum')) then
+       if (parameters%isPresent('redshiftMaximum')) call Error_Report("can not specify both 'timeMinimum' and 'redshiftMaximum'"//{introspection:location})
+       !![
+       <inputParameter>
+	 <name>timeMinimum</name>
+	 <description>The minimum time at which to output.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    else if (parameters%isPresent('redshiftMaximum')) then
+       !![
+       <inputParameter>
+	 <name>redshiftMaximum</name>
+	 <description>The maximum redshift at which to output.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+       timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
+    else
+       call Error_Report("must specify either 'timeMinimum' or 'redshiftMaximum'"//{introspection:location})
+    end if
+    if (parameters%isPresent('timeMaximum')) then
+       if (parameters%isPresent('redshiftMinimum')) call Error_Report("can not specify both 'timeMaximum' and 'redshiftMinimum'"//{introspection:location})
+       !![
+       <inputParameter>
+	 <name>timeMaximum</name>
+	 <description>The maximum time at which to output.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    else if (parameters%isPresent('redshiftMinimum')) then
+       !![
+       <inputParameter>
+	 <name>redshiftMinimum</name>
+	 <description>The minimum redshift at which to output.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+       timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
+    else
+       call Error_Report("must specify either 'timeMinimum' or 'redshiftMaximum'"//{introspection:location})
+    end if
+    !![
     <inputParameter>
       <name>countTimes</name>
       <description>The number of times at which to output.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
     self=outputTimesUniformSpacingInTime(timeMinimum,timeMaximum,countTimes,cosmologyFunctions_)
     !![
@@ -86,7 +123,7 @@ contains
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (outputTimesUniformSpacingInTime)                        :: self
-    double precision                                 , intent(in   )         :: timeMinimum, timeMaximum
+    double precision                                 , intent(in   )         :: timeMinimum        , timeMaximum
     integer         (c_size_t                       ), intent(in   )         :: countTimes
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     integer         (c_size_t                       )                        :: i
@@ -100,5 +137,7 @@ contains
     do i=1,countTimes
        self%redshifts(i)=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%times(i)))
     end do
+    self%redshiftMinimum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%timeMaximum))
+    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%timeMinimum))
     return
   end function uniformSpacingInTimeConstructorInternal

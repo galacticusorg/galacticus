@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -99,7 +99,7 @@ contains
       <description>
 	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if {\normalfont \ttfamily
 	[intervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily
-	[intervalType]}$=${\normalfont \ttfamily dynmical}.
+	[intervalType]}$=${\normalfont \ttfamily dynamical}.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -176,7 +176,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(nodeOperatorNodeMajorMergerRecentCount), intent(inout)          :: self
+    class(nodeOperatorNodeMajorMergerRecentCount), intent(inout), target  :: self
     type (treeNode                              ), intent(inout), target  :: node
     class(nodeComponentBasic                    )               , pointer :: basic
 
@@ -219,8 +219,8 @@ contains
     class           (nodeOperatorNodeMajorMergerRecentCount), intent(inout)              :: self
     type            (treeNode                              ), intent(inout)              :: node
     class           (nodeComponentBasic                    ), pointer                    :: basic                , basicParent  , &
-         &                                                                                  basicDescendentParent
-    type            (treeNode                              ), pointer                    :: nodeDescendent
+         &                                                                                  basicDescendantParent
+    type            (treeNode                              ), pointer                    :: nodeDescendant
     integer                                                 , dimension(:) , allocatable :: countMajorMergers
     integer         (c_size_t                              )                             :: i
     double precision                                                                     :: timeBase             , intervalRecent
@@ -249,14 +249,14 @@ contains
              timeBase=basicParent%timeLastIsolated()
           else
              timeBase=self%outputTimes_%time(i)
-             nodeDescendent => node%parent
-             do while (associated(nodeDescendent))
-                if (nodeDescendent%isPrimaryProgenitor()) then
-                   nodeDescendent => nodeDescendent%parent
+             nodeDescendant => node%parent
+             do while (associated(nodeDescendant))
+                if (nodeDescendant%isPrimaryProgenitor()) then
+                   nodeDescendant => nodeDescendant%parent
                 else
-                   if (associated(nodeDescendent%parent)) then
-                      basicDescendentParent => nodeDescendent%parent%basic()
-                      timeBase=min(timeBase,basicDescendentParent%time())
+                   if (associated(nodeDescendant%parent)) then
+                      basicDescendantParent => nodeDescendant%parent%basic()
+                      timeBase=min(timeBase,basicDescendantParent%time())
                    end if
                    exit
                 end if

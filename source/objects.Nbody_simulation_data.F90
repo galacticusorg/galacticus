@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -141,7 +141,7 @@ contains
     select case (propertyName)
     case('particleID'               )
        nBodyDataPropertyType=propertyTypeInteger
-    case('descendentID'             )
+    case('descendantID'             )
        nBodyDataPropertyType=propertyTypeInteger
     case('progenitorCount'          )
        nBodyDataPropertyType=propertyTypeInteger
@@ -149,7 +149,7 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('isolatedHostID'           )
        nBodyDataPropertyType=propertyTypeInteger
-    case('descendentHostID'         )
+    case('descendantHostID'         )
        nBodyDataPropertyType=propertyTypeInteger
     case('isPhantom'                )
        nBodyDataPropertyType=propertyTypeInteger
@@ -159,7 +159,7 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('expansionFactor'          )
        nBodyDataPropertyType=propertyTypeReal
-    case('descendentExpansionFactor')
+    case('descendantExpansionFactor')
        nBodyDataPropertyType=propertyTypeReal
     case('massVirial'               )
        nBodyDataPropertyType=propertyTypeReal

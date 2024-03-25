@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,7 +121,7 @@ contains
        ! No scattering.
        self%rateScatteringNormalization=+0.0d0
     end select
-    ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaulate the
+    ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaluate the
     ! evaporation factor.
     self%xMaximum=-1.0d0
     return

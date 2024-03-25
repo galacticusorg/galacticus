@@ -57,8 +57,6 @@ sub Process_MetaPropertyDatabase {
 			last;
 		    }
 		}
-		die("Galacticus::Build::SourceTree::Process::MetaPropertyDatabase::Process_MetaPropertyDatabase(): unable to determine functionClass implementation")
-		    unless ( defined($functionClassName) && defined($implementationName) );
 		foreach my $addMetaProperty ( @addMetaProperties ) {
 		    $addMetaProperty->{'functionClass'     } = $functionClassName;
 		    $addMetaProperty->{'implementationName'} = $implementationName;
@@ -84,8 +82,8 @@ CODE
 	    foreach my $creator ( @creators ) {
 		unless ( $creator->{'name'} =~ m/^'/ ) {
 		    $noCreator .= $join."if (component_ == '".$creator->{'component'}."' .and. name_ == '".$creator->{'name'}."' .and. type_ == '".$creator->{'type'}."' .and. rank_ == ".$creator->{'rank'}.") then\n";
-		    $noCreator .= "          className='".$creator->{'functionClass'     }."'\n";
-		    $noCreator .= " implementationName='".$creator->{'implementationName'}."'\n";
+		    $noCreator .= "          className='".(defined($creator->{'functionClass'     }) ? $creator->{'functionClass'     } : "unknown")."'\n";
+		    $noCreator .= " implementationName='".(defined($creator->{'implementationName'}) ? $creator->{'implementationName'} : "unknown")."'\n";
 		    $join       = "else ";
 		}
 	    }

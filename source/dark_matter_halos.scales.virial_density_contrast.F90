@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -192,19 +192,22 @@ contains
     return
   end subroutine virialDensityContrastDefinitionDestructor
 
-  subroutine virialDensityContrastDefinitionCalculationReset(self,node)
+  subroutine virialDensityContrastDefinitionCalculationReset(self,node,uniqueID)
     !!{
     Reset the halo scales calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type (treeNode                                          ), intent(inout) :: node
+    class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type   (treeNode                                          ), intent(inout) :: node
+    integer(kind_int8                                         ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%radiusVirialComputed      =.false.
     self%temperatureVirialComputed =.false.
     self%velocityVirialComputed    =.false.
     self%timescaleDynamicalComputed=.false.
-    self%lastUniqueID              =node%uniqueID()
+    self%lastUniqueID              =uniqueID
     return
   end subroutine virialDensityContrastDefinitionCalculationReset
 
@@ -224,7 +227,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if halo dynamical timescale is already computed. Compute and store if not.
     if (.not.self%timescaleDynamicalComputed) then
        self%timescaleDynamicalComputed= .true.
@@ -254,7 +257,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if virial velocity is already computed. Compute and store if not.
     if (.not.self%velocityVirialComputed) then
        ! Get the basic component.
@@ -317,7 +320,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if virial temperature is already computed. Compute and store if not.
     if (.not.self%temperatureVirialComputed) then
        self%temperatureVirialComputed=.true.
@@ -347,7 +350,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if virial radius is already computed. Compute and store if not.
     if (.not.self%radiusVirialComputed) then
        ! Get the basic component.
@@ -553,8 +556,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    class(darkMatterHaloScaleClass                          ), intent(inout) :: destination
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout), target :: self
+    class(darkMatterHaloScaleClass                          ), intent(inout)         :: destination
 
     call self%darkMatterHaloScaleClass%deepCopy(destination)
     select type (destination)

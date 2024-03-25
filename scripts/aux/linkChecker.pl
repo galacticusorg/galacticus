@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use System::Redirect;
+use Regexp::Common;
 
 # Check for broken links in Galacticus documentation.
 # Andrew Benson (21-September-2020)
@@ -100,15 +101,17 @@ sub scanWiki {
     my $fileName   = shift();
     my $path       = shift();
     my $lineNumber = 0;
+    my $bracket    = $RE{balanced}{-parens=>'[]'};
+    my $parens     = $RE{balanced}{-parens=>'()'};
     open(my $file,$path."/".$fileName);
     while ( my $line = <$file> ) {
 	++$lineNumber;
-	while ( $line =~ m/\[[^\]]+\]\(([^\)]+)\)/ ) {
-	    my $url = $1;
+	while ( $line =~ m/$bracket$parens/ ) {
+	    (my $url = $2) =~ s/^\((.*)\)$/$1/;
 	    $line =~ s/\[[^\]]+\]\(([^\)]+)\)//;
 	    unless ( &checkLink($url) ) {
-		print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber." (see preceededing log)\n";
-		push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
+	    	print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber." (see preceededing log)\n";
+	    	push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
 	    }
 	}
     }
@@ -134,21 +137,24 @@ sub checkLink {
 	# An external link. Include a short sleep here to rate limit requests.
 	## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
 	## --range 0-0 - this causes no bytes to actually be downloaded - this is disabled on some sites as it seems to break them.
-	my $options = "--silent --insecure --location --output /dev/null --fail --cipher 'DEFAULT:!DH'";
+	my $options = "--max-time 60 --insecure --location --output /dev/null --fail-with-body --cipher 'DEFAULT:!DH'";
 	$options .= " --range 0-0"
 	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	$options .= " --user-agent \"Mozilla\""
 	    if ( $url =~ m/sharepoint\.com/ );
+	# docker.com issues a 403 unless we make cURL pretend to be wget...
+	$options .= " --user-agent \"Wget/1.21.2\""
+	    if ( $url =~ m/docker\.com/ );
 	$options .= " --compressed"
 	    if ( $url =~ m/docs\.github\.com/ );
 	$options .= " --http1.1"
 	    if ( $url =~ m/camb\.info/ );
+	$options .= " --retry 5"
+	    if ( $url =~ m/ui\.adsabs\.harvard\.edu/ );
 	sleep(1);
-	system("curl ".$options." \"".$url."\"");
+	&System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	$status = $? == 0 ? 1 : 0;
 	unless ( $status ) {
-	    $options =~ s/\-\-silent//;
-	    &System::Redirect::tofile("curl ".$options." \"".$url."\"","curl.log");
 	    # Check for known problems.
 	    open(my $logFile,"curl.log");
 	    while ( my $line = <$logFile> ) {
@@ -159,13 +165,29 @@ sub checkLink {
 			last;
 		    }
 		}
+		if ( $url =~ m/^https?:\/\/adsabs\.harvard\.edu\/abs\// || $url =~ m/^https?:\/\/ui\.adsabs\.harvard\.edu\/abs\// ) {
+		    # ADS server has issues.
+		    if ( $line =~ m/^curl: \(28\) Operation timed out after/ ) {
+			$status = 1;
+			last;
+		    }
+		    if ( $line =~ m/^curl: \(22\) The requested URL returned error: (\d+)/ ) {
+			my $httpErrorCode = $1;
+			if ( $httpErrorCode == 500 || $httpErrorCode == 502 || $httpErrorCode == 504 ) {
+			    $status = 1;
+			    last;
+			}
+		    }
+		}
 	    }
 	    close($logFile);
 	}
 	unless ( $status ) {
-	    $options =~ s/\-\-silent//;
-	    $options =~ s/\-\-fail//;
-	    system("sleep 1; curl ".$options." \"".$url."\"");
+	    open(my $logFile,"curl.log");
+	    while ( my $line = <$logFile> ) {
+		print $line;
+	    }
+	    close($logFile);
 	}
     }
     return $status;

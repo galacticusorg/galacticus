@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,7 @@
     
     In the 3-D case clouds are defined by a radius, $r_\mathrm{c}$, a volume filling factor, $f_\mathrm{v}$, and a density contrast,
     $\Delta_\mathrm{c}$. For this case of spherical shells the same quantities are used, except that the radius is referred to as
-    the ``half-width'' of the shell, but is still labelled $r_\mathrm{c}$.
+    the ``half-width'' of the shell, but is still labeled $r_\mathrm{c}$.
     
     In the 3-D case the number density of clouds is
     \begin{equation}

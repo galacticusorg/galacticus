@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -117,7 +117,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (nodeOperatorSatelliteDestructionMassThreshold), intent(inout), target  :: self
-    type            (treeNode                                     ), intent(inout)          :: node
+    type            (treeNode                                     ), intent(inout), target  :: node
     logical                                                        , intent(inout)          :: interrupt
     procedure       (interruptTask                                ), intent(inout), pointer :: functionInterrupt
     integer                                                        , intent(in   )          :: propertyType
@@ -142,24 +142,36 @@ contains
     return
   end subroutine satelliteDestructionMassThresholdDifferentialEvolution
   
-  subroutine destructionTrigger(node)
+  subroutine destructionTrigger(node,timeEnd)
     !!{
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Display         , only : displayBlue           , displayYellow, displayGreen, displayReset
+    use :: Error           , only : Error_Report
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    class(nodeComponentSatellite)               , pointer :: satellite
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentSatellite)               , pointer  :: satellite
+    !$GLC attributes unused :: timeEnd
+    
     satellite => node%satellite()
-    if (satellite%boundMass() < self_%massDestroy(node)) &
-         & call satellite%destructionTimeSet(0.0d0)
+    if (satellite%boundMass() < self_%massDestroy(node)) then
+       if (satellite%destructionTime() >= 0.0d0)                                                                                                                                                                               &
+            call Error_Report(                                                                                                                                                                                                  &
+            &                 'satellite was previously triggered for destruction - but still exists'                                                                                                              //char(10)// &
+            &                 displayGreen()//'  HELP:'//displayReset()//' destruction requires the following timestepper to be included:'                                                                         //char(10)// &
+            &                 '    <'//displayBlue()//'mergerTreeEvolveTimestep'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"satelliteDestruction"'//displayReset()//'>'          // &
+            &                 {introspection:location}                                                                                                                                                                          &
+            &                )
+       call satellite%destructionTimeSet(0.0d0)
+    end if
     return
   end subroutine destructionTrigger
 
   double precision function satelliteDestructionMassThresholdMassDestroy(self,node)
     !!{
-    Compute the detruction mass for a node.
+    Compute the destruction mass for a node.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none

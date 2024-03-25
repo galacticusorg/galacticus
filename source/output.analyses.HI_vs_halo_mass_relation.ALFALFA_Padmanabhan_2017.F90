@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -338,7 +338,7 @@ contains
     !!]
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
     ! virial density contrast definition. However (Padmanabhan, private communication), they assume it gives the density contrast
@@ -346,11 +346,11 @@ contains
     ! lower by a factor Ωₘ^⅙ than they should be. We explicitly account for this factor when computing virial velocity below.
     allocate(virialDensityContrastData                             )
     !![
-    <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
+    <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (.false.,cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
     !!]
     allocate(darkMatterHaloScaleData)
     !![
-    <referenceConstruct object="darkMatterHaloScaleData"                                constructor="darkMatterHaloScaleVirialDensityContrastDefinition    (cosmologyParametersData      ,cosmologyFunctionsData    ,virialDensityContrastData)"/>
+    <referenceConstruct object="darkMatterHaloScaleData"                                constructor="darkMatterHaloScaleVirialDensityContrastDefinition    (       cosmologyParametersData      ,cosmologyFunctionsData    ,virialDensityContrastData)"/>
     !!]
     ! Generate the target dataset.
     allocate(massHILogarithmicTarget          (massHaloCount              ))

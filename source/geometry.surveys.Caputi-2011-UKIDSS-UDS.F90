@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -269,7 +269,7 @@ contains
     !!}
     use :: File_Utilities , only : File_Exists
     use :: Error          , only : Error_Report
-    use :: Input_Paths    , only : inputPath        , pathTypeExec
+    use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5Object
     use :: String_Handling, only : operator(//)
@@ -279,15 +279,15 @@ contains
     type (hdf5Object                       )                :: surveyGeometryRandomsFile
 
     ! Generate the randoms file if necessary.
-    if (.not.File_Exists(inputPath(pathTypeExec)//&
-         &"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(inputPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
-       if (.not.File_Exists(inputPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
+    if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&
+         & "surveys/UKIDSS_UDS/data/surveyGeometryRandoms.hdf5")) then
+       call System_Command_Do(inputPath(pathTypeDataDynamic)//"surveyGeometry/UKIDDS_UDS/surveyGeometryRandoms.pl")
+       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    call surveyGeometryRandomsFile%openFile(char(inputPath(pathTypeExec)//&
-         &'constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5')&
+    call surveyGeometryRandomsFile%openFile(char(inputPath(pathTypeDataDynamic)//&
+         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )

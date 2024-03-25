@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,7 +66,7 @@ contains
     !![
     <inputParameter>
       <name>logFileRoot</name>
-      <description>The root file name of the stae files from which to resume.</description>
+      <description>The root file name of the state files from which to resume.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -111,7 +111,7 @@ contains
     class           (posteriorSampleStateInitializeResume), intent(inout)               :: self
     class           (posteriorSampleStateClass           ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass      ), intent(inout)               :: modelLikelihood
-    type            (modelParameterList                  ), intent(in   ), dimension(:) :: modelParameters_
+    type            (modelParameterList                  ), intent(inout), dimension(:) :: modelParameters_
     double precision                                      , intent(  out)               :: timeEvaluatePrevious, logLikelihood    , &
          &                                                                                 logPosterior
     double precision                                      , allocatable  , dimension(:) :: stateVector         , stateVectorMapped

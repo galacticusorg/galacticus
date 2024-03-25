@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,7 @@
    <stateStorable>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </stateStorable>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSubhaloRadialDistribution
@@ -321,8 +322,8 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"     constructor="nodePropertyExtractorMassBound    (                                                                                                                                           )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_" constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                           )"/>
-    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
-    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
+    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_             )"/>
     <referenceConstruct object="nodePropertyExtractorHost_"          constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                         )"/>
     <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
     <referenceConstruct object="nodePropertyExtractor_"              constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorHost_    )"/>

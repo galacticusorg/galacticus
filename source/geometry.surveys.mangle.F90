@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -143,13 +143,11 @@ contains
     end if
     ! Read solid angles for the fields.
     if (.not.self%solidAnglesInitialized) then
-       !$omp critical(mangleSolidAnglesInitialize)
        if (.not.self%solidAnglesInitialized) then
           call self%mangleFiles(mangleFiles)
           self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles.hdf5"))
           self%solidAnglesInitialized=.true.
        end if
-       !$omp end critical(mangleSolidAnglesInitialize)
     end if
     mangleSolidAngle=self%solidAngles(fieldActual)
     return
@@ -199,13 +197,11 @@ contains
     end if
     ! Read angular power spectra.
     if (.not.self%angularPowerInitialized) then
-       !$omp critical(mangleAngularPowerInitialize)
        if (.not.self%angularPowerInitialized) then
           call self%mangleFiles(mangleFiles)
           self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower.hdf5"))
           self%angularPowerInitialized=.true.
        end if
-       !$omp end critical(mangleAngularPowerInitialize)
     end if
     ! Return the appropriate angular power.
     if (l > self%angularPowerMaximumDegree()) then
@@ -246,14 +242,12 @@ contains
 
     ! Initialize the mangle window if necessary.
     if (.not.self%windowInitialized) then
-       !$omp critical(manglePointIncludedInitialize)
        if (.not.self%windowInitialized) then
           if (self%fieldCount() > 1) call Error_Report('only single field surveys are supported'//{introspection:location})
           call self%mangleFiles(mangleFiles)
           call self%mangleWindow%read(char(mangleFiles(1)))
           self%windowInitialized=.true.
        end if
-       !$omp end critical(manglePointIncludedInitialize)
     end if
     ! Get the distance to the point.
     pointDistance=Vector_Magnitude(point)

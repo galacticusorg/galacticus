@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,7 +54,7 @@ contains
 
   subroutine keplerOrbitInitialize(self,properties,prefix)
     !!{
-    Initializor for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
+    Initializer for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : trim

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,7 @@ module Stellar_Astrophysics
    <name>stellarAstrophysics</name>
    <descriptiveName>Stellar Astrophysics</descriptiveName>
    <description>
-    Class providing models of stellar astrophysics including recycled mass, metal yield, and lifetime as a function of intial
+    Class providing models of stellar astrophysics including recycled mass, metal yield, and lifetime as a function of initial
     properties.
    </description>
    <default>file</default>

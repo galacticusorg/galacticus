@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,7 @@
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareStride">
-   <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strided over in steps of a specified size.</description>
+   <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strode over in steps of a specified size.</description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareStride

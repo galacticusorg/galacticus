@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,18 +63,26 @@ contains
     integer                                                 :: item                  , element
 
     !![
-    <inputParameter>
-      <name>item</name>
-      <description>The item to scalarize from the array.</description>
-      <source>parameters</source>
-    </inputParameter>
+    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     <inputParameter>
       <name>element</name>
       <description>The element to scalarize from the array.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
+    select type (nodePropertyExtractor_)
+    class is (nodePropertyExtractorArray)
+       !![
+       <inputParameter>
+	 <name>item</name>
+	 <description>The item to scalarize from the array.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    class default
+       ! "item" is not relevant for non-array extractors.
+       item=-1
+    end select
     self=nodePropertyExtractorScalarizer(item,element,nodePropertyExtractor_)
     !![
     <inputParametersValidate source="parameters"/>
@@ -97,6 +105,8 @@ contains
 
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
+       ! This is as expected.
+    class is (nodePropertyExtractorTuple)
        ! This is as expected.
     class default
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
@@ -124,11 +134,12 @@ contains
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (nodePropertyExtractorScalarizer), intent(inout)                 :: self
+    class           (nodePropertyExtractorScalarizer), intent(inout), target         :: self
     type            (treeNode                       ), intent(inout), target         :: node
     type            (multiCounter                   ), intent(inout), optional       :: instance
     class           (nodeComponentBasic             ), pointer                       :: basic
     double precision                                 , allocatable  , dimension(:,:) :: array
+    double precision                                 , allocatable  , dimension(  :) :: tuple
 
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
@@ -137,7 +148,12 @@ contains
        if (self%element > nodePropertyExtractor__%elementCount(basic%time())) call Error_Report('element exceeds count of array'//{introspection:location})
        array            =nodePropertyExtractor__%extract(node     ,basic%time   (),instance)
        scalarizerExtract=array                          (self%item,self %element           )
-    class default
+    class is (nodePropertyExtractorTuple)
+       basic => node%basic()
+       if (self%element > nodePropertyExtractor__%elementCount(basic%time())) call Error_Report('element exceeds count of tuple'//{introspection:location})
+       tuple            =nodePropertyExtractor__%extract(node     ,basic%time   (),instance)
+       scalarizerExtract=tuple                          (          self %element           )
+     class default
        scalarizerExtract=0.0d0
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
     end select
@@ -156,7 +172,10 @@ contains
     
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
-       call nodePropertyExtractor__%names(names)
+       call nodePropertyExtractor__%names(             names)
+       scalarizerName=names(self%element)
+    class is (nodePropertyExtractorTuple)
+       call nodePropertyExtractor__%names(-huge(0.0d0),names)
        scalarizerName=names(self%element)
     class default
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
@@ -173,10 +192,13 @@ contains
     type (varying_string                 )                              :: scalarizerDescription
     class(nodePropertyExtractorScalarizer), intent(inout)               :: self
     type (varying_string                 ), allocatable  , dimension(:) :: descriptions
-    
+
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
-       call nodePropertyExtractor__%descriptions(descriptions)
+       call nodePropertyExtractor__%descriptions(             descriptions)
+       scalarizerDescription=descriptions(self%element)
+    class is (nodePropertyExtractorTuple)
+       call nodePropertyExtractor__%descriptions(-huge(0.0d0),descriptions)
        scalarizerDescription=descriptions(self%element)
     class default
        call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
@@ -188,13 +210,17 @@ contains
     !!{
     Return the units of the scalarizer property in the SI system.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class           (nodePropertyExtractorScalarizer), intent(inout)               :: self
     double precision                                 , allocatable  , dimension(:) :: unitsInSI
-    
+
     select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
        unitsInSI          =nodePropertyExtractor__%unitsInSI(            )
+       scalarizerUnitsInSI=unitsInSI                        (self%element)
+    class is (nodePropertyExtractorTuple)
+       unitsInSI          =nodePropertyExtractor__%unitsInSI(-huge(0.0d0))
        scalarizerUnitsInSI=unitsInSI                        (self%element)
     class default
        scalarizerUnitsInSI=0.0d0

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombiantion class which builds the object from a
+    Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombination class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

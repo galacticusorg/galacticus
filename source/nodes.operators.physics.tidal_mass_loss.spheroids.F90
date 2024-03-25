@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -107,7 +107,7 @@ contains
     use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
     implicit none
     class           (nodeOperatorTidalMassLossSpheroids), intent(inout), target  :: self
-    type            (treeNode                          ), intent(inout)          :: node
+    type            (treeNode                          ), intent(inout), target  :: node
     logical                                             , intent(inout)          :: interrupt
     procedure       (interruptTask                     ), intent(inout), pointer :: functionInterrupt
     integer                                             , intent(in   )          :: propertyType

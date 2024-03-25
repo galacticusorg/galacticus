@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,9 @@
      !!}
      private
      integer(c_size_t), allocatable, dimension(:) :: activeProcessRanks
+     logical                                      :: doPing            =.false., reportWaitTime
    contains
+     final     ::                 fcfsDestructor
      procedure :: forestNumber => fcfsForestNumber
   end type evolveForestsWorkShareFCFS
 
@@ -58,7 +60,28 @@ contains
     type   (evolveForestsWorkShareFCFS)                              :: self
     type   (inputParameters           ), intent(inout)               :: parameters
     integer(c_size_t                  ), allocatable  , dimension(:) :: activeProcessRanks
+    logical                                                          :: doPing            , reportWaitTime
 
+    !![
+    <inputParameter>
+      <name>doPing</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+        If true, the master MPI process will attach to the {\normalfont \ttfamily calculationReset} event and ping the MPI
+        counter. This can help to ensure that the counter updates regularly.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>reportWaitTime</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+        If true, the time spent waiting to increment the counter will be reported.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
+    self=evolveForestsWorkShareFCFS(doPing,reportWaitTime,activeProcessRanks)
     if (parameters%isPresent('activeProcessRanks')) then
        allocate(activeProcessRanks(parameters%count('activeProcessRanks')))
        !![
@@ -68,9 +91,9 @@ contains
          <source>parameters</source>
        </inputParameter>
        !!]
-       self=evolveForestsWorkShareFCFS(activeProcessRanks)
+       self=evolveForestsWorkShareFCFS(doPing,reportWaitTime,activeProcessRanks)
     else
-       self=evolveForestsWorkShareFCFS(                  )
+       self=evolveForestsWorkShareFCFS(doPing,reportWaitTime                   )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -78,19 +101,24 @@ contains
     return
   end function fcfsConstructorParameters
 
-  function fcfsConstructorInternal(activeProcessRanks) result(self)
+  function fcfsConstructorInternal(doPing,reportWaitTime,activeProcessRanks) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
     !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
-#endif
+    use :: Events_Hooks , only : calculationResetEvent, openMPThreadBindingAllLevels
+#endif    
     implicit none
     type   (evolveForestsWorkShareFCFS)                                        :: self
     integer(c_size_t                  ), intent(in   ), dimension(:), optional :: activeProcessRanks
+    logical                            , intent(in   )                         :: doPing            , reportWaitTime
 #ifdef USEMPI
     integer                                                                    :: i
 #endif
+    !![
+    <constructorAssign variables="doPing, reportWaitTime"/>
+    !!]
     
     if (.not.forestCounterInitialized) then
        forestCounter=mpiCounter()
@@ -107,10 +135,28 @@ contains
           self%activeProcessRanks(i)=i
        end do
     end if
+    if (self%doPing .and. mpiSelf%isMaster()) call calculationResetEvent%attach(self,fcfsPing,openMPThreadBindingAllLevels,label='fcfsPing')
 #endif
     return
   end function fcfsConstructorInternal
 
+  subroutine fcfsDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily evolveForestsWorkShareFCFS} object.
+    !!}
+#ifdef USEMPI
+    use :: MPI_Utilities, only : mpiSelf
+    use :: Events_Hooks , only : calculationResetEvent
+#endif
+    implicit none
+    type(evolveForestsWorkShareFCFS), intent(inout) :: self
+
+#ifdef USEMPI
+    if (self%doPing.and.mpiSelf%isMaster().and.calculationResetEvent%isAttached(self,fcfsPing)) call calculationResetEvent%detach(self,fcfsPing)
+#endif
+    return
+  end subroutine fcfsDestructor
+  
   function fcfsForestNumber(self,utilizeOpenMPThreads)
     !!{
     Return the number of the next forest to process.
@@ -118,16 +164,27 @@ contains
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
 #endif
+    use :: Display      , only : displayMessage
+    use :: Timers       , only : timer
     implicit none
     integer(c_size_t                  )                :: fcfsForestNumber
     class  (evolveForestsWorkShareFCFS), intent(inout) :: self
     logical                            , intent(in   ) :: utilizeOpenMPThreads
+    type   (timer                     )                :: timer_
     !$GLC attributes unused :: self, utilizeOpenMPThreads
 
 #ifdef USEMPI
     if (any(self%activeProcessRanks == mpiSelf%rank())) then
 #endif
+       if (self%reportWaitTime) then
+          timer_=timer()
+          call timer_%start()
+       end if
        fcfsForestNumber=forestCounter%increment()+1_c_size_t
+       if (self%reportWaitTime) then
+          call timer_%stop()
+          call displayMessage('evolveForestsWorkShareFCFS wait time = '//trim(timer_%reportText()))
+          end if
 #ifdef USEMPI
     else
        fcfsForestNumber=huge(0_c_size_t)
@@ -135,3 +192,29 @@ contains
 #endif
     return
   end function fcfsForestNumber
+
+  subroutine fcfsPing(self,node,uniqueID)
+    !!{
+    Return the number of the next forest to process.
+    !!}
+#ifdef USEMPI
+    use :: MPI_Utilities   , only : mpiSelf
+#endif
+    use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
+    implicit none
+    class  (*        ), intent(inout) :: self
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+#ifdef USEMPI
+    integer(c_size_t )                :: forestNumber
+#endif
+    !$GLC attributes unused :: self, node, uniqueID
+
+#ifdef USEMPI
+    !$omp master
+    if (mpiSelf%isMaster()) forestNumber=forestCounter%get()
+    !$omp end master
+#endif
+    return
+  end subroutine fcfsPing

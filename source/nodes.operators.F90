@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,6 +43,7 @@ module Nodes_Operators
       </description>
       <type>void</type>
       <pass>yes</pass>
+      <selfTarget>yes</selfTarget>
       <argument>type(treeNode), intent(inout), target :: node</argument>
       <code>
 	!$GLC attributes unused :: self, node
@@ -131,7 +132,7 @@ module Nodes_Operators
       <type>void</type>
       <pass>yes</pass>
       <selfTarget>yes</selfTarget>
-      <argument>type     (treeNode     ), intent(inout)          :: node             </argument>
+      <argument>type     (treeNode     ), intent(inout), target  :: node             </argument>
       <argument>logical                 , intent(inout)          :: interrupt        </argument>
       <argument>procedure(interruptTask), intent(inout), pointer :: functionInterrupt</argument>
       <argument>integer                 , intent(in   )          :: propertyType     </argument>

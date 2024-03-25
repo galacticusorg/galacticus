@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -285,11 +285,11 @@ contains
     self%velocity            =Make_Range(self%velocityMinimum,self%velocityMaximum,countVelocities,rangeTypeLinear)
     self%interpolatorVelocity=interpolator(self%velocity)
     ! Build a file name for storing the tabulated solution.
-    self%fileName=inputPath(pathTypeDataDynamic)                   // &
-         &        'darkMatterHalos/'                               // &
-         &        self%objectType      (                          )// &
-         &        '_'                                              // &
-         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &        'darkMatterHalos/'                                                                   // &
+         &        self%objectType      (                                                              )// &
+         &        '_'                                                                                  // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &        '.hdf5'
     self%fileRead=.false.
     return
@@ -1112,7 +1112,7 @@ contains
                             end if
                          end if
                       else
-                         ! Far from the caustic - evaluate the determinant of the jacobian.
+                         ! Far from the caustic - evaluate the determinant of the Jacobian.
                          if      (iEvaluate == 1) then
                             jacobianSign=+1.0d0
                          else if (iEvaluate == 2) then
@@ -1252,7 +1252,7 @@ contains
     deallocate(tree)
     !$omp end parallel
     call displayCounterClear(verbosityLevelWorking)
-    ! Transfer tabulted results to self.
+    ! Transfer tabulated results to self.
     call move_alloc(velocityRadialMeanVirial            ,self%velocityRadialMeanVirial            )
     call move_alloc(velocityRadialDispersionVirial      ,self%velocityRadialDispersionVirial      )
     call move_alloc(velocityTangentialMeanVirial        ,self%velocityTangentialMeanVirial        )

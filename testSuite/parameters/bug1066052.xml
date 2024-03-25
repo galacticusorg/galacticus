@@ -38,7 +38,7 @@
 
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="virialProperties"/>
-    <nodePropertyExtractor value="descendents"/>
+    <nodePropertyExtractor value="descendants"/>
     <nodePropertyExtractor value="starFormationRate">
       <component value="disk"/>
     </nodePropertyExtractor>
@@ -51,7 +51,6 @@
     <angularMomentumAlwaysGrows value="true"/>
   </componentHotHalo>
 
-  <verbosityLevel value="standard"/>
   <nodePromotionIndexShift value="false"/>
   <outputTimes value="list">
     <redshifts value="0.000"/>

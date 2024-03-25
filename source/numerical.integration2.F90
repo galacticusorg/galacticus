@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -2138,7 +2138,7 @@ contains
        ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
        ! integration rule.
        where (mustEvaluate)
-          ! Set new intervals and errors, for integrands that were evaluated (any not evaulated are already converged so we do not
+          ! Set new intervals and errors, for integrands that were evaluated (any not evaluated are already converged so we do not
           ! need to update them further). Error on second integral is identical to that on the first.
           newInterval1%fa      =    fa
           newInterval2%fb      =    fb

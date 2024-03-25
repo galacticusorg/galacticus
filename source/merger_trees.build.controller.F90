@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,9 +40,21 @@ module Merger_Tree_Build_Controllers
     <description>Control the behavior of a tree build.</description>
     <type>logical</type>
     <pass>yes</pass>
-    <argument>type (treeNode             ), intent(inout), pointer :: node       </argument>
-    <argument>class(mergerTreeWalkerClass), intent(inout)          :: treeWalker_</argument>
+    <argument>type (treeNode             ), intent(inout), pointer  :: node       </argument>
+    <argument>class(mergerTreeWalkerClass), intent(inout), optional :: treeWalker_</argument>
    </method>
+   <method name="timeMinimum" >
+    <description>Return the minimum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node                                 </argument>
+    <argument>double precision          , intent(in   ) :: massBranch, criticalOverdensityBranch</argument>
+    <code>
+      !$GLC attributes unused :: self, node, massBranch, criticalOverdensityBranch
+      ! No limit to time by default.
+      mergerTreeBuildControllerTimeMinimum=criticalOverdensityBranch
+    </code>
+   </method>   
    <method name="timeMaximum" >
     <description>Return the maximum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
     <type>double precision</type>
@@ -77,8 +89,9 @@ module Merger_Tree_Build_Controllers
     <description>Alert the controller when new nodes are inserted into the tree.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout)           :: nodeCurrent    , nodeProgenitor1</argument>
-    <argument>type(treeNode), intent(inout), optional :: nodeProgenitor2</argument>
+    <argument>type   (treeNode), intent(inout)           :: nodeCurrent    , nodeProgenitor1</argument>
+    <argument>type   (treeNode), intent(inout), optional :: nodeProgenitor2                 </argument>
+    <argument>logical          , intent(in   ), optional :: didBranch                       </argument>
    </method>
   </functionClass>
   !!]

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,17 +19,17 @@
 
   !!{
   An implementation of atomic radiative recombination rates based on the
-  \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+  \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
   !!}
 
   !![
   <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeVerner1996">
-   <description>Atomic radiative recombination rates are computed based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.</description>
+   <description>Atomic radiative recombination rates are computed based on the \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.</description>
   </atomicRecombinationRateRadiative>
   !!]
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeVerner1996
      !!{
-     A radiative recombination rate class based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+     A radiative recombination rate class based on the \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
      !!}
      private
    contains
@@ -576,7 +576,7 @@ contains
     \item Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): \citep{landini_ion_1991};
     \item All other species: interpolations of the power-law fits.
     \end{itemize}
-    Based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
+    Based on the \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
     passed to this function should be that of the atom/ion post recombination.
     !!}
     use :: Error, only : Error_Report

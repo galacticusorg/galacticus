@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ module Satellite_Orbits
   class           (galacticStructureClass   ), pointer           :: galacticStructure__
   !$omp threadprivate(activeNode,darkMatterProfileDMO__,galacticStructure__)
 
-  ! Enumeratation used to indicate type of extremum.
+  ! Enumeration used to indicate type of extremum.
   integer                                    , parameter, public :: extremumPericenter            =-1
   integer                                    , parameter, public :: extremumApocenter             =+1
 

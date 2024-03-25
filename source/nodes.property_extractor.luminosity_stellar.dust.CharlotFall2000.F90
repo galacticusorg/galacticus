@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,13 +34,13 @@ Contains a module which implements a stellar luminosity output analysis property
      A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
      !!}
      private
-     type            (varying_string  )                            :: filterName                , filterType                   , &
-          &                                                           name_                     , description_
-     double precision                                              :: redshiftBand              , wavelengthFilterEffective    , &
-          &                                                           depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
+     type            (varying_string  )                            :: filterName                          , filterType                   , &
+          &                                                           name_                               , description_
+     double precision                                              :: redshiftBand                        , wavelengthFilterEffective    , &
+          &                                                           depthOpticalISMCoefficient          , depthOpticalCloudsCoefficient, &
           &                                                           wavelengthExponent
-     integer                           , allocatable, dimension(:) :: luminosityIndex           , luminosityRecentIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_ => null()
+     integer                           , allocatable, dimension(:) :: luminosityIndex                     , luminosityRecentIndex
+     class           (outputTimesClass), pointer                   :: outputTimes_               => null()
    contains
      final     ::                lmnstyStllrChrltFll2000Destructor
      procedure :: extract     => lmnstyStllrChrltFll2000Extract
@@ -200,7 +200,7 @@ contains
     use            :: Numerical_Constants_Prefixes    , only : hecto              , mega
     use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyStllrCF2000), intent(inout)           :: self
+    class           (nodePropertyExtractorLmnstyStllrCF2000), intent(inout), target   :: self
     type            (treeNode                              ), intent(inout), target   :: node
     type            (multiCounter                          ), intent(inout), optional :: instance
     class           (nodeComponentBasic                    ), pointer                 :: basic
@@ -254,7 +254,7 @@ contains
     luminositiesStellar            =                          spheroid           %luminositiesStellar(                             )
     luminositySpheroid             =                          luminositiesStellar%luminosity         (self%luminosityIndex      (i))
     luminositySpheroidRecent       =                          luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
-    ! Compute surface densities of metals in units of Msun/pc².
+    ! Compute surface densities of metals in units of M☉/pc².
     if (disk%radius() > 0.0d0) then
        densitySurfaceMetalsDisk    =+metallicityDisk     &
             &                            * disk    %massGas() &

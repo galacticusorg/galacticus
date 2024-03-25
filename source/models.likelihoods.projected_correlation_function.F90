@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,11 +53,12 @@
     \end{description}
     
     The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
-    \ttfamily separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc),
+    \ttfamily separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
     a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
     function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
     projected correlation function (in units of Mpc$^2$).
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPrjctdCorrelationFunction
@@ -255,7 +256,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                         ), intent(inout)               :: simulationState
-    type            (modelParameterList                                ), intent(in   ), dimension(:) :: modelParametersActive_  , modelParametersInactive_
+    type            (modelParameterList                                ), intent(inout), dimension(:) :: modelParametersActive_  , modelParametersInactive_
     class           (posteriorSampleConvergenceClass                   ), intent(inout)               :: simulationConvergence
     double precision                                                    , intent(in   )               :: temperature             , logLikelihoodCurrent    , &
          &                                                                                               logPriorCurrent         , logPriorProposed

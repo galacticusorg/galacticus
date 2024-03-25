@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -433,7 +433,7 @@ contains
              do i=1,omegaKappaCount
                 ! Set ω_κ parameter.
                 self%omegaConvergence                    =tableOmegaKappa(i)
-                ! Set convergence scale to unity for table building. This implies a minimum convegence of -1.
+                ! Set convergence scale to unity for table building. This implies a minimum convergence of -1.
                 self%convergenceScale                    =+1.0d0
                 convergenceMinimum                       =-self%convergenceScale
                 convergenceMaximum                       =+convergenceMaximumFactor*sqrt(self%omegaConvergence)
@@ -469,7 +469,7 @@ contains
           end if
           call File_Unlock(fileLock)
           ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
-          ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the
+          ! extremely narrow (effectively a delta-function) so it does not matter much what we do. If we do allow extrapolation, the
           ! values obtained for the parameter result in convergence distributions which have secondary peaks at κ≅2, which results in
           ! unrealistic magnification distributions.
           call self%convergencePDF%create  (tableConvergenceVariance,tableCount=3,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeFix])

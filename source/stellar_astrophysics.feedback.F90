@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@ module Stellar_Feedback
   !!{
   Implements a class that performs calculations of stellar feedback.
   !!}
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass
   implicit none
   private
 
@@ -41,7 +42,8 @@ module Stellar_Feedback
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout) :: initialMassFunction_                  </argument>
+    <argument>double precision                          , intent(in   ) :: initialMass         , age, metallicity</argument>
    </method>
   </functionClass>
   !!]

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
 Contains a module which implements a dump to \gls{graphviz} operator on merger trees.
 !!}
 
+  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  
   !![
   <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz">
    <description>
@@ -39,10 +41,15 @@ Contains a module which implements a dump to \gls{graphviz} operator on merger t
      A dump to \gls{graphviz} merger tree operator class.
      !!}
      private
-     type            (varying_string) :: path
-     double precision                 :: massMinimum        , massMaximum
-     logical                          :: scaleNodesByLogMass, edgeLengthsToTimes
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     type            (varying_string         )          :: path
+     double precision                                   :: massMinimum                  , massMaximum       , &
+          &                                                redshiftMinimum              , redshiftMaximum   , &
+          &                                                timeMinimum                  , timeMaximum
+     logical                                            :: scaleNodesByLogMass          , edgeLengthsToTimes, &
+          &                                                useNodeLabels
    contains
+     final     ::                        dumpToGraphVizDestructor
      procedure :: operatePreEvolution => dumpToGraphVizOperatePreEvolution
   end type mergerTreeOperatorDumpToGraphViz
 
@@ -64,9 +71,12 @@ contains
     implicit none
     type            (mergerTreeOperatorDumpToGraphViz)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     type            (varying_string                  )                :: path
-    double precision                                                  :: massMinimum        , massMaximum
-    logical                                                           :: scaleNodesByLogMass, edgeLengthsToTimes
+    double precision                                                  :: massMinimum        , massMaximum       , &
+         &                                                               redshiftMinimum    , redshiftMaximum
+    logical                                                           :: scaleNodesByLogMass, edgeLengthsToTimes, &
+         &                                                               useNodeLabels
     
     !![
     <inputParameter>
@@ -88,6 +98,18 @@ contains
       <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
     </inputParameter>
     <inputParameter>
+      <name>redshiftMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Specifies the minimum redshift for which merger tree structure should be dumped.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>100.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Specifies the maximum redshift for which merger tree structure should be dumped.</description>
+    </inputParameter>
+    <inputParameter>
       <name>scaleNodesByLogMass</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
@@ -99,29 +121,65 @@ contains
       <source>parameters</source>
       <description>Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.</description>
     </inputParameter>
+    <inputParameter>
+      <name>useNodeLabels</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, label nodes in the graph with any node labels. Otherwise, label using node IDs.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=mergerTreeOperatorDumpToGraphViz(path,massMinimum,massMaximum,scaleNodesByLogMass,edgeLengthsToTimes)
+    self=mergerTreeOperatorDumpToGraphViz(                                                                                                  &
+         &                                path                                                                                            , &
+         &                                massMinimum                                                                                     , &
+         &                                massMaximum                                                                                     , &
+         &                                cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)), &
+         &                                cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum)), &
+         &                                scaleNodesByLogMass                                                                             , &
+         &                                edgeLengthsToTimes                                                                              , &
+         &                                useNodeLabels                                                                                   , &
+         &                                cosmologyFunctions_                                                                               &
+         &                               )
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
     !!]
     return
   end function dumpToGraphVizConstructorParameters
 
-  function dumpToGraphVizConstructorInternal(path,massMinimum,massMaximum,scaleNodesByLogMass,edgeLengthsToTimes) result(self)
+  function dumpToGraphVizConstructorInternal(path,massMinimum,massMaximum,timeMinimum,timeMaximum,scaleNodesByLogMass,edgeLengthsToTimes,useNodeLabels,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the dump-to-\gls{graphviz} merger tree operator class.
     !!}
     implicit none
-    type            (mergerTreeOperatorDumpToGraphViz)                :: self
-    type            (varying_string                  ), intent(in   ) :: path
-    double precision                                  , intent(in   ) :: massMinimum        , massMaximum
-    logical                                           , intent(in   ) :: scaleNodesByLogMass, edgeLengthsToTimes
+    type            (mergerTreeOperatorDumpToGraphViz)                        :: self
+    type            (varying_string                  ), intent(in   )         :: path
+    double precision                                  , intent(in   )         :: massMinimum        , massMaximum       , &
+         &                                                                       timeMinimum        , timeMaximum
+    logical                                           , intent(in   )         :: scaleNodesByLogMass, edgeLengthsToTimes, &
+         &                                                                       useNodeLabels
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="path, massMinimum, massMaximum, scaleNodesByLogMass, edgeLengthsToTimes"/>
+    <constructorAssign variables="path, massMinimum, massMaximum, timeMinimum, timeMaximum, scaleNodesByLogMass, edgeLengthsToTimes, useNodeLabels, *cosmologyFunctions_"/>
     !!]
-    
+
+    self%redshiftMinimum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMaximum))
+    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMinimum))
     return
   end function dumpToGraphVizConstructorInternal
+
+  subroutine dumpToGraphVizDestructor(self)
+    !!{
+    Destructor for the dump-to-\gls{graphviz} merger tree operator class.
+    !!}
+    implicit none
+    type(mergerTreeOperatorDumpToGraphViz), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine dumpToGraphVizDestructor
 
   subroutine dumpToGraphVizOperatePreEvolution(self,tree)
     !!{
@@ -140,17 +198,22 @@ contains
     do while (associated(treeCurrent))
        ! Dump the tree.
        basicBase => treeCurrent%nodeBase%basic()
-       if     (                                                                   &
-            &   basicBase%mass() >= self%massMinimum                              &
-            &  .and.                                                              &
-            &   basicBase%mass() <  self%massMaximum                              &
-            & )                                                                   &
-            & call Merger_Tree_Dump(                                              &
-            &                       treeCurrent                                 , &
-            &                       scaleNodesByLogMass=self%scaleNodesByLogMass, &
-            &                       edgeLengthsToTimes =self%edgeLengthsToTimes , &
-            &                       nodeStyle          ='solid'                 , &
-            &                       path               =self%path                 &
+       if     (                                                                    &
+            &   basicBase%mass() >= self%massMinimum                               &
+            &  .and.                                                               &
+            &   basicBase%mass() <  self%massMaximum                               &
+            & )                                                                    &
+            & call Merger_Tree_Dump(                                               &
+            &                       treeCurrent                                  , &
+            &                       scaleNodesByLogMass= self%scaleNodesByLogMass, &
+            &                       edgeLengthsToTimes = self%edgeLengthsToTimes , &
+            &                       useNodeLabels      = self%useNodeLabels      , &
+            &                       timeRange          =[                          &
+            &                                            self%timeMinimum        , &
+            &                                            self%timeMaximum          &
+            &                                           ]                        , &
+            &                       nodeStyle          ='solid'                  , &
+            &                       path               =self%path                  &
             &                      )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree

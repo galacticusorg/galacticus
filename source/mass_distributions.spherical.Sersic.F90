@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -434,13 +434,13 @@ contains
     type            (rootFinder            ), save                    :: finder
     logical                                 , save                    :: finderConstructed      =.false.
     !$omp threadprivate(finder,finderConstructed)
+    type            (interpolator          ), allocatable             :: interpolator_
     logical                                                           :: rebuildTable                   , tableHasSufficientExtent
     integer                                                           :: iRadius
     double precision                                                  :: deltaRadius                    , integrand                , &
          &                                                               massPrevious                   , previousIntegrand        , &
          &                                                               radiusActual                   , radiusInfinity
     type            (integrator            )                          :: integrator_
-    type            (interpolator          )                          :: interpolator_
 
     ! Check if a radius was specified. Use it if so, otherwise use a midpoint radius.
     if (present(radius)) then
@@ -523,11 +523,13 @@ contains
           self%tableDensity     =self%tableDensity     /self%tableEnclosedMass(self%tableCount)
           self%tableEnclosedMass=self%tableEnclosedMass/self%tableEnclosedMass(self%tableCount)
           ! Find the half mass radius.
+          allocate(interpolator_)
           interpolator_             =interpolator(                                                                &
                &                                  self%tableEnclosedMass(1:maxloc(self%tableEnclosedMass,dim=1)), &
                &                                  self%tableRadius      (1:maxloc(self%tableEnclosedMass,dim=1))  &
                &                                 )
           self%table3dRadiusHalfMass=interpolator_%interpolate(0.5d0)
+          deallocate(interpolator_)
           ! Scale radii and densities to be in units of the 3D half mass radius.
           self%tableRadius =self%tableRadius /self%table3dRadiusHalfMass
           self%tableDensity=self%tableDensity*self%table3dRadiusHalfMass**3

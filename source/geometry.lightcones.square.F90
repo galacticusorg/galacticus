@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@
     A lightcone geometry class which assumes a square field of view., i.e. defined such that a point $(x,y,z)$ is in the survey
     angular mask if $|\hbox{atan2}(y,x)| &lt; \psi/2$ and $|\hbox{atan2}(z,x)| &lt; \psi/2$ where $\hbox{atan2}()$ is the
     quadrant-aware inverse tangent function, and $\psi$ is the angular size of the field, we compute the solid angle of the
-    lightcone as follows. Define a spherical coodinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
+    lightcone as follows. Define a spherical coordinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
     $x$-axis. The solid angle of the field is then
     \begin{equation}
      \Omega = 2 \pi \int_0^{\psi/2} \sin\theta \mathrm{d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} \mathrm{d}\phi,
@@ -233,7 +233,7 @@ contains
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
       <variable>timeEvolvesAlongLightcone</variable>
-      <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightone. This allows construction of lightcones with no evolution.</description>
+      <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightcone. This allows construction of lightcones with no evolution.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -460,7 +460,7 @@ contains
     !!{
     Determine if the given {\normalfont \ttfamily node} lies within the lightcone. Note that, when called with {\normalfont
     \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
-    existance. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
+    existence. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
     time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
     catch any nodes which may briefly enter the lightcone between output times.
     !!}
@@ -528,7 +528,7 @@ contains
        end if
        outputMaximum=outputMinimum
     else
-       ! We need to test if the node is in the lightcone at any point during its existance. Determine for how long this node will
+       ! We need to test if the node is in the lightcone at any point during its existence. Determine for how long this node will
        ! persist. This requires that the merging time be defined. To perform the test also requires that a position exists.  Check
        ! that we can get the time of merging and the position of a node.
        if (.not.self%timeOfMergingGettableChecked) then
@@ -567,6 +567,7 @@ contains
        ! Get node position component.
        position => node%position()
        ! Test for primary progenitor status.
+       allocate(nodePositionHistory(0,0))
        if (node%isPrimaryProgenitor().or..not.associated(node%parent)) then
           ! Node is the primary progenitor (or is the root node in its tree), so exists only until the time of its parent and has
           ! fixed position.
@@ -587,6 +588,7 @@ contains
              end if
           end if
           ! Construct array of positions at output times.
+          deallocate(nodePositionHistory)
           allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
           do output=1,outputMaximum-outputMinimum+1
              nodePositionHistory(:,output)=position%position()
@@ -608,6 +610,7 @@ contains
              end if
           end if
           ! Construct array of positions at output times.
+          deallocate(nodePositionHistory)
           allocate(nodePositionHistory(3_c_size_t,outputMaximum-outputMinimum+1))
           timeCurrent=basic%time()
           do output=1,outputMaximum-outputMinimum+1

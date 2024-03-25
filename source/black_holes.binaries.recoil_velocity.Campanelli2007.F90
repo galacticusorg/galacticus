@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,7 +75,7 @@ contains
 
   function campanelli2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily campanelli2007} black hole bianry recoild class which takes a parameter list as
+    Constructor for the {\normalfont \ttfamily campanelli2007} black hole binary recoiled class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

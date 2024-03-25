@@ -80,11 +80,13 @@ foreach my $mergeFile ( @mergeFiles ) {
     ++$iFile;
     next
 	unless ( grep {$_ eq "Outputs"} $mergeFile->groups() );
+    print "  -> file: ".$mergeFileNames[$iFile]."\n";
     my $outputsGroup = $mergeFile->group("Outputs");
     my @outputGroups = $outputsGroup->groups();
     push(@{$outputGroupsAvailable{$_}},$mergeFile)
 	foreach ( @outputGroups );
     foreach my $outputGroup ( @outputGroups ) {
+	print "    -> output: ".$outputGroup."\n";
 	my $nodeDataGroup = $outputsGroup->group($outputGroup)->group("nodeData");
 	push(@{$datasetsAvailable->{$outputGroup}->{$_}},$mergeFile)
 	    foreach ( $nodeDataGroup->datasets() );
@@ -109,13 +111,17 @@ foreach my $outputGroupName ( sort(keys(%outputGroupsAvailable)) ) {
 	    );
 	my $newDatasetValues = pdl->null();
 	# Iterare over all merge models with this dataset.
+	my $iFile = -1;
 	foreach my $mergeFile ( @{$datasetsAvailable->{$outputGroupName}->{$datasetName}} ) {
+	    ++$iFile;
+	    last
+		if ( $datasetName =~ m/Columns$/ && $iFile > 0 );
 	    # Get the nodeData group from the merge file.
 	    my $nodeDataGroup = $mergeFile->group("Outputs")->group($outputGroupName)->group("nodeData");
 	    my $dataset       = $nodeDataGroup->dataset($datasetName);
 	    my $datasetValues = $dataset      ->get();
 	    # Append to the combined dataset.
-	    $newDatasetValues = $newDatasetValues->append($datasetValues);
+	    $newDatasetValues = $newDatasetValues->glue(-1,$datasetValues);
 	}
 	# Write the new dataset back to the output file.
 	$newDataset->set($newDatasetValues);
@@ -165,7 +171,7 @@ foreach my $outputGroupName ( sort(keys(%outputGroupsAvailable)) ) {
 	# Create references for each tree.
 	if ( scalar(keys(%{$datasetsAvailable->{$outputGroupName}})) > 0 ) {
 	    (my $datasetFirstName) = sort(keys(%{$datasetsAvailable->{$outputGroupName}}));
-	    my @parameters = $datasetsAvailable->{$outputGroupName}->{$datasetFirstName}->[0]->group('Parameters')->group('mergerTreeOutput')->attrGet("outputReferences");
+	    my @parameters = $datasetsAvailable->{$outputGroupName}->{$datasetFirstName}->[0]->group('Parameters')->group('mergerTreeOutputter')->attrGet("outputReferences");
 	    if ( $parameters[0] eq "true" ) {
 		print "-> Creating merger tree references\n";
 		# Get the nodeData group.

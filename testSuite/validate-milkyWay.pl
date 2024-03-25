@@ -21,7 +21,7 @@ unless ( $? == 0 ) {
 }
 
 # Extract and validate the likelihoods.
-&Galacticus::Validation::extract("outputs/validate_milkyWay.hdf5","Milky Way model","milkyWayModel");
+&Galacticus::Validation::extract("outputs/validate_milkyWay.hdf5","Milky Way model","milkyWayModel","testSuite/parameters/validate_milkyWay.xml");
 
 print "SUCCESS: Milky Way validation model\n";
 

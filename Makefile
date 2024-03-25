@@ -186,7 +186,7 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 
 # Rule for building include file with preprocessor directives to detect OS. For some reason gfortran does not define these automatically.
 $(BUILDPATH)/os.inc:
-	$(CCOMPILER) -dM -E - < /dev/null | grep -e __APPLE__ -e __linux__ > $(BUILDPATH)/os.inc
+	$(CCOMPILER) -dM -E - < /dev/null | grep -e __APPLE__ -e __linux__ -e __aarch64__ > $(BUILDPATH)/os.inc
 
 # Rules for building HDF5 C interoperability types data file.
 $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe
@@ -501,6 +501,9 @@ $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSection
 	@touch $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc
 $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCriticalSections.pl
 	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
+
+# Dependency on dependencies.
+$(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
 
 # Rules for version routines.
 $(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)

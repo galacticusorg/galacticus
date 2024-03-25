@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a posterior sampling state initializor class which initializes to the maximum likehood state of a previous simulation.
+  Implementation of a posterior sampling state initializer class which initializes to the maximum likelihood state of a previous simulation.
   !!}
 
   use :: ISO_Varying_String, only : varying_string
@@ -105,7 +105,7 @@ contains
     class           (posteriorSampleStateInitializeMaximumLikelihood), intent(inout)               :: self
     class           (posteriorSampleStateClass                      ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass                 ), intent(inout)               :: modelLikelihood
-    type            (modelParameterList                             ), intent(in   ), dimension(:) :: modelParameters_
+    type            (modelParameterList                             ), intent(inout), dimension(:) :: modelParameters_
     double precision                                                 , intent(  out)               :: timeEvaluatePrevious, logLikelihood    , &
          &                                                                                            logPosterior
     double precision                                                 , allocatable  , dimension(:) :: stateVector         , stateVectorMapped

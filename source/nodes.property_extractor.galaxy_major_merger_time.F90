@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,10 +31,11 @@
      private
      integer :: galaxyMajorMergerTimeID
    contains
-     procedure :: extract     => galaxyMajorMergerTimeExtract
-     procedure :: name        => galaxyMajorMergerTimeName
-     procedure :: description => galaxyMajorMergerTimeDescription
-     procedure :: unitsInSI   => galaxyMajorMergerTimeUnitsInSI
+     procedure :: elementCount => galaxyMajorMergerTimeElementCount
+     procedure :: extract      => galaxyMajorMergerTimeExtract
+     procedure :: names        => galaxyMajorMergerTimeNames
+     procedure :: descriptions => galaxyMajorMergerTimeDescriptions
+     procedure :: unitsInSI    => galaxyMajorMergerTimeUnitsInSI
   end type nodePropertyExtractorGalaxyMajorMergerTime
 
   interface nodePropertyExtractorGalaxyMajorMergerTime
@@ -76,59 +77,78 @@ contains
     return
   end function galaxyMajorMergerTimeConstructorInternal
 
+  integer function galaxyMajorMergerTimeElementCount(self)
+    !!{
+    Return a count of the number of properties extracted.
+    !!}
+    implicit none
+    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout) :: self
+
+    galaxyMajorMergerTimeElementCount=1
+    return
+  end function galaxyMajorMergerTimeElementCount
+
   function galaxyMajorMergerTimeExtract(self,node,instance) result(timeMajorMergers)
     !!{
     Implement a galaxyMajorMergerTime output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    double precision                                            , dimension(:) , allocatable :: timeMajorMergers
-    class           (nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)              :: self
-    type            (treeNode                                  ), intent(inout)              :: node
-    type            (multiCounter                              ), intent(inout), optional    :: instance
-    class           (nodeComponentBasic                        )               , pointer     :: basic
+    double precision                                            , dimension(:,:), allocatable :: timeMajorMergers
+    class           (nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)               :: self
+    type            (treeNode                                  ), intent(inout)               :: node
+    type            (multiCounter                              ), intent(inout) , optional    :: instance
+    class           (nodeComponentBasic                        )                , pointer     :: basic
+    double precision                                            , dimension(:  ), allocatable :: times
     !$GLC attributes unused :: instance
+    !$GLC attributes initialized :: times
 
-    basic            => node %basic                    (                            )
-    timeMajorMergers =  basic%floatRank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
+    basic => node %basic                    (                            )
+    times =  basic%floatRank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
+    allocate(timeMajorMergers(size(times),1))
+    timeMajorMergers(:,1)=times
     return
   end function galaxyMajorMergerTimeExtract
   
-  function galaxyMajorMergerTimeName(self)
+  subroutine galaxyMajorMergerTimeNames(self,names)
     !!{
     Return the names of the {\normalfont \ttfamily galaxyMajorMergerTime} properties.
     !!}
     implicit none
-    type (varying_string                            )                :: galaxyMajorMergerTimeName
-    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout) :: self
+    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)                             :: self
+    type (varying_string                            ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self
 
-    galaxyMajorMergerTimeName=var_str('galaxyMajorMergerTime')
+    allocate(names(1))
+    names(1)=var_str('galaxyMajorMergerTime')
     return
-  end function galaxyMajorMergerTimeName
+  end subroutine galaxyMajorMergerTimeNames
 
-  function galaxyMajorMergerTimeDescription(self)
+  subroutine galaxyMajorMergerTimeDescriptions(self,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily galaxyMajorMergerTime} properties.
     !!}
     implicit none
-    type (varying_string                            )                :: galaxyMajorMergerTimeDescription
-    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout) :: self
+    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)                             :: self
+    type (varying_string                            ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self
 
-    galaxyMajorMergerTimeDescription=var_str('Time of the last galaxy major merger.')
+    allocate(descriptions(1))
+    descriptions(1)=var_str('Time of the last galaxy major merger.')
     return
-  end function galaxyMajorMergerTimeDescription
+  end subroutine galaxyMajorMergerTimeDescriptions
 
-  double precision function galaxyMajorMergerTimeUnitsInSI(self)
+  function galaxyMajorMergerTimeUnitsInSI(self) result(unitsInSI)
     !!{
     Return the units of the {\normalfont \ttfamily galaxyMajorMergerTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
-    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout) :: self
+    double precision                                            , dimension(:) , allocatable :: unitsInSI
+    class           (nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)              :: self
     !$GLC attributes unused :: self
 
-    galaxyMajorMergerTimeUnitsInSI=gigaYear
+    allocate(unitsInSI(1))
+    unitsInSI(1)=gigaYear
     return
   end function galaxyMajorMergerTimeUnitsInSI

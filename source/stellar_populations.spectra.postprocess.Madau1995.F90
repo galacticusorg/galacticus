@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMadau1995
      !!{
-     An spectrum postprocessor multipliering the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
+     A spectrum postprocessor implementing the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
      !!}
      private
    contains

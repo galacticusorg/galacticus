@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash
+  use :: Hashes, only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a tuple of floating point properties.</description>
+   <description>An abstract output analysis property extractor class which provides a tuple of floating point properties.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorTuple
@@ -37,7 +37,7 @@
        <method method="names"        description="Return the names of the properties extracted."                      />
        <method method="descriptions" description="Return descriptions of the properties extracted."                   />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                    />
+       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
      procedure(tupleElementCount), deferred :: elementCount
@@ -111,15 +111,17 @@
 
 contains
   
-  subroutine tupleMetaData(self,indexProperty,metaData)
+  subroutine tupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
-    Interface for scalar property meta-data.
+    Interface for tuple property meta-data.
     !!}
     implicit none
     class  (nodePropertyExtractorTuple), intent(inout) :: self
+    type   (treeNode                  ), intent(inout) :: node
     integer                            , intent(in   ) :: indexProperty
-    type   (doubleHash                ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, indexProperty, metaData
+    type   (doubleHash                ), intent(inout) :: metaDataRank0
+    type   (rank1DoubleHash           ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, indexProperty, metaDataRank0, metaDataRank1
     
     return
   end subroutine tupleMetaData

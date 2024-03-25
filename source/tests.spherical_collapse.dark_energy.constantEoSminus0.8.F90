@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
-  ! Initialize event hooks.Siz
+  ! Initialize event hooks.
   call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-0.8 cosmology)")

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,7 +75,7 @@ contains
       <source>parameters</source>
       <variable>massValue</variable>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass (in keV) of the theral warm dark matter particle.</description>
+      <description>The mass (in keV) of the thermal warm dark matter particle.</description>
     </inputParameter>
     <inputParameter>
       <name>degreesOfFreedomEffective</name>

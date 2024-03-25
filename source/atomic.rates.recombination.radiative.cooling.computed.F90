@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of atomic recombination cooling rates which computes rates from the corresponding photoionziation cross
+  An implementation of atomic recombination cooling rates which computes rates from the corresponding photoionization cross
   section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita
   \& Sutherland, 2004, Springer Science \& Business Media, section 5.3.3).
   !!}
@@ -28,7 +28,7 @@
 
   !![
   <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingComputed">
-   <description>Atomic radiative cooling rates computed from the corresponding photoionziation cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita \&amp; Sutherland, 2004, Springer Science \&amp; Business Media, section 5.3.3).</description>
+   <description>Atomic radiative cooling rates computed from the corresponding photoionization cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita \&amp; Sutherland, 2004, Springer Science \&amp; Business Media, section 5.3.3).</description>
   </atomicRecombinationRateRadiativeCooling>
   !!]
   type, extends(atomicRecombinationRateRadiativeCoolingClass) :: atomicRecombinationRateRadiativeCoolingComputed

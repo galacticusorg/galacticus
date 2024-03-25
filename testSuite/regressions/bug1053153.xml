@@ -37,7 +37,7 @@
   </cosmologicalMassVariance>
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="virialProperties"/>
-    <nodePropertyExtractor value="descendents"/>
+    <nodePropertyExtractor value="descendants"/>
     <nodePropertyExtractor value="starFormationRate">
       <component value="disk"/>
     </nodePropertyExtractor>

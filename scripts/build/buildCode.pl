@@ -34,6 +34,10 @@ my $componentsLoaded    = 0;
 my $xml                 = new XML::Simple;
 # Load the file of directive locations if available.
 my $locations           = -e $ENV{'BUILDPATH'}."/directiveLocations.xml" ? $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml") : undef();
+# Load the file of function classes if available.
+my $storables           = -e $ENV{'BUILDPATH'}."/stateStorables.xml"     ? $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml"    ) : undef();
+die("file '".$ENV{'BUILDPATH'}."/stateStorables.xml' is missing")
+    unless ( defined($storables) );
 # Process the XML file.
 my $build               = $xml->XMLin($xmlFile, KeyAttr => []);
 # Initialize structure to hold record of directives from each source file.
@@ -150,13 +154,17 @@ foreach my $fileName ( @fileNamesToScan ) {
 			$directive->{'fileName'  } = $fileName;
 			$directive->{'xmlCode'   } = $xmlCode;
 			$directive->{$_          } = $build->{$_}
-		        foreach ( "moduleName", "currentFileName", "codeType" );
+		            foreach ( "moduleName", "currentFileName", "codeType" );
 			$directive->{'directive' } = eval{$xml->XMLin($xmlCode, ForceArray => ["data","property","binding"])};
 			die("buildCode.pl: failed in ".$fileProcess->{'name'}." at line ".$lineNumber." with message:\n".$@)
 			    if ( $@ );
 			push(@{$directivesPerFile->{$fileIdentifier}->{'directives'}},$directive);
 			print Dumper($build->{'currentDocument'})
 			    if ( $verbosity == 1 );
+		    } elsif ( exists(${$storables->{'functionClasses'}}{$xmlTag."Class"}) ) {
+			# Identify functionClass instance directives and set the module name to that of the parent functionClass
+			# module, as that is where this function will be found.
+			$build->{'moduleName'} = $storables->{'functionClasses'}->{$xmlTag."Class"}->{'module'};
 		    }
 		}
 	    }

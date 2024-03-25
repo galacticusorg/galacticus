@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -218,24 +218,29 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
     !!}
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOZhao1996), intent(inout) :: self
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
+    if (calculationResetEvent%isAttached(self,zhao1996CalculationReset)) call calculationResetEvent%detach(self,zhao1996CalculationReset)
     return
   end subroutine zhao1996Destructor
 
-  subroutine zhao1996CalculationReset(self,node)
+  subroutine zhao1996CalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOZhao1996), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
+    class  (darkMatterProfileDMOZhao1996), intent(inout) :: self
+    type   (treeNode                    ), intent(inout) :: node
+    integer(kind_int8                   ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%genericLastUniqueID                         =uniqueID
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
@@ -301,7 +306,7 @@ contains
 
   double precision function zhao1996MassUnnormalized(self,node,radiusScaleFree)
     !!{
-    Returns the unnormalzied mass in the dark matter profile of {\normalfont \ttfamily node} at the given
+    Returns the unnormalized mass in the dark matter profile of {\normalfont \ttfamily node} at the given
     {\normalfont \ttfamily radiusScaleFree}.
     !!}
     use :: Error                   , only : Error_Report
@@ -535,9 +540,8 @@ contains
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
     use :: Galacticus_Nodes                , only : nodeComponentBasic
-    use :: Gamma_Functions                 , only : Gamma_Function
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Hypergeometric_Functions        , only : Hypergeometric_pFq_Regularized
+    use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOZhao1996     ), intent(inout)           :: self
@@ -555,19 +559,91 @@ contains
     radiusScale           =   self%scaleRadius (node)
     radiusScaleFree       =  +     radius             &
          &                   /     radiusScale
-    zhao1996Potential     =  +4.0d0                                                                                                                                                                    &
-         &                   *Pi                                                                                                                                                                       &
-         &                   *radiusScaleFree**(2.0d0      -gamma)                                                                                                                                     &
-         &                   /                 (3.0d0      -gamma)                                                                                                                                     &
-         &                   *  Gamma_Function((3.0d0+alpha-gamma)/alpha)                                                                                                                              &
-         &                   /  Gamma_Function((3.0d0      -gamma)/alpha)                                                                                                                              &
-         &                   *(                                                                                                                                                                        &
-         &                     +Gamma_Function((2.0d0      -gamma)/alpha)*Hypergeometric_pFq_Regularized([(2.0d0-gamma)/alpha,(beta-gamma)/alpha],[(2.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha) &
-         &                     -Gamma_Function((3.0d0      -gamma)/alpha)*Hypergeometric_pFq_Regularized([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[(3.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha) &
-         &                    )                                                                                                                                                                        &
-         &                   *gravitationalConstantGalacticus                                                                                                                                          &
-         &                   *self%normalization(node)                                                                                                                                                 &
-         &                   *self %scaleRadius (node)**2
+    select case (self%specialCase%ID)
+    case (specialCaseGeneral%ID)
+       zhao1996Potential  =  -4.0d0                                                                                                                              &
+            &                *Pi                                                                                                                                 &
+            &                *(                                                                                                                                  &
+            &                  +1.0                                                                                                                              &
+            &                  -radiusScaleFree**(2.0d0-gamma)                                                                                                   &
+            &                  *(                                                                                                                                &
+            &                    +Hypergeometric_2F1([(2.0d0-gamma)/alpha,(beta-gamma)/alpha],[(2.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha)/(2.0d0-gamma) &
+            &                    -Hypergeometric_2F1([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[(3.0d0+alpha-gamma)/alpha],-radiusScaleFree**alpha)/(3.0d0-gamma) &
+            &                   )                                                                                                                                &
+            &                 )                                                                                                                                  &
+            &                *gravitationalConstantGalacticus                                                                                                    &
+            &                *self%normalization(node)                                                                                                           &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseNFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *log(1.0d0+radiusScaleFree)       &
+            &                /          radiusScaleFree        &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseCoredNFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *(                                &
+            &                  +0.5d0                          &
+            &                  *          radiusScaleFree      &
+            &                  /   (1.0d0+radiusScaleFree)     &
+            &                  +log(1.0d0+radiusScaleFree)     &
+            &                  /          radiusScaleFree      &
+            &                 )                                &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseGamma0_5NFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *(                                &
+            &                  +1.0d0                          &
+            &                  -2.0d0                          &
+            &                  /3.0d0                          &
+            &                  *sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        /(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  -2.0d0                          &
+            &                  /sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        *(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  +2.0d0                          &
+            &                  *asinh(sqrt(  radiusScaleFree)) &
+            &                  /             radiusScaleFree   &
+            &                 )                                &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case (specialCaseGamma1_5NFW%ID)
+       zhao1996Potential  =  -4.0d0                            &
+            &                *Pi                               &
+            &                *(                                &
+            &                  +1.0d0                          &
+            &                  -2.0d0                          &
+            &                  *sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        /(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  -2.0d0                          &
+            &                  /sqrt(                          &
+            &                        +       radiusScaleFree   &
+            &                        *(1.0d0+radiusScaleFree)  &
+            &                       )                          &
+            &                  +2.0d0                          &
+            &                  *asinh(sqrt(  radiusScaleFree)) &
+            &                  /             radiusScaleFree   &
+            &                 )                                &
+            &                *gravitationalConstantGalacticus  &
+            &                *self%normalization(node)         &
+            &                *self%scaleRadius  (node)**2
+    case default
+       zhao1996Potential=+0.0d0
+       call Error_Report('unknown special case'//{introspection:location})
+    end select
     return
   end function zhao1996Potential
 
@@ -627,8 +703,8 @@ contains
     class           (darkMatterProfileDMOZhao1996  ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    double precision                                , parameter     :: radiusScaleFreeTiny               =1.0d-3
-    double precision                                                :: radiusScale                              , radiusScaleFree, &
+    double precision                                , parameter     :: radiusScaleFreeTiny               =1.0d-3, radiusScaleFreeLarge=1.0d2
+    double precision                                                :: radiusScale                              , radiusScaleFree           , &
          &                                                             velocityDispersionSquaredScaleFree
     
     select case (self%specialCase%ID)
@@ -638,12 +714,18 @@ contains
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
-       if (radiusScaleFree < radiusScaleFreeTiny) then
+       if      (radiusScaleFree < radiusScaleFreeTiny ) then
           ! Use series solution for small radii.
           velocityDispersionSquaredScaleFree=+11.0d0*Pi/15.0d0*radiusScaleFree**4                                                     &
                &                             +       Pi/ 6.0d0*radiusScaleFree**3*(-101.0d0+12.0d0*Pi**2-12.0d0*log(radiusScaleFree)) &
                &                             + 2.0d0*Pi/ 3.0d0*radiusScaleFree**2*(- 59.0d0+ 6.0d0*Pi**2- 6.0d0*log(radiusScaleFree)) &
                &                             +       Pi       *radiusScaleFree   *(- 23.0d0+ 2.0d0*Pi**2- 2.0d0*log(radiusScaleFree))
+       else if (radiusScaleFree > radiusScaleFreeLarge) then
+          ! Use series solution for large radii.
+          velocityDispersionSquaredScaleFree=+Pi*(-  3.0d0+  4.0d0*log(radiusScaleFree))/(   4.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+ 69.0d0+ 20.0d0*log(radiusScaleFree))/(  50.0d0*radiusScaleFree**2) &
+               &                             +Pi*(- 97.0d0- 60.0d0*log(radiusScaleFree))/( 300.0d0*radiusScaleFree**3) &
+               &                             +Pi*(+284.0d0+420.0d0*log(radiusScaleFree))/(3675.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                                                                 &
@@ -691,13 +773,19 @@ contains
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
-       if (radiusScaleFree < radiusScaleFreeTiny) then
+       if      (radiusScaleFree < radiusScaleFreeTiny ) then
           ! Use series solution for small radii.
           velocityDispersionSquaredScaleFree=+(119.0d0*Pi-12.0d0*Pi**3)/ 6.0d0                    &
                &                             +(119.0d0*Pi-12.0d0*Pi**3)/ 2.0d0*radiusScaleFree    &
                &                             +(353.0d0*Pi-36.0d0*Pi**3)/ 6.0d0*radiusScaleFree**2 &
                &                             +(121.0d0*Pi-12.0d0*Pi**3)/ 6.0d0*radiusScaleFree**3 &
                &                                         - 9.0d0*Pi**4 /20.0d0*radiusScaleFree**4
+       else if (radiusScaleFree > radiusScaleFreeLarge) then
+          ! Use series solution for large radii.
+          velocityDispersionSquaredScaleFree=+Pi*(-   5.0d0+   4.0d0*log(radiusScaleFree))/(    4.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+ 177.0d0+  60.0d0*log(radiusScaleFree))/(  100.0d0*radiusScaleFree**2) &
+               &                             +Pi*(- 157.0d0-  60.0d0*log(radiusScaleFree))/(  300.0d0*radiusScaleFree**3) &
+               &                             +Pi*(+5857.0d0+1260.0d0*log(radiusScaleFree))/(14700.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                                                    &
@@ -739,12 +827,18 @@ contains
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
-       if (radiusScaleFree < radiusScaleFreeTiny) then
+       if      (radiusScaleFree < radiusScaleFreeTiny ) then
           ! Use series solution for small radii.
           velocityDispersionSquaredScaleFree=+16.0d0*Pi/  3.0d0*sqrt(radiusScaleFree      )*(- 11.0d0+  16.0d0*log(2.0d0)) &
                &                             +16.0d0*Pi/ 15.0d0*     radiusScaleFree**1.5d0*(-139.0d0+ 200.0d0*log(2.0d0)) &
                &                             + 2.0d0*Pi/  7.0d0*     radiusScaleFree**2.5d0*(-387.0d0+ 560.0d0*log(2.0d0)) &
                &                             + 4.0d0*Pi/189.0d0*     radiusScaleFree**3.5d0*(-887.0d0+1260.0d0*log(2.0d0))
+       else if (radiusScaleFree > radiusScaleFreeLarge) then
+          ! Use series solution for large radii.
+          velocityDispersionSquaredScaleFree=+Pi*(- 29.0d0+ 24.0d0*log(2.0d0)+ 12.0d0*log(radiusScaleFree))/(  12.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+107.0d0+120.0d0*log(2.0d0)+ 60.0d0*log(radiusScaleFree))/( 120.0d0*radiusScaleFree**2) &
+               &                             +Pi*(- 11.0d0- 40.0d0*log(2.0d0)- 20.0d0*log(radiusScaleFree))/(  96.0d0*radiusScaleFree**3) &
+               &                             +Pi*(+ 57.0d0+280.0d0*log(2.0d0)+140.0d0*log(radiusScaleFree))/(1344.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                             &
@@ -755,7 +849,7 @@ contains
                &                                 -38.0d0*sqrt(radiusScaleFree**3*(+1.0d0+radiusScaleFree))  &
                &                                 -57.0d0*sqrt(radiusScaleFree**5*(+1.0d0+radiusScaleFree))  &
                &                                 -24.0d0*sqrt(radiusScaleFree**7*(+1.0d0+radiusScaleFree))  &
-               &                                 -6.0d0                                                     &
+               &                                 - 6.0d0                                                    &
                &                                 *(+1.0d0+      radiusScaleFree                        )**2 &
                &                                 *(+1.0d0+2.0d0*radiusScaleFree                        )    &
                &                                 *(-1.0d0+8.0d0*radiusScaleFree*(1.0d0+radiusScaleFree))    &
@@ -793,12 +887,18 @@ contains
        radiusScale    = self%scaleRadius(node)
        radiusScaleFree=+     radius            &
             &          /     radiusScale
-       if (radiusScaleFree < radiusScaleFreeTiny) then
+       if      (radiusScaleFree < radiusScaleFreeTiny ) then
           ! Use series solution for small radii.
           velocityDispersionSquaredScaleFree=+8.0d0*Pi/   3.0d0*sqrt(radiusScaleFree       )                                                                 &
                &                             -      Pi/3150.0d0*     radiusScaleFree**3.5d0 *(-19861.0d0+60480.0d0*log(2.0d0)-7560.0d0*log(radiusScaleFree)) &
                &                             -      Pi/ 175.0d0*     radiusScaleFree**2.5d0 *(- 8683.0d0+13440.0d0*log(2.0d0)-1680.0d0*log(radiusScaleFree)) &
                &                             -4.0d0*Pi/  75.0d0*     radiusScaleFree**1.5d0 *(-  817.0d0+  960.0d0*log(2.0d0)- 120.0d0*log(radiusScaleFree))
+       else if (radiusScaleFree > radiusScaleFreeLarge) then
+          ! Use series solution for large radii.
+          velocityDispersionSquaredScaleFree=+Pi*(-   7.0d0+   8.0d0*log(2.0d0)+   4.0d0*log(radiusScaleFree))/(    4.0d0*radiusScaleFree   ) &
+               &                             +Pi*(+ 147.0d0+ 120.0d0*log(2.0d0)+  60.0d0*log(radiusScaleFree))/(  200.0d0*radiusScaleFree**2) &
+               &                             +Pi*(-  79.0d0- 840.0d0*log(2.0d0)- 420.0d0*log(radiusScaleFree))/( 2400.0d0*radiusScaleFree**3) &
+               &                             +Pi*(-3589.0d0+7560.0d0*log(2.0d0)+3780.0d0*log(radiusScaleFree))/(33600.0d0*radiusScaleFree**4)
        else
           ! Use full solution.
           velocityDispersionSquaredScaleFree=+(                                                                     &

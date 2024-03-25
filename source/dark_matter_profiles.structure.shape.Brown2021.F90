@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profile shapes  using the \cite{brown_towards_2021} algorithm.
+  An implementation of dark matter halo profile shapes  using the \cite{brown_towards_2022} algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -27,23 +27,23 @@
   <darkMatterProfileShape name="darkMatterProfileShapeBrown2021">
    <description>
     A dark matter profile shape class in which the shape parameter for Einasto density profiles\index{Einasto
-    profile}\index{density profile!Einasto} is computed using a fitting function from \cite[][eqn. 21]{brown_towards_2021}:
+    profile}\index{density profile!Einasto} is computed using a fitting function from \cite[][eqn. 21]{brown_towards_2022}:
     \begin{equation}
     \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 &amp; \hbox{ if } \nu_\alpha &lt; 3.541 \\ 0.3 &amp; \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.
     \end{equation}
     where $\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included
-    since \cite{brown_towards_2021}'s fits do not probe this region and extremely large values of $\alpha$ are numerically
+    since \cite{brown_towards_2022}'s fits do not probe this region and extremely large values of $\alpha$ are numerically
     troublesome.
      
      This implementation accepts any \refClass{cosmologicalMassVarianceClass} object for use in computing for computing
-     $\sigma_\mathrm{c}(M)$. \emph{However}, \cite{brown_towards_2021} recommend using $\sigma_\mathrm{c}(M)$ computed using a
+     $\sigma_\mathrm{c}(M)$. \emph{However}, \cite{brown_towards_2022} recommend using $\sigma_\mathrm{c}(M)$ computed using a
      generalized top-hat window function (\refClass{powerSpectrumWindowFunctionTopHatGeneralized}) with $\mu_\mathrm{g}=0.01$.
    </description>
   </darkMatterProfileShape>
   !!]
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeBrown2021
      !!{
-     A dark matter halo profile shape parameter class implementing the algorithm of \cite{brown_towards_2021}.
+     A dark matter halo profile shape parameter class implementing the algorithm of \cite{brown_towards_2022}.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -121,7 +121,7 @@ contains
   double precision function brown2021Shape(self,node)
     !!{
     Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
-    \cite[][eqn. 21]{brown_towards_2021} algorithm. Specifically, the parameter is given by:
+    \cite[][eqn. 21]{brown_towards_2022} algorithm. Specifically, the parameter is given by:
     \begin{equation}
      \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 & \hbox{ if } \nu_\alpha < 3.541 \\ 0.3 & \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.
     \end{equation}

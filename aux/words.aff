@@ -1,0 +1,6 @@
+SET UTF-8
+
+KEEPCASE A
+
+SFX M Y 1
+SFX M 0 's .

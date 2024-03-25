@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -151,18 +151,19 @@ contains
     return
   end subroutine standardDestructor
 
-  double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
+  double precision function standardEnergyInputCumulative(self,initialMassFunction_,initialMass,age,metallicity)
     !!{
     Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: Numerical_Integration           , only : integrator
     implicit none
-    class           (stellarFeedbackStandard), intent(inout), target :: self
-    double precision                         , intent(in   )         :: age                                                    , initialMass, metallicity
-    double precision                         , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
-    double precision                                                 :: energySNe                                              , energyWinds, lifetime
-    type            (integrator             )                        :: integrator_
+    class           (stellarFeedbackStandard ), intent(inout), target :: self
+    double precision                          , intent(in   )         :: age                                                    , initialMass, metallicity
+    class           (initialMassFunctionClass), intent(inout)         :: initialMassFunction_
+    double precision                          , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
+    double precision                                                  :: energySNe                                              , energyWinds, lifetime
+    type            (integrator              )                        :: integrator_
     
     ! Begin with zero energy input.
     standardEnergyInputCumulative=0.0d0
@@ -182,8 +183,8 @@ contains
        end if
     end if
     ! Add in contribution from Type Ia supernovae.
-    standardEnergyInputCumulative=+standardEnergyInputCumulative                                       &
-         &                        +self%supernovaeTypeIa_%number         (initialMass,age,metallicity) &
+    standardEnergyInputCumulative=+standardEnergyInputCumulative                                                            &
+         &                        +self%supernovaeTypeIa_%number         (initialMassFunction_,initialMass,age,metallicity) &
          &                        *self                  %supernovaEnergy
     ! Add in the contribution from stellar winds.
     self_                         =>  self

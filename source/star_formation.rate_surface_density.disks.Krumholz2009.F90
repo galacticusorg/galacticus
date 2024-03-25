@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,7 +57,7 @@
     and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
     [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
     the gas density on larger scales. Alternatively, if {\normalfont \ttfamily [molecularFractionFast]} is set to true, the
-    molecular fraction will be computed using the faster (but less acccurate at low molecular fraction) formula
+    molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
     \begin{equation}
      f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
     \end{equation}
@@ -263,18 +263,21 @@ contains
     return
   end subroutine krumholz2009Destructor
 
-  subroutine krumholz2009CalculationReset(self,node)
+  subroutine krumholz2009CalculationReset(self,node,uniqueID)
     !!{
     Reset the Kennicutt-Schmidt relation calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
-    type (treeNode                                        ), intent(inout) :: node
+    class  (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
+    type   (treeNode                                        ), intent(inout) :: node
+    integer(kind_int8                                       ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%factorsComputed       =.false.
     self%radiusCriticalPrevious=-1.0d0
     self%radiusMaximumPrevious =-1.0d0
-    self%lastUniqueID          =node%uniqueID()
+    self%lastUniqueID          =uniqueID
     return
   end subroutine krumholz2009CalculationReset
 
@@ -293,7 +296,7 @@ contains
     !$omp threadprivate(abundancesFuel)
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if factors have been precomputed.
     if (.not.self%factorsComputed) then
        ! Get the disk properties.

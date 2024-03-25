@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,9 +128,10 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
-    class(nodeComponentBasic                ), pointer       :: basic
+    class           (coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    class           (nodeComponentBasic                ), pointer       :: basic
+    double precision                                                    :: timeNow, timeDynamical
 
     ! Return the appropriate time.
     if (self%ageFactor == 1.0d0) then
@@ -142,11 +143,14 @@ contains
        whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%timescaleDynamical(node)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
-       basic                       =>  node%basic()
-       whiteFrenk1991TimeAvailable =  +exp(                                                                                 &
-            &                              +log(basic                     %time              (    ))*       self%ageFactor  &
-            &                              +log(self %darkMatterHaloScale_%timescaleDynamical(node))*(1.0d0-self%ageFactor) &
-            &                             )
+       basic                       =>  node %basic                                  (    )
+       timeDynamical               =   self %darkMatterHaloScale_%timescaleDynamical(node)
+       timeNow                     =   basic                     %time              (    )
+       whiteFrenk1991TimeAvailable =  +  timeDynamical   &
+            &                         *(                 &
+            &                           +timeNow         &
+            &                           /timeDynamical   &
+            &                          )**self%ageFactor
     end if
     return
   end function whiteFrenk1991TimeAvailable

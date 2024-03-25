@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -132,15 +132,16 @@ contains
     return
   end subroutine nullSolvePreDeriativeHook
 
-  subroutine nullSolve(self,node)
+  subroutine nullSolve(self,node,plausibilityOnly)
     !!{
     Solve for the structure of galactic components.
     !!}
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    class(galacticStructureSolverNull), intent(inout)         :: self
-    type (treeNode                   ), intent(inout), target :: node
-    !$GLC attributes unused :: self
+    class  (galacticStructureSolverNull), intent(inout)           :: self
+    type   (treeNode                   ), intent(inout), target   :: node
+    logical                             , intent(in   ), optional :: plausibilityOnly
+    !$GLC attributes unused :: self, plausibilityOnly
 
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.

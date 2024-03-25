@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@
   use :: Galactic_Structure          , only : galacticStructureClass
   use :: Kind_Numbers                , only : kind_int8
   use :: Root_Finder                 , only : rootFinder
-
+  
   !![
   <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
    <description>
@@ -54,6 +54,7 @@
      class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      class           (galacticStructureClass      ), pointer :: galacticStructure_       => null()
      double precision                                        :: formFactor
+     logical                                                 :: solverFailureIsFatal
      integer         (kind_int8                   )          :: uniqueIDLast             =  -1
      double precision                                        :: radiusLast               =  -1.0d0
      type            (rootFinder                  )          :: finder
@@ -91,7 +92,8 @@ contains
     class           (hotHaloMassDistributionClass       ), pointer       :: hotHaloMassDistribution_
     class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: formFactor
-
+    logical                                                              :: solverFailureIsFatal
+    
     !![
     <inputParameter>
       <name>formFactor</name>
@@ -100,12 +102,18 @@ contains
          of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>solverFailureIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, failure to bracket the ram pressure radius is fatal.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_)
+    self=hotHaloRamPressureStrippingFont2008(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"    />
@@ -116,7 +124,7 @@ contains
     return
   end function font2008ConstructorParameters
 
-  function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_) result(self)
+  function font2008ConstructorInternal(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
     !!}
@@ -127,9 +135,10 @@ contains
     class           (hotHaloMassDistributionClass       ), intent(in   ), target :: hotHaloMassDistribution_
     class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     double precision                                     , intent(in   )         :: formFactor
+    logical                                              , intent(in   )         :: solverFailureIsFatal
     double precision                                     , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_, *galacticStructure_"/>
+    <constructorAssign variables="formFactor, solverFailureIsFatal, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_, *galacticStructure_"/>
     !!]
 
     ! Solver for the ram pressure stripping radius.
@@ -161,10 +170,12 @@ contains
     !!{
     Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     !!}
-    use :: Display        , only : displayMessage           , verbosityLevelSilent
-    use :: Error          , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
-    use :: Root_Finder    , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
-    use :: String_Handling, only : operator(//)
+    use :: Display         , only : displayMessage           , verbosityLevelSilent
+    use :: Error           , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: String_Handling , only : operator(//)
+    use :: Functions_Global, only : State_Retrieve_          , State_Store_                 , mergerTreeStateStore_        , State_Set_
+
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -181,7 +192,7 @@ contains
     ! Get the virial radius of the satellite.
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Test whether node is a satellite.
-    if (node%isSatellite()) then
+    if (node%isSatellite().and.node%isPhysicallyPlausible) then
        ! Set a pointer to the satellite node.
        self_            => self
        node_            =>                                     node
@@ -204,21 +215,21 @@ contains
              ! radius between ODE steps (i.e. we do not make use of "calculationReset" events to reset the radius) as we
              ! specifically want to retain knowledge from the previous step.
              if (self%radiusLast > 0.0d0 .and. node%uniqueID() == self%uniqueIDLast) then
-                call self%finder%rangeExpand(                                                                           &
-                     &                       rangeExpandDownward          =0.9d0                                      , &
-                     &                       rangeExpandUpward            =1.1d0                                      , &
-                     &                       rangeExpandType              =rangeExpandMultiplicative                  , &
+                call self%finder%rangeExpand(                                                                                                   &
+                     &                       rangeExpandDownward          =0.9d0                                                              , &
+                     &                       rangeExpandUpward            =1.1d0                                                              , &
+                     &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
                      &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
                      &                       rangeUpwardLimit             =                               radiusVirial*(1.0d0+radiusTolerance), &
-                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
-                     &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                &
+                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                      , &
+                     &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                                        &
                      &                      )
              else
-                call self%finder%rangeExpand(                                                                           &
-                     &                       rangeExpandDownward          =0.5d0                                      , &
-                     &                       rangeExpandType              =rangeExpandMultiplicative                  , &
+                call self%finder%rangeExpand(                                                                                                   &
+                     &                       rangeExpandDownward          =0.5d0                                                              , &
+                     &                       rangeExpandType              =rangeExpandMultiplicative                                          , &
                      &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance), &
-                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
+                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                                        &
                      &                      )
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
@@ -230,7 +241,7 @@ contains
                 message=message//trim(adjustl(label))
                 write (label,'(e12.6)') radiusVirialRoot
                 message=message//" / "//trim(adjustl(label))
-                write (label,'(e12.6)') font2008RadiusSolver(radiusVirial)
+                write (label,'(e12.6)') font2008RadiusSolver(radiusVirial*(1.0d0+radiusTolerance))
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
                 message='small radius / root function at small radius = '
@@ -238,23 +249,47 @@ contains
                 message=message//trim(adjustl(label))
                 write (label,'(e12.6)') radiusSmallRoot
                 message=message//" / "//trim(adjustl(label))
-                write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
+                write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial/(1.0d0+radiusTolerance))
                 message=message//" : "//trim(adjustl(label))
                 call displayMessage(message,verbosityLevelSilent)
                 select case (status)
                 case (errorStatusOutOfRange)
                    call displayMessage('could not bracket the root',verbosityLevelSilent)
+                   call node_%serializeASCII()
+                   if (.not.self%solverFailureIsFatal) then
+                      call displayMessage('root finding failed'//{introspection:location})
+                      ! Take the limit closest to the root.
+                      if     (                                                                        &
+                           &   abs(font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)) &
+                           &  <                                                                       &
+                           &   abs(font2008RadiusSolver(                               radiusVirial)) &
+                           & ) then
+                         font2008RadiusStripped=radiusSmallestOverRadiusVirial*radiusVirial
+                      else
+                         font2008RadiusStripped=                               radiusVirial
+                      end if
+                   end if
                 case default
                    call GSL_Error_Details(reason,file,line,status)
                    call displayMessage(var_str('GSL error ')//status//': "'//reason//'" at line '//line//' of file "'//file//'"',verbosityLevelSilent)
                 end select
-                call Error_Report('root finding failed'//{introspection:location})
+                if     (                                 &
+                     &   self%solverFailureIsFatal       &
+                     &  .or.                             &
+                     &   status /= errorStatusOutOfRange &
+                     & ) then                   
+                   message="save state due to failure of hotHaloRamPressureStrippingFont2008 radius solver"
+                   call State_Set_           (var_str('debugState'))
+                   call State_Store_         (message)
+                   call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')
+                   call Error_Report         ('root finding failed'//{introspection:location})
+                end if
              end if
              self%radiusLast=font2008RadiusStripped
           end if
        end if
     else
-       ! If node is not a satellite, return a ram pressure stripping radius equal to the virial radius.
+       ! If node is not a satellite, or is not physically plausible, return a ram pressure stripping radius equal to the virial radius.
        font2008RadiusStripped=radiusVirial
     end if
     return

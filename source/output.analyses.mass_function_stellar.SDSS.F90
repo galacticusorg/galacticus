@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -323,6 +323,7 @@ contains
     <objectDestructor name="galacticFilter_"                                     />
     <objectDestructor name="cosmologyParametersData"                             />
     <objectDestructor name="cosmologyFunctionsData"                              />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     <objectDestructor name="outputAnalysisDistributionOperator_"                 />
     <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
     <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>
@@ -339,7 +340,8 @@ contains
     type(outputAnalysisMassFunctionStellarSDSS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%galacticStructure_"   />
+    <objectDestructor name="self%gravitationalLensing_"/>
     !!]
     return
   end subroutine massFunctionStellarSDSSDestructor

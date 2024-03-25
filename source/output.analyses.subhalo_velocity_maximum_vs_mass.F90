@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@
   !![
   <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
    <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSubhaloVMaxVsMass
@@ -273,7 +274,7 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"        constructor="nodePropertyExtractorMassBound      (                                                                                                                                                   )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_"    constructor="nodePropertyExtractorRadiusOrbital  (                                                                                                                                                   )"/>
-    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial   (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                             )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial   (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusVirialHost_" constructor="nodePropertyExtractorHostNode       (nodePropertyExtractorRadiusVirial_                                                                                                                 )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusFractional_" constructor="nodePropertyExtractorRatio          ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorRadiusVirialHost_)"/>
     <referenceConstruct object="nodeWeightPropertyExtractor_"           constructor="nodePropertyExtractorVelocityMaximum(var_str('VelocityMaximum'),darkMatterProfileDMO_                                                                                                   )"/>
@@ -327,7 +328,7 @@ contains
           outputWeight(:,i)=0.0d0
        end if
     end do
-    ! Construct the mean function analzyer.
+    ! Construct the mean function analyzer.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                                       &
          &                                                                              var_str('subhaloVelocityMaximumMean'                           ), &
          &                                                                              var_str('Subhalo mean maximum velocity vs. bound mass relation'), &

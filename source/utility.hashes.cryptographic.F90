@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,30 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Specify an explicit dependence on the utility.hashes.cryptographic.md5.o object file.
-!: $(BUILDPATH)/utility.hashes.cryptographic.md5.o
+! Specify an explicit dependence on the md5.o object file.
+!: $(BUILDPATH)/md5.o
 
 module Hashes_Cryptographic
   use, intrinsic :: ISO_C_Binding, only : c_char, c_int
   private
   public :: Hash_MD5
 
-#include "os.inc"
-
   interface
-     subroutine md5(textLength,text,hash) bind(c,name='md5')
+     subroutine md5Hash(textLength,input,result) bind(c,name='md5Hash')
        !!{
-       Template for a C function that returns the MD5 of the input.
+       Template for a C function that returns the MD5 hash of the input.
        !!}
        import
        integer  (kind=c_int ), value :: textLength
-#ifdef __APPLE__
-       character(kind=c_char)        :: hash      (21        )
-#else
-       character(kind=c_char)        :: hash      (35        )
-#endif
-       character(kind=c_char)        :: text      (textLength)
-     end subroutine md5
+       character(kind=c_char)        :: input     (textLength)
+       character(kind=c_char)        :: result    (        33)
+     end subroutine md5Hash
   end interface
 
 contains
@@ -50,17 +44,12 @@ contains
           &                           varying_string
     use :: String_Handling   , only : String_C_to_Fortran, char
     implicit none
-    type     (varying_string)                                           :: Hash_MD5
-    type     (varying_string), intent(in   )                            :: text
-#ifdef __APPLE__
-    integer                  , parameter                                :: encryptedStart=10, encryptedEnd=20
-#else
-    integer                  , parameter                                :: encryptedStart=13, encryptedEnd=34
-#endif
-    character(kind=c_char   ), allocatable  , dimension(:             ) :: textC
-    character(kind=c_char   )               , dimension(encryptedEnd+1) :: hash
-    integer  (kind=c_int    )                                           :: textLen
-    integer                                                             :: i
+    type     (varying_string)                               :: Hash_MD5
+    type     (varying_string), intent(in   )                :: text
+    character(kind=c_char   ), allocatable  , dimension(: ) :: textC
+    character(kind=c_char   )               , dimension(33) :: hash
+    integer  (kind=c_int    )                               :: textLen
+    integer                                                 :: i
 
     textLen=len(text)+1
     allocate(textC(textLen))
@@ -68,15 +57,9 @@ contains
        textC(i)=extract(text,i,i)
     end do
     textC(textLen)=char(0)
-    ! The crypt() function that computes the MD5 hash is not thread safe, so use it within an OpenMP critical section.    
-    !$omp critical(md5Hash)
-    call md5(textLen,textC,hash)
-    !$omp end critical(md5Hash)
+    call md5Hash(textLen,textC,hash)
     deallocate(textC)  
-    do i=encryptedStart,encryptedEnd
-       if (hash(i) == "/") hash(i)="@"
-    end do
-    Hash_MD5=String_C_to_Fortran(hash(encryptedStart:encryptedEnd))
+    Hash_MD5=String_C_to_Fortran(hash)
     return
   end function Hash_MD5
 

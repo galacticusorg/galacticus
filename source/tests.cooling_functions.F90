@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -148,8 +148,8 @@ program Test_Cooling_Functions
   coolantSummation       =  coolingFunctionSummation_ %coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('temperature slope',coolantSummation,      coolantCMBCompton,relTol=1.0d-6)
-  ! Begin repeatibility tests.
-  call Unit_Tests_Begin_Group("Repeatibility")
+  ! Begin repeatability tests.
+  call Unit_Tests_Begin_Group("Repeatability")
   ! Compute timescale for Compton cooling off of CMB at the present day.
   call radiation%timeSet(13.8d0)
   coolantCMBCompton=+coolingFunctionCMBCompton_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
@@ -163,7 +163,7 @@ program Test_Cooling_Functions
   call Assert('CMB Compton cooling timescale at z=0',timescaleCooling,976.65342064763729d0,relTol=1.0d-6)
   ! Compute Cloudy cooling time.
   coolantAtomicCIECloudy=+coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-  call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.4155d-30,relTol=1.0d-6)
+  call Assert('Cloudy CIE cooling function',coolantAtomicCIECloudy,1.6229349d-30,relTol=1.0d-6)
   call Unit_Tests_End_Group       ()
   ! End unit tests.
   call Unit_Tests_End_Group       ()

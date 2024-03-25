@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -174,21 +174,24 @@ contains
     return
   end subroutine haloScalingDestructor
 
-  subroutine haloScalingCalculationReset(self,node)
+  subroutine haloScalingCalculationReset(self,node,uniqueID)
     !!{
     Reset the halo scaling star formation timescale calculation.
     !!}
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    class(starFormationTimescaleHaloScaling), intent(inout) :: self
-    type (treeNode                         ), intent(inout) :: node
+    class  (starFormationTimescaleHaloScaling), intent(inout) :: self
+    type   (treeNode                         ), intent(inout) :: node
+    integer(kind_int8                        ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%timescaleComputed=.false.
-    self%lastUniqueID     =node%uniqueID()
+    self%lastUniqueID     =uniqueID
     return
   end subroutine haloScalingCalculationReset
 
-  double precision function haloScalingTimescale(self,component)
+  double precision function haloScalingTimescale(self,component) result(timescale)
     !!{
     Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the halo scaling
     timescale model.
@@ -201,7 +204,7 @@ contains
     double precision                                                   :: expansionFactor, velocityVirial
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (component%hostNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(component%hostNode)
+    if (component%hostNode%uniqueID() /= self%lastUniqueID) call self%calculationReset(component%hostNode,component%hostNode%uniqueID())
     ! Compute the timescale if necessary.
     if (.not.self%timescaleComputed) then
        ! Get virial velocity and expansion factor.
@@ -226,6 +229,6 @@ contains
        self%timescaleComputed=.true.
     end if
     ! Return the stored timescale.
-    haloScalingTimescale=self%timescaleStored
+    timescale=self%timescaleStored
     return
   end function haloScalingTimescale

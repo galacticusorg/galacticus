@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -196,7 +196,7 @@
         use :: Kind_Numbers       , only : kind_int8
         use :: Merger_Tree_Walkers, only : mergerTreeWalkerTreeConstruction
         implicit none
-        class           (mergerTreeBuilderExcursionSetSimulator), intent(inout)          :: self
+        class           (mergerTreeBuilderExcursionSetSimulator), intent(inout), target  :: self
         type            (mergerTree                            ), intent(inout), target  :: tree
         type            (treeNode                              )               , pointer :: node                   , nodeNew              , &
              &                                                                              nodePrior              , nodeProgenitorPrimary
@@ -255,7 +255,7 @@
            ! Find the target excursion for the next step.
            excursionTarget =+     excursionInitial &
                 &           +self%excursionStep
-           ! Set the initial remaining mass and (Lagriangian, comoving) volume of the patch of mass which we will partition into
+           ! Set the initial remaining mass and (Lagrangian, comoving) volume of the patch of mass which we will partition into
            ! progenitors. The initial mass, Mᵢ, is just the mass of the node. The initial volume is Vᵢ = Mᵢ/ρ̅(1+δᵢ), but we
            ! actually just track vᵢ = 1/(1+δᵢ) for convenience, ignoring the constant (for this node) factors.
            volumePatchInitial  =+  1.0d0             &

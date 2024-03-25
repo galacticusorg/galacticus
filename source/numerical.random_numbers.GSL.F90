@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -200,7 +200,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
     !!}
 #ifdef USEMPI
-    use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08, only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
@@ -319,8 +319,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(randomNumberGeneratorGSL  ), intent(inout) :: self
-    class(randomNumberGeneratorClass), intent(inout) :: destination
+    class(randomNumberGeneratorGSL  ), intent(inout), target :: self
+    class(randomNumberGeneratorClass), intent(inout)         :: destination
 
     call self%randomNumberGeneratorClass%deepCopy(destination)
     select type (destination)

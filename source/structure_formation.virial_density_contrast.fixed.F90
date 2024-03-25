@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -169,7 +169,7 @@ contains
        select type (cosmologyFunctions_ => self%cosmologyFunctions_)
        class is (cosmologyFunctionsStaticUniverse)
           ! For a static universe, ``omegaMatterEpochal" is not well defined. So here we use the
-          ! value of ``OmegaMatter" speficifed in the parameter file when doing the conversion.
+          ! value of ``OmegaMatter" specified in the parameter file when doing the conversion.
           fixedDensityContrast=+fixedDensityContrast                                           &
                &               /self%cosmologyParameters_%omegaMatter       ()
        class default

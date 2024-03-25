@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -329,20 +329,22 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Scale_Set
 
-  subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node)
+  subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node,timeEnd)
     !!{
     Merge two black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type            (treeNode              ), intent(inout), target  :: node
-    class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
-         &                                                              blackHolePrimary, blackHoleSecondary
-    double precision                                                 :: massBlackHoleNew, spinBlackHoleNew  , &
-         &                                                              massBlackHole1  , massBlackHole2    , &
-         &                                                              velocityRecoil  , spinBlackHole1    , &
-         &                                                              spinBlackHole2
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBlackHole)               , pointer  :: blackHole1      , blackHole2        , &
+         &                                                               blackHolePrimary, blackHoleSecondary
+    double precision                                                  :: massBlackHoleNew, spinBlackHoleNew  , &
+         &                                                               massBlackHole1  , massBlackHole2    , &
+         &                                                               velocityRecoil  , spinBlackHole1    , &
+         &                                                               spinBlackHole2
+    !$GLC attributes unused :: timeEnd
+    
     ! Get the black holes.
     blackHole1 => node%blackHole(instance=              1)
     blackHole2 => node%blackHole(instance=mergingInstance)
@@ -366,9 +368,9 @@ contains
     massBlackHole2=blackHoleSecondary%mass()
     spinBlackHole1=blackHolePrimary  %spin()
     spinBlackHole2=blackHoleSecondary%spin()
-    ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
+    ! Calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy
     velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
-    ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
+    ! Compare the recoil velocity to the potential and determine whether the binary is ejected or stays in the galaxy.
     if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
        massBlackHoleNew=blackHole1%massSeed()
        spinBlackHoleNew=blackHole1%spinSeed()
@@ -381,24 +383,26 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes
 
-  subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
+  subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node,timeEnd)
     !!{
     Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout), target  :: node
-    class           (nodeComponentBasic    )               , pointer :: basic
-    class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary          , blackHoleCentral           , &
-         &                                                              ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
-         &                                                              tripleBlackHoleComponent
-    integer                                                          :: ejectedInstance          , newBinaryInstance
-    double precision                                                 :: bindingEnergy            , kineticEnergyChange        , &
-         &                                                              massBinary               , massEjected                , &
-         &                                                              massRatioIntruder        , newRadius                  , &
-         &                                                              velocityBinary           , velocityEjected
-    logical                                                          :: removeBinary             , removeEjected
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic    )               , pointer  :: basic
+    class           (nodeComponentBlackHole)               , pointer  :: blackHoleBinary          , blackHoleCentral           , &
+         &                                                               ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
+         &                                                               tripleBlackHoleComponent
+    integer                                                           :: ejectedInstance          , newBinaryInstance
+    double precision                                                  :: bindingEnergy            , kineticEnergyChange        , &
+         &                                                               massBinary               , massEjected                , &
+         &                                                               massRatioIntruder        , newRadius                  , &
+         &                                                               velocityBinary           , velocityEjected
+    logical                                                           :: removeBinary             , removeEjected
+    !$GLC attributes unused :: timeEnd
 
     ! Get the basic component.
     basic            => node%basic    (                       )
@@ -467,7 +471,7 @@ contains
          &      +blackHoleCentral           %mass()
     velocityEjected=sqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
     velocityBinary =sqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
-    ! Determine whether the ejected black hole is actualy ejected.
+    ! Determine whether the ejected black hole is actually ejected.
     removeEjected=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityEjected,ejectedBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.false.)
     ! Determine whether the binary black hole is ejected.
     removeBinary=Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityBinary,newBinaryBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.true. )

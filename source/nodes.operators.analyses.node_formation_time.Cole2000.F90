@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -118,7 +118,7 @@ contains
     Initialize node formation times.
     !!}
     implicit none
-    class(nodeOperatorNodeFormationTimeCole2000), intent(inout)          :: self
+    class(nodeOperatorNodeFormationTimeCole2000), intent(inout), target  :: self
     type (treeNode                             ), intent(inout), target  :: node
 
     ! Initialize the formation time in any leaf node.
@@ -150,7 +150,7 @@ contains
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic
     implicit none
     class    (nodeOperatorNodeFormationTimeCole2000), intent(inout), target  :: self
-    type     (treeNode                             ), intent(inout)          :: node
+    type     (treeNode                             ), intent(inout), target  :: node
     logical                                         , intent(inout)          :: interrupt
     procedure(interruptTask                        ), intent(inout), pointer :: functionInterrupt
     integer                                         , intent(in   )          :: propertyType
@@ -171,11 +171,13 @@ contains
     return
   end subroutine nodeFormationTimeCole2000DifferentialEvolution
 
-  subroutine reformOnInterrupt(node)
+  subroutine reformOnInterrupt(node,timeEnd)
     !!{
     Wrapper function to perform node reformation during interrupt of differential evolution.
     !!}
-    type(treeNode), intent(inout), target :: node
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
 
     call self_%reform(node)
     return

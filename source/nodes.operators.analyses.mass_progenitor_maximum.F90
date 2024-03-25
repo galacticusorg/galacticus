@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorMassProgenitorMaximum">
     <description>
-      A node operator class that tracks the maximum progneitor halo mass of a node. Intended to be paired with the
+      A node operator class that tracks the maximum progenitor halo mass of a node. Intended to be paired with the
       \refClass{nodePropertyExtractorMassProgenitorMaximum} class to extract those ages for output.
     </description>
   </nodeOperator>
@@ -85,7 +85,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (nodeOperatorMassProgenitorMaximum), intent(inout)          :: self
+    class           (nodeOperatorMassProgenitorMaximum), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node
     type            (treeNode                         )               , pointer :: nodeProgenitor
     class           (nodeComponentBasic               )               , pointer :: basic         , basicProgenitor

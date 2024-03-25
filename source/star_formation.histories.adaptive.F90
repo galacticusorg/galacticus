@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,7 +53,7 @@
   
     This approach ensures that the number of timesteps never exceeds {\normalfont \ttfamily [countTimeStepsMaximum]}, results
     in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
-    the output time, and allows simple (interpolation-free) consolidation of accumulate star formation from the previous output
+    the output time, and allows simple (interpolation-free) consolidation of accumulated star formation from the previous output
     time's timesteps to those of the current output time.
   
     Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
@@ -64,41 +64,6 @@
     history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
     used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
     [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added automatically.
-  
-    Star formation histories are output as follows:
-    \begin{verbatim}
-    GROUP "starFormationHistories" {
-       COMMENT "Star formation history data."
-       GROUP "Output1" {
-          COMMENT "Star formation histories for all trees at each output."
-          DATASET "diskStarFormationHistory" {
-          COMMENT "Star formation history of the disk component."
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
-          }
-          DATASET "metallicity" {
-          COMMENT "Metallicities at which the star formation history is tabulated [Zsun]."
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( [countMetallicities] ) }
-          }
-          DATASET "spheroidStarFormationHistory" {
-          COMMENT "Star formation history of the spheroid component."
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
-          }
-          DATASET "time" {
-          COMMENT "Times at which the star formation history is tabulated [Gyr]."
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( [countTimes] ) ) }
-          }
-       }
-       GROUP "Output2" {
-        .
-        .
-        .
-       }
-    }
-    \end{verbatim}
    </description>
   </starFormationHistory>
   !!]
@@ -117,20 +82,14 @@
      double precision                  , allocatable, dimension(:,:,:,:) :: starFormationHistoryBuffer
      integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
    contains
-     !![
-     <methods>
-      <method description="Output all star formation history data accumulated in the output buffers." method="outputBuffers"/>
-     </methods>
-     !!]
      final     ::                                adaptiveDestructor
      procedure :: create                      => adaptiveCreate
+     procedure :: update                      => adaptiveUpdate
      procedure :: rate                        => adaptiveRate
-     procedure :: output                      => adaptiveOutput
-     procedure :: outputFlush                 => adaptiveOutputFlush
      procedure :: scales                      => adaptiveScales
-     procedure :: outputBuffers               => adaptiveOutputBuffers
+     procedure :: times                       => adaptiveTimes
      procedure :: metallicityBoundaries       => adaptiveMetallicityBoundaries
-     procedure :: perOutputTabualtionIsStatic => adaptivePerOutputTabualtionIsStatic
+     procedure :: perOutputTabulationIsStatic => adaptivePerOutputTabulationIsStatic
      procedure :: descriptor                  => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
@@ -412,24 +371,29 @@ contains
     return
   end subroutine adaptiveDestructor
 
-  subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin)
+  subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin,timeEnd)
     !!{
     Create the history required for storing star formation history.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (starFormationHistoryAdaptive), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    type            (history                     ), intent(inout) :: historyStarFormation
-    double precision                              , intent(in   ) :: timeBegin
-    class           (nodeComponentBasic          ), pointer       :: basic
-    integer         (c_size_t                    )                :: indexOutput
-    double precision                                              :: timeNext
+    class           (starFormationHistoryAdaptive), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (history                     ), intent(inout)           :: historyStarFormation
+    double precision                              , intent(in   )           :: timeBegin
+    double precision                              , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic          ), pointer                 :: basic
+    integer         (c_size_t                    )                          :: indexOutput
+    double precision                                                        :: timeNext
     !$GLC attributes unused :: timeBegin
 
     ! Get the time and index of the next output
-    basic    => node             %basic   (                                                )
-    timeNext =  self%outputTimes_%timeNext(timeCurrent=basic%time(),indexOutput=indexOutput)
+    if (present(timeEnd)) then
+       indexOutput=self%outputTimes_%index(timeEnd)
+    else
+       basic    => node             %basic   (                                                )
+       timeNext =  self%outputTimes_%timeNext(timeCurrent=basic%time(),indexOutput=indexOutput)
+    end if
     ! Create the appropriate history.
     call historyStarFormation%create(int(self%countMetallicities+1),size(self%intervals(indexOutput)%time))
     historyStarFormation%time=self%intervals(indexOutput)%time
@@ -480,38 +444,19 @@ contains
     return
   end subroutine adaptiveRate
 
-  subroutine adaptiveOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
+  subroutine adaptiveUpdate(self,node,indexOutput,historyStarFormation)
     !!{
-    Output the star formation history for {\normalfont \ttfamily node}.
+    Update the star formation history after outputting.
     !!}
     implicit none
-    class           (starFormationHistoryAdaptive), intent(inout)         :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    logical                                       , intent(in   )         :: nodePassesFilter
-    type            (history                     ), intent(inout)         :: historyStarFormation
-    integer         (c_size_t                    ), intent(in   )         :: indexOutput
-    integer         (kind=kind_int8              ), intent(in   )         :: indexTree
-    type            (enumerationComponentTypeType), intent(in   )         :: componentType
-    type            (ompLock                     ), intent(inout)         :: treeLock
-    integer         (c_size_t                    )                        :: iStart              , iEnd, &
-         &                                                                   i
-    type            (history                     )                        :: newHistory
-
-    ! If the node is to be output, accumulate its star formation history to the output buffers.
-    if (nodePassesFilter) then
-       ! If the current output is not the same as the previous, output any buffered data.
-       if (self%indexOutput(componentType%ID) /= indexOutput) call self%outputBuffers(componentType,treeLock)
-       self%indexOutput(componentType%ID)=indexOutput
-       ! Accumulate the current node to the output buffer.
-       self   %indexOutputBuffer         (                                                                                    componentType%ID)=self                %indexOutputBuffer(componentType%ID)+1_c_size_t
-       if (historyStarFormation%exists()) then                                                                                          
-          self%starFormationHistoryBuffer(1:size(self%intervals(indexOutput)%time),:,self%indexOutputBuffer(componentType%ID),componentType%ID)=historyStarFormation%data             (:,:             )
-       else                                                                                                                             
-          self%starFormationHistoryBuffer(1:size(self%intervals(indexOutput)%time),:,self%indexOutputBuffer(componentType%ID),componentType%ID)=0.0d0
-       end if
-       ! If the buffer is full, output it.
-       if (self%indexOutputBuffer(componentType%ID) == self%countOutputBuffer) call self%outputBuffers(componentType,treeLock)
-    end if
+    class  (starFormationHistoryAdaptive), intent(inout)         :: self
+    type   (treeNode                    ), intent(inout), target :: node
+    integer(c_size_t                    ), intent(in   )         :: indexOutput
+    type   (history                     ), intent(inout)         :: historyStarFormation
+    integer(c_size_t                    )                        :: iStart              , iEnd, &
+         &                                                          i
+    type    (history                    )                        :: newHistory
+    !$GLC attributes unused :: node                                                                                                                                                                                     
     ! If another output exists map the existing star formation history to the time bins of the next output.
     if (historyStarFormation%exists() .and. indexOutput < size(self%intervals)) then
        call newHistory%create(int(self%countMetallicities+1),size(self%intervals(indexOutput+1)%time))
@@ -534,21 +479,8 @@ contains
        call newHistory%destroy()
     end if
     return
-  end subroutine adaptiveOutput
+  end subroutine adaptiveUpdate
 
-  subroutine adaptiveOutputFlush(self,componentType,treeLock)
-    !!{
-    Flush any buffered star formation history data.
-    !!}
-    implicit none
-    class(starFormationHistoryAdaptive), intent(inout) :: self
-    type (enumerationComponentTypeType), intent(in   ) :: componentType
-    type (ompLock                     ), intent(inout) :: treeLock
-
-    call self%outputBuffers(componentType,treeLock)     
-    return
-  end subroutine adaptiveOutputFlush
-  
   subroutine adaptiveScales(self,historyStarFormation,massStellar,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
@@ -571,49 +503,6 @@ contains
     deallocate(timeSteps)
     return
   end subroutine adaptiveScales
-
-  subroutine adaptiveOutputBuffers(self,componentType,treeLock)
-    !!{
-    Output all star formation history data in the output buffers.
-    !!}
-    use :: Output_HDF5               , only : outputFile
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: HDF5_Access               , only : hdf5Access
-    use :: IO_HDF5                   , only : hdf5Object
-    use :: String_Handling           , only : operator(//)
-    implicit none
-    class(starFormationHistoryAdaptive), intent(inout) :: self
-    type (enumerationComponentTypeType), intent(in   ) :: componentType
-    type (ompLock                     ), intent(inout) :: treeLock
-    type (hdf5Object                  )                :: historyGroup   , outputGroup
-    type (varying_string              )                :: nameOutputGroup, nameStarFormationHistory
-    
-    ! Return immediately if there is no buffered output.
-    if (self%indexOutputBuffer(componentType%ID) <= 0_c_size_t) return
-    if (.not.treeLock%ownedByThread()) call treeLock%set()
-    nameOutputGroup         =var_str                       ("Output"                           )//self%indexOutput(componentType%ID)
-    nameStarFormationHistory=enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"StarFormationHistory"
-    !$ call hdf5Access%set()
-    historyGroup=outputFile  %openGroup("starFormationHistories","Star formation history data."                          )
-    outputGroup =historyGroup%openGroup(char(nameOutputGroup)   ,"Star formation histories for all trees at each output.")
-    if (.not.outputGroup%hasDataset('time')) then
-       call outputGroup%writeDataset(self%intervals(self%indexOutput(componentType%ID))%time            ,"time"       ,"Times at which the star formation history is tabulated [Gyr]."       )
-       call outputGroup%writeDataset(self                                              %metallicityTable,"metallicity","Metallicities at which the star formation history is tabulated [Z☉].")
-    end if
-    call outputGroup%writeDataset(                                                                                                                                                                                &
-         &                                        self%starFormationHistoryBuffer(1:size(self%intervals(self%indexOutput(componentType%ID))%time),:,1:self%indexOutputBuffer(componentType%ID),componentType%ID), &
-         &                                                                          char(nameStarFormationHistory                                           )                                                   , &
-         &                                        "Star formation history of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component."                                    , &
-         &                        appendTo       =.true.                                                                                                                                                        , &
-         &                        appendDimension=3                                                                                                                                                             , &
-         &                        chunkSize      =self%countOutputBuffer                                                                                                                                          &
-         &                       )
-    call  outputGroup%close()
-    call historyGroup%close()
-    !$ call hdf5Access%unset()
-    self%indexOutputBuffer(componentType%ID)=0_c_size_t
-    return
-  end subroutine adaptiveOutputBuffers
   
   function adaptiveMetallicityBoundaries(self)
     !!{
@@ -628,18 +517,32 @@ contains
     return
   end function adaptiveMetallicityBoundaries
 
-  logical function adaptivePerOutputTabualtionIsStatic(self)
+  function adaptiveTimes(self,indexOutput)
+    !!{
+    Return the times used in this tabulation.
+    !!}
+    implicit none
+    double precision                              , allocatable  , dimension(:) :: adaptiveTimes
+    class           (starFormationHistoryAdaptive), intent(inout)               :: self
+    integer         (c_size_t                    ), intent(in   )               :: indexOutput
+
+    allocate(adaptiveTimes(size(self%intervals(indexOutput)%time)))
+    adaptiveTimes=self%intervals(indexOutput)%time
+    return
+  end function adaptiveTimes
+
+  logical function adaptivePerOutputTabulationIsStatic(self)
     !!{
     Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
     !!}
     implicit none
     class(starFormationHistoryAdaptive), intent(inout) :: self
 
-    adaptivePerOutputTabualtionIsStatic=.true.
+    adaptivePerOutputTabulationIsStatic=.true.
     return
-  end function adaptivePerOutputTabualtionIsStatic
+  end function adaptivePerOutputTabulationIsStatic
 
-  subroutine adaptiveDescriptor(self,descriptor,includeClass)
+  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -648,7 +551,7 @@ contains
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor
-    logical                                , intent(in   ), optional :: includeClass
+    logical                                , intent(in   ), optional :: includeClass              , includeFileModificationTimes
     character(len=18                      )                          :: parameterLabel
     type     (inputParameters             )                          :: parameters
     integer                                                          :: i
@@ -668,6 +571,6 @@ contains
        metallicityBoundariesLabel=metallicityBoundariesLabel//trim(adjustl(parameterLabel))//" "
     end do
     call parameters%addParameter('metallicityBoundaries',char(metallicityBoundariesLabel))
-    call self%outputTimes_%descriptor(parameters)
+    call self%outputTimes_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine adaptiveDescriptor

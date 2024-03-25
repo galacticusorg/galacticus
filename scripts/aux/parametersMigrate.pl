@@ -174,6 +174,27 @@ my %translations =
 	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestruction[\@value]"           => "massDestructionAbsolute"                                        ,
 	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestructionFractional[\@value]" => "massDestructionMassInfallFraction"                              ,
 	 }
+     },
+     "50628ba20834080556274c4afc11bdf794a3e8b3" => {
+	 names => {
+	     "//transferFunction[\@value='axionCAMB']/axionCambCountPerDecade[\@value]"                       => "countPerDecade"                                                 ,
+	 }
+     },
+     "f27a00e1de9bb8e77359c754fae445ea8788513c" => {
+     	 values => {
+     	     "//nodePropertyExtractor[\@value]"                                                               => {"descendents"    => "descendants"   }
+	 }
+     },
+     "ba10db0db7b0828b7e55bea0d2dd5113503fa971" => {
+	 values => {
+	     "//galacticFilter[\@value]"                                                                      => {"descendentNode" => "descendantNode"}                           ,
+	     "//nodePropertyExtractor[\@value]"                                                               => {"descendentNode" => "descendantNode"}
+	 }
+     },
+     "beab8e9234f4f7e986ec2d90b85bf4ec7dd8580b" => {
+	 values => {
+	     "//nodePropertyExtractor[\@value]"                                                               => {"radiusHalfMass" => "radiusHalfMassStellar"}
+	 }
      }
     );
      

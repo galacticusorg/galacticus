@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -160,7 +160,7 @@ contains
     type            (treeNode            ), intent(inout) :: node                                 , host
     !$GLC attributes unused :: self, node, host
 
-    ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector tangential velocity is zero.
+    ! Since the tangential velocity is assumed to be isotropically distributed the mean of the vector tangential velocity is zero.
     isotropicVelocityTangentialVectorMean=0.0d0
     return
   end function isotropicVelocityTangentialVectorMean
@@ -188,7 +188,7 @@ contains
     type            (treeNode            ), intent(inout) :: node                              , host
     !$GLC attributes unused :: self, node, host
 
-    ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector angular momentum is zero.
+    ! Since the tangential velocity is assumed to be isotropically distributed the mean of the vector angular momentum is zero.
     isotropicAngularMomentumVectorMean=0.0d0
     return
   end function isotropicAngularMomentumVectorMean

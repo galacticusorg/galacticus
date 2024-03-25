@@ -9,7 +9,7 @@ The hierarchy of classes describing a merger tree node and its galaxy (i.e. {\no
 Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a simple hash containing the following entries:
 \begin{description}
   \item[intrinsic] a string specifying the intrinsic Fortran type ({\normalfont \ttfamily integer}, {\normalfont \ttfamily logical}, {\normalfont \ttfamily real}, {\normalfont \ttfamily double precision}, {\normalfont \ttfamily complex}, {\normalfont \ttfamily double complex}, {\normalfont \ttfamily type}, {\normalfont \ttfamily class}, {\normalfont \ttfamily procedure});
-  \item[type] \emph{[optional, except for {\normalfont \ttfamily type} and {\normalfont \ttfamily class} instrinics]} a string specifying the type of the variables;
+  \item[type] \emph{[optional, except for {\normalfont \ttfamily type} and {\normalfont \ttfamily class} intrinsics]} a string specifying the type of the variables;
   \item[attributes] an array of strings specifying all attributes of the variables;
   \item[variables] an array of strings giving the names of the variables.
 \end{description}
@@ -82,7 +82,7 @@ Definitions of interfaces are accumulated to the hash {\normalfont \ttfamily \$b
 
 \subsubsection{Functions}\label{sec:buildHierarchyFunctions}
 
-Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (this is the prefered method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
+Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (this is the preferred method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
 \begin{verbatim}
 {
  type        => <the type of function>
@@ -209,7 +209,7 @@ will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\
  !#  </table2DLinLinLin>  
  !# </stateStorable>
 \end{verbatim}
-This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the classs or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
+This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
 
 \subsection{Conditional Call}
 
@@ -324,7 +324,7 @@ The {\normalfont \ttfamily inputParameter} directive reads an input parameter an
 
 In this case, the value of the {\normalfont \ttfamily HubbleConstant} parameter is assigned to the {\normalfont \ttfamily hubbleConstant} variable, with a default of $69.7$ if no value was specified in the input parameter file. If the {\normalfont \ttfamily source} element is present, the parameter will be read from the named {\normalfont \ttfamily inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The {\normalfont \ttfamily defaultSource}, {\normalfont \ttfamily <description>The}, {\normalfont \ttfamily type}, and {\normalfont \ttfamily cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
 
-It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named ``{\normalfont \ttfamily fileNameForXXXXXXIMF}'' where ``{\normalfont \ttfamily XXXXXX}'' equals the {\normalfont \ttfamily name} element each {\normalfont \ttfamily imfRegisterName} dircetive:
+It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named ``{\normalfont \ttfamily fileNameForXXXXXXIMF}'' where ``{\normalfont \ttfamily XXXXXX}'' equals the {\normalfont \ttfamily name} element each {\normalfont \ttfamily imfRegisterName} directive:
 \begin{lstlisting}
     !# <inputParameter>
     !#   <iterator>fileNameFor(#imfRegisterName->name)IMF</iterator>
@@ -482,7 +482,7 @@ The preprocessor supports generic programming by allowing generic types to be de
 \end{lstlisting}
 The above defines a generic type, which will be identified using the label ``{\normalfont \ttfamily Type}''. The directive contains several {\normalfont \ttfamily instance} elements, each of which specifies a specific type which should be implemented for the generic type. Each instance can contain an arbitrary number of attributes which specify strings or regular expressions which will be used to construct the specific implementation.
 
-A generic directive applies to the entire unit within which it is scoped. The preprocessor will examine every element within that unit. If a generic tag (see below) is found in the opening of any subunit, that entire subunit is copied once for each instance, and any generic tags replaced with the appropriate content from the {\normalfont \ttfamily instance} element. Where a generic tag is found in a non-opening line (and that line is not contained within a subunit whose opener \emph{does} contain a generci tag), the line itself is replicated in the same way.
+A generic directive applies to the entire unit within which it is scoped. The preprocessor will examine every element within that unit. If a generic tag (see below) is found in the opening of any subunit, that entire subunit is copied once for each instance, and any generic tags replaced with the appropriate content from the {\normalfont \ttfamily instance} element. Where a generic tag is found in a non-opening line (and that line is not contained within a subunit whose opener \emph{does} contain a generic tag), the line itself is replicated in the same way.
 
 An example of the usage of generic tags using the above generic directive is:
 \lstset{escapechar=@}

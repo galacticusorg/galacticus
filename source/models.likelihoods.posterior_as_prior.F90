@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,7 @@
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
    <description>
     The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the
-    likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
+    likelihood an estimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
     simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
     subparameters:
     \begin{description}
@@ -38,7 +38,7 @@
     \item[{\normalfont \ttfamily wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
     \end{description}
     
-    This method uses the \gls{ann} library to locate {\normalfont \ttfamily neightborCount} nearest neighbor points in the set of
+    This method uses the \gls{ann} library to locate {\normalfont \ttfamily neighborCount} nearest neighbor points in the set of
     converged states found in the given chains. The {\normalfont \ttfamily tolerance} element determines the accuracy of nearest
     neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
     mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
@@ -298,7 +298,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
-    type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_, modelParametersInactive_
+    type            (modelParameterList                       ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
     double precision                                           , intent(in   )               :: temperature           , logLikelihoodCurrent    , &
          &                                                                                      logPriorCurrent       , logPriorProposed

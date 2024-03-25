@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,16 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a posterior sampling state initializor class which initializes all chains to values read from a parameter file.
+  Implementation of a posterior sampling state initializer class which initializes all chains to values read from a parameter file.
   !!}
 
   use :: ISO_Varying_String, only : varying_string
 
   !![
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile">
-   <description>
-    This class initializes all chains to values read from a parameter file.
-  </description>
+    <description>
+      This class initializes all chains to values read from a parameter file.
+    </description>
+    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeParameterFile
@@ -102,7 +103,7 @@ contains
     class           (posteriorSampleStateInitializeParameterFile), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass             ), intent(inout)               :: modelLikelihood
-    type            (modelParameterList                         ), intent(in   ), dimension(:) :: modelParameters_
+    type            (modelParameterList                         ), intent(inout), dimension(:) :: modelParameters_
     double precision                                             , intent(  out)               :: timeEvaluatePrevious, logLikelihood    , &
          &                                                                                        logPosterior
     type            (varying_string                             ), allocatable  , dimension(:) :: parameterNames

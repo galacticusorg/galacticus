@@ -189,6 +189,6 @@ contains
     class(darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     !$GLC attributes unused :: darkMatterProfileDMO_
 
-    DDMv2SpecificEnergyIsEverywhereZero=(self%lifetime_ <= 0.0d0) .or. (self%massSplitting_ <= 0.0d0) .or. (.not. (self%heating_ .or. self%massLoss_))
+    DDMv2SpecificEnergyIsEverywhereZero=(self%lifetime_ <= 0.0d0) .or. (self%massSplitting_ <= 0.0d0) .or. (.not. (self%heating_ .or. self%massLoss_))       
     return
   end function DDMv2SpecificEnergyIsEverywhereZero

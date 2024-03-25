@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -529,7 +529,7 @@ contains
     else
        fractionalRadiusMinimum=0.0d0
     end if
-    if (specialCaseMoment /= 0) then
+    if (specialCaseMoment /= -huge(0)) then
        ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.
        betaProfileDensityRadialMoment=                                          &
             & +betaProfileDensityRadialMoment                                   &
@@ -684,7 +684,7 @@ contains
     return
   end function betaProfileDensitySquareIntegral
   
-  subroutine betaProfileDescriptor(self,descriptor,includeClass)
+  subroutine betaProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -692,10 +692,11 @@ contains
     implicit none
     class    (massDistributionBetaProfile), intent(inout)           :: self
     type     (inputParameters            ), intent(inout)           :: descriptor
-    logical                               , intent(in   ), optional :: includeClass
+    logical                               , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                     )                          :: parameterLabel
     type     (inputParameters            )                          :: parameters
-
+    !$GLC attributes unused :: includeFileModificationTimes
+    
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','betaProfile')
     parameters=descriptor%subparameters('massDistribution')
     write (parameterLabel,'(e17.10)') self%densityNormalization

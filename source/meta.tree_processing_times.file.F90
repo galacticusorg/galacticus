@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -108,13 +108,7 @@ contains
     
     ! Parse the fit file.
     !$omp critical (FoX_DOM_Access)
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
     doc => parseFile(char(fileName),iostat=ioStatus)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     if (ioStatus /= 0) call Error_Report('Unable to find or parse tree timing file'//{introspection:location})
     fit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
     call XML_Array_Read_Static(fit,"coefficient",self%fitCoefficient)

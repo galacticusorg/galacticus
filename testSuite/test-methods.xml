@@ -320,6 +320,9 @@
 	  <nodeOperator value="positionOrphans" iterable="no"/>
 	</nodeOperator>
       </componentPosition>
+      <allowSubhaloPromotions value="true"/>
+      <alwaysPromoteMostMassive value="false"/>
+      <alwaysPromoteMostMassive value="true"/>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
@@ -650,6 +653,15 @@
     <version>0.9.4</version>
     <componentBlackHole value="standard">
     <outputData value="true"/>
+    <nodePropertyExtractor value="multi" parameterLevel="top">
+      <nodePropertyExtractor value="nodeIndices"                   iterable="no"/>
+      <nodePropertyExtractor value="massBlackHoles"                iterable="no"/>
+      <nodePropertyExtractor value="spinBlackHoles"                iterable="no"/>
+      <nodePropertyExtractor value="radiativeEfficiencyBlackHoles" iterable="no"/>
+      <nodePropertyExtractor value="radiusBlackHoles"              iterable="no"/>
+      <nodePropertyExtractor value="massAccretionRateBlackHoles"   iterable="no"/>
+      <nodePropertyExtractor value="jetPowerBlackHoles"            iterable="no"/>
+    </nodePropertyExtractor>
   </componentBlackHole>
 
   </parameters>
@@ -980,11 +992,11 @@
     <nodePropertyExtractor value="virialProperties"/>
   </parameters>
   
-  <!-- Output descendent indices -->
+  <!-- Output descendant indices -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <nodePropertyExtractor value="descendents"/>
+    <nodePropertyExtractor value="descendants"/>
     <componentSatellite value="standard"/>
   </parameters>
   
@@ -1051,10 +1063,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <componentBlackHole value="standard">
-    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
-  </componentBlackHole>
-
+      <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+      <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+    </componentBlackHole>
   </parameters>
 
   <!-- Hot halo ram pressure forces -->
@@ -1279,6 +1290,18 @@
     </powerSpectrumWindowFunction>
   </parameters>
 
+  <!-- Power spectrum normalization methods -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8 value="0.807"/>
+    </cosmologicalMassVariance>
+    <cosmologicalMassVariance value="filteredPower">
+      <normalizationScalar value="2.092e-9"/>
+    </cosmologicalMassVariance>
+  </parameters>
+
   <!-- Dark energy cosmology -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1289,9 +1312,9 @@
     </cosmologyFunctions>
     <criticalOverdensity value="sphericalCollapseClsnlssMttrDrkEnrgy"/>
     <virialDensityContrast value="sphericalCollapseClsnlssMttrDrkEnrgy">
-  <energyFixedAt value="turnaround"/>
-  </virialDensityContrast>
-    </parameters>
+      <energyFixedAt value="turnaround"/>
+    </virialDensityContrast>
+  </parameters>
 
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>
@@ -1480,15 +1503,6 @@
       <velocitySuppressionReionization value="35.0"/>
     </accretionHalo>
     <mergerRemnantSize value="null"/>
-  </parameters>
-
-  <!-- Parallel processing of individual trees -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <task value="evolveForests">
-      <evolveSingleForest value="true"/>
-    </task>
   </parameters>
 
   <!-- Merger tree augmenting -->
@@ -2474,4 +2488,48 @@
     </nodeOperator>
   </parameters>
   
+  <!-- Output time options -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputTimes value="list">
+      <redshifts value="0.0 0.2 0.4"/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <timeMinimum value=" 1.0"/>
+      <timeMaximum value="13.0"/>
+      <countTimes  value=" 4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <timeMinimum     value="1.0"/>
+      <redshiftMinimum value="0.1"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <redshiftMaximum value=" 4.0"/>
+      <timeMaximum     value="13.0"/>
+      <countTimes      value=" 4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInRedshift">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+    <outputTimes value="logarithmicSpacingInRedshift">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+    <outputTimes value="logarithmicSpacingInCriticalOverdensity">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+  </parameters>
+
 </parameterGrid>

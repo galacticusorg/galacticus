@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,48 +61,55 @@ contains
     return
   end subroutine Merger_Tree_Prune_Clean_Branch
 
-  subroutine Merger_Tree_Prune_Unlink_Parent(node,parentNode,parentWillBePruned,preservePrimaryProgenitor)
+  subroutine Merger_Tree_Prune_Unlink_Parent(node,nodeParent,parentWillBePruned,preservePrimaryProgenitor)
     !!{
     Unlink a parent node from a tree branch which is about to be pruned.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    type   (treeNode          ), intent(inout), pointer :: node              , parentNode
+    type   (treeNode          ), intent(inout), pointer :: node              , nodeParent
     logical                    , intent(in   )          :: parentWillBePruned, preservePrimaryProgenitor
-    type   (treeNode          ), pointer                :: newNode           , workNode
-    class  (nodeComponentBasic), pointer                :: newBasic
-
+    type   (treeNode          ), pointer                :: nodeNew           , nodeWork
+    class  (nodeComponentBasic), pointer                :: basicNew
+    integer                                             :: i
+    
     ! Check primary progenitor status.
-    if (node%isPrimaryProgenitorOf(parentNode)) then
+    if (node%isPrimaryProgenitorOf(nodeParent)) then
        ! Node is primary progenitor - we must check if the parent will be pruned also.
        if (parentWillBePruned.or..not.preservePrimaryProgenitor) then
           ! Parent will eventually be pruned - simply replace the current first child (about to pruned) with its
           ! sibling. Alternatively, we've been asked to not preserve primary progenitor status by inserting cloned nodes.
-          parentNode%firstChild => node%sibling
+          nodeParent%firstChild => node%sibling
        else
           ! Parent will not be pruned. Insert a clone of the parent as its own first progenitor to prevent any siblings of the
           ! to-be-pruned branch being misidentified as the primary progenitor.
-          allocate(newNode)
-          call parentNode%copyNodeTo(newNode)
-          newNode%sibling        => node%sibling
-          newNode%parent         => parentNode
-          parentNode%firstChild  => newNode
-          newNode%firstChild     => null()
-          newNode%event          => null()
-          newNode%firstSatellite => null()
-          newNode%firstMergee    => null()
-          newNode%mergeTarget    => null()
-          newNode%siblingMergee  => null()
-          newBasic               => newNode%basic()
-          call newBasic%timeSet(newBasic%time()*(1.0d0-1.0d-6))
+          allocate(nodeNew)
+          call nodeParent%copyNodeTo(nodeNew)
+          nodeNew%sibling        => node%sibling
+          nodeNew%parent         => nodeParent
+          nodeParent%firstChild  => nodeNew
+          nodeNew%firstChild     => null()
+          nodeNew%event          => null()
+          nodeNew%firstSatellite => null()
+          nodeNew%firstMergee    => null()
+          nodeNew%mergeTarget    => null()
+          nodeNew%siblingMergee  => null()
+          basicNew               => nodeNew%basic()
+          call basicNew%timeSet(basicNew%time()*(1.0d0-1.0d-6))
+          if (nodeNew%satelliteCount() > 0) then
+             ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+             do i=nodeNew%satelliteCount(),1,-1
+                call nodeNew%satelliteRemove(i)
+             end do
+          end if          
        end if
     else
        ! Node to be pruned is not the primary progenitor - simply unlink it from its siblings.
-       workNode => parentNode%firstChild
-       do while (.not.associated(workNode%sibling,node))
-          workNode => workNode%sibling
+       nodeWork => nodeParent%firstChild
+       do while (.not.associated(nodeWork%sibling,node))
+          nodeWork => nodeWork%sibling
        end do
-       workNode%sibling => node%sibling
+       nodeWork%sibling => node%sibling
     end if
     return
   end subroutine Merger_Tree_Prune_Unlink_Parent
@@ -121,6 +128,7 @@ contains
     ! Iterate over trees.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
+       if (.not.associated(node%parent)) cycle
        if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
     end do
     return

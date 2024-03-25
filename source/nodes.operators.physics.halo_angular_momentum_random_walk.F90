@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -138,7 +138,7 @@ contains
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     implicit none
-    class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout)               :: self
+    class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout), target       :: self
     type            (treeNode                                 ), intent(inout), target       :: node
     type            (treeNode                                 )               , pointer      :: nodeProgenitor
     class           (nodeComponentSpin                        )               , pointer      :: spinProgenitor         , spin
@@ -174,7 +174,7 @@ contains
        angularMomentumPrevious=+self           %darkMatterHaloScale_%radiusVirial  (nodeProgenitor) &
             &                  *self           %darkMatterHaloScale_%velocityVirial(nodeProgenitor) &
             &                  *basicProgenitor                     %mass          (              )
-       ! Walk up through descendents.
+       ! Walk up through descendants.
        do while (associated(nodeProgenitor))
           ! Set the spin of the current halo from the current angular momentum vector.
           basicProgenitor => nodeProgenitor%basic(                 )
@@ -199,7 +199,7 @@ contains
           call spinProgenitor%angularMomentumSet(sqrt(sum(angularMomentumVector**2)))
           ! Store the current characteristic angular momentum.
           angularMomentumPrevious=angularMomentumCurrent
-          ! Move to the next descendent halo.
+          ! Move to the next descendant halo.
           if (nodeProgenitor%isPrimaryProgenitor()) then
              nodeProgenitor  => nodeProgenitor%parent
           else

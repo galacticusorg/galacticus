@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,26 +36,9 @@ contains
     Perform tasks associated with a ``halo formation'' event in {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : treeNode
-    !![
-    <include directive="haloFormationTask" type="moduleUse">
-    !!]
-    include 'events.halo_formation.moduleUse.inc'
-    !![
-    </include>
-    !!]
     implicit none
     type(treeNode), intent(inout) :: node
 
-    ! Allow arbitrary routines to perform tasks.
-    !![
-    <include directive="haloFormationTask" type="functionCall" functionType="void">
-     <functionArgs>node</functionArgs>
-    !!]
-    include 'events.halo_formation.inc'
-    !![
-    </include>
-    !!]
-    
     !![
     <eventHook name="haloFormation">
      <import>

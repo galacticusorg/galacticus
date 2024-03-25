@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash
+  use :: Hashes, only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a array of floating point properties.</description>
+   <description>An abstract output analysis property extractor class which provides a array of floating point properties.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorArray
@@ -42,7 +42,7 @@
        <method method="metaData"           description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
-     procedure(arrayDescriptions), deferred :: columnDescriptions
+     procedure(arrayColumns     ), deferred :: columnDescriptions
      procedure(arraySize        ), deferred :: size
      procedure(arrayElementCount), deferred :: elementCount
      procedure(arrayExtract     ), deferred :: extract
@@ -91,6 +91,21 @@
   end interface
 
   abstract interface
+     subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+       !!{
+       Interface for array column descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorArray
+       class           (nodePropertyExtractorArray), intent(inout)                            :: self
+       double precision                            , intent(in   ), optional                  :: time
+       type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
+       double precision                            , intent(inout), allocatable, dimension(:) :: values
+       type            (varying_string            ), intent(  out)                            :: valuesDescription
+       double precision                            , intent(  out)                            :: valuesUnitsInSI
+     end subroutine arrayColumns
+  end interface
+
+  abstract interface
      function arrayUnitsInSI(self,time)
        !!{
        Interface for array property units.
@@ -127,15 +142,17 @@
 
 contains
   
-  subroutine arrayMetaData(self,indexProperty,metaData)
+  subroutine arrayMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
     Interface for array property meta-data.
     !!}
     implicit none
-    class(  nodePropertyExtractorArray), intent(inout) :: self
+    class  (nodePropertyExtractorArray), intent(inout) :: self
+    type   (treeNode                  ), intent(inout) :: node
     integer                            , intent(in   ) :: indexProperty
-    type   (doubleHash                ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, indexProperty, metaData
+    type   (doubleHash                ), intent(inout) :: metaDataRank0
+    type   (rank1DoubleHash           ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, indexProperty, metaDataRank0, metaDataRank1
     
     return
   end subroutine arrayMetaData

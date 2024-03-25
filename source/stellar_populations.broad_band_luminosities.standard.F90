@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -174,7 +174,7 @@ contains
     integer                                                         , dimension( :                   ), intent(in   ) :: luminosityIndex                       , filterIndex
     double precision                                                , dimension( :                   ), intent(in   ) :: age                                   , redshift
     type            (abundances                                    )                                  , intent(in   ) :: abundancesStellar
-    type            (stellarPopulationSpectraPostprocessorList     ), dimension( :                   ), intent(in   ) :: stellarPopulationSpectraPostprocessor_
+    type            (stellarPopulationSpectraPostprocessorList     ), dimension( :                   ), intent(inout) :: stellarPopulationSpectraPostprocessor_
     class           (stellarPopulationClass                        )                                  , intent(inout) :: stellarPopulation_
     double precision                                                , dimension(size(luminosityIndex))                :: standardLuminosities
     double precision                                                , dimension(0:1                  )                :: hAge                                  , hMetallicity
@@ -254,7 +254,7 @@ contains
     double precision                                                , intent(in   ), dimension( :   )              :: redshift
     double precision                                                , intent(  out), dimension( :   ), allocatable :: ages
     double precision                                                , intent(  out), dimension( : ,:), allocatable :: luminosities
-    type            (stellarPopulationSpectraPostprocessorList     ), intent(in   ), dimension( :   )              :: stellarPopulationSpectraPostprocessor_
+    type            (stellarPopulationSpectraPostprocessorList     ), intent(inout), dimension( :   )              :: stellarPopulationSpectraPostprocessor_
     class           (stellarPopulationClass                        ), intent(inout)                                :: stellarPopulation_
     type            (abundances                                    ), intent(in   )                                :: abundancesStellar
     double precision                                                               , dimension(0:1  )              :: hMetallicity
@@ -322,7 +322,7 @@ contains
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
     integer                                                         , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
     double precision                                                , intent(in   ), dimension(:    ) :: redshift
-    type            (stellarPopulationSpectraPostprocessorList     ), intent(in   ), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
+    type            (stellarPopulationSpectraPostprocessorList     ), intent(inout), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
     class           (stellarPopulationClass                        ), intent(inout)                   :: stellarPopulation_
     type            (luminosityTable                               ), allocatable  , dimension(:    ) :: luminosityTablesTemporary
     double precision                                                , allocatable  , dimension(:,:,:) :: luminosityTemporary
@@ -357,7 +357,7 @@ contains
     populationID=stellarPopulation_%uniqueID()
     if (.not.allocated(self%luminosityTables).or.size(self%luminosityTables) < populationID) then
        ! A resize or allocation is required. Obtain a write lock on the tables and then re-test if resizing is required (as
-       ! another thread could potentially have alreaedy done this while we waited for the write lock).
+       ! another thread could potentially have already done this while we waited for the write lock).
        call self%luminosityTableLock%setWrite(haveReadLock=.true.)
        if (allocated(self%luminosityTables)) then
           if (size(self%luminosityTables) < populationID) then
@@ -431,11 +431,11 @@ contains
                 if (self%storeToFile) then
                    ! Construct name of the file to which this would be stored.
                    if (.not.stellarPopulationHashedDescriptorComputed) then
-                      stellarPopulationHashedDescriptor        =stellarPopulation_%hashedDescriptor(includeSourceDigest=.true.)
+                      stellarPopulationHashedDescriptor        =stellarPopulation_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)
                       stellarPopulationHashedDescriptorComputed=.true.
                    end if
                    if (.not.associated(stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_,stellarPopulationSpectraPostprocessorPrevious_)) then
-                      postprocessorHashedDescriptor                  =  stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%hashedDescriptor(includeSourceDigest=.true.)
+                      postprocessorHashedDescriptor                  =  stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)
                       stellarPopulationSpectraPostprocessorPrevious_ => stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_
                    end if
                    luminositiesFileName=self%storeDirectory                  // &
@@ -690,7 +690,7 @@ contains
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength
-      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
       double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
 
       integrandFilteredLuminosityAB=+filterResponse_           %interpolate(wavelength) &

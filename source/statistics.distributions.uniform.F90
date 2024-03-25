@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a uniform 1D distibution function.
+  Implementation of a uniform 1D distribution function.
   !!}
 
   !![
@@ -38,7 +38,7 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DUniform
      !!{
-     Implementation of a uniform 1D distibution function.
+     Implementation of a uniform 1D distribution function.
      !!}
      private
      double precision :: limitLower, limitUpper

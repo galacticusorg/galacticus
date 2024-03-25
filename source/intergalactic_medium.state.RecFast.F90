@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -136,7 +136,7 @@ contains
     ! Lock file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
-    ! Check existance of file.
+    ! Check existence of file.
     buildFile=.false.
     if (File_Exists(char(self%fileName))) then
        ! Check file version number.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash
+  use :: Hashes, only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a list of floating point properties.</description>
+   <description>An abstract output analysis property extractor class which provides a list of floating point properties.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorList
@@ -32,19 +32,32 @@
    contains
      !![
      <methods>
-       <method method="extract"     description="Extract the properties from the given {\normalfont \ttfamily node}."/>
-       <method method="name"        description="Return the name of the properties extracted."                       />
-       <method method="description" description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"   description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return a count of the number of properties extracted."              />
+       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="names"        description="Return the name of the properties extracted."                       />
+       <method method="descriptions" description="Return a description of the properties extracted."                  />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
-     procedure(listExtract    ), deferred :: extract
-     procedure(listName       ), deferred :: name
-     procedure(listDescription), deferred :: description
-     procedure(listUnitsInSI  ), deferred :: unitsInSI
-     procedure                            :: metaData    => listMetaData
+     procedure(listElementCount), deferred :: elementCount
+     procedure(listExtract     ), deferred :: extract
+     procedure(listNames       ), deferred :: names
+     procedure(listDescriptions), deferred :: descriptions
+     procedure(listUnitsInSI   ), deferred :: unitsInSI
+     procedure                             :: metaData     => listMetaData
   end type nodePropertyExtractorList
+
+  abstract interface
+     function listElementCount(self)
+       !!{
+       Interface for list property count.
+       !!}
+       import nodePropertyExtractorList
+       integer                                           :: listElementCount
+       class  (nodePropertyExtractorList), intent(inout) :: self
+     end function listElementCount
+  end interface
 
   abstract interface
      function listExtract(self,node,instance)
@@ -52,55 +65,58 @@
        Interface for list property extraction.
        !!}
        import nodePropertyExtractorList, treeNode, multiCounter
-       double precision                           , dimension(:) , allocatable :: listExtract
-       class           (nodePropertyExtractorList), intent(inout)              :: self
-       type            (treeNode                 ), intent(inout)              :: node
-       type            (multiCounter             ), intent(inout), optional    :: instance
+       double precision                           , dimension(:,:), allocatable :: listExtract
+       class           (nodePropertyExtractorList), intent(inout)               :: self
+       type            (treeNode                 ), intent(inout)               :: node
+       type            (multiCounter             ), intent(inout) , optional    :: instance
      end function listExtract
   end interface
 
   abstract interface
-     function listName(self)
+     subroutine listNames(self,names)
        !!{
        Interface for list names.
        !!}
        import varying_string, nodePropertyExtractorList
-       type (varying_string           )                :: listName
-       class(nodePropertyExtractorList), intent(inout) :: self
-     end function listName
+       class(nodePropertyExtractorList), intent(inout)                             :: self
+       type (varying_string           ), intent(inout), dimension(:) , allocatable :: names
+     end subroutine listNames
   end interface
 
   abstract interface
-     function listDescription(self)
+     subroutine listDescriptions(self,descriptions)
        !!{
        Interface for list descriptions.
        !!}
        import varying_string, nodePropertyExtractorList
-       type (varying_string           )                :: listDescription
-       class(nodePropertyExtractorList), intent(inout) :: self
-     end function listDescription
+       class(nodePropertyExtractorList), intent(inout)                             :: self
+       type (varying_string           ), intent(inout), dimension(:) , allocatable :: descriptions
+     end subroutine listDescriptions
   end interface
 
   abstract interface
-     double precision function listUnitsInSI(self)
+     function listUnitsInSI(self)
        !!{
        Interface for list property units.
        !!}
        import nodePropertyExtractorList
-       class (nodePropertyExtractorList), intent(inout) :: self
+       double precision                           , dimension(:) , allocatable :: listUnitsInSI
+       class           (nodePropertyExtractorList), intent(inout)              :: self
      end function listUnitsInSI
   end interface
 
 contains
   
-  subroutine listMetaData(self,metaData)
+  subroutine listMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for list property meta-data.
     !!}
     implicit none
     class(nodePropertyExtractorList), intent(inout) :: self
-    type (doubleHash               ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, metaData
+    type (treeNode                 ), intent(inout) :: node
+    type (doubleHash               ), intent(inout) :: metaDataRank0
+    type (rank1DoubleHash          ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, metaDataRank0, metaDataRank1
     
     return
   end subroutine listMetaData

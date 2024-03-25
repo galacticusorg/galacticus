@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,6 +121,7 @@ program Tests_Halo_Mass_Function_Reed2007
     transferFunctionFile                                        (                                                                                                      &amp;
      &amp;                                                        fileName                           ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5', &amp;
      &amp;                                                        redshift                           =0.000d0                                                        , &amp;
+     &amp;                                                        acceptNegativeValues               =.false.                                                        , &amp;
      &amp;                                                        cosmologyParameters_               =cosmologyParameters_                                           , &amp;
      &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                                              &amp;
      &amp;                                                       )

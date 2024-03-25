@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,13 +74,13 @@ module Input_Parameters
      A class to handle input parameters for \glc.
      !!}
      private
-     type   (node             ), pointer                   :: content         => null()
-     type   (inputParameter   ), pointer    , public       :: parent          => null() , firstChild => null() , &
-          &                                                   sibling         => null() , referenced => null()
-     type   (genericObjectList), allocatable, dimension(:) :: objects
-     type   (varying_string   )                            :: contentOriginal
-     logical                                               :: created         =  .false., removed    =  .false., &
-          &                                                   evaluated       =  .false.
+     type   (node             ), pointer                     :: content         => null()
+     type   (inputParameter   ), pointer    , public         :: parent          => null() , firstChild => null() , &
+          &                                                     sibling         => null() , referenced => null()
+     type   (genericObjectList), allocatable, dimension(:,:) :: objects
+     type   (varying_string   )                              :: contentOriginal
+     logical                                                 :: created         =  .false., removed    =  .false., &
+          &                                                     evaluated       =  .false.
    contains
      !![
      <methods>
@@ -269,14 +269,14 @@ contains
     specified as a variable length string.
     !!}
     use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char, extract, operator(==)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, parseString => parseStringTS
-    use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char, extract, operator(==)
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
+    use :: FoX_dom           , only : node                             , parseString
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     implicit none
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
-    character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
     type     (node              ), pointer                               :: doc                  , parameterNode
@@ -320,7 +320,7 @@ contains
     implicit none
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
-    character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: doc                  , parameterNode
@@ -382,23 +382,23 @@ contains
     !!}
     use :: Display           , only : displayGreen                     , displayMessage , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
+    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)                      , operator(/=)
+    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, getTextContent => getTextContentTS
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: Display           , only : displayMessage
     use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: self
     type     (node           ), pointer     , intent(in   )           :: parametersNode
-    character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                      , noBuild
     type     (node           ), pointer                               :: versionElement
-    type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined , allowedParameterNamesTmp
-    integer                                                           :: allowedParameterFromFileCount , allowedParameterCount
+    type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
+    !$omp threadprivate(allowedParameterNamesGlobal)
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
     !![
@@ -457,29 +457,8 @@ contains
        !$ call hdf5Access%unset()
     end if
     ! Get allowed parameter names.
-    call knownParameterNames(allowedParameterNamesCombined)
-    allowedParameterFromFileCount=size(allowedParameterNamesCombined)
-    ! Add in parameter names explicitly listed.
-    if (present(allowedParameterNames)) then
-       allowedParameterCount=size(allowedParameterNames)
-       if (allocated(allowedParameterNamesCombined)) then
-          call Move_Alloc(allowedParameterNamesCombined,allowedParameterNamesTmp)
-          allocate(allowedParameterNamesCombined(size(allowedParameterNamesTmp)+size(allowedParameterNames)))
-          allowedParameterNamesCombined(                                                     &
-               &                                                      1                    : &
-               &                        allowedParameterFromFileCount                        &
-               &                       )=allowedParameterNamesTmp
-          allowedParameterNamesCombined(                                                     &
-               &                        allowedParameterFromFileCount+1                    : &
-               &                        allowedParameterFromFileCount+allowedParameterCount  &
-               &                       )=allowedParameterNames
-          deallocate(allowedParameterNamesTmp)
-       else
-          allocate(allowedParameterNamesCombined(size(allowedParameterNames)))
-          allowedParameterNamesCombined=allowedParameterNames
-       end if
-    end if
-    if (.not.allocated(allowedParameterNamesCombined)) allocate(allowedParameterNamesCombined(0))
+    if (.not.allocated(allowedParameterNamesGlobal)) &
+         & call knownParameterNames(allowedParameterNamesGlobal)
     ! Check for version information.
     !$omp critical (FoX_DOM_Access)
     if (XML_Path_Exists(self%rootNode,"version")) then
@@ -498,7 +477,7 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Check parameters.
-    call self%checkParameters(allowedParameterNamesCombined)
+    call self%checkParameters(allowedParameterNamesGlobal=allowedParameterNamesGlobal,allowedParameterNames=allowedParameterNames)
     return
   end function inputParametersConstructorNode
 
@@ -752,21 +731,23 @@ contains
     !!{
     Return true if the specified instance of the object associated with this parameter has been created.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(in   ) :: self
-    integer                                :: instance
+    integer                                :: instance, level
 
+    inputParameterObjectCreated=.false.
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
        !$ if (OMP_In_Parallel()) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$    level   =OMP_Get_Level     ()
+       !$    instance=OMP_Get_Thread_Num()+1
        !$ else
-             instance=                               0
+             level   =                     0
+             instance=                     0
        !$ end if
-       inputParameterObjectCreated=associated(self%objects(instance)%object)
-    else
-       inputParameterObjectCreated=.false.
+       if (level <= ubound(self%objects,dim=1))                                           &
+            & inputParameterObjectCreated=associated(self%objects(level,instance)%object)
     end if
     !$omp end critical (inputParameterObjects)
     return
@@ -777,20 +758,26 @@ contains
     Return a pointer to the object associated with this parameter.
     !!}
     use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
-    integer                                :: instance
+    integer                                :: instance               , level
 
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
        !$ if (OMP_In_Parallel()) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$    level   =OMP_Get_Level     ()
+       !$    instance=OMP_Get_Thread_Num()+1
        !$ else
-             instance=                               0
+             level   =                     0
+             instance=                     0
        !$ end if
-       inputParameterObjectGet => self%objects(instance)%object
+       if (level <= ubound(self%objects,dim=1)) then
+          inputParameterObjectGet => self%objects(level,instance)%object
+       else
+          call Error_Report('object not allocated for this parameter'//{introspection:location})
+       end if
     else
        call Error_Report('object not allocated for this parameter'//{introspection:location})
     end if
@@ -802,27 +789,39 @@ contains
     !!{
     Set a pointer to the object associated with this parameter.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Max_Threads, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_Get_Max_Threads, OMP_In_Parallel
     implicit none
-    class  (inputParameter), intent(inout)         :: self
-    class  (functionClass ), intent(in   ), target :: object
-    integer                                        :: instance
+    class  (inputParameter   ), intent(inout)               :: self
+    class  (functionClass    ), intent(in   ) , target      :: object
+    type   (genericObjectList), dimension(:,:), allocatable :: objects
+    integer                                                 :: instance, level
 
     !$omp critical (inputParameterObjects)
     !$ if (OMP_In_Parallel()) then
-    !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+    !$    level   =OMP_Get_Level     ()
+    !$    instance=OMP_Get_Thread_Num()+1
     !$ else
-          instance=                               0
+          level   =                     0
+          instance=                     0
     !$ end if
     if (.not.allocated(self%objects)) then
-       allocate(self%objects(0:1))
+       allocate(self%objects(0,0:1))
        !$ deallocate(self%objects)
-       !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
+       !$ allocate(self%objects(0:max(1,level),0:OMP_Get_Max_Threads()))
+    else
+       if (level > ubound(self%objects,dim=1)) then
+          call move_alloc(self%objects,objects)
+          allocate(self%objects(0:level,0:1))
+          !$ deallocate(self%objects)
+          !$ allocate(self%objects(0:level,0:OMP_Get_Max_Threads()))
+          self%objects(0:ubound(objects,dim=1),:)=objects
+          deallocate(objects)
+       end if
     end if
-    if (.not.associated(self%objects(instance)%object)) then      
-       self%objects(instance)%object => object
+    if (.not.associated(self%objects(level,instance)%object)) then      
+       self%objects(level,instance)%object => object
        !![
-       <referenceCountIncrement owner="self%objects(instance)" object="object"/>
+       <referenceCountIncrement owner="self%objects(level,instance)" object="object"/>
        !!]
     end if
     !$omp end critical (inputParameterObjects)
@@ -834,12 +833,12 @@ contains
     Reset objects associated with this parameter and any sub-parameters.
     !!}
     use    :: FoX_DOM, only : destroy
-    !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
+    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(inout), target   :: self
     logical                , intent(in   ), optional :: children, evaluations
     type   (inputParameter), pointer                 :: child   , childNext
-    integer                                          :: instance
+    integer                                          :: instance, level
     !![
     <optionalArgument name="children"    defaultsTo=".true." />
     <optionalArgument name="evaluations" defaultsTo=".false."/>
@@ -849,14 +848,18 @@ contains
     if (allocated(self%objects)) then
        !$omp critical (inputParameterObjects)
        !$ if (OMP_In_Parallel()) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
+       !$    level   =OMP_Get_Level     ()
+       !$    instance=OMP_Get_Thread_Num()+1
        !$ else
-       instance=0
+             level   =                     0
+             instance=                     0
        !$ end if
-       if (associated(self%objects(instance)%object)) then
-          !![
-          <objectDestructor name="self%objects(instance)%object"/>
-          !!]
+       if (level <= ubound(self%objects,dim=1)) then
+          if (associated(self%objects(level,instance)%object)) then
+             !![
+             <objectDestructor name="self%objects(level,instance)%object"/>
+             !!]
+          end if
        end if
        !$omp end critical (inputParameterObjects)
     end if
@@ -919,10 +922,9 @@ contains
     !!{
     Get the value of a parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                      , getAttributeNode, getNodeName, hasAttribute, &
-          &                           inException                       , node
+    use :: FoX_dom           , only : DOMException , getAttributeNode, getNodeName   , hasAttribute, &
+          &                           inException  , node            , getTextContent
     use :: ISO_Varying_String, only : assignment(=)
-    use :: IO_XML            , only : getTextContent => getTextContentTS
     use :: Error             , only : Error_Report
     implicit none
     type   (varying_string)                :: inputParameterGet
@@ -949,37 +951,41 @@ contains
     return
   end function inputParameterGet
 
-  subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
+  subroutine inputParametersCheckParameters(self,allowedParameterNamesGlobal,allowedParameterNames,allowedMultiParameterNames)
     use :: Error              , only : Error_Report
     use :: Display            , only : displayIndent              , displayMagenta  , displayMessage                 , displayReset        , &
           &                            displayUnindent            , displayVerbosity, enumerationVerbosityLevelEncode, verbosityLevelSilent
     use :: FoX_dom            , only : DOMException               , destroy         , extractDataContent             , getAttributeNode    , &
-          &                            getNodeName                , hasAttribute    , inException                    , node
+          &                            getNodeName                , hasAttribute    , inException                    , node                , &
+          &                            getParentNode
     use :: ISO_Varying_String , only : assignment(=)              , char            , operator(//)                   , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
-    class    (inputParameters                         )              , intent(inout)           :: self
-    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    type     (varying_string                          ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node                                    ), pointer                               :: node_                     , ignoreWarningsNode
-    type     (inputParameter                          ), pointer                               :: currentParameter
-    type     (regEx                                   ), save                                  :: regEx_
+    class    (inputParameters                         )              , intent(inout)                    :: self
+    type     (varying_string                          ), dimension(:), intent(in   ), optional, target  :: allowedParameterNamesGlobal, allowedParameterNames, &
+         &                                                                                                 allowedMultiParameterNames
+    type     (node                                    )                                       , pointer :: node_                      , ignoreWarningsNode   , &
+         &                                                                                                 node__
+    type     (inputParameter                          )                                       , pointer :: currentParameter
+    type     (varying_string                          ), dimension(:)                         , pointer :: allowedParameterNames_
+    type     (regEx                                   ), save                                           :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                                                    :: warningsFound             , parameterMatched    , &
-         &                                                                                        verbose                   , ignoreWarnings      , &
-         &                                                                                        isException               , hasAttribute_
-    type     (enumerationInputParameterErrorStatusType)                                        :: errorStatus
-    integer                                                                                    :: allowedParametersCount    , status              , &
-         &                                                                                        distance                  , distanceMinimum     , &
-         &                                                                                        j
-    character(len=1024                                )                                        :: parameterValue
-    character(len=1024                                )                                        :: unknownName               , allowedParameterName, &
-         &                                                                                        parameterNameGuess
-    type     (varying_string                          )                                        :: message                   , verbosityLevel
-    type     (integerHash                             )                                        :: parameterNamesSeen
-    type     (DOMException                            )                                        :: exception
-
+    logical                                                                                             :: warningsFound              , parameterMatched     , &
+         &                                                                                                 verbose                    , ignoreWarnings       , &
+         &                                                                                                 isException                , hasAttribute_        , &
+         &                                                                                                 haveAllowedNames
+    type     (enumerationInputParameterErrorStatusType)                                                 :: errorStatus
+    integer                                                                                             :: allowedParametersCount     , status               , &
+         &                                                                                                 distance                   , distanceMinimum      , &
+         &                                                                                                 i                          , j
+    character(len=1024                                )                                                 :: parameterValue
+    character(len=1024                                )                                                 :: unknownName                , allowedParameterName , &
+         &                                                                                                 parameterNameGuess         , unknownNamePath
+    type     (varying_string                          )                                                 :: message                    , verbosityLevel
+    type     (integerHash                             )                                                 :: parameterNamesSeen
+    type     (DOMException                            )                                                 :: exception
+    
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
     if (self%isPresent('verbosityLevel')) then
@@ -1012,13 +1018,20 @@ contains
                      & call Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//trim(unknownName)//"]"//{introspection:location})
              end if
              ! Check for a match with allowed parameter names.
+             haveAllowedNames=present(allowedParameterNamesGlobal).or.present(allowedParameterNames)
+             parameterMatched=.not.haveAllowedNames
              allowedParametersCount=0
-             if (present(allowedParameterNames)) allowedParametersCount=size(allowedParameterNames)
-             if (allowedParametersCount > 0) then
-                parameterMatched=.false.
-                j=1
-                do while (.not.parameterMatched .and. j <= allowedParametersCount)
-                   allowedParameterName=allowedParameterNames(j)
+             do i=1,2
+                select case (i)
+                case (1)
+                   if (.not.present(allowedParameterNamesGlobal)) cycle
+                   allowedParameterNames_ => allowedParameterNamesGlobal
+                case (2)
+                   if (.not.present(allowedParameterNames)) cycle
+                   allowedParameterNames_ => allowedParameterNames
+                end select
+                do j=1,size(allowedParameterNames_)
+                   allowedParameterName=allowedParameterNames_(j)
                    if (allowedParameterName(1:6) == "regEx:") then
                       regEx_=regEx(allowedParameterName(7:len_trim(allowedParameterName)))
                       !$omp critical (FoX_DOM_Access)
@@ -1030,11 +1043,9 @@ contains
                       parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
                       !$omp end critical (FoX_DOM_Access)
                    end if
-                   j=j+1
+                   if (parameterMatched) exit
                 end do
-             else
-                parameterMatched=.true.
-             end if
+             end do
              ! Report on warnings.
              if     (                                                   &
                   &   (                                                 &
@@ -1061,32 +1072,52 @@ contains
                 !$omp end critical (FoX_DOM_Access)
                 call displayMessage(message)
              end if
-             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
+             if (haveAllowedNames .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
+                node__          => getParentNode(node_)
+                unknownNamePath =  ""
                 !$omp critical (FoX_DOM_Access)
-                unknownName    =getNodeName(node_)
+                unknownName=getNodeName(node_)
+                unknownNamePath=""
+                do while (associated(node__))
+                   if (getNodeName(node__) /= "#document")                                     &
+                        & unknownNamePath =  getNodeName  (node__)//"/"//trim(unknownNamePath)
+                   node__                 => getParentNode(node__)
+                end do
                 !$omp end critical (FoX_DOM_Access)
                 distanceMinimum=-1
-                do j=1,allowedParametersCount
-                   allowedParameterName=allowedParameterNames(j)
-                   if (allowedParameterName(1:6) == "regEx:") cycle
-                   distance=String_Levenshtein_Distance(trim(unknownName),trim(allowedParameterName))
-                   if (distance < distanceMinimum .or. 0 > distanceMinimum) then
-                      distanceMinimum   =distance
-                      parameterNameGuess=allowedParameterName
-                   end if
+                do i=1,2
+                   select case (i)
+                   case (1)
+                      if (.not.present(allowedParameterNamesGlobal)) cycle
+                      allowedParameterNames_ => allowedParameterNamesGlobal
+                   case (2)
+                      if (.not.present(allowedParameterNames)) cycle
+                      allowedParameterNames_ => allowedParameterNames
+                   end select
+                   do j=1,size(allowedParameterNames_)
+                      allowedParameterName=allowedParameterNames_(j)
+                      if (allowedParameterName(1:6) == "regEx:") cycle
+                      distance=String_Levenshtein_Distance(trim(unknownName),trim(allowedParameterName))
+                      if (distance < distanceMinimum .or. 0 > distanceMinimum) then
+                         distanceMinimum   =distance
+                         parameterNameGuess=allowedParameterName
+                      end if
+                   end do
                 end do
                 if (verbose) then
-                   message='unrecognized parameter ['//trim(unknownName)//']'
+                   message='unrecognized parameter ['//trim(unknownName)//' in '//trim(unknownNamePath)//']'
                    if (distanceMinimum >= 0) message=message//' (did you mean ['//trim(parameterNameGuess)//']?)'
                    call displayMessage(message)
                 end if
              end if
              ! Check for duplicated parameters.
              !$omp critical (FoX_DOM_Access)
-             if (parameterNamesSeen%exists(getNodeName(node_))) then
+             unknownName=getNodeName(node_)
+             !$omp end critical (FoX_DOM_Access)
+             if (parameterNamesSeen%exists(unknownName)) then
                 parameterMatched=.false.
                 if (present(allowedMultiParameterNames)) &
-                     & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
+                     & parameterMatched=any(unknownName == allowedMultiParameterNames)
                 if (.not.parameterMatched .and. .not.ignoreWarnings) then
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
@@ -1096,9 +1127,8 @@ contains
                    end if
                 end if
              else
-                call parameterNamesSeen%set(getNodeName(node_),1)
+                call parameterNamesSeen%set(unknownName,1)
              end if
-             !$omp end critical (FoX_DOM_Access)
           end if
           currentParameter => currentParameter%sibling
        end do
@@ -1499,14 +1529,15 @@ contains
     !!{
     Return the value of the specified parameter.
     !!}
-    use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName                        , hasAttribute                              , &
-          &                           inException                      , node
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)                       , operator(==)                              , &
-          &                           trim
-    use :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , getTextContent  => getTextContentTS, extractDataContent => extractDataContentTS
-    use :: HDF5_Access       , only : hdf5Access
+    use, intrinsic :: ISO_C_Binding     , only : c_int64_t
+    use            :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
+          &                                      inException                      , node              , getTextContent, extractDataContent
+    use            :: Error             , only : Error_Report
+    use            :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)  , operator(==)      , &
+          &                                      trim
+    use            :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
+    use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use            :: HDF5_Access       , only : hdf5Access
     implicit none
     class           (inputParameters                         ), intent(inout), target      :: self
     type            (inputParameter                          ), intent(inout), target      :: parameterNode
@@ -1514,9 +1545,9 @@ contains
     type            (enumerationInputParameterErrorStatusType), intent(  out), optional    :: errorStatus
     logical                                                   , intent(in   ), optional    :: writeOutput
 #ifdef MATHEVALAVAIL
-    integer         (kind_int8                               )                             :: evaluator
+    integer         (c_int64_t                               )                             :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (kind_int8                               ), external                   :: Evaluator_Create_
+    integer         (c_int64_t                               ), external                   :: Evaluator_Create_
     double precision                                          , external                   :: Evaluator_Evaluate_
     external                                                                               :: Evaluator_Destroy_
 #endif
@@ -1596,18 +1627,43 @@ contains
                    allocate(parameterNames(countNames))
                    call String_Split_Words(parameterNames,parameterName,":")
                    rootParameters => self
-                   do while (associated(rootParameters%parent))
-                      rootParameters => rootParameters%parent
-                   end do
+                   if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
+                      ! Path is absolute - move to the root parameter.
+                      do while (associated(rootParameters%parent))
+                         rootParameters => rootParameters%parent
+                      end do
+                   end if
                    do i=1,countNames-1
-                      if (i == 1) then
-                         allocate(subParameters)
-                         subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                      if (trim(parameterNames(i)) == ".") then
+                         ! Self - no need to move.
+                         if (i == 1) then
+                            allocate(subParameters)
+                            subParameters=inputParameters(rootParameters)
+                         end if
+                      else if (trim(parameterNames(i)) == "..") then
+                         ! Move to the parent parameter.
+                         if (i == 1) then
+                            if (.not.associated(rootParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                            allocate(subParameters)
+                            subParameters=inputParameters(rootParameters%parent)
+                         else
+                            if (.not.associated( subParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                            allocate(subParametersNext)
+                            subParametersNext=inputParameters(subParameters%parent)
+                            deallocate(subParameters)
+                            subParameters => subParametersNext
+                         end if
                       else
-                         allocate(subParametersNext)
-                         subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
-                         deallocate(subParameters)
-                         subParameters => subParametersNext
+                         ! Move to the named parameter.
+                         if (i == 1) then
+                            allocate(subParameters)
+                            subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+                         else
+                            allocate(subParametersNext)
+                            subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
+                            deallocate(subParameters)
+                            subParameters => subParametersNext
+                         end if
                       end if
                    end do
                    if (countNames == 1) then
@@ -1623,6 +1679,7 @@ contains
                 !! Evaluate the expression.
 #ifdef MATHEVALAVAIL
                 evaluator=Evaluator_Create_(trim(expression))
+                if (evaluator == 0) call Error_Report('failed to parse expression'//{introspection:location})
                 workValue=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                 call Evaluator_Destroy_(evaluator)
                 call parameterNode%set(workValue)
@@ -1774,10 +1831,10 @@ contains
     logical                                          , intent(in   ), optional :: hashed
     type   (node                                    ), pointer                 :: node_
     type   (inputParameter                          ), pointer                 :: currentParameter
+    type   (inputParameters                         ), allocatable             :: subParameters
     type   (enumerationInputParameterErrorStatusType)                          :: errorStatus
-    type   (varying_string                          )                          :: parameterValue  , nodeName
+    type   (varying_string                          )                          :: parameterValue                  , nodeName
     logical                                                                    :: firstParameter
-    type   (inputParameters                         )                          :: subParameters
     !![
     <optionalArgument name="hashed" defaultsTo=".false." />
     !!]
@@ -1800,11 +1857,13 @@ contains
           !$omp critical (FoX_DOM_Access)
           nodeName=getNodeName(node_)
           !$omp end critical (FoX_DOM_Access)
+          allocate(subParameters)
           subParameters=self%subParameters(char(nodeName))
           if (associated(subParameters%parameters%firstChild)) inputParametersSerializeToString=inputParametersSerializeToString // &
                &                                                                                "{"                              // &
                &                                                                                subParameters%serializeToString()// &
                &                                                                                "}"
+          deallocate(subParameters)
           firstParameter=.false.
        end if
        currentParameter => currentParameter%sibling

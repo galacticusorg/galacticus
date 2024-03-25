@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -234,7 +234,15 @@ contains
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_">
+      <constructor>
+        virialDensityContrastBryanNorman1998(                                                     &amp;
+         &amp;                               allowUnsupportedCosmology=     .true.              , &amp;
+         &amp;                               cosmologyParameters_     =self%cosmologyParameters_, &amp;
+         &amp;                               cosmologyFunctions_      =self%cosmologyFunctions_   &amp;
+         &amp;                              )
+      </constructor>
+    </referenceConstruct>
     !!]
     return
   end function li2020ConstructorInternal

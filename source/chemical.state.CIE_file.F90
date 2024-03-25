@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,7 +116,7 @@
     }
     \end{verbatim}
     The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
-    metallicity} dataset should give the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply
+    metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
     zero metallicity). The {\normalfont \ttfamily electronDensity} dataset should specify the number density of electrons
     relative to hydrogen at each temperature/metallicity pair. Optionally {\normalfont \ttfamily hiDensity} and {\normalfont
     \ttfamily hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
@@ -138,6 +138,7 @@
     and electron density. Otherwise, interpolation is linear in these quantities. The
     electron density is scaled assuming a linear dependence on hydrogen density.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </chemicalState>
   !!]
   type, extends(chemicalStateClass) :: chemicalStateCIEFile
@@ -157,7 +158,9 @@
           &                                                                             metallicityPrevious              , temperaturePrevious        , &
           &                                                                             electronDensitySlopePrevious     , metallicitySlopePrevious   , &
           &                                                                             temperatureSlopePrevious         , metallicityChemicalPrevious, &
-          &                                                                             temperatureChemicalPrevious
+          &                                                                             temperatureChemicalPrevious      , hMetallicityPrevious       , &
+          &                                                                             hTemperaturePrevious
+     integer         (c_size_t                        )                              :: iMetallicityPrevious             , iTemperaturePrevious
      type            (chemicalAbundances              )                              :: chemicalDensitiesPrevious
      double precision                                  , allocatable, dimension(:  ) :: metallicities                    , temperatures
      double precision                                  , allocatable, dimension(:,:) :: densityElectron                  , densityHydrogenAtomic      , &
@@ -168,9 +171,9 @@
    contains
      !![
      <methods>
-       <method description="Read the named chemical state file." method="readFile" />
-       <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors" />
-       <method description="Interpolate in the given density table." method="interpolate" />
+       <method description="Read the named chemical state file."                         method="readFile"            />
+       <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors"/>
+       <method description="Interpolate in the given density table."                     method="interpolate"         />
      </methods>
      !!]
      procedure :: readFile                           => cieFileReadFile
@@ -248,10 +251,10 @@ contains
     !!{
     Return the electron density by interpolating in tabulated CIE data read from a file.
     !!}
-    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Radiation_Fields    , only : radiationFieldClass
-    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -269,7 +272,7 @@ contains
        case (extrapolationTypeZero%ID)
           cieFileElectronDensity=0.0d0
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -278,7 +281,7 @@ contains
        case (extrapolationTypeZero%ID)
           cieFileElectronDensity=0.0d0
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -326,10 +329,10 @@ contains
     Return the logarithmic slope of the electron density with respect to temperature by interpolating in tabulated CIE data
     read from a file.
     !!}
-    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Radiation_Fields    , only : radiationFieldClass
-    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -347,7 +350,7 @@ contains
        case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileElectronDensityTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -356,7 +359,7 @@ contains
        case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileElectronDensityTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -443,11 +446,11 @@ contains
     Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     and radiation field. Units of the returned electron density are cm$^-3$.
     !!}
-    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
-    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     type            (chemicalAbundances  ), intent(inout) :: chemicalDensities
@@ -466,7 +469,7 @@ contains
        case (extrapolationTypeZero%ID)
           call chemicalDensities%reset()
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -475,7 +478,7 @@ contains
        case (extrapolationTypeZero%ID)
           call chemicalDensities%reset()
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -542,7 +545,7 @@ contains
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !!{
-    Determine the interpolating paramters.
+    Determine the interpolating parameters.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -552,41 +555,48 @@ contains
     double precision                      , intent(  out) :: hMetallicity  , hTemperature
     double precision                                      :: metallicityUse, temperatureUse
 
-    ! Copy the input parameters.
-    temperatureUse=    temperature
-    metallicityUse=max(metallicity,0.0d0)
     ! Get interpolation in temperature.
-    if (self%logarithmicTable) temperatureUse=log(temperatureUse)
-    iTemperature=max(                                                         &
-         &           min(                                                     &
-         &               self%interpolatorTemperature%locate(temperatureUse), &
-         &               self%temperatureCount-1                              &
-         &              )                                                   , &
-         &               1                                                    &
-         &          )
-    hTemperature=+(     temperatureUse                -self%temperatures(iTemperature)) &
-         &       /(self%temperatures  (iTemperature+1)-self%temperatures(iTemperature))
-    ! Get interpolation in metallicity.
-    if     (                                               &
-         &                    self%firstMetallicityIsZero  &
-         &  .and.                                          &
-         &   metallicityUse < self%firstNonZeroMetallicity &
-         & ) then
-       iMetallicity=+1
-       hMetallicity=+metallicityUse               &
-            &       /self%firstNonZeroMetallicity
-    else
-       if (self%logarithmicTable) metallicityUse=log(metallicityUse)
-       iMetallicity=max(                                                         &
-            &           min(                                                     &
-            &               self%interpolatorMetallicity%locate(metallicityUse), &
-            &               self%metallicityCount-1                              &
-            &              )                                                   , &
-            &               1                                                    &
-            &          )
-       hMetallicity=+(     metallicityUse                -self%metallicities(iMetallicity)) &
-            &       /(self%metallicities (iMetallicity+1)-self%metallicities(iMetallicity))
+    if (temperature /= self%temperaturePrevious) then
+       temperatureUse=temperature
+       if (self%logarithmicTable) temperatureUse=log(temperatureUse)
+       self%iTemperaturePrevious=max(                                                         &
+            &                        min(                                                     &
+            &                            self%interpolatorTemperature%locate(temperatureUse), &
+            &                            self%temperatureCount-1                              &
+            &                           )                                                   , &
+            &                            1                                                    &
+            &                       )
+       self%hTemperaturePrevious=+(     temperatureUse                             -self%temperatures(self%iTemperaturePrevious)) &
+            &                    /(self%temperatures  (self%iTemperaturePrevious+1)-self%temperatures(self%iTemperaturePrevious))
     end if
+    iTemperature=self%iTemperaturePrevious
+    hTemperature=self%hTemperaturePrevious
+    ! Get interpolation in metallicity.
+    if (metallicity /= self%metallicityPrevious) then
+       metallicityUse=max(metallicity,0.0d0)
+       if     (                                               &
+            &                    self%firstMetallicityIsZero  &
+            &  .and.                                          &
+            &   metallicityUse < self%firstNonZeroMetallicity &
+            & ) then
+          self%iMetallicityPrevious=+1
+          self%hMetallicityPrevious=+metallicityUse               &
+               &                    /self%firstNonZeroMetallicity
+       else
+          if (self%logarithmicTable) metallicityUse=log(metallicityUse)
+          self%iMetallicityPrevious=max(                                                         &
+               &                        min(                                                     &
+               &                            self%interpolatorMetallicity%locate(metallicityUse), &
+               &                            self%metallicityCount-1                              &
+               &                           )                                                   , &
+               &                            1                                                    &
+               &                       )
+          self%hMetallicityPrevious=+(     metallicityUse                             -self%metallicities(self%iMetallicityPrevious)) &
+               &                    /(self%metallicities (self%iMetallicityPrevious+1)-self%metallicities(self%iMetallicityPrevious))
+       end if
+    end if
+    iMetallicity=self%iMetallicityPrevious
+    hMetallicity=self%hMetallicityPrevious
     return
   end subroutine cieFileInterpolatingFactors
 
@@ -622,7 +632,7 @@ contains
     use :: HDF5_Access                  , only : hdf5Access
     use :: IO_HDF5                      , only : hdf5Object
     use :: ISO_Varying_String           , only : varying_string
-    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
+    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     character       (len=*               ), intent(in   ) :: fileName
@@ -670,33 +680,33 @@ contains
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
     call temperatureDataset%close()
     ! Validate extrapolation methods.
-    if     (                                                              &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Close the file.
     call chemicalStateFile%close()
@@ -726,16 +736,16 @@ contains
        if (self%gotHydrogenAtomic) self%densityHydrogenAtomic=log(self%densityHydrogenAtomic)
        if (self%gotHydrogenCation) self%densityHydrogenCation=log(self%densityHydrogenCation)
     else
-       if     (                                                              &
-            &   self%extrapolateTemperatureLow  == extrapolationTypePowerLaw &
-            &  .or.                                                          &
-            &   self%extrapolateTemperatureHigh == extrapolationTypePowerLaw &
-            &  .or.                                                          &
-            &   self%extrapolateMetallicityLow  == extrapolationTypePowerLaw &
-            &  .or.                                                          &
-            &   self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
-            & )                                                              &
-            & call Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
+       if     (                                                                 &
+            &   self%extrapolateTemperatureLow  == extrapolationTypeExtrapolate &
+            &  .or.                                                             &
+            &   self%extrapolateTemperatureHigh == extrapolationTypeExtrapolate &
+            &  .or.                                                             &
+            &   self%extrapolateMetallicityLow  == extrapolationTypeExtrapolate &
+            &  .or.                                                             &
+            &   self%extrapolateMetallicityHigh == extrapolationTypeExtrapolate &
+            & )                                                                 &
+            & call Error_Report('extrapolation allowed only in loggable tables'//{introspection:location})
     end if
     ! Build interpolators.
     self%interpolatorTemperature=interpolator(self%temperatures )

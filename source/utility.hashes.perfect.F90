@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,7 @@ Contains a module which implements a perfect hash algorithm for long integer key
 
 module Hashes_Perfect
   !!{
-  Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
+  Implements a perfect hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
   specific implementation follows the general structure of that given in a Dr. Dobbs
   \href{https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
   !!}

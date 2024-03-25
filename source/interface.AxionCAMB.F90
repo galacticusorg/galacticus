@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -97,7 +97,7 @@ contains
           if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
-       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"F90C[[:space:]]*=[[:space:]]*ifort"/"F90C = '//compiler(languageFortran)//'"/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -O3 '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
+       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//compiler(languageFortran)//'"/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -O3 '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
@@ -399,7 +399,7 @@ contains
        write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'CMB_outputscale              ',7.42835025d12
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_high_precision      ','T'
        write (axionCambParameterFile,'(a,1x,"=",1x,e12.6)') 'transfer_kmax                ',wavenumberAxionCAMB/cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
-       write (axionCambParameterFile,'(a,1x,"=",1x,i3   )') 'transfer_k_per_logint        ',countPerDecade_
+       write (axionCambParameterFile,'(a,1x,"=",1x,i5   )') 'transfer_k_per_logint        ',countPerDecade_
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'transfer_num_redshifts       ',countRedshiftsUnique
        write (axionCambParameterFile,'(a,1x,"=",1x,a    )') 'transfer_interp_matterpower  ','T'
        do i=countRedshiftsUnique,1,-1
@@ -475,7 +475,7 @@ contains
                         &                         transferFunctions     (i,axionCambSpeciesFuzzyDarkMatter%ID,j)
                    ! Transfer function for total dark matter perturbations.
                    transferFunctions(i,axionCambSpeciesDarkMatter%ID,j)=(                                                                                          &
-                        &                                                 transferFunctions(i,axionCambSpeciesColdDarkMatter %ID,j)*coldDarkMatterDensityFraction  &
+                        &                                                +transferFunctions(i,axionCambSpeciesColdDarkMatter %ID,j)*coldDarkMatterDensityFraction  &
                         &                                                +transferFunctions(i,axionCambSpeciesFuzzyDarkMatter%ID,j)*fuzzyDarkMatterDensityFraction &
                         &                                               )                                                                                          &
                         &                                               /(coldDarkMatterDensityFraction+fuzzyDarkMatterDensityFraction)

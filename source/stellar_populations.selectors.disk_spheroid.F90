@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@
   <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
    <description>
     A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
-    physical conditions. The populationss to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
+    physical conditions. The populations to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
     {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
    </description>
   </stellarPopulationSelector>

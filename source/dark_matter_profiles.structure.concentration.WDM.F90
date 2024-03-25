@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,8 +32,7 @@
     A dark matter profile concentration class in which the concentration is computed by applying the correction factor of
     \cite{schneider_non-linear_2012}:
     \begin{equation}
-    c_\mathrm{WDM} = c_\mathrm{CDM} \left[ 1 + \gamma_1 \left( {M_\mathrm{1/2} \over M_\mathrm{halo}}
-    \right)^{\gamma_2}\right]^{-1},
+    c_\mathrm{WDM} = c_\mathrm{CDM} \left[ 1 + \gamma_1 {M_\mathrm{1/2} \over M_\mathrm{halo}}\right]^{-\gamma_2},
     \end{equation}
     where $\gamma_1=15$, $\gamma_2=0.3$, $M_\mathrm{1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer
     function is suppressed below the CDM transfer function by a factor of 2, and $M_\mathrm{halo}$ is the mass of the dark

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -202,7 +202,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentDisk   , nodeComponentSpheroid, nodeComponentBasic, propertyActive
     implicit none
     class           (nodeOperatorAgesStellarMassWeighted), intent(inout), target  :: self
-    type            (treeNode                           ), intent(inout)          :: node
+    type            (treeNode                           ), intent(inout), target  :: node
     logical                                              , intent(inout)          :: interrupt
     procedure       (interruptTask                      ), intent(inout), pointer :: functionInterrupt
     integer                                              , intent(in   )          :: propertyType
@@ -284,18 +284,18 @@ contains
             &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerSpheroid%ID)
-       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
             &                                     )
-       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
+       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
             &                                      +0.0d0                                                                         &
             &                                     )
-       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
             &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
             &                                     )
-       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
+       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
             &                                      +0.0d0                                                                         &
             &                                     )
     case (destinationMergerUnmoved%ID)

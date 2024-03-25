@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -172,7 +172,7 @@ contains
 
   function projectedDensitySize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily projectedDensity} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: projectedDensitySize
@@ -184,7 +184,7 @@ contains
     return
   end function projectedDensitySize
 
-  function projectedDensityExtract(self,node,time,instance)
+  function projectedDensityExtract(self,node,time,instance) result(densityProjected)
     !!{
     Implement a {\normalfont \ttfamily projectedDensity} property extractor.
     !!}
@@ -194,8 +194,9 @@ contains
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Numerical_Integration               , only : integrator, GSL_Integ_Gauss15
+    use :: Numerical_Comparison                , only : Values_Agree
     implicit none
-    double precision                                       , dimension(:,:), allocatable :: projectedDensityExtract
+    double precision                                       , dimension(:,:), allocatable :: densityProjected
     class           (nodePropertyExtractorProjectedDensity), intent(inout) , target      :: self
     type            (treeNode                             ), intent(inout) , target      :: node
     double precision                                       , intent(in   )               :: time
@@ -203,16 +204,17 @@ contains
     class           (nodeComponentDisk                    ), pointer                     :: disk
     class           (nodeComponentSpheroid                ), pointer                     :: spheroid
     class           (nodeComponentDarkMatterProfile       ), pointer                     :: darkMatterProfile
-    double precision                                       , parameter                   :: epsilonSingularity     =1.0d-3
+    double precision                                       , parameter                   :: toleranceRelative      =1.0d-2, epsilonSingularity      =1.0d-3
     type            (integrator                           )                              :: integrator_
     integer                                                                              :: i
-    double precision                                                                     :: radiusVirial                  , radiusOuter, &
-         &                                                                                  radiusSingularity
+    double precision                                                                     :: radiusVirial                  , radiusOuter                    , &
+         &                                                                                  radiusSingularity             , densityProjectedPrevious       , &
+         &                                                                                  densityProjectedCurrent       , toleranceAbsolute
+    logical                                                                              :: converged
     !$GLC attributes unused :: time, instance
 
-    allocate(projectedDensityExtract(self%radiiCount,self%elementCount_))
-    radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
+    allocate(densityProjected(self%radiiCount,self%elementCount_))
+    radiusVirial                                              =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
@@ -258,32 +260,46 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       radiusOuter                        =self       %darkMatterHaloScale_%radiusVirial(node                              )
+       densityProjectedPrevious=0.0d0
+       radiusOuter             =max(radius_* 2.0d0                    ,radiusVirial)
        ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated analytically
        ! assuming a constant density over this region. The region outside of this cut-out will be integrated numerically.
-       radiusSingularity=min(radius_*(1.0d0+epsilonSingularity),radiusOuter)
+       radiusSingularity       =min(radius_*(1.0d0+epsilonSingularity),radiusOuter )
        !! Analytic integral within the cut-out.
-       projectedDensityExtract       (i,1)=+2.0d0                                                                  &
-            &                              *sqrt(                                                                  &
-            &                                    +radiusSingularity**2                                             &
-            &                                    -radius_          **2                                             &
-            &                                   )                                                                  &
-            &                              *self%galacticStructure_%density(                                       &
-            &                                                               node                                 , &
-            &                                                               [                                      &
-            &                                                                radius_                             , &
-            &                                                                0.0d0                               , &
-            &                                                                0.0d0                                 &
-            &                                                               ]                                    , &
-            &                                                               componentType=self%radii(i)%component, &
-            &                                                               massType     =self%radii(i)%mass       &
-            &                                                              )
+       densityProjected(i,1)=+2.0d0                                                                  &
+            &                *sqrt(                                                                  &
+            &                      +radiusSingularity**2                                             &
+            &                      -radius_          **2                                             &
+            &                     )                                                                  &
+            &                *self%galacticStructure_%density(                                       &
+            &                                                 node                                 , &
+            &                                                 [                                      &
+            &                                                  radius_                             , &
+            &                                                  0.0d0                               , &
+            &                                                  0.0d0                                 &
+            &                                                 ]                                    , &
+            &                                                 componentType=self%radii(i)%component, &
+            &                                                 massType     =self%radii(i)%mass       &
+            &                                                )
        !! Numerical integral outside of the cut-out.
-       if (radiusSingularity > radiusOuter)                                                                &       
-            & projectedDensityExtract(i,1)=+projectedDensityExtract(i,1)                                   &
-            &                              +integrator_%integrate(log(radiusSingularity),log(radiusOuter))
-       if (self%includeRadii)                                                                              &
-            & projectedDensityExtract(i,2)=radius_
+       if (radiusSingularity < radiusOuter) then
+          ! Set an absolute tolerance scale for projected density convergence that is a small fraction of the mean halo density,
+          ! integrated over a path length of 1 Mpc.
+          toleranceAbsolute=+toleranceRelative                          &
+               &            *self%darkMatterHaloScale_%densityMean(node)
+          converged        =.false.
+          do while (.not.converged)
+             densityProjectedCurrent=integrator_%integrate(log(radiusSingularity),log(radiusOuter))
+             converged              =Values_Agree(densityProjectedCurrent,densityProjectedPrevious,relTol=toleranceRelative,absTol=toleranceAbsolute)
+             if (.not.converged) then
+                radiusOuter             =2.0d0*radiusOuter
+                densityProjectedPrevious=      densityProjectedCurrent
+             end if
+          end do
+       end if
+       densityProjected(i,1)=+densityProjected       (i,1) &
+            &                +densityProjectedCurrent
+       if (self%includeRadii) densityProjected(i,2)=radius_
     end do
     return
 
@@ -357,18 +373,24 @@ contains
     return
   end subroutine projectedDensityDescriptions
 
-  subroutine projectedDensityColumnDescriptions(self,descriptions,time)
+  subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
-    double precision                                       , intent(in   ), optional                   :: time
-    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)                            :: self
+    double precision                                       , intent(in   ), optional                  :: time
+    type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                       , intent(inout), dimension(:), allocatable :: values
+    type            (varying_string                         ), intent(  out)                            :: valuesDescription
+    double precision                                         , intent(  out)                            :: valuesUnitsInSI
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
-    descriptions=self%radii%name
+    allocate(values      (              0))
+    valuesDescription=var_str('')
+    valuesUnitsInSI  =0.0d0
+    descriptions     =self%radii%name
     return
   end subroutine projectedDensityColumnDescriptions
 

@@ -4,9 +4,7 @@
   <!-- Logging -->
   <verbosityLevel value="standard"/>
 
-  <task value="evolveForests">
-    <evolveSingleForest value="false"/>
-  </task>
+  <task value="evolveForests"/>
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Cosmological model -->
@@ -236,7 +234,7 @@
     <nodeOperator value="satelliteMassLoss"   />
     <!-- Halo angular momentum -->
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
-      <exponentMass value="0.274460218346487"/>
+      <exponentMass value="1.274460218346487"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -201,7 +201,7 @@ contains
     if (.not.File_Exists(mangleFiles(1))) then
        call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)
        if (.not.File_Exists(mangleFiles(1))) then
-          call download("http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status)
+          call download("http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status=status)
           if (status /= 0 .or. .not.File_Exists(char(mangleFiles(1))//".gz")) &
                & call Error_Report('failed to download mangle polygon file'//{introspection:location})
           call System_Command_Do("gunzip "//mangleFiles(1)//".gz",status)

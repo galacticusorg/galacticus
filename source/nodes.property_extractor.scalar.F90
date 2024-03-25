@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash
+  use :: Hashes, only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
-   <description>An abstract output analysis property extractor class which provieds a scalar floating point property.</description>
+   <description>An abstract output analysis property extractor class which provides a scalar floating point property.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorScalar
@@ -52,7 +52,7 @@
        Interface for scalar property extraction.
        !!}
        import nodePropertyExtractorScalar, treeNode, multiCounter
-       class(nodePropertyExtractorScalar), intent(inout)           :: self
+       class(nodePropertyExtractorScalar), intent(inout), target   :: self
        type (treeNode                   ), intent(inout), target   :: node
        type (multiCounter               ), intent(inout), optional :: instance
      end function scalarExtract
@@ -81,14 +81,16 @@
 
 contains
   
-  subroutine scalarMetaData(self,metaData)
+  subroutine scalarMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for scalar property meta-data.
     !!}
     implicit none
     class(nodePropertyExtractorScalar), intent(inout) :: self
-    type (doubleHash                 ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, metaData
+    type (treeNode                   ), intent(inout) :: node
+    type (doubleHash                 ), intent(inout) :: metaDataRank0
+    type (rank1DoubleHash            ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, metaDataRank0, metaDataRank1
     
     return
   end subroutine scalarMetaData

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,13 +56,25 @@ module Stellar_Luminosities_Structure
   interface operator(*)
      module procedure Stellar_Luminosities_Multiply_Switched
   end interface operator(*)
+ 
+  !![
+  <enumeration>
+    <name>frame</name>
+    <description>Frame for luminosity calculations.</description>
+    <encodeFunction>yes</encodeFunction>
+    <decodeFunction>yes</decodeFunction>
+    <entry label="rest"    />
+    <entry label="observed"/>
+  </enumeration>
+  !!]
 
   type stellarLuminosities
      !!{
      The stellar luminosities structure.
      !!}
      private
-     double precision, allocatable, dimension(:) :: luminosityValue
+     double precision                      , allocatable, dimension(:) :: luminosityValue
+     type            (enumerationFrameType)                            :: frame
    contains
      !![
      <methods>
@@ -134,7 +146,7 @@ module Stellar_Luminosities_Structure
      procedure, nopass :: name                  => Stellar_Luminosities_Name
      procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
-
+  
   ! Arrays which hold the luminosity specifications.
   integer                                                                                        :: luminosityCount                                      , luminosityCountUnmapped
   integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
@@ -158,7 +170,7 @@ module Stellar_Luminosities_Structure
   ! Stellar population postprocessor builder used during initialization and state restoration.
   class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder__
   !$omp threadprivate(stellarPopulationSpectraPostprocessorBuilder__)
-  
+
 contains
 
   !![
@@ -374,7 +386,7 @@ contains
           luminosityIndex              (iLuminosity)=                                                                      iLuminosity
           ! Get the index of the specified filter.
           luminosityFilterIndex        (iLuminosity)=Filter_Get_Index                               (luminosityFilter     (iLuminosity))
-          ! Get effctive wavelength and Vega offset.
+          ! Get effective wavelength and Vega offset.
           luminosityWavelengthEffective(iLuminosity)=Filter_Wavelength_Effective                    (luminosityFilterIndex(iLuminosity))
           luminosityVegaOffset         (iLuminosity)=Filter_Vega_Offset                             (luminosityFilterIndex(iLuminosity))
           ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
@@ -466,9 +478,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
     !!}
-    use :: FoX_DOM, only : node
+    use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     class  (stellarLuminosities), intent(inout)              :: self
     type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
@@ -997,8 +1009,8 @@ contains
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
              doubleProperties(doubleProperty)%unitsInSI=unitsInSI
-             call doubleProperties(doubleProperty)%metaData%set('wavelengthEffective',luminosityWavelengthEffective(i))
-             call doubleProperties(doubleProperty)%metaData%set('vegaOffset'         ,luminosityVegaOffset         (i))
+             call doubleProperties(doubleProperty)%metaDataRank0%set('wavelengthEffective',luminosityWavelengthEffective(i))
+             call doubleProperties(doubleProperty)%metaDataRank0%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if
        end do
     end if
@@ -1191,7 +1203,7 @@ contains
     ! Get wavelength interval in stellar population spectra at lower edge wavelength
     tabulatedWidth=stellarPopulationSpectra_%wavelengthInterval(wavelengthLowerEdge)
     ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range,
-    ! or (iii) inbetween the observed and rest wavelength ranges.
+    ! or (iii) in between the observed and rest wavelength ranges.
     if      (wavelengthLowerEdge < restWavelengthMaximum) then
        ! Option (i): still inside rest-frame wavelength range.
        if (tabulatedWidth > restWidth) filterWidth=tabulatedWidth

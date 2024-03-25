@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -322,7 +322,7 @@ contains
     call nodeWork%destroy()
     deallocate(nodeWork)
     ! Compute the mass function from the intrinsic mass function evaluated at the halo mass
-    ! corresponding to infinte resolution, and modified by the Jacobian of the mass
+    ! corresponding to infinite resolution, and modified by the Jacobian of the mass
     ! transformation.
     fofBiasDifferential=+self%massFunctionIntrinsic%differential(time,massHaloInfinite,node=node) &
          &              /massJacobian

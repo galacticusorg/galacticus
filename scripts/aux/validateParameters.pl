@@ -54,7 +54,8 @@ if ( $format == 1 ) {
     # Handle format version 2.
     my $hasFormat;
     my $hasVersion;
-    # Create a stack of elements to check.
+    my $hasLastModified;
+   # Create a stack of elements to check.
     my @stack = map {{name => $_, node => $parameters->{$_}}} keys(%{$parameters});
     while ( scalar(@stack) > 0 ) {
 	my $element = pop(@stack);
@@ -62,6 +63,8 @@ if ( $format == 1 ) {
 	    $hasFormat = 1;
 	} elsif ( $element->{'name'} eq 'version' ) {
 	    $hasVersion = 1;
+	} elsif ( $element->{'name'} eq 'lastModified' ) {
+	    $hasLastModified = 1;
 	} elsif ( reftype($element->{'node'}) eq "ARRAY" ) {
 	    if ( $element->{'name'} =~ m/\-\>/ ) { # Duplicates are allowed only in subparameters.
 		foreach my $node ( @{$element->{'node'}} ) {

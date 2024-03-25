@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,6 +20,7 @@
   !![
   <outputTimes name="outputTimesSimulationSnapshots">
    <description>An output times class which matches output times to snapshot times of a simulation.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesSimulationSnapshots
@@ -87,13 +88,7 @@ contains
     !!]
     
     !$omp critical (FoX_DOM_Access)
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
     doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioStatus)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     if (ioStatus /= 0) call Error_Report('unable to find or parse the simulation definition file'//{introspection:location})
     snapshots => XML_Get_First_Element_By_Tag_Name(doc,'snapshots')
     call XML_Array_Read(snapshots,'snapshot',self%redshifts)

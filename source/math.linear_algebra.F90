@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1258,7 +1258,8 @@ contains
     implicit none
     type            (matrix)                                :: matrixRotation
     type            (vector), intent(in   ), dimension(3  ) :: points           , pointsRotated
-    type            (matrix)                                :: P                , Q
+    type            (matrix)                                :: P                , Q            , &
+         &                                                     Pinverse
     double precision                       , dimension(3,3) :: matrixComponents
 
     matrixComponents(:,1)=points          (1)
@@ -1269,7 +1270,8 @@ contains
     matrixComponents(:,2)=pointsRotated   (2)
     matrixComponents(:,3)=pointsRotated   (3)
     Q                    =matrix(matrixComponents)
-    matrixRotation       =Q*P%inverse()
+    Pinverse             =P%inverse()
+    matrixRotation       =Q*Pinverse
     return
   end function matrixRotation
 

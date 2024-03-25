@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,7 +59,7 @@
     \log\mathcal{P}^\prime + \log\mathcal{L}_\mathrm{e} + N \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
     \end{equation}
     where $N=${\normalfont \ttfamily sigmaBuffer}, $\Delta\log\mathcal{L}=${\normalfont \ttfamily logLikelihoodBuffer}, $T$ is the
-    temperature, $\log\mathcal{L}$ is the current log-likelhood, $\log\mathcal{P}$ is the current log-prior probability, and
+    temperature, $\log\mathcal{L}$ is the current log-likelihood, $\log\mathcal{P}$ is the current log-prior probability, and
     $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
     \begin{equation}
     \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; T \sigma_{\log\mathcal{L}},
@@ -67,7 +67,7 @@
     where $\sigma_{\log\mathcal{L}}=${\normalfont \ttfamily logLikelihoodErrorTolerance}, otherwise the simulator is used to compute
     the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even
     accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is
-    sufficiently small that it will not have a significant effect on the transition probabilty to the proposed state.
+    sufficiently small that it will not have a significant effect on the transition probability to the proposed state.
     
     If verbosity is set to {\normalfont \ttfamily info} or greater than a report will be issued every {\normalfont \ttfamily
     reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the
@@ -338,7 +338,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)                   :: self
     class           (posteriorSampleStateClass                  ), intent(inout)                   :: simulationState
-    type            (modelParameterList                         ), intent(in   ), dimension(:)     :: modelParametersActive_                    , modelParametersInactive_
+    type            (modelParameterList                         ), intent(inout), dimension(:)     :: modelParametersActive_                    , modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)                   :: simulationConvergence
     double precision                                             , intent(in   )                   :: temperature                               , logLikelihoodCurrent    , &
          &                                                                                            logPriorCurrent                           , logPriorProposed
@@ -631,7 +631,7 @@ contains
           ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
           if (likelihoodError <= sqrt(4.0d0*self%variogram_%variogram(0.0d0))*sigmaSimulatorVariance) then
              ! Evaluate the simulator for synchronization purposes only.
-             call evaluateSimulator(synchronizeOnly=.true. ,logLikelihood_=gaussianRegressionEvaluate,logLikelihoodVariance_=logLikelihoodVariance)
+             call evaluateSimulator(synchronizeOnly=.true.,logLikelihood_=gaussianRegressionEvaluate,logLikelihoodVariance_=logLikelihoodVariance)
              ! Emulator variance is comparable to that of the simulator (which is the best we can do), so consider this to be a successful "check".
              self%emulatorCheckCount=self%emulatorCheckCount+1
              useLikelihoodEmulated  =.true.
@@ -706,7 +706,7 @@ contains
     subroutine evaluateSimulator(synchronizeOnly,logLikelihood_,logLikelihoodVariance_)
       !!{
       Call the {\normalfont \ttfamily evaluate} method of the simulator. If {\normalfont \ttfamily synchronizeOnly} is true then
-      no evaluation is actually needed, but we must still call the method to allow for possible MPI syncrhonization. In this case
+      no evaluation is actually needed, but we must still call the method to allow for possible MPI synchronization. In this case
       call with an impossible proposed prior such that the simulator can choose to not evaluate.
       !!}
       implicit none
@@ -831,7 +831,7 @@ contains
           ! fact that transitions between states are easier when the temperature is high.
           if (likelihoodEmulated+logPriorProposed+self%sigmaBuffer*likelihoodEmulatedError < logLikelihoodCurrent+logPriorCurrent-           self          %logLikelihoodBuffer                *temperature            ) gaussianRegressionWillEvaluate=.false.
           ! Return if the error is below the tolerance. We increase the tolerance value in proportion to temperature since the
-          ! likelihoods will be divided by this amount when evaluating transition probabilties.
+          ! likelihoods will be divided by this amount when evaluating transition probabilities.
           if (likelihoodEmulatedError                                                      <                                                 self          %logLikelihoodErrorTolerance        *temperature            ) gaussianRegressionWillEvaluate=.false.
           ! Return if the uncertainty in the emulated likelihood is comparable to the variance in the simulator itself, we may as
           ! well just use the emulated likelihood. The variogram returns the semi-variance of the simulator, and we care about
@@ -928,7 +928,7 @@ contains
 
   function polynomialIteratorConstructor(order,rank) result(self)
     !!{
-    Create a polynomial iterator for a poynomial of specified {\normalfont \ttfamily order} and {\normalfont \ttfamily rank}.
+    Create a polynomial iterator for a polynomial of specified {\normalfont \ttfamily order} and {\normalfont \ttfamily rank}.
     !!}
     implicit none
     type   (polynomialIterator)                :: self

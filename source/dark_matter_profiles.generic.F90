@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,6 +88,8 @@ module Dark_Matter_Profiles_Generic
        <method description="Set a sub-module scope pointers on a stack to allow recursive calls to functions." method="solverSet"/>
        <method description="Unset the sub-module scope pointer." method="solverUnset"/>
        <method description="Reset generic profile memoized calculations." method="calculationResetGeneric"/>
+       <method description="Integrand for dark matter profile Jeans equation." method="jeansEquationIntegrand"/>
+       <method description="Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius." method="jeansEquationRadius"/>
      </methods>
      !!]
      procedure(genericDensityInterface     ), deferred :: density
@@ -98,6 +100,8 @@ module Dark_Matter_Profiles_Generic
      procedure                                         :: potentialDifferenceNumerical               => genericPotentialDifferenceNumerical
      procedure                                         :: circularVelocityNumerical                  => genericCircularVelocityNumerical
      procedure                                         :: radialVelocityDispersionNumerical          => genericRadialVelocityDispersionNumerical
+     procedure                                         :: jeansEquationIntegrand                     => genericJeansEquationIntegrand
+     procedure                                         :: jeansEquationRadius                        => genericJeansEquationRadius
      procedure                                         :: radialMomentNumerical                      => genericRadialMomentNumerical
      procedure                                         :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
      procedure                                         :: kSpaceNumerical                            => genericKSpaceNumerical
@@ -207,7 +211,7 @@ contains
        return
     end if
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node)
+    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node,node%uniqueID())
     ! Determine if the table must be rebuilt.
     remakeTable=.false.
     if (.not.allocated(self%genericEnclosedMassMass)) then
@@ -457,12 +461,13 @@ contains
     double precision                                         , parameter   :: countPointsPerOctave =2.0d0
     double precision                                         , parameter   :: toleranceFactor      =2.0d0
     double precision                          , dimension(:) , allocatable :: velocityDispersions          , radii
-    double precision                                                       :: radiusMinimum                , radiusMaximum          , &
-         &                                                                    radiusVirial                 , density                , &
-         &                                                                    jeansIntegral                , radiusOuter_           , &
-         &                                                                    radiusLower                  , radiusUpper            , &
+    double precision                                                       :: radiusMinimum                , radiusMaximum           , &
+         &                                                                    radiusVirial                 , density                 , &
+         &                                                                    jeansIntegral                , radiusOuter_            , &
+         &                                                                    radiusLower                  , radiusUpper             , &
+         &                                                                    radiusLowerJeansEquation     , radiusUpperJeansEquation, &
          &                                                                    jeansIntegralPrevious        , toleranceRelative
-    integer         (c_size_t                )                             :: countRadii                   , iMinimum               , &
+    integer         (c_size_t                )                             :: countRadii                   , iMinimum                , &
          &                                                                    iMaximum                     , i
     integer                                                                :: status
     type            (integrator              ), save                       :: integrator_
@@ -471,7 +476,7 @@ contains
     !$omp threadprivate(integrator_,initialized)
 
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node)
+    if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node,node%uniqueID())
     ! Determine if the table must be rebuilt.
     remakeTable=.false.
     if (.not.allocated(self%genericVelocityDispersionRadialVelocity)) then
@@ -484,7 +489,7 @@ contains
     if (remakeTable) then
        ! Initialize integrator if necessary.
        if (.not.initialized) then
-          integrator_=integrator(genericJeansEquationIntegrand,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+          integrator_=integrator(genericJeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
           initialized=.true.
        end if
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
@@ -547,16 +552,24 @@ contains
              velocityDispersions(i)=0.0d0
          else
              ! Evaluate the integral.
-             density      =self       %density  (node,radiusLower                   )
-             jeansIntegral=integrator_%integrate(     radiusLower,radiusUpper,status)
+             density                 =self       %density            (node,radiusLower                                             )
+             radiusLowerJeansEquation=self       %jeansEquationRadius(node,radiusLower                                             )
+             radiusUpperJeansEquation=self       %jeansEquationRadius(node,radiusUpper                                             )
+             jeansIntegral           =integrator_%integrate          (     radiusLowerJeansEquation,radiusUpperJeansEquation,status)
              if (status /= errorStatusSuccess) then
                 ! Integration failed.
                 toleranceRelative=+     toleranceFactor                     &
                      &            *self%toleranceRelativeVelocityDispersion
                 do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
                    call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
-                  jeansIntegral=integrator_%integrate(radiusLower,radiusUpper,status)
-                  if (status == errorStatusSuccess) then
+                   jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
+
+
+write (0,*) "WTF ",radiusLowerJeansEquation,radiusUpperJeansEquation,jeansIntegral,toleranceRelative,status
+
+
+
+                   if (status == errorStatusSuccess) then
                       exit
                    else
                       toleranceRelative=+toleranceFactor   &
@@ -606,24 +619,53 @@ contains
     return
   end function genericRadialVelocityDispersionNumerical
   
-  double precision function genericJeansEquationIntegrand(radius)
+  double precision function genericJeansEquationIntegrand_(radius)
+    !!{
+    Integrand for generic dark matter profile Jeans equation.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    genericJeansEquationIntegrand_=solvers(solversCount)%self%jeansEquationIntegrand(solvers(solversCount)%node,radius)
+    return
+  end function genericJeansEquationIntegrand_
+
+  double precision function genericJeansEquationIntegrand(self,node,radius)
     !!{
     Integrand for generic dark matter profile Jeans equation.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    double precision, intent(in   ) :: radius
+    class           (darkMatterProfileGeneric), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radius
 
     if (radius > 0.0d0) then
-       genericJeansEquationIntegrand=+gravitationalConstantGalacticus                                               &
-            &                        *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
-            &                        *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius)    &
-            &                        /                           radius                                         **2
+       genericJeansEquationIntegrand=+gravitationalConstantGalacticus   &
+            &                        *self%enclosedMass(node,radius)    &
+            &                        *self%density     (node,radius)    &
+            &                        /                       radius **2
     else
        genericJeansEquationIntegrand=0.0d0
     end if
     return
   end function genericJeansEquationIntegrand
+
+  double precision function genericJeansEquationRadius(self,node,radius)
+    !!{
+    Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.
+    In some cases, it is easier to do the integration with respect to another variable which is a function of
+    the physical radius.
+    !!}
+    implicit none
+    class           (darkMatterProfileGeneric), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radius
+    !$GLC attributes unused :: self, node
+
+    genericJeansEquationRadius=radius
+    return
+  end function genericJeansEquationRadius
   
   double precision function genericRadialMomentNumerical(self,node,moment,radiusMinimum,radiusMaximum)
     !!{
@@ -1281,15 +1323,18 @@ contains
     return
   end subroutine genericSolverUnset
 
-  subroutine genericCalculationResetGeneric(self,node)
+  subroutine genericCalculationResetGeneric(self,node,uniqueID)
     !!{
     Reset generic profile memoized data.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileGeneric), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    class  (darkMatterProfileGeneric), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(kind_int8               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%genericLastUniqueID=node%uniqueID()
+    self%genericLastUniqueID=uniqueID
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )

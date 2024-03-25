@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameter file used to test option to always promote the most massive progenitor - even if it is a subhalo and non-subhalo progenitors are present. -->
+<!-- Andrew Benson - 28-January-2024 -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <componentBasic value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard"/>  
+  <componentHotHalo value="coldMode"/>
+  <componentSatellite value="preset"/>
+  <componentSpheroid value="standard"/>
+  <componentPosition value="cartesian"/>
+ 
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.0"/>	
+    <OmegaMatter value=" 0.279000"/>	
+    <OmegaDarkEnergy value=" 0.721000"/>	
+    <OmegaBaryon value=" 0.046"/>	
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.821"/>
+  </cosmologicalMassVariance>
+
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.9649"/>
+    <wavenumberReference value="1.0000"/>
+    <running value="0.0000"/>
+  </powerSpectrumPrimordial>
+ 
+  <mergerTreeConstructor value="read">
+    <fileNames value="testSuite/data/mergerTrees/mostMassiveProgenitorIsSubhalo.hdf5"/>
+    <presetMergerTimes value="false"/>
+    <treeIndexToRootNodeIndex value="true"/>
+    <presetOrbits value="false"/>
+    <presetOrbitsSetAll value="true"/>
+    <presetOrbitsAssertAllSet value="true"/>
+    <presetOrbitsBoundOnly value="true"/>
+    <presetAngularMomenta value="false"/>
+    <presetPositions value="false"/>
+    <outputTimeSnapTolerance value="0.001"/>
+    <presetSubhaloMasses value="false"/>
+    <presetScaleRadii value="false"/>
+    <scaleRadiiFailureIsFatal value="true"/>
+    <presetScaleRadiiConcentrationMinimum value="3"/>
+    <presetScaleRadiiConcentrationMaximum value="60"/>
+    <presetMergerNodes value="false"/>
+    <missingHostsAreFatal value="true"/>
+    <allowSubhaloPromotions value="true"/>
+    <alwaysPromoteMostMassive value="true"/>
+    <allowBranchJumps value="true"/>
+    <presetSubhaloIndices value="false"/>
+  </mergerTreeConstructor>
+  
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="massAccretionHistory"/>
+    <nodePropertyExtractor value="nodeIndices"/>
+  </nodePropertyExtractor>
+
+  <nodeOperator value="multi">
+    <nodeOperator value="massAccretionHistory"/>
+    <nodeOperator value="cosmicTime"/>
+    <nodeOperator value="DMOInterpolate"/>    
+  </nodeOperator>
+  
+  <outputFileName value="testSuite/outputs/mostMassiveProgenitorIsSubhalo.hdf5"/>
+</parameters>

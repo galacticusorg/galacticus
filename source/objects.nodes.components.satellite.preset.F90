@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,10 +29,8 @@ module Node_Component_Satellite_Preset
   !!}
   implicit none
   private
-  public :: Node_Component_Satellite_Preset_Satellite_Host_Change , Node_Component_Satellite_Preset_Inter_Tree_Attach, &
-       &    Node_Component_Satellite_Preset_Inter_Tree_Insert     , Node_Component_Satellite_Preset_Rate_Compute     , &
-       &    Node_Component_Satellite_Preset_Inter_Tree_Postprocess, Node_Component_Satellite_Preset_Thread_Initialize, &
-       &    Node_Component_Satellite_Preset_Thread_Uninitialize
+  public :: Node_Component_Satellite_Preset_Thread_Initialize, Node_Component_Satellite_Preset_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Preset_Rate_Compute
 
   !![
   <component>
@@ -94,6 +92,10 @@ module Node_Component_Satellite_Preset
   </component>
   !!]
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+  
 contains
 
   !![
@@ -105,15 +107,22 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
+    use :: Events_Hooks    , only : nodePromotionEvent           , satelliteHostChangeEvent     , branchJumpPostProcessEvent, interTreePostProcessEvent, &
+         &                          interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent, openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     !$GLC attributes unused :: parameters_
 
-    if (defaultSatelliteComponent%presetIsActive()) &
-         call nodePromotionEvent%attach(defaultSatelliteComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+    if (defaultSatelliteComponent%presetIsActive()) then
+       call            nodePromotionEvent%attach(thread,nodePromotion           ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call      satelliteHostChangeEvent%attach(thread,satelliteHostChange     ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call    branchJumpPostProcessEvent%attach(thread,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call     interTreePostProcessEvent%attach(thread,interTreePostProcess    ,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call interTreeSatelliteInsertEvent%attach(thread,interTreeSatelliteInsert,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+       call interTreeSatelliteAttachEvent%attach(thread,interTreeSatelliteAttach,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
+    end if
     return
   end subroutine Node_Component_Satellite_Preset_Thread_Initialize
 
@@ -126,12 +135,19 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent
+    use :: Events_Hooks    , only : nodePromotionEvent           , satelliteHostChangeEvent     , branchJumpPostProcessEvent, interTreePostProcessEvent, &
+         &                          interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
 
-    if (defaultSatelliteComponent%presetIsActive() .and. nodePromotionEvent%isAttached(defaultSatelliteComponent,nodePromotion)) &
-         & call nodePromotionEvent%detach(defaultSatelliteComponent,nodePromotion)
+    if (defaultSatelliteComponent%presetIsActive()) then
+       if (           nodePromotionEvent%isAttached(thread,nodePromotion           )) call            nodePromotionEvent%detach(thread,nodePromotion           )
+       if (     satelliteHostChangeEvent%isAttached(thread,satelliteHostChange     )) call      satelliteHostChangeEvent%detach(thread,satelliteHostChange     )
+       if (   branchJumpPostProcessEvent%isAttached(thread,interTreePostProcess    )) call    branchJumpPostProcessEvent%detach(thread,interTreePostProcess    )
+       if (    interTreePostProcessEvent%isAttached(thread,interTreePostProcess    )) call     interTreePostProcessEvent%detach(thread,interTreePostProcess    )
+       if (interTreeSatelliteInsertEvent%isAttached(thread,interTreeSatelliteInsert)) call interTreeSatelliteInsertEvent%detach(thread,interTreeSatelliteInsert)
+       if (interTreeSatelliteAttachEvent%isAttached(thread,interTreeSatelliteAttach)) call interTreeSatelliteAttachEvent%detach(thread,interTreeSatelliteAttach)
+    end if
     return
   end subroutine Node_Component_Satellite_Preset_Thread_Uninitialize
 
@@ -150,13 +166,8 @@ contains
     call node%parent%satelliteMove(node,overwrite=.true.)
     return
   end subroutine nodePromotion
-
-  !![
-  <interTreeSatelliteInsert>
-   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Insert</unitName>
-  </interTreeSatelliteInsert>
-  !!]
-  subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert(node,replaceNode)
+  
+  subroutine interTreeSatelliteInsert(self,node,replaceNode)
     !!{
     A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
     assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
@@ -164,6 +175,7 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory
     implicit none
+    class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node            , replaceNode
     class(nodeComponentSatellite)               , pointer :: satellite       , replaceSatellite
     class(nodeComponentBasic    )               , pointer :: basic
@@ -171,7 +183,8 @@ contains
          &                                                   moveHistoryIndex
     type (history               )                         :: historyMass     , replaceHistoryMass , &
          &                                                   moveHistoryMass
-
+    !$GLC attributes unused :: self
+    
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Get the basic component of the pulled node.
@@ -200,14 +213,9 @@ contains
     call        satellite%boundMassHistorySet(       historyMass )
     call replaceSatellite%boundMassHistorySet(replaceHistoryMass )
     return
-  end subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert
+  end subroutine interTreeSatelliteInsert
 
-  !![
-  <interTreeSatelliteAttach>
-   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Attach</unitName>
-  </interTreeSatelliteAttach>
-  !!]
-  subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach(node)
+  subroutine interTreeSatelliteAttach(self,node)
     !!{
     A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure
     that preset satellite properties are correctly handled.
@@ -215,11 +223,13 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory
     implicit none
+    class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node
     class(nodeComponentSatellite)               , pointer :: pullSatellite   , attachSatellite
     class(nodeComponentBasic    )               , pointer :: attachBasic
     type (longIntegerHistory    )                         :: pullHistoryIndex, attachHistoryIndex
     type (history               )                         :: pullHistory     , attachHistory
+    !$GLC attributes unused :: self
 
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
@@ -263,32 +273,26 @@ contains
     call pullSatellite%timeOfMergingSet(attachSatellite%timeOfMerging())
     call pullSatellite%  virialOrbitSet(attachSatellite%virialOrbit  ())
     return
-  end subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach
+  end subroutine interTreeSatelliteAttach
 
-  !![
-  <interTreePostProcess>
-   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
-  </interTreePostProcess>
-  <branchJumpPostProcess>
-   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
-  </branchJumpPostProcess>
-  !!]
-  subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess(node)
-    !!{
-    For inter-tree node transfers, ensure that any orphaned mergees of the transferred node are transferred over to the new
-    branch.
+  subroutine interTreePostProcess(self,node)
+    !!{    
+    For inter-tree node transfers and branch jumps, ensure that any orphaned mergees of the transferred node are transferred over
+    to the new branch.
     !!}
     use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
     use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
+    class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node
     type (treeNode              )               , pointer :: mergee         , nodeWork
     type (treeNodeLinkedList    )               , pointer :: nodeStack      , nodeNext, &
          &                                                   nodeNew
     class(nodeComponentSatellite)               , pointer :: satelliteMergee
     type (varying_string        )                         :: message
+    !$GLC attributes unused :: self
 
     nodeStack => null()
     mergee => node%firstMergee
@@ -330,14 +334,9 @@ contains
        call Node_Component_Satellite_Preset_Orphanize(nodeWork)
     end do
     return
-  end subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess
+  end subroutine interTreePostProcess
 
-  !![
-  <satelliteHostChangeTask>
-   <unitName>Node_Component_Satellite_Preset_Satellite_Host_Change</unitName>
-  </satelliteHostChangeTask>
-  !!]
-  subroutine Node_Component_Satellite_Preset_Satellite_Host_Change(node)
+  subroutine satelliteHostChange(self,node)
     !!{
     For satellite host changes, if the satellite is an orphan with a merge target ensure it remains in the branch of its merge
     target.
@@ -347,13 +346,14 @@ contains
     use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
+    class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentSatellite)               , pointer :: satellite
     type (treeNodeLinkedList    )               , pointer :: nodeStack, nodeNext, &
          &                                                   nodeNew
     type (treeNode              )               , pointer :: nodeWork , mergee
     type (varying_string        )                         :: message
-
+    !$GLC attributes unused :: self                                                                                                                                                                                                                                                               
     satellite => node%satellite()
     if (satellite%isOrphan().and.associated(node%mergeTarget)) then
        if (displayVerbosity() >= verbosityLevelInfo) then
@@ -389,7 +389,7 @@ contains
        end do
     end if
     return
-  end subroutine Node_Component_Satellite_Preset_Satellite_Host_Change
+  end subroutine satelliteHostChange
 
   !![
   <rateComputeTask>
@@ -434,7 +434,7 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Rate_Compute
 
-  subroutine Node_Component_Satellite_Preset_Orphanize(node)
+  subroutine Node_Component_Satellite_Preset_Orphanize(node,timeEnd)
     !!{
     Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
     !!}
@@ -443,12 +443,14 @@ contains
     use :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
-    type (treeNode              ), intent(inout), target  :: node
-    type (treeNode              )               , pointer :: nodeHost
-    class(nodeComponentBasic    )               , pointer :: basic    , basicHost
-    class(nodeComponentSatellite)               , pointer :: satellite
-    type (varying_string        )                         :: message
-
+    type            (treeNode              ), intent(inout), target   :: node
+    double precision                        , intent(in   ), optional :: timeEnd
+    type            (treeNode              )               , pointer  :: nodeHost
+    class           (nodeComponentBasic    )               , pointer  :: basic    , basicHost
+    class           (nodeComponentSatellite)               , pointer  :: satellite
+    type            (varying_string        )                          :: message
+    !$GLC attributes unused :: timeEnd
+    
     satellite => node    %satellite  ()
     call satellite%isOrphanSet(.true.)
     nodeHost  => node    %mergeTarget

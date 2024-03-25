@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
   Implements a merger tree constructor class which constructs a merger tree by restoring state from file.
   !!}
 
+  use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
+
   public :: mergerTreeStateStore, mergerTreeStateFromFile
 
   !![
@@ -31,7 +33,7 @@
     this method, the following procedure should be followed:
     \begin{enumerate}
      \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
-     \item Insert approrpiate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
+     \item Insert appropriate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
      \begin{verbatim}
       use :: Merger_Tree_Construction, only : mergerTreeStateStore
       .
@@ -56,6 +58,7 @@
     Note that currently this method does not support storing and restoring of trees which contain components that have more
     than one instance.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
@@ -63,8 +66,10 @@
      A class implementing merger tree construction via restoring state from file.
      !!}
      private
-     type(varying_string) :: fileName
+     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
+     type (varying_string            )          :: fileName
    contains
+     final     ::              stateRestoredDestructor
      procedure :: construct => stateRestoredConstruct
   end type mergerTreeConstructorStateRestored
 
@@ -84,9 +89,10 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(mergerTreeConstructorStateRestored)                :: self
-    type(inputParameters                   ), intent(inout) :: parameters
-    type(varying_string                    )                :: fileName
+    type (mergerTreeConstructorStateRestored)                :: self
+    type (inputParameters                   ), intent(inout) :: parameters
+    class(randomNumberGeneratorClass        ), pointer       :: randomNumberGenerator_
+    type (varying_string                    )                :: fileName
 
     !![
     <inputParameter>
@@ -95,27 +101,43 @@ contains
       <defaultValue>var_str('storedTree.dat')</defaultValue>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
-    self=mergerTreeConstructorStateRestored(fileName)
+    self=mergerTreeConstructorStateRestored(fileName,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function stateRestoredConstructorParameters
 
-  function stateRestoredConstructorInternal(fileName) result(self)
+  function stateRestoredConstructorInternal(fileName,randomNumberGenerator_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class.
     !!}
     implicit none
-    type(mergerTreeConstructorStateRestored)                :: self
-    type(varying_string                    ), intent(in   ) :: fileName
+    type (mergerTreeConstructorStateRestored)                        :: self
+    type (varying_string                    ), intent(in   )         :: fileName
+    class(randomNumberGeneratorClass        ), intent(in   ), target :: randomNumberGenerator_
     !![
-    <constructorAssign variables="fileName"/>
+    <constructorAssign variables="fileName, *randomNumberGenerator_"/>
     !!]
 
     return
   end function stateRestoredConstructorInternal
+
+  subroutine stateRestoredDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily stateRestored} merger tree constructor class.
+    !!}
+    implicit none
+    type(mergerTreeConstructorStateRestored), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine stateRestoredDestructor
 
   function stateRestoredConstruct(self,treeNumber,finished) result(tree)
     !!{
@@ -136,7 +158,7 @@ contains
        call State_Retrieve_()
        ! Read the tree(s).
        allocate(tree)
-       call mergerTreeStateFromFile(tree,char(self%fileName))
+       call mergerTreeStateFromFile(tree,char(self%fileName),self%randomNumberGenerator_)
     else
        nullify(tree)
     end if
@@ -144,6 +166,16 @@ contains
     return
   end function stateRestoredConstruct
 
+  !![
+  <functionGlobal>
+    <unitName>mergerTreeStateStore</unitName>
+    <type>void</type>
+    <module>Galacticus_Nodes, only : mergerTree</module>
+    <arguments>type     (mergerTree), intent(in   ), target   :: tree              </arguments>
+    <arguments>character(len=*     ), intent(in   )           :: storeFile         </arguments>
+    <arguments>logical              , intent(in   ), optional :: snapshot  , append</arguments>
+  </functionGlobal>
+  !!]
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
     !!{
     Store the complete internal state of a merger tree to file.
@@ -219,7 +251,7 @@ contains
     ! Write basic tree information.
     treeCurrent => tree
     do while (associated(treeCurrent))
-       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase%uniqueID(),nodeIndices)
+       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase,nodeIndices)
        treeCurrent => treeCurrent%nextTree
     end do
     ! Output nodes.
@@ -231,14 +263,14 @@ contains
        write (fileUnit) node%index(),node%uniqueID()
        ! Pointers to other nodes.
        write (fileUnit)                                                      &
-            & nodeArrayPosition(node%parent        %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%firstChild    %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%sibling       %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%firstSatellite%uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%mergeTarget   %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%firstMergee   %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%siblingMergee %uniqueID(),nodeIndices), &
-            & nodeArrayPosition(node%formationNode %uniqueID(),nodeIndices)
+            & nodeArrayPosition(node%parent        ,nodeIndices), &
+            & nodeArrayPosition(node%firstChild    ,nodeIndices), &
+            & nodeArrayPosition(node%sibling       ,nodeIndices), &
+            & nodeArrayPosition(node%firstSatellite,nodeIndices), &
+            & nodeArrayPosition(node%mergeTarget   ,nodeIndices), &
+            & nodeArrayPosition(node%firstMergee   ,nodeIndices), &
+            & nodeArrayPosition(node%siblingMergee ,nodeIndices), &
+            & nodeArrayPosition(node%formationNode ,nodeIndices)
        ! Store the node.
        call node%serializeRaw(fileUnit)
        ! Store any events attached to the node.
@@ -253,7 +285,7 @@ contains
        do while (associated(event))
           call event%serializeRaw(fileUnit)
           if (associated(event%node)) then
-             write (fileUnit) nodeArrayPosition(event%node%uniqueID(),nodeIndices)
+             write (fileUnit) nodeArrayPosition(event%node,nodeIndices)
           else
              write (fileUnit) -1
           end if
@@ -267,7 +299,7 @@ contains
 
   contains
 
-    integer function nodeArrayPosition(nodeIndex,nodeIndices)
+    integer function nodeArrayPosition(node,nodeIndices)
       !!{
       Returns the position of a node in the output list given its index.
       !!}
@@ -276,14 +308,16 @@ contains
       use :: Kind_Numbers      , only : kind_int8
       use :: String_Handling   , only : operator(//)
       implicit none
-      integer(kind_int8     )              , intent(in   ) :: nodeIndex
+      type   (treeNode      ), pointer     , intent(in   ) :: node
       integer(kind_int8     ), dimension(:), intent(in   ) :: nodeIndices
       type   (varying_string)                              :: message
+      integer(kind_int8     )                              :: nodeIndex
 
-      if (nodeIndex == -1) then
+      if (.not.associated(node)) then
          nodeArrayPosition=-1
       else
          nodeArrayPosition=1
+         nodeIndex        =node%uniqueID()
          do while (nodeArrayPosition <= size(nodeIndices) .and. nodeIndices(nodeArrayPosition) /= nodeIndex)
             nodeArrayPosition=nodeArrayPosition+1
          end do
@@ -298,7 +332,7 @@ contains
 
   end subroutine mergerTreeStateStore
 
-  subroutine mergerTreeStateFromFile(tree,fileName,deleteAfterRead)
+  subroutine mergerTreeStateFromFile(tree,fileName,randomNumberGenerator_,deleteAfterRead)
     !!{
     Read the state of a merger tree from file.
     !!}
@@ -308,22 +342,23 @@ contains
     use :: Kind_Numbers    , only : kind_int8
     use :: String_Handling , only : operator(//)
     implicit none
-    type     (mergerTree    ), intent(inout), target       :: tree
-    character(len=*         ), intent(in   )               :: fileName
-    logical                  , intent(in   ), optional     :: deleteAfterRead
-    integer                                                :: treeUnit           , ioStatus
-    type     (mergerTree    )               , pointer      :: treeCurrent
-    type     (treeNodeList  ), allocatable  , dimension(:) :: nodes
-    integer                  , allocatable  , dimension(:) :: nodeCountTree
-    class    (nodeEvent     ), pointer                     :: event              , eventPrevious
-    integer                                                :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
-         &                                                    firstSatelliteIndex, formationNodeIndex, iNode              , &
-         &                                                    mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
-         &                                                    parentIndex        , siblingIndex      , siblingMergeeIndex , &
-         &                                                    treeCount          , iTree             , iNodeTree          , &
-         &                                                    eventCount         , iEvent            , eventNodeIndex
-    integer  (kind_int8     )                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
-    type     (varying_string)                              :: message
+    type     (mergerTree                ), intent(inout), target       :: tree
+    character(len=*                     ), intent(in   )               :: fileName
+    class    (randomNumberGeneratorClass), intent(inout)               :: randomNumberGenerator_
+    logical                              , intent(in   ), optional     :: deleteAfterRead
+    integer                                                            :: treeUnit           , ioStatus
+    type     (mergerTree                )               , pointer      :: treeCurrent
+    type     (treeNodeList              ), allocatable  , dimension(:) :: nodes
+    integer                              , allocatable  , dimension(:) :: nodeCountTree
+    class    (nodeEvent                 ), pointer                     :: event              , eventPrevious
+    integer                                                            :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
+         &                                                                firstSatelliteIndex, formationNodeIndex, iNode              , &
+         &                                                                mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
+         &                                                                parentIndex        , siblingIndex      , siblingMergeeIndex , &
+         &                                                                treeCount          , iTree             , iNodeTree          , &
+         &                                                                eventCount         , iEvent            , eventNodeIndex
+    integer  (kind_int8                 )                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
+    type     (varying_string            )                              :: message
 
     !![
     <optionalArgument name="deleteAfterRead" defaultsTo=".false." />
@@ -432,6 +467,16 @@ contains
     else
        close(treeUnit                )
     end if
+    ! Restart the random number sequence.
+    allocate(tree%randomNumberGenerator_,mold=randomNumberGenerator_)
+    !$omp critical(mergerTreeStateRestoreDeepCopyReset)
+    !![
+    <deepCopyReset variables="randomNumberGenerator_"/>
+    <deepCopy source="randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+    <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+    !!]
+    !$omp end critical(mergerTreeStateRestoreDeepCopyReset)
+    call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
     return
 
   contains

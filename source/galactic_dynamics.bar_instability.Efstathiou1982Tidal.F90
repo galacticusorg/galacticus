@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,7 @@ contains
     <inputParameter>
       <name>massThresholdHarrassment</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The host halo mass threshold for harrassment to take effect.</description>
+      <description>The host halo mass threshold for harassment to take effect.</description>
       <source>parameters</source>
     <variable>self%massThresholdHarrassment</variable>
     </inputParameter>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -104,15 +104,19 @@ contains
     Skip side branches of a tree under construction.
     !!}
     implicit none
-    class(mergerTreeBuildControllerBranchless), intent(inout)          :: self    
-    type (treeNode                           ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass              ), intent(inout)          :: treeWalker_
+    class(mergerTreeBuildControllerBranchless), intent(inout)           :: self    
+    type (treeNode                           ), intent(inout), pointer  :: node
+    class(mergerTreeWalkerClass              ), intent(inout), optional :: treeWalker_
     !$GLC attributes unused :: self
 
     branchlessControl=.true.
     ! Move to the next node in the tree while such exists, and the current node is on a side branch.
     do while (branchlessControl.and.associated(node%parent).and..not.node%isPrimaryProgenitor())
-       branchlessControl=treeWalker_%next(node)
+       if (present(treeWalker_)) then
+          branchlessControl=treeWalker_%next(node)
+       else
+          branchlessControl=.false.
+       end if
     end do
     return
   end function branchlessControl
@@ -131,15 +135,16 @@ contains
     return
   end function branchlessBranchingProbabilityObject
 
-  subroutine branchlessNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+  subroutine branchlessNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none
-    class(mergerTreeBuildControllerBranchless), intent(inout)           :: self
-    type (treeNode                           ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
-    type (treeNode                           ), intent(inout), optional :: nodeProgenitor2
-    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+    class  (mergerTreeBuildControllerBranchless), intent(inout)           :: self
+    type   (treeNode                           ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
+    type   (treeNode                           ), intent(inout), optional :: nodeProgenitor2
+    logical                                     , intent(in   ), optional :: didBranch
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2, didBranch
 
     ! Nothing to do.
     return

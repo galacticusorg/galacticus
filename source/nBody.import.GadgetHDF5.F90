@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,7 @@ Contains a module which implements an N-body data importer for Gadget HDF5 files
   !![
   <nbodyImporter name="nbodyImporterGadgetHDF5">
    <description>An importer for Gadget HDF5 files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetHDF5
@@ -145,7 +146,7 @@ contains
 
   subroutine gadgetHDF5Destructor(self)
     !!{
-    Destructor for Gadget HF5 importer class.
+    Destructor for Gadget HDF5 importer class.
     !!}
     implicit none
     type(nbodyImporterGadgetHDF5), intent(inout) :: self
@@ -211,7 +212,7 @@ contains
          &          /massSolar
     ! Open the particle group - this group will be used for analysis output.
     simulations(1)%analysis=self%file%openGroup(particleGroupName)
-    ! Import the particle postions, velocities and IDs. Optionally import also
+    ! Import the particle positions, velocities and IDs. Optionally import also
     ! the bound status of particles.
     dataset=simulations(1)%analysis%openDataset('ParticleIDs')
     countParticles=dataset%size(1)

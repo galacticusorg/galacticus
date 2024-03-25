@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -119,7 +119,7 @@ contains
     call galacticStructureConstruct_(parameters,galacticStructure_)
     self=darkMatterProfileSIDMIsothermal(darkMatterProfile_,darkMatterHaloScale_,darkMatterParticle_,galacticStructure_)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="darkMatterParticle_" />
     <objectDestructor name="darkMatterProfile_"  />
@@ -148,7 +148,7 @@ contains
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! This is as expected.
     class default
-       call Error_Report('transfer function expects a self-interacting dark matter particle'//{introspection:location})
+       call Error_Report('SIDM isothermal dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
     end select
     self%uniqueIDPrevious    =-1_kind_int8
     self%genericLastUniqueID =-1_kind_int8
@@ -187,17 +187,20 @@ contains
     return
   end subroutine sidmIsothermalDestructor
 
-  subroutine sidmIsothermalCalculationReset(self,node)
+  subroutine sidmIsothermalCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileSIDMIsothermal), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
+    class  (darkMatterProfileSIDMIsothermal), intent(inout) :: self
+    type   (treeNode                       ), intent(inout) :: node
+    integer(kind_int8                      ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%uniqueIDPrevious                            =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID()
-    self%uniqueIDPreviousSIDM                        =node%uniqueID()
+    self%uniqueIDPrevious                            =uniqueID
+    self%genericLastUniqueID                         =uniqueID
+    self%uniqueIDPreviousSIDM                        =uniqueID
     self%radiusInteractivePrevious                   =-1.0d0
     self%velocityDispersionCentral                   =-1.0d0
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
@@ -378,8 +381,8 @@ contains
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalDensity=self%darkMatterProfile_%density(node,radius)
     else
-       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node                )
        sidmIsothermalDensity=self%densityProfile%interpolate(radius)
     end if
     return
@@ -398,8 +401,8 @@ contains
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalDensityLogSlope=self%darkMatterProfile_%densityLogSlope(node,radius)
     else
-       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node                )
        sidmIsothermalDensityLogSlope=self%densityProfile%derivative(radius)*radius/self%densityProfile%interpolate(radius)
     end if
     return
@@ -418,8 +421,8 @@ contains
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalEnclosedMass=self%darkMatterProfile_%enclosedMass(node,radius)
     else
-       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node                )
        sidmIsothermalEnclosedMass=self%massProfile%interpolate(radius)
     end if
     return
@@ -482,8 +485,8 @@ contains
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalPotential=self%darkMatterProfile_%potential(node,radius)
     else
-       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node                )
        sidmIsothermalPotential=self%darkMatterProfile_%potential(node,self%radiusInteraction(node))-self%velocityDispersionCentral**2*log(self%densityProfile%interpolate(radius)/self%densityProfile%interpolate(self%radiusInteraction(node)))
     end if
     return
@@ -528,8 +531,8 @@ contains
     if (radius > self%radiusInteraction(node)) then
        sidmIsothermalRadialVelocityDispersion=self%darkMatterProfile_%radialVelocityDispersion(node,radius)
     else
-       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node)
-       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution(node)
+       if (node%uniqueID()                /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
+       if (self%velocityDispersionCentral <= 0.0d0                ) call self%computeSolution (node                )
        sidmIsothermalRadialVelocityDispersion=self%velocityDispersionCentral
     end if
     return

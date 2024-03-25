@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,7 @@
    <description>
     This operator will export merger trees to a file specified by the {\normalfont \ttfamily [outputFileName]} using the format
     specified by {\normalfont \ttfamily [exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
-    the node indices), descendent indices, masses and redshifts are exported. Positions and velocities are exported if available. If
+    the node indices), descendant indices, masses and redshifts are exported. Positions and velocities are exported if available. If
     {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
     at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
     from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
@@ -155,7 +155,7 @@ contains
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &
           &                                         treeNode
-    use :: Merger_Tree_Data_Structure      , only : mergerTreeData               , metaDataTypeCosmology , metaDataTypeProvenance, propertyTypeDescendentIndex, &
+    use :: Merger_Tree_Data_Structure      , only : mergerTreeData               , metaDataTypeCosmology , metaDataTypeProvenance, propertyTypeDescendantIndex, &
           &                                         propertyTypeHostIndex        , propertyTypeNodeIndex , propertyTypeNodeMass  , propertyTypePositionX      , &
           &                                         propertyTypePositionY        , propertyTypePositionZ , propertyTypeRedshift  , propertyTypeSnapshot       , &
           &                                         propertyTypeTreeIndex        , propertyTypeTreeWeight, propertyTypeVelocityX , propertyTypeVelocityY      , &
@@ -174,7 +174,7 @@ contains
          &                                                                            snapshotTime                        , snapshotTimeTemp     , &
          &                                                                            treeWeight
     double precision                               , allocatable  , dimension(:,:) :: nodePosition                        , nodeVelocity
-    integer         (kind=kind_int8               ), allocatable  , dimension(:  ) :: descendentIndex                     , nodeIndex            , &
+    integer         (kind=kind_int8               ), allocatable  , dimension(:  ) :: descendantIndex                     , nodeIndex            , &
          &                                                                            nodeSnapshot                        , treeIndex
     type            (treeNode                     ), pointer                       :: node
     class           (nodeComponentBasic           ), pointer                       :: basic
@@ -224,7 +224,7 @@ contains
        allocate(treeIndex      (nodeCount))
        allocate(treeWeight     (nodeCount))
        allocate(nodeIndex      (nodeCount))
-       allocate(descendentIndex(nodeCount))
+       allocate(descendantIndex(nodeCount))
        allocate(nodeMass       (nodeCount))
        allocate(nodeRedshift   (nodeCount))
        if (self%snapshotsRequired                       ) allocate(nodeSnapshot(nodeCount  ))
@@ -263,6 +263,7 @@ contains
           if (allocated(snapshotInterpolator)) deallocate(snapshotInterpolator)
           allocate(snapshotInterpolator)
           snapshotInterpolator=interpolator(snapshotTime(1:snapshotCount))
+          deallocate(snapshotTime)
        else
           snapshotCount=0
        end if
@@ -274,7 +275,7 @@ contains
        do while (treeWalker%next(node))
           nodeCount=nodeCount+1
           nodeIndex      (nodeCount)=  node       %index   ()
-          descendentIndex(nodeCount)=  node%parent%index   ()
+          descendantIndex(nodeCount)=  node%parent%index   ()
           basic                     => node       %basic   ()
           position                  => node       %position()
           nodeMass       (nodeCount)=                                                                                              basic%mass()
@@ -287,7 +288,7 @@ contains
        call mergerTrees%setProperty(propertyTypeTreeIndex      ,treeIndex      )
        call mergerTrees%setProperty(propertyTypeNodeIndex      ,nodeIndex      )
        call mergerTrees%setProperty(propertyTypeHostIndex      ,nodeIndex      )
-       call mergerTrees%setProperty(propertyTypeDescendentIndex,descendentIndex)
+       call mergerTrees%setProperty(propertyTypeDescendantIndex,descendantIndex)
        call mergerTrees%setProperty(propertyTypeNodeMass       ,nodeMass       )
        call mergerTrees%setProperty(propertyTypeRedshift       ,nodeRedshift   )
        if (defaultPositionComponent%positionIsGettable()) then
@@ -302,16 +303,15 @@ contains
        end if
        if (self%snapshotsRequired) call mergerTrees%setProperty(propertyTypeSnapshot,nodeSnapshot)
        ! Write the tree to file.
-       !$omp critical (Merger_Tree_Write)
        call mergerTrees%export(char(self%outputFileName),self%exportFormat,hdfChunkSize,hdfCompressionLevel,append=.true.)
-       !$omp end critical (Merger_Tree_Write)
        ! Deallocate arrays.
        deallocate(treeIndex      )
        deallocate(treeWeight     )
        deallocate(nodeIndex      )
-       deallocate(descendentIndex)
+       deallocate(descendantIndex)
        deallocate(nodeMass       )
        deallocate(nodeRedshift   )
+       if (self%snapshotsRequired                       ) deallocate(nodeSnapshot)
        if (defaultPositionComponent%positionIsGettable()) deallocate(nodePosition)
        if (defaultPositionComponent%velocityIsGettable()) deallocate(nodeVelocity)
        ! Move to the next tree.

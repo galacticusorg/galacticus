@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -170,7 +170,7 @@ contains
     use :: Galacticus_Nodes, only : interruptTask, nodeComponentBasic, nodeComponentPosition
     implicit none
     class    (nodeOperatorPositionInterpolated), intent(inout), target  :: self
-    type     (treeNode                        ), intent(inout)          :: node
+    type     (treeNode                        ), intent(inout), target  :: node
     logical                                    , intent(inout)          :: interrupt
     procedure(interruptTask                   ), intent(inout), pointer :: functionInterrupt
     integer                                    , intent(in   )          :: propertyType
@@ -263,7 +263,7 @@ contains
             &    *self%cosmologyFunctions_%expansionFactor(time) &
             &    *Mpc_per_km_per_s_To_Gyr 
     else if (size(coefficients) == 20) then
-       ! Use logarithmic spiral interoplation in physical position.
+       ! Use logarithmic spiral interpolation in physical position.
        coefficientsSpiral   = coefficients
        vectorInPlaneNormal  = reshape(coefficientsSpiral( 1:12),[2,2,3])
        coefficientsAngle    = reshape(coefficientsSpiral(13:16),[2,2  ])
@@ -335,7 +335,7 @@ contains
     Trigger interpolation calculation at node initialization
     !!}
     implicit none
-    class(nodeOperatorPositionInterpolated), intent(inout)         :: self
+    class(nodeOperatorPositionInterpolated), intent(inout), target :: self
     type (treeNode                        ), intent(inout), target :: node
 
     call self%computeInterpolation(node)
@@ -377,11 +377,13 @@ contains
     return
   end subroutine positionInterpolatedNodePromote
 
-  subroutine positionInterpolatedComputeInterpolation_(node)
+  subroutine positionInterpolatedComputeInterpolation_(node,timeEnd)
     !!{
     Interrupt function to recompute interpolation.
     !!}
-    type(treeNode), intent(inout), target :: node
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
     
     call self_%computeInterpolation(node)
     return
@@ -666,7 +668,7 @@ contains
        i               =interpolator_  %locate(basic          %time())
        time         (1)=positionHistory%time  (i                     )
        time         (2)=positionHistory%time  (i+1                   )
-       ! We want to find a parent (and grandparent) whose existance spans these times.
+       ! We want to find a parent (and grandparent) whose existence spans these times.
        nodeParent  => node      %parent       
        basicParent => nodeParent%basic ()
        do while (Values_Less_Than(basicParent%time(),time(1),relTol=1.0d-2))

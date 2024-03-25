@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -379,7 +379,7 @@ contains
     if (self%fileNameInitialized) return
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") &
-         & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+         & self%fileName=inputPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/'//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
     ! Expand file name.
     self%fileName=File_Name_Expand(char(self%fileName))
     ! Ensure directory exists.
@@ -531,7 +531,7 @@ contains
           if (self%coordinatedMPI_) self%firstCrossingProbability=0.0d0
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
-          ! is initialized and covers the whole range we are intereseted in.
+          ! is initialized and covers the whole range in which we are interested.
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
           ! Enter an OpenMP parallel region. Each thread will solve for the first crossing distribution at a different epoch.
@@ -1054,7 +1054,7 @@ contains
           taskCount=-1
 #endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
-          ! is initialized and covers the whole range we are intereseted in.
+          ! is initialized and covers the whole range in which we are interested.
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%fractionalTimeStep),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
           ! Begin an OpenMP parallel region. Each parallel thread will compute first crossing rates for a different epoch.
@@ -1096,7 +1096,7 @@ contains
                    else
                       varianceMaximumRateLimit=self%varianceMaximumRate
                    end if
-                   ! For computing non-crossing rates, the resutls are tabulated with respect to $S_{\rm max}-S$ so that interpolation
+                   ! For computing non-crossing rates, the results are tabulated with respect to $S_{\rm max}-S$ so that interpolation
                    ! is more accurate when $S$ approaches $S_{\rm max}$.
                    do iVariance=0,countVarianceCurrentRate
                       varianceCurrentRateQuad(iVariance)=max(varianceMaximumRateLimit-self%varianceCurrentRateNonCrossing(iVariance),0.0d0)
@@ -1131,7 +1131,7 @@ contains
                    ! Compute the step in variance across this first grid point.
                    varianceStepRate=+varianceProgenitorRateQuad(1) &
                         &           -varianceProgenitorRateQuad(0)
-                   ! Compute the barrier for the descendent.
+                   ! Compute the barrier for the descendant.
                    barrier=real(excursionSetBarrier_%barrier(real(varianceCurrentRateQuad(iVariance),kind=8),self%timeRate(iTime),node,rateCompute=.true.),kind=kind_quad)
                    ! Compute the first crossing distribution at the first grid point.
                    if (varianceProgenitorRateQuad(1)+varianceCurrentRateQuad(iVariance) >= varianceMaximumRateLimit) then
@@ -1589,7 +1589,7 @@ contains
     return
   end function farahiVarianceLimit
 
-  function farahiVarianceResidual(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,cosmologicalMassVariance_) result(varianceResidual)
+  function farahiVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
     !!{
     Return the residual variance between two points for a standard Weiner process.
     !!}
@@ -1633,12 +1633,12 @@ contains
     !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
     !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
     !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
-    varianceResidual=+varianceIntermediate &
-         &           -varianceProgenitor
+    varianceResidual=+varianceProgenitor   &
+         &           -varianceIntermediate
     return
   end function farahiVarianceResidual
 
-  function farahiOffsetEffective(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,deltaCurrent,deltaIntermediate,deltaProgenitor,cosmologicalMassVariance_) result(offsetEffective)
+  function farahiOffsetEffective(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,deltaCurrent,deltaProgenitor,deltaIntermediate,cosmologicalMassVariance_) result(offsetEffective)
     !!{
     Return the residual variance between two points for a standard Weiner process.
     !!}
@@ -1680,7 +1680,7 @@ contains
     !   "Current"      - refers to the current halo being considered for branching, i.e. the halo existing at point (S₁,δ₁);
     !   "Progenitor"   - refers to the potential progenitor halo being considered, i.e. the halo corresponding to some variance S > S₁;
     !   "Intermediate" - refers to the intermediate variance, S̃ (with S₁ < S̃ < S).
-    offsetEffective=+deltaIntermediate &
-         &          -deltaProgenitor
+    offsetEffective=+deltaProgenitor   &
+         &          -deltaIntermediate
     return
   end function farahiOffsetEffective

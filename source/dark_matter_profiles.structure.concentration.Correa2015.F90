@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,7 +88,7 @@ contains
       <variable>A</variable>
       <defaultValue>887.0d0</defaultValue>
       <defaultSource>\cite{correa_accretion_2015}</defaultSource>
-      <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
+      <description>The parameter $A$ appearing in eqn.~(17) of \cite{correa_accretion_2015}.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

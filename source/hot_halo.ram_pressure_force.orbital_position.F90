@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,6 +87,9 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class.
     !!}
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Error           , only : Error_Report             , Component_List
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type (hotHaloRamPressureForceOrbitalPosition)                        :: self
     class(hotHaloMassDistributionClass          ), intent(in   ), target :: hotHaloMassDistribution_
@@ -95,6 +98,24 @@ contains
     <constructorAssign variables="*hotHaloMassDistribution_, *galacticStructure_"/>
     !!]
 
+    ! Ensure that required methods are supported.
+    if     (                                                                                                                         &
+         &  .not.                                                                                                                    &
+         &       (                                                                                                                   &
+         &        defaultSatelliteComponent%positionIsGettable().and.                                                                &
+         &        defaultSatelliteComponent%velocityIsGettable()                                                                     &
+         &  )                                                                                                                        &
+         & ) call Error_Report                                                                                                       &
+         &        (                                                                                                                  &
+         &         'this method requires that position, and velocity properties must all be gettable for the satellite component.'// &
+         &         Component_List(                                                                                                   &
+         &                        'satellite'                                                                                     ,  &
+         &                        defaultSatelliteComponent%positionAttributeMatch(requireGettable=.true.).intersection.             &
+         &                        defaultSatelliteComponent%velocityAttributeMatch(requireGettable=.true.)                           &
+         &                       )                                                                                                // &
+         &         {introspection:location}                                                                                          &
+         &        )
+    
     return
   end function orbitalPositionConstructorInternal
 
@@ -132,7 +153,7 @@ contains
     ! Compute orbital position and velocity.
     radiusOrbital        =  +Vector_Magnitude(satellite%position())
     velocityOrbital      =  +Vector_Magnitude(satellite%velocity())
-    ! Find the ram pressure force at pericenter.
+    ! Find the ram pressure force at this orbital radius.
     orbitalPositionForce =  +self%hotHaloMassDistribution_%density        (nodeHost,radiusOrbital)    &
          &                  *                              velocityOrbital                        **2
     return

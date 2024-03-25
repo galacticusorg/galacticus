@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1044,203 +1044,206 @@ contains
     integer                                                          :: countRadii                               , iRadius                              , &
          &                                                              iHeight                                  , countWork
     double precision                                                 :: radius                                   , beta
-    type            (varying_string                 )                :: fileName
-    character       (len=8                          )                :: label
-    type            (hdf5Object                     )                :: file
-    type            (lockDescriptor                 )                :: fileLock
 
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
-    ! Construct a file name for the table.
-    write (label,'(f8.6)') self%scaleHeight/self%scaleRadius
-    fileName=inputPath(pathTypeDataDynamic)// &
-         &   'galacticStructure/'          // &
-         &   self%objectType()             // &
-         &   '_h'                          // &
-         &   trim(adjustl(label))          // &
-         &   '.hdf5'
-    call Directory_Make(char(File_Path(char(fileName))))
-    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
-    if (File_Exists(fileName)) then
-       !$ call hdf5Access%set()
-       call file%openFile    (char(fileName                     )                                 )
-       call file%readDataset(      'radii'                       ,self%accelerationRadii          )
-       call file%readDataset(      'heights'                     ,self%accelerationHeights        )
-       call file%readDataset(      'accelerationRadial'          ,self%accelerationRadial         )
-       call file%readDataset(      'accelerationVertical'        ,self%accelerationVertical       )
-       call file%readDataset(      'tidalTensorRadialRadial'     ,self%tidalTensorRadialRadial    )
-       call file%readDataset(      'tidalTensorVerticalVertical' ,self%tidalTensorVerticalVertical)
-       call file%readDataset(      'tidalTensorCross'            ,self%tidalTensorCross           )
-       call file%close      (                                                                     )
-       !$ call hdf5Access%unset()
-    else
-       ! Generate grid in radius and height.
-       countRadii=int(log10(radiusMaximum/radiusMinimum)*radiiPerDecade)+1
-       allocate(self%accelerationRadii          (countRadii           ))
-       allocate(self%accelerationHeights        (countRadii           ))
-       allocate(self%accelerationRadial         (countRadii,countRadii))
-       allocate(self%accelerationVertical       (countRadii,countRadii))
-       allocate(self%tidalTensorRadialRadial    (countRadii,countRadii))
-       allocate(self%tidalTensorVerticalVertical(countRadii,countRadii))
-       allocate(self%tidalTensorCross           (countRadii,countRadii))
-       self%accelerationRadii  =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
-       self%accelerationHeights=Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
-       ! Compute the vertical inverse scale-height. Note that our definition of β differs slightly from that of Kuijken & Gilmore
-       ! (1989). They assume a density profile in the vertical direction of the form:
-       !
-       !  ρ(z) = sech^ξ(βz/ξ)
-       !
-       ! while we use:
-       !
-       !  ρ(z) = sech^ξ(z/h)
-       !
-       ! where h is the scale-height. Therefore:
-       !
-       !  β=ξ/h
-       !
-       ! and we then make it dimensionless by multiplying by the radial scale length.
-       beta   =+dble(xi)         &
-            &  *self%scaleRadius &
-            &  /self%scaleHeight
-       ! Iterate over radii and heights.
-       call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
-       countWork=0
-       do iRadius=1,countRadii
-          radius=self%accelerationRadii(iRadius)
-          !$omp parallel
-          integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-          integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-          integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-          integratorTidalTensorVerticalVertical=integrator(tidalTensorVerticalVerticalIntegrand,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-          integratorTidalTensorCross           =integrator(tidalTensorCrossIntegrand           ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-          !$omp do
-          do iHeight=1,countRadii
-             !$omp atomic
-             countWork=countWork+1
-             call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
-             height=self%accelerationHeights(iHeight)          
-             ! Evaluate the integral for the radial component of acceleration.
-             self%accelerationRadial(iRadius,iHeight)=0.0d0
-             wavenumberHigh                          =0.0d0
-             iBesselZero                             =0
-             converged                               =.false.
-             do while (.not.converged)
-                iBesselZero      =+                        iBesselZero  &
-                     &            +                        1
-                wavenumberLow    =+wavenumberHigh
-                wavenumberHigh   =+Bessel_Function_J1_Zero(iBesselZero) &
-                     &            /radius        
-                accelerationDelta=+integratorAccelerationRadial%integrate(wavenumberLow,wavenumberHigh)
-                converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationRadial(iRadius,iHeight))
-                self%accelerationRadial(iRadius,iHeight)=+self%accelerationRadial(iRadius,iHeight) &
-                     &                                   +     accelerationDelta
-             end do
-             ! Evaluate the integral for the vertical component of acceleration.
-             self%accelerationVertical(iRadius,iHeight)=0.0d0
-             wavenumberHigh                            =0.0d0
-             iBesselZero                               =0
-             converged                                 =.false.
-             do while (.not.converged)
-                iBesselZero      =+                       iBesselZero   &
-                     &            +                       1
-                wavenumberLow    =+wavenumberHigh
-                wavenumberHigh   =+Bessel_Function_J0_Zero(iBesselZero) &
-                     &            /radius
-                accelerationDelta=+integratorAccelerationVertical%integrate(wavenumberLow,wavenumberHigh)
-                converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationVertical(iRadius,iHeight))
-                self%accelerationVertical(iRadius,iHeight)=+self%accelerationVertical(iRadius,iHeight) &
-                     &                                     +     accelerationDelta
-             end do
-             ! Evaluate the integral for the radial component of the tidal tensor.
-             self%tidalTensorRadialRadial(iRadius,iHeight)=0.0d0
-             do besselOrder=0,2,2                
-                tidalTensorRadialRadial=0.0d0
-                wavenumberHigh         =0.0d0
-                iBesselZero            =0
-                converged              =.false.
-                do while (.not.converged)
-                   iBesselZero  =+iBesselZero &
-                        &        +1
-                   wavenumberLow=+wavenumberHigh
-                   select case (besselOrder)
-                   case (0)
-                      wavenumberHigh=+Bessel_Function_J0_Zero(      iBesselZero) &
-                           &         /radius
-                   case (2)
-                      wavenumberHigh=+Bessel_Function_Jn_Zero(2.0d0,iBesselZero) &
-                           &         /radius
-                   case default
-                      call Error_Report('incorrect Bessel function order'//{introspection:location})
-                   end select
-                   tidalTensorDelta=+integratorTidalTensorRadialRadial%integrate(wavenumberLow,wavenumberHigh)
-                   converged=abs(tidalTensorDelta) < 1.0d-6*abs(tidalTensorRadialRadial)                   
-                   tidalTensorRadialRadial=+tidalTensorRadialRadial &
-                        &                  +     tidalTensorDelta
-                end do
-                self%tidalTensorRadialRadial(iRadius,iHeight)=+self%tidalTensorRadialRadial(iRadius,iHeight) &
-                     &                                        +     tidalTensorRadialRadial
-             end do
-             ! Evaluate the integral for the vertical-vertical component of the tidal tensor.
-             self%tidalTensorVerticalVertical(iRadius,iHeight)=0.0d0
-             wavenumberHigh                                   =0.0d0
-             iBesselZero                                      =0
-             converged                                        =.false.
-             do while (.not.converged)
-                iBesselZero     =+                        iBesselZero  &
-                     &           +                        1
-                wavenumberLow   =+wavenumberHigh
-                wavenumberHigh  =+Bessel_Function_J0_Zero(iBesselZero) &
-                     &           /radius
-                tidalTensorDelta=+integratorTidalTensorVerticalVertical%integrate(wavenumberLow,wavenumberHigh)
-                converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorVerticalVertical(iRadius,iHeight))
-                self%tidalTensorVerticalVertical(iRadius,iHeight)=+self%tidalTensorVerticalVertical(iRadius,iHeight) &
-                     &                                            +     tidalTensorDelta
-             end do
-             ! Evaluate the integral for the cross component of the tidal tensor.
-             self%tidalTensorCross(iRadius,iHeight)=0.0d0
-             wavenumberHigh                        =0.0d0
-             iBesselZero                           =0
-             converged                             =.false.
-             do while (.not.converged)
-                iBesselZero     =+                        iBesselZero  &
-                     &           +                        1
-                wavenumberLow   =+wavenumberHigh
-                wavenumberHigh  =+Bessel_Function_J1_Zero(iBesselZero) &
-                     &           /radius
-                tidalTensorDelta=+integratorTidalTensorCross%integrate(wavenumberLow,wavenumberHigh)
-                converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorCross(iRadius,iHeight))
-                self%tidalTensorCross(iRadius,iHeight)=+self%tidalTensorCross(iRadius,iHeight) &
-                     &                                 +     tidalTensorDelta
-             end do
-          end do
-          !$omp end do
-          !$omp end parallel
-       end do
-       call displayCounterClear(       verbosityLevelWorking)
-       call displayUnindent     ("done",verbosityLevelWorking)
-       !$ call hdf5Access%set()
-       call file%openFile    (char   (fileName                        )                              ,overWrite=.true.,readOnly=.false.)
-       call file%writeDataset(        self%accelerationRadii           ,'radii'                                                        )
-       call file%writeDataset(        self%accelerationHeights         ,'heights'                                                      )
-       call file%writeDataset(        self%accelerationRadial          ,'accelerationRadial'                                           )
-       call file%writeDataset(        self%accelerationVertical        ,'accelerationVertical'                                         )
-       call file%writeDataset(        self%tidalTensorRadialRadial     ,'tidalTensorRadialRadial'                                      )
-       call file%writeDataset(        self%tidalTensorVerticalVertical ,'tidalTensorVerticalVertical'                                  )
-       call file%writeDataset(        self%tidalTensorCross            ,'tidalTensorCross'                                             )
-       call file%close       (                                                                                                         )
-       !$ call hdf5Access%unset()
-    end if
-    call File_Unlock(fileLock)
-    ! Compute factors needed for interpolation.
-    self%accelerationRadiusMinimumLog     =      log(self%accelerationRadii  (                            1 ))
-    self%accelerationRadiusMaximumLog     =      log(self%accelerationRadii  (size(self%accelerationRadii  )))
-    self%accelerationHeightMinimumLog     =      log(self%accelerationHeights(                            1 ))
-    self%accelerationHeightMaximumLog     =      log(self%accelerationHeights(size(self%accelerationHeights)))
-    self%accelerationRadiusInverseInterval=1.0d0/log(self%accelerationRadii  (2)/self%accelerationRadii  (1))
-    self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(2)/self%accelerationHeights(1))
-    ! Record that the acceleration table is initialized.
-    self%accelerationInitialized=.true.
+    block
+      type     (varying_string) :: fileName
+      character(len=8         ) :: label
+      type     (hdf5Object    ) :: file
+      type     (lockDescriptor) :: fileLock
+      
+      ! Construct a file name for the table.
+      write (label,'(f8.6)') self%scaleHeight/self%scaleRadius
+      fileName=inputPath(pathTypeDataDynamic)// &
+           &   'galacticStructure/'          // &
+           &   self%objectType()             // &
+           &   '_h'                          // &
+           &   trim(adjustl(label))          // &
+           &   '.hdf5'
+      call Directory_Make(char(File_Path(char(fileName))))
+      ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+      call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+      if (File_Exists(fileName)) then
+         !$ call hdf5Access%set()
+         call file%openFile    (char(fileName                     )                                 )
+         call file%readDataset(      'radii'                       ,self%accelerationRadii          )
+         call file%readDataset(      'heights'                     ,self%accelerationHeights        )
+         call file%readDataset(      'accelerationRadial'          ,self%accelerationRadial         )
+         call file%readDataset(      'accelerationVertical'        ,self%accelerationVertical       )
+         call file%readDataset(      'tidalTensorRadialRadial'     ,self%tidalTensorRadialRadial    )
+         call file%readDataset(      'tidalTensorVerticalVertical' ,self%tidalTensorVerticalVertical)
+         call file%readDataset(      'tidalTensorCross'            ,self%tidalTensorCross           )
+         call file%close      (                                                                     )
+         !$ call hdf5Access%unset()
+      else
+         ! Generate grid in radius and height.
+         countRadii=int(log10(radiusMaximum/radiusMinimum)*radiiPerDecade)+1
+         allocate(self%accelerationRadii          (countRadii           ))
+         allocate(self%accelerationHeights        (countRadii           ))
+         allocate(self%accelerationRadial         (countRadii,countRadii))
+         allocate(self%accelerationVertical       (countRadii,countRadii))
+         allocate(self%tidalTensorRadialRadial    (countRadii,countRadii))
+         allocate(self%tidalTensorVerticalVertical(countRadii,countRadii))
+         allocate(self%tidalTensorCross           (countRadii,countRadii))
+         self%accelerationRadii  =Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
+         self%accelerationHeights=Make_Range(radiusMinimum,radiusMaximum,countRadii,rangeTypeLogarithmic)
+         ! Compute the vertical inverse scale-height. Note that our definition of β differs slightly from that of Kuijken & Gilmore
+         ! (1989). They assume a density profile in the vertical direction of the form:
+         !
+         !  ρ(z) = sech^ξ(βz/ξ)
+         !
+         ! while we use:
+         !
+         !  ρ(z) = sech^ξ(z/h)
+         !
+         ! where h is the scale-height. Therefore:
+         !
+         !  β=ξ/h
+         !
+         ! and we then make it dimensionless by multiplying by the radial scale length.
+         beta   =+dble(xi)         &
+              &  *self%scaleRadius &
+              &  /self%scaleHeight
+         ! Iterate over radii and heights.
+         call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
+         countWork=0
+         do iRadius=1,countRadii
+            radius=self%accelerationRadii(iRadius)
+            !$omp parallel
+            integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+            integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+            integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+            integratorTidalTensorVerticalVertical=integrator(tidalTensorVerticalVerticalIntegrand,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+            integratorTidalTensorCross           =integrator(tidalTensorCrossIntegrand           ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+            !$omp do
+            do iHeight=1,countRadii
+               !$omp atomic
+               countWork=countWork+1
+               call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
+               height=self%accelerationHeights(iHeight)          
+               ! Evaluate the integral for the radial component of acceleration.
+               self%accelerationRadial(iRadius,iHeight)=0.0d0
+               wavenumberHigh                          =0.0d0
+               iBesselZero                             =0
+               converged                               =.false.
+               do while (.not.converged)
+                  iBesselZero      =+                        iBesselZero  &
+                       &            +                        1
+                  wavenumberLow    =+wavenumberHigh
+                  wavenumberHigh   =+Bessel_Function_J1_Zero(iBesselZero) &
+                       &            /radius        
+                  accelerationDelta=+integratorAccelerationRadial%integrate(wavenumberLow,wavenumberHigh)
+                  converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationRadial(iRadius,iHeight))
+                  self%accelerationRadial(iRadius,iHeight)=+self%accelerationRadial(iRadius,iHeight) &
+                       &                                   +     accelerationDelta
+               end do
+               ! Evaluate the integral for the vertical component of acceleration.
+               self%accelerationVertical(iRadius,iHeight)=0.0d0
+               wavenumberHigh                            =0.0d0
+               iBesselZero                               =0
+               converged                                 =.false.
+               do while (.not.converged)
+                  iBesselZero      =+                       iBesselZero   &
+                       &            +                       1
+                  wavenumberLow    =+wavenumberHigh
+                  wavenumberHigh   =+Bessel_Function_J0_Zero(iBesselZero) &
+                       &            /radius
+                  accelerationDelta=+integratorAccelerationVertical%integrate(wavenumberLow,wavenumberHigh)
+                  converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationVertical(iRadius,iHeight))
+                  self%accelerationVertical(iRadius,iHeight)=+self%accelerationVertical(iRadius,iHeight) &
+                       &                                     +     accelerationDelta
+               end do
+               ! Evaluate the integral for the radial component of the tidal tensor.
+               self%tidalTensorRadialRadial(iRadius,iHeight)=0.0d0
+               do besselOrder=0,2,2                
+                  tidalTensorRadialRadial=0.0d0
+                  wavenumberHigh         =0.0d0
+                  iBesselZero            =0
+                  converged              =.false.
+                  do while (.not.converged)
+                     iBesselZero  =+iBesselZero &
+                          &        +1
+                     wavenumberLow=+wavenumberHigh
+                     select case (besselOrder)
+                     case (0)
+                        wavenumberHigh=+Bessel_Function_J0_Zero(      iBesselZero) &
+                             &         /radius
+                     case (2)
+                        wavenumberHigh=+Bessel_Function_Jn_Zero(2.0d0,iBesselZero) &
+                             &         /radius
+                     case default
+                        call Error_Report('incorrect Bessel function order'//{introspection:location})
+                     end select
+                     tidalTensorDelta=+integratorTidalTensorRadialRadial%integrate(wavenumberLow,wavenumberHigh)
+                     converged=abs(tidalTensorDelta) < 1.0d-6*abs(tidalTensorRadialRadial)                   
+                     tidalTensorRadialRadial=+tidalTensorRadialRadial &
+                          &                  +     tidalTensorDelta
+                  end do
+                  self%tidalTensorRadialRadial(iRadius,iHeight)=+self%tidalTensorRadialRadial(iRadius,iHeight) &
+                       &                                        +     tidalTensorRadialRadial
+               end do
+               ! Evaluate the integral for the vertical-vertical component of the tidal tensor.
+               self%tidalTensorVerticalVertical(iRadius,iHeight)=0.0d0
+               wavenumberHigh                                   =0.0d0
+               iBesselZero                                      =0
+               converged                                        =.false.
+               do while (.not.converged)
+                  iBesselZero     =+                        iBesselZero  &
+                       &           +                        1
+                  wavenumberLow   =+wavenumberHigh
+                  wavenumberHigh  =+Bessel_Function_J0_Zero(iBesselZero) &
+                       &           /radius
+                  tidalTensorDelta=+integratorTidalTensorVerticalVertical%integrate(wavenumberLow,wavenumberHigh)
+                  converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorVerticalVertical(iRadius,iHeight))
+                  self%tidalTensorVerticalVertical(iRadius,iHeight)=+self%tidalTensorVerticalVertical(iRadius,iHeight) &
+                       &                                            +     tidalTensorDelta
+               end do
+               ! Evaluate the integral for the cross component of the tidal tensor.
+               self%tidalTensorCross(iRadius,iHeight)=0.0d0
+               wavenumberHigh                        =0.0d0
+               iBesselZero                           =0
+               converged                             =.false.
+               do while (.not.converged)
+                  iBesselZero     =+                        iBesselZero  &
+                       &           +                        1
+                  wavenumberLow   =+wavenumberHigh
+                  wavenumberHigh  =+Bessel_Function_J1_Zero(iBesselZero) &
+                       &           /radius
+                  tidalTensorDelta=+integratorTidalTensorCross%integrate(wavenumberLow,wavenumberHigh)
+                  converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorCross(iRadius,iHeight))
+                  self%tidalTensorCross(iRadius,iHeight)=+self%tidalTensorCross(iRadius,iHeight) &
+                       &                                 +     tidalTensorDelta
+               end do
+            end do
+            !$omp end do
+            !$omp end parallel
+         end do
+         call displayCounterClear(       verbosityLevelWorking)
+         call displayUnindent     ("done",verbosityLevelWorking)
+         !$ call hdf5Access%set()
+         call file%openFile    (char   (fileName                        )                              ,overWrite=.true.,readOnly=.false.)
+         call file%writeDataset(        self%accelerationRadii           ,'radii'                                                        )
+         call file%writeDataset(        self%accelerationHeights         ,'heights'                                                      )
+         call file%writeDataset(        self%accelerationRadial          ,'accelerationRadial'                                           )
+         call file%writeDataset(        self%accelerationVertical        ,'accelerationVertical'                                         )
+         call file%writeDataset(        self%tidalTensorRadialRadial     ,'tidalTensorRadialRadial'                                      )
+         call file%writeDataset(        self%tidalTensorVerticalVertical ,'tidalTensorVerticalVertical'                                  )
+         call file%writeDataset(        self%tidalTensorCross            ,'tidalTensorCross'                                             )
+         call file%close       (                                                                                                         )
+         !$ call hdf5Access%unset()
+      end if
+      call File_Unlock(fileLock)
+      ! Compute factors needed for interpolation.
+      self%accelerationRadiusMinimumLog     =      log(self%accelerationRadii  (                            1 ))
+      self%accelerationRadiusMaximumLog     =      log(self%accelerationRadii  (size(self%accelerationRadii  )))
+      self%accelerationHeightMinimumLog     =      log(self%accelerationHeights(                            1 ))
+      self%accelerationHeightMaximumLog     =      log(self%accelerationHeights(size(self%accelerationHeights)))
+      self%accelerationRadiusInverseInterval=1.0d0/log(self%accelerationRadii  (2)/self%accelerationRadii  (1))
+      self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(2)/self%accelerationHeights(1))
+      ! Record that the acceleration table is initialized.
+      self%accelerationInitialized=.true.
+    end block
     return
 
   contains
@@ -1386,7 +1389,7 @@ contains
 
     double precision function Izm(wavenumber,m)
       !!{
-      Evalute the $m$-dependent part of the $I(z)$ integral.
+      Evaluate the $m$-dependent part of the $I(z)$ integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1458,7 +1461,7 @@ contains
 
     double precision function dIzdzm(wavenumber,m)
       !!{
-      Evalute the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
+      Evaluate the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1531,7 +1534,7 @@ contains
 
     double precision function d2Izdz2m(wavenumber,m)
       !!{
-      Evalute the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
+      Evaluate the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none

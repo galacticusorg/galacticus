@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@
     and output to the {\normalfont \ttfamily metaData/treeTiming} group. Three datasets are written to this group:
     \begin{description}
      \item[{\normalfont \ttfamily treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
-     \item[{\normalfont \ttfamily treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
+     \item[{\normalfont \ttfamily treeConstructTimes}] Gives the time (in seconds) taken to construct each merger tree;
      \item[{\normalfont \ttfamily treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
     \end{description}
    </description>

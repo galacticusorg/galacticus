@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOS">
    <description>
-    ETHOS window function for filtering of power spectras from \cite{bohr_halo_2021}. This window function was chosen to give good
+    ETHOS window function for filtering of power spectra from \cite{bohr_halo_2021}. This window function was chosen to give good
     matches to N-body halo mass functions derived from the ETHOS transfer functions. Specifically the window function is given by:
     \begin{equation}
      W(kR) = (\frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta})

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,15 +23,18 @@ program Tests_IO_HDF5
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
+       &                            hdf5VarDouble2D
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str
   use :: Kind_Numbers      , only : kind_int8
+  use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
        &                                                                       groupObject
   integer                                                                   :: iPass                          , integerValue         , &
-       &                                                                       integerValueReread             , i
+       &                                                                       integerValueReread             , i                    , &
+       &                                                                       j                              , k
   logical                                                                   :: appendableOK
   integer                                       , dimension(10)             :: integerValueArray
   integer                                       , dimension(10)             :: integerValueArrayRereadStatic
@@ -65,8 +68,9 @@ program Tests_IO_HDF5
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
   double precision                 , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
   type            (varying_string ), allocatable, dimension( :)             :: datasetNames
-  type            (varying_string )             , dimension(19)             :: datasetNamesReference
-  type            (hdf5VarDouble  ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2dArrayReread
+  type            (varying_string )             , dimension(20)             :: datasetNamesReference
+  type            (hdf5VarDouble  ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2DArrayReread
+  type            (hdf5VarDouble2D), allocatable, dimension( :)             :: varDoubleArray3D              , varDoubleDataset3DArrayReread
   type            (hdf5VarInteger8), allocatable, dimension( :)             :: varInteger8Array2D            , varInteger8Dataset2dArrayReread
 
   ! Set verbosity level.
@@ -678,14 +682,16 @@ program Tests_IO_HDF5
      call groupObject%readDatasetStatic("varStringDataset1dArray",varStringValueArrayRereadStatic)
      call Assert("re-read 1-D array varString dataset to static array",varStringValueArray,varStringValueArrayRereadStatic)
 
-     ! Write a variable length double dataset to the group.
+     ! Write a variable length 2D double dataset to the group.
      allocate(varDoubleArray2D(10))
      do i=1,10
         allocate(varDoubleArray2D(i)%row(11-i))
-        varDoubleArray2D(i)%row=float(2*i)
+        do j=1,11-i
+           varDoubleArray2D(i)%row(j)=float(2*i-3*j)
+        end do
      end do
      call groupObject%writeDataset(varDoubleArray2D,"varDoubleDataset2dArray")
-     ! Read the variable-length double array dataset back.
+     ! Read the variable-length 2D double array dataset back.
      call groupObject%readDataset("varDoubleDataset2dArray",varDoubleDataset2dArrayReread)
      call Assert(                                                                         &
           &      "re-read 2-D array varDouble dataset"                                  , &
@@ -705,6 +711,38 @@ program Tests_IO_HDF5
           &     )
      deallocate(varDoubleDataset2dArrayReread)
      deallocate(varDoubleArray2D             )
+     
+     ! Write a variable length 3D double dataset to the group.
+     allocate(varDoubleArray3D(10))
+     do i=1,10
+        allocate(varDoubleArray3D(i)%row(11-i,i))
+        do j=1,11-i
+           do k=1,i
+              varDoubleArray3D(i)%row(j,k)=float(2*i-3*j+4*k)
+           end do
+        end do
+     end do
+     call groupObject%writeDataset(varDoubleArray3D,"varDoubleDataset3dArray")
+     ! Read the variable-length 3D double array dataset back.
+     call groupObject%readDataset("varDoubleDataset3dArray",varDoubleDataset3dArrayReread)
+     call Assert(                                                                         &
+          &      "re-read 3-D array varDouble dataset"                                  , &
+          &      [                                                                        &
+          &       all(varDoubleArray3D( 1)%row == varDoubleDataset3dArrayReread( 1)%row), &
+          &       all(varDoubleArray3D( 2)%row == varDoubleDataset3dArrayReread( 2)%row), &
+          &       all(varDoubleArray3D( 3)%row == varDoubleDataset3dArrayReread( 3)%row), &
+          &       all(varDoubleArray3D( 4)%row == varDoubleDataset3dArrayReread( 4)%row), &
+          &       all(varDoubleArray3D( 5)%row == varDoubleDataset3dArrayReread( 5)%row), &
+          &       all(varDoubleArray3D( 6)%row == varDoubleDataset3dArrayReread( 6)%row), &
+          &       all(varDoubleArray3D( 7)%row == varDoubleDataset3dArrayReread( 7)%row), &
+          &       all(varDoubleArray3D( 8)%row == varDoubleDataset3dArrayReread( 8)%row), &
+          &       all(varDoubleArray3D( 9)%row == varDoubleDataset3dArrayReread( 9)%row), &
+          &       all(varDoubleArray3D(10)%row == varDoubleDataset3dArrayReread(10)%row)  &
+          &      ]                                                                      , &
+          &      spread(.true.,1,10)                                                      &
+          &     )
+     deallocate(varDoubleDataset3DArrayReread)
+     deallocate(varDoubleArray3D             )
 
      ! Write a variable length integer8 dataset to the group.
      allocate(varInteger8Array2D(10))
@@ -784,14 +822,16 @@ program Tests_IO_HDF5
              &                 "integerShortDataset1dArray", &
              &                 "myReference               ", &
              &                 "varDoubleDataset2dArray   ", &
+             &                 "varDoubleDataset3dArray   ", &
              &                 "varInteger8Dataset2dArray ", &
              &                 "varStringDataset1dArray   "  &
              &                ]
         forall(i=1:size(datasetNamesReference))
            datasetNamesReference(i)=trim(datasetNamesReference(i))
         end forall
-        call Assert("recover correct number of datasets in group",size(datasetNames),19)
+        call Assert("recover correct number of datasets in group",size(datasetNames),20)
         call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
+        deallocate(datasetNames)
      end if
 
      ! Close the group.
@@ -826,6 +866,18 @@ program Tests_IO_HDF5
 
   ! Test identifying HDF5 file.
   call Assert("test if file is HDF5",IO_HDF5_Is_HDF5('testSuite/outputs/test.IO.HDF5.hdf5'),.true.)
+
+  ! Test of h5py compatibility.
+  call Unit_Tests_Begin_Group("h5py compatibility")
+  call System_Command_Do("./testSuite/scripts/generate_h5py.py")
+  call fileObject%openFile     ("testSuite/outputs/h5py.hdf5",overWrite=.false.             ,objectsOverwritable=.false.)
+  call fileObject%readAttribute("stringAttribute"            ,          varStringValueReread                            )
+  call fileObject%readAttribute("stringAttribute"            ,          characterValueReread                            )
+  call fileObject%close        (                                                                                        )
+  call fileObject%destroy      (                                                                                        )
+  call Assert("read h5py string attribute (character)",characterValueReread,"this is a variable length string")
+  call Assert("read h5py string attribute (varying_string)",varStringValueReread,var_str("this is a variable length string"))
+  call Unit_Tests_End_Group()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -160,12 +160,12 @@ contains
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
-    class           (nodePropertyExtractorICMCoolingPowerInBand), intent(inout)              :: self
-    type            (treeNode                                  ), intent(inout), target      :: node
-    type            (multiCounter                              ), intent(inout), optional    :: instance
-    type            (radiationFieldCosmicMicrowaveBackground   ), pointer                    :: radiation_
-    type            (integrator                                )                             :: integratorTotal, integratorInBand
-    double precision                                                                         :: luminosityTotal, luminosityInBand
+    class           (nodePropertyExtractorICMCoolingPowerInBand), intent(inout), target   :: self
+    type            (treeNode                                  ), intent(inout), target   :: node
+    type            (multiCounter                              ), intent(inout), optional :: instance
+    type            (radiationFieldCosmicMicrowaveBackground   ), pointer                 :: radiation_
+    type            (integrator                                )                          :: integratorTotal, integratorInBand
+    double precision                                                                      :: luminosityTotal, luminosityInBand
     !$GLC attributes unused :: instance
 
     ! Initialize radiation field.

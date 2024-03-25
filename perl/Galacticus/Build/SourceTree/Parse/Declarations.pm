@@ -50,8 +50,10 @@ sub Parse_Declarations {
 		# Accumulate raw text.
 		if ( $isDeclaration == 1 ) {
 		    $rawDeclaration .= $rawLine;
-		    push(@declarations,$declaration)
-			if ( $declaration );
+		    if ( $declaration ) {
+			$declaration->{'line'} = $lineNumber;
+			push(@declarations,$declaration);
+		    }
 		} else {
 		    $rawCode        .= $rawLine;
 		}
@@ -185,7 +187,7 @@ sub AddDeclarations {
 	    parent     => $declarationsNode,
 	    firstChild => undef()
 	};
-	# Inert the node, after any module use node if one exists.
+	# Insert the node, after any module use node if one exists.
 	if ( $usesNode ) {
 	    &Galacticus::Build::SourceTree::InsertAfterNode ($usesNode            ,[$declarationsNode]);
 	} else {	

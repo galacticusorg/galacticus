@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -103,7 +103,7 @@ contains
       <name>analyzeAllParticles</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
+      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the beginning of the analysis.</description>
     </inputParameter>
     <inputParameter>
       <name>useVelocityMostBound</name>
@@ -194,8 +194,9 @@ contains
     logical                                 , allocatable  , dimension(:  )          :: isConverged
     integer         (c_size_t              )                                         :: representativeParticleCount
     integer                                                                          :: addSubtract                   , countIteration
-    double precision                                                                 :: lengthSoftening               , massParticle          , &
-         &                                                                              convergenceFactor             , weightRepresentative
+    double precision                                                                 :: lengthSoftening               , velocitySoftening     , &
+         &                                                                              massParticle                  , convergenceFactor     , &
+         &                                                                              weightRepresentative
     type            (varying_string        )                                         :: message
     character       (len=12                )                                         :: label
 
@@ -222,8 +223,9 @@ contains
        call Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
     end if
     ! Get simulation attributes.
-    lengthSoftening=simulations(current)%attributesReal%value('lengthSoftening')
-    massParticle   =simulations(current)%attributesReal%value('massParticle'   )
+    lengthSoftening  =simulations(current)%attributesReal%value('lengthSoftening')
+    massParticle     =simulations(current)%attributesReal%value('massParticle'   )
+    velocitySoftening=sqrt(gravitationalConstantGalacticus*massParticle/lengthSoftening)
     ! Get particle data.
     position    => simulations(current)%propertiesRealRank1%value('position'  )
     velocity    => simulations(current)%propertiesRealRank1%value('velocity'  )
@@ -249,7 +251,7 @@ contains
     allocate(weightBound            (                         self%bootstrapSampleCount))
     allocate(weightBoundPrevious    (                         self%bootstrapSampleCount))
     allocate(isConverged            (                         self%bootstrapSampleCount))
-    ! Iterate over bootstrap samplings.
+    ! Iterate over bootstrap samples.
     call displayIndent('Performing self-bound analysis on bootstrap samples')
     ! If previous bound status is available, read in the self-bound status and sampling weights. If not, generate new values.
     if (previous > 0) then
@@ -345,7 +347,7 @@ contains
           if (.not.compute(i)) cycle
           ! Check how to accumulate changes to potentials.
           if (addSubtract == +1) then
-             ! Recomute potentials for all self-bound partiles.
+             ! Recompute potentials for all self-bound particles.
              computeActual        = compute
              isBoundComputeActual = isBoundCompute
           else
@@ -369,7 +371,8 @@ contains
              end where
           end forall
           where(computeActual(i+1:particleCount))
-             separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1)
+             separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1) &
+                  &                               /velocitySoftening**2
              separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
              ! Compute potentials.
              potential        (i+1:particleCount)=+selfBoundPotential(                                      &

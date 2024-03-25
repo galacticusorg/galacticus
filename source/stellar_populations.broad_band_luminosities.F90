@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ module Stellar_Population_Broad_Band_Luminosities
     <type>double precision, dimension(size(luminosityIndex))</type>
     <pass>yes</pass>
     <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex </argument>
-    <argument>type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:  )              :: stellarPopulationSpectraPostprocessor_              </argument>
+    <argument>type            (stellarPopulationSpectraPostprocessorList), intent(inout), dimension(:  )              :: stellarPopulationSpectraPostprocessor_              </argument>
     <argument>class           (stellarPopulationClass                   ), intent(inout)                              :: stellarPopulation_                                  </argument>
     <argument>type            (abundances                               ), intent(in   )                              :: abundancesStellar                                   </argument>
     <argument>double precision                                           , intent(in   ), dimension(:  )              :: age                                   , redshift    </argument>
@@ -51,7 +51,7 @@ module Stellar_Population_Broad_Band_Luminosities
     <type>void</type>
     <pass>yes</pass>
     <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex</argument>
-    <argument>type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:  )              :: stellarPopulationSpectraPostprocessor_             </argument>
+    <argument>type            (stellarPopulationSpectraPostprocessorList), intent(inout), dimension(:  )              :: stellarPopulationSpectraPostprocessor_             </argument>
     <argument>class           (stellarPopulationClass                   ), intent(inout)                              :: stellarPopulation_                                 </argument>
     <argument>type            (abundances                               ), intent(in   )                              :: abundancesStellar                                  </argument>
     <argument>double precision                                           , intent(in   ), dimension(:  )              :: redshift                                           </argument>

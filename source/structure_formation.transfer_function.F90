@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,6 +46,15 @@ module Transfer_Functions
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
+   </method>
+   <method name="wavenumbersLocalMinima" >
+    <description>Return an array of wavenumbers at which the transfer function reaches a local minimum. (Or a zero-length array if no such local minima exist.)</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(  out), allocatable, dimension(:) :: wavenumbers</argument>
+    <code>
+      allocate(wavenumbers(0))
+    </code>
    </method>
    <method name="epochTime" >
     <description>Return the cosmic time corresponding to the epoch for which this transfer function is defined.</description>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module of functions for differentation unit tests.
+Contains a module of functions for differentiation unit tests.
 !!}
 
 module Test_Differentiation_Functions
   !!{
-  Contains functions for differentation unit tests.
+  Contains functions for differentiation unit tests.
   !!}
   implicit none
   private

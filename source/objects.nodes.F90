@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -300,19 +300,12 @@ module Galacticus_Nodes
     !!{
     Returns the index of a {\normalfont \ttfamily treeNode}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
-    type   (treeNode      ), pointer               :: workNode
+    class  (treeNode      ), pointer               :: workNode
     integer(kind=kind_int8)                        :: Tree_Node_Index
 
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class'//{introspection:location})
-    end select
+    workNode => self
     if (associated(workNode)) then
        Tree_Node_Index=workNode%indexValue
     else
@@ -333,28 +326,15 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Index_Set
 
-  function Tree_Node_Unique_ID(self)
+  function Tree_Node_Unique_ID(self) result(uniqueID)
     !!{
     Returns the unique ID of a {\normalfont \ttfamily treeNode}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
-    class  (treeNode      ), intent(in   ), target :: self
-    type   (treeNode      ), pointer               :: workNode
-    integer(kind=kind_int8)                        :: Tree_Node_Unique_ID
+    class  (treeNode      ), intent(in   ) :: self
+    integer(kind=kind_int8)                        :: uniqueID
 
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class'//{introspection:location})
-    end select
-    if (associated(workNode)) then
-       Tree_Node_Unique_ID=workNode%uniqueIdValue
-    else
-       Tree_Node_Unique_ID=-1
-    end if
+    uniqueID=self%uniqueIdValue
     return
   end function Tree_Node_Unique_ID
 
@@ -515,20 +495,13 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
-    type   (treeNode      ), pointer               :: workNode
+    class  (treeNode      ), pointer               :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Index=.false.
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
-    end select
+    workNode => self
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
           Tree_Node_Is_Primary_Progenitor_Of_Index=.true.
@@ -544,20 +517,13 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
-    type (treeNode)               , pointer :: workNode
+    class(treeNode)               , pointer :: workNode
 
     Tree_Node_Is_Primary_Progenitor_Of_Node=.false.
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
-    end select
+    workNode => self
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
           Tree_Node_Is_Primary_Progenitor_Of_Node=.true.
@@ -573,20 +539,13 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
     integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
-    type   (treeNode      ), pointer               :: workNode
+    class  (treeNode      ), pointer               :: workNode
 
     Tree_Node_Is_Progenitor_Of_Index=.false.
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class'//{introspection:location})
-    end select
+    workNode => self
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
           Tree_Node_Is_Progenitor_Of_Index=.true.
@@ -601,20 +560,13 @@ module Galacticus_Nodes
     !!{
     Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
     type (treeNode), intent(in   ), pointer :: targetNode
-    type (treeNode)               , pointer :: workNode
+    class(treeNode)               , pointer :: workNode
 
     Tree_Node_Is_Progenitor_Of_Node=.false.
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
-    end select
+    workNode => self
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
           Tree_Node_Is_Progenitor_Of_Node=.true.
@@ -629,19 +581,12 @@ module Galacticus_Nodes
     !!{
     Returns true if {\normalfont \ttfamily self} is on the main branch.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(inout), target :: self
-    type (treeNode), pointer               :: workNode
+    class(treeNode), pointer               :: workNode
 
     Tree_Node_Is_On_Main_Branch=.not.associated(self%parent)
-    select type (self)
-    type is (treeNode)
-       workNode => self
-    class default
-       workNode => null()
-       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
-    end select
+    workNode => self
     do while (associated(workNode%parent))
        if (.not.workNode%isPrimaryProgenitor()) return
        workNode => workNode%parent
@@ -1915,7 +1860,7 @@ module Galacticus_Nodes
 
   logical function propertyActive(propertyType)
     !!{
-    Returns true if active property evaulate is underway.
+    Returns true if active property evaluate is underway.
     !!}
     implicit none
     integer, intent(in   ) :: propertyType
@@ -1926,7 +1871,7 @@ module Galacticus_Nodes
   
   logical function propertyInactive(propertyType)
     !!{
-    Returns true if inactive property evaulate is underway.
+    Returns true if inactive property evaluate is underway.
     !!}
     implicit none
     integer, intent(in   ) :: propertyType
@@ -1937,7 +1882,7 @@ module Galacticus_Nodes
   
   logical function propertyEvaluate(propertyType,propertyIsInactive)
     !!{
-    Returns true if a property should be evaulated during the current stage of evolution.
+    Returns true if a property should be evaluated during the current stage of evolution.
     !!}
     implicit none
     integer, intent(in   ) :: propertyType

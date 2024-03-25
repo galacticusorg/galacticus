@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +27,8 @@ module Error
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
-  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom, GSL_eRange, &
-          &                                    GSL_eUndrFlw  , GSL_eZeroDiv
+  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange  , &
+          &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
   implicit none
   private
   public :: Error_Report               , Error_Handler_Register    , &
@@ -55,13 +55,16 @@ module Error
 
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
-  integer, parameter, public :: errorStatusSuccess     =GSL_Success  ! Success.
-  integer, parameter, public :: errorStatusFail        =GSL_Failure  ! Generic failure.
-  integer, parameter, public :: errorStatusInputDomain =GSL_eDom     ! Input domain error.
-  integer, parameter, public :: errorStatusOutOfRange  =GSL_eRange   ! Output range error.
-  integer, parameter, public :: errorStatusDivideByZero=GSL_eZeroDiv ! Divide by zero.
-  integer, parameter, public :: errorStatusUnderflow   =GSL_eUndrFlw ! Floating point underflow.
-  integer, parameter, public :: errorStatusXCPU        =1025         ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusSuccess      =GSL_Success  ! Success.
+  integer, parameter, public :: errorStatusFail         =GSL_Failure  ! Generic failure.
+  integer, parameter, public :: errorStatusInputDomain  =GSL_eDom     ! Input domain error.
+  integer, parameter, public :: errorStatusRound        =GSL_eRound   ! Rounding error.
+  integer, parameter, public :: errorStatusOutOfRange   =GSL_eRange   ! Output range error.
+  integer, parameter, public :: errorStatusDivideByZero =GSL_eZeroDiv ! Divide by zero.
+  integer, parameter, public :: errorStatusUnderflow    =GSL_eUndrFlw ! Floating point underflow.
+  integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
+  integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
 
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400
@@ -106,12 +109,20 @@ contains
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
+#ifdef USEMPI
+    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+#endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    character(len=*), intent(in   ) :: message
-    integer                         :: error
+    character(len=*  ), intent(in   ) :: message
+    integer                           :: error
+#ifdef USEMPI
+    integer                           :: mpiRank
+    character(len=128)                :: hostName
+    logical                           :: flag
+#endif
 
     if (stdOutIsATTY()) then
        write (0,'(a)') displayRed()//displayBold()//'Fatal error:'//displayReset()
@@ -135,7 +146,18 @@ contains
     call           H5Close_F       (error)
     call           H5Close_C       (     )
     !$ call        hdf5Access%unset(     )
-    call           Abort           (     )
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(errorWaitTime)
+    end if
+#endif
+    call  Abort()
 #endif
     return
   end subroutine Error_Report_Char
@@ -241,7 +263,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -304,7 +326,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -367,7 +389,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -430,7 +452,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -493,7 +515,7 @@ contains
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayBold       , displayRed     , displayReset
@@ -590,7 +612,7 @@ contains
     use   , intrinsic :: ISO_C_Binding     , only : c_char
     use               :: ISO_Varying_String, only : char
 #ifdef USEMPI
-    use               :: MPI               , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
+    use               :: MPI_F08           , only : MPI_Comm_Rank      , MPI_Comm_World , MPI_Initialized
 #endif
     !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num , OMP_In_Parallel
     use               :: Display           , only : displayBold        , displayRed     , displayReset

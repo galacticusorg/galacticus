@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,7 @@
   !![
   <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
    <description>
-    A hot halo ram pressure timescale class which computes the ram pressure stripping timecale from the acceleration imparted
+    A hot halo ram pressure timescale class which computes the ram pressure stripping timescale from the acceleration imparted
     by the ram pressure force. Following \cite{roediger_ram_2007} this is approximated as:
     \begin{equation}
      a_\mathrm{ram pressure} = P_\mathrm{ram pressure}/\Sigma,

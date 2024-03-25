@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,7 @@ Contains a module which implements a spheroid stellar mass output analysis prope
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarSpheroid
      !!{
-     A stelalr mass output analysis class.
+     A stellar mass output analysis class.
      !!}
      private
      class(galacticStructureClass), pointer :: galacticStructure_ => null()
@@ -107,7 +107,7 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
-    class           (nodePropertyExtractorMassStellarSpheroid), intent(inout)           :: self
+    class           (nodePropertyExtractorMassStellarSpheroid), intent(inout), target   :: self
     type            (treeNode                                ), intent(inout), target   :: node
     type            (multiCounter                            ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance

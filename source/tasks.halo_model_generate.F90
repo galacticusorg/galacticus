@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -230,7 +230,7 @@ contains
     character       (len=6                         )                                :: label
 
     call displayIndent('Begin task: halo model generate')
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Read the halo catalog.
     call displayIndent("Reading halo catalog")

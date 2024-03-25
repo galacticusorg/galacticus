@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,7 +87,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (nodeOperatorDMOInterpolate), intent(inout)          :: self
+    class           (nodeOperatorDMOInterpolate), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     type            (treeNode                  )               , pointer :: nodeChild          , nodeParent
     class           (nodeComponentBasic        )               , pointer :: basicChild         , basicParent     , &
@@ -276,7 +276,7 @@ contains
 
   subroutine dmoInterpolateNodesMerge(self,node)
     !!{
-    Act on a merger between ndoes.
+    Act on a merger between nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

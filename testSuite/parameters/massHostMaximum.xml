@@ -71,9 +71,6 @@
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
 
-  <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMO value="isothermal"/>
-
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
 

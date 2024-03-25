@@ -153,7 +153,7 @@
       <column value="2"/>
     </property>
     <property>
-      <name value="descendentIndex"/>
+      <name value="descendantIndex"/>
       <column value="3"/>
     </property>
     <property>

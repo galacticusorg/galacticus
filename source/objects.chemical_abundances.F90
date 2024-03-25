@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,6 +51,7 @@ module Chemical_Abundances_Structure
      !![
      <methods>
        <method description="Multiply a chemical abundance by a scalar." method="operator(*)" />
+       <method description="Multiply (in-place) a chemical abundance by a scalar." method="scale" />
        <method description="Divide a chemical abundance by a scalar." method="operator(/)" />
        <method description="Add two chemical abundances." method="operator(+)" />
        <method description="Subtract one chemical abundance from another." method="operator(-)" />
@@ -92,6 +93,7 @@ module Chemical_Abundances_Structure
      procedure         :: serialize       => Chemical_Abundances_Serialize
      procedure         :: deserialize     => Chemical_Abundances_Deserialize
      procedure         :: increment       => Chemical_Abundances_Increment
+     procedure         :: scale           => Chemical_Abundances_Scale
      procedure         :: abundance       => Chemicals_Abundances
      procedure         :: abundanceSet    => Chemicals_Abundances_Set
      procedure         :: reset           => Chemicals_Abundances_Reset
@@ -248,6 +250,20 @@ contains
     end if
     return
   end function Chemicals_Index
+
+  subroutine Chemical_Abundances_Scale(self,multiplier)
+    !!{
+    In-place multiplication of a chemical abundances object.
+    !!}
+    implicit none
+    class           (chemicalAbundances), intent(inout) :: self
+    double precision                    , intent(in   ) :: multiplier
+
+    if (chemicalsCount == 0) return
+    self%chemicalValue= self%chemicalValue &
+         &             *     multiplier
+    return
+  end subroutine Chemical_Abundances_Scale
 
   subroutine Chemical_Abundances_Increment(self,increment)
     !!{
@@ -471,9 +487,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
     !!}
-    use :: FoX_DOM           , only : node
+    use :: FoX_DOM           , only : node                        , extractDataContent
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     use :: ISO_Varying_String, only : char
     implicit none
     class  (chemicalAbundances), intent(inout)              :: self

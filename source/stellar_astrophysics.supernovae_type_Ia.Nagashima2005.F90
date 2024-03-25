@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,8 +21,9 @@
   Implements a supernovae type Ia class based on \cite{nagashima_metal_2005}.
   !!}
 
-  use :: Stellar_Astrophysics, only : stellarAstrophysicsClass
-
+  use :: Stellar_Astrophysics , only : stellarAstrophysicsClass
+  use :: Numerical_Integration, only : integrator
+  
   !![
   <supernovaeTypeIa name="supernovaeTypeIaNagashima2005">
    <description>
@@ -31,18 +32,17 @@
    </description>
   </supernovaeTypeIa>
   !!]
-  type, extends(supernovaeTypeIaClass) :: supernovaeTypeIaNagashima2005
+  type, extends(supernovaeTypeIaFixedYield) :: supernovaeTypeIaNagashima2005
      !!{
      A supernovae type Ia class based on \cite{nagashima_metal_2005}.
      !!}
      private
-     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
-     double precision                                                      :: totalYield
-     double precision                          , allocatable, dimension(:) :: elementYield
-   contains
-     final     ::           nagashima2005Destructor
-     procedure :: number => nagashima2005Number
-     procedure :: yield  => nagashima2005Yield
+     class(stellarAstrophysicsClass), pointer     :: stellarAstrophysics_ => null()
+     type (integrator              ), allocatable :: integrator_
+   contains    
+     final     ::                     nagashima2005Destructor
+     procedure :: massInitialRange => nagashima2005MassInitialRange
+     procedure :: number           => nagashima2005Number
   end type supernovaeTypeIaNagashima2005
 
   interface supernovaeTypeIaNagashima2005
@@ -53,6 +53,16 @@
      module procedure nagashima2005ConstructorInternal
   end interface supernovaeTypeIaNagashima2005
 
+  ! Sub-module-scope variables used in integration.
+  class           (initialMassFunctionClass), pointer :: initialMassFunction__
+  double precision                                    :: massSecondary
+  !$omp threadprivate(initialMassFunction__,massSecondary)
+
+  ! Parameters of the distribution of binaries from Nagashima et al. (2005; MNRAS; 358; 1427; eqn. 17).
+  double precision, parameter :: primaryMassMaximum=6.0d0
+  double precision, parameter :: binaryMassMaximum =2.0d0*primaryMassMaximum, binaryMassMinimum  =3.00d0
+  double precision, parameter :: gamma             =2.0d0                   , typeIaNormalization=0.07d0
+  
 contains
 
   function nagashima2005ConstructorParameters(parameters) result(self)
@@ -80,51 +90,15 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     !!}
-    use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                       , node
-    use :: Error            , only : Error_Report
-    use :: Input_Paths      , only : inputPath                     , pathTypeDataStatic
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                        , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
-         &                           XML_Parse                     , extractDataContent                => extractDataContentTS
     implicit none
-    type            (supernovaeTypeIaNagashima2005)                              :: self
-    class           (stellarAstrophysicsClass     ), intent(in   ), target       :: stellarAstrophysics_
-    type            (node                         ), pointer                     :: doc                 , atom        , &
-         &                                                                          isotope             , yield
-    type            (xmlNodeList                  ), allocatable  , dimension(:) :: isotopesList
-    integer                                                                      :: atomicIndex         , atomicNumber, &
-         &                                                                          iIsotope            , ioErr
-    double precision                                                             :: isotopeYield
+    type (supernovaeTypeIaNagashima2005)                        :: self
+    class(stellarAstrophysicsClass     ), intent(in   ), target :: stellarAstrophysics_
     !![
     <constructorAssign variables="*stellarAstrophysics_"/>
     !!]
 
-    ! Allocate an array to store individual element yields.
-    allocate(self%elementYield(Atomic_Data_Atoms_Count()))
-    self%elementYield=0.0d0
-    self%totalYield  =0.0d0
-    ! Read in Type Ia yields.
-    !$omp critical (FoX_DOM_Access)
-    ! Open the XML file containing yields.
-    doc => XML_Parse(char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
-    if (ioErr /= 0) call Error_Report('Unable to parse yields file'//{introspection:location})
-    ! Get a list of all isotopes.
-    call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)
-    ! Loop through isotopes and compute the net metal yield.
-    do iIsotope=0,size(isotopesList)-1
-       isotope  => isotopesList(iIsotope)%element
-       if (XML_Count_Elements_By_Tag_Name(isotope,"yield") /= 1) call Error_Report('isotope must have precisely one yield'//{introspection:location})
-       yield => XML_Get_First_Element_By_Tag_Name(isotope,"yield")
-       call extractDataContent(yield,isotopeYield)
-       self%totalYield=self%totalYield+isotopeYield
-       if (XML_Count_Elements_By_Tag_Name(isotope,"atomicNumber") /= 1) call Error_Report('isotope must have precisely one atomic number'//{introspection:location})
-       atom => XML_Get_First_Element_By_Tag_Name(isotope,"atomicNumber")
-       call extractDataContent(atom,atomicNumber)
-       atomicIndex=Atom_Lookup(atomicNumber=atomicNumber)
-       self%elementYield(atomicIndex)=self%elementYield(atomicIndex)+isotopeYield
-    end do
-    call destroy(doc)
-    !$omp end critical (FoX_DOM_Access)
+    self%initialized=.false.
+    self%integrator_=integrator(nagashima2005NumberIntegrand,toleranceRelative=1.0d-3)
     return
   end function nagashima2005ConstructorInternal
 
@@ -141,60 +115,108 @@ contains
     return
   end subroutine nagashima2005Destructor
 
-  double precision function nagashima2005Number(self,initialMass,age,metallicity)
+  subroutine nagashima2005MassInitialRange(self,initialMassFunction_,age,metallicity,massInitialMinimum,massInitialMaximum)
     !!{
-    Compute the cumulative number of Type Ia supernovae originating per unit mass of stars that form with given {\normalfont \ttfamily
-    initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The calculation is based on that of \cite{nagashima_metal_2005}. The
-    number returned here assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial
-    mass function.
+    Return the range of initial stellar masses contributing to the Type Ia population.
     !!}
     implicit none
-    class           (supernovaeTypeIaNagashima2005), intent(inout) :: self
-    double precision                               , intent(in   ) :: age          , initialMass, metallicity
-    double precision                                               :: dyingStarMass, muMinimum
-    ! Parameters of the distribution of binaries from Nagashima et al. (2005; MNRAS; 358; 1427; eqn. 17).
-    double precision                               , parameter     :: binaryMassMaximum=12.0d0, binaryMassMinimum  =3.00d0
-    double precision                               , parameter     :: gamma            = 2.0d0, typeIaNormalization=0.07d0
+     class           (supernovaeTypeIaNagashima2005), intent(inout) :: self
+     class           (initialMassFunctionClass     ), intent(inout) :: initialMassFunction_
+     double precision                               , intent(in   ) :: age                 , metallicity
+     double precision                               , intent(  out) :: massInitialMinimum  , massInitialMaximum
+     !$GLC attributes unused :: initialMassFunction_
 
-    ! Check if initial mass is within the range of binary masses that lead to Type Ia supernovae.
-    if (initialMass > binaryMassMinimum .and. initialMass < binaryMassMaximum) then
-       ! Get the initial mass of a star which is just dying at this age.
-       dyingStarMass=self%stellarAstrophysics_%massInitial(age,metallicity)
-       ! Compute the cumulative number of Type Ia supernovae originating from stars of this mass.
-       muMinimum=max(dyingStarMass/initialMass,(1.0d0-binaryMassMaximum/2.0d0/initialMass))
-       if (muMinimum < 0.5d0) then
-          nagashima2005Number=typeIaNormalization*(1.0d0-(2.0d0*muMinimum)**(1.0d0+gamma))
-       else
-          nagashima2005Number=0.0d0
-       end if
+     ! The minimum initial mass is set by the requirement that the secondary has evolved off of the main sequence at this age. The
+     ! maximum mass is the largest single-star mass for which the endpoint is a C-O white dwarf (Nagashima et al. 2005).
+     massInitialMinimum=self%stellarAstrophysics_%massInitial       (age,metallicity)
+     massInitialMaximum=                          primaryMassMaximum
+    return
+  end subroutine nagashima2005MassInitialRange
+  
+  double precision function nagashima2005Number(self,initialMassFunction_,initialMass,age,metallicity)
+    !!{
+    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
+    {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The
+    calculation is based on that of \cite{nagashima_metal_2005}. This function is expected to be integrated over the initial mass
+    function of secondary stars.
+    !!}
+    implicit none
+    class           (supernovaeTypeIaNagashima2005), intent(inout), target :: self
+    class           (initialMassFunctionClass     ), intent(inout), target :: initialMassFunction_
+    double precision                               , intent(in   )         :: age                         , initialMass, &
+         &                                                                    metallicity
+    double precision                                                       :: massFractionSecondaryMinimum
+    
+    ! Check if the secondary has evolved off of the main sequence at this age.
+    if (initialMass > self%stellarAstrophysics_%massInitial(age,metallicity)) then
+       ! The secondary has evolved off of the main sequence. Integrate over all possible secondary mass fractions, μ=m₂/m_b. The
+       ! minimum secondary mass fraction is determined by the maximum possible primary mass (i.e. the maximum mass in the initial
+       ! mass function).
+       initialMassFunction__        => initialMassFunction_
+       massSecondary                =  initialMass
+       massFractionSecondaryMinimum =  +1.0d0                                  &
+            &                          /(                                      &
+            &                            +1.0d0                                &
+            &                            +initialMassFunction_%massMaximum  () &
+            &                            /                     massSecondary   &
+            &                           )
+       nagashima2005Number          =  self%integrator_%integrate(massFractionSecondaryMinimum,0.5d0)       
     else
-       ! Mass is not in range - assume that no Type Ia SNe are produced.
+       ! Secondary has not yet evolved off of the main sequence - no SNIa occurs as yet.
        nagashima2005Number=0.0d0
     end if
     return
   end function nagashima2005Number
-
-  double precision function nagashima2005Yield(self,initialMass,age,metallicity,atomIndex)
+  
+  double precision function nagashima2005NumberIntegrand(massFractionSecondary) result(integrand)
     !!{
-    Compute the cumulative yield from Type Ia supernovae originating per unit mass of stars that form with given {\normalfont
-    \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The calculation is
-    based on the Type Ia rate calculation of \cite{nagashima_metal_2005} and the Type Ia yields from
-    \cite{nomoto_nucleosynthesis_1997}. The number returned here assumes a distribution of binary mass ratios and so only makes
-    sense once it is integrated over an initial mass function.
+    Integrand used in computing the number of Type Ia supernovae.
     !!}
     implicit none
-    class           (supernovaeTypeIaNagashima2005), intent(inout)           :: self
-    double precision                               , intent(in   )           :: age      , initialMass, metallicity
-    integer                                        , intent(in   ), optional :: atomIndex
-    double precision                                                         :: yield
-
-    if (present(atomIndex)) then
-       ! Return yield for requested atomic index.
-       yield=self%elementYield(atomIndex)
+    double precision, intent(in   ) :: massFractionSecondary
+    double precision                :: massBinary           , massPrimary
+    
+    ! Check if the binary initial mass is within the range of binary masses that lead to Type Ia supernovae, and that the primary
+    ! mass is below the maximum single-star mass to produce a C-O white dwarf.
+    massBinary=+massSecondary         &
+         &     /massFractionSecondary
+    massPrimary=+massBinary           &
+         &      -massSecondary
+    if     (                                  &
+         &   massBinary  > binaryMassMinimum  &
+         &  .and.                             &
+         &   massBinary  < binaryMassMaximum  &
+         &  .and.                             &
+         &   massPrimary < primaryMassMaximum &
+         & ) then
+       ! Evaluate the integrand. Nagashima et al. (2005) give this integrand in the 2D space of (m_b,μ). Here, the quantity we
+       ! compute will be integrated over m₂, weighted by the initial mass function of for single-stars with masses corresponding
+       ! to our secondaries. As such, we must:
+       !   1. divide the integrand given by Nagashima et al. (2005) by φ(m₂) (as it will later be multiplied by it), and;
+       !   2. multiply the integrand by dm_b/dm₂ = 1/υ to convert from integration over m_b to integration over m₂.
+       integrand=+                      typeIaNormalization                             &
+            &    *initialMassFunction__%phi                     (massBinary           ) &
+            &    /initialMassFunction__%phi                     (massSecondary        ) &
+            &    *                      massFractionDistribution(massFractionSecondary) &
+            &    /                      massFractionSecondary
     else
-       ! No atomic index given, therefore return total metal yield.
-       yield=self%totalYield
+       integrand=0.0d0
     end if
-    nagashima2005Yield=self%number(initialMass,age,metallicity)*yield
     return
-  end function nagashima2005Yield
+    
+  contains
+
+    double precision function massFractionDistribution(massFractionSecondary)
+      !!{
+      The distribution function for secondary mass fractions in binary star systems from \cite{nagashima_metal_2005}.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: massFractionSecondary
+
+      massFractionDistribution=+2.0d0**(1.0d0+gamma)         &
+           &                   *       (1.0d0+gamma)         &
+           &                   *massFractionSecondary**gamma
+      return
+    end function massFractionDistribution
+
+  end function nagashima2005NumberIntegrand

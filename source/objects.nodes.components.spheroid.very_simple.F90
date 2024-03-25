@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -125,6 +125,10 @@ module Node_Component_Spheroid_Very_Simple
   ! Parameters controlling the physical implementation.
   double precision :: toleranceAbsoluteMass      , scaleAbsoluteMass
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -185,8 +189,8 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
-       call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -211,8 +215,8 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       if (postEvolveEvent     %isAttached(defaultSpheroidComponent,postEvolve     )) call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
-       if (satelliteMergerEvent%isAttached(defaultSpheroidComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
        !![
        <objectDestructor name="stellarPopulationProperties_" />
        <objectDestructor name="mergerMassMovements_"         />

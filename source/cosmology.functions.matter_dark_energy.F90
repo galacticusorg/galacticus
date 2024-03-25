@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -274,7 +274,7 @@ contains
          &                                                                 aMatterEquality    , darkEnergyExponentCurrent, &
          &                                                                 rangeExpandDownward, rangeExpandUpward
 
-    ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
+    ! Choose present day as default - will be used if no other densities present (i.e. Einstein-de Sitter).
     matterDarkEnergyDominationEpochMatter=1.0d0
     ! Case where dark energy is present.
     if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0) then
@@ -695,7 +695,7 @@ contains
 
   double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !!{
-    Convert bewteen different measures of distance.
+    Convert between different measures of distance.
     !!}
     use :: Error, only : Error_Report
     implicit none

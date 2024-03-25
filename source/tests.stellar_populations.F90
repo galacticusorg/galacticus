@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,50 +67,52 @@ program Test_Stellar_Populations
   call nodeClassHierarchyInitialize(parameters)
   call Node_Components_Initialize  (parameters)
   call abundances_%metallicitySet  (metallicitySolar)
-  initialMassFunction_     =initialMassFunctionChabrier2001        (                                                                                                                                   &
-       &                                                            massLower                          =+0.10d0                                                                                      , &
-       &                                                            massTransition                     =+1.00d0                                                                                      , &
-       &                                                            massUpper                          =+1.25d2                                                                                      , &
-       &                                                            exponent                           =-2.30d0                                                                                      , &
-       &                                                            massCharacteristic                 =+0.08d0                                                                                      , &
-       &                                                            sigma                              =+0.69d0                                                                                        &
+  initialMassFunction_     =initialMassFunctionChabrier2001        (                                                                                                                                           &
+       &                                                            massLower                            =+0.10d0                                                                                            , &
+       &                                                            massTransition                       =+1.00d0                                                                                            , &
+       &                                                            massUpper                            =+1.25d2                                                                                            , &
+       &                                                            exponent                             =-2.30d0                                                                                            , &
+       &                                                            massCharacteristic                   =+0.08d0                                                                                            , &
+       &                                                            sigma                                =+0.69d0                                                                                              &
        &                                                           )
-  stellarAstrophysics_     =stellarAstrophysicsFile                (                                                                                                                                   &
-       &                                                            fileName                           =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Properties_Compilation.xml'  &
+  stellarAstrophysics_     =stellarAstrophysicsFile                (                                                                                                                                           &
+       &                                                            fileName                             =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'  &
        &                                                           )
-  stellarTracks_           =stellarTracksFile                      (                                                                                                                                   &
-       &                                                            fileName                           =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'          &
+  stellarTracks_           =stellarTracksFile                      (                                                                                                                                           &
+       &                                                            fileName                             =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'                &
        &                                                           )
-  stellarWinds_            =stellarWindsLeitherer1992              (                                                                                                                                   &
-       &                                                            stellarTracks_                     =stellarTracks_                                                                                 &
+  stellarWinds_            =stellarWindsLeitherer1992              (                                                                                                                                           &
+       &                                                            stellarTracks_                       =stellarTracks_                                                                                       &
        &                                                           )
-  supernovaeTypeIa_        =supernovaeTypeIaNagashima2005          (                                                                                                                                   &
-       &                                                            stellarAstrophysics_               =stellarAstrophysics_                                                                           &
+  supernovaeTypeIa_        =supernovaeTypeIaNagashima2005          (                                                                                                                                           &
+       &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                                 &
        &                                                           )
-  supernovaePopulationIII_ =supernovaePopulationIIIHegerWoosley2002(                                                                                                                                   &
-       &                                                            stellarAstrophysics_               =stellarAstrophysics_                                                                           &
+  supernovaePopulationIII_ =supernovaePopulationIIIHegerWoosley2002(                                                                                                                                           &
+       &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                                 &
        &                                                           )
-  stellarFeedback_         =stellarFeedbackStandard                (                                                                                                                                   &
-       &                                                            initialMassForSupernovaeTypeII     =8.0d00                                                                                       , &
-       &                                                            supernovaEnergy                    =1.0d51                                                                                       , &
-       &                                                            supernovaeTypeIa_                  =supernovaeTypeIa_                                                                            , &
-       &                                                            supernovaePopulationIII_           =supernovaePopulationIII_                                                                     , &
-       &                                                            stellarWinds_                      =stellarWinds_                                                                                , &
-       &                                                            stellarAstrophysics_               =stellarAstrophysics_                                                                           &
+  stellarFeedback_         =stellarFeedbackStandard                (                                                                                                                                           &
+       &                                                            initialMassForSupernovaeTypeII       =8.0d00                                                                                             , &
+       &                                                            supernovaEnergy                      =1.0d51                                                                                             , &
+       &                                                            supernovaeTypeIa_                    =supernovaeTypeIa_                                                                                  , &
+       &                                                            supernovaePopulationIII_             =supernovaePopulationIII_                                                                           , &
+       &                                                            stellarWinds_                        =stellarWinds_                                                                                      , &
+       &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                                 &
        &                                                           )
-  stellarPopulationSpectra_=stellarPopulationSpectraFSPS           (                                                                                                                                   &
-       &                                                            forceZeroMetallicity               =.false.                                                                                      , &
-       &                                                            initialMassFunction_               =initialMassFunction_                                                                           &
+  stellarPopulationSpectra_=stellarPopulationSpectraFSPS           (                                                                                                                                           &
+       &                                                            forceZeroMetallicity                 =.false.                                                                                            , &
+       &                                                            initialMassFunction_                 =initialMassFunction_                                                                                 &
        &                                                           )
-  stellarPopulation_       =stellarPopulationStandard              (                                                                                                                                   &
-       &                                                            instantaneousRecyclingApproximation=.false.                                                                                      , &
-       &                                                            massLongLived                      =1.0d0                                                                                        , &
-       &                                                            ageEffective                       =1.0d1                                                                                        , &
-       &                                                            initialMassFunction_               =initialMassFunction_                                                                         , &
-       &                                                            stellarAstrophysics_               =stellarAstrophysics_                                                                         , &
-       &                                                            stellarFeedback_                   =stellarFeedback_                                                                             , &
-       &                                                            supernovaeTypeIa_                  =supernovaeTypeIa_                                                                            , &
-       &                                                            stellarPopulationSpectra_          =stellarPopulationSpectra_                                                                      &
+  stellarPopulation_       =stellarPopulationStandard              (                                                                                                                                           &
+       &                                                            instantaneousRecyclingApproximation  =.false.                                                                                            , &
+       &                                                            instantaneousYieldApproximation      =.false.                                                                                            , &
+       &                                                            instantaneousEnergyInputApproximation=.false.                                                                                            , &
+       &                                                            massLongLived                        =1.0d0                                                                                              , &
+       &                                                            ageEffective                         =1.0d1                                                                                              , &
+       &                                                            initialMassFunction_                 =initialMassFunction_                                                                               , &
+       &                                                            stellarAstrophysics_                 =stellarAstrophysics_                                                                               , &
+       &                                                            stellarFeedback_                     =stellarFeedback_                                                                                   , &
+       &                                                            supernovaeTypeIa_                    =supernovaeTypeIa_                                                                                  , &
+       &                                                            stellarPopulationSpectra_            =stellarPopulationSpectra_                                                                            &
        &                                                           )
   call Unit_Tests_Begin_Group("Stellar population functions")
   ! Compute the recycled mass, yield etc. by getting the mean production rate in our time interval and multiplying by the size of

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -396,7 +396,7 @@ contains
                 else
                    newRescale = .false.
                 end if
-                ! Increment the retry count in cases where the tree was not acepted due to matching tolerance.
+                ! Increment the retry count in cases where the tree was not accepted due to matching tolerance.
                 select case (treeBuilt%ID)
                 case (treeBuildSuccess         %ID)
                    retryCount=retryCount-1
@@ -425,16 +425,14 @@ contains
                    massOvershootScale            =massOvershootScale+self%massOvershootScaleFactor
                 end if
              end do
-             ! Accumulate the histrogram of rescalings.
+             ! Accumulate the histogram of rescalings.
              if (nodeBranches) then
-                !$omp critical (Augment_Statistics)
                 self        %retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))= &
                      & +self%retryHistogram(min(rescaleCount,ubound(self%retryHistogram)))  &
                      & +1
                 self        %trialCount    (min(rescaleCount,ubound(self%retryHistogram)))= &
                      & +self%trialCount    (min(rescaleCount,ubound(self%retryHistogram)))  &
                      & +max(1,1+retryCount)
-                !$omp end critical (Augment_Statistics)
              end if
              ! Clean up the best tree if one exists.
              if (associated(treeBest%nodeBase)) then
@@ -911,7 +909,7 @@ contains
           ! Our node originally had a primary progenitor - so we must reinstate it.
           if (primaryProgenitorIsClone) then
              ! The primary progenitor of the original node was a clone. If we have an available non-overlap node, use that as the
-             ! new primry progenitor, otherwise reinstate the clone.
+             ! new primary progenitor, otherwise reinstate the clone.
              if (associated(nodeNonOverlapFirst)) then
                 ! A non-overlap node is available to use as the primary progenitor. Step up the tree from it forcing it to be the
                 ! primary progenitor at each step.

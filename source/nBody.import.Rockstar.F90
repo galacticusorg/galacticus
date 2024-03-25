@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -105,6 +105,7 @@ Contains a module which implements an N-body data importer for Rockstar files.
   !![
   <nbodyImporter name="nbodyImporterRockstar">
    <description>An importer for Rockstar files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRockstar
@@ -350,7 +351,11 @@ contains
     countHalos=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
     countTrees=                                                    0_c_size_t    
     ! Allocate storage
-    if (self%expansionFactorNeeded) allocate(expansionFactor(countHalos))
+    if (self%expansionFactorNeeded) then
+       allocate(expansionFactor(countHalos))
+    else
+       allocate(expansionFactor(         0))
+    end if
     if (allocated(self%readColumns)) then
        allocate(propertiesInteger(self%readColumnsIntegerCount))
        allocate(propertiesReal   (self%readColumnsRealCount   ))
@@ -497,7 +502,7 @@ contains
     ! Convert box size to internal units (comoving Mpc).
     boxSize=+boxSize                                                      &
          &  /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
-    ! Store attribues.
+    ! Store attributes.
     simulations(1)%attributesInteger=integerSizeTHash ()
     simulations(1)%attributesReal   =doubleHash       ()
     simulations(1)%attributesText   =varyingStringHash()
@@ -521,7 +526,7 @@ contains
              case (rockstarColumnId          %ID)
                 columnName='particleID'
              case (rockstarColumnDesc_id     %ID)
-                columnName='descendentID'
+                columnName='descendantID'
              case (rockstarColumnNum_prog    %ID)
                 columnName='progenitorCount'
              case (rockstarColumnPid         %ID)
@@ -529,7 +534,7 @@ contains
              case (rockstarColumnUpid        %ID)
                 columnName='isolatedHostID'
              case (rockstarColumnDesc_pid    %ID)
-                columnName='descendentHostID'
+                columnName='descendantHostID'
              case (rockstarColumnMmp         %ID)
                 columnName='isMostMassiveProgenitor'
              case (rockstarColumnPhantom     %ID)
@@ -546,7 +551,7 @@ contains
              case (rockstarColumnScale     %ID)
                 columnName='expansionFactor'
              case (rockstarColumnDesc_scale%ID)
-                columnName='descendentExpansionFactor'
+                columnName='descendantExpansionFactor'
              case (rockstarColumnMvir      %ID)
                 columnName='massVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &

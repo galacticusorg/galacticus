@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Specify an explicit dependence on the interface.GSL.C.root_fiding.o object file.
+! Specify an explicit dependence on the interface.GSL.C.root_finding.o object file.
 !: $(BUILDPATH)/interface.GSL.C.root_finding.o
 
 ! Add dependency on GSL library.
@@ -62,7 +62,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>stoppingCriterion</name>
-   <description>Used to specify the stoppngi criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the stopping criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
    <visibility>public</visibility>
    <entry label="delta"    />
    <entry label="interval" />
@@ -116,15 +116,18 @@ module Root_Finder
    contains
      !![
      <methods>
-       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                      method="rootFunction"          />
-       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."      method="rootFunctionDerivative"/>
-       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                   method="type"                  />
-       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                           method="tolerance"             />
-       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root." method="rangeExpand"           />
-       <method description="Find the root of the function given an initial guess or range."                                                     method="find"                  />
-       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                    method="isInitialized"         />
-       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                             method="destroy"               />
-       <method description="Return true if the solver type is valid."                                                                           method="solverTypeIsValid"     />
+       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                                          method="rootFunction"          />
+       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."                          method="rootFunctionDerivative"/>
+       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                                       method="type"                  />
+       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                                               method="tolerance"             />
+       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root."                     method="rangeExpand"           />
+       <method description="Wrapper function to find the root of the function given an initial guess or range."                                                     method="find"                  />
+       <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFLower"        />
+       <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFUpper"        />
+       <method description="Find the root of the function given an initial guess or range."                                                                         method="find_"                 />
+       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                                        method="isInitialized"         />
+       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                                                 method="destroy"               />
+       <method description="Return true if the solver type is valid."                                                                                               method="solverTypeIsValid"     />
      </methods>
      !!]
      final     ::                            rootFinderDestructor
@@ -134,7 +137,14 @@ module Root_Finder
      procedure :: type                    => rootFinderType
      procedure :: tolerance               => rootFinderTolerance
      procedure :: rangeExpand             => rootFinderRangeExpand
-     procedure :: find                    => rootFinderFind
+     procedure ::                            rootFinderFindGuess
+     procedure ::                            rootFinderFindRange
+     procedure ::                            rootFinderFindRangeValues
+     generic   :: find                    => rootFinderFindGuess             , rootFinderFindRange, &
+          &                                  rootFinderFindRangeValues
+     procedure :: findWithFLower          => rootFinderFindRangeValueLow
+     procedure :: findWithFUpper          => rootFinderFindRangeValueHigh
+     procedure :: find_                   => rootFinderFind
      procedure :: isInitialized           => rootFinderIsInitialized
      procedure :: solverTypeIsValid       => rootFinderSolverTypeIsValid
   end type rootFinder
@@ -180,14 +190,10 @@ module Root_Finder
   type   (rootFinderList), allocatable, dimension(:) :: currentFinders
   !$omp threadprivate(currentFinders,currentFinderIndex)
 
-  ! Global error status.
-  integer                                            :: statusActual
-  !$omp threadprivate(statusActual)
-  
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
        !!{
-       Template for the GSL root solver alloc function.
+       Template for the GSL root solver allocate function.
        !!}
        import
        type(c_ptr)        :: gsl_root_fsolver_alloc
@@ -196,7 +202,7 @@ module Root_Finder
 
      function gsl_root_fdfsolver_alloc(T) bind(c,name='gsl_root_fdfsolver_alloc')
        !!{
-       Template for the GSL root solver alloc function.
+       Template for the GSL root solver allocate function.
        !!}
        import
        type(c_ptr)        :: gsl_root_fdfsolver_alloc
@@ -305,7 +311,7 @@ module Root_Finder
 
      function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
        !!{
-       Template for GSL interface fsolver type function.
+       Template for GSL interface {\normalfont \ttfamily fsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fsolver_type_get
@@ -314,7 +320,7 @@ module Root_Finder
 
      function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
        !!{
-       Template for GSL interface fdfsolver type function.
+       Template for GSL interface {\normalfont \ttfamily fdfsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fdfsolver_type_get
@@ -364,7 +370,7 @@ contains
     self%rangeDownwardLimitSet        =.false.
     self%rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
     self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
-    ! Initialize stopping critertion to an interval test.
+    ! Initialize stopping criterion to an interval test.
     self%stoppingCriterion            =stoppingCriterionInterval
     ! If functions are provided, set them.
     if (present(rootFunction)) then
@@ -429,7 +435,7 @@ contains
 
   logical function rootFinderIsInitialized(self)
     !!{
-    Return whether a {\normalfont \ttfamily rootFinder} object is initalized.
+    Return whether a {\normalfont \ttfamily rootFinder} object is initialized.
     !!}
     implicit none
     class(rootFinder), intent(in   ) :: self
@@ -438,7 +444,110 @@ contains
     return
   end function rootFinderIsInitialized
 
-  recursive double precision function rootFinderFind(self,rootGuess,rootRange,status)
+  recursive double precision function rootFinderFindGuess(self,rootGuess,status)
+    !!{
+    Wrapper function for root finder finding that accepts an initial guess for the root. Multiple, generic entry points are used
+    here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function
+    is performance critical.
+    !!}
+    implicit none
+    class           (rootFinder   ), intent(inout), target   :: self
+    real            (kind=c_double), intent(in   )           :: rootGuess
+    integer                        , intent(  out), optional :: status
+    double precision               , dimension(2)            :: rootRange
+
+    rootRange=rootGuess
+    rootFinderFindGuess=self%find(rootRange,status)
+    return
+  end function rootFinderFindGuess
+  
+  recursive double precision function rootFinderFindRange(self,rootRange,status)
+    !!{
+    Wrapper function for root finder finding that accepts an initial range for the root. Multiple, generic entry points are used
+    here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function
+    is performance critical.
+    !!}
+    implicit none
+    class           (rootFinder   )              , intent(inout), target   :: self
+    real            (kind=c_double), dimension(2), intent(in   )           :: rootRange
+    integer                                      , intent(  out), optional :: status
+    double precision               , dimension(2)                          :: rootRangeValues
+
+    if (self%useDerivative) then
+       ! Values will not be used, so do not compute them.
+       rootRangeValues=-huge(0.0d0)
+    else
+       rootRangeValues(1)=self%finderFunction(rootRange(1))
+       rootRangeValues(2)=self%finderFunction(rootRange(2))
+    end if
+    rootFinderFindRange=self%find(rootRange,rootRangeValues,status)
+    return
+  end function rootFinderFindRange
+  
+  recursive double precision function rootFinderFindRangeValueLow(self,rootRange,rootRangeValueLow,status)
+    !!{
+    Wrapper function for root finder finding that accepts an initial range for the root and function value at the lower end of that
+    range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
+    result in faster performance, and this function is performance critical.    
+    !!}
+    implicit none
+    class  (rootFinder   )              , intent(inout), target   :: self
+    real   (kind=c_double), dimension(2), intent(in   )           :: rootRange
+    real   (kind=c_double)              , intent(in   )           :: rootRangeValueLow
+    integer                             , intent(  out), optional :: status
+    double precision      , dimension(2)                          :: rootRangeValues
+
+    if (self%useDerivative) then
+       ! Values will not be used, so do not compute them.
+       rootRangeValues=-huge(0.0d0)
+    else
+       rootRangeValues(1)=                    rootRangeValueLow
+       rootRangeValues(2)=self%finderFunction(rootRange        (2))
+    end if
+    rootFinderFindRangeValueLow=self%find_(rootRange,rootRangeValues,status)
+    return
+  end function rootFinderFindRangeValueLow
+
+  recursive double precision function rootFinderFindRangeValueHigh(self,rootRange,rootRangeValueHigh,status)
+    !!{
+    Wrapper function for root finder finding that accepts an initial range for the root and function value at the upper end of that
+    range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
+    result in faster performance, and this function is performance critical.    
+    !!}
+    implicit none
+    class  (rootFinder   )              , intent(inout), target   :: self
+    real   (kind=c_double), dimension(2), intent(in   )           :: rootRange
+    real   (kind=c_double)              , intent(in   )           :: rootRangeValueHigh
+    integer                             , intent(  out), optional :: status
+    double precision      , dimension(2)                          :: rootRangeValues
+
+    if (self%useDerivative) then
+       ! Values will not be used, so do not compute them.
+       rootRangeValues=-huge(0.0d0)
+    else
+       rootRangeValues(1)=self%finderFunction(rootRange         (1))
+       rootRangeValues(2)=                    rootRangeValueHigh
+    end if
+    rootFinderFindRangeValueHigh=self%find_(rootRange,rootRangeValues,status)
+    return
+  end function rootFinderFindRangeValueHigh
+
+  recursive double precision function rootFinderFindRangeValues(self,rootRange,rootRangeValues,status)
+    !!{
+    Wrapper function for root finder finding that accepts an initial range for the root and function values at the ends of that
+    range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
+    result in faster performance, and this function is performance critical.    
+    !!}
+    implicit none
+    class  (rootFinder   )              , intent(inout), target   :: self
+    real   (kind=c_double), dimension(2), intent(in   )           :: rootRange, rootRangeValues
+    integer                             , intent(  out), optional :: status
+    
+    rootFinderFindRangeValues=self%find_(rootRange,rootRangeValues,status)
+    return
+  end function rootFinderFindRangeValues
+
+  recursive double precision function rootFinderFind(self,rootRange,rootRangeValues,status)
     !!{
     Finds the root of the supplied {\normalfont \ttfamily root} function.
     !!}
@@ -450,16 +559,15 @@ contains
     use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
-    real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
-    real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
+    real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange             , rootRangeValues
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
     integer                               , parameter                             :: iterationMaximum =1000
     integer                               , parameter                             :: findersIncrement =   3
-    logical                                                                       :: rangeChanged          , rangeLowerAsExpected   , rangeUpperAsExpected
+    logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected
     integer                                                                       :: iteration             , statusActual
-    double precision                                                              :: xHigh                 , xLow                   , xRoot               , &
-         &                                                                           xRootPrevious         , fLow                   , fHigh
+    double precision                                                              :: xHigh                 , xLow                , xRoot               , &
+         &                                                                           xRootPrevious         , fLow                , fHigh
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -508,16 +616,8 @@ contains
       end if
     end if
     ! Initialize range.
-    if      (present(rootRange)) then
-       xLow =rootRange(1)
-       xHigh=rootRange(2)
-    else if (present(rootGuess)) then
-       xLow =rootGuess
-       xHigh=rootGuess
-    else
-       rootFinderFind=0.0d0
-       call Error_Report('either "rootGuess" or "rootRange" must be specified'//{introspection:location})
-    end if
+    xLow =rootRange(1)
+    xHigh=rootRange(2)
     ! Expand the range as necessary.
     if (self%useDerivative) then
        xRoot       =0.5d0*(xLow+xHigh)
@@ -525,12 +625,12 @@ contains
     else
        currentFinders(currentFinderIndex)%lowInitialUsed =.true.
        currentFinders(currentFinderIndex)%highInitialUsed=.true.
-       fLow=self%finderFunction(xLow)
+       fLow=rootRangeValues(1)
        if (xHigh == xLow) then
-          ! If a rootGuess was used, the initial xHigh will equal xLow, so we can avoid re-evaluating the function here.
+          ! If a root guess was used, the initial xHigh will equal xLow, so we can avoid re-evaluating the function here.
           fHigh=fLow
        else
-          fHigh=self%finderFunction(xHigh)
+          fHigh=rootRangeValues(2)
        end if
        do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
           rangeChanged=.false.
@@ -706,7 +806,7 @@ contains
           end if
        end do
        ! Store the values of the function at the lower and upper extremes of the range.
-       currentFinders(currentFinderIndex)%xLowInitial   = xLow
+       currentFinders(currentFinderIndex)%xLowInitial    =xLow
        currentFinders(currentFinderIndex)%xHighInitial   =xHigh
        currentFinders(currentFinderIndex)%fLowInitial    =fLow
        currentFinders(currentFinderIndex)%fHighInitial   =fHigh
@@ -774,19 +874,6 @@ contains
     currentFinderIndex=currentFinderIndex-1
     return
   end function rootFinderFind
-  
-  subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
-    !!{
-    Handle errors from the GSL library during root finding.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_char, c_int
-    character(c_char), dimension(*) :: file       , reason
-    integer  (c_int ), value        :: errorNumber, line
-    !$GLC attributes unused :: reason, file, line
-    
-    statusActual=errorNumber
-    return
-  end subroutine rootFinderGSLErrorHandler
 
   subroutine rootFinderRootFunction(self,rootFunction)
     !!{

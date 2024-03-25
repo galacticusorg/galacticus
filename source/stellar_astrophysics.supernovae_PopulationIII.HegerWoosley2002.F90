@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,13 +102,7 @@ contains
     ! Read in pair instability supernova energies.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
     doc => parseFile(char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     if (ioErr /= 0) call Error_Report('Unable to parse supernovae file'//{introspection:location})
     ! Get the mass and energy elements.
     massElement   => XML_Get_First_Element_By_Tag_Name(doc,"heliumCoreMass" )

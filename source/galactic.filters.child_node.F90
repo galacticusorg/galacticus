@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,8 +56,7 @@ contains
     !!{
     Constructor for the ``childNode'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticFilterChildNode)                :: self
     type   (inputParameters        ), intent(inout) :: parameters

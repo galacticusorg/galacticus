@@ -98,6 +98,7 @@
     <accretionLimit   value=" 0.1"/>
     <mergeProbability value=" 0.1"/>
     <redshiftMaximum  value="15.0"/>
+    <toleranceTimeEarliest value="4.00000e-6"/>
     <mergerTreeBuildController value="constrained">
       <massConstrained     value="1.0e12"/>
       <redshiftConstrained value="8.0"   />
@@ -214,6 +215,8 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Subhalo hierarchy -->
     <nodeOperator value="subsubhaloPromotion"/>
+    <!-- Constrained branch indicator propagation -->
+    <nodeOperator value="constrainedBranch"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->
@@ -248,9 +251,10 @@
     <galacticFilter value="haloIsolated"/>
   </mergerTreeOutputter>
   <nodePropertyExtractor value="multi">
-    <nodePropertyExtractor value="nodeIndices"/>
-    <nodePropertyExtractor value="mainBranchStatus"/>
-    <nodePropertyExtractor value="peakHeight"/>
+    <nodePropertyExtractor value="nodeIndices"      />
+    <nodePropertyExtractor value="indicesTree"      />
+    <nodePropertyExtractor value="mainBranchStatus" />
+    <nodePropertyExtractor value="peakHeight"       />
     <nodePropertyExtractor value="constrainedStatus"/>
   </nodePropertyExtractor>
 
@@ -270,9 +274,7 @@
   </mergerTreeOperator>
 
   <outputTimes value="list">
-    <redshifts>
-      <value>0.0</value>
-    </redshifts>
+    <redshifts value="0.0"/>
   </outputTimes>
   
 </parameters>

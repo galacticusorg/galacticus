@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,8 +40,9 @@
      class  (starFormationHistoryClass       ), pointer :: starFormationHistory_        => null()
      logical                                            :: luminositiesStellarInactive
    contains
-     final     ::                          starFormationSpheroidsDestructor
-     procedure :: differentialEvolution => starFormationSpheroidsDifferentialEvolution
+     final     ::                                   starFormationSpheroidsDestructor
+     procedure :: differentialEvolutionAnalytics => starFormationSpheroidsDifferentialEvolutionAnalytics
+     procedure :: differentialEvolution          => starFormationSpheroidsDifferentialEvolution
   end type nodeOperatorStarFormationSpheroids
   
   interface nodeOperatorStarFormationSpheroids
@@ -120,6 +121,30 @@ contains
     return
   end subroutine starFormationSpheroidsDestructor
 
+  subroutine starFormationSpheroidsDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Initialize the mass transfer fraction.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid
+    implicit none
+    class(nodeOperatorStarFormationSpheroids), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    class(nodeComponentSpheroid             ), pointer       :: spheroid
+
+    ! Mark the formed stellar mass as analytically-solvable (it is always zero) if we are not solving for luminosities as inactive
+    ! properties.
+    if (.not.self%luminositiesStellarInactive) then
+       spheroid => node%spheroid()
+       select type (spheroid)
+       type is (nodeComponentSpheroid)
+          ! Spheroid does not yet exist.
+       class default
+          call spheroid%massStellarFormedAnalytic()
+       end select
+    end if
+    return
+  end subroutine starFormationSpheroidsDifferentialEvolutionAnalytics
+
   subroutine starFormationSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Perform star formation in a spheroid.
@@ -130,7 +155,7 @@ contains
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
     class           (nodeOperatorStarFormationSpheroids), intent(inout), target  :: self
-    type            (treeNode                          ), intent(inout)          :: node
+    type            (treeNode                          ), intent(inout), target  :: node
     logical                                             , intent(inout)          :: interrupt
     procedure       (interruptTask                     ), intent(inout), pointer :: functionInterrupt
     integer                                             , intent(in   )          :: propertyType
@@ -152,7 +177,13 @@ contains
     if     (     spheroid%angularMomentum() < angularMomentumMinimum &
          &  .or. spheroid%radius         () <          radiusMinimum &
          &  .or. spheroid%massGas        () <            massMinimum &
-         & ) return
+         &  .or.                                                     &
+         &   (                                                       &
+         &          propertyInactive(propertyType)                   &
+         &    .and.                                                  & 
+         &     .not.self%luminositiesStellarInactive                 &
+         &   )                                                       &
+        & ) return
     if (propertyInactive(propertyType)) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.
        rateStarFormation=spheroid%massStellarFormedRateGet()
@@ -161,7 +192,7 @@ contains
        ! of stars formed as a function of time. This differs from the stellar mass due to recycling, and possibly transfer of
        ! stellar mass to other components.
        rateStarFormation=self%starFormationRateSpheroids_%rate(node)   
-       call spheroid%massStellarFormedRate(rateStarFormation)
+       if (self%luminositiesStellarInactive) call spheroid%massStellarFormedRate(rateStarFormation)
     end if
     ! Compute abundances of star forming gas.
     massFuel      =spheroid%massGas      ()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,7 @@ Contains a module which provides a class that implements dark matter particle ph
 
 module Dark_Matter_Particles
   !!{
-  Provides a class that implements dark matter parrticle physics.
+  Provides a class that implements dark matter particle physics.
   !!}
   private
 

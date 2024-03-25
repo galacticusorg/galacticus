@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,7 @@ Contains a module which implements an peak-background split critical overdensity
 
   !![
   <criticalOverdensity name="criticalOverdensityPeakBackgroundSplit">
-   <description>The ciritical overdensity is given by some other critical overdensity class offset by the halo envinronmental overdensity.</description>
+   <description>The critical overdensity is given by some other critical overdensity class offset by the halo environmental overdensity.</description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityPeakBackgroundSplit

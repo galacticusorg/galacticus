@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -210,7 +210,7 @@ contains
 
   function densityContrastsSize(self,time)
     !!{
-    Return the number of array alements in the {\normalfont \ttfamily densityContrasts} property extractors.
+    Return the number of array elements in the {\normalfont \ttfamily densityContrasts} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: densityContrastsSize
@@ -312,28 +312,34 @@ contains
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%elementCount_))
-       descriptions(1)='Radius enclosing a given density contrast [Mpc].'
-       descriptions(2)='Mass within a given density contrast [M☉].'
+    descriptions(1)='Radius enclosing a given density contrast [Mpc].'
+    descriptions(2)='Mass within a given density contrast [M☉].'
     return
   end subroutine densityContrastsDescriptions
 
-  subroutine densityContrastsColumnDescriptions(self,descriptions,time)
+  subroutine densityContrastsColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
-    double precision                                       , intent(in   ), optional                   :: time
-    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
-    character       (len=32                               )                                            :: label
-    integer         (c_size_t                             )                                            :: i
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                            :: self
+    double precision                                       , intent(in   ), optional                  :: time
+    type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                                       , intent(inout), dimension(:), allocatable :: values
+    type            (varying_string                       ), intent(  out)                            :: valuesDescription
+    double precision                                       , intent(  out)                            :: valuesUnitsInSI
+    character       (len=32                               )                                           :: label
+    integer         (c_size_t                             )                                           :: i
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%countDensityContrasts))
+    allocate(values      (                         0))
     do i=1,self%countDensityContrasts
        write (label,'(a2,f9.4)') 'Δ=',self%densityContrasts(i)
        descriptions(i)=trim(label)
     end do
+    valuesDescription=var_str('')
+    valuesUnitsInSI  =0.0d0
     return
   end subroutine densityContrastsColumnDescriptions
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,7 @@
      \hbox{erf}(X_i)-\left\{ {2 X_i \over \sqrt{\pi}} \exp\left(-X_i^2\right) \right\} \right],
     \end{equation}
     where the sum is taken over the spheroid (gaseous plus stellar mass) and dark matter halo components\footnote{The disk is
-    ignored as the black hole is assumed to be orbitting in a circular orbit in the disk.}. Here,
+    ignored as the black hole is assumed to be orbiting in a circular orbit in the disk.}. Here,
     \begin{equation}
     \Lambda_i =  {a \sigma^2  \over \mathrm{G}(M_{\bullet, 1}+M_{\bullet, 2})},
     \end{equation}

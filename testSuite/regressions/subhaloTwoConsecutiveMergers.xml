@@ -136,7 +136,6 @@
   <mergerMassMovements value="verySimple"/>
   <haloMassFunction value="tinker2008"/>
   <componentSatellite value="preset"/>
-  <mergerTreeBuildMassDistribution value="uniform"/>
   <mergerRemnantSize value="null"/>
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>

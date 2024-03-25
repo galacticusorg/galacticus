@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,7 @@ program Test_Root_Finding
   xRoot=finder1%find(rootGuess=xGuess)
   call Assert('root of f(x)=x × exp(-x) + 1; with bracketing + limit',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
 
-  ! Test root-finding of function with zero derivative using deriative based solver and error handling.
+  ! Test root-finding of function with zero derivative using derivative based solver and error handling.
   xRange=[-2.0d0,-1.5d0]
   call finder2%rootFunctionDerivative(Root_Function_4,Root_Function_4_Derivative,Root_Function_4_Both)
   xRoot=finder2%find(rootRange=xRange,status=status)

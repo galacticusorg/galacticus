@@ -21,7 +21,7 @@ unless ( $? == 0 ) {
 }
 
 # Extract and validate the likelihoods.
-&Galacticus::Validation::extract("outputs/validate_darkMatterOnlySubHalos.hdf5","Dark Matter Only Subhalos","darkMatterOnlySubhalos");
+&Galacticus::Validation::extract("outputs/validate_darkMatterOnlySubHalos.hdf5","Dark Matter Only Subhalos","darkMatterOnlySubhalos","testSuite/parameters/validate_darkMatterOnlySubHalos.xml");
 
 print "SUCCESS: dark matter-only subhalos validation model\n";
 

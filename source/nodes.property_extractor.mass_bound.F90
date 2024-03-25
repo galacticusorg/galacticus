@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -69,7 +69,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class(nodePropertyExtractorMassBound), intent(inout)           :: self
+    class(nodePropertyExtractorMassBound), intent(inout), target   :: self
     type (treeNode                      ), intent(inout), target   :: node
     type (multiCounter                  ), intent(inout), optional :: instance
     class(nodeComponentSatellite        ), pointer                 :: satellite

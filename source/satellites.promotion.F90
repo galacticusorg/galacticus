@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,18 +39,6 @@ contains
     use :: Galacticus_Nodes  , only : nodeComponentBasic, treeNode
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , varying_string
     use :: String_Handling   , only : operator(//)
-    !![
-    <include directive="satelliteHostChangeTask" type="moduleUse">
-    !!]
-    include 'satellites.structures.host_change.moduleUse.inc'
-    !![
-    </include>
-    <include directive="satellitePreHostChangeTask" type="moduleUse">
-    !!]
-    include 'satellites.structures.pre_host_change.moduleUse.inc'
-    !![
-    </include>
-    !!]
     implicit none
     type     (treeNode          ), intent(inout), target  :: satelliteNode    , newHostNode
     type     (treeNode          )               , pointer :: lastSatelliteNode
@@ -66,17 +54,18 @@ contains
        message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//'] at time '//trim(label)//' Gyr'
        call displayMessage(message)
     end if
-
-    ! Allow arbitrary routines to act prior to the host change event.
+    ! Allow arbitrary functions to act prior to the host change event.
     !![
-    <include directive="satellitePreHostChangeTask" type="functionCall" functionType="void">
-     <functionArgs>satelliteNode,newHostNode</functionArgs>
+    <eventHook name="satellitePreHostChange">
+      <import>
+	<module name="Galacticus_Nodes" symbols="treeNode"/>
+      </import>
+      <interface>
+	type(treeNode), intent(inout), target :: satelliteNode, newHostNode
+      </interface>
+     <callWith>satelliteNode,newHostNode</callWith>
+    </eventHook>
     !!]
-    include 'satellites.structures.pre_host_change.inc'
-    !![
-    </include>
-    !!]
-
     ! First remove from its current host.
     call satelliteNode%removeFromHost()
     ! Find attachment point for new host.
@@ -89,16 +78,15 @@ contains
     ! Set parent and sibling pointers.
     satelliteNode%parent  => newHostNode
     satelliteNode%sibling => null()
-
-    ! Allow arbitrary routines to process the host change event.
+    ! Allow arbitrary functions to process the host change event.
     !![
-    <include directive="satelliteHostChangeTask" type="functionCall" functionType="void">
-     <functionArgs>satelliteNode</functionArgs>
-    !!]
-    include 'satellites.structures.host_change.inc'
-    !![
-    </include>
     <eventHook name="satelliteHostChange">
+      <import>
+	<module name="Galacticus_Nodes" symbols="treeNode"/>
+      </import>
+      <interface>
+	type(treeNode), intent(inout), target :: satelliteNode
+      </interface>
      <callWith>satelliteNode</callWith>
     </eventHook>
     !!]

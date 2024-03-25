@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,16 +38,16 @@ module Node_Component_Satellite_Orbiting
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
-       &    Node_Component_Satellite_Orbiting_Pre_Host_Change  , Node_Component_Satellite_Orbiting_Initialize         , &
+       &    Node_Component_Satellite_Orbiting_Tree_Initialize  , Node_Component_Satellite_Orbiting_Initialize         , &
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
-       &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore      , &
-       &    Node_Component_Satellite_Orbiting_Tree_Initialize
+       &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore
   
   !![
   <component>
    <class>satellite</class>
    <name>orbiting</name>
    <isDefault>false</isDefault>
+   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>position</name>
@@ -138,6 +138,10 @@ module Node_Component_Satellite_Orbiting
   type            (enumerationInitializationTypeMassBoundType)            :: initializationTypeMassBound
   double precision                                                        :: radiusMaximumOverRadiusVirial        , densityContrastMassBound
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -203,6 +207,8 @@ contains
        ! Specify the function to use for setting virial orbits.
        call satellite%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        call satellite%virialOrbitFunction   (Node_Component_Satellite_Orbiting_Virial_Orbit    )
+       ! Bind a creation function.
+       call satellite%createFunctionSet     (Node_Component_Satellite_Orbiting_Initializor     )
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
@@ -218,10 +224,14 @@ contains
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Input_Parameters, only : inputParameter             , inputParameters
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, openMPThreadBindingAtLevel, subhaloPromotionEvent, &
+         &                          dependencyDirectionBefore  , dependencyExact
+
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(inputParameters)                :: subParameters
+    type(dependencyExact), dimension(1)  :: dependenciesSubhaloPromotion
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Find our parameters.
@@ -235,6 +245,10 @@ contains
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
        <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="subParameters"/>
        !!]
+       dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
+       call       subhaloPromotionEvent%attach(thread,subhaloPromotion      ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting',dependencies=dependenciesSubhaloPromotion)
+       call          nodePromotionEvent%attach(thread,nodePromotion         ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
+       call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
@@ -251,6 +265,7 @@ contains
     Uninitializes the tree node orbiting satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, subhaloPromotionEvent
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -263,7 +278,10 @@ contains
        <objectDestructor name="virialOrbit_"          />
        <objectDestructor name="galacticStructure_"    />
        !!]
-    end if
+       if (      subhaloPromotionEvent%isAttached(thread,subhaloPromotion      )) call       subhaloPromotionEvent%detach(thread,subhaloPromotion      )
+       if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
+       if (         nodePromotionEvent%isAttached(thread,nodePromotion         )) call          nodePromotionEvent%detach(thread,nodePromotion         )
+   end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
 
@@ -355,6 +373,20 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
 
+  subroutine Node_Component_Satellite_Orbiting_Initializor(self,timeEnd)
+    !!{
+    Initializes an orbiting satellite component.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting
+    implicit none
+    type            (nodeComponentSatelliteOrbiting), intent(inout)           :: self
+    double precision                                , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
+
+    call Node_Component_Satellite_Orbiting_Create(self%hostNode)
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Initializor
+
   !![
   <nodeMergerTask>
    <unitName>Node_Component_Satellite_Orbiting_Create</unitName>
@@ -389,39 +421,81 @@ contains
        ! Set the initial bound mass of this satellite.
        call Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
     end if
-    ! Create an orbit for the satellite.   
+    ! Create an orbit for the satellite if needed.
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
-       ! Get an orbit for this satellite.
-       if (node%isSatellite()) then
-          nodeHost => node%parent
-       else
-          nodeHost => node%parent%firstChild
+       orbit=satellite%virialOrbitValue()
+       if (.not.orbit%isDefined()) then
+          ! Get an orbit for this satellite.
+          if (node%isSatellite()) then
+             nodeHost => node%parent
+          else
+             nodeHost => node%parent%firstChild
+          end if
+          orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)          
+          ! Store the orbit.
+          call satellite%virialOrbitSet(orbit)          
        end if
-       orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
-       ! Store the orbit.
-       call satellite%virialOrbitSet(orbit)
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
   
-  !![
-  <satellitePreHostChangeTask>
-   <unitName>Node_Component_Satellite_Orbiting_Pre_Host_Change</unitName>
-  </satellitePreHostChangeTask>
-  !!]
-  subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change(node,nodeHostNew)
+  subroutine nodePromotion(self,node)
     !!{
-    A satellite is about to move to a new host, adjust its position and velocity appopriately
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    from the parent.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite, nodeComponentSatelliteOrbiting
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentSatellite)               , pointer :: satellite, satelliteParent
+    !$GLC attributes unused :: self
+
+    satelliteParent => node%parent%satellite()
+    select type (satelliteParent)
+    type is (nodeComponentSatelliteOrbiting)
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          ! This is as expected - nothing to do.
+       class default
+          call Error_Report('multiple satellite components defined on branch'//{introspection:location})
+       end select
+       call node%parent%satelliteMove(node,overwrite=.true.)
+    end select
+    return
+  end subroutine nodePromotion
+
+  subroutine subhaloPromotion(self,node,nodePromotion)
+    !!{
+    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).    
+    !!}
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), pointer :: node, nodePromotion
+     !$GLC attributes unused :: self, nodePromotion
+    
+    call node%satelliteRemove(1)
+    return
+  end subroutine subhaloPromotion
+
+  subroutine satellitePreHostChange(self,node,nodeHostNew)
+    !!{
+    A satellite is about to move to a new host, adjust its position and velocity appropriately
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, treeNode
     implicit none
+    class           (*                     ), intent(inout)         :: self
     type            (treeNode              ), intent(inout), target :: node             , nodeHostNew
     type            (treeNode              ), pointer               :: nodeHost         , nodeHostNew_
     class           (nodeComponentSatellite), pointer               :: satellite        , satelliteHost
     double precision                        , dimension(3)          :: positionSatellite, velocitySatellite, &
          &                                                             positionHost     , velocityHost
-
+    !$GLC attributes unused :: self
+    
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
     ! Extract current position and velocity.
@@ -447,7 +521,7 @@ contains
     call satellite%positionSet(positionSatellite)
     call satellite%velocitySet(velocitySatellite)
     return
-  end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
+  end subroutine satellitePreHostChange
   
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
     !!{
@@ -459,9 +533,9 @@ contains
     class(nodeComponentSatelliteOrbiting), intent(inout) :: self
     type (treeNode                      ), pointer       :: selfNode
 
-    selfNode => self%host()
-    if (selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
-       orbit=self%virialOrbitValue()
+    selfNode => self%host            ()
+    orbit    =  self%virialOrbitValue()
+    if (orbit%isDefined().or.selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
        if (.not.orbit%isDefined()) then
           ! Orbit has not been defined - define it now.
           call Node_Component_Satellite_Orbiting_Create(selfNode)
@@ -492,7 +566,7 @@ contains
        call orbit%assertIsDefined()
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
-       ! Store orbitial position and velocity.
+       ! Store orbital position and velocity.
        virialOrbit=orbit
        position   =virialOrbit%position()
        velocity   =virialOrbit%velocity()
@@ -501,7 +575,7 @@ contains
        ! Set the merging/destruction time to -1 to indicate that we don't know when merging/destruction will occur.
        call self%destructionTimeSet          (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
-       call self%tidalHeatingNormalizedSet   (            0.0d0)
+       call self%tidalHeatingNormalizedSet   (            0.0d0)       
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set

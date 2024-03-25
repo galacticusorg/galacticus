@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,11 +48,12 @@
           &              massCharacteristic      , sigma                 , &
           &              normalizationExponential, normalizationLogNormal
    contains
-     procedure :: massMinimum => chabrier2001MassMinimum
-     procedure :: massMaximum => chabrier2001MassMaximum
-     procedure :: phi         => chabrier2001Phi
-     procedure :: tabulate    => chabrier2001Tabulate
-     procedure :: label       => chabrier2001Label
+     procedure :: massMinimum      => chabrier2001MassMinimum
+     procedure :: massMaximum      => chabrier2001MassMaximum
+     procedure :: phi              => chabrier2001Phi
+     procedure :: numberCumulative => chabrier2001NumberCumulative
+     procedure :: tabulate         => chabrier2001Tabulate
+     procedure :: label            => chabrier2001Label
   end type initialMassFunctionChabrier2001
 
   interface initialMassFunctionChabrier2001
@@ -263,6 +264,44 @@ contains
     end if
     return
   end function chabrier2001Phi
+
+  double precision function chabrier2001NumberCumulative(self,massLower,massUpper) result(number)
+    !!{
+    Evaluate a piecewise power-law stellar initial mass function.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (initialMassFunctionChabrier2001), intent(inout) :: self
+    double precision                                 , intent(in   ) :: massLower , massUpper
+    double precision                                                 :: massLower_, massUpper_
+
+    number=0.0d0
+    ! Gaussian piece.
+    massLower_=max(massLower,self%massLower     )
+    massUpper_=min(massUpper,self%massTransition)
+    if (massUpper_ > massLower_)                                                           &
+         & number=+number                                                                  &
+         &        +sqrt(Pi/ 2.0d0)                                                         &
+         &        *log (   10.0d0)                                                         &
+         &        *self%sigma                                                              &
+         &        *self%normalizationLogNormal                                             &
+         &        *(                                                                       &
+         &          +erf(log10(massUpper_/self%massCharacteristic)/sqrt(2.0d0)/self%sigma) &
+         &          -erf(log10(massLower_/self%massCharacteristic)/sqrt(2.0d0)/self%sigma) &
+         &        )
+    ! Power-law piece.
+    massLower_=max(massLower,self%massTransition)
+    massUpper_=min(massUpper,self%massUpper     )
+    if (massUpper_ > massLower_)                       &
+         & number=+     number                         &
+         &        +self%normalizationExponential       &
+         &        /              (1.0d0+self%exponent) &
+         &        *(                                   &
+         &          +massUpper_**(1.0d0+self%exponent) &
+         &          +massLower_**(1.0d0+self%exponent) &
+         &         )
+    return
+  end function chabrier2001NumberCumulative
 
   subroutine chabrier2001Tabulate(self,imfTable)
     !!{

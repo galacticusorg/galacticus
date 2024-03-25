@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -302,15 +302,18 @@ contains
     return
   end subroutine finiteResolutionNFWAutoHook
 
-  subroutine finiteResolutionNFWCalculationReset(self,node)
+  subroutine finiteResolutionNFWCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
-    type (treeNode                               ), intent(inout) :: node
+    class  (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
+    type   (treeNode                               ), intent(inout) :: node
+    integer(kind_int8                              ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    call self%darkMatterProfileDMOFiniteResolution%calculationReset(node)
+    call self%darkMatterProfileDMOFiniteResolution%calculationReset(node,uniqueID)
     self%potentialPrevious                     =-huge(0.0d0)
     self%potentialRadiusPrevious               =-huge(0.0d0)
     self%velocityDispersionRadialPrevious      =-huge(0.0d0)
@@ -343,7 +346,7 @@ contains
     double precision                                                         :: concentration            , radiusScaleFree, &
          &                                                                      lengthResolutionScaleFree
     
-    if (node%uniqueID() /= self%lastUniqueID         ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID         ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%densityRadiusPrevious) then
        darkMatterProfile          => node%darkMatterProfile       (    )
        radiusScaleFree            =       radius                        /darkMatterProfile%scale()
@@ -371,7 +374,7 @@ contains
        
   double precision function finiteResolutionNFWDensityScaleFree(self,radius,radiusCore)
     !!{
-    Returns the sclae-free density in the dark matter profile at the given {\normalfont \ttfamily radius}.
+    Returns the scale-free density in the dark matter profile at the given {\normalfont \ttfamily radius}.
     !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -400,7 +403,7 @@ contains
     double precision                                                         :: concentration            , radiusScaleFree, &
          &                                                                      lengthResolutionScaleFree
     
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%enclosedMassRadiusPrevious) then
        darkMatterProfile               => node%darkMatterProfile       (    )
        radiusScaleFree                 =       radius                        /darkMatterProfile%scale()
@@ -443,7 +446,7 @@ contains
     double precision                                         , dimension(0:1)        :: hRadiusCore
     integer                                                                          :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     density    /= self%radiusEnclosingDensityDensityPrevious) then
        basic                                      =>  node%basic                                       (    )
        darkMatterProfile                          =>  node%darkMatterProfile                           (    )
@@ -629,7 +632,7 @@ contains
     double precision                                         , dimension(0:1)        :: hRadiusCore
     integer                                                                          :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID                   ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID                   ) call self%calculationReset(node,node%uniqueID())
     if (     mass       /= self%radiusEnclosingMassMassPrevious) then
        basic                                =>  node%basic                                       (    )
        darkMatterProfile                    =>  node%darkMatterProfile                           (    )
@@ -788,7 +791,7 @@ contains
     double precision                                         , dimension(0:1) :: hRadiusCore
     integer                                                                   :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     if (self%energyPrevious > 0.0d0) then
        basic                     =>  node%basic                                       (    )
        darkMatterProfile         =>  node%darkMatterProfile                           (    )
@@ -1112,7 +1115,7 @@ contains
     double precision                                         , parameter               :: radiusScaleFreeSmall     =1.0d-3
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%potentialRadiusPrevious) then
        basic                        =>  node%basic                                        (    )
        darkMatterProfile            =>  node%darkMatterProfile                            (    )
@@ -1225,7 +1228,7 @@ contains
     double precision                                         , dimension(0:1) :: hRadiusCore
     integer                                                                   :: iRadiusCore
     
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%velocityDispersionRadialRadiusPrevious) then
        basic                                       =>  node%basic                                       (    )
        darkMatterProfile                           =>  node%darkMatterProfile                           (    )
@@ -1411,11 +1414,11 @@ contains
     type (hdf5Object                             )                :: file
     type (varying_string                         )                :: fileName
 
-    fileName=inputPath(pathTypeDataDynamic)                   // &
-         &   'darkMatter/'                                    // &
-         &   self%objectType      (                          )// &
-         &   'VelocityDispersion_'                            // &
-         &   self%hashedDescriptor(includeSourceDigest=.true.)// &
+    fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &   'darkMatter/'                                                                        // &
+         &   self%objectType      (                                                              )// &
+         &   'VelocityDispersion_'                                                                // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -1613,7 +1616,7 @@ contains
 
   subroutine finiteResolutionNFWRestoreMassTable(self)
     !!{
-    Restore the tabulated rdius-enclosing-mass data from file, returning true if successful.
+    Restore the tabulated radius-enclosing-mass data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
@@ -1703,7 +1706,7 @@ contains
 
   subroutine finiteResolutionNFWRestoreEnergyTable(self)
     !!{
-    Restore the tabulated rdius-enclosing-mass data from file, returning true if successful.
+    Restore the tabulated radius-enclosing-mass data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access

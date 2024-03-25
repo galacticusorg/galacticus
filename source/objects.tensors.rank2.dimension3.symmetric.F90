@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,9 +75,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
     !!}
-    use :: FoX_DOM, only : node
+    use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     type     (node       )               , pointer     :: element
     type     (xmlNodeList), dimension(:) , allocatable :: elementList

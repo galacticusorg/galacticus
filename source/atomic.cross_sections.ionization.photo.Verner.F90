@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,14 +19,14 @@
 
   !!{
   Implementation of an atomic photoionization cross section class based on
-  (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
+  (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
   \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
   !!}
 
   !![
   <atomicCrossSectionIonizationPhoto name="atomicCrossSectionIonizationPhotoVerner">
    <description>
-    An atomic photoionization cross section class based on (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont
+    An atomic photoionization cross section class based on (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{\normalfont
     \ttfamily phfit2.f}) written by \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996.
    </description>
   </atomicCrossSectionIonizationPhoto>
@@ -34,7 +34,7 @@
   type, extends(atomicCrossSectionIonizationPhotoClass) :: atomicCrossSectionIonizationPhotoVerner
      !!{
      Implementation of an atomic photoionization cross section class based on
-     (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
+     (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
      \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
      !!}
      private
@@ -1970,7 +1970,7 @@ contains
     \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
     \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
     \end{itemize}
-    Original version (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
+    Original version (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
     \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
     Inner-shell ionization energies of some low-ionized species are slightly
     improved to fit smoothly the experimental inner-shell ionization energies

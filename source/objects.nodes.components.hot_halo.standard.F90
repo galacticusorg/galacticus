@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,10 +46,9 @@ module Node_Component_Hot_Halo_Standard
   public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Formation          , &
+       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Reset              , &
        &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
-       &    Node_Component_Hot_Halo_Standard_State_Store , Node_Component_Hot_Halo_Standard_State_Restore      , &
-       &    Node_Component_Hot_Halo_Standard_Reset
+       &    Node_Component_Hot_Halo_Standard_State_Store , Node_Component_Hot_Halo_Standard_State_Restore
 
   !![
   <component>
@@ -281,6 +280,10 @@ module Node_Component_Hot_Halo_Standard
   double precision                                        , parameter :: scaleMassRelative                 =1.0d-3
   double precision                                        , parameter :: scaleRadiusRelative               =1.0d-1
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -469,8 +472,8 @@ contains
     !!{
     Initializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, &
-         &                          dependencyRegEx                      , dependencyDirectionAfter
+    use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent   , openMPThreadBindingAtLevel, &
+         &                          dependencyRegEx                      , dependencyDirectionAfter, haloFormationEvent
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter                       , inputParameters
@@ -500,9 +503,10 @@ contains
        <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
-       call satelliteMergerEvent%attach(defaultHotHaloComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
-       call postEvolveEvent     %attach(defaultHotHaloComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call nodePromotionEvent  %attach(thread,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
+       call haloFormationEvent  %attach(thread,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
@@ -542,7 +546,7 @@ contains
     !!{
     Uninitializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, postEvolveEvent, haloFormationEvent
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
@@ -565,9 +569,10 @@ contains
        <objectDestructor name="radiation"                         />
        <objectDestructor name="galacticStructure_"                />
        !!]
-       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
+       if (nodePromotionEvent  %isAttached(thread,nodePromotion  )) call nodePromotionEvent  %detach(thread,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
+       if (haloFormationEvent  %isAttached(thread,haloFormation  )) call haloFormationEvent  %detach(thread,haloFormation  )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
@@ -577,15 +582,18 @@ contains
   <unitName>Node_Component_Hot_Halo_Standard_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Hot_Halo_Standard_Reset(node)
+  subroutine Node_Component_Hot_Halo_Standard_Reset(node,uniqueID)
     !!{
     Remove memory of stored computed values as we're about to begin computing derivatives anew.
     !!}
     use :: Galacticus_Nodes, only : treeNode
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    type(treeNode), intent(inout) :: node
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    uniqueIDPrevious             =node%uniqueID()
+    uniqueIDPrevious             =uniqueID
     gotCoolingRate               =.false.
     gotAngularMomentumCoolingRate=.false.
     gotOuterRadiusGrowthRate     =.false.
@@ -672,9 +680,10 @@ contains
              ! Mark ODE failure here to force derivatives to be recomputed.
              status=GSL_Failure
              if (massChemicalsPositive > 0.0d0) then
-                chemicalMasses=+          chemicalMasses         &
-                     &         *max(0.0d0,massChemicals        ) &
-                     &         /          massChemicalsPositive
+                call chemicalMasses%scale(                                  &
+                     &                    +max(0.0d0,massChemicals        ) &
+                     &                    /          massChemicalsPositive  &
+                     &                   )
              else
                 call chemicalMasses%reset()
              end if
@@ -682,9 +691,10 @@ contains
           end if
           if (chemicalMasses%sumOver() > hotHalo%mass()) then
              ! Ensure total mass of chemicals can not exceed the mass of the hot halo gas.
-             chemicalMasses=+chemicalMasses           &
-                  &         *hotHalo       %mass   () &
-                  &         /chemicalMasses%sumOver()
+             call chemicalMasses%scale(                          &
+                  &                    +hotHalo       %mass   () &
+                  &                    /chemicalMasses%sumOver() &
+                  &                   )
              call hotHalo%chemicalsSet(chemicalMasses)
              ! Mark ODE failure here to force derivatives to be recomputed.
              status=GSL_Failure
@@ -727,34 +737,34 @@ contains
              hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
              spinParent    => nodeParent%spin   (                 )
              call hotHaloParent%outflowedAngularMomentumSet(                                           &
-                  &                                         +hotHaloParent %outflowedAngularMomentum() &
+                  &                                          hotHaloParent %outflowedAngularMomentum() &
                   &                                         +hotHalo       %outflowedMass           () &
                   &                                         *spinParent    %angularMomentum         () &
                   &                                         /basicParent   %mass                    () &
                   &                                        )
              call hotHalo      %outflowedAngularMomentumSet(                                           &
-                  &                                         +0.0d0                                     &
+                  &                                          0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedMassSet           (                                           &
-                  &                                         +hotHaloParent %outflowedMass           () &
+                  &                                          hotHaloParent %outflowedMass           () &
                   &                                         +hotHalo       %outflowedMass           () &
                   &                                        )
              call hotHalo      %outflowedMassSet           (                                           &
-                  &                                         +0.0d0                                     &
+                  &                                          0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedAbundancesSet     (                                           &
-                  &                                         +hotHaloParent %outflowedAbundances     () &
+                  &                                          hotHaloParent %outflowedAbundances     () &
                   &                                         +hotHalo       %outflowedAbundances     () &
                   &                                        )
              call hotHalo      %outflowedAbundancesSet     (                                           &
-                  &                                         +zeroAbundances                            &
+                  &                                          zeroAbundances                            &
                   &                                        )
              call hotHaloParent%outflowedChemicalsSet      (                                           &
-                  &                                         +hotHaloParent %outflowedChemicals      () &
+                  &                                          hotHaloParent %outflowedChemicals      () &
                   &                                         +hotHalo       %outflowedChemicals      () &
                   &                                        )
              call hotHalo      %outflowedChemicalsSet      (                                           &
-                  &                                         +zeroChemicalAbundances                    &
+                  &                                          zeroChemicalAbundances                    &
                   &                                        )
           end select
        end if
@@ -773,31 +783,31 @@ contains
              hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
              spinParent    => nodeParent%spin   (                 )
              call hotHaloParent%outflowedAngularMomentumSet(                                           &
-                  &                                         +hotHaloParent %outflowedAngularMomentum() &
+                  &                                          hotHaloParent %outflowedAngularMomentum() &
                   &                                         +hotHalo       %strippedMass            () &
                   &                                         *spinParent    %angularMomentum         () &
                   &                                         /basicParent   %mass                    () &
                   &                                        )
              call hotHaloParent%outflowedMassSet           (                                           &
-                  &                                         +hotHaloParent %outflowedMass           () &
+                  &                                          hotHaloParent %outflowedMass           () &
                   &                                         +hotHalo       %strippedMass            () &
                   &                                        )
              call hotHalo      %strippedMassSet            (                                           &
-                  &                                         +0.0d0                                     &
+                  &                                          0.0d0                                     &
                   &                                        )
              call hotHaloParent%outflowedAbundancesSet     (                                           &
-                  &                                         +hotHaloParent %outflowedAbundances     () &
+                  &                                          hotHaloParent %outflowedAbundances     () &
                   &                                         +hotHalo       %strippedAbundances      () &
                   &                                        )
              call hotHalo      %strippedAbundancesSet      (                                           &
-                  &                                         +zeroAbundances                            &
+                  &                                          zeroAbundances                            &
                   &                                        )
              call hotHaloParent%outflowedChemicalsSet      (                                           &
-                  &                                         +hotHaloParent %outflowedChemicals      () &
+                  &                                          hotHaloParent %outflowedChemicals      () &
                   &                                         +hotHalo       %strippedChemicals       () &
                   &                                        )
              call hotHalo      %strippedChemicalsSet       (                                           &
-                  &                                         +zeroChemicalAbundances                    &
+                  &                                          zeroChemicalAbundances                    &
                   &                                        )
           end select
        end if
@@ -968,8 +978,8 @@ contains
           ! Get the rate of change of chemicals.
           hotHaloCooling => nodeCooling%hotHalo()
           chemicalsCoolingRate=hotHaloCooling%chemicals()
-          chemicalsCoolingRate=massRate*chemicalsCoolingRate/hotHaloCooling%mass()
-          call    hotHalo%chemicalsRate       (-chemicalsCoolingRate )
+          call chemicalsCoolingRate %scale(-massRate/hotHaloCooling%mass())
+          call hotHalo%chemicalsRate      (chemicalsCoolingRate           )
        end if
     end select
     return
@@ -997,9 +1007,9 @@ contains
        node => hotHalo%hostNode
        massRateLimited=min(massRate,rateMaximumExpulsion*hotHalo%mass()/darkMatterHaloScale_%timescaleDynamical(node))
        ! Get the rate of change of abundances, chemicals, and angular momentum.
-       abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
-       angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
-       chemicalsRates     =hotHalo%chemicals      ()*massRateLimited/hotHalo%mass()
+       abundancesRates    =hotHalo%abundances     ()*(massRateLimited/hotHalo%mass())
+       angularMomentumRate=hotHalo%angularMomentum()*(massRateLimited/hotHalo%mass())
+       chemicalsRates     =hotHalo%chemicals      ()*(massRateLimited/hotHalo%mass())
        call hotHalo%    massRemovalRate(+    massRateLimited)
        call hotHalo%           massRate(-    massRateLimited)
        call hotHalo%     abundancesRate(-    abundancesRates)
@@ -1007,9 +1017,9 @@ contains
        call hotHalo%      chemicalsRate(-     chemicalsRates)
        ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
        if (node%isSatellite().and.trackStrippedGas) then
-          call hotHalo%      strippedMassRate(+massRateLimited)
-          call hotHalo%strippedAbundancesRate(+abundancesRates)
-          call hotHalo% strippedChemicalsRate(+ chemicalsRates)
+          call hotHalo%      strippedMassRate(massRateLimited)
+          call hotHalo%strippedAbundancesRate(abundancesRates)
+          call hotHalo% strippedChemicalsRate( chemicalsRates)
        end if
       ! Trigger an event to allow other processes to respond to this action.
       !![
@@ -1072,9 +1082,8 @@ contains
     class           (nodeComponentBasic  )                         , pointer :: basic
     type            (abundances          ), save                             :: outflowedAbundances
     !$omp threadprivate(outflowedAbundances)
-    type            (chemicalAbundances  ), save                             :: chemicalDensities      , chemicalMasses         , &
-         &                                                                      chemicalMassesRates
-    !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
+    type            (chemicalAbundances  ), save                             :: chemicalDensities      , chemicalMassesRates
+    !$omp threadprivate(chemicalDensities,chemicalMassesRates)
     double precision                                                         :: strippedOutflowFraction, massToDensityConversion, &
          &                                                                      hydrogenByMass         , numberDensityHydrogen  , &
          &                                                                      temperature
@@ -1115,9 +1124,9 @@ contains
           end if
           ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
-          ! Convert from densities to masses.
-          call chemicalDensities%numberToMass(chemicalMasses)
-          chemicalMassesRates=chemicalMasses*rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen
+          ! Convert from densities to mass rates.
+          call chemicalDensities  %numberToMass(chemicalMassesRates                                         )
+          call chemicalMassesRates%scale       (rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
           ! Compute the rate at which chemicals are returned to the hot reservoir.
           if (trackStrippedGas) &
                &  call self% strippedChemicalsRate(chemicalMassesRates*       strippedOutflowFraction ,interrupt,interruptProcedure)
@@ -1202,7 +1211,7 @@ contains
 
     ! Check if we are the default method.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
-    ! Get the spheroid component.
+    ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Check if a standard hot halo component exists.
     select type (hotHalo)
@@ -1246,7 +1255,7 @@ contains
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node)
+    if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node,node%uniqueID())
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that the standard hot halo implementation is active.
@@ -1358,10 +1367,10 @@ contains
     !!{
     Return outflowed gas to the hot halo.
     !!}
-    use :: Abundances_Structure                 , only : abundances                           , max
+    use :: Abundances_Structure                 , only : abundances        , max
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
-    use :: Galacticus_Nodes                     , only : interruptTask                        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites                     , starveSatellitesOutflowed
+    use :: Galacticus_Nodes                     , only : interruptTask     , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites  , starveSatellitesOutflowed
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
@@ -1387,15 +1396,15 @@ contains
        call self%              outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
        call self%                       massRate(+           massReturnRate,interrupt,interruptProcedure)
        if (outflowedMass /= 0.0d0) then
-          angularMomentumReturnRate=self%outflowedAngularMomentum()*massReturnRate/outflowedMass
-          abundancesReturnRate     =self%outflowedAbundances     ()*massReturnRate/outflowedMass
-          chemicalsReturnRate      =self%outflowedChemicals      ()*massReturnRate/outflowedMass
+          angularMomentumReturnRate=self%outflowedAngularMomentum()*(massReturnRate/outflowedMass)
+          abundancesReturnRate     =self%outflowedAbundances     ()*(massReturnRate/outflowedMass)
+          chemicalsReturnRate      =self%outflowedChemicals      ()*(massReturnRate/outflowedMass)
           call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
-          call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
+          call self%         angularMomentumRate( angularMomentumReturnRate,interrupt,interruptProcedure)
           call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
-          call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+          call self%              abundancesRate(      abundancesReturnRate,interrupt,interruptProcedure)
           call self%      outflowedChemicalsRate(-      chemicalsReturnRate,interrupt,interruptProcedure)
-          call self%               chemicalsRate(+      chemicalsReturnRate,interrupt,interruptProcedure)
+          call self%               chemicalsRate(       chemicalsReturnRate,interrupt,interruptProcedure)
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
@@ -1476,13 +1485,13 @@ contains
     ! If gas is present, adjust the rates.
     if (gasMass > 0.0d0) then
        ! Mass.
-       call self%           massRate(                       gasMassRate        ,interrupt,interruptProcedure)
+       call self%           massRate(                        gasMassRate         ,interrupt,interruptProcedure)
        ! Angular momentum.
-       call self%angularMomentumRate(self%angularMomentum()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       call self%angularMomentumRate(self%angularMomentum()*(gasMassRate/gasMass),interrupt,interruptProcedure)
        ! Metal abundances.
-       call self%     abundancesRate(self%abundances     ()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       call self%     abundancesRate(self%abundances     ()*(gasMassRate/gasMass),interrupt,interruptProcedure)
        ! Chemical abundances.
-       call self%      chemicalsRate(self%chemicals      ()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       call self%      chemicalsRate(self%chemicals      ()*(gasMassRate/gasMass),interrupt,interruptProcedure)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate
@@ -1520,20 +1529,21 @@ contains
        massVirial    =basic%mass()
        radiusVirial  =darkMatterHaloScale_%radiusVirial  (node)
        velocityVirial=darkMatterHaloScale_%velocityVirial(node)
-       call    hotHalo%                    massScale(                       massVirial                               *scaleMassRelative  )
-       call    hotHalo%           outflowedMassScale(                       massVirial                               *scaleMassRelative  )
-       call    hotHalo%          unaccretedMassScale(                       massVirial                               *scaleMassRelative  )
-       call    hotHalo%              abundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-       call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-       call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-       call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
-       call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
-       call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
-       call    hotHalo%             outerRadiusScale(                                  radiusVirial                  *scaleRadiusRelative)
+       call    hotHalo%                    massScale(                        massVirial                               *scaleMassRelative   )
+       call    hotHalo%           outflowedMassScale(                        massVirial                               *scaleMassRelative   )
+       call    hotHalo%          unaccretedMassScale(                        massVirial                               *scaleMassRelative   )
+       call    hotHalo%              abundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%    unaccretedAbundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%     outflowedAbundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%               chemicalsScale(unitChemicalAbundances*(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%      outflowedChemicalsScale(unitChemicalAbundances*(massVirial                               *scaleMassRelative  ))
+       call    hotHalo%         angularMomentumScale(                        massVirial*radiusVirial*velocityVirial   *scaleMassRelative   )
+       call    hotHalo%outflowedAngularMomentumScale(                        massVirial*radiusVirial*velocityVirial   *scaleMassRelative   )
+       call    hotHalo%             outerRadiusScale(                                   radiusVirial                  *scaleRadiusRelative )
        if (trackStrippedGas) then
-          call hotHalo%            strippedMassScale(                       massVirial                               *scaleMassRelative  )
-          call hotHalo%      strippedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
-          call hotHalo%       strippedChemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
+          call hotHalo%            strippedMassScale(                        massVirial                               *scaleMassRelative   )
+          call hotHalo%      strippedAbundancesScale(unitAbundances        *(massVirial                               *scaleMassRelative  ))
+          call hotHalo%       strippedChemicalsScale(unitChemicalAbundances*(massVirial                               *scaleMassRelative  ))
        end if
     end select
     return
@@ -2059,7 +2069,7 @@ contains
 
     ! Create the component.
     hotHalo => node%hotHalo(autoCreate=.true.)
-    ! Initalize.
+    ! Initialize.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
        call Node_Component_Hot_Halo_Standard_Initializor(hotHalo)
@@ -2067,15 +2077,17 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Create
 
-  subroutine Node_Component_Hot_Halo_Standard_Initializor(self)
+  subroutine Node_Component_Hot_Halo_Standard_Initializor(self,timeEnd)
     !!{
     Initializes a standard hot halo component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHaloStandard, treeNode
     implicit none
-    type (nodeComponentHotHaloStandard)          :: self
-    type (treeNode                    ), pointer :: node
-
+    type            (nodeComponentHotHaloStandard), intent(inout)           :: self
+    double precision                              , intent(in   ), optional :: timeEnd
+    type            (treeNode                    ), pointer                 :: node
+    !$GLC attributes unused :: timeEnd
+    
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the hosting node.
@@ -2087,12 +2099,7 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Initializor
 
-  !![
-  <haloFormationTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Formation</unitName>
-  </haloFormationTask>
-  !!]
-  subroutine Node_Component_Hot_Halo_Standard_Formation(node)
+  subroutine haloFormation(self,node)
     !!{
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
@@ -2104,6 +2111,7 @@ contains
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
+    class           (*                   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
     class           (nodeComponentBasic  ), pointer       :: basic
     class           (nodeComponentHotHalo), pointer       :: hotHalo
@@ -2112,6 +2120,7 @@ contains
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
     double precision                                      :: hydrogenByMass       , massToDensityConversion, &
          &                                                   numberDensityHydrogen, temperature
+    !$GLC attributes unused :: self
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.outflowReturnOnFormation) return
@@ -2182,7 +2191,7 @@ contains
     end select
 
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Formation
+  end subroutine haloFormation
 
   !![
   <stateStoreTask>

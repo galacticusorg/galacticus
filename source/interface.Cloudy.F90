@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,6 +34,7 @@ contains
     !!{
     Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
     !!}
+    use :: Dependencies      , only : dependencyVersion
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
@@ -48,31 +49,40 @@ contains
     logical                  , intent(in   ), optional :: static
     integer                                            :: status       , statusEnvironment, &
          &                                                statusPath
-    character(len=3         )                          :: staticDefault
+    character(len=   3      )                          :: staticDefault
     character(len=1024      )                          :: compilerPath
-    type     (varying_string)                          :: command
+    type     (varying_string)                          :: command      , cloudyVersionMajor
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Specify Cloudy version.
-    cloudyVersion="c17.03"
+    cloudyVersion     ="c"//dependencyVersion("cloudy"                 )
+    cloudyVersionMajor=     dependencyVersion("cloudy",majorOnly=.true.)
     ! Specify Cloudy path.
     cloudyPath   =inputPath(pathTypeDataDynamic)//cloudyVersion
-    ! Check for existance of executable - build if necessary.
+    ! Check for existence of executable - build if necessary.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
-       ! Check for existance of source code - unpack and patch if necessary.
+       ! Check for existence of source code - unpack and patch if necessary.
        if (.not.File_Exists(cloudyPath)) then
-          ! Check for existance of tarball - download the Cloudy code if necessary.
+          ! Check for existence of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
-             call download('"http://data.nublado.org/cloudy_releases/c17/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status)
-             if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
+             call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status,retries=5,retryWait=60)
+             if (status /= 0) then
+                ! Try the "old/" subdirectory. Sometimes the source is moved to this path prior to a new release.
+                call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status,retries=5,retryWait=60)
+                if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
+             end if
           end if
           ! Unpack and patch the code.
           call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)
           call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Error_Report("failed to unpack Cloudy code"//{introspection:location})
+          call System_Command_Do('sed -i~ -E s/"^#\!\/bin\/sh"/"#\!\/usr\/bin\/env bash"/ '//cloudyPath//'/source/configure.sh',status)
+          if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
+          call System_Command_Do('sed -i~ -E s/"^is_repo=(.*)"/"is_repo=\"false\""/ '//cloudyPath//'/source/gitversion.sh',status)
+          if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
           call System_Command_Do('sed -i~ -E s/"\\\$res[[:space:]]+\.=[[:space:]]+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
           call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//compiler(languageCPlusPlus)//'"/ '//cloudyPath//'/source/Makefile',status)

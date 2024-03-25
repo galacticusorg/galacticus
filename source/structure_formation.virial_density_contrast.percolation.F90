@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -175,11 +175,11 @@ contains
     !!]
 
     ! File name for tabulation.
-    self%fileName=inputPath(pathTypeDataDynamic)                   // &
-         &        'darkMatterHalos/'                               // &
-         &        self%objectType      (                          )// &
-         &        '_'                                              // &
-         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &        'darkMatterHalos/'                                                                   // &
+         &        self%objectType      (                                                              )// &
+         &        '_'                                                                                  // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &        '.hdf5'
     ! Initialize tabulations.
     self%densityContrastTableTimeMinimum= 1.0d-03
@@ -502,8 +502,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(virialDensityContrastPercolation), intent(inout) :: self
-    class(virialDensityContrastClass      ), intent(inout) :: destination
+    class(virialDensityContrastPercolation), intent(inout), target :: self
+    class(virialDensityContrastClass      ), intent(inout)         :: destination
 
     call self%virialDensityContrastClass%deepCopy(destination)
     select type (destination)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ module Numerical_Constants_Astronomical
   ! Solar luminosity (in W; Allen's Astrophysical Quantities, page 340).
   double precision, parameter :: luminositySolar                     =3.845d26
 
-  ! Solar composition (Allen's Atrophysical Quantities, page 28).
+  ! Solar composition (Allen's Astrophysical Quantities, page 28).
   double precision, parameter :: hydrogenByMassSolar                 =0.7070d0
   double precision, parameter :: heliumByMassSolar                   =0.2740d0
   double precision, parameter :: metallicitySolar                    =0.0188d0
@@ -87,7 +87,7 @@ module Numerical_Constants_Astronomical
   double precision, parameter :: offsetAB                          =48.57d0
   double precision, parameter :: luminosityZeroPointAB             =(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs
 
-  ! Anglular conversions.
+  ! Angular conversions.
   double precision, parameter :: arcminutesToDegrees              =  1.0d0   /  60.0d0
   double precision, parameter :: arcsecondsToDegrees              =  1.0d0   /3600.0d0
   double precision, parameter :: hoursToDegrees                   =360.0d0   /  24.0d0

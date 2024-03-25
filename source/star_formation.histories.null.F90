@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,6 @@ Contains a module which implements a null star formation histories class.
    contains
      procedure :: create                => nullCreate
      procedure :: rate                  => nullRate
-     procedure :: output                => nullOutput
      procedure :: scales                => nullScales
      procedure :: metallicityBoundaries => nullMetallicityBoundaries
   end type starFormationHistoryNull
@@ -64,16 +63,17 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullCreate(self,node,historyStarFormation,timeBegin)
+  subroutine nullCreate(self,node,historyStarFormation,timeBegin,timeEnd)
     !!{
     Create the history required for storing star formation history.
     !!}
     implicit none
-    class           (starFormationHistoryNull), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    type            (history                 ), intent(inout) :: historyStarFormation
-    double precision                          , intent(in   ) :: timeBegin
-    !$GLC attributes unused :: self, node, historyStarFormation, timeBegin
+    class           (starFormationHistoryNull), intent(inout)           :: self
+    type            (treeNode                ), intent(inout)           :: node
+    type            (history                 ), intent(inout)           :: historyStarFormation
+    double precision                          , intent(in   )           :: timeBegin
+    double precision                          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: self, node, historyStarFormation, timeBegin, timeEnd
 
     ! Do nothing.
     return
@@ -95,25 +95,6 @@ contains
     call historyStarFormation%destroy()
     return
   end subroutine nullRate
-
-  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
-    !!{
-    Output the star formation history for {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class  (starFormationHistoryNull    ), intent(inout)         :: self
-    type   (treeNode                    ), intent(inout), target :: node
-    logical                              , intent(in   )         :: nodePassesFilter
-    type   (history                     ), intent(inout)         :: historyStarFormation
-    integer(c_size_t                    ), intent(in   )         :: indexOutput
-    integer(kind=kind_int8              ), intent(in   )         :: indexTree
-    type   (enumerationComponentTypeType), intent(in   )         :: componentType
-    type   (ompLock                     ), intent(inout)         :: treeLock
-    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType, treeLock
-
-    ! Do nothing.
-    return
-  end subroutine nullOutput
 
   subroutine nullScales(self,historyStarFormation,massStellar,abundancesStellar)
     !!{

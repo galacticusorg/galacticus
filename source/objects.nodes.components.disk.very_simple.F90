@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -123,6 +123,10 @@ module Node_Component_Disk_Very_Simple
   double precision                    :: scaleAbsoluteMass
   logical                             :: trackAbundances         , trackLuminosities
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -210,8 +214,8 @@ contains
 
     if (defaultDiskComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
-       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
@@ -254,8 +258,8 @@ contains
        <objectDestructor name="starFormationRateDisks_"     />
        <objectDestructor name="mergerMassMovements_"        />
        !!]
-       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
@@ -759,17 +763,19 @@ contains
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid           , treeNode
+    use :: Histories                       , only : history
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid  , enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
-    class  (*                              ), intent(inout) :: self
-    type   (treeNode                       ), intent(inout) :: node
-    type   (treeNode                       ), pointer       :: nodeHost
-    class  (nodeComponentDisk              ), pointer       :: diskHost               , disk
-    class  (nodeComponentSpheroid          ), pointer       :: spheroidHost
-    type  (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
-         &                                                     destinationStarsHost   , destinationStarsSatellite
-    logical                                                 :: mergerIsMajor
+    class  (*                               ), intent(inout) :: self
+    type   (treeNode                        ), intent(inout) :: node
+    type   (treeNode                        ), pointer       :: nodeHost
+    class  (nodeComponentDisk               ), pointer       :: diskHost               , disk
+    class  (nodeComponentSpheroid           ), pointer       :: spheroidHost
+    type   (enumerationDestinationMergerType)                :: destinationGasSatellite, destinationGasHost       , &
+         &                                                      destinationStarsHost   , destinationStarsSatellite
+    type   (history                         )                :: historyHost            , historyNode
+    logical                                                  :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Check that the disk is of the verySimple class.
@@ -834,7 +840,14 @@ contains
                &                                    diskHost    %luminositiesStellar() &
                &                                   +disk        %luminositiesStellar() &
                &                                  )
-       case (destinationMergerSpheroid%ID)
+          ! Also add stellar properties histories.
+          historyNode=disk    %stellarPropertiesHistory()
+          historyHost=diskHost%stellarPropertiesHistory()
+          call historyHost%interpolatedIncrement      (historyNode)
+          call historyNode%reset                      (           )
+          call diskHost   %stellarPropertiesHistorySet(historyHost)
+          call disk       %stellarPropertiesHistorySet(historyNode)
+        case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                    &
                &                                    spheroidHost%  massStellar      () &
                &                                   +disk        %  massStellar      () &
@@ -847,6 +860,13 @@ contains
                &                                    spheroidHost%luminositiesStellar() &
                &                                   +disk        %luminositiesStellar() &
                &                                  )
+          ! Also add stellar properties histories.
+          historyNode=disk    %stellarPropertiesHistory()
+          historyHost=spheroidHost%stellarPropertiesHistory()
+          call historyHost %interpolatedIncrement      (historyNode)
+          call historyNode %reset                      (           )
+          call spheroidHost%stellarPropertiesHistorySet(historyHost)
+          call disk        %stellarPropertiesHistorySet(historyNode)
        case default
           call Error_Report(                                    &
                &            'unrecognized movesTo descriptor'// &

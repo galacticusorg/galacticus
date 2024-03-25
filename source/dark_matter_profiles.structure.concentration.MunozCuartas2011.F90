@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,7 @@
     \begin{equation}
     \log_{10} c = a \log_{10} \left( {M_\mathrm{halo} \over h^{-1}M_\odot} \right) + b.
     \end{equation}
-    The parameters are a functon of redshift, $z$, given by
+    The parameters are a function of redshift, $z$, given by
     \begin{eqnarray}
     a &amp;=&amp; wz-m, \\
     b &amp;=&amp; {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
@@ -120,6 +120,7 @@ contains
     <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
      <constructor>
       virialDensityContrastBryanNorman1998              (                                                                            &amp;
+       &amp;                                             allowUnsupportedCosmology           =     .true.                          , &amp;
        &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
        &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
        &amp;                                            )

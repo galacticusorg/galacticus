@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@
   !![
   <enumeration>
    <name>gordon2003Sample</name>
-   <description>Enumerates the samples available in the {\normalfont \ttfamily gordon2003} dust attenutation class.</description>
+   <description>Enumerates the samples available in the {\normalfont \ttfamily gordon2003} dust attenuation class.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>

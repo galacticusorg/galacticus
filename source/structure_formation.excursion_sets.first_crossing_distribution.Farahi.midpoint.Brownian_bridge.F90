@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -76,6 +76,19 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
       \end{equation}
       In these cases we still use the residual variance since $\Delta S \rightarrow \mathrm{Var}(S)$ as $\tilde{S} \rightarrow S_1$.
 
+      When computing the distribution, $p(\delta,s)$, of trajectories at variance $S$, given that the first crossed the barrier,
+      $B(\tilde{S})$, at some smaller variance, $\tilde{S}$, (equation A2 of \citealt{benson_dark_2012}) we must condition
+      \emph{both} the residual variance and drift term on the intermediate point, $\tilde{S},B(\tilde{S})$. Fortunately, given any
+      Brownian random walk (including Brownian bridges) for which we know two points, the distribution of trajectories between
+      those points is simply another Brownian bridge. Therefore, we can write:      
+      \begin{equation}
+      \Delta \delta = \delta - \tilde{\delta} - \frac{S-\tilde{S}}{S_2-\tilde{S}}(\delta_2-\tilde{\delta}),
+      \end{equation}
+      and:
+      \begin{equation}
+      \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-\tilde{S}}.
+      \end{equation}
+      
       This class provides functions implementing these modified effective offset and residual variance.
     </description>
   </excursionSetFirstCrossing>
@@ -271,7 +284,7 @@ contains
     varianceConstrained           =+rootVarianceConstrained**2
     criticalOverdensityConstrained=+self%criticalOverdensityConstrained             &
          &                         *sqrt(                                           &
-         &                               +varianceConstrained                       &
+         &                               +     varianceConstrained                  &
          &                               /self%varianceConstrained                  &
          &                              )
     ! Determine whether to use the conditioned or unconditioned solutions.
@@ -309,16 +322,13 @@ contains
          &                               /self%varianceConstrained                  &
          &                              )
     ! Determine whether to use the conditioned or unconditioned solutions.
-    if (.not.node%isOnMainBranch() .or. self%excursionSetBarrier_%barrier(variance,time,node,rateCompute=.true.) > criticalOverdensityConstrained) then
-       ! Node is either not on the main branch, or it is on the main branch, but the time corresponds to a barrier above the
-       ! constrained point. In either case we want the unconstrained solution.
+    if (self%excursionSetBarrier_%barrier(variance,time,node,rateCompute=.true.) > criticalOverdensityConstrained) then
+       ! The time corresponds to a barrier above the constrained point. Therefore we want the unconstrained solution.
        farahiMidpointBrownianBridgeRateNonCrossing=self%excursionSetFirstCrossing_%rateNonCrossing           (variance,     massMinimum    ,time,node)
-    else if (variance >= varianceConstrained) then
-       ! Fo progenitor variances in excess of the constrained variance the non-crossing rate must be zero.
-       farahiMidpointBrownianBridgeRateNonCrossing=0.0d0
     else
-       ! Use the constrained solution.
-       farahiMidpointBrownianBridgeRateNonCrossing=self                           %rateNonCrossingInterpolate(variance,self%massConstrained,time,node)
+       ! Use the constrained solution. By definition, all trajectories cross the barrier before the constrained point. Therefore,
+       ! the non-crossing rate is always zero.
+       farahiMidpointBrownianBridgeRateNonCrossing=0.0d0
     end if
     return
   end function farahiMidpointBrownianBridgeRateNonCrossing
@@ -332,14 +342,17 @@ contains
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
     double precision                                                       , intent(in   ) :: varianceProgenitor
 
-    farahiMidpointBrownianBridgeVarianceLimit=min(                                                                                      &
-         &                                        self%excursionSetFirstCrossingFarahiMidpoint%varianceLimit      (varianceProgenitor), &
-         &                                        self                                        %varianceConstrained                      &
+    farahiMidpointBrownianBridgeVarianceLimit=min(                                     &
+         &                                        max(                                 &
+         &                                                   self%varianceMaximumRate, &
+         &                                             2.0d0*     varianceProgenitor   &
+         &                                            )                              , &
+         &                                                   self%varianceConstrained  &
          &                                       )
     return
   end function farahiMidpointBrownianBridgeVarianceLimit
 
-  function farahiMidpointBrownianBridgeVarianceResidual(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,cosmologicalMassVariance_) result(varianceResidual)
+  function farahiMidpointBrownianBridgeVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
     !!{
     Return the residual variance between two points for a Brownian bridge.
     !!}
@@ -368,8 +381,8 @@ contains
     !
     !   S₂ = varianceConstrained
     !   S₁ = varianceCurrent
-    !   S̃ = varianceProgenitor  +varianceCurrent
-    !   S  = varianceIntermediate+varianceCurrent
+    !   S̃ = varianceIntermediate+varianceCurrent
+    !   S  = varianceProgenitor  +varianceCurrent
     !    
     ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
     ! appear with "varianceCurrent" added to them in the above.
@@ -389,13 +402,13 @@ contains
     rootVarianceConstrained=+cosmologicalMassVariance_%rootVariance(self%massConstrained,time)
     varianceConstrained    =+rootVarianceConstrained**2
     ! Compute the residual variance.
-    varianceResidual       =+(varianceConstrained -varianceIntermediate-varianceCurrent) &
-         &                  *(varianceIntermediate-varianceProgenitor                  ) &
-         &                  /(varianceConstrained                      -varianceCurrent)
+    varianceResidual       =+(varianceConstrained-varianceProgenitor  -varianceCurrent) &
+         &                  *(varianceProgenitor -varianceIntermediate                ) &
+         &                  /(varianceConstrained-varianceIntermediate-varianceCurrent)
     return
   end function farahiMidpointBrownianBridgeVarianceResidual
 
-  function farahiMidpointBrownianBridgeOffsetEffective(self,time,varianceCurrent,varianceIntermediate,varianceProgenitor,deltaCurrent,deltaIntermediate,deltaProgenitor,cosmologicalMassVariance_) result(offsetEffective)
+  function farahiMidpointBrownianBridgeOffsetEffective(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,deltaCurrent,deltaProgenitor,deltaIntermediate,cosmologicalMassVariance_) result(offsetEffective)
     !!{
     Return the residual variance between two points for a Brownian bridge.
     !!}
@@ -426,12 +439,12 @@ contains
     !
     !   S₂ = varianceConstrained
     !   S₁ = varianceCurrent
-    !   S̃ = varianceProgenitor  +varianceCurrent
-    !   S  = varianceIntermediate+varianceCurrent
+    !   S̃ = varianceIntermediate+varianceCurrent
+    !   S  = varianceProgenitor  +varianceCurrent
     !   δ₂ = criticalOverdensityConstrained
     !   δ₁ = deltaCurrent
-    !   δ̃  = deltaProgenitor     +deltaCurrent
-    !   δ  = deltaIntermediate   +deltaCurrent
+    !   δ̃  = deltaIntermediate   +deltaCurrent
+    !   δ  = deltaProgenitor     +deltaCurrent
     !    
     ! Note that the variables "varianceIntermediate" and "varianceProgenitor" are defined to be the variances in excess of S₁ - which is why they
     ! appear with "varianceCurrent" added to them in the above. Similarly, "deltaIntermediate" and "deltaProgenitor" are defined relative to "deltaCurrent".
@@ -448,17 +461,22 @@ contains
     ! variances used throughout the excursion set solver code grow in time according to linear perturbation theory. The fixed
     ! quantity in our Brownian bridge is the mass and time of the halo at the end of the bridge. Therefore, we must compute the
     ! variance corresponding to this mass at the requested epoch.
+    !
+    ! Also note that the drift term is always computed from the difference between the constraint point and the intermediate
+    ! point. This is because, for a trajectory having arrived at the intermediate point, the set of all possible trajectories that
+    ! take it from there to the constrained point is precisely a Brownian bridge starting from the intermediate point and ending
+    ! at the constraint point.
     rootVarianceConstrained       =+cosmologicalMassVariance_%rootVariance(self%massConstrained,time)
     varianceConstrained           =+rootVarianceConstrained**2
-    criticalOverdensityConstrained=+self%criticalOverdensityConstrained             &
-         &                         *sqrt(                                           &
-         &                               +varianceConstrained                       &
-         &                               /self%varianceConstrained                  &
+    criticalOverdensityConstrained=+self%criticalOverdensityConstrained                    &
+         &                         *sqrt(                                                  &
+         &                               +     varianceConstrained                         &
+         &                               /self%varianceConstrained                         &
          &                              )
-    offsetEffective              =+(+deltaIntermediate             -deltaProgenitor   ) &
-         &                        -(+criticalOverdensityConstrained-deltaCurrent      ) &
-         &                        *(+varianceIntermediate          -varianceProgenitor) &
-         &                        /(+varianceConstrained           -varianceCurrent   )    
+    offsetEffective               =+(+deltaProgenitor               -deltaIntermediate                   ) &
+         &                         -(+criticalOverdensityConstrained-deltaIntermediate   -deltaCurrent   ) &
+         &                         *(+varianceProgenitor            -varianceIntermediate                ) &
+         &                         /(+varianceConstrained           -varianceIntermediate-varianceCurrent)
     return
   end function farahiMidpointBrownianBridgeOffsetEffective
  

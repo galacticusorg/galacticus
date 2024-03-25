@@ -124,7 +124,7 @@ sub Build_Tree_Node_Class {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "isPrimaryProgenitor"                                                                                             ,
 	     function    => "Tree_Node_Is_Primary_Progenitor"                                                                                 ,
-	     description => "Return true if this node is the primary progenitor of its descendent, false otherwise."                          ,
+	     description => "Return true if this node is the primary progenitor of its descendant, false otherwise."                          ,
 	     returnType  => "\\logicalzero"                                                                                                   ,
 	     arguments   => ""
 	 },
@@ -319,6 +319,11 @@ sub Insert_Interrupt_Interface {
 		 type       => "treeNode",
 		 attributes => [ "target", "intent(inout)" ],
 		 variables  => [ "node" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "timeEnd" ]
 	     }
 	    ]		
     };    

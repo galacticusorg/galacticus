@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -169,16 +169,19 @@ contains
     <unitName>Node_Component_Disk_Very_Simple_Size_Calculation_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node)
+  subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node,uniqueID)
     !!{
     Reset very simple size disk structure calculations.
     !!}
     use :: Galacticus_Nodes                         , only : treeNode
+    use :: Kind_Numbers                             , only : kind_int8
     use :: Node_Component_Disk_Very_Simple_Size_Data, only : Node_Component_Disk_Very_Simple_Size_Reset
     implicit none
-    type(treeNode), intent(inout) :: node
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    call Node_Component_Disk_Very_Simple_Size_Reset(node%uniqueID())
+    call Node_Component_Disk_Very_Simple_Size_Reset(uniqueID)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 
@@ -317,7 +320,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
-    Write the tablulation state to file.
+    Write the tabulation state to file.
     !!}
     use            :: Display                                  , only : displayMessage      , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                            , only : c_ptr               , c_size_t

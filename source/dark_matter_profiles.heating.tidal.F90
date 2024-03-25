@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@
   <darkMatterProfileHeating name="darkMatterProfileHeatingTidal">
    <description>
     A dark matter profile heating model which accounts for heating due to tidal shocking. The model follows the general
-    approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is gievn by
+    approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is given by
     $\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2$, where $\Delta \epsilon_1$, and $\Delta \epsilon_2$ are the first
     and second order perturbations respectively. The first order term is given by $\Delta \epsilon_1 = Q r^2$ where $Q$ is the
     tidal tensor integrated along the orbital path (see, for example, \citealt{taylor_dynamics_2001}), while the second order
@@ -155,17 +155,19 @@ contains
     return
   end subroutine tidalAutoHook
 
-  subroutine tidalCalculationReset(self,node)
+  subroutine tidalCalculationReset(self,node,uniqueID)
     !!{
     Reset the stored tidal radii.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileHeatingTidal), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
+    class  (darkMatterProfileHeatingTidal), intent(inout) :: self
+    type   (treeNode                     ), intent(inout) :: node
+    integer(kind_int8                    ), intent(in   ) :: uniqueID
 
     self   %specificEnergyOverRadiusSquared_      =-1.0d0
     self   %specificEnergyOverRadiusSquaredParent_=-1.0d0
-    self   %lastUniqueID                          =node       %uniqueID()
+    self   %lastUniqueID                          =            uniqueID
     if (associated(node%parent)) then
        self%parentUniqueID                        =node%parent%uniqueID()
     else
@@ -314,7 +316,7 @@ contains
          &   uniqueID /= self%parentUniqueID &
          &  .and.                            &
          &   uniqueID /= self%lastUniqueID   &
-         & ) call self%calculationReset(node)
+         & ) call self%calculationReset(node,uniqueID)
     if (uniqueID == self%parentUniqueID) then
        if (self%specificEnergyOverRadiusSquaredParent_ < 0.0d0) then
           satellite                                   =>      node     %satellite             ()

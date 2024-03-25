@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -181,7 +181,8 @@ module Cosmology_Functions
     <description>Return the angular diameter distance to the given cosmic {\normalfont \ttfamily time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: time</argument>
+    <argument>double precision, intent(in   )           :: time      </argument>
+    <argument>double precision, intent(in   ), optional :: timeOrigin</argument>
    </method>
    <method name="timeAtDistanceComoving" >
     <description>Return the cosmic time corresponding to the given {\normalfont \ttfamily comovingDistance}.</description>

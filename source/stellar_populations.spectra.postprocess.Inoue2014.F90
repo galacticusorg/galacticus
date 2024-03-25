@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorInoue2014">
    <description>
-    A stellar population postprocesing class that postprocesses spectra through absorption by the \gls{igm} using the results
+    A stellar population postprocessing class that postprocesses spectra through absorption by the \gls{igm} using the results
     of \cite{inoue_updated_2014}.
    </description>
   </stellarPopulationSpectraPostprocessor>

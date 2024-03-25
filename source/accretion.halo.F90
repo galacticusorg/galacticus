@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,7 @@ module Accretion_Halos
   !![
   <enumeration>
    <name>accretionMode</name>
-   <description>Enumeration of accretion modes for the {\normalfont \ttfamily accrtionHalo} class.</description>
+   <description>Enumeration of accretion modes for the {\normalfont \ttfamily accretionHalo} class.</description>
    <visibility>public</visibility>
    <entry label="total"/>
    <entry label="hot"  />

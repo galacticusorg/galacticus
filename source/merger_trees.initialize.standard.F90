@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,12 +25,12 @@
   
   !![
   <mergerTreeInitializor name="mergerTreeInitializorStandard">
-   <description>The standard merger tree initializor.</description>
+   <description>The standard merger tree initializer.</description>
   </mergerTreeInitializor>
   !!]
   type, extends(mergerTreeInitializorClass) :: mergerTreeInitializorStandard
      !!{
-     Implementation of the standard merger tree initializor.
+     Implementation of the standard merger tree initializer.
      !!}
      private
      class(nodeOperatorClass), pointer :: nodeOperator_ => null()
@@ -41,7 +41,7 @@
 
   interface mergerTreeInitializorStandard
      !!{
-     Constructors for the {\normalfont \ttfamily standard} merger tree initializor.
+     Constructors for the {\normalfont \ttfamily standard} merger tree initializer.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily standard} merger tree initializor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily standard} merger tree initializer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
    function standardConstructorInternal(nodeOperator_) result(self)
      !!{
-     Internal constructor for the {\normalfont \ttfamily standard} merger tree initializor class.
+     Internal constructor for the {\normalfont \ttfamily standard} merger tree initializer class.
      !!}
      implicit none
      type (mergerTreeInitializorStandard)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily standard} merger tree initializor class.
+    Destructor for the {\normalfont \ttfamily standard} merger tree initializer class.
     !!}
     implicit none
     type(mergerTreeInitializorStandard), intent(inout) :: self

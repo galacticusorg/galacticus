@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -125,7 +125,7 @@ contains
     \begin{equation}
     \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
     \end{equation}
-    where $\epsilon_\star$(={\normalfont \ttfamily effiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily
+    where $\epsilon_\star$(={\normalfont \ttfamily efficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily
     exponentVelocity}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical}=R/V$ where the radius and
     velocity are whatever characteristic values returned by the component. This scaling is functionally similar to that adopted
     by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that

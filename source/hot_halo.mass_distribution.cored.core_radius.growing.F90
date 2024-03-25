@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -184,7 +184,7 @@ contains
        growingRadius=self%coreRadiusOverScaleRadius
        return
     end if
-    ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
+    ! Compute the desired core radius (in units of the virial radius) for a fully populated halo.
     coreRadiusOverVirialRadiusInitial=+self                     %coreRadiusOverScaleRadius       &
          &                            *     darkMatterProfile   %scale                    (    ) &
          &                            /self%darkMatterHaloScale_%radiusVirial             (node)

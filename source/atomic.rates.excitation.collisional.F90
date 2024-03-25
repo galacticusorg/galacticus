@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,12 +20,12 @@
 !+ Contributions to this file made by: Daniel McAndrew.
 
 !!{
-Contains a module which provides a class implenting atomic collisional excitation rates.
+Contains a module which provides a class implementing atomic collisional excitation rates.
 !!}
 
 module Atomic_Rates_Excitation_Collisional
   !!{
-  Provides a class implenting atomic collisional excitation rates.
+  Provides a class implementing atomic collisional excitation rates.
   !!}
   private
 

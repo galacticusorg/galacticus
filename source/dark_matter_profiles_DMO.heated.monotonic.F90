@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -219,23 +219,27 @@ contains
     return
   end subroutine heatedMonotonicDestructor
 
-  subroutine heatedMonotonicCalculationReset(self,node)
+  subroutine heatedMonotonicCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
-    class(darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
+    class  (darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self
+    type   (treeNode                           ), intent(inout) :: node
+    integer(kind_int8                          ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID        =node%uniqueID()
+    self%lastUniqueID        =uniqueID
+    self%genericLastUniqueID =uniqueID 
     self%isBound             =.true.
     self%radiusInitialMinimum=+huge(0.0d0)
     self%radiusInitialMaximum=-huge(0.0d0)
     self%radiusFinalMinimum  =+huge(0.0d0)
     self%radiusFinalMaximum  =-huge(0.0d0)
     if (allocated(self%massProfile)) deallocate(self%massProfile)
-    call self%calculationResetGeneric(node)
+    call self%calculationResetGeneric(node,uniqueID)
     return
   end subroutine heatedMonotonicCalculationReset
 
@@ -259,7 +263,7 @@ contains
     integer                                                                          :: i                           , countRadii
 
     ! Determine if we need to retabulate.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Nothing to do if profile is already tabulated.
     if (.not.self%isBound .or. allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.
@@ -535,7 +539,7 @@ contains
 
   double precision function heatedMonotonicRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self

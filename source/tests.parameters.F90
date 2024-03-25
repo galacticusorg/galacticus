@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,13 +33,14 @@ program Test_Parameters
   use :: Input_Parameters          , only : inputParameters         , inputParameter
   use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (hdf5Object                   )          :: outputFile
-  type            (varying_string               )          :: parameterFile            , parameterValue
-  class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-  class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-  type            (inputParameters              ), target  :: testParameters
-  type            (inputParameter               ), pointer :: testParameter
-  double precision                                         :: valueNumerical
+  type            (hdf5Object                   )              :: outputFile
+  type            (varying_string               )              :: parameterFile            , parameterValue
+  class           (cosmologyParametersClass     ), pointer     :: cosmologyParameters_
+  class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_
+  type            (inputParameters              ), target      :: testParameters
+  type            (inputParameters              ), allocatable :: wrapper1                 ,  wrapper2
+  type            (inputParameter               ), pointer     :: testParameter
+  double precision                                             :: valueNumerical
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -65,7 +66,7 @@ program Test_Parameters
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
   call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVariance'),1                    )
   call Unit_Tests_End_Group()
-  ! Test adding, retrieving, reseting, readding a parameter.
+  ! Test adding, retrieving, resetting, reading a parameter.
   call Unit_Tests_Begin_Group("Parameter adding")
   call testParameters%addParameter('addedParameter','qwertyuiop'  )
   call testParameters%value       ('addedParameter',parameterValue)
@@ -81,11 +82,25 @@ program Test_Parameters
   ! Test evaluation.
   call Unit_Tests_Begin_Group("Parameter evaluation")
   call testParameters%value('fixedValue'   ,valueNumerical)
-  call Assert('fixed value'                          ,valueNumerical,+1.234000000d0,absTol=1.0d-6)
+  call Assert('fixed value'                 ,valueNumerical,+1.234000000d0,absTol=1.0d-6)
   call testParameters%value('derivedValue1',valueNumerical)
-  call Assert('derived value'                        ,valueNumerical,+1.234000000d1,absTol=1.0d-6)
+  call Assert('derived value'               ,valueNumerical,+1.234000000d1,absTol=1.0d-6)
   call testParameters%value('derivedValue2',valueNumerical)
-  call Assert('derived value [recursive]'            ,valueNumerical,-8.264825587d0,absTol=1.0d-6)
+  call Assert('derived value [recursive]'   ,valueNumerical,-8.264825587d0,absTol=1.0d-6)
+  call testParameters%value('derivedValue6',valueNumerical)
+  call Assert('derived value [min function]',valueNumerical,+1.000000000d0,absTol=1.0d-6)
+  call testParameters%value('derivedValue7',valueNumerical)
+  call Assert('derived value [max function]',valueNumerical,+2.000000000d0,absTol=1.0d-6)
+  allocate(wrapper1)
+  allocate(wrapper2)
+  wrapper1=testParameters%subParameters('wrapper1')
+  wrapper2=wrapper1      %subParameters('wrapper2')
+  call wrapper1%value('derivedValue4',valueNumerical)
+  call Assert('derived value [relative]'             ,valueNumerical, 33.42d0,absTol=1.0d-6)
+  call wrapper2%value('derivedValue5',valueNumerical)
+  call Assert('derived value [relative]'             ,valueNumerical,118.08d0,absTol=1.0d-6)
+  deallocate(wrapper2)
+  deallocate(wrapper1)
   !! Reset the value of the fixed parameter.
   testParameter => testParameters%node('fixedValue')
   call testParameter %set  (2.468d0)

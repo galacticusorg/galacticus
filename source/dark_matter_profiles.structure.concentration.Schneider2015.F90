@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,13 +71,13 @@
 
   ! Module-scope variables for root finding.
   class           (darkMatterProfileConcentrationSchneider2015), pointer  :: self_
-  double precision                                                        :: massReferencePrevious, timeCollapseReference            , &
-       &                                                                     time_                , referenceCollapseMassRootPrevious, &
+  double precision                                                        :: massReferencePrevious        , timeCollapseReference                  , &
+       &                                                                     time_                        , referenceCollapseMassRootPrevious      , &
        &                                                                     timeNowReference
   !$omp threadprivate(self_,massReferencePrevious,timeCollapseReference,time_,timeNowReference,referenceCollapseMassRootPrevious)
 
   ! Upper limit to the reference mass used during root finding.
-  double precision                                             , parameter :: massReferenceMaximum             =1.0d30
+  double precision                                             , parameter :: massReferenceMinimum=1.0d-30, massReferenceMaximum             =1.0d30
 
 contains
 
@@ -154,7 +154,8 @@ contains
          &                 rangeExpandUpward  =2.000d0                               , &
          &                 rangeExpandDownward=0.999d0                               , &
          &                 rangeExpandType    =rangeExpandMultiplicative             , &
-         &                 rangeUpwardLimit   =massReferenceMaximum                    &
+         &                 rangeUpwardLimit   =massReferenceMaximum                  , &
+         &                 rangeDownwardLimit =massReferenceMinimum                    &
          &                )
     return
   end function schneider2015ConstructorInternal
@@ -183,12 +184,14 @@ contains
     Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
     \cite{schneider_structure_2015}.
     !!}
+    use :: Error                   , only : Error_Report      , errorStatusSuccess
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
+    integer                                                                               :: status
     double precision                                                                      :: mass                                     , &
          &                                                                                   collapseCriticalOverdensity, timeCollapse, &
          &                                                                                   massReference              , variance    , &
@@ -229,10 +232,11 @@ contains
     massReferencePrevious =  -1.0d0
     if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
-       ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
+       ! the choice should not matter too much as the abundances of such halos should be hugely suppressed.
        massReference        =massReferenceMaximum
     else
-       massReference        =self%finder%find(rootGuess=mass)
+       massReference        =self%finder%find(rootGuess=mass,status=status)
+       if (status /= errorStatusSuccess) call Error_Report('failed to determine reference mass'//{introspection:location})
     end if
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
@@ -250,7 +254,7 @@ contains
     implicit none
     double precision, intent(in   ) :: massReference
     double precision                :: variance     , collapseCriticalOverdensity
-
+    
     if (massReference /= massReferencePrevious) then
        massReferencePrevious            =+massReference
        variance                         =max(                                                                                                           &

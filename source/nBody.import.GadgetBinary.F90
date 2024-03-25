@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,7 @@ Contains a module which implements an N-body data importer for Gadget binary fil
   !![
   <nbodyImporter name="nbodyImporterGadgetBinary">
    <description>An importer for Gadget binary files.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetBinary
@@ -205,13 +206,15 @@ contains
     fileNumber             =     0
     numberParticleTotalRead=     0
     numberParticleTotal    =     0
+    massesDiffer           =.false.
+    readMasses             =.false.
     if (self%isCosmological) then
        hubbleConstantLittleH=self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
     else
        hubbleConstantLittleH=1.0d0
     end if
     do while (fileNumber < numberFiles)
-       ! Check for the existance of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
+       ! Check for the existence of the named file with no subfile suffix. This can occur, for example, if reading initial conditions files.
        if (fileNumber == 0 .and. File_Exists(self%fileName)) then
           ! Open the file with no subfile suffix.
           open(newUnit=file,file=char(self%fileName)                                    ,status='old',form='unformatted')

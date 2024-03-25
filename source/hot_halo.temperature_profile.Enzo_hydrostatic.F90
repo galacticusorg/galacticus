@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,7 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
       T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
     \end{equation}
     where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
-    $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses.
+    $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching arbitrarily low masses.
    </description>
   </hotHaloTemperatureProfile>
   !!]

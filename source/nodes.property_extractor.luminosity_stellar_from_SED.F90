@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -218,7 +218,7 @@ contains
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength
-      ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
+      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
       double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
 
       integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolator_%interpolate(wavelength) &

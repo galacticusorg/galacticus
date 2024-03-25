@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -124,7 +124,7 @@ contains
     class           (posteriorSampleStateInitializeSwitched), intent(inout)               :: self
     class           (posteriorSampleStateClass             ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass        ), intent(inout)               :: modelLikelihood
-    type            (modelParameterList                    ), intent(in   ), dimension(:) :: modelParameters_
+    type            (modelParameterList                    ), intent(inout), dimension(:) :: modelParameters_
     double precision                                        , intent(  out)               :: timeEvaluatePrevious, logLikelihood, &
          &                                                                                   logPosterior
     class           (posteriorSampleStateInitializeClass   ), pointer                     :: stateInitializor_
@@ -134,7 +134,7 @@ contains
     double precision                                        , allocatable  , dimension(:) :: stateVector         , stateVector__
     integer                                                 , allocatable  , dimension(:) :: mapping__
     integer                                                                               :: i                   , j            , &
-         &                                                                                   initializor
+         &                                                                                   initializer
     logical                                                                               :: matched
 
     ! Validate that all parameters are in one of our lists.
@@ -158,10 +158,10 @@ contains
        end if
        if (.not.matched) call Error_Report('parameter "'//modelParameters_(i)%modelParameter_%name()//'" is not listed so would not be initialized'//{introspection:location})
     end do
-    ! Iterate over both initializors.
+    ! Iterate over both initializers.
     allocate(stateVector(size(modelParameters_)))
-    do initializor=1,2
-       select case (initializor)
+    do initializer=1,2
+       select case (initializer)
        case (1)
           allocate(modelParameterNames(size(self%modelParameterName1)))
           modelParameterNames =  self%modelParameterName1
@@ -171,7 +171,7 @@ contains
           modelParameterNames =  self%modelParameterName2
           stateInitializor_   => self%stateInitializeMethod2
        end select
-       ! Construct a state object and set of model parameters for this initializor.
+       ! Construct a state object and set of model parameters for this initializer.
        allocate(simulationState__                           )
        allocate(stateVector__    (size(modelParameterNames)))
        allocate(mapping__        (size(modelParameterNames)))
@@ -195,7 +195,7 @@ contains
           <deepCopyFinalize variables="modelParameters__(i)%modelParameter_"/>
           !!]
        end do
-       ! Apply the initializor
+       ! Apply the initializer
        call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
        ! Combine states into the final state.
        stateVector__=simulationState__%get()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,7 @@
   <accretionFlows name="accretionFlowsDiemerKravtsov2014">
    <description>
     An accretion flow class which models the accretion flow using the fitting function of
-    \cite{diemer_dependence_2014}. Specifically, the density profile of the accretion flow is modelled using their equation~(4),
+    \cite{diemer_dependence_2014}. Specifically, the density profile of the accretion flow is modeled using their equation~(4),
     along with fits to the redshift and $\nu$ dependencies of the fitting parameters $b_\mathrm{e}$ and $s_\mathrm{e}$ chosen to
     match the results of their figure~18.
    </description>

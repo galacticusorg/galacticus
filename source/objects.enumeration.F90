@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,7 +37,6 @@ module Enumerations
    contains
      !![
      <methods>
-       <method description="Test if two enumeration entries are equal."                   method="operator(==)"  />
        <method description="Test if two enumeration entries are not equal."               method="operator(/=)"  />
        <method description="Test if one enumeration is less than another."                method="operator(&lt;)" />
        <method description="Test if one enumeration is less or equal tothan another."     method="operator(&lt;=)"/>
@@ -46,14 +45,12 @@ module Enumerations
        <method description="Subtract an integer from an enumeration member."              method="subtract"       />
      </methods>
      !!]
-     procedure ::                 enumerationIsEqual
      procedure ::                 enumerationIsNotEqual
      procedure ::                 enumerationLessThan
      procedure ::                 enumerationLessThanOrEqual
      procedure ::                 enumerationGreaterThan
      procedure ::                 enumerationGreaterThanOrEqual
      procedure ::                 enumerationSubtractionInteger
-     generic   :: operator(==) => enumerationIsEqual
      generic   :: operator(/=) => enumerationIsNotEqual
      generic   :: operator(< ) => enumerationLessThan
      generic   :: operator(<=) => enumerationLessThanOrEqual
@@ -63,21 +60,6 @@ module Enumerations
   end type enumerationType
 
 contains
-
-  elemental logical function enumerationIsEqual(enumerationA,enumerationB)
-    !!{
-    Return true if {\normalfont \ttfamily enumerationA} is equal to {\normalfont \ttfamily enumerationB}.
-    !!}
-    implicit none
-    class(enumerationType), intent(in   ) :: enumerationA, enumerationB
-
-    if (.not.same_type_as(enumerationA,enumerationB)) then
-       enumerationIsEqual=.false.
-    else
-       enumerationIsEqual=enumerationA%ID == enumerationB%ID
-    end if
-    return
-  end function enumerationIsEqual
 
   elemental logical function enumerationIsNotEqual(enumerationA,enumerationB)
     !!{

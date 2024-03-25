@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -297,7 +297,7 @@ contains
     if (self%collapsingUniverse) then
        ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
        call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-       ! Find the corresponding time. Note that we use the absolute value of the Hubble paameter here - in cases where the
+       ! Find the corresponding time. Note that we use the absolute value of the Hubble parameter here - in cases where the
        ! universe is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent
        ! expansion factor during the expansion phase.
        timeMaximum(1)=1.0d0/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
@@ -919,7 +919,7 @@ contains
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-    ! Find the corresponding time. Note that we use the absolute value of the Hubble paameter here - in cases where the universe
+    ! Find the corresponding time. Note that we use the absolute value of the Hubble parameter here - in cases where the universe
     ! is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent expansion
     ! factor during the expansion phase.
     tDominant=-2.0d0/densityPower/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
@@ -979,7 +979,7 @@ contains
     self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
     self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the Universe
-    ! and use the appropriate analytic solution. Note that we use the absolute value of the Hubble paameter here - in cases where
+    ! and use the appropriate analytic solution. Note that we use the absolute value of the Hubble parameter here - in cases where
     ! the universe is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent
     ! expansion factor during the expansion phase.
     if (self%ageTableExpansionFactor(1) < 0.0d0)                             &
@@ -1116,16 +1116,66 @@ contains
     return
   end function matterLambdaDistanceLuminosity
 
-  double precision function matterLambdaDistanceAngular(self,time)
+  double precision function matterLambdaDistanceAngular(self,time,timeOrigin) result(distance)
     !!{
     Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
     !!}
+    use :: Cosmology_Parameters            , only : hubbleUnitsTime
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Constants_Astronomical, only : megaParsec     , gigaYear
+    use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
-    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
-    double precision                                , intent(in   ) :: time
+    class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
+    double precision                                , intent(in   )           :: time
+    double precision                                , intent(in   ), optional :: timeOrigin
+    double precision                                                          :: distanceComoving, distanceComovingOrigin, &
+         &                                                                       distanceHubble  , OmegaCurvature
 
-    ! Compute the angular diameter distance.
-    matterLambdaDistanceAngular=self%distanceComoving(time)*self%expansionFactor(time)
+    if (present(timeOrigin)) then
+       ! Case with the origin of the distance at some z>0.
+       if (timeOrigin < time) call Error_Report('expected timeOrigin ≥ time'//{introspection:location})
+       ! Use the solution from (Peebles, 1993, "Principles of Physical Cosmology", pp 336–33; see also Hogg 1999; equation 19;
+       ! arXiv:astro-ph/9905116; https://ui.adsabs.harvard.edu/abs/1999astro.ph..5116H).
+       distanceComoving      =+self%distanceComoving(time      )
+       distanceComovingOrigin=+self%distanceComoving(timeOrigin)
+       distanceHubble        =+speedLight                                                &
+            &                 /self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+            &                 *gigaYear                                                  &
+            &                 /megaParsec
+       OmegaCurvature        =+self%cosmologyParameters_%OmegaCurvature()
+       if (OmegaCurvature >= 0.0d0) then
+          distance=+(                                &
+               &     +distanceComoving               &
+               &     *sqrt(                          &
+               &           +1.0d0                    &
+               &           +OmegaCurvature           &
+               &           *(                        &
+               &             +distanceComovingOrigin &
+               &             /distanceHubble         &
+               &            )**2                     &
+               &          )                          &
+               &     -distanceComovingOrigin         &
+               &     *sqrt(                          &
+               &           +1.0d0                    &
+               &           +OmegaCurvature           &
+               &           *(                        &
+               &             +distanceComoving       &
+               &             /distanceHubble         &
+               &            )**2                     &
+               &          )                          &
+               &    )                                &
+               &   *self%expansionFactor(time)
+       else
+          ! For negative curvature cosmologies the above equation is not valid - see, for example, Hogg (1999;
+          ! arXiv:astro-ph/9905116; https://ui.adsabs.harvard.edu/abs/1999astro.ph..5116H).
+          distance=+0.0d0
+          call Error_Report('angular diameter distance between two times not implemented for Ωₖ < 0'//{introspection:location})
+       end if
+    else
+       ! Standard case with the origin of the distance at z=0.
+       distance=+self%distanceComoving(time) &
+            &   *self%expansionFactor (time)
+    end if
     return
   end function matterLambdaDistanceAngular
 

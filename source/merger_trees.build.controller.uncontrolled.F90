@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,9 +102,9 @@ contains
     Apply control to merger tree building.
     !!}
     implicit none
-    class(mergerTreeBuildControllerUncontrolled), intent(inout)          :: self
-    type (treeNode                             ), intent(inout), pointer :: node
-    class(mergerTreeWalkerClass                ), intent(inout)          :: treeWalker_
+    class(mergerTreeBuildControllerUncontrolled), intent(inout)           :: self
+    type (treeNode                             ), intent(inout), pointer  :: node
+    class(mergerTreeWalkerClass                ), intent(inout), optional :: treeWalker_
     !$GLC attributes unused :: self, node, treeWalker_
 
     ! Always return true as we never want to halt tree building.
@@ -126,15 +126,16 @@ contains
     return
   end function uncontrolledBranchingProbabilityObject
 
-  subroutine uncontrolledNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+  subroutine uncontrolledNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none
-    class(mergerTreeBuildControllerUncontrolled), intent(inout)           :: self
-    type (treeNode                             ), intent(inout)           :: nodeCurrent     , nodeProgenitor1
-    type (treeNode                             ), intent(inout), optional :: nodeProgenitor2
-    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+    class  (mergerTreeBuildControllerUncontrolled), intent(inout)           :: self
+    type   (treeNode                             ), intent(inout)           :: nodeCurrent     , nodeProgenitor1
+    type   (treeNode                             ), intent(inout), optional :: nodeProgenitor2
+    logical                                       , intent(in   ), optional :: didBranch
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2, didBranch
 
     ! Nothing to do.
     return

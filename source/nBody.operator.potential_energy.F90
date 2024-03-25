@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -193,6 +193,7 @@ contains
              ! Build octree.
              call octreePosition%build(positionRescaled,dble(selfBoundStatus(:,i)))
              !$omp parallel private(j)
+             !$omp do schedule(dynamic)
              do j=1,particleCount
                 if (selfBoundStatus(j,i) > 0 ) then
                    call octreePosition%traverseCompute(positionRescaled(:,j),dble(selfBoundStatus(j,i)),self%thetaTolerance,potentialEnergy(j,i),potentialEnergyPotential)
@@ -205,6 +206,7 @@ contains
                         &               /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
                 end if
              end do
+             !$omp end do
              !$omp end parallel
              ! Destroy the octree.
              call octreePosition%destroy()
@@ -212,7 +214,7 @@ contains
        end do
        ! Store results to file.
        call simulations(iSimulation)%analysis%writeDataset(potentialEnergy,'energyPotential')
-       ! Dealclocate workspace.
+       ! Deallocate workspace.
        if (self%selfBoundParticlesOnly) then
           nullify   (selfBoundStatus )
        else

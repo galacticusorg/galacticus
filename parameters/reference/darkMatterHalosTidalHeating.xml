@@ -9,7 +9,8 @@
          matching tidal tracks from Errani & Navarro (2021; MNRAS; 505; 18;
          https://ui.adsabs.harvard.edu/abs/2021MNRAS.505...18E), as described in
          https://hackmd.io/GAVyCqaKRoWvN_D9_B4qrg#New-Tidal-Heating-Model -->
-    <coefficientSecondOrder0   value="+0.406"/>
+    <coefficientSecondOrder0   value="+0.030"/>
+    <coefficientSecondOrder1   value="-0.320"/>
     <correlationVelocityRadius value="-0.333"/>
   </darkMatterProfileHeating>
 

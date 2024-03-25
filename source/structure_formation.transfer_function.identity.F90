@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -190,7 +190,7 @@ contains
     return
   end function identityEpochTime
 
-  subroutine identityDescriptor(self,descriptor,includeClass)
+  subroutine identityDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -198,8 +198,8 @@ contains
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeClass
-    !$GLC attributes unused :: self
+    logical                          , intent(in   ), optional :: includeClass, includeFileModificationTimes
+    !$GLC attributes unused :: self, includeFileModificationTimes
 
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('transferFunction','identity')
     return

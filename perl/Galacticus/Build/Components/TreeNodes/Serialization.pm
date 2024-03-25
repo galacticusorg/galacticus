@@ -57,6 +57,11 @@ sub Tree_Node_Serialize_ASCII {
 		 intrinsic  => "type",
 		 type       => "varying_string",
 		 variables  => [ "message" ]
+	     },
+	     {
+		 intrinsic  => "character",
+		 type       => "len=22",
+		 variables  => [ "label" ]
 	     }
 	    ]
     };    
@@ -81,6 +86,18 @@ call displayMessage(message)
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call displayUnindent('done')
+call displayIndent('state')
+CODE
+    foreach $code::state ( "isPhysicallyPlausible", "isSolvable" ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+message='{" " x (22-length($tate))}{$state}: '
+write (label,'(l1)') self%{$state}
+message=message//trim(adjustl(label))
+CODE
+    }
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call displayMessage(message)
 call displayUnindent('done')
 CODE
     # Iterate over all component classes

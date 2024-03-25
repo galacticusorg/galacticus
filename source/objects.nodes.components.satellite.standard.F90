@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,8 @@ module Node_Component_Satellite_Standard
   !!}
   implicit none
   private
-  public :: Node_Component_Satellite_Standard_Initialize, Node_Component_Satellite_Standard_Inactive, Node_Component_Satellite_Standard_Scale_Set
+  public :: Node_Component_Satellite_Standard_Initialize         , Node_Component_Satellite_Standard_Inactive, Node_Component_Satellite_Standard_Scale_Set, Node_Component_Satellite_Standard_Thread_Initialize, &
+       &    Node_Component_Satellite_Standard_Thread_Uninitialize
 
   !![
   <component>
@@ -58,6 +59,10 @@ module Node_Component_Satellite_Standard
 
   ! Record of whether satellite bound mass is an inactive variable.
   logical :: inactiveBoundMass
+
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
 
 contains
 
@@ -91,6 +96,94 @@ contains
     end if
     return
   end subroutine Node_Component_Satellite_Standard_Initialize
+
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
+    !!{
+    Initializes the tree node standard satellite module.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel, subhaloPromotionEvent, dependencyExact, &
+         &                          dependencyDirectionBefore
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    type(dependencyExact), dimension(1)  :: dependenciesSubhaloPromotion
+    !$GLC attributes unused :: parameters
+
+    if (defaultSatelliteComponent%standardIsActive()) then
+       dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
+       call    nodePromotionEvent%attach(thread,   nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSatelliteStandard'                                          )
+       call subhaloPromotionEvent%attach(thread,subhaloPromotion,openMPThreadBindingAtLevel,label='nodeComponentSatelliteStandard',dependencies=dependenciesSubhaloPromotion)
+    end if
+    return
+  end subroutine Node_Component_Satellite_Standard_Thread_Initialize
+
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
+  subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
+    !!{
+    Uninitializes the tree node standard satellite module.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent
+    use :: Events_Hooks    , only : nodePromotionEvent       , subhaloPromotionEvent
+    implicit none
+    
+    if (defaultSatelliteComponent%standardIsActive()) then
+       if (   nodePromotionEvent%isAttached(thread,   nodePromotion)) call    nodePromotionEvent%detach(thread,   nodePromotion)
+       if (subhaloPromotionEvent%isAttached(thread,subhaloPromotion)) call subhaloPromotionEvent%detach(thread,subhaloPromotion)
+    end if
+    return
+  end subroutine Node_Component_Satellite_Standard_Thread_Uninitialize
+
+  subroutine nodePromotion(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    from the parent.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite, nodeComponentSatelliteStandard
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentSatellite)               , pointer :: satellite, satelliteParent
+    !$GLC attributes unused :: self
+
+    satelliteParent => node%parent%satellite()
+    select type (satelliteParent)
+    type is (nodeComponentSatelliteStandard)
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          ! This is as expected - nothing to do.
+       class default
+          call Error_Report('multiple satellite components defined on branch'//{introspection:location})
+       end select
+       call node%parent%satelliteMove(node,overwrite=.true.)
+    end select
+    return
+  end subroutine nodePromotion
+
+  subroutine subhaloPromotion(self,node,nodePromotion)
+    !!{
+    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).    
+    !!}
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), pointer :: node, nodePromotion
+     !$GLC attributes unused :: self, nodePromotion
+    
+    call node%satelliteRemove(1)
+    return
+  end subroutine subhaloPromotion
   
   !![
   <inactiveSetTask>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,7 +116,7 @@ contains
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSatellite
     implicit none
     class           (nodeOperatorSubsubhaloPromotion), intent(inout), target  :: self
-    type            (treeNode                       ), intent(inout)          :: node
+    type            (treeNode                       ), intent(inout), target  :: node
     logical                                          , intent(inout)          :: interrupt
     procedure       (interruptTask                  ), intent(inout), pointer :: functionInterrupt
     integer                                          , intent(in   )          :: propertyType
@@ -147,14 +147,16 @@ contains
     return
   end subroutine subsubhaloPromotionDifferentialEvolution
   
-  subroutine subsubhaloPromotionPromote(node)
+  subroutine subsubhaloPromotionPromote(node,timeEnd)
     !!{
     Promote a sub-sub-halo into its host's host.
     !!}
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     implicit none
-    type(treeNode), intent(inout), target  :: node
-
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
+    
     ! Move the sub-sub-halo into its host's host.
     call Satellite_Move_To_New_Host(node,node%parent%parent)
     return

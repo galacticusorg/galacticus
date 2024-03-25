@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +29,27 @@ module Locks
   !$ use            :: OMP_Lib      , only : omp_lock_kind
   implicit none
   private
-  public :: ompLock, ompReadWriteLock, ompIncrementalLock
+  public :: ompLockClass, ompLock, ompReadWriteLock, ompIncrementalLock
 
-  type :: ompLock
+  type :: ompLockClass
+     !!{
+     An OpenMP lock type that does no locking. Useful when a function expects a lock, but we actually do not need to lock.
+     !!}
+     private
+   contains
+     !![
+     <methods>
+       <method description="Obtain a lock on the object."          method="set"       />
+       <method description="Release a lock on the object."         method="unset"     />
+       <method description="(Re)initialize an OpenMP lock object." method="initialize"/>
+     </methods>
+     !!]
+     procedure :: initialize => ompLockClassInitialize
+     procedure :: set        => ompLockClassSet
+     procedure :: unset      => ompLockClassUnset
+  end type ompLockClass
+
+  type, extends(ompLockClass) :: ompLock
      !!{
      OpenMP lock type which allows querying based on thread number.
      !!}
@@ -41,10 +59,7 @@ module Locks
    contains
      !![
      <methods>
-       <method description="Obtain a lock on the object." method="set" />
-       <method description="Release a lock on the object." method="unset" />
-       <method description="(Re)initialize an OpenMP lock object." method="initialize" />
-       <method description="Return true if the current thread already owns this lock." method="ownedByThread" />
+       <method description="Return true if the current thread already owns this lock." method="ownedByThread"/>
      </methods>
      !!]
      final     ::                  ompLockDestructor
@@ -125,6 +140,39 @@ module Locks
 
 contains
 
+  subroutine ompLockClassInitialize(self)
+    !!{
+    (Re)initialize an OpenMP null lock object.
+    !!}
+    implicit none
+    class(ompLockClass), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    return
+  end subroutine ompLockClassInitialize
+
+  subroutine ompLockClassSet(self)
+    !!{
+    Get a lock on an OpenMP null lock objects.
+    !!}
+    implicit none
+    class(ompLockClass), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    return
+  end subroutine ompLockClassSet
+
+  subroutine ompLockClassUnset(self)
+    !!{
+    Release a lock on an OpenMP null lock objects.
+    !!}
+    implicit none
+    class(ompLockClass), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    return
+  end subroutine ompLockClassUnset
+  
   function ompLockConstructor() result (self)
     !!{
     Constructor for OpenMP lock objects.
@@ -192,7 +240,7 @@ contains
 
   logical function ompLockOwnedByThread(self)
     !!{
-    Return true if the lock is owend by the current thread.
+    Return true if the lock is owned by the current thread.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none

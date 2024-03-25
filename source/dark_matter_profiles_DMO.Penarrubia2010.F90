@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,6 +145,7 @@ contains
     Generic constructor for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Kind_Numbers    , only : kind_int8
     implicit none
     type            (darkMatterProfileDMOPenarrubia2010)                        :: self
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
@@ -185,7 +186,7 @@ contains
     self%specialCase          =specialCaseGeneral
     self%scaleRadiusPrevious  =-1.0d0
     self%normalizationPrevious=-1.0d0
-    self%uniqueIDPrevious     =node%uniqueID()
+    self%uniqueIDPrevious     =-1_kind_int8
     return
   end function penarrubia2010ConstructorInternal
 
@@ -215,17 +216,20 @@ contains
     return
   end subroutine penarrubia2010Destructor
 
-  subroutine penarrubia2010CalculationReset(self,node)
+  subroutine penarrubia2010CalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
+    class  (darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
+    type   (treeNode                          ), intent(inout) :: node
+    integer(kind_int8                         ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%scaleRadiusPrevious  =-1.0d0
     self%normalizationPrevious=-1.0d0
-    self%uniqueIDPrevious     =node%uniqueID()
+    self%uniqueIDPrevious     =uniqueID
     return
   end subroutine penarrubia2010CalculationReset
 
@@ -270,7 +274,7 @@ contains
     double precision                                                    :: fractionMassBound            , fractionRadiusMaximum, &
          &                                                                 ratioRadiusMaximumRadiusScale
 
-    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
+    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
     if (self%scaleRadiusPrevious < 0.0d0) then
        basic                 =>  node     %basic            ()
        satellite             =>  node     %satellite        ()
@@ -312,7 +316,7 @@ contains
          &                                                                 ratioVelocityMaximumVelocityScale, massScale              , &
          &                                                                 massScaleOriginal
     
-    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node)
+    if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
     if (self%normalizationPrevious < 0.0d0) then
        basic                   =>  node     %basic            ()
        satellite               =>  node     %satellite        ()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Kind_Numbers, only : kind_int8
-  use :: Hashes      , only : doubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
@@ -112,15 +112,17 @@
 
 contains
 
-  subroutine integerTupleMetaData(self,indexProperty,metaData)
+  subroutine integerTupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
     Interface for integerTuple property meta-data.
     !!}
     implicit none
     class  (nodePropertyExtractorIntegerTuple), intent(inout) :: self
+    type   (treeNode                         ), intent(inout) :: node
     integer                                   , intent(in   ) :: indexProperty
-    type   (doubleHash                       ), intent(inout) :: metaData
-    !$GLC attributes unused :: self, indexProperty, metaData
+    type   (doubleHash                       ), intent(inout) :: metaDataRank0
+    type   (rank1DoubleHash                  ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: self, node, indexProperty, metaDataRank0, metaDataRank1
     
     return
   end subroutine integerTupleMetaData

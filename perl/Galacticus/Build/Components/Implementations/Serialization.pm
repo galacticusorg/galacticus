@@ -160,7 +160,7 @@ CODE
 	    if      ( $metaPropertyType->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
- do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+ do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
   write (label,{$format}) self%{$prefix}MetaProperties(i)
   message=trim({$class->{'name'}.$prefix}MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}.$prefix}MetaPropertyNames(i)))//label
   call displayMessage(message)
@@ -170,7 +170,7 @@ CODE
 	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
- do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+ do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
   do j=1,size( self%{$prefix}MetaProperties(i)%values)
    write (label,'(i3)') j
    message=trim({$class->{'name'}.$prefix}MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}.$prefix}MetaPropertyNames(i)))//trim(label)
@@ -589,11 +589,15 @@ CODE
 	    }
 	    if      ( $metaPropertyType->{'rank'} == 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) read (fileHandle) self%{$prefix}MetaProperties
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ allocate(self%{$prefix}MetaProperties(size({$class->{'name'}.$prefix}MetaPropertyNames)))
+ read (fileHandle) self%{$prefix}MetaProperties
+end if
 CODE
 	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}.$prefix}MetaPropertyNames  )) then
+ allocate(self%{$prefix}MetaProperties(size({$class->{'name'}.$prefix}MetaPropertyNames)))
  do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
   read (fileHandle) metaPropertySize
   allocate(self%{$prefix}MetaProperties(i)%values(metaPropertySize))

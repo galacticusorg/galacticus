@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -271,13 +271,16 @@ contains
     return
   end subroutine nfwDestructor
 
-  subroutine nfwCalculationReset(self,node)
+  subroutine nfwCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMONFW), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
+    class  (darkMatterProfileDMONFW), intent(inout) :: self
+    type   (treeNode               ), intent(inout) :: node
+    integer(kind_int8              ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
@@ -287,7 +290,7 @@ contains
     self%massScalePrevious                      =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
     self%radialVelocityDispersionRadiusPrevious =-1.0d0
-    self%lastUniqueID                           =node%uniqueID()
+    self%lastUniqueID                           =uniqueID
     return
   end subroutine nfwCalculationReset
 
@@ -589,7 +592,7 @@ contains
 
     if (radius > 0.0d0) then
        ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        ! Compute the circular velocity if the radius has changed.
        if (radius /= self%circularVelocityRadiusPrevious) then
           self%circularVelocityPrevious      =sqrt(gravitationalConstantGalacticus*self%enclosedMass(node,radius)/radius)
@@ -639,7 +642,7 @@ contains
     double precision                                                :: scaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if maximum velocity is already computed. Compute and store if not.
     if (.not.self%maximumVelocityComputed) then
        basic             => node             %basic            (                 )
@@ -677,7 +680,7 @@ contains
 
     if (radius > 0.0d0) then
        ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        ! Compute the radial velocity dispersion if the radius has changed.
        if (radius /= self%radialVelocityDispersionRadiusPrevious) then
           darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
@@ -718,7 +721,7 @@ contains
        return
     end if
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if scalings are already computed. Compute and store if not.
     if (.not.self%specificAngularMomentumScalingsComputed) then
        ! Flag that scale quantities are now computed.
@@ -838,7 +841,7 @@ contains
     !$GLC attributes unused :: self
 
     if (radius < radiusSmall) then
-       ! Use a series expenasion solution for accuracy.
+       ! Use a series expansion solution for accuracy.
        nfwSpecificAngularMomentumScaleFree=+radius**1.5d0                &
             &                              /sqrt(                        &
             &                                    +    2.0d0              &
@@ -940,7 +943,7 @@ contains
          &                                                                     virialRadiusOverScaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Get scale radius if required.
     if (self%densityScalePrevious < 0.0d0 .or. density /= self%enclosedDensityPrevious) then
        darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)
@@ -984,11 +987,12 @@ contains
     double precision                                , intent(in   )         :: mass
     class           (nodeComponentBasic            ), pointer               :: basic
     class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
-    double precision                                                        :: scaleRadius                , massScaleFree, &
+    double precision                                , parameter             :: massScaleFreeSmall         =3.0d-4
+    double precision                                                        :: scaleRadius                       , massScaleFree, &
          &                                                                     virialRadiusOverScaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Get scale radius if required.
     if (self%massScalePrevious < 0.0d0 .or. mass /= self%enclosedMassPrevious) then
        darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)
@@ -1010,11 +1014,23 @@ contains
           massScaleFree                   =+mass                                           &
                &                           *self%massScalePrevious
           ! Compute radius.
-          self%enclosingMassRadiusPrevious=-(                                              &
-               &                             +1.0d0/Lambert_W0(-exp(-1.0d0-massScaleFree)) &
-               &                             +1.0d0                                        &
-               &                            )                                              &
-               &                           *scaleRadius
+          if (massScaleFree < massScaleFreeSmall) then
+             ! Use a series solution for very small radii.
+             self%enclosingMassRadiusPrevious=+                     sqrt(2.0d0)*massScaleFree**0.5d0 &
+                  &                           +    4.0d0/     3.0d0            *massScaleFree        &
+                  &                           +   13.0d0/     9.0d0/sqrt(2.0d0)*massScaleFree**1.5d0 &
+                  &                           +   92.0d0/   135.0d0            *massScaleFree**2     &
+                  &                           +  313.0d0/   540.0d0/sqrt(2.0d0)*massScaleFree**2.5d0 &
+                  &                           + 1928.0d0/  8505.0d0            *massScaleFree**3     &
+                  &                           +56201.0d0/340200.0d0/sqrt(2.0d0)*massScaleFree**3.5d0 &
+                  &                           +  358.0d0/  1701.0d0            *massScaleFree**4
+          else
+             self%enclosingMassRadiusPrevious=-(                                              &
+                  &                             +1.0d0/Lambert_W0(-exp(-1.0d0-massScaleFree)) &
+                  &                             +1.0d0                                        &
+                  &                            )
+          end if
+          self%enclosingMassRadiusPrevious = self%enclosingMassRadiusPrevious * scaleRadius
        end if
     end if
     nfwRadiusEnclosingMass=self%enclosingMassRadiusPrevious

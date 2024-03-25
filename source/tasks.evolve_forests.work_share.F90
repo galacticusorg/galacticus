@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,7 @@ module Task_Evolve_Forests_Work_Shares
     <code>
      if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
      evolveForestsWorkShareWorkerID=self%workerIDOffset_
-     !$  evolveForestsWorkShareWorkerID=evolveForestsWorkShareWorkerID+OMP_Get_Thread_Num()
+     !$ if (utilizeOpenMPThreads) evolveForestsWorkShareWorkerID=evolveForestsWorkShareWorkerID+OMP_Get_Thread_Num()
     </code>
    </method>
    <method name="workerCount" >

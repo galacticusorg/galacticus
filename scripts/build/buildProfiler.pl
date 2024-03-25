@@ -64,12 +64,18 @@ while ( my $line = <$file> ) {
 		$elements[4] =~ s/\.\/work\/build\///;
 		$command = $elements[4]." (compile)";
 	    } elsif ( $elements[0] eq "./scripts/build/sourceDigests.pl" ) {
-		$command = "source digests";
+		$elements[2] =~ s/\.\/work\/build\///;
+		$elements[2] =~ s/'//;
+		$command = $elements[2]." (source digests)";
+	    } elsif ( $elements[0] eq "./scripts/build/parameterDependencies.pl" ) {
+		$elements[2] =~ s/\.\/work\/build\///;
+		$elements[2] =~ s/'//;
+		$command = $elements[2]." (parameter dependencies)";
 	    } elsif ( $elements[0] eq "./scripts/build/buildCode.pl" ) {
 		$elements[2] =~ s/\.\/work\/build\///;
 		$elements[2] =~ s/'//;
 		$command = $elements[2]." (build)";
-	    } elsif ( $elements[1] eq "-MRegexp::Common" ) {
+	    } elsif ( scalar(@elements) > 1 && $elements[1] eq "-MRegexp::Common" ) {
 		$elements[8] =~ s/work\/build\///;
 		$command = $elements[8]." (cpp)";
 	    } elsif ( $elements[0] =~ m/\.\/scripts\/build\/(.*)\.pl/ ) {
@@ -169,31 +175,15 @@ print $profileFile "             color: red;\n";
 print $profileFile "            }\n";
 print $profileFile "  </style>\n";
 print $profileFile " </head>\n";
+
+# Table of build profile.
 print $profileFile "<body>\n";
 print $profileFile "Total compile time = ".$timeMaximum." seconds<p>\n";
-# Table of build profile.
 print $profileFile "Build profile (all tasks which ran for ".$options{'durationMinimum'}." seconds or longer: ".sprintf("%5.2f",100.0*$costTotal/$timeMaximum)."% of total time)<br>\n";
 print $profileFile "<div>\n";
-print $profileFile "<table style=\"border-spacing: 0; border-collapse: separate; border-top: 1px\">\n";
-foreach my $task ( @tasks ) {
-    print $profileFile "<tr>";
-    print $profileFile "<th class=\"headcol".($task->{'isMaximumCost'} ? "bold" : "")."\">".$task->{'description'}."</th>";
-    for(my $i=0;$i<=$timeMaximum;++$i) {
-	if ( $i < $task->{'start'}  ) {
-	    print $profileFile "<td></td>";
-	} elsif ( $i > $task->{'end'} ) {
-	   # Do nothing here - missing columns at the end of the table row are ignored.
-	} else {
-	    my $fraction = $threadCount[$i]/$threadCountMaximum;
-	    my $color    = &GnuPlot::PrettyPlots::gradientColor($fraction,$GnuPlot::PrettyPlots::colorGradients{'redGreen'});
-	    print $profileFile "<td style=\"background: ".$color."\"></td>";
-	}
-    }
-    print $profileFile "</tr>\n";
-}
+print $profileFile "<table id=\"chart\" style=\"border-spacing: 0; border-collapse: separate; border-top: 1px\">\n";
 print $profileFile "</table>\n";
 print $profileFile "</div><p>\n";
-
 
 # Table of task costs.
 my @tasksOrdered = sort {$b->{'cost'} <=> $a->{'cost'}} @tasks;
@@ -203,8 +193,62 @@ foreach my $task ( @tasksOrdered ) {
     print $profileFile "<tr><td>".$task->{'description'}."</td><td>".sprintf("%7.2f",$task->{'cost'})."</td><td>(".sprintf("%5.2f",100.0*$task->{'cost'}/$timeMaximum)."%)</td></tr>\n";
 }
 print $profileFile "</table>\n";
+print $profileFile "  <script type=\"text/javascript\">\n";
+print $profileFile "   function makeChart() {\n";
+print $profileFile "    var chartContent = ''\n";
+foreach my $task ( @tasks ) {
+    print $profileFile "    chartContent += '<tr><th class=\"headcol".($task->{'isMaximumCost'} ? "bold" : "")."\">".$task->{'description'}."</th>'\n";
+    my $cell =
+    {
+	count => 0,
+	type  => undef()
+    };
+    for(my $i=0;$i<=$timeMaximum;++$i) {
+	if ( $i < $task->{'start'}  ) {
+	    &createCell($cell,$profileFile)
+		if ( ! defined($cell->{'type'}) || $cell->{'type'} ne "empty" );
+	    # Accumulate an empty cell.
+	    $cell->{'type'} = "empty";
+	    ++$cell->{'count'};
+	} elsif ( $i > $task->{'end'} ) {
+	    # Do nothing here - missing columns at the end of the table row are ignored.
+	    &createCell($cell,$profileFile)
+		if ( defined($cell->{'type'}) );
+	} else {
+	    my $fraction = $threadCount[$i]/$threadCountMaximum;
+	    my $color    = &GnuPlot::PrettyPlots::gradientColor($fraction,$GnuPlot::PrettyPlots::colorGradients{'redGreen'});
+	    &createCell($cell,$profileFile)
+		if ( ! defined($cell->{'type'}) || $cell->{'type'} ne $color );
+	    # Accumulate a new cell.
+	    $cell->{'type'} = $color;
+	    ++$cell->{'count'};
+	}
+    }
+    &createCell($cell,$profileFile)
+	if ( defined($cell->{'type'}) );
+    print $profileFile "     chartContent += '</tr>'\n";
+}
+print $profileFile "    document.getElementById('chart').innerHTML = chartContent\n";
+print $profileFile "   }\n";
+print $profileFile "   window.onLoad = makeChart()\n";
+print $profileFile "  </script>\n";
 print $profileFile "</body>\n";
 print $profileFile "</html>\n";
 close($profileFile);
 
 exit;
+
+sub createCell {
+    my $cell        = shift();
+    my $profileFile = shift();
+    return
+	if ( $cell->{'count'} == 0 );
+    if ( defined($cell->{'type'}) && $cell->{'type'} eq "empty" ) {
+	print $profileFile "    chartContent += '<td/>'.repeat(".$cell->{'count'}.")\n";
+    }
+    if ( defined($cell->{'type'}) && $cell->{'type'} ne "empty" ) {
+	print $profileFile "    chartContent += '<td style=\"background: ".$cell->{'type'}."\"/>'.repeat(".$cell->{'count'}.")\n";
+    }
+    undef($cell->{'type'});
+    $cell->{'count'} = 0;
+}

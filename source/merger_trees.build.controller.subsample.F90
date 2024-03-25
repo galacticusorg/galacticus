@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,12 +83,12 @@ contains
     <inputParameter>
       <name>subsamplingRateAtThreshold</name>
       <source>parameters</source>
-      <description>The subsampling rate at the mass treshold, $P_0$.</description>
+      <description>The subsampling rate at the mass threshold, $P_0$.</description>
     </inputParameter>
     <inputParameter>
       <name>exponent</name>
       <source>parameters</source>
-      <description>The exponent, $\alpha$, of mass in the subsampling probability, i.e. $P(M) = (M/M_0)^\alpha$ for $M &lt; M_0$.</description>
+      <description>The exponent, $\alpha$, of mass in the subsampling probability, i.e. $P(M) = P_0 (M/M_0)^\alpha$ for $M &lt; M_0$.</description>
     </inputParameter>
     <inputParameter>
       <name>factorMassGrowthConsolidate</name>
@@ -141,15 +141,15 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (mergerTreeBuildControllerSubsample), intent(inout)          :: self    
-    type            (treeNode                          ), intent(inout), pointer :: node
-    class           (mergerTreeWalkerClass             ), intent(inout)          :: treeWalker_
-    type            (treeNode                          )               , pointer :: nodeNext       , nodeChild  , &
-         &                                                                          nodeParent
-    class           (nodeComponentBasic                )               , pointer :: basic          , basicParent
-    double precision                                                             :: rateSubsampling
-    integer         (c_size_t                          )                         :: countNodes
-    logical                                                                      :: finished
+    class           (mergerTreeBuildControllerSubsample), intent(inout)           :: self    
+    type            (treeNode                          ), intent(inout), pointer  :: node
+    class           (mergerTreeWalkerClass             ), intent(inout), optional :: treeWalker_
+    type            (treeNode                          )               , pointer  :: nodeNext       , nodeChild  , &
+         &                                                                           nodeParent
+    class           (nodeComponentBasic                )               , pointer  :: basic          , basicParent
+    double precision                                                              :: rateSubsampling
+    integer         (c_size_t                          )                          :: countNodes
+    logical                                                                       :: finished
 
     ! The node which we return to the tree builder must be one that we have determined will not be pruned, since this node will be
     ! fully-processed by the tree builder. Therefore, if we prune a node we must check for pruning of the next node, and so on
@@ -179,7 +179,12 @@ contains
        else
           ! Prune the node.
           !! Get the next node to walk to in the tree.
-          subsampleControl=treeWalker_%next(nodeNext)
+          if (present(treeWalker_)) then
+             subsampleControl =  treeWalker_%next(nodeNext)
+          else
+             subsampleControl =  .false.
+             nodeNext         => null()
+          end if
           !! Decouple the node from the tree.
           nodeParent => node      %parent
           nodeChild  => nodeParent%firstChild
@@ -240,7 +245,7 @@ contains
 
   function subsampleBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
     !!{
-    Return a pointer the the merger tree branchin probability object to use.
+    Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
     class(mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
@@ -252,15 +257,16 @@ contains
     return
   end function subsampleBranchingProbabilityObject
 
-  subroutine subsampleNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2)
+  subroutine subsampleNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
     !!{
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none
-    class(mergerTreeBuildControllerSubsample), intent(inout)           :: self
-    type (treeNode                          ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
-    type (treeNode                          ), intent(inout), optional :: nodeProgenitor2
-    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2
+    class  (mergerTreeBuildControllerSubsample), intent(inout)           :: self
+    type   (treeNode                          ), intent(inout)           :: nodeCurrent    , nodeProgenitor1
+    type   (treeNode                          ), intent(inout), optional :: nodeProgenitor2
+    logical                                    , intent(in   ), optional :: didBranch
+    !$GLC attributes unused :: self, nodeCurrent, nodeProgenitor1, nodeProgenitor2, didBranch
 
     ! Nothing to do.
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an N-body data operator which determines the environmental overoverdensity around particles.
+Contains a module which implements an N-body data operator which determines the environmental overdensity around particles.
 !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
   <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity">
-   <description>An N-body data operator which determines the environmental overoverdensity around particles.</description>
+   <description>An N-body data operator which determines the environmental overdensity around particles.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorEnvironmentalOverdensity
      !!{
-     An N-body data operator which determines the environmental overoverdensity around particles.
+     An N-body data operator which determines the environmental overdensity around particles.
      !!}
      private
      double precision           :: radiusSphere     , densityParticleMean, &

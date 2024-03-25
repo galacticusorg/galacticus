@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,38 +86,56 @@ contains
     return
   end function velocityOrbitalElementCount
 
-  function velocityOrbitalExtract(self,node,time,instance)
+  function velocityOrbitalExtract(self,node,time,instance) result(velocity)
     !!{
     Implement a velocityOrbital output analysis.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Galacticus_Nodes    , only : nodeComponentSatellite, nodeComponentBasic
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    double precision                                      , dimension(:) , allocatable :: velocityOrbitalExtract
+    double precision                                      , dimension(:) , allocatable :: velocity
     class           (nodePropertyExtractorVelocityOrbital), intent(inout), target      :: self
     type            (treeNode                            ), intent(inout), target      :: node
     double precision                                      , intent(in   )              :: time
     type            (multiCounter                        ), intent(inout), optional    :: instance
     type            (treeNode                            ), pointer                    :: nodeWork
+    class           (nodeComponentBasic                  ), pointer                    :: basic
     class           (nodeComponentSatellite              ), pointer                    :: satellite
     !$GLC attributes unused :: self, instance, time
 
-    allocate(velocityOrbitalExtract(3))
-    velocityOrbitalExtract =  0.0d0
-    nodeWork               => node
+    allocate(velocity(3))
+    velocity =  0.0d0
+    nodeWork => node
     ! Walk up through all host halos of this node, accumulating velocity offsets from the host node center.
     do while (associated(nodeWork))
-       satellite               =>  nodeWork %satellite             ()
-       velocityOrbitalExtract  =  +          velocityOrbitalExtract   &
-            &                     +satellite%velocity              ()
+       basic     =>  nodeWork %basic    ()
+       satellite =>  nodeWork %satellite()
+       velocity  =  +          velocity   &
+            &       +satellite%velocity ()
        if (nodeWork%isSatellite()) then
+          ! Current node is a satellite, simply move to its parent.
           nodeWork => nodeWork%parent
        else
-          nodeWork => null()
+          ! Node is a host halo.          
+          if (nodeWork%isOnMainBranch()) then
+             ! We are on the main branch - so we are done.
+             nodeWork => null()
+          else
+             ! We are not on the main branch - find the host halo at this time time on the branch with which we will merge.
+             do while (nodeWork%isPrimaryProgenitor())
+                nodeWork => nodeWork%parent
+             end do
+             nodeWork => nodeWork%parent
+             basic    => nodeWork%basic ()
+             do while (associated(nodeWork%firstChild).and..not.Values_Agree(basic%time(),time,relTol=1.0d-6))
+                nodeWork => nodeWork%firstChild
+                basic    => nodeWork%basic     ()
+             end do
+          end if
        end if
     end do
     return
   end function velocityOrbitalExtract
-
   
   subroutine velocityOrbitalNames(self,time,names)
     !!{

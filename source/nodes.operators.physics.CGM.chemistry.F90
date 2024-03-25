@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -210,6 +210,7 @@ contains
     class           (hotHaloMassDistributionClass          ), intent(in   ), target  :: hotHaloMassDistribution_
     class           (radiationFieldClass                   ), intent(in   ), pointer :: radiationIntergalacticBackground
     type            (radiationFieldList                    )               , pointer :: radiationFieldList_
+    !$GLC attributes initialized :: radiationIntergalacticBackground
     !![
     <constructorAssign variables="fractionTimescaleEquilibrium, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_, *chemicalReactionRate_, *darkMatterHaloScale_, *cosmologyFunctions_, *hotHaloMassDistribution_, *radiationIntergalacticBackground"/>
     !!]
@@ -217,7 +218,7 @@ contains
     ! Determine if chemicals are being solved for.
     self%chemicalsPresent=Chemicals_Property_Count() > 0
     if (.not.self%chemicalsPresent) return
-    ! Get indices of chemicals needed for equilbrium hydrogen anion calculation.
+    ! Get indices of chemicals needed for equilibrium hydrogen anion calculation.
     self%atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
     self%atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
     self%electronIndex            =Chemicals_Index("Electron"            )
@@ -357,7 +358,7 @@ contains
     use :: Numerical_Constants_Math         , only : Pi
     implicit none
     class           (nodeOperatorCGMChemistry), intent(inout), target    :: self
-    type            (treeNode                ), intent(inout)            :: node
+    type            (treeNode                ), intent(inout), target    :: node
     logical                                   , intent(inout)            :: interrupt
     procedure       (interruptTask           ), intent(inout), pointer   :: functionInterrupt
     integer                                   , intent(in   )            :: propertyType
@@ -406,9 +407,10 @@ contains
     call self%chemicalReactionRate_%rates(lengthColumn,temperature,chemicalDensities,factorClumping,self%radiation_,chemicalDensitiesRates,node)
     ! Convert to mass change rates.
     call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
-    chemicalMassesRates=+chemicalMassesRates     &
-         &              *gigaYear                &
-         &              /massToDensityConversion
+    call chemicalMassesRates   %scale       (                         &
+         &                                   +gigaYear                &
+         &                                   /massToDensityConversion &
+         &                                  )
     ! Zero rates of analytically-solved properties.
     if (self%assumeEquilibrium) then
        call chemicalMassesRates%abundanceSet(self%atomicHydrogenIndex      ,0.0d0)
@@ -459,13 +461,16 @@ contains
     ! Truncate masses to zero to avoid unphysical behavior.
     call chemicalMasses%enforcePositive()
     massChemicals=chemicalMasses%sumOver()
-    if     (                                          &
-         &   massChemicals > 0.0d0                    &
-         &  .and.                                     &
-         &   massChemicals > hotHalo%mass()           &
-         & ) chemicalMasses=+        chemicalMasses   &
-         &                  *hotHalo%mass          () &
-         &                  /        massChemicals
+    if     (                                                                        &
+         &             massChemicals >         0.0d0                                &
+         &  .and.                                                                   &
+         &             massChemicals >         hotHalo%mass()                       &
+         &  .and.                                                                   &
+         &   -exponent(massChemicals)+exponent(hotHalo%mass()) < maxExponent(0.0d0) &
+         & ) call chemicalMasses%scale(                                             &
+         &                             +hotHalo%mass          ()                    &
+         &                             /        massChemicals                       &
+         &                            )
     ! Scale all chemical masses by their mass in atomic mass units to get a number density.
     call chemicalMasses%massToNumber(chemicalDensities)
     ! Compute factor converting mass of chemicals in (M☉/mᵤ) to number density in cm⁻³.
@@ -477,7 +482,7 @@ contains
     end if
     if (present(massToDensityConversion)) massToDensityConversion=massToDensityConversion_
     ! Convert to number density.
-    chemicalDensities=chemicalDensities*massToDensityConversion_
+    call chemicalDensities%scale(massToDensityConversion_)
     return
   end subroutine cgmChemistryComputeState
 

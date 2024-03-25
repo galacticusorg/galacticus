@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -158,6 +158,7 @@ module Interface_GSL
   <gslConstant variable="GSL_EBadTol"  gslSymbol="GSL_EBADTOL"  gslHeader="gsl_errno" type="integer"/>
   <gslConstant variable="GSL_ETol"     gslSymbol="GSL_ETOL"     gslHeader="gsl_errno" type="integer"/>
   <gslConstant variable="GSL_ERound"   gslSymbol="GSL_EROUND"   gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EMaxIter" gslSymbol="GSL_EMAXITER" gslHeader="gsl_errno" type="integer"/>
   !!]
 
   ! Precision modes.

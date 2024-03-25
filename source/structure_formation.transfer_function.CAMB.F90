@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,10 +50,11 @@ Contains a module which implements a transfer function class using the CAMB code
        <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
      </methods>
      !!]
-     final     ::                          cambDestructor
-     procedure :: checkRange            => cambCheckRange
-     procedure :: value                 => cambValue
-     procedure :: logarithmicDerivative => cambLogarithmicDerivative
+     final     ::                           cambDestructor
+     procedure :: checkRange             => cambCheckRange
+     procedure :: value                  => cambValue
+     procedure :: logarithmicDerivative  => cambLogarithmicDerivative
+     procedure :: wavenumbersLocalMinima => cambWavenumbersLocalMinima
   end type transferFunctionCAMB
 
   interface transferFunctionCAMB
@@ -233,3 +234,16 @@ contains
     cambLogarithmicDerivative=self%transferFunctionFile%logarithmicDerivative(wavenumber)
     return
   end function cambLogarithmicDerivative
+
+  subroutine cambWavenumbersLocalMinima(self,wavenumbers)
+    !!{
+    Return a list of wavenumbers corresponding to local minima in the transfer function.
+    !!}
+    implicit none
+    class           (transferFunctionCAMB), intent(inout)                            :: self
+    double precision                      , intent(  out), allocatable, dimension(:) :: wavenumbers
+
+    call self%checkRange(wavenumber=1.0d0)
+    wavenumbers=self%wavenumbersLocalMinima_
+    return
+  end subroutine cambWavenumbersLocalMinima

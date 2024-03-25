@@ -117,19 +117,20 @@
 
   <!-- Statistics -->
   <mergerTreeOperator value="conditionalMF">
-    <outputGroupName value="conditionalMassFunction"/>
-    <parentMassCount value="4"/>
-    <parentMassMinimum value="1.0e11"/>
-    <parentMassMaximum value="1.0e15"/>
+    <nameGroupOutput value="conditionalMassFunction"/>
+    <countMassParent value="4"/>
+    <massParentMinimum value="1.0e11"/>
+    <massParentMaximum value="1.0e15"/>
     <massRatioCount value="30"/>
     <massRatioMinimum value="1.0e-3"/>
     <massRatioMaximum value="2.0e+0"/>
-    <parentRedshifts value="0.0 0.0"/>
-    <progenitorRedshifts value="0.5 1.0"/>
-    <primaryProgenitorDepth value="1"/>
-    <subhaloHierarchyDepth value="1"/>
+    <redshiftsParent value="0.0 0.0"/>
+    <redshiftsProgenitor value="0.5 1.0"/>
+    <depthProgenitorPrimary value="1"/>
+    <depthHierarchySubhalo value="1"/>
     <alwaysIsolatedHalosOnly value="false"/>
     <computeCovariances value="false"/>
+    <extendedStatistics value="false"/>
   </mergerTreeOperator>
 
   <!-- Halo scale radii and concentrations -->

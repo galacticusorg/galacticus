@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,7 @@ module Abundances_Structure
      module procedure Abundances_Multiply_Switched
   end interface operator(*)
 
-  ! Interface to "gerater than" operators.
+  ! Interface to "greater than" operators.
   interface operator(>)
      module procedure Abundances_Greater_Than
   end interface operator(>)
@@ -255,9 +255,9 @@ contains
     !!{
     Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
     !!}
-    use :: FoX_DOM, only : node
+    use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
     class  (abundances ), intent(inout)              :: self
     type   (node       ), intent(in   ), pointer     :: abundancesDefinition
@@ -340,7 +340,12 @@ contains
     integer                , intent(in   ) :: fileHandle
 
     read (fileHandle) self%metallicityValue
-    if (elementsCount > 0) read (fileHandle) self%elementalValue
+    ! If no individual elements are tracked, our work is done.
+    if (elementsCount == 0) return
+    ! Ensure elemental values array exists.
+    call Abundances_Allocate_Elemental_Values(self)
+    ! Read values from file.
+    read (fileHandle) self%elementalValue    
     return
   end subroutine Abundances_Read_Raw
 

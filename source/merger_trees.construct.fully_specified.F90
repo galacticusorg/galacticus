@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -126,6 +126,7 @@
    <deepCopy>
      <increment variables="document%copyCount" atomic="yes"/>
    </deepCopy>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
@@ -145,7 +146,7 @@
 
   type :: documentContainer
      !!{
-     A container for XML docoment.
+     A container for XML document.
      !!}
      private
      type   (node), pointer :: doc       => null()
@@ -208,13 +209,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
-#ifdef THREADSAFEIO
-       !$omp critical(gfortranInternalIO)
-#endif
     self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
-#ifdef THREADSAFEIO
-       !$omp end critical(gfortranInternalIO)
-#endif
     if (ioErr /= 0) call Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
     self%document%copyCount = 1
     ! Get the list of trees.
@@ -299,6 +294,7 @@ contains
        !$omp end critical (FoX_DOM_Access)
        ! Initialize the tree root to null.
        tree%index            =  int(treeNumber)
+       tree%volumeWeight     =  1.0d0
        tree%initializedUntil =  0.0d0
        tree%firstTree        => tree
        tree%nodeBase         => null()
@@ -362,9 +358,9 @@ contains
       !!{
       Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       !!}
-      use :: FoX_Dom     , only : node
+      use :: FoX_Dom     , only : node                        , extractDataContent
       use :: Kind_Numbers, only : kind_int8
-      use :: IO_XML      , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
+      use :: IO_XML      , only : XML_Get_Elements_By_Tag_Name
       use :: Error       , only : Error_Report
       implicit none
       integer  (kind=kind_int8)                             :: indexNode

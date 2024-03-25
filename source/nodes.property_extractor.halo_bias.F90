@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@ Contains a module which implements an ISM mass output analysis property extracto
   !![
   <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
    <description>
-    A node property extractor which extracts the large scale, lineary theory bias for each node. For satellite nodes, this
+    A node property extractor which extracts the large scale, linearly theory bias for each node. For satellite nodes, this
     corresponds to the bias of their host halo.
    </description>
   </nodePropertyExtractor>
@@ -108,7 +108,7 @@ contains
     Implement a {\normalfont \ttfamily haloBias} node property extractor.
     !!}
     implicit none
-    class           (nodePropertyExtractorHaloBias), intent(inout)           :: self
+    class           (nodePropertyExtractorHaloBias), intent(inout), target   :: self
     type            (treeNode                     ), intent(inout), target   :: node
     type            (multiCounter                 ), intent(inout), optional :: instance
     type            (treeNode                     )               , pointer  :: nodeIsolated

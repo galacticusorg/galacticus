@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,8 +156,8 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     use :: Vectors         , only : Vector_Magnitude
     implicit none
-    class(*                     ), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
+    class(*                     ), intent(inout)         :: self
+    type (treeNode              ), intent(inout), target :: node
     class(nodeComponentSatellite), pointer       :: satellite
 
     select type (self)

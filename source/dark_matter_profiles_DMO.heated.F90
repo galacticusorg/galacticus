@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,6 +83,8 @@
      procedure :: radiusCircularVelocityMaximum     => heatedRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => heatedCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => heatedRadialVelocityDispersion
+     procedure :: jeansEquationIntegrand            => heatedJeansEquationIntegrand
+     procedure :: jeansEquationRadius               => heatedJeansEquationRadius
      procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => heatedRotationNormalization
      procedure :: energy                            => heatedEnergy
@@ -222,17 +224,20 @@ contains
     return
   end subroutine heatedDestructor
 
-  subroutine heatedCalculationReset(self,node)
+  subroutine heatedCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOHeated), intent(inout) :: self
-    type (treeNode                  ), intent(inout) :: node
+    class  (darkMatterProfileDMOHeated), intent(inout) :: self
+    type   (treeNode                  ), intent(inout) :: node
+    integer(kind_int8                 ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     ! Reset calculations for this profile.
-    self%lastUniqueID                                =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%lastUniqueID                                =uniqueID
+    self%genericLastUniqueID                         =uniqueID
     self%radiusFinalPrevious                         =-huge(0.0d0)
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
@@ -367,7 +372,7 @@ contains
             &                     +1.0d0/radiusInitial                                       &
             &                     -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
             &                    )
-       ! If the radius found is negative, which means the intial shell has expanded to infinity, return the largest radius.
+       ! If the radius found is negative, which means the initial shell has expanded to infinity, return the largest radius.
        if (heatedRadiusEnclosingMass < 0.0d0) heatedRadiusEnclosingMass=radiusLarge
     end if
     return
@@ -425,7 +430,7 @@ contains
        return
     end if
     ! Reset calculations if necessary.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Find the initial radius in the unheated profile.
     if (radiusFinal /= self%radiusFinalPrevious) then
        self_        => self
@@ -514,7 +519,7 @@ contains
     if (radiusInitial < fractionRadiusSmall*radiusFinal_) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
-       ! no root exists. In this case shell crossing is likely to be occuring. Simply return a value of zero, which places the
+       ! no root exists. In this case shell crossing is likely to be occurring. Simply return a value of zero, which places the
        ! root at the current radius.
        if (.not.self_%noShellCrossingIsValid(node_,radiusInitial,radiusFinal_)) then
           heatedRadiusInitialRoot=0.0d0
@@ -577,7 +582,7 @@ contains
 
   double precision function heatedRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
@@ -624,17 +629,71 @@ contains
        heatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else if (self%velocityDispersionApproximate) then
        ! Use the approximate solution for velocity dispersion.
-       radiusInitial                 = self%radiusInitial                                               (node,radius                                  )
-       energySpecific                = self%darkMatterProfileHeating_%specificEnergy                    (node,radiusInitial,self%darkMatterProfileDMO_)
-       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion          (node,radiusInitial                           )**2 &
+       radiusInitial                 = self%radiusInitial                                              (node,radius                                  )
+       energySpecific                = self%darkMatterProfileHeating_%specificEnergy                   (node,radiusInitial,self%darkMatterProfileDMO_)
+       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion         (node,radiusInitial                           )**2 &
             &                         -2.0d0/3.0d0*energySpecific
        heatedRadialVelocityDispersion=sqrt(max(0.0d0,velocityDispersionSquare))
     else
        ! Use a numerical solution.
-       heatedRadialVelocityDispersion=+self                           %radialVelocityDispersionNumerical(node,radius                                  )
+       heatedRadialVelocityDispersion=+self                          %radialVelocityDispersionNumerical(node,radius                                  )
     end if
     return
   end function heatedRadialVelocityDispersion
+
+  double precision function heatedJeansEquationIntegrand(self,node,radius)
+    !!{
+    Integrand for generic dark matter profile Jeans equation. Here we do the integration with respect to the
+    initial radius $r_i$.
+    \begin{eqnarray}
+     \sigma_r(r) &=& \frac{1}{\rho(r)}\int_r^{r^{\mathrm{max}}} \rho(r) \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
+                 &=& \frac{1}{\rho(r)}\int_{r_i}^{r_{i}^{\mathrm{max}}} \rho_i(r_i) \frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^4 \mathrm{d} r_i.
+    \end{eqnarray}
+    Here $r$ can be written as a function of $r_i$
+    \begin{equation}
+     r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))}.
+    \end{equation}
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+    double precision                                            :: radiusFinal , energySpecific, &
+         &                                                         enclosedMass
+
+    enclosedMass  =self%darkMatterProfileDMO_    %enclosedMass  (node,radius                           )
+    energySpecific=self%darkMatterProfileHeating_%specificEnergy(node,radius,self%darkMatterProfileDMO_)
+    radiusFinal   =+1.0d0                                                               &
+         &         /(                                                                   &
+         &           +1.0d0/radius                                                      &
+         &           -2.0d0*energySpecific/gravitationalConstantGalacticus/enclosedMass &
+         &          )
+    if (radiusFinal > 0.0d0) then
+       heatedJeansEquationIntegrand=+gravitationalConstantGalacticus                 &
+            &                       *enclosedMass                                    &
+            &                       *self%darkMatterProfileDMO_%density(node,radius) &
+            &                       / radius             **2                         &
+            &                       *(radius/radiusFinal)**4
+    else
+       heatedJeansEquationIntegrand=0.0d0
+    end if
+    return
+  end function heatedJeansEquationIntegrand
+
+  double precision function heatedJeansEquationRadius(self,node,radius)
+    !!{
+    Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.
+    Here we do the integration with respect to the initial radius, so return the initial radius.
+    !!}
+    implicit none
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+
+    heatedJeansEquationRadius=self%radiusInitial(node,radius)
+    return
+  end function heatedJeansEquationRadius
 
   double precision function heatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !!{

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -164,7 +164,7 @@ contains
        end do
        importer_ => importer_%next
     end do
-    ! Remove pointers to simulation dtaa in combined importers.
+    ! Remove pointers to simulation data in combined importers.
     importer_ => self%importers
     do while (associated(importer_))
        do i=1,size(importer_%simulations)

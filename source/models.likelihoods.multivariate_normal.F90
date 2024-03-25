@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,7 +128,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState
-    type            (modelParameterList                         ), intent(in   ), dimension(:) :: modelParametersActive_, modelParametersInactive_
+    type            (modelParameterList                         ), intent(inout), dimension(:) :: modelParametersActive_, modelParametersInactive_
     class           (posteriorSampleConvergenceClass            ), intent(inout)               :: simulationConvergence
     double precision                                             , intent(in   )               :: temperature           , logLikelihoodCurrent    , &
          &                                                                                        logPriorCurrent       , logPriorProposed
@@ -165,7 +165,7 @@ contains
     return
   end subroutine multivariateNormalFunctionChanged
 
-  subroutine multivariateNormalDescriptor(self,descriptor,includeClass)
+  subroutine multivariateNormalDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -174,7 +174,7 @@ contains
     implicit none
     class           (posteriorSampleLikelihoodMultivariateNormal), intent(inout)               :: self
     type            (inputParameters                            ), intent(inout)               :: descriptor
-    logical                                                      , intent(in   ), optional     :: includeClass
+    logical                                                      , intent(in   ), optional     :: includeClass  , includeFileModificationTimes
     character       (len=18                                     )                              :: parameterLabel
     type            (inputParameters                            )                              :: parameters
     double precision                                             , allocatable, dimension(:  ) :: means

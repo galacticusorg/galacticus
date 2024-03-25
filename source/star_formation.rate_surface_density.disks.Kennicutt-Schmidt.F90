@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,7 @@
     \end{equation}
     where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily [exponent]} are parameters. Optionally, if
     the {\normalfont \ttfamily [truncate]} parameter is set to true, then the star formation rate is truncated below a critical
-    surface dexponentensity such that
+    surface density such that
     \begin{equation}
     \dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N &amp;
     \hbox{ if } \Sigma_\mathrm{gas,disk} &gt; \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}
@@ -203,16 +203,19 @@ contains
     return
   end subroutine kennicuttSchmidtDestructor
 
-  subroutine kennicuttSchmidtCalculationReset(self,node)
+  subroutine kennicuttSchmidtCalculationReset(self,node,uniqueID)
     !!{
     Reset the Kennicutt-Schmidt relation calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
-    type (treeNode                                            ), intent(inout) :: node
+    class  (starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
+    type   (treeNode                                            ), intent(inout) :: node
+    integer(kind_int8                                           ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%factorsComputed=.false.
-    self%lastUniqueID   =node%uniqueID()
+    self%lastUniqueID   =uniqueID
     return
   end subroutine kennicuttSchmidtCalculationReset
 
@@ -248,7 +251,7 @@ contains
          &                                                                                   surfaceDensityGas
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if factors have been precomputed.
     if (.not.self%factorsComputed) then
        ! Get the disk properties.

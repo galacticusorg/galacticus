@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingImpulsiveOutflow">
    <description>
-    A dark matter profile heating model which accounts for heating due to impulsive outflows---i.e. outflows occuring on
+    A dark matter profile heating model which accounts for heating due to impulsive outflows---i.e. outflows occurring on
     timescales that are small relative to the dynamical time of the halo. The model assumed is that the energy injection is given by
     \begin{equation}
     \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
@@ -293,8 +293,8 @@ contains
     use :: String_Handling   , only : operator(//)
 #endif
     implicit none
-    class(darkMatterProfileHeatingImpulsiveOutflow), intent(inout) :: self
-    class(darkMatterProfileHeatingClass           ), intent(inout) :: destination
+    class(darkMatterProfileHeatingImpulsiveOutflow), intent(inout), target :: self
+    class(darkMatterProfileHeatingClass           ), intent(inout)         :: destination
 
     call self%darkMatterProfileHeatingClass%deepCopy(destination)
     select type (destination)

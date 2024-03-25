@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@ Contains a module which implements a critical overdensity excursion set barrier 
   !![
   <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
    <description>
-    A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collpase.
+    A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collapse.
    </description>
   </excursionSetBarrier>
   !!]

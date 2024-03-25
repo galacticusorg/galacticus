@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,6 +34,7 @@
    <stateStorable>
     <functionClass variables="galacticFilterParentMass_, outputAnalysisWeightOperatorNbodyMass_, nodePropertyExtractorMassParent_"/>
    </stateStorable>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisProgenitorMassFunction
@@ -424,9 +425,9 @@ contains
     !!{
     Internal constructor for the ``progenitorMassFunction'' output analysis class.
     !!}
-    use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendentNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
+    use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendantNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
           &                                                 galacticFilterHaloMass                          , galacticFilterNot
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorDescendentNode             , nodePropertyExtractorRatio
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorDescendantNode             , nodePropertyExtractorRatio
     use :: Numerical_Comparison                    , only : Values_Agree
     use :: Numerical_Ranges                        , only : Make_Range                                      , rangeTypeLogarithmic
     use :: Cosmology_Functions                     , only : cosmologyFunctionsMatterLambda
@@ -468,7 +469,7 @@ contains
     double precision                                                  , allocatable            , dimension(:,:) :: outputWeight
     type            (galacticFilterAll                               ), pointer                                 :: galacticFilter_
     type            (galacticFilterHaloIsolated                      ), pointer                                 :: galacticFilterHaloIsolated_
-    type            (galacticFilterDescendentNode                    ), pointer                                 :: galacticFilterParentNode_
+    type            (galacticFilterDescendantNode                    ), pointer                                 :: galacticFilterParentNode_
     type            (galacticFilterNot                               ), pointer                                 :: galacticFilterNot_
     type            (galacticFilterHaloMass                          ), pointer                                 :: galacticFilterProgenitorMass_                          , galacticFilterParentMassMinimum_        , &
          &                                                                                                         galacticFilterParentMassMaximum_
@@ -476,7 +477,7 @@ contains
     type            (filterList                                      ), pointer                                 :: filters_                                               , filtersParent_
     type            (nodePropertyExtractorMassHalo                   ), pointer                                 :: nodePropertyExtractorMassProgenitor_
     type            (nodePropertyExtractorRatio                      ), pointer                                 :: nodePropertyExtractorMassRatio_
-    type            (nodePropertyExtractorDescendentNode             ), pointer                                 :: nodePropertyExtractorParentNode_
+    type            (nodePropertyExtractorDescendantNode             ), pointer                                 :: nodePropertyExtractorParentNode_
     type            (outputAnalysisDistributionNormalizerSequence    ), pointer                                 :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionNormalizerBinWidth    ), pointer                                 :: outputAnalysisDistributionNormalizerBinWidth_
     type            (outputAnalysisDistributionNormalizerLog10ToLog  ), pointer                                 :: outputAnalysisDistributionNormalizerLog10ToLog_
@@ -551,7 +552,7 @@ contains
     <referenceConstruct                             object="galacticFilterParentMassMaximum_" constructor="galacticFilterHaloMass      (massParentMaximum                                 ,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     <referenceConstruct                             object="galacticFilterNot_"               constructor="galacticFilterNot           (galacticFilterParentMassMaximum_                                                                               )"/>
     <referenceConstruct isResult="yes" owner="self" object="galacticFilterParentMass_"        constructor="galacticFilterAll           (filtersParent_                                                                                                 )"/>
-    <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendentNode(timeParent                                        ,allowSelf,cosmologyFunctions_,self%galacticFilterParentMass_)"/>
+    <referenceConstruct                             object="galacticFilterParentNode_"        constructor="galacticFilterDescendantNode(timeParent                                        ,allowSelf,cosmologyFunctions_,self%galacticFilterParentMass_)"/>
     <referenceConstruct                             object="galacticFilter_"                  constructor="galacticFilterAll           (filters_                                                                                                       )"/>
     !!]
     ! Build a node property extractor which gives the ratio of the progenitor and parent halo masses.
@@ -560,10 +561,10 @@ contains
     allocate(     nodePropertyExtractorMassRatio_     )
     allocate(     nodePropertyExtractorParentNode_    )
     !![
-    <referenceConstruct                             object="nodePropertyExtractorMassProgenitor_" constructor="nodePropertyExtractorMassHalo      (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_         )"/>
-    <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractorMassParent_"     constructor="nodePropertyExtractorMassHalo      (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_         )"/>
-    <referenceConstruct                             object="nodePropertyExtractorParentNode_"     constructor="nodePropertyExtractorDescendentNode(                                                    timeParent,cosmologyFunctions_   ,self%nodePropertyExtractorMassParent_    )"/>
-    <referenceConstruct                             object="nodePropertyExtractorMassRatio_"      constructor="nodePropertyExtractorRatio         ('massRatio','Ratio of progenitor and parent masses.',nodePropertyExtractorMassProgenitor_,     nodePropertyExtractorParentNode_)"/>
+    <referenceConstruct                             object="nodePropertyExtractorMassProgenitor_" constructor="nodePropertyExtractorMassHalo      (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_         )"/>
+    <referenceConstruct isResult="yes" owner="self" object="nodePropertyExtractorMassParent_"     constructor="nodePropertyExtractorMassHalo      (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_         )"/>
+    <referenceConstruct                             object="nodePropertyExtractorParentNode_"     constructor="nodePropertyExtractorDescendantNode(                                                            timeParent,cosmologyFunctions_   ,self%nodePropertyExtractorMassParent_    )"/>
+    <referenceConstruct                             object="nodePropertyExtractorMassRatio_"      constructor="nodePropertyExtractorRatio         ('massRatio','Ratio of progenitor and parent masses.',nodePropertyExtractorMassProgenitor_,     nodePropertyExtractorParentNode_        )"/>
     !!]
     ! Create a distribution normalizer which normalizes to bin width.
     allocate(outputAnalysisDistributionNormalizerBinWidth_       )
@@ -853,7 +854,7 @@ contains
     integer                                                                               :: status
     double precision                                                                      :: covarianceTermTarget            , covarianceTerm
     
-    ! Check for existance of a target distribution.
+    ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()

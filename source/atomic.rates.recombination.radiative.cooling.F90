@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class implenting cooling rats due to atomic recombination.
+Contains a module which provides a class implementing cooling rats due to atomic recombination.
 !!}
 
 module Atomic_Rates_Recombination_Radiative_Cooling
   !!{
-  Provides a class implenting recombination cooling rates.
+  Provides a class implementing recombination cooling rates.
   !!}
   use :: Atomic_Rates_Recombination_Radiative, only : enumerationRecombinationCaseType
   private

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,7 +88,7 @@ contains
   double precision function fixedTimescale(self,component)
     !!{
     Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component}, assuming a fixed
-    timecale.
+    timescale.
     !!}
     implicit none
     class(starFormationTimescaleFixed), intent(inout) :: self

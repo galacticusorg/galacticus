@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -200,16 +200,19 @@ contains
     return
   end subroutine finiteResolutionDestructor
 
-  subroutine finiteResolutionCalculationReset(self,node)
+  subroutine finiteResolutionCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
-    type (treeNode                            ), intent(inout) :: node
+    class  (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
+    type   (treeNode                            ), intent(inout) :: node
+    integer(kind_int8                           ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%lastUniqueID                                =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID()
+    self%lastUniqueID                                =uniqueID
+    self%genericLastUniqueID                         =uniqueID
     self%lengthResolutionPrevious                    =-huge(0.0d0)
     self%enclosedMassPrevious                        =-huge(0.0d0)
     self%enclosedMassRadiusPrevious                  =-huge(0.0d0)
@@ -339,7 +342,7 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
 
-    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%enclosedMassRadiusPrevious) then
        self%enclosedMassRadiusPrevious=radius
        if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius > radiusLengthResolutionRatioMaximum*self%lengthResolutionPhysical(node)) then
@@ -396,7 +399,7 @@ contains
 
   double precision function finiteResolutionRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
@@ -557,7 +560,7 @@ contains
     type (treeNode                            ), intent(inout) :: node
     class(nodeComponentBasic                  ), pointer       :: basic
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     if (self%lengthResolutionPrevious < 0.0d0) then
        self%lengthResolutionPrevious=self%lengthResolution
        if (self%resolutionIsComoving) then

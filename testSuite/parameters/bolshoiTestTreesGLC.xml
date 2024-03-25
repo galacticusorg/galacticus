@@ -14,7 +14,6 @@
     <heatsHotHalo value="true"/>
     <efficiencyWind value="0.001"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
-    <outputAccretion value="true"/>
     <outputMergers value="true"/>
     <bondiHoyleAccretionEnhancementHotHalo value="1.0"/>
     <bondiHoyleAccretionEnhancementSpheroid value="1.0"/>
@@ -292,7 +291,13 @@
     <nodePropertyExtractor value="nodeIndices"/>
     <nodePropertyExtractor value="presetNamedReals">
       <presetNames value="velocityMaximum velocityDispersion"/>
-    </nodePropertyExtractor> 
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="massBlackHoles"/>
+    <nodePropertyExtractor value="spinBlackHoles"/>
+    <nodePropertyExtractor value="radiativeEfficiencyBlackHoles"/>
+    <nodePropertyExtractor value="radiusBlackHoles"/>
+    <nodePropertyExtractor value="massAccretionRateBlackHoles"/>
+    <nodePropertyExtractor value="jetPowerBlackHoles"/>
   </nodePropertyExtractor>
 
   <luminosityFilter value="SDSS_g SDSS_u SDSS_r bJ UKIRT_K RGO_I 2MASS_Ks SDSS_z SDSS_i"/>

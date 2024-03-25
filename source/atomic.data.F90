@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -192,11 +192,11 @@ contains
     !!{
     Ensure that the module is initialized by reading in data.
     !!}
-    use :: FoX_dom           , only : destroy              , getElementsByTagname             , node
+    use :: FoX_dom           , only : destroy              , getElementsByTagname             , node                        , extractDataContent
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath            , pathTypeDataStatic
-    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS, &
-         &                            xmlNodeList          , XML_Parse
+    use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, XML_Parse         , &
+         &                            xmlNodeList
     use :: ISO_Varying_String, only : char
     use :: String_Handling   , only : String_Lower_Case    , char
     implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorMassHostMaximum">
     <description>
       A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassHostMaximum} class to extract those ages for output.
+      \refClass{nodePropertyExtractorMassHostMaximum} class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]
@@ -143,8 +143,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(*       ), intent(inout) :: self
-    type (treeNode), intent(inout) :: node
+    class(*       ), intent(inout)         :: self
+    type (treeNode), intent(inout), target :: node
     
     select type (self)
     class is (nodeOperatorMassHostMaximum)
@@ -160,7 +160,7 @@ contains
     Initialize the maximum host mass of this node.
     !!}
     implicit none
-    class(nodeOperatorMassHostMaximum), intent(inout)         :: self
+    class(nodeOperatorMassHostMaximum), intent(inout), target :: self
     type (treeNode                   ), intent(inout), target :: node
     
     call self%update(node,isMerging=.false.)

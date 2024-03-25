@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -153,7 +153,7 @@ contains
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
     implicit none
-    class           (mergerTreeBuilderSmoothAccretion), intent(inout)         :: self
+    class           (mergerTreeBuilderSmoothAccretion), intent(inout), target :: self
     type            (mergerTree                      ), intent(inout), target :: tree
     type            (treeNode                        ), pointer               :: nodeCurrent   , nodeNew
     class           (nodeComponentBasic              ), pointer               :: basic
@@ -167,7 +167,7 @@ contains
     nodeCurrent    => tree                                 %nodeBase
     basic          => nodeCurrent                          %basic     (    )
     indexNode      =  nodeCurrent                          %index     (    )
-    ! Begin building. Steo backward in time, creating nodes until a sufficiently low mass has been reached.
+    ! Begin building. Step backward in time, creating nodes until a sufficiently low mass has been reached.
     nodeCurrent    => tree                                 %nodeBase
     massNode       =  basic                                %mass      (    )
     timeNode       =  basic                                %time      (    )

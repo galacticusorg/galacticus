@@ -115,9 +115,9 @@ CODE
 		    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
   subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding,label,dependencies)
-    !!{
+    !!\{
     Attach an object to an event hook.
-    !!}
+    !!\}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
     use    :: Error             , only : Error_Report
     use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
@@ -133,11 +133,21 @@ CODE
     type      (hookList                          )               , allocatable, dimension(:) :: hooksTmp
     type      (hook{$interfaceType}              )                            , pointer      :: hook_
     type      (varying_string                    )                                           :: threadLabel
+    integer                                                                                  :: ompLevelEffective
     !$ integer                                                                               :: i
     !![
     <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
     !!]
 
+    ! Validate the thread binding model.
+    if (self%isGlobal) then
+       if (openMPThreadBinding_ /= openMPThreadBindingNone) call Error_Report("global event hooks permit only 'openMPThreadBindingNone'"         //{$location})
+    else
+       if (openMPThreadBinding_ == openMPThreadBindingNone) call Error_Report("threadprivate event hooks do not permit 'openMPThreadBindingNone'"//{$location})
+    end if
+    ! Check if atLevel attachment should be promoted.
+    if (atLevelToAllLevels_ .and. openMPThreadBinding_ == openMPThreadBindingAtLevel) &
+         openMPThreadBinding_=openMPThreadBindingAllLevels
     !$ if (self%isGlobal) call self%lock()
     ! Resize the array of hooks.
     if (allocated(self%hooks_)) then
@@ -163,10 +173,16 @@ CODE
     hook_      %eventID=eventID
     threadLabel        =""
     !$ threadLabel=" from thread "
-    !$ hook_%openMPLevel=OMP_Get_Level()
+    !$ ompLevelEffective=OMP_Get_Level()
+    !$ if (futureThread_ /= -1) ompLevelEffective=ompLevelEffective+1
+    !$ hook_%openMPLevel=ompLevelEffective
     !$ allocate(hook_%openMPThread(0:hook_%openMPLevel))
     !$ do i=0,hook_%openMPLevel
-    !$    hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+    !$    if (i == hook_%openMPLevel .and. futureThread_ /= -1) then
+    !$      hook_%openMPThread(i)=futureThread_
+    !$    else
+    !$      hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+    !$    end if
     !$    if (i > 0) threadLabel=threadLabel//" -> "
     !$    threadLabel=threadLabel//hook_%openMPThread(i)
     !$ end do
@@ -176,7 +192,7 @@ CODE
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
-    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+    call displayMessage(var_str("attaching '")//trim(hook_%label)//"' ["//hook_%eventID//"] to event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
     !$ if (self%isGlobal) call self%unlock()
     return
   end subroutine eventHook{$interfaceType}Attach
@@ -186,9 +202,9 @@ CODE
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@attacherNodes);
 		    my $detacher = fill_in_string(<<'CODE', PACKAGE => 'code');
   subroutine eventHook{$interfaceType}Detach(self,object_,function_)
-    !!{
+    !!\{
     Attach an object to an event hook.
-    !!}
+    !!\}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
     use    :: Error             , only : Error_Report
     use    :: ISO_Varying_String, only : varying_string             , var_str           , assignment(=), operator(//)
@@ -215,7 +231,7 @@ CODE
                 !$    if (j > 0) threadLabel=threadLabel//" -> "
                 !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(j)
                 !$ end do
-                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
+                call displayMessage(var_str("detaching '")//trim(self%hooks_(i)%hook_%label)//"' ["//self%hooks_(i)%hook_%eventID//"] from event"//trim(self%label)//threadLabel//" [count="//self%count_//"]",verbosityLevelInfo)
                 deallocate(self%hooks_(i)%hook_)
                 if (self%count_ > 1) then
                    call move_alloc(self%hooks_,hooksTmp)
@@ -243,9 +259,9 @@ CODE
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@detacherNodes);
 		    my $isAttacher = fill_in_string(<<'CODE', PACKAGE => 'code');
   logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
-    !!{
+    !!\{
     Return true if an object is attached to an event hook.
-    !!}
+    !!\}
     use :: Error, only : Error_Report
     implicit none
     class    (eventHook{$interfaceType}), intent(inout)          :: self
@@ -456,6 +472,8 @@ CODE
 	    foreach my $hook ( @hooks ) {
 		$initializor .= "   ".$hook->{'name'}."EventGlobal%isGlobal=.true.\n";
 		$initializor .= "   ".$hook->{'name'}."EventGlobal%lock_   =ompReadWriteLock()\n";
+		$initializor .= "   ".$hook->{'name'}."Event      %label   ='".$hook->{'name'}."'\n";
+		$initializor .= "   ".$hook->{'name'}."EventGlobal%label   ='".$hook->{'name'}." (global)'\n";
 	    }
 	    $initializor .= fill_in_string(<<'CODE', PACKAGE => 'code');
    return

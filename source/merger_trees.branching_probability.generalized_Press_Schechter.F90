@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,10 +71,10 @@ Implements a merger tree branching probability class using a generalized Press-S
      type            (rootFinder                                 )          :: finder
      type            (integrator                                 )          :: integrator_                                         , integratorSubresolution_
      ! Parent halo shared variables.
-     double precision                                                       :: parentDTimeDDeltaCritical                           , parentDelta             , &
-          &                                                                    parentHaloMass                                      , parentSigma             , &
-          &                                                                    parentSigmaSquared                                  , parentTime              , &
-          &                                                                    probabilityMinimumMass                              , probabilitySeek         , &
+     double precision                                                       :: parentDTimeDDeltaCritical                           , parentDelta                  , &
+          &                                                                    parentHaloMass                                      , parentSigma                  , &
+          &                                                                    parentSigmaSquared                                  , parentTime                   , &
+          &                                                                    probabilityMinimumMass                              , probabilitySeek              , &
           &                                                                    normalization
 
      ! Record of mass resolution.
@@ -92,7 +92,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      ! Record of issued warnings.
      logical                                                                :: subresolutionFractionIntegrandFailureWarned
      ! Option controlling whether only lower-half of the distribution function should be used.
-     logical                                                                :: distributionFunctionLowerHalfOnly
+     logical                                                                :: distributionFunctionLowerHalfOnly                   , distributionFunctionNormalize
      ! Minimum mass to which subresolution fractions will be integrated.
      double precision                                                       :: massMinimum
      ! Current epoch.
@@ -109,6 +109,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      procedure :: probabilityBound      => generalizedPressSchechterProbabilityBound
      procedure :: fractionSubresolution => generalizedPressSchechterFractionSubresolution
      procedure :: massBranch            => generalizedPressSchechterMassBranch
+     procedure :: rate                  => generalizedPressSchechterRate
      procedure :: stepMaximum           => generalizedPressSchechterStepMaximum
      procedure :: computeCommonFactors  => generalizedPressSchechterComputeCommonFactors
      procedure :: excursionSetTest      => generalizedPressSchechterExcursionSetTest
@@ -149,7 +150,8 @@ contains
     class           (excursionSetFirstCrossingClass                 ), pointer       :: excursionSetFirstCrossing_
     class           (mergerTreeBranchingProbabilityModifierClass    ), pointer       :: mergerTreeBranchingProbabilityModifier_
     double precision                                                                 :: deltaStepMaximum                       , massMinimum
-    logical                                                                          :: smoothAccretion                        , distributionFunctionLowerHalfOnly
+    logical                                                                          :: smoothAccretion                        , distributionFunctionLowerHalfOnly, &
+         &                                                                              distributionFunctionNormalize
 
     !![
     <inputParameter>
@@ -176,13 +178,24 @@ contains
       <description>If true, only the lower half ($M &lt; M_0/2$) of the branching rate distribution function is used, as per the algorithm of \cite{cole_hierarchical_2000}.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>distributionFunctionNormalize</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+	If using the full range ($M &lt; M_0$) of the branching rate distribution, if this parameter is {\normalfont \ttfamily
+	true} then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary
+	split). If the branching rate applies to only a single branch is it more appropriate to set this parameter to be
+	{\normalfont \ttfamily true} in which case this normalization by a factor 2 is \emph{not} applied.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="criticalOverdensity"                    name="criticalOverdensity_"                    source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"               name="cosmologicalMassVariance_"               source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                     name="cosmologyFunctions_"                     source="parameters"/>
     <objectBuilder class="excursionSetFirstCrossing"              name="excursionSetFirstCrossing_"              source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbabilityModifier" name="mergerTreeBranchingProbabilityModifier_" source="parameters"/>
     !!]
-    self=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_)
+    self=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,distributionFunctionNormalize,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="criticalOverdensity_"                   />
@@ -194,7 +207,7 @@ contains
     return
   end function generalizedPressSchechterConstructorParameters
 
-  function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_) result(self)
+  function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,distributionFunctionNormalize,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
@@ -207,10 +220,11 @@ contains
     class           (excursionSetFirstCrossingClass                 ), intent(in   ), target :: excursionSetFirstCrossing_
     class           (mergerTreeBranchingProbabilityModifierClass    ), intent(in   ), target :: mergerTreeBranchingProbabilityModifier_
     double precision                                                 , intent(in   )         :: deltaStepMaximum                              , massMinimum
-    logical                                                          , intent(in   )         :: smoothAccretion                               , distributionFunctionLowerHalfOnly
+    logical                                                          , intent(in   )         :: smoothAccretion                               , distributionFunctionLowerHalfOnly       , &
+         &                                                                                      distributionFunctionNormalize
     double precision                                                 , parameter             :: toleranceAbsolute                      =0.0d+0, toleranceRelative                =1.0d-9
     !![
-    <constructorAssign variables="deltaStepMaximum, massMinimum, smoothAccretion, distributionFunctionLowerHalfOnly, *criticalOverdensity_, *cosmologicalMassVariance_, *cosmologyFunctions_, *excursionSetFirstCrossing_, *mergerTreeBranchingProbabilityModifier_"/>
+    <constructorAssign variables="deltaStepMaximum, massMinimum, smoothAccretion, distributionFunctionLowerHalfOnly, distributionFunctionNormalize, *criticalOverdensity_, *cosmologicalMassVariance_, *cosmologyFunctions_, *excursionSetFirstCrossing_, *mergerTreeBranchingProbabilityModifier_"/>
     !!]
 
     self%excursionSetsTested                        =.false.
@@ -293,7 +307,8 @@ contains
     double precision                                                 , parameter             :: smallProbabilityFraction=1.0d-3
     type            (varying_string                                 )                        :: message
     character       (len=26                                         )                        :: label
-    double precision                                                                         :: massUpper
+    double precision                                                                         :: massUpper                      , rootFunctionLower  , &
+         &                                                                                      rootFunctionUpper
     !$GLC attributes unused :: randomNumberGenerator_
 
     ! Ensure excursion set calculations have sufficient range in σ.
@@ -305,19 +320,20 @@ contains
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     ! Determine the upper mass limit to use.
     if (self%distributionFunctionLowerHalfOnly) then
-       massUpper         =+0.5d0*haloMass
-       self%normalization=+1.0d0
+       massUpper            =+0.5d0*haloMass
+       self%normalization   =+1.0d0
     else
-       massUpper         =+      haloMass
-       self%normalization=+0.5d0
-    end if    
-    ! Check that the root is bracketed.    
-    if     (                                                           &
-         &     generalizedPressSchechterMassBranchRoot(massResolution) &
-         &    *generalizedPressSchechterMassBranchRoot(massUpper     ) &
-         &  >=                                                         &
-         &    0.0d0                                                    &
-         & ) then
+       massUpper            =+      haloMass
+       if (self%distributionFunctionNormalize) then
+          self%normalization=+0.5d0
+       else
+          self%normalization=+1.0d0
+       end if
+    end if
+    ! Check that the root is bracketed.
+    rootFunctionLower=generalizedPressSchechterMassBranchRoot(massResolution)
+    rootFunctionUpper=generalizedPressSchechterMassBranchRoot(massUpper     )
+    if (rootFunctionLower*rootFunctionUpper >= 0.0d0) then
        ! Warn about this situation.
        if (displayVerbosity() >= verbosityLevelWarn) then
           message="halo branching mass root is not bracketed in generalizedPressSchechterMassBranch()"
@@ -333,7 +349,7 @@ contains
           call displayMessage(message,verbosityLevelWarn)
        end if
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
-       if (generalizedPressSchechterMassBranchRoot(massUpper) >= 0.0d0) then
+       if (rootFunctionUpper >= 0.0d0) then
           ! Check that we are sufficiently close to zero. If we're not, it might indicate a problem.
           if     (                                                                           &
                &   generalizedPressSchechterMassBranchRoot(massUpper)                        &
@@ -349,7 +365,7 @@ contains
        end if
     end if
     ! Find the branch mass.
-    generalizedPressSchechterMassBranch=self%finder%find(rootRange=[massResolution,massUpper])
+    generalizedPressSchechterMassBranch=self%finder%find(rootRange=[massResolution,massUpper],rootRangeValues=[rootFunctionLower,rootFunctionUpper])
     return
   end function generalizedPressSchechterMassBranch
 
@@ -369,6 +385,36 @@ contains
     return
   end function generalizedPressSchechterMassBranchRoot
 
+  double precision function generalizedPressSchechterRate(self,mass,deltaCritical,time,massBranch,node)
+    !!{
+    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
+    {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    !!}
+    implicit none
+    class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
+    double precision                                                 , intent(in   )         :: deltaCritical, mass     , &
+         &                                                                                      massBranch   , time
+    type            (treeNode                                       ), intent(inout), target :: node
+    double precision                                                                         :: massBranch_  , childSigma, &
+         &                                                                                      childAlpha
+    
+    ! Always use the rate from the lower half of the mass range.
+    if (self%distributionFunctionLowerHalfOnly) then
+       if (massBranch > 0.5d0*mass) then
+          massBranch_=+mass-massBranch
+       else
+          massBranch_=     +massBranch
+       end if
+    else
+       massBranch_   =     +massBranch
+    end if
+    call self                          %computeCommonFactors              (node,mass,deltaCritical,time)
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massBranch,self%parentTime,childSigma,childAlpha)
+    self_                         => self
+    generalizedPressSchechterRate =  generalizedPressSchechterProgenitorMassFunction(massBranch,childSigma,childAlpha,node)
+    return
+  end function generalizedPressSchechterRate
+
   double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{
     Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
@@ -386,7 +432,7 @@ contains
 
   double precision function generalizedPressSchechterProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{
-    Return bounds onthe probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
+    Return bounds on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     {\normalfont \ttfamily massResolution}.
     !!}
@@ -422,11 +468,15 @@ contains
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
     massMinimum=massResolution
     if (self%distributionFunctionLowerHalfOnly) then
-       massMaximum  =+0.5d0*self%parentHaloMass
-       normalization=+1.0d0
+       massMaximum     =+0.5d0*self%parentHaloMass
+       normalization   =+1.0d0
     else
-       massMaximum  =+      self%parentHaloMass
-       normalization=+0.5d0
+       massMaximum     =+      self%parentHaloMass
+       if (self%distributionFunctionNormalize) then
+          normalization=+0.5d0
+       else
+          normalization=+1.0d0
+       end if
     end if
     self_                                =>  self
     generalizedPressSchechterProbability =  +normalization                           &
@@ -559,7 +609,7 @@ contains
     \begin{equation}
     {\mathrm{d}^2 f \over \mathrm{d} \ln M_\mathrm{child} \mathrm{d} \delta_\mathrm{c}} = 2 \sigma^2(M_\mathrm{child}) \left.{\mathrm{d} \ln \sigma \over \mathrm{d} \ln M}\right|_{M=M_\mathrm{child}} {\mathrm{d}t\over \mathrm{d}\delta_\mathrm{c}} {\mathrm{d}f_{12}\over \mathrm{d}t},
     \end{equation}
-    where $\mathrm{d} f_{12}/\mathrm{d}t$ is the excursion set barrier crossing probabilty per unit time for the effective barrier
+    where $\mathrm{d} f_{12}/\mathrm{d}t$ is the excursion set barrier crossing probability per unit time for the effective barrier
     $B^\prime(S_\mathrm{child}|S_\mathrm{parent},t)\equiv B(S_\mathrm{child},t-\delta t)-B(S_\mathrm{parent},t)$ in the limit $\delta t
     \rightarrow 0$.
     !!}

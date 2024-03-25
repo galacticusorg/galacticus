@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -95,7 +95,7 @@ contains
     <inputParameter>
       <name>includeBaryonGravity</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in equilibriumally contracted dark matter halos.</description>
+      <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -222,14 +222,14 @@ contains
 
     select type (self)
     type is (galacticStructureSolverEquilibrium)
-       if (propertyType /= propertyTypeInactive .or. self%solveForInactiveProperties) call self%solve(node)
+       call self%solve(node,plausibilityOnly=propertyType == propertyTypeInactive .and. .not.self%solveForInactiveProperties)
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
     return
   end subroutine equilibriumSolvePreDeriativeHook
 
-  subroutine equilibriumSolve(self,node)
+  subroutine equilibriumSolve(self,node,plausibilityOnly)
     !!{
     Solve for the structure of galactic components.
     !!}
@@ -239,20 +239,24 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    class           (galacticStructureSolverEquilibrium), intent(inout)         :: self
-    type            (treeNode                          ), intent(inout), target :: node
-    logical                                             , parameter             :: specificAngularMomentumRequired=.true.
-    integer                                             , parameter             :: iterationMaximum               =  100
-    procedure       (solverGet                         ), pointer               :: radiusGet                             , velocityGet
-    procedure       (solverSet                         ), pointer               :: radiusSet                             , velocitySet
-    logical                                                                     :: componentActive
-    double precision                                                            :: specificAngularMomentum
-
+    class           (galacticStructureSolverEquilibrium), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout), target   :: node
+    logical                                             , intent(in   ), optional :: plausibilityOnly
+    logical                                             , parameter               :: specificAngularMomentumRequired=.true.
+    integer                                             , parameter               :: iterationMaximum               =  100
+    procedure       (solverGet                         ), pointer                 :: radiusGet                             , velocityGet
+    procedure       (solverSet                         ), pointer                 :: radiusSet                             , velocitySet
+    logical                                                                       :: componentActive
+    double precision                                                              :: specificAngularMomentum
+    !![
+    <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
+    !!]
+    
     ! Check that the galaxy is physical plausible. In this equilibrium solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (node%isPhysicallyPlausible) then
+    if (node%isPhysicallyPlausible .and. .not.plausibilityOnly_) then
        ! Initialize the solver state.
        countIterations=0
        fitMeasure    =2.0d0*self%solutionTolerance
@@ -264,7 +268,7 @@ contains
           node_ => node
        end if
        ! Begin iteration to find a converged solution.
-       do while (countIterations <= 2 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < iterationMaximum ) )
+       do while (countIterations <= 1 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < iterationMaximum ) )
           countIterations      =countIterations+1
           countComponentsActive=0
           if (countIterations > 1) fitMeasure=0.0d0
@@ -326,7 +330,7 @@ contains
            &                                                                     radius                            , radiusNew          , &
            &                                                                     specificAngularMomentumMaximum
 
-      ! Count the number of active comonents.
+      ! Count the number of active components.
       countComponentsActive=countComponentsActive+1
       if (countIterations == 1) then
          ! If structure is to be reverted, do so now.
@@ -378,7 +382,7 @@ contains
             radiusStored  (countComponentsActive)=radius
             velocityStored(countComponentsActive)=velocity
          end if
-       else
+      else
          ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
          if (specificAngularMomentum <= 0.0d0) return
          ! Get current radius of the component.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,8 +21,7 @@
   Implementation of an ADAF accretion disk.
   !!}
 
-  !$ use :: OMP_Lib, only : omp_lock_kind
-  use :: Tables , only : table1DLogarithmicLinear
+  use :: Tables, only : table1DLogarithmicLinear
 
   !![
   <enumeration>
@@ -72,7 +71,7 @@
   <enumeration>
    <name>adafTable</name>
    <description>Enumeration of ADAF look-up tables.</description>
-   <visbility>private</visbility>
+   <visibility>private</visibility>
    <indexing>1</indexing>
    <entry label="powerJet"  />
    <entry label="rateSpinUp"/>
@@ -123,7 +122,6 @@
           &                                                          pressureThermalFractional              , efficiencyJetMaximum                 , &
           &                                                          viscosityAlpha
      type            (table1DLogarithmicLinear                  ) :: tabulations
-     !$ integer      (omp_lock_kind                             ) :: tabulationsLock
      type            (accretionDisksShakuraSunyaev              ) :: thinDisk
      ! Stored solutions.
      !! Height.
@@ -190,7 +188,6 @@
        <method description="Return the power of the jet launched from the disk which is derived frm the black hole." method="jetPowerDiskFromBlackHole" />
      </methods>
      !!]
-     final     ::                                   adafDestructor
      procedure :: efficiencyRadiative            => adafEfficiencyRadiative
      procedure :: powerJet                       => adafPowerJet
      procedure :: rateSpinUp                     => adafRateSpinUp
@@ -447,22 +444,10 @@ contains
             &                         table=adafTableRateSpinUp%ID                                               &
             &                        )
     end do
-    !$ call OMP_Init_Lock(self%tabulationsLock)
     ! Initialize the thin disk component used for radiative efficiency calculations.
     self%thinDisk=accretionDisksShakuraSunyaev()
     return
   end function adafConstructorInternal
-
-  subroutine adafDestructor(self)
-    !!{
-    Destructor for the ADAF accretion disk class.
-    !!}
-    implicit none
-    type(accretionDisksADAF), intent(inout) :: self
-
-    !$ call OMP_Destroy_Lock(self%tabulationsLock)
-    return
-  end subroutine adafDestructor
 
   double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass)
     !!{
@@ -501,10 +486,8 @@ contains
     ! Get the "inverse spin parameter".
     spinInverseBlackHole=+1.0d0-spinBlackHole
     ! Compute the jet power.
-    !$ call OMP_Set_Lock(self%tabulationsLock)
     adafPowerJet        =+accretionRateMass                                                       &
          &               *self%tabulations%interpolate(spinInverseBlackHole,adafTablePowerJet%ID)
-    !$ call OMP_Unset_Lock(self%tabulationsLock)
     return
   end function adafPowerJet
 
@@ -525,9 +508,7 @@ contains
     ! Get the "inverse spin parameter".
     spinInverseBlackHole       =+1.0d0-spinBlackHole
     ! Compute the ratio of spin and mass rates of change.
-    !$ call OMP_Set_Lock(self%tabulationsLock)
     spinToMassRateOfChangeRatio=self%tabulations%interpolate(spinInverseBlackHole,adafTableRateSpinUp%ID)
-    !$ call OMP_Unset_Lock(self%tabulationsLock)
     ! Scale to the mass rate of change.
     adafRateSpinUp             =+spinToMassRateOfChangeRatio &
          &                      *accretionRateMass           &

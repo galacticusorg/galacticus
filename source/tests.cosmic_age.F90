@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +19,7 @@
 
 program Tests_Cosmic_Age
   !!{
-  Tests cosmic age calculations for various Universers. Ages calculated using Python
+  Tests cosmic age calculations for various Universes. Ages calculated using Python
   \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology calculator.
   !!}
   use :: Cosmology_Functions     , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterDarkEnergy, cosmologyFunctionsMatterLambda
@@ -167,7 +167,7 @@ program Tests_Cosmic_Age
   ! Evaluate ages for a dark energy Universe. We consider a few simple cases for which external solutions are available:
   !  * A cosmological constant;
   !  * A closed universe with no dark energy (to test the solving of re-collapsing universes);
-  !  * A flat universe with equation of state -1/3 which behaves like the equiavlent open universe.
+  !  * A flat universe with equation of state -1/3 which behaves like the equivalent open universe.
   call Unit_Tests_Begin_Group("Matter + Dark Energy")
   do iExpansion=1,size(redshift)
      expansionFactor         =cosmologyFunctionsDarkEnergyCosmologicalConstant%expansionFactorFromRedshift(redshift(iExpansion))

@@ -1,0 +1,104 @@
+<parameters formatVersion="2" version="0.9.4">
+  <componentBasic value="standard" />
+  <componentBlackHole value="null" />
+  <componentDarkMatterProfile value="scale" />
+  <componentDisk value="null" />
+  <componentHotHalo value="null" />
+  <componentSatellite value="standard" />
+  <componentSpheroid value="null" />
+  <componentSpin value="null" />
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.9" />
+  </cosmologicalMassVariance>
+  <cosmologyFunctions value="matterLambda" />
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="73.00000" />
+    <OmegaBaryon value=" 0.00000" />
+    <OmegaDarkEnergy value=" 0.75000" />
+    <OmegaMatter value=" 0.25000" />
+    <temperatureCMB value=" 2.72548" />
+  </cosmologyParameters>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" />
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMaximum value="100.0" />
+    <concentrationMinimum value="  4.0" />
+    <darkMatterProfileScaleRadius value="concentration" />
+  </darkMatterProfileScaleRadius>
+  <evolveForestsWorkShare value="cyclic" />
+  <haloMassFunction value="shethTormen">
+    <a value="0.791" />
+    <normalization value="0.302" />
+    <p value="0.218" />
+  </haloMassFunction>
+  <hotHaloMassDistribution value="null" />
+  <linearGrowth value="collisionlessMatter" />
+  <mergerRemnantSize value="null" />
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="0.591" />
+    <accuracyFirstOrder value="0.100" />
+    <cdmAssumptions value="true" />
+    <gamma1 value="0.253" />
+    <gamma2 value="0.124" />
+    <hypergeometricTabulate value="true" />
+    <precisionHypergeometric value="1.0e-6" />
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree value="1.00e12" />
+    <treeCount value="1000" />
+  </mergerTreeBuildMasses>
+  <mergerTreeBuilder value="cole2000Parallel">
+    <accretionLimit value="0.1" />
+    <branchIntervalStep value="true" />
+    <mergeProbability value="0.1" />
+  </mergerTreeBuilder>
+  <mergerTreeConstructor value="build">
+    <redshiftBase value="0.0" />
+  </mergerTreeConstructor>
+  <mergerTreeEvolver value="nonEvolving" />
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e+7" />
+  </mergerTreeMassResolution>
+  <mergerTreeNodeMerger value="singleLevelHierarchy" />
+    <mergerTreeOperator value="conditionalMF">
+    <alwaysIsolatedHalosOnly value="false" />
+    <computeCovariances value="false" />
+    <countMassParent value="4" />
+    <depthHierarchySubhalo value="1" />
+    <depthProgenitorPrimary value="1" />
+    <extendedStatistics value="false" />
+    <massParentMaximum value="1.0e15" />
+    <massParentMinimum value="1.0e11" />
+    <massRatioCount value="30" />
+    <massRatioMaximum value="2.0e+0" />
+    <massRatioMinimum value="1.0e-5" />
+    <nameGroupOutput value="conditionalMassFunction" />
+    <redshiftsParent value="0.0 0.0" />
+    <redshiftsProgenitor value="0.5 1.0" />
+  </mergerTreeOperator>
+  <mergerTreeOutputter value="null" />
+  <nodePromotionIndexShift value="false" />
+  <outputFileName value="testSuite/outputs/parallelTreeBuildParallel.hdf5"/>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="1.000" />
+    <running value="0.000" />
+    <wavenumberReference value="1.000" />
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple" />
+  <randomSeed value="220" />
+  <task value="evolveForests" >
+    <evolveForestsInParallel value="false"/>
+  </task>
+  <transferFunction value="eisensteinHu1999">
+    <cosmologyParameters value="simple">
+      <HubbleConstant value="73.00000" />
+      <OmegaBaryon value=" 0.04500" />
+      <OmegaDarkEnergy value=" 0.75000" />
+      <OmegaMatter value=" 0.25000" />
+      <temperatureCMB value=" 2.72548" />
+    </cosmologyParameters>
+    <neutrinoMassSummed value="0.000" />
+    <neutrinoNumberEffective value="3.046" />
+  </transferFunction>
+  <verbosityLevel value="standard" />
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" />
+</parameters>

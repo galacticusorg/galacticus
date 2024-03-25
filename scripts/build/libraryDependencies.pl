@@ -42,7 +42,6 @@ my %staticLinkDependencies =
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
      FoX_common     => [ "FoX_fsys"                                     ],
-     matheval       => [ "fl"                                           ],
      qhullcpp       => [ "stdc++"                                       ]
     );
 # Find default preprocessor directives.
@@ -61,13 +60,13 @@ my $isStatic = grep {$_ eq "-static"} @compilerOptions;
 # necessary as HDF5 relies on some functions in libdl, but it is not linked by default when static linking is used.
 push(@{$dependencies{'hdf5'}},"dl")
     if ( $isStatic );
-# Add explicit dependency on libfl (flex lexer). This appears to be necessary when static linking is used.
-push(@{$dependencies{'matheval'}},"fl")
-    if ( $isStatic || $isMacOS );
 # Detect if libpthread is already included.
 my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
 my %libraries;
+# Verify that BUILDPATH is set.
+die('libraryDependencies.pl: "BUILDPATH" environment variable is not set')
+    unless ( exists($ENV{'BUILDPATH'}) );
 # Open the file of dependencies for the executable.
 (my $mainDependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.(exe|o)$/\.d/;
 die("libraryDependencies.pl: dependency file is missing")
@@ -101,6 +100,9 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 	}
     }
 }
+# Remove FFTW3 library if not used.
+delete($libraries{'fftw3'})
+    if ( exists($libraries{'fftw3'}) && ! grep {$_ eq "-DFFTW3AVAIL"} @compilerOptions );
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );
@@ -143,7 +145,8 @@ print
     join(" ",map {"-l".$_} @sortedLibraries).
     $staticOptions.
     $osOptions.
-    ((grep {$_ eq "blas"} @sortedLibraries) ? " -fexternal-blas" : "").
-    ($linkLibRT                             ? " -lrt"            : "").
+    ((grep {$_ eq "-DDEBUGGING"} @compilerOptions) ? " -rdynamic"       : "").
+    ((grep {$_ eq "blas"       } @sortedLibraries) ? " -fexternal-blas" : "").
+    ($linkLibRT                                    ? " -lrt"            : "").
     "\n";
 exit;

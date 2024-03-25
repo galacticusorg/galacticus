@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,7 @@
     \begin{equation}
     \log_{10} c = A \log_{10} M_\mathrm{halo} + B.
     \end{equation}
-    The parameters are a functon of expansion factor, $a$. We use the following fits to the \cite{gao_redshift_2008} results:
+    The parameters are a function of expansion factor, $a$. We use the following fits to the \cite{gao_redshift_2008} results:
     \begin{eqnarray}
     A &amp;=&amp; -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
     B &amp;=&amp;  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].

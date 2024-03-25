@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,7 +116,8 @@ contains
     double precision                                 , pointer      , dimension(:,:) :: position                      , velocity              , &
          &                                                                              sampleWeight                  , sampleWeightPrevious
     integer         (c_size_t                       ), pointer      , dimension(:  ) :: particleIDs                   , particleIDsPrevious
-    double precision                                 , allocatable  , dimension(:,:) :: positionOffset                , positionRescaled
+    double precision                                 , allocatable  , dimension(:,:) :: positionOffset                , positionRescaled      , &
+         &                                                                              velocityRescaled
     double precision                                 , allocatable  , dimension(:,:) :: energyPotential               , velocityPotential     , &
          &                                                                              energyKinetic                 , sampleWeightActual
     double precision                                 , allocatable  , dimension(:,:) :: velocityCenterOfMass
@@ -131,8 +132,9 @@ contains
     logical                                          , allocatable  , dimension(:  ) :: isConverged
     integer         (c_size_t                       )                                :: representativeParticleCount
     integer                                                                          :: countIteration
-    double precision                                                                 :: lengthSoftening               , massParticle          , &
-         &                                                                              convergenceFactor             , weightRepresentative
+    double precision                                                                 :: lengthSoftening               , velocitySoftening     , &
+         &                                                                              massParticle                  , convergenceFactor     , &
+         &                                                                              weightRepresentative
     type            (varying_string                 )                                :: message
     character       (len=12                         )                                :: label
 
@@ -159,8 +161,9 @@ contains
        call Error_Report('either 1 or 2 simulations (labelled "active" and "previous" in the case of 2 simulations) should be provided'//{introspection:location})
     end if
     ! Get simulation attributes.
-    lengthSoftening=simulations(current)%attributesReal%value('lengthSoftening')
-    massParticle   =simulations(current)%attributesReal%value('massParticle'   )
+    lengthSoftening  =simulations(current)%attributesReal%value('lengthSoftening')
+    massParticle     =simulations(current)%attributesReal%value('massParticle'   )
+    velocitySoftening=sqrt(gravitationalConstantGalacticus*massParticle/lengthSoftening)
     ! Get particle data.
     position    => simulations(current)%propertiesRealRank1%value('position'  )
     velocity    => simulations(current)%propertiesRealRank1%value('velocity'  )
@@ -178,6 +181,7 @@ contains
     allocate(velocityCenterOfMass  (3_c_size_t              ,self%bootstrapSampleCount))
     allocate(positionOffset        (3_c_size_t,particleCount                          ))
     allocate(positionRescaled      (3_c_size_t,particleCount                          ))
+    allocate(velocityRescaled      (3_c_size_t,particleCount                          ))
     allocate(boundStatus           (           particleCount,self%bootstrapSampleCount))
     allocate(indexSorted           (           particleCount                          ))
     allocate(countBound            (                         self%bootstrapSampleCount))
@@ -228,6 +232,7 @@ contains
     isConverged = .false.
     ! Rescale the particle coordinates by the softening length.
     positionRescaled=position/lengthSoftening
+    velocityRescaled=velocity/velocitySoftening
     call displayIndent('Performing self-bound analysis on bootstrap samples')
     do iSample=1,self%bootstrapSampleCount
        ! Initialize count of bound particles.
@@ -239,7 +244,7 @@ contains
     representativeParticleCount=max(representativeParticleCount,self%representativeMinimumCount)
     allocate(indexMostBound        (representativeParticleCount,self%bootstrapSampleCount))
     allocate(indexVelocityMostBound(representativeParticleCount,self%bootstrapSampleCount))
-    ! Iterate over bootstrap samplings.
+    ! Iterate over bootstrap samples.
     do iSample=1,self%bootstrapSampleCount
        call displayIndent(var_str('sample ')//iSample//' of '//self%bootstrapSampleCount)
        ! Compute the center-of-mass velocity.
@@ -263,7 +268,7 @@ contains
        ! Build octrees.
        call displayIndent('build octrees')
        call octreePosition%build(positionRescaled,sampleWeightActual(:,iSample))
-       call octreeVelocity%build(velocity        ,sampleWeightActual(:,iSample))
+       call octreeVelocity%build(velocityRescaled,sampleWeightActual(:,iSample))
        call displayUnindent('done')
        ! Begin iterations.
        countIteration=0
@@ -275,7 +280,7 @@ contains
              ! Skip particles we do not need to analyze.
              if (.not.isBound(i,iSample)) cycle
              call octreePosition%traverseCompute(positionRescaled(:,i),sampleWeightActual(i,iSample),self%thetaTolerance,energyPotential  (i,iSample),selfBoundBarnesHutPotential)
-             call octreeVelocity%traverseCompute(velocity        (:,i),sampleWeightActual(i,iSample),self%thetaTolerance,velocityPotential(i,iSample),selfBoundBarnesHutPotential)
+             call octreeVelocity%traverseCompute(velocityRescaled(:,i),sampleWeightActual(i,iSample),self%thetaTolerance,velocityPotential(i,iSample),selfBoundBarnesHutPotential)
           end do
           !$omp end do
           !$omp workshare
@@ -363,7 +368,7 @@ contains
              do i=1,particleCount
                 if (isRemoved(i,iSample)) then
                    call octreePosition%removeParticle(positionRescaled(:,i),sampleWeight(i,iSample))
-                   call octreeVelocity%removeParticle(velocity        (:,i),sampleWeight(i,iSample))
+                   call octreeVelocity%removeParticle(velocityRescaled(:,i),sampleWeight(i,iSample))
                 end if
              end do
              ! Update bound status.
@@ -426,6 +431,7 @@ contains
     nullify   (indexVelocityMostBound )
     deallocate(positionOffset         )
     deallocate(positionRescaled       )
+    deallocate(velocityRescaled       )
     deallocate(countBound             )
     deallocate(countBoundPrevious     )
     deallocate(weightBound            )

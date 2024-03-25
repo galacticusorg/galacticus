@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -176,16 +176,19 @@ contains
     return
   end subroutine truncatedDestructor
 
-  subroutine truncatedCalculationReset(self,node)
+  subroutine truncatedCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOTruncated), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
+    class  (darkMatterProfileDMOTruncated), intent(inout) :: self
+    type   (treeNode                     ), intent(inout) :: node
+    integer(kind_int8                    ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%lastUniqueID                                              =node%uniqueID()
-    self%genericLastUniqueID                                       =node%uniqueID()
+    self%lastUniqueID                                              =uniqueID
+    self%genericLastUniqueID                                       =uniqueID
     self%enclosingMassRadiusPrevious                               =-1.0d0
     self%enclosedMassTruncateMinimumPrevious                       =-1.0d0
     self%enclosedMassTruncateMaximumPrevious                       =-1.0d0
@@ -214,7 +217,7 @@ contains
          &                                                                      multiplierGradient
     double precision                                                         :: radiusVirial      , x_
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if      (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
        if (present(x                 )) x                 =+0.0d0
@@ -310,7 +313,7 @@ contains
     double precision                               , intent(in   )         :: mass
     double precision                                                       :: radiusVirial, radiusTruncateMinimum
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%enclosedMassTruncateMinimumPrevious < 0.0d0) then
@@ -354,7 +357,7 @@ contains
     double precision                               , intent(in   ) :: radius
     double precision                                               :: radiusVirial, radiusTruncateMinimum
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusTruncateMinimum) then
@@ -421,7 +424,7 @@ contains
 
   double precision function truncatedRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
@@ -449,7 +452,7 @@ contains
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
        radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
        if (radius >= radiusTruncateMinimum) then

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -122,7 +122,7 @@ contains
     separationLogarithmicMinimum    =log(separationMinimum)-0.5d0/separationLogarithmicStepInverse
     ! Iterate over points, counting neighbors.
     do iPass=1,3
-       ! Set pointers to set of points to use in this passs.
+       ! Set pointers to set of points to use in this pass.
        select case (iPass)
        case (1)
           ! Data-data pairs.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -309,7 +309,7 @@ contains
 
   function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily odeSolver} obejcts.
+    Constructor for {\normalfont \ttfamily odeSolver} objects.
     !!}
     use            :: Error        , only : Error_Report
     use, intrinsic :: ISO_C_Binding, only : c_funloc    , c_null_funptr
@@ -459,9 +459,10 @@ contains
        call self%integrator%integrandSet (zCount,integrandsWrapper)
        latentIntegrator_=C_FunLoc(latentIntegrator)
     else
+       allocate(z0(0))
        latentIntegrator_=C_NULL_FUNPTR 
     end if
-    ! Initialize error analzyer.
+    ! Initialize error analyzer.
     if (associated(self%errorAnalyzer)) then
        errorAnalyzer_=c_funloc(self%errorAnalyzer)
     else
@@ -503,7 +504,7 @@ contains
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1_=interruptedAtX
           if (x > x1_) then
-             ! The timestep exceeded the time at which an interrupt occured. To maintain accuracy we need to repeat the step.
+             ! The timestep exceeded the time at which an interrupt occurred. To maintain accuracy we need to repeat the step.
              y=y0
              x=x0
              if (present(z)) z=z0

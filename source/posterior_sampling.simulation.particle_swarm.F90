@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,22 +40,22 @@
      Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
      !!}
      private
-     type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_            => null(), modelParametersInactive_     => null()
-     class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_        => null()
-     class           (posteriorSampleConvergenceClass      ), pointer               :: posteriorSampleConvergence_       => null()
-     class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_ => null()
-     class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_             => null()
-     class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_   => null()
-     class           (randomNumberGeneratorClass           ), pointer               :: randomNumberGenerator_            => null()
-     integer                                                                        :: parameterCount                             , stepsMaximum                          , &
-          &                                                                            reportCount                                , logFlushCount
-     double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
-          &                                                                            inertiaWeight                              , velocityCoefficient                   , &
-          &                                                                            velocityCoefficientInitial
-     logical                                                                        :: isInteractive                              , resume                                , &
-          &                                                                            appendLogs
-     type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
-          &                                                                            logFilePreviousRoot
+     type            (modelParameterList                   ), allocatable, dimension(:) :: modelParametersActive_                     , modelParametersInactive_
+     class           (posteriorSampleLikelihoodClass       ), pointer                   :: posteriorSampleLikelihood_        => null()
+     class           (posteriorSampleConvergenceClass      ), pointer                   :: posteriorSampleConvergence_       => null()
+     class           (posteriorSampleStoppingCriterionClass), pointer                   :: posteriorSampleStoppingCriterion_ => null()
+     class           (posteriorSampleStateClass            ), pointer                   :: posteriorSampleState_             => null()
+     class           (posteriorSampleStateInitializeClass  ), pointer                   :: posteriorSampleStateInitialize_   => null()
+     class           (randomNumberGeneratorClass           ), pointer                   :: randomNumberGenerator_            => null()
+     integer                                                                            :: parameterCount                             , stepsMaximum                 , &
+          &                                                                                reportCount                                , logFlushCount
+     double precision                                                                   :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal, &
+          &                                                                                inertiaWeight                              , velocityCoefficient          , &
+          &                                                                                velocityCoefficientInitial
+     logical                                                                            :: isInteractive                              , resume                       , &
+          &                                                                                appendLogs
+     type            (varying_string                       )                            :: logFileRoot                                , interactionRoot              , &
+          &                                                                                logFilePreviousRoot
    contains
      !![
      <methods>
@@ -169,13 +169,13 @@ contains
     <inputParameter>
       <name>accelerationCoefficientPersonal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>Personal accleration parameter.</description>
+      <description>Personal acceleration parameter.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>accelerationCoefficientGlobal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>Global accleration parameter.</description>
+      <description>Global acceleration parameter.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -300,14 +300,16 @@ contains
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
-    self%modelParametersActive_  =modelParametersActive_
-    self%modelParametersInactive_=modelParametersInactive_
     do i=1,size(modelParametersActive_  )
+       self%modelParametersActive_  (i)                 =  modelParameterList      ( )
+       self%modelParametersActive_  (i)%modelParameter_ => modelParametersActive_  (i)%modelParameter_
        !![
        <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
        !!]
     end do
     do i=1,size(modelParametersInactive_)
+       self%modelParametersInactive_(i)                 =  modelParameterList      ( )
+       self%modelParametersInactive_(i)%modelParameter_ => modelParametersInactive_(i)%modelParameter_
        !![
        <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
        !!]
@@ -334,19 +336,21 @@ contains
     <objectDestructor name="self%posteriorSampleStateInitialize_"  />
     <objectDestructor name="self%randomNumberGenerator_"           />
     !!]
-    if (associated(self%modelParametersActive_  )) then
+    if (allocated(self%modelParametersActive_  )) then
        do i=1,size(self%modelParametersActive_  )
           !![
 	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
           !!]
        end do
+       deallocate(self%modelParametersActive_  )
     end if
-    if (associated(self%modelParametersInactive_)) then
+    if (allocated(self%modelParametersInactive_)) then
        do i=1,size(self%modelParametersInactive_)
           !![
 	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
           !!]
        end do
+       deallocate(self%modelParametersInactive_)
     end if
     return
   end subroutine particleSwarmDestructor
@@ -828,12 +832,12 @@ contains
     type   (inputParameters                       ), intent(inout) :: descriptor
     integer                                                        :: i
     
-    if (associated(self%modelParametersActive_  )) then
+    if (allocated(self%modelParametersActive_  )) then
        do i=1,size(self%modelParametersActive_  )
           call self%modelParametersActive_  (i)%modelParameter_%descriptor(descriptor)
        end do
     end if
-    if (associated(self%modelParametersInactive_)) then
+    if (allocated(self%modelParametersInactive_)) then
        do i=1,size(self%modelParametersInactive_)
           call self%modelParametersInactive_(i)%modelParameter_%descriptor(descriptor)
        end do

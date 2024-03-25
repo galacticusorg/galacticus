@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -165,16 +165,19 @@ contains
     return
   end subroutine extendedSchmidtDestructor
 
-  subroutine extendedSchmidtCalculationReset(self,node)
+  subroutine extendedSchmidtCalculationReset(self,node,uniqueID)
     !!{
     Reset the Kennicutt-Schmidt relation calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
-    type (treeNode                                           ), intent(inout) :: node
-
+    class  (starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
+    type   (treeNode                                           ), intent(inout) :: node
+    integer(kind_int8                                          ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
+    
     self%factorsComputed=.false.
-    self%lastUniqueID   =node%uniqueID()
+    self%lastUniqueID   =uniqueID
     return
   end subroutine extendedSchmidtCalculationReset
 
@@ -203,7 +206,7 @@ contains
          &                                                                                  surfaceDensityStellar
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if factors have been precomputed.
     if (.not.self%factorsComputed) then
        ! Get the disk properties.
@@ -221,7 +224,7 @@ contains
        extendedSchmidtRate=0.0d0
        return
     end if
-    ! Get stallar and gas surface densities.
+    ! Get stellar and gas surface densities.
     surfaceDensityGas    =self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     surfaceDensityStellar=self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the star formation rate surface density.

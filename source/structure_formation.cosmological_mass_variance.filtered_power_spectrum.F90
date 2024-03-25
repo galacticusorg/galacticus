@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,7 +51,7 @@
     monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
     interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set {\normalfont
     \ttfamily [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline interpolator to be used
-    instead which gaurantees monotonicity.
+    instead which guarantees monotonicity.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -95,7 +95,8 @@
           &                                                                                  massMinimum                                   , massMaximum                                          , &
           &                                                                                  timeMinimum                                   , timeMaximum                                          , &
           &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
-          &                                                                                  wavenumberReference                           , wavenumberHalfMode
+          &                                                                                  wavenumberReference                           , wavenumberHalfMode                                   , &
+          &                                                                                  amplitudeScalar
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      type            (varying_string                         )                            :: fileName
@@ -166,7 +167,8 @@ contains
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     class           (transferFunctionClass                  ), pointer       :: transferFunction_
     double precision                                                         :: sigma8Value                        , tolerance                                  , &
-         &                                                                      toleranceTopHat                    , wavenumberReference
+         &                                                                      toleranceTopHat                    , wavenumberReference                        , &
+         &                                                                      amplitudeScalar
     logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal                        , &
          &                                                                      truncateAtParticleHorizon
 
@@ -185,8 +187,9 @@ contains
     else
        nullify(powerSpectrumWindowFunctionTopHat_)
     end if
-    if (parameters%isPresent('wavenumberReference')) then
-       if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
+    if      (parameters%isPresent('wavenumberReference')) then
+       if (parameters%isPresent('sigma_8'        )) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'        //{introspection:location})
+       if (parameters%isPresent('amplitudeScalar')) call Error_Report('amplitudeScalar must not be specified if a power spectrum amplitude is specified'//{introspection:location})
        if (.not.parameters%isPresent('reference',requireValue=.false.)) call Error_Report('parameters must contain a "reference" section'//{introspection:location})
        referenceParameters=parameters%subParameters('reference',requireValue=.false.)
        if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
@@ -198,6 +201,15 @@ contains
          <name>wavenumberReference</name>
          <source>parameters</source>
          <description>The reference wavenumber at which the amplitude of the power spectrum is matched to that in the reference model.</description>
+       </inputParameter>
+       !!]
+    else if (parameters%isPresent('amplitudeScalar')) then
+       if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
+       !![
+       <inputParameter>
+         <name>amplitudeScalar</name>
+         <source>parameters</source>
+         <description>The amplitude of the primordial scalar power spectrum, $A_\mathrm{s}$, such that $P_\chi(k) = A_\mathrm{s} (k/k_\mathrm{s0})^{n_\mathrm{s}-1}$ with $k_\mathrm{s0}=0.05$~Mpc$^{-1}$.</description>
        </inputParameter>
        !!]
     else       
@@ -235,7 +247,7 @@ contains
       <name>monotonicInterpolation</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
+      <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
     </inputParameter>
     <inputParameter>
       <name>truncateAtParticleHorizon</name>
@@ -260,11 +272,12 @@ contains
        &amp;                                {conditions}                                                             &amp;
        &amp;                               )
      </call>
-     <argument name="sigma8"                                      value="sigma8Value"                                 condition=".not.parameters%isPresent('wavenumberReference')"                   />
-     <argument name="cosmologicalMassVarianceReference"           value="cosmologicalMassVarianceReference"           condition="     parameters%isPresent('wavenumberReference')"                   />
-     <argument name="wavenumberReference"                         value="wavenumberReference"                         condition="     parameters%isPresent('wavenumberReference')"                   />
-     <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
-     <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+     <argument name="sigma8"                                      value="sigma8Value"                                 condition=".not.parameters%isPresent('wavenumberReference').and..not.parameters%isPresent('amplitudeScalar')"/>
+     <argument name="amplitudeScalar"                             value="amplitudeScalar"                             condition="                                                          parameters%isPresent('amplitudeScalar')"/>
+     <argument name="cosmologicalMassVarianceReference"           value="cosmologicalMassVarianceReference"           condition="     parameters%isPresent('wavenumberReference')"                                                 />
+     <argument name="wavenumberReference"                         value="wavenumberReference"                         condition="     parameters%isPresent('wavenumberReference')"                                                 />
+     <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                                                 />
+     <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"                              />
     </conditionalCall>
     <inputParametersValidate source="parameters" extraAllowedNames="reference"/>
     !!]
@@ -290,7 +303,7 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+  function filteredPowerConstructorInternal(sigma8,amplitudeScalar,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
@@ -298,12 +311,14 @@ contains
     use :: Error                          , only : Error_Report
     use :: Input_Paths                    , only : inputPath                        , pathTypeDataDynamic
     use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
+    use :: Interfaces_CLASS               , only : Interface_CLASS_Normalization
     use :: Error                          , only : errorStatusSuccess
     use :: Numerical_Constants_Math       , only : Pi
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
     double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat
-    double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8
+    double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8                , &
+         &                                                                                        amplitudeScalar
     logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
          &                                                                                        truncateAtParticleHorizon
     class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
@@ -330,9 +345,17 @@ contains
           !!]
        end select
     end if
-    if (present(sigma8)) then
+    if      (present(sigma8         )) then
        if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       if (     present(amplitudeScalar    )                                                                                                                ) call Error_Report('sigma8 is specified, can not also specify scalar amplitude'      //{introspection:location})
        self%sigma8Value                                 =  sigma8
+       self%normalizationSigma8                         =  .true.
+       self%cosmologicalMassVarianceReference           => null()
+       self%powerSpectrumPrimordialTransferredReference => null()
+    else if (present(amplitudeScalar)) then
+       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       self%amplitudeScalar                             =  amplitudeScalar
+       self%sigma8Value                                 =  sqrt(amplitudeScalar*Interface_CLASS_Normalization(self%cosmologyParameters_))
        self%normalizationSigma8                         =  .true.
        self%cosmologicalMassVarianceReference           => null()
        self%powerSpectrumPrimordialTransferredReference => null()
@@ -348,11 +371,11 @@ contains
     end if
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
-    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
-         &                      'largeScaleStructure/'                           // &
-         &                      self%objectType      (                          )// &
-         &                      '_'                                              // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
+         &                      'largeScaleStructure/'                                                               // &
+         &                      self%objectType      (                                                              )// &
+         &                      '_'                                                                                  // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     if (present(transferFunction_)) then
@@ -455,7 +478,7 @@ contains
 
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
     !!{
-    Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     region containing the given {\normalfont \ttfamily mass} on average.
     !!}
     implicit none
@@ -622,7 +645,7 @@ contains
 
   double precision function filteredPowerMass(self,rootVariance,time)
     !!{
-    Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    Return the mass corresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -970,22 +993,26 @@ contains
       !!{
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
-      use :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success
-      use :: Numerical_Constants_Math, only : Pi
-      use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
-      use :: Sorting, only : sort
+      use, intrinsic :: ISO_C_Binding           , only : c_size_t
+      use            :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success, &
+           &                                             GSL_EMaxIter
+      use            :: Numerical_Constants_Math, only : Pi
+      use            :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
+      use            :: Sorting                 , only : sort
       implicit none
       double precision                         , intent(in   ) :: time_
       logical                                  , intent(in   ) :: useTopHat
-      double precision                         , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision            , allocatable, dimension(:)  :: wavenumbers            , wavenumbersRestricted
-      double precision                                         :: wavenumberMinimum      , wavenumberMaximum     , &
-           &                                                      integrand              , integrandInterval     , &
-           &                                                      wavenumberLower        , wavenumberUpper       , &
-           &                                                      topHatRadius
-      integer                                                  :: i                      , status
+      double precision                         , parameter     :: wavenumberBAO                         =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
+      integer         (c_size_t  )             , parameter     :: intervalsMaximum                      =10000_c_size_t
+      double precision            , allocatable, dimension(:)  :: wavenumbers                                          , wavenumbersRestricted , &
+           &                                                      wavenumbersLocalMinimaTransferFunction
+      double precision                                         :: wavenumberMinimum                                    , wavenumberMaximum     , &
+           &                                                      integrand                                            , integrandInterval     , &
+           &                                                      wavenumberLower                                      , wavenumberUpper       , &
+           &                                                      topHatRadius                                         , toleranceRelative
+      integer                                                  :: i                                                    , status
       logical                                                  :: computeLogarithmically
-      type            (integrator)                             :: integrator_            , integratorLogarithmic_
+      type            (integrator)                             :: integrator_                                          , integratorLogarithmic_
 
       time__      =time_
       topHatRadius=(                                             &
@@ -1008,14 +1035,16 @@ contains
       ! Find the maximum wavenumber for the integral (and establish the integrator).
       if (useTopHat) then
          wavenumberMaximum     =min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
-         integrator_           =integrator(varianceIntegrandTopHat           ,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15)
-         integratorLogarithmic_=integrator(varianceIntegrandTopHatLogarithmic,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15)
+         toleranceRelative     =                                                                +self%toleranceTopHat
+         integrator_           =integrator(varianceIntegrandTopHat           ,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
+         integratorLogarithmic_=integrator(varianceIntegrandTopHatLogarithmic,toleranceRelative=+self%toleranceTopHat,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
       else
          wavenumberMaximum     =min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
-         integrator_           =integrator(varianceIntegrand                 ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
-         integratorLogarithmic_=integrator(varianceIntegrandLogarithmic      ,toleranceRelative=+self%tolerance     ,integrationRule=GSL_Integ_Gauss15)
+         toleranceRelative     =                                                                +self%tolerance
+         integrator_           =integrator(varianceIntegrand                 ,toleranceRelative=+self%tolerance      ,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
+         integratorLogarithmic_=integrator(varianceIntegrandLogarithmic      ,toleranceRelative=+self%tolerance      ,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
       end if
-      ! Split the integral into subsets of the wavenumber range
+      ! Split the integral into subsets of the wavenumber range:
       !
       !!  1. The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO
       !!  features are significant (unless the upper limit of the integral is already below that wavenumber). This allows the
@@ -1028,13 +1057,19 @@ contains
       !!  3. For non-cold dark matter models with suppressed power spectrum on small scales, another splitting is done around the
       !!  half-mode wavenumber so that σ(M) is better resolved near the saturation value. This is particularly useful if the
       !!  transfer function oscillates on small scales.
-      wavenumbers=[                                &
-           &                   wavenumberMinimum , &
-           &       +3.0d0*self%wavenumberHalfMode, &
-           &       +3.0d0/     topHatRadius      , &
-           &                   wavenumberBAO       &
-           &      ]
-      ! Restrict the intervals to those between the minimum and maxmimum wavenumbers, and then sort them.
+      !!
+      !!  4. Split at any local minima of the transfer function. This is useful for oscillating transfer functions to allow
+      !!  integration to accurately capture each oscillation.
+      call self%transferFunction_%wavenumbersLocalMinima(wavenumbersLocalMinimaTransferFunction)
+      allocate(wavenumbers(4+size(wavenumbersLocalMinimaTransferFunction)))
+      wavenumbers(1:4                )=[                                &
+           &                                        wavenumberMinimum , &
+           &                            +3.0d0*self%wavenumberHalfMode, &
+           &                            +3.0d0/     topHatRadius      , &
+           &                                        wavenumberBAO       &
+           &                           ]
+      wavenumbers(5:size(wavenumbers))=wavenumbersLocalMinimaTransferFunction
+      ! Restrict the intervals to those between the minimum and maximum wavenumbers, and then sort them.
       wavenumbersRestricted=pack(wavenumbers,wavenumbers >= wavenumberMinimum .and. wavenumbers < wavenumberMaximum)
       call sort(wavenumbersRestricted)
       ! Iterate over intervals, accumulation the integral.
@@ -1076,11 +1111,38 @@ contains
             ! The integration was successful, no need to try a logarithmic integral.
             computeLogarithmically=.false.
          end if
-         ! Recompue the integral using a logarithmic integral if necessary.
+         ! Recompute the integral using a logarithmic integral if necessary.
          if (computeLogarithmically) then
-            integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper))
-            ! Check for zero power.
-            if (integrandInterval <= 0.0d0) call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+            integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper),status=status)
+            if ((status == GSL_EMaxIter .or. status == GSL_ERound) .and. integrandInterval < toleranceRelative*integrand) then
+               ! Maximum iterations were exceeded, but the integrand is tiny - so proceed.
+            else if (status /= GSL_Success) then
+               call Error_Report('variance integral failed'//{introspection:location})
+            else if (integrandInterval <= 0.0d0) then
+               ! The integrated power is still non-positive - check the integrand at the lower limit. If it is positive, we have a
+               ! problem. Otherwise, the power in this interval seems to be actually zero, so proceed.
+               if (varianceIntegrand(wavenumberLower) > 0.0d0) then
+                  if (varianceIntegrand(wavenumberUpper) > 0.0d0) then
+                     ! The integrand is non-zero at the upper limit also - we expect a non-zero integrand in this case. As we
+                     ! did not get one, this is a problem.
+                     call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+                  else
+                     ! The integrand is zero at the upper limit - try reducing the upper limit until we get a non-zero result.
+                     do while (wavenumberUpper > wavenumberLower .and. varianceIntegrand(wavenumberUpper) <= 0.0d0)
+                        integrandInterval=integratorLogarithmic_%integrate(log(wavenumberLower),log(wavenumberUpper),status=status)
+                        if (status == GSL_Success) then
+                           if (integrandInterval > 0.0d0) exit
+                        else
+                           call Error_Report('variance integration failed - unexpected'//{introspection:location})
+                        end if
+                        wavenumberUpper=sqrt(wavenumberUpper*wavenumberLower)
+                     end do
+                     ! We still failed to get a non-zero power - there's nothing more we can do.
+                     if (integrandInterval <= 0.0d0) &
+                          & call Error_Report('no power in interval integrand - unexpected'//{introspection:location})
+                  end if
+               end if
+            end if
          end if
          ! Accumulate the integral from this region.
          integrand=+integrand         &
@@ -1173,7 +1235,7 @@ contains
 
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
     !!{
-    Compute interoplants in time.
+    Compute interpolants in time.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1366,7 +1428,7 @@ contains
     return
   end function filteredPowerRemakeTable
 
-  subroutine filteredPowerDescriptor(self,descriptor,includeClass)
+  subroutine filteredPowerDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -1374,7 +1436,7 @@ contains
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeClass
+    logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 
@@ -1399,11 +1461,11 @@ contains
     call    parameters%addParameter('nonMonotonicIsFatal'   ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%monotonicInterpolation
     call    parameters%addParameter('monotonicInterpolation',trim(adjustl(parameterLabel)))
-    call    self%cosmologyParameters_                       %descriptor(parameters)
-    call    self%cosmologyFunctions_                        %descriptor(parameters)
-    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)
-    call    self%linearGrowth_                              %descriptor(parameters)
-    call    self%powerSpectrumWindowFunction_               %descriptor(parameters)
-    call    self%transferFunction_                          %descriptor(parameters)
+    call    self%cosmologyParameters_                       %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%cosmologyFunctions_                        %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%linearGrowth_                              %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%powerSpectrumWindowFunction_               %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%transferFunction_                          %descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine filteredPowerDescriptor

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -257,7 +257,7 @@ contains
 
   function interpolatorConstructor(x,y,interpolationType,extrapolationType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily interpolator} obejcts.
+    Constructor for {\normalfont \ttfamily interpolator} objects.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort
@@ -424,7 +424,7 @@ contains
 
   subroutine interpolatorGSLInitialize(self,ya)
     !!{
-    Initialize GSL interpoltor.
+    Initialize GSL interpolator.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -517,7 +517,8 @@ contains
     double precision                                  , parameter                   :: rangeTolerance   =1.0d-6
     type            (enumerationExtrapolationTypeType)                              :: extrapolationType
     integer         (c_size_t                        )                              :: basePoint
-    type            (varying_string                  )                              :: message
+    type            (varying_string                  ), save                        :: message
+    !$omp threadprivate(message)
     integer         (c_int                           )                              :: statusGSL
     double precision                                                                :: gradient                , x_
     character       (len=12                          )                              :: labelX                  , labelX_      , &
@@ -622,7 +623,8 @@ contains
     class           (interpolator                    ), intent(inout)               :: self
     double precision                                  , intent(in   )               :: x
     double precision                                  , intent(in   ), dimension(:) :: ya
-    type            (varying_string                  )                              :: message
+    type            (varying_string                  ), save                        :: message
+    !$omp threadprivate(message)
     type            (enumerationExtrapolationTypeType)                              :: extrapolationType
     integer         (c_int                           )                              :: statusGSL
     double precision                                                                :: x_
@@ -688,7 +690,7 @@ contains
 
   function interpolator2DConstructor(x,y,z) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily interpolator2D} obejcts.
+    Constructor for {\normalfont \ttfamily interpolator2D} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none

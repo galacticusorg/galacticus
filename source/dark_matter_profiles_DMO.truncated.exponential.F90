@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -198,16 +198,19 @@ contains
     return
   end subroutine truncatedExponentialDestructor
 
-  subroutine truncatedExponentialCalculationReset(self,node)
+  subroutine truncatedExponentialCalculationReset(self,node,uniqueID)
     !!{
     Reset the dark matter profile calculation.
     !!}
+    use :: Kind_Numbers, only : kind_int8
     implicit none
-    class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type (treeNode                                ), intent(inout) :: node
+    class  (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
+    type   (treeNode                                ), intent(inout) :: node
+    integer(kind_int8                               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
-    self%lastUniqueID                                           =node%uniqueID()
-    self%genericLastUniqueID                                    =node%uniqueID()
+    self%lastUniqueID                                           =uniqueID
+    self%genericLastUniqueID                                    =uniqueID
     self%kappaPrevious                                          =-huge(0.0d0)
     self%enclosingMassRadiusPrevious                            =-1.0d0
     self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
@@ -235,7 +238,7 @@ contains
     double precision                                                                    :: radiusVirial, radiusDecay       , &
          &                                                                                 multiplier_
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        if (present(multiplier        )) multiplier        =+1.0d0
@@ -269,7 +272,7 @@ contains
 
   subroutine recomputeKappa (self,node)
     !!{
-    Recompute parameter kappa in the truncation funciton.
+    Recompute parameter kappa in the truncation function.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile        , treeNode
     use :: Gamma_Functions , only : Gamma_Function_Incomplete_Unnormalized
@@ -280,7 +283,7 @@ contains
     double precision                                                          :: radiusVirial     , scaleRadius, &
          &                                                                       concentration
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial                        =  self             %darkMatterHaloScale_%radiusVirial(node             )
     darkMatterProfile                   => node             %darkMatterProfile                (autoCreate=.true.)
     scaleRadius                         =  darkMatterProfile%scale                            (                 )
@@ -421,7 +424,7 @@ contains
     double precision                                          , intent(in   ) :: radius
     double precision                                                          :: radiusVirial, radiusDecay
 
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius      )
@@ -477,7 +480,7 @@ contains
 
   double precision function truncatedExponentialRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
@@ -521,7 +524,7 @@ contains
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedExponentialRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
        radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        if (radius >= radiusVirial) then
           truncatedExponentialRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)

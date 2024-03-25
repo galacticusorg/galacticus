@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,13 +32,12 @@ module Node_Component_Disk_Standard
   use :: Galactic_Structure              , only : galacticStructureClass
   implicit none
   private
-  public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve                  , &
-       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility   , Node_Component_Disk_Standard_Radius_Solver               , &
-       &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Thread_Uninitialize         , &
-       &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Calculation_Reset           , &
-       &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve              , &
-       &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive                    , &
-       &    Node_Component_Disk_Standard_Post_Step                    , Node_Component_Disk_Standard_Star_Formation_History_Flush
+  public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve                  , &
+       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility, Node_Component_Disk_Standard_Radius_Solver               , &
+       &    Node_Component_Disk_Standard_Post_Step                 , Node_Component_Disk_Standard_Thread_Uninitialize         , &
+       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Calculation_Reset           , &
+       &    Node_Component_Disk_Standard_State_Store               , Node_Component_Disk_Standard_State_Retrieve              , &
+       &    Node_Component_Disk_Standard_Thread_Initialize         , Node_Component_Disk_Standard_Inactive
 
   !![
   <component>
@@ -199,6 +198,10 @@ module Node_Component_Disk_Standard
   ! Pipe attachment status.
   logical                                     :: pipesAttached                             =.false.
 
+  ! A threadprivate object used to track to which thread events are attached.
+  integer :: thread
+  !$omp threadprivate(thread)
+
 contains
 
   !![
@@ -283,8 +286,8 @@ contains
     !!{
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx      , openMPThreadBindingAtLevel, postEvolveEvent, &
-          &                                          satelliteMergerEvent
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                                          satelliteMergerEvent       , mergerTreeExtraOutputEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
@@ -300,8 +303,9 @@ contains
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
-       call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
+       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
@@ -347,7 +351,7 @@ contains
           diskStructureSolverSpecificAngularMomentum=0.5d0
        else
           diskStructureSolverSpecificAngularMomentum=  &
-               & +radiusStructureSolver            &
+               & +radiusStructureSolver                &
                & /(                                    &
                &   +massDistributionDiskDensityMoment2 &
                &   /massDistributionDiskDensityMoment1 &
@@ -374,14 +378,15 @@ contains
     !!{
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent     , satelliteMergerEvent
+    use :: Events_Hooks                     , only : postEvolveEvent     , satelliteMergerEvent , mergerTreeExtraOutputEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk, massDistributionDisk_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
-       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
+       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
+       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
        !![
        <objectDestructor name="darkMatterHaloScale_"        />
        <objectDestructor name="stellarPopulationProperties_"/>
@@ -400,16 +405,19 @@ contains
     <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
   </calculationResetTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Calculation_Reset(node)
+  subroutine Node_Component_Disk_Standard_Calculation_Reset(node,uniqueID)
     !!{
     Reset standard disk structure calculations.
     !!}
     use :: Galacticus_Nodes                 , only : treeNode
+    use :: Kind_Numbers                     , only : kind_int8
     use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset
     implicit none
-    type(treeNode), intent(inout) :: node
-
-    call Node_Component_Disk_Standard_Reset(node%uniqueID())
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
+    
+    call Node_Component_Disk_Standard_Reset(uniqueID)
     return
   end subroutine Node_Component_Disk_Standard_Calculation_Reset
 
@@ -482,6 +490,7 @@ contains
     use :: Error                         , only : Error_Report
     use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
           &                                       treeNode            , nodeComponentBasic
+    use :: Histories                     , only : history
     use :: Interface_GSL                 , only : GSL_Success         , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)       , operator(//)       , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                 , stellarLuminosities
@@ -501,7 +510,9 @@ contains
     !$omp threadprivate(message)
     type            (stellarLuminosities), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
-
+    type            (history            ), save                   :: historyStellar
+    !$omp threadprivate(historyStellar)
+    
     ! Return immediately if this class is not in use.
     if (.not.defaultDiskComponent%standardIsActive()) return
     ! Get the disk component.
@@ -550,6 +561,12 @@ contains
              specificAngularMomentum=0.0d0
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
+             historyStellar=disk%starFormationHistory    ()
+             call historyStellar%reset()
+             call disk         %starFormationHistorySet     (historyStellar)
+             historyStellar=disk%stellarPropertiesHistory()
+             call historyStellar%reset()
+             call disk          %stellarPropertiesHistorySet(historyStellar)
              ! We need to reset the stellar luminosities to zero. We can't simply use the "zeroStellarLuminosities" instance since
              ! our luminosities may have been truncated. If we were to use "zeroStellarLuminosities" then the number of stellar
              ! luminosities associated with the disk would change - but we are in the middle of differential evolution here and we
@@ -612,10 +629,16 @@ contains
              specificAngularMomentum=disk%angularMomentum()/massDisk
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
-          ! Reset the stellar, abundances and angular momentum of the disk.
+          ! Reset the stellar mass, abundances and angular momentum of the disk.
           call disk%      massStellarSet(                                 0.0d0)
           call disk%abundancesStellarSet(                        zeroAbundances)
           call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
+          historyStellar=disk%starFormationHistory    ()
+          call historyStellar%reset()
+          call disk         %starFormationHistorySet     (historyStellar)
+          historyStellar=disk%stellarPropertiesHistory()
+          call historyStellar%reset()
+          call disk          %stellarPropertiesHistorySet(historyStellar)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
@@ -706,11 +729,11 @@ contains
        if (spheroidStarFormationHistory%exists()) then
           timeBegin=  spheroidStarFormationHistory%time(1)
        else
-          basic    => node%basic()
-          timeBegin=  basic   %time ()
+          basic    => node %basic()
+          timeBegin=  basic%time ()
        end if
-       call starFormationHistory_%create(node,historyStarFormation,timeBegin)
-       call disk%starFormationHistorySet(     historyStarFormation          )
+       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
+       call disk                 %starFormationHistorySet(     historyStarFormation          )
     end if
     ! Record that the disk has been initialized.
     call disk%isInitializedSet(.true.)
@@ -761,11 +784,11 @@ contains
        ! Set scale for masses.
        !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
        !! tiny disks to high precision in massive spheroidal galaxies.
-        mass           =max(                                                      &
-            &               +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
-            &               +abs(disk%massStellar())+abs(spheroid%massStellar()), &
-            &               +massMinimum                                          &
-            &              )
+       mass           =max(                                                      &
+            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
+            &              +abs(disk%massStellar())+abs(spheroid%massStellar()), &
+            &              +massMinimum                                          &
+            &             )
        call disk%massGasScale          (mass)
        call disk%massStellarScale      (mass)
        call disk%massStellarFormedScale(mass)
@@ -1180,14 +1203,9 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solver
 
-  !![
-  <mergerTreeExtraOutputTask>
-   <unitName>Node_Component_Disk_Standard_Star_Formation_History_Output</unitName>
-  </mergerTreeExtraOutputTask>
-  !!]
-  subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
-    Store the star formation history in the output file.
+    Update the star formation history after an output time is reached.
     !!}
     use            :: Galacticus_Nodes          , only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
     use            :: Galactic_Structure_Options, only : componentTypeDisk
@@ -1196,49 +1214,29 @@ contains
     use            :: Kind_Numbers              , only : kind_int8
     use            :: Locks                     , only : ompLock
     implicit none
-    type   (treeNode         ), intent(inout), pointer :: node
+    class  (*                ), intent(inout)          :: self
+    type   (treeNode         ), intent(inout)          :: node
     integer(c_size_t         ), intent(in   )          :: iOutput
     integer(kind=kind_int8   ), intent(in   )          :: treeIndex
     logical                   , intent(in   )          :: nodePassesFilter
     type   (ompLock          ), intent(inout)          :: treeLock
     class  (nodeComponentDisk)               , pointer :: disk
     type   (history          )                         :: historyStarFormation
-
+    !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
+    
     ! Check if we are the default method.
     if (.not.defaultDiskComponent%standardIsActive()) return
     ! Output the star formation history if a disk exists for this component.
     disk                 => node%disk                ()
     historyStarFormation =  disk%starFormationHistory()
-    call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentTypeDisk,treeLock)
+    call starFormationHistory_%update(node,iOutput,historyStarFormation)
     ! Update the star formation history only if a disk exists.
     select type (disk)
     class is (nodeComponentDiskStandard)
        call disk%starFormationHistorySet(historyStarFormation)
     end select
     return
-  end subroutine Node_Component_Disk_Standard_Star_Formation_History_Output
-
-  !![
-  <mergerTreeExtraOutputFlush>
-   <unitName>Node_Component_Disk_Standard_Star_Formation_History_Flush</unitName>
-  </mergerTreeExtraOutputFlush>
-  !!]
-  subroutine Node_Component_Disk_Standard_Star_Formation_History_Flush(treeLock)
-    !!{
-    Flush star formation history data.
-    !!}
-    use :: Galacticus_Nodes          , only : defaultDiskComponent
-    use :: Galactic_Structure_Options, only : componentTypeDisk
-    use :: Locks                     , only : ompLock
-    implicit none
-    type(ompLock), intent(inout) :: treeLock
-
-    ! Check if we are the default method.
-    if (.not.defaultDiskComponent%standardIsActive()) return
-    ! Flush the star formation history.
-    call starFormationHistory_%outputFlush(componentTypeDisk,treeLock)
-    return
-  end subroutine Node_Component_Disk_Standard_Star_Formation_History_Flush
+  end subroutine mergerTreeExtraOutput
 
   !![
   <stateStoreTask>
@@ -1247,7 +1245,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
-    Write the tablulation state to file.
+    Write the tabulation state to file.
     !!}
     use            :: Display                          , only : displayMessage      , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                    , only : c_ptr               , c_size_t

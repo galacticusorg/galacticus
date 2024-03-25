@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,7 +61,7 @@
      type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
      logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
-          &                                                                  atCrossing
+          &                                                                  atCrossing                        , failIfNotInLightcone
    contains
      final     ::                 lightconeDestructor
      procedure :: elementCount => lightconeElementCount
@@ -93,14 +93,14 @@ contains
     class  (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class  (geometryLightconeClass        ), pointer       :: geometryLightcone_
     logical                                                :: includeObservedRedshift, includeAngularCoordinates, &
-         &                                                    atCrossing
+         &                                                    atCrossing             , failIfNotInLightcone
 
     !![
     <inputParameter>
       <name>includeObservedRedshift</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true output the observed redshfit (i.e. including the effects of pecular velocities).</description>
+      <description>If true output the observed redshift (i.e. including the effects of peculiar velocities).</description>
     </inputParameter>
     <inputParameter>
       <name>includeAngularCoordinates</name>
@@ -114,10 +114,16 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.</description>
     </inputParameter>
+    <inputParameter>
+      <name>failIfNotInLightcone</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, a node that is not in the lightcone will cause a fatal error. Otherwise, such nodes are simply assigned unphysical values for lightcone properties.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
     !!]
-    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_)
+    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -126,7 +132,7 @@ contains
     return
   end function lightconeConstructorParameters
 
-  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_) result(self)
+  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{
     Internal constructor for the ``lightcone'' output extractor property extractor class.
     !!}
@@ -135,11 +141,11 @@ contains
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
     logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates, &
-         &                                                            atCrossing
+         &                                                            atCrossing             , failIfNotInLightcone
     class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
     !![
-    <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, *cosmologyFunctions_, *geometryLightcone_"/>
+    <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, failIfNotInLightcone, *cosmologyFunctions_, *geometryLightcone_"/>
     !!]
 
     self%elementCount_=8
@@ -210,7 +216,7 @@ contains
 
   integer function lightconeElementCount(self,time)
     !!{
-    Return the number of elements in the lightconeple property extractors.
+    Return the number of elements in the lightcone property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout) :: self
@@ -241,6 +247,13 @@ contains
 
     if (.not.present(instance).and..not.self%atCrossing) call Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
+    if (.not.self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+       ! Node is not in the lightcone. If this is allowed, simply assign unphysical values.
+       if (self%failIfNotInLightcone) call Error_Report('node is not in lightcone'//{introspection:location})
+       lightconeExtract=-huge(0.0d0)
+       return
+    end if
+    ! Node is in the lightcone - compute properties on the lightcone.
     if (self%atCrossing) then
        lightconeExtract(1:3)=self%geometryLightcone_%positionLightconeCrossing(node                                   )
        lightconeExtract(4:6)=self%geometryLightcone_%velocityLightconeCrossing(node                                   )
@@ -264,7 +277,7 @@ contains
             &                                            /speedLight
        ! Compute the observed redshift. This is given by:
        !  1 + zₒ = (1 + zₕ) (1 + zₚ),
-       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the pecular redshift,
+       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the peculiar redshift,
        ! given by
        !  1 + zₚ = √[(1+βₚ)/(1-βₚ)]
        ! where βₚ=vₚ/c is the dimensionless peculiar velocity (e.g. Davis et al.; 2011; ApJ; 741; 67; eqn. 4;
@@ -311,13 +324,18 @@ contains
     else
        replicationCount=self%geometryLightcone_%replicationCount(node)
        if (replicationCount < 1_c_size_t) then
-          if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
-             label="true"
+          if (self%failIfNotInLightcone) then
+             if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+                label="true"
+             else
+                label="false"
+             end if
+             message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
+             call Error_Report(message//{introspection:location})
           else
-             label="false"
+             ! Nodes not in the lightcone are to be accepted.
+             replicationCount=1
           end if
-          message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
-          call Error_Report(message//{introspection:location})
        end if
        call instance%append(replicationCount)
        self%instanceIndex=instance%count()
@@ -327,7 +345,7 @@ contains
 
   subroutine lightconeNames(self,time,names)
     !!{
-    Return the names of the lightconeple properties.
+    Return the names of the lightcone properties.
     !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
@@ -342,7 +360,7 @@ contains
 
   subroutine lightconeDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the lightconeple properties.
+    Return the descriptions of the lightcone properties.
     !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
@@ -357,7 +375,7 @@ contains
 
   function lightconeUnitsInSI(self,time)
     !!{
-    Return the units of the lightconeple properties in the SI system.
+    Return the units of the lightcone properties in the SI system.
     !!}
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI

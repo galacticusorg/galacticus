@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a posterior sampling convergence class which latinHypercube converges.
+  Implementation of Latin hypercube state initializer.
   !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
@@ -35,7 +35,7 @@
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
      !!{
-     Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.
+     Implementation of a posterior sampling state initialization class which samples the initial state at random from the priors using Latin Hypercube sampling.
      !!}
      private
      integer                                      :: maximinTrialCount
@@ -123,7 +123,7 @@ contains
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
     class           (posteriorSampleStateClass                   ), intent(inout)                 :: simulationState
     class           (posteriorSampleLikelihoodClass              ), intent(inout)                 :: modelLikelihood
-    type            (modelParameterList                          ), intent(in   ), dimension(:  ) :: modelParameters_
+    type            (modelParameterList                          ), intent(inout), dimension(:  ) :: modelParameters_
     double precision                                              , intent(  out)                 :: timeEvaluatePrevious, logLikelihood , &
          &                                                                                           logPosterior
     integer         (kind=c_size_t                               ), allocatable  , dimension(:  ) :: order

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,7 +66,7 @@ program Tests_Warm_Dark_Matter
   call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Critical overdensity for collapse: warm dark matter")
-  ! Test critical overdensity for collapse in wark dark matter model.
+  ! Test critical overdensity for collapse in warm dark matter model.
   !![
   <referenceConstruct object="cosmologyParameters_"               >
    <constructor>

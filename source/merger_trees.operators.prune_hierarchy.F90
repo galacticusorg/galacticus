@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneHierarchy">
    <description>
-    A merger tree operator ckass module which prunes branches below a given level in the substructure hierarchy. In any tree,
+    A merger tree operator class module which prunes branches below a given level in the substructure hierarchy. In any tree,
     the primary progenitor of the base node has substructure hierarchy depth 0. A branch which connects directly to this
     primary progenitor branch has substructure hierarchy depth 1, while a branch which connects directly to that branch has
     substructure hierarchy depth 2, and so on. The tree is pruned of all branches of hierarchy depth equal to or greater than

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,44 +63,59 @@ contains
     return
   end subroutine downloadInitialize
   
-  subroutine downloadVarStr(url,outputFileName,status)
+  subroutine downloadVarStr(url,outputFileName,retries,retryWait,status)
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
-    type   (varying_string), intent(in   )           :: url   , outputFileName
+    type   (varying_string), intent(in   )           :: url    , outputFileName
+    integer                , intent(in   ), optional :: retries, retryWait
     integer                , intent(  out), optional :: status
     
-    call download(char(url),char(outputFileName),status)
+    call download(char(url),char(outputFileName),retries,retryWait,status)
     return
   end subroutine downloadVarStr
 
-  subroutine downloadChar(url,outputFileName,status)
+  subroutine downloadChar(url,outputFileName,retries,retryWait,status)
     !!{
     Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
     !!}
     use :: Error         , only : Error_Report     , errorStatusFail, errorStatusSuccess
     use :: System_Command, only : System_Command_Do
+    use :: File_Utilities, only : File_Exists      , File_Remove
     implicit none
     character(len=*), intent(in   )           :: url    , outputFileName
+    integer         , intent(in   ), optional :: retries, retryWait
     integer         , intent(  out), optional :: status
-    integer                                   :: status_
+    integer                                   :: status_, tries
+    !![
+    <optionalArgument name="retries"   defaultsTo="0" />
+    <optionalArgument name="retryWait" defaultsTo="60"/>
+    !!]
     
     call downloadInitialize()
-    status_=errorStatusFail
-    if      (downloadUsingWget) then
-       call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
-    else if (downloadUsingCurl) then
-       call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
-    else if (.not.present(status)) then
-       call Error_Report('no downloader available'//{introspection:location})
-    end if
-    if (present(status)) then
-       status=status_
-    else if (status_ /= 0) then
-       call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
-    end if
+    if (present(status)) status=0
+    tries=0
+    do while (tries <= retries_)
+       status_=errorStatusFail
+       if      (downloadUsingWget) then
+          call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
+       else if (downloadUsingCurl) then
+          call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
+       else if (.not.present(status)) then
+          call Error_Report('no downloader available'//{introspection:location})
+       end if
+       if (status_ == 0) then
+          if (present(status)) status=status_
+          return
+       end if
+       tries=tries+1
+       if (File_Exists(outputFileName)) call File_Remove(outputFileName)
+       call sleep(retryWait_)
+    end do
+    if (     present(status)                   )  status=status_
+    if (.not.present(status) .and. status_ /= 0) call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
     return
   end subroutine downloadChar
 
