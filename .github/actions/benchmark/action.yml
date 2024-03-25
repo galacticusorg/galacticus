@@ -21,8 +21,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
+      - name: List files
+        run: |
+          pwd
+          ls -lcrt
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:

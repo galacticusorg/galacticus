@@ -1374,6 +1374,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-profile
+      - name: List files
+        run: |
+          pwd
+          ls -lcrt
       - name: 'Dark matter-only subhalos benchmarks'
         uses: ./.github/actions/benchmark
         with:
