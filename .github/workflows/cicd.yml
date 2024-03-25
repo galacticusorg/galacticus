@@ -1354,19 +1354,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: benchmark-milkyWay
-      - name: Download artifacts (validation-darkMatterOnlySubhalos)
+      - name: Download artifacts (validate-darkMatterOnlySubhalos)
         uses: actions/download-artifact@v4
         with:
-          name: validation-darkMatterOnlySubhalos
-      - name: Download artifacts (validation-milkyWay)
+          name: validate-darkMatterOnlySubhalos
+      - name: Download artifacts (validate-milkyWay)
         uses: actions/download-artifact@v4
         with:
-          name: validation-milkyWayModel 
-      - name: Download artifacts (validation-PonosV)
+          name: validate-milkyWayModel 
+      - name: Download artifacts (validate-PonosV)
         uses: actions/download-artifact@v4
         with:
-          name: validation-PonosV
-      - name: Download artifacts (validation-idealizedSubhaloSimulations)
+          name: validate-PonosV
+      - name: Download artifacts (validate-idealizedSubhaloSimulations)
         uses: actions/download-artifact@v4
         with:
           name: validate-idealizedSubhaloSimulations
