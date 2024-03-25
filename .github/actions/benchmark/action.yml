@@ -9,9 +9,9 @@ inputs:
   suffix:
     description: 'Suffix for file names'
     required: true
-  path:
-    description: 'Subpath for results'
-    required: true
+  artifact:
+    description: 'Name of the artifact to download'
+    required: false
   threshold:
     description: 'Percentage threshold for alerting'
     required: true
@@ -21,10 +21,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-      - name: List files
-        run: |
-          pwd
-          ls -lcrt
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact == '' && format('{0}-{1}',inputs.type,inputs.suffix) || inputs.artifact }}
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
@@ -36,7 +36,7 @@ runs:
           alert-comment-cc-users: '@abensonca'
           github-token: ${{ inputs.token }}
           auto-push: false
-          benchmark-data-dir-path: dev/${{ inputs.path }}/${{ inputs.suffix }}
+          benchmark-data-dir-path: dev/bench/${{ inputs.suffix }}
           gh-pages-branch: gh-pages
           alert-threshold: ${{ inputs.threshold }}
           max-items-in-chart: 256

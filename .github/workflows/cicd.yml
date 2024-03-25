@@ -657,7 +657,7 @@ jobs:
       cacheData: 1
       install: time
       uploadFile: testSuite/outputs/benchmark_milkyWay.json
-      uploadName: benchmark-milkyWay
+      uploadName: benchmark-milkyWayModel
     secrets: inherit
   # Profiling
   Profile-Dark-Matter-Only-Subhalos:
@@ -1346,45 +1346,12 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Download artifacts (benchmark-darkMatterOnlySubhalos)
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-darkMatterOnlySubhalos
-      - name: Download artifacts (benchmark-milkyWay)
-        uses: actions/download-artifact@v4
-        with:
-          name: benchmark-milkyWay
-      - name: Download artifacts (validate-darkMatterOnlySubhalos)
-        uses: actions/download-artifact@v4
-        with:
-          name: validate-darkMatterOnlySubhalos
-      - name: Download artifacts (validate-milkyWay)
-        uses: actions/download-artifact@v4
-        with:
-          name: validate-milkyWayModel 
-      - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v4
-        with:
-          name: validate-PonosV
-      - name: Download artifacts (validate-idealizedSubhaloSimulations)
-        uses: actions/download-artifact@v4
-        with:
-          name: validate-idealizedSubhaloSimulations
-      - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v4
-        with:
-          name: build-profile
-      - name: List files
-        run: |
-          pwd
-          ls -lcrt
       - name: 'Dark matter-only subhalos benchmarks'
         uses: ./.github/actions/benchmark
         with:
           name: 'Dark matter-only subhalos benchmarks'
           type: 'benchmark'
           suffix: 'darkMatterOnlySubhalos'
-          path: 'bench'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model benchmarks'
@@ -1392,8 +1359,7 @@ jobs:
         with:
           name: 'Milky Way model benchmarks'
           type: 'benchmark'
-          suffix: 'milkyWay'
-          path: 'bench'
+          suffix: 'milkyWayModel'
           threshold: '150%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation'
@@ -1402,7 +1368,6 @@ jobs:
           name: 'Dark matter-only subhalos validation'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalos'
-          path: 'valid'
           threshold: '105%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model benchmarks'
@@ -1411,7 +1376,6 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'validate'
           suffix: 'milkyWayModel'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
@@ -1419,8 +1383,8 @@ jobs:
         with:
           name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
           type: 'validate'
+          artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.005_gamma1.5'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)'
@@ -1430,7 +1394,6 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.01_gamma1.5'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)'
@@ -1440,7 +1403,6 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.05_gamma0.5'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)'
@@ -1450,7 +1412,6 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.05_gamma1.0'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)'
@@ -1460,7 +1421,6 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma0.0'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)'
@@ -1470,7 +1430,6 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma0.5'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)'
@@ -1480,7 +1439,6 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.2_gamma1.0'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)'
@@ -1490,9 +1448,16 @@ jobs:
           type: 'validate'
           artifact: 'validate-idealizedSubhaloSimulations'
           suffix: 'idealizedSubhaloSimulation_rpra0.4_gamma0.0'
-          path: 'valid'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download artifacts (validate-PonosV)
+        uses: actions/download-artifact@v4
+        with:
+          name: validate-PonosV
+      - name: Download artifacts (build-profile)
+        uses: actions/download-artifact@v4
+        with:
+          name: build-profile
       - name: Push validation results
         run: |
           git checkout gh-pages
