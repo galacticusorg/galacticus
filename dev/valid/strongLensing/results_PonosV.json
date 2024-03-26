@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "percentageBelow" : 46.875,
-      "target" : 0.006,
-      "percentageAbove" : 53.125
-   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 57.1428571428571,
-      "percentageAbove" : 42.8571428571429
+      "percentageBelow" : 64.2857142857143,
+      "percentageAbove" : 35.7142857142857,
+      "target" : 0.85
    },
    "commit" : {
-      "message" : "fix: Correct file name for artifact upload",
       "author" : {
          "email" : "abenson@obs.carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/759d2ea43ba78b72c1d2df543762181dbf715d67",
-      "id" : "759d2ea43ba78b72c1d2df543762181dbf715d67",
-      "timestamp" : "Mon, 25 Mar 2024 13:22:32 -0700"
+      "message" : "feat: Add a title for the build profile page",
+      "timestamp" : "Tue, 26 Mar 2024 07:55:11 -0700",
+      "id" : "c4658de9a148da9c2519051f7e2f5a43b2273a3d",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/c4658de9a148da9c2519051f7e2f5a43b2273a3d"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageBelow" : 53.125,
+      "target" : 0.006,
+      "percentageAbove" : 46.875
+   }
 }
