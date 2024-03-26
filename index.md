@@ -22,17 +22,17 @@ Here you can find:
 	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma1.0)
 	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.4_gamma0.0)
 * Validation plots and data for:
-    * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
+    * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
     * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/valid/milkyWayModel/)
     * Idealized subhalo simulations (see [Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D) for details)
-	    * [rₚ/rₐ=0.005; γ=1.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.005_gamma1.5)
-	    * [rₚ/rₐ=0.01; γ=1.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.01_gamma1.5)
-	    * [rₚ/rₐ=0.05; γ=0.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.05_gamma0.5)
-	    * [rₚ/rₐ=0.05; γ=1.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.05_gamma1.0)
-	    * [rₚ/rₐ=0.2; γ=0.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.2_gamma0.0)
-	    * [rₚ/rₐ=0.2; γ=0.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.2_gamma0.5)
-	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.2_gamma1.0)
-	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulation_rpra0.4_gamma0.0)
+	    * [rₚ/rₐ=0.005; γ=1.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/idealizedSubhaloSimulation_rpra0.005_gamma1.5.html)
+	    * [rₚ/rₐ=0.01; γ=1.5](https://galacticusorg.github.io/galacticus/
+	    * [rₚ/rₐ=0.05; γ=0.5](https://galacticusorg.github.io/galacticus/
+	    * [rₚ/rₐ=0.05; γ=1.0](https://galacticusorg.github.io/galacticus/
+	    * [rₚ/rₐ=0.2; γ=0.0](https://galacticusorg.github.io/galacticus/
+	    * [rₚ/rₐ=0.2; γ=0.5](https://galacticusorg.github.io/galacticus/
+	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/
+	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/
     * [Strong lensing measurements](https://galacticusorg.github.io/galacticus/dev/valid/strongLensing/)
 * Meta metrics
     * [Build profile](https://galacticusorg.github.io/galacticus/dev/bench/meta/buildProfile)
