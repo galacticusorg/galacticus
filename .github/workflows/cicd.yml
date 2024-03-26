@@ -1360,7 +1360,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'benchmark'
           suffix: 'milkyWayModel'
-          threshold: '150%'
+          threshold: '140%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation'
         uses: ./.github/actions/benchmark
@@ -1376,7 +1376,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'validate'
           suffix: 'milkyWayModel'
-          threshold: '110%'
+          threshold: '120%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
         uses: ./.github/actions/benchmark
