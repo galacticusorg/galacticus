@@ -524,8 +524,8 @@ contains
              specificAngularMomentum=spheroid%angularMomentum()/massSpheroid
           end if
           ! Reset the gas, abundances and angular momentum of the spheroid.
-          call spheroid%        massGasSet(                                                      0.0d0)
-          call spheroid%  abundancesGasSet(                                             zeroAbundances)
+          call spheroid%        massGasSet(                                         0.0d0)
+          call spheroid%  abundancesGasSet(                                zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
@@ -587,10 +587,12 @@ contains
        ! Trap negative angular momentum.
        if (spheroid%angularMomentum() < 0.0d0) then
           ! Estimate a reasonable specific angular momentum.
-          specificAngularMomentum=spheroid%radius()*spheroid%velocity()
+          specificAngularMomentum=+spheroid%radius                         () &
+               &                  *spheroid%velocity                       () &
+               &                  /         ratioAngularMomentumScaleRadius
           ! Get the mass of the spheroid.
-          massSpheroid= spheroid%massGas    () &
-               &       +spheroid%massStellar()
+          massSpheroid           =+spheroid%massGas                        () &
+               &                  +spheroid%massStellar                    ()
           ! Reset the angular momentum of the spheroid.
           call spheroid%angularMomentumSet(specificAngularMomentum*massSpheroid)
           ! Indicate that ODE evolution should continue after this state change.
@@ -784,15 +786,17 @@ contains
     Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     zero and we'd like to prevent them from becoming negative.
     !!}
-    use :: Abundances_Structure          , only : abs                     , max        , operator(*)          , unitAbundances               , &
+    use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances               , &
          &                                        abundances
-    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, treeNode   , nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentDisk, nodeComponentSpheroid, nodeComponentSpheroidStandard, &
+         &                                        treeNode
     use :: Histories                     , only : history                 , operator(*)
-    use :: Stellar_Luminosities_Structure, only : abs                     , max        , operator(*)          , stellarLuminosities          , &
+    use :: Stellar_Luminosities_Structure, only : abs                     , max              , operator(*)          , stellarLuminosities          , &
          &                                        unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (nodeComponentDisk    )               , pointer :: disk
     double precision                       , parameter              :: massMinimum                   =1.0d+0
     double precision                       , parameter              :: angularMomentumMinimum        =0.1d+0
     double precision                       , parameter              :: luminosityMinimum             =1.0d+0
@@ -808,17 +812,21 @@ contains
     ! Check if a standard spheroid component exists.
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-       ! Set scale for angular momentum.       
-       !! The scale here (and for other quantities below) does not reference the disk component. This allows us to accurately
-       !! track the formation of spheroids even in massive diks (where, when the spheroid first forms, it may be much less massive
-       !! than the disk). If the disk were included here, initial evolution of the spheroid can be very inaccurate leading to
-       !! unphysical behavior.
-       angularMomentum=+abs(spheroid%angularMomentum())
+       ! Get the disk component.
+       disk => node%disk()
+       ! Set scale for angular momentum.
+       !! The scale here (and for other quantities below) combines the mass of disk and spheroid. This avoids attempts to solve
+       !! tiny spheroids to high precision in massive disk galaxies. This is particularly important here as dynamical processes
+       !! (such as bar instabilities) can transfer mass/angular momentum/metals from such a disk to the spheroid. In cases where
+       !! such a process creates the spheroid then, by definition, the spheroid initially has no mass/angular momentum.
+       angularMomentum=+abs(disk    %angularMomentum()) &
+            &          +abs(spheroid%angularMomentum())
        call spheroid%angularMomentumScale  (max(angularMomentum,angularMomentumMinimum))
        ! Set scale for masses.
-       mass           =max(                              &
-            &              +abs(spheroid%massStellar()), &
-            &              +massMinimum                  &
+       mass           =max(                                                      &
+            &              +abs(disk%massGas    ())+abs(spheroid%massGas    ())  &
+            &              +abs(disk%massStellar())+abs(spheroid%massStellar()), &
+            &              +massMinimum                                          &
             &             )
        call spheroid%          massGasScale(mass)
        call spheroid%      massStellarScale(mass)
@@ -827,6 +835,8 @@ contains
        if (abundancesCount > 0) then
           ! Set scale for abundances.
           abundancesScale=+max(                                     &
+               &               +abs(+disk    %abundancesGas    ())  &
+               &               +abs(+disk    %abundancesStellar())  &
                &               +abs(+spheroid%abundancesGas    ())  &
                &               +abs(+spheroid%abundancesStellar()), &
                &               +max(                                &
@@ -847,6 +857,7 @@ contains
        end if
        ! Set scales for stellar luminosities.
        stellarLuminositiesScale=max(                                      &
+            &                       +abs(disk    %luminositiesStellar())  &
             &                       +abs(spheroid%luminositiesStellar()), &
             &                           +unitStellarLuminosities          &
             &                           *luminosityMinimum                &
@@ -910,7 +921,7 @@ contains
          &                                                               history_
     double precision                                                  :: angularMomentum               , diskSpecificAngularMomentum    , &
          &                                                               massSpheroid                  , spheroidSpecificAngularMomentum, &
-         &                                                               radiusRemnant                 ,velocityCircularRemnant         , &
+         &                                                               radiusRemnant                 , velocityCircularRemnant        , &
          &                                                               angularMomentumSpecificRemnant
     type            (enumerationDestinationMergerType)                :: destinationGasSatellite       , destinationGasHost             , &
          &                                                               destinationStarsHost          , destinationStarsSatellite
