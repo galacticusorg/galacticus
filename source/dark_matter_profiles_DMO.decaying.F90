@@ -32,9 +32,9 @@
      A dark matter halo profile class implementing decaying dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
-     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_                => null()
-     double precision                                     :: lifetime_, massSplitting_
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
+     double precision                                     :: lifetime_                      , massSplitting_
      logical                                              :: massLoss_
    contains
      !![
@@ -91,15 +91,27 @@ contains
          &                                                            toleranceRelativePotential
 
     !![
+     <inputParameter>
+      <name>toleranceRelativeVelocityDispersion</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersionMaximum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
     self=darkMatterProfileDMODecaying(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileDMO_"  />
-    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterParticle_"  />
     !!]
     return
@@ -116,21 +128,21 @@ contains
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterParticleClass     ), intent(in   ), target :: darkMatterParticle_
-    double precision                                   , intent(in   )    :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+    double precision                              , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
          &                                                                   toleranceRelativePotential
    !![
     <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterParticle_, *darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime_ = darkMatterParticle_%lifetime()
-       self%massSplitting_ = darkMatterParticle_%massSplitting()
-       self%massLoss_ = darkMatterParticle_%massLoss()
+       self%lifetime_     =darkMatterParticle_%lifetime     ()
+       self%massSplitting_=darkMatterParticle_%massSplitting()
+       self%massLoss_     =darkMatterParticle_%massLoss     ()
     class default
        ! No decays.
-       self%lifetime_=-1.0d0
-       self%massSplitting_=0.0d0
-       self%massLoss_=.false.
+       self%lifetime_     =-1.0d0
+       self%massSplitting_=+0.0d0
+       self%massLoss_     =.false.
     end select
     ! Initialize.
     self%genericLastUniqueID=-1_kind_int8
@@ -159,7 +171,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%darkMatterParticle_"/>
+    <objectDestructor name="self%darkMatterParticle_"  />
     !!]
     return
   end subroutine decayingDestructor
