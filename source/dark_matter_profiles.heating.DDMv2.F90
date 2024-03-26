@@ -128,10 +128,7 @@ contains
                         &              +1.0d0 - exp(-basic%time() / self%lifetime_)                 &
                         &                     )                                                     &
                         &              *self%massSplitting_**2                                      &
-                        &              *(speedLight/kilo)**2                                        &
-                        &              +0.0d0*self%massSplitting_                                   &
-                        &              *(speedLight/kilo)                                           &
-                        &              *darkMatterProfileDMO_%radialVelocityDispersion(node, radius)
+                        &              *(speedLight/kilo)**2
     if (self%massLoss_) massLossEnergy =  self%gamma_*self%massSplitting_                          &
                             &             *darkMatterProfileDMO_%enclosedMass(node, radius)        &
                             &             *gravitationalConstantGalacticus/radius                  &
@@ -160,21 +157,13 @@ contains
     basic             => node%basic()
     if (self%massLoss_) then
       massLossGradient=self%gamma_*self%massSplitting_                                                              &
-             &        *(darkMatterProfileDMO_%enclosedMass(node, radius)*gravitationalConstantGalacticus/(radius**2)&
-             &        +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius) &
+             &        *(darkMatterProfileDMO_%enclosedMass(node, radius)*gravitationalConstantGalacticus/radius&
+             &        +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius**2)/radius &
              &        *(+1.0d0 - exp(-basic%time() / self%lifetime_))
     else
       massLossGradient=+0.0d0
     end if
-    if (self%heating_) then
-      heatGradient=+0.0d0*self%massSplitting_*(speedLight/kilo)*                                          &
-            &      (-0.5d0*darkMatterProfileDMO_%densityLogSlope(node,radius)                             &
-            &      *darkMatterProfileDMO_%radialVelocityDispersion(node, radius)/radius                   &
-            &      -0.5d0*gravitationalConstantGalacticus*darkMatterProfileDMO_%enclosedMass(node, radius)&
-            &      /(darkMatterProfileDMO_%radialVelocityDispersion(node, radius)*radius**2))
-    else
-      heatGradient=+0.0d0
-    end if
+    heatGradient=+0.0d0
     DDMv2SpecificEnergyGradient = massLossGradient + heatGradient
     return
   end function DDMv2SpecificEnergyGradient
