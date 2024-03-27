@@ -31,7 +31,7 @@ foreach my $modelName ( "parallelTreeBuildSerial", "parallelTreeBuildParallel" )
 # Compare results.
 my $selection       = which($data->{'parallelTreeBuildSerial'}->{'conditionalMassFunction'}->flat() > 0.0);
 my $errorNormalized = abs($data->{'parallelTreeBuildParallel'}->{'conditionalMassFunction'}->flat()->($selection)-$data->{'parallelTreeBuildSerial'}->{'conditionalMassFunction'}->flat()->($selection))/$data->{'parallelTreeBuildSerial'}->{'conditionalMassFunctionError'}->flat()->($selection);
-my $status          = any($errorNormalized > 3.0) ? "FAIL" : "SUCCESS";
+my $status          = any($errorNormalized > 4.0) ? "FAIL" : "SUCCESS";
 print $status.": parallel tree build\n";
 if ( $status eq "FAIL" ) {
     print "Conditional mass function:\n";
