@@ -277,6 +277,7 @@ contains
        <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !!]
        !$omp end critical(mergerTreeConstructBuildDeepCopyReset)
+       call self%randomSequenceNonDeterministicWarn(tree)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber

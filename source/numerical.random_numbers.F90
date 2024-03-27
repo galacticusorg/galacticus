@@ -35,7 +35,12 @@ module Numerical_Random_Numbers
    <description>Class providing random number generators.</description>
    <default>GSL</default>
    <method name="mpiIndependent" >
-    <description>Return true if this random number generator produces independent sequences per MPI process.</description>
+    <description>Return true if this random number generator produces independent sequences per MPI process (when using the same seed and offsetting is requested).</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+   <method name="openMPIndependent" >
+    <description>Return true if this random number generator produces independent sequences per OpenMP thread (when using the same seed and offsetting is requested).</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>

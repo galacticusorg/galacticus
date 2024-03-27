@@ -2391,13 +2391,17 @@ CODE
 		    if ( exists($method->{'modules'}) ) {
 			if ( reftype($method->{'modules'}) ) {
 			    # Array of modules, with possible "only" clauses.
-			    foreach my $module ( @{$method->{'modules'}} ) {
-				$modulePostContains->{'content'} .= "      use ".$module->{'name'}.(exists($module->{'only'}) ? ", only : ".join(",",@{$module->{'only'}}) : "")."\n";
+			    my @modules = reftype($method->{'modules'}) eq "ARRAY" ? @{$method->{'modules'}} : &List::ExtraUtils::hashList($method->{'modules'},keyAs => "name");
+			    foreach my $module ( @modules ) {
+				my $moduleName = $module->{'name'};
+				my $prefix = $moduleName =~ m/OMP_Lib/ ? "!\$ " : "";
+				$modulePostContains->{'content'} .= "      ".$prefix."use ".$moduleName.(exists($module->{'only'}) ? ", only : ".join(",",&List::ExtraUtils::as_array($module->{'only'})) : "")."\n";
 			    }
 			} else {
 			    # Simple space-separated list of modules.
 			    foreach ( split(/\s+/,$method->{'modules'}) ) {
-				$modulePostContains->{'content'} .= "      use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
+				my $prefix = $_ =~ m/OMP_Lib/ ? "!\$ " : "";
+				$modulePostContains->{'content'} .= "      ".$prefix."use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
 			    }
 			}
 		    }

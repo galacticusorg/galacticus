@@ -159,6 +159,7 @@ contains
        ! Read the tree(s).
        allocate(tree)
        call mergerTreeStateFromFile(tree,char(self%fileName),self%randomNumberGenerator_)
+       call self%randomSequenceNonDeterministicWarn(tree)
     else
        nullify(tree)
     end if

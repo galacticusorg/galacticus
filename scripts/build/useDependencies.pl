@@ -10,6 +10,7 @@ use Galacticus::Build::Directives;
 use Fortran::Utils;
 use List::ExtraUtils;
 use Storable;
+use Scalar::Util qw(reftype);
 
 # Locate source files which have dependencies on modules.
 # Andrew Benson (06-September-2016)
@@ -195,11 +196,27 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	foreach my $method ( exists($functionClass->{'method'}->{'name'}) ? $functionClass->{'method'} : map {$functionClass->{'method'}->{$_}} keys(%{$functionClass->{'method'}}) ) {
 	    next
 		unless ( exists($method->{'modules'}) );
-	    push
-		(
-		 @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},
-		 map {$_ eq "hdf5" ? () : $workDirectoryName.$_.".mod"} split(" ",lc($method->{'modules'}))
-		);
+	    if ( reftype($method->{'modules'}) ) {
+		# Array of modules.
+		foreach my $moduleName ( map {lc($_)} sort(keys(%{$method->{'modules'}}))  ) {
+		    push
+			(
+			 @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},
+			 $workDirectoryName.$moduleName.".mod"
+			)
+			unless ( grep {$_ eq $moduleName} @externalModules );
+		}
+	    } else {
+		# Simple space-separated list of modules.
+		foreach my $moduleName ( split(" ",lc($method->{'modules'})) ) {
+		    push
+			(
+			 @{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},
+			 $workDirectoryName.$moduleName.".mod"
+			)
+			unless ( grep {$_ eq $moduleName} @externalModules );
+		}
+	    }
 	}
     }
     # Scan files on the stack until stack is empty.
