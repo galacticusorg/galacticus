@@ -11,14 +11,6 @@ window.ANALYSES_DATA = {
                13.4184132724581,
                16.4481795493033
             ],
-            "yDataset" : [
-               1,
-               0.158464966246537,
-               0.0401878340857857,
-               0.0126114629987425,
-               0.00388830372505184,
-               0.000744725480557935
-            ],
             "yDatasetTarget" : [
                1,
                0.0949603367095694,
@@ -26,21 +18,29 @@ window.ANALYSES_DATA = {
                0.0136160183783095,
                0.00421828125939309,
                0.000968975240851141
+            ],
+            "yDataset" : [
+               1,
+               0.158464966246537,
+               0.0401878340857857,
+               0.0126114629987425,
+               0.00388830372505184,
+               0.000744725480557935
             ]
          },
          "attributes" : {
             "name" : "satelliteBoundMass",
-            "yDataset" : "fractionBoundMass",
-            "xDataset" : "time",
-            "yDatasetTarget" : "fractionBoundMassTarget",
-            "description" : "Satellite bound mass fraction vs. time.",
-            "targetLabel" : "Simulations",
-            "xAxisIsLog" : 0,
             "xAxisLabel" : "t/Gyr",
-            "type" : "function1D",
+            "yAxisIsLog" : 1,
+            "yDataset" : "fractionBoundMass",
             "logLikelihood" : 21.5812642916508,
-            "yAxisLabel" : "M_bound/M_bound,0",
-            "yAxisIsLog" : 1
+            "xAxisIsLog" : 0,
+            "xDataset" : "time",
+            "description" : "Satellite bound mass fraction vs. time.",
+            "yDatasetTarget" : "fractionBoundMassTarget",
+            "targetLabel" : "Simulations",
+            "type" : "function1D",
+            "yAxisLabel" : "M_bound/M_bound,0"
          }
       },
       {
@@ -71,21 +71,35 @@ window.ANALYSES_DATA = {
             ]
          },
          "attributes" : {
-            "targetLabel" : "Simulations",
-            "xAxisLabel" : "t/Gyr",
-            "xAxisIsLog" : 0,
-            "logLikelihood" : 7.89676175266811,
-            "type" : "function1D",
             "yAxisIsLog" : 1,
-            "yAxisLabel" : "R_max/R_max,0",
             "yDataset" : "fractionRadiusVelocityMaximum",
+            "logLikelihood" : 7.89676175266811,
             "name" : "satelliteRadiusVelocityMaximum",
-            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "xAxisLabel" : "t/Gyr",
+            "type" : "function1D",
+            "yAxisLabel" : "R_max/R_max,0",
+            "xAxisIsLog" : 0,
             "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
-            "xDataset" : "time"
+            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "xDataset" : "time",
+            "targetLabel" : "Simulations"
          }
       },
       {
+         "attributes" : {
+            "description" : "Satellite maximum circular velocity fraction vs. time.",
+            "yDatasetTarget" : "fractionVelocityMaximumTarget",
+            "xDataset" : "time",
+            "targetLabel" : "Simulations",
+            "xAxisIsLog" : 0,
+            "yAxisLabel" : "V_max/V_max,0",
+            "type" : "function1D",
+            "xAxisLabel" : "t/Gyr",
+            "name" : "satelliteVelocityMaximum",
+            "yDataset" : "fractionVelocityMaximum",
+            "logLikelihood" : 9.84983054159055,
+            "yAxisIsLog" : 1
+         },
          "data" : {
             "xDataset" : [
                1,
@@ -95,14 +109,6 @@ window.ANALYSES_DATA = {
                13.4184132724581,
                16.4481795493033
             ],
-            "yDataset" : [
-               1,
-               0.684901616604528,
-               0.453288530438494,
-               0.301514783234956,
-               0.193900584057524,
-               0.115486433250093
-            ],
             "yDatasetTarget" : [
                1,
                0.687137604481274,
@@ -110,33 +116,27 @@ window.ANALYSES_DATA = {
                0.348572244213638,
                0.229361108356018,
                0.137132802133288
+            ],
+            "yDataset" : [
+               1,
+               0.684901616604528,
+               0.453288530438494,
+               0.301514783234956,
+               0.193900584057524,
+               0.115486433250093
             ]
-         },
-         "attributes" : {
-            "xAxisIsLog" : 0,
-            "xAxisLabel" : "t/Gyr",
-            "targetLabel" : "Simulations",
-            "yAxisLabel" : "V_max/V_max,0",
-            "yAxisIsLog" : 1,
-            "type" : "function1D",
-            "logLikelihood" : 9.84983054159055,
-            "name" : "satelliteVelocityMaximum",
-            "yDataset" : "fractionVelocityMaximum",
-            "xDataset" : "time",
-            "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "yDatasetTarget" : "fractionVelocityMaximumTarget"
          }
       }
    ],
-   "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.05_alpha_1.0_beta_3.0_gamma_0.5.xml",
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c4658de9a148da9c2519051f7e2f5a43b2273a3d",
-      "id" : "c4658de9a148da9c2519051f7e2f5a43b2273a3d",
-      "message" : "feat: Add a title for the build profile page",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/5d8af8db7fbe60b96437d70092c152863e6c147d",
+      "message" : "fix(style): Formatting only",
+      "timestamp" : "Wed, 27 Mar 2024 14:55:16 +0000",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abenson@obs.carnegiescience.edu"
+         "email" : "abenson@carnegiescience.edu"
       },
-      "timestamp" : "Tue, 26 Mar 2024 07:55:11 -0700"
-   }
+      "id" : "5d8af8db7fbe60b96437d70092c152863e6c147d"
+   },
+   "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.05_alpha_1.0_beta_3.0_gamma_0.5.xml"
 }

@@ -1,20 +1,6 @@
 window.ANALYSES_DATA = {
    "results" : [
       {
-         "attributes" : {
-            "xAxisIsLog" : 0,
-            "description" : "Satellite bound mass fraction vs. time.",
-            "yAxisIsLog" : 1,
-            "logLikelihood" : 57.2226085652273,
-            "xDataset" : "time",
-            "targetLabel" : "Simulations",
-            "yDataset" : "fractionBoundMass",
-            "name" : "satelliteBoundMass",
-            "xAxisLabel" : "t/Gyr",
-            "yAxisLabel" : "M_bound/M_bound,0",
-            "yDatasetTarget" : "fractionBoundMassTarget",
-            "type" : "function1D"
-         },
          "data" : {
             "xDataset" : [
                1,
@@ -61,38 +47,38 @@ window.ANALYSES_DATA = {
                0.0210907257864023,
                0.0195390023372735
             ]
+         },
+         "attributes" : {
+            "yDatasetTarget" : "fractionBoundMassTarget",
+            "xDataset" : "time",
+            "type" : "function1D",
+            "yDataset" : "fractionBoundMass",
+            "name" : "satelliteBoundMass",
+            "logLikelihood" : 57.2226085652273,
+            "xAxisIsLog" : 0,
+            "yAxisLabel" : "M_bound/M_bound,0",
+            "yAxisIsLog" : 1,
+            "xAxisLabel" : "t/Gyr",
+            "description" : "Satellite bound mass fraction vs. time.",
+            "targetLabel" : "Simulations"
          }
       },
       {
-         "attributes" : {
-            "yAxisLabel" : "R_max/R_max,0",
-            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
-            "xAxisLabel" : "t/Gyr",
-            "type" : "function1D",
-            "yAxisIsLog" : 1,
-            "xAxisIsLog" : 0,
-            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
-            "targetLabel" : "Simulations",
-            "name" : "satelliteRadiusVelocityMaximum",
-            "yDataset" : "fractionRadiusVelocityMaximum",
-            "logLikelihood" : 29.5560046299289,
-            "xDataset" : "time"
-         },
          "data" : {
-            "xDataset" : [
+            "yDataset" : [
                1,
-               4.12954899853765,
-               7.0595325536903,
-               9.99858726536044,
-               12.9285708205131,
-               15.9583370973582,
-               18.7976090873359,
-               21.7275926424885,
-               24.6666473541587,
-               27.5966309093113,
-               30.526614464464,
-               33.4656691761341,
-               36.3956527312867
+               0.56018491975203,
+               0.398053588336471,
+               0.313642135181891,
+               0.261901944662724,
+               0.226830812918653,
+               0.20151066984555,
+               0.18218452326444,
+               0.166894269565222,
+               0.154441710791853,
+               0.144064800192846,
+               0.135257365444449,
+               0.12767191078095
             ],
             "yDatasetTarget" : [
                1,
@@ -109,37 +95,51 @@ window.ANALYSES_DATA = {
                0.15658309694631,
                0.143969304872955
             ],
-            "yDataset" : [
+            "xDataset" : [
                1,
-               0.56018491975203,
-               0.398053588336471,
-               0.313642135181891,
-               0.261901944662724,
-               0.226830812918653,
-               0.20151066984555,
-               0.18218452326444,
-               0.166894269565222,
-               0.154441710791853,
-               0.144064800192846,
-               0.135257365444449,
-               0.12767191078095
+               4.12954899853765,
+               7.0595325536903,
+               9.99858726536044,
+               12.9285708205131,
+               15.9583370973582,
+               18.7976090873359,
+               21.7275926424885,
+               24.6666473541587,
+               27.5966309093113,
+               30.526614464464,
+               33.4656691761341,
+               36.3956527312867
             ]
+         },
+         "attributes" : {
+            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
+            "xDataset" : "time",
+            "yDataset" : "fractionRadiusVelocityMaximum",
+            "type" : "function1D",
+            "name" : "satelliteRadiusVelocityMaximum",
+            "logLikelihood" : 29.5560046299289,
+            "xAxisIsLog" : 0,
+            "yAxisLabel" : "R_max/R_max,0",
+            "yAxisIsLog" : 1,
+            "xAxisLabel" : "t/Gyr",
+            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "targetLabel" : "Simulations"
          }
       },
       {
          "attributes" : {
-            "logLikelihood" : 23.0366044363298,
-            "xDataset" : "time",
-            "targetLabel" : "Simulations",
-            "yDataset" : "fractionVelocityMaximum",
-            "name" : "satelliteVelocityMaximum",
-            "xAxisIsLog" : 0,
-            "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "yAxisIsLog" : 1,
-            "type" : "function1D",
-            "xAxisLabel" : "t/Gyr",
             "yAxisLabel" : "V_max/V_max,0",
-            "yDatasetTarget" : "fractionVelocityMaximumTarget"
+            "xAxisIsLog" : 0,
+            "xAxisLabel" : "t/Gyr",
+            "yAxisIsLog" : 1,
+            "targetLabel" : "Simulations",
+            "description" : "Satellite maximum circular velocity fraction vs. time.",
+            "yDatasetTarget" : "fractionVelocityMaximumTarget",
+            "xDataset" : "time",
+            "type" : "function1D",
+            "yDataset" : "fractionVelocityMaximum",
+            "logLikelihood" : 23.0366044363298,
+            "name" : "satelliteVelocityMaximum"
          },
          "data" : {
             "yDataset" : [
@@ -157,21 +157,6 @@ window.ANALYSES_DATA = {
                0.603050741458659,
                0.594090206077777
             ],
-            "yDatasetTarget" : [
-               1,
-               0.879291191773969,
-               0.819162578566526,
-               0.778793334718414,
-               0.747983002200756,
-               0.724450781641512,
-               0.705770108705283,
-               0.68894374295876,
-               0.676533873709165,
-               0.663650163515334,
-               0.652560059411034,
-               0.642746050108547,
-               0.635142290739461
-            ],
             "xDataset" : [
                1,
                4.12954899853765,
@@ -186,20 +171,35 @@ window.ANALYSES_DATA = {
                30.526614464464,
                33.4656691761341,
                36.3956527312867
+            ],
+            "yDatasetTarget" : [
+               1,
+               0.879291191773969,
+               0.819162578566526,
+               0.778793334718414,
+               0.747983002200756,
+               0.724450781641512,
+               0.705770108705283,
+               0.68894374295876,
+               0.676533873709165,
+               0.663650163515334,
+               0.652560059411034,
+               0.642746050108547,
+               0.635142290739461
             ]
          }
       }
    ],
-   "commit" : {
-      "message" : "feat: Add a title for the build profile page",
-      "timestamp" : "Tue, 26 Mar 2024 07:55:11 -0700",
-      "id" : "c4658de9a148da9c2519051f7e2f5a43b2273a3d",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c4658de9a148da9c2519051f7e2f5a43b2273a3d",
-      "author" : {
-         "email" : "abenson@obs.carnegiescience.edu",
-         "name" : "Andrew Benson"
-      }
-   },
    "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.01_alpha_1.0_beta_3.0_gamma_1.5.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "commit" : {
+      "id" : "5d8af8db7fbe60b96437d70092c152863e6c147d",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/5d8af8db7fbe60b96437d70092c152863e6c147d",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
+      },
+      "message" : "fix(style): Formatting only",
+      "timestamp" : "Wed, 27 Mar 2024 14:55:16 +0000"
+   }
 }
