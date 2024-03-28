@@ -1354,9 +1354,12 @@
       <redshiftMaximum value="150"/>
     </universeOperator>
     <!-- Background radiation -->
-    <radiationFieldIntergalacticBackground value="intergalacticBackgroundInternal">
-      <wavelengthCountPerDecade value="5"/>
-      <timeCountPerDecade value="2"/>
+    <radiationFieldIntergalacticBackground value="summation">
+      <radiationField value="cosmicMicrowaveBackground"/>
+      <radiationField value="intergalacticBackgroundInternal">
+	<wavelengthCountPerDecade value="5"/>
+	<timeCountPerDecade value="2"/>
+      </radiationField>
     </radiationFieldIntergalacticBackground>
     <!-- Halo mass ranges -->
     <mergerTreeBuildMasses value="sampledDistributionUniform">
