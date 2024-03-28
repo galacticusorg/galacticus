@@ -6,114 +6,6 @@ window.BENCHMARK_DATA = {
       {
         "commit": {
           "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "286b169fcc84637043f8092810cafef367fbbf09",
-          "message": "fix: Add missing `close()` of HDF5 file",
-          "timestamp": "2023-07-11T16:28:24-07:00",
-          "tree_id": "7c0d242e9743bf848fbada41e92e8866e57a34f6",
-          "url": "https://github.com/galacticusorg/galacticus/commit/286b169fcc84637043f8092810cafef367fbbf09"
-        },
-        "date": 1689129322561,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5486581678349,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.4253490900446,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25236.854696677,
-            "unit": "-logℒ"
-          }
-        ]
-      },
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "51fa2531801a56b2903d10a89173cd55c304f020",
-          "message": "fix: Avoid attempting to access a non-existant star formation history",
-          "timestamp": "2023-07-12T15:09:49Z",
-          "tree_id": "f75659c7441a8a75cc4504c7afe5aa43bd38cb46",
-          "url": "https://github.com/galacticusorg/galacticus/commit/51fa2531801a56b2903d10a89173cd55c304f020"
-        },
-        "date": 1689189091892,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 57.827,
-            "unit": "seconds",
-            "range": 0.0628816348392391
-          }
-        ]
-      },
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "51fa2531801a56b2903d10a89173cd55c304f020",
-          "message": "fix: Avoid attempting to access a non-existant star formation history",
-          "timestamp": "2023-07-12T15:09:49Z",
-          "tree_id": "f75659c7441a8a75cc4504c7afe5aa43bd38cb46",
-          "url": "https://github.com/galacticusorg/galacticus/commit/51fa2531801a56b2903d10a89173cd55c304f020"
-        },
-        "date": 1689189101011,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5231439321362,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.3590095525618,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25172.6986688112,
-            "unit": "-logℒ"
-          }
-        ]
-      },
-      {
-        "commit": {
-          "author": {
             "email": "abensonca@gmail.com",
             "name": "Andrew Benson",
             "username": "abensonca"
@@ -8755,9 +8647,7 @@ window.BENCHMARK_DATA = {
             "range": 0.115414470496396
           }
         ]
-      }
-    ],
-    "Dark matter-only subhalos validation": [
+      },
       {
         "commit": {
           "author": {
