@@ -130,19 +130,23 @@ contains
     class           (darkMatterParticleClass     ), intent(in   ), target :: darkMatterParticle_
     double precision                              , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
          &                                                                   toleranceRelativePotential
-   !![
+    !![
     <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterParticle_, *darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
+
+    ! In models with decays, tolerate failures in integration of the density profile (as this can become almost fully disrupted).
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime_     =darkMatterParticle_%lifetime     ()
-       self%massSplitting_=darkMatterParticle_%massSplitting()
-       self%massLoss_     =darkMatterParticle_%massLoss     ()
+       self%lifetime_                             =darkMatterParticle_%lifetime     ()
+       self%massSplitting_                        =darkMatterParticle_%massSplitting()
+       self%massLoss_                             =darkMatterParticle_%massLoss     ()
+       self%tolerateEnclosedMassIntegrationFailure=.true.
     class default
        ! No decays.
-       self%lifetime_     =-1.0d0
-       self%massSplitting_=+0.0d0
-       self%massLoss_     =.false.
+       self%lifetime_                             =-1.0d0
+       self%massSplitting_                        =+0.0d0
+       self%massLoss_                             =.false.
+       self%tolerateEnclosedMassIntegrationFailure=.false.
     end select
     ! Initialize.
     self%genericLastUniqueID=-1_kind_int8
@@ -419,7 +423,7 @@ contains
 
   double precision function decayingRadiusCircularVelocityMaximum(self,node)
     !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
     !!}
     implicit none
     class(darkMatterProfileDMODecaying), intent(inout) :: self
