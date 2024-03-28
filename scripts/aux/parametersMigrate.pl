@@ -195,6 +195,11 @@ my %translations =
 	 values => {
 	     "//nodePropertyExtractor[\@value]"                                                               => {"radiusHalfMass" => "radiusHalfMassStellar"}
 	 }
+     },
+     "7030a7dab187c4e0aa5112681b3273647595bbde" => {
+	 specials => [
+	     \&radiationFieldIntergalacticBackgroundCMB
+	     ]
      }
     );
      
@@ -287,6 +292,13 @@ sub Translate {
 	# Report.
 	print "Updating to revision ".$hashAncestor."\n";
 
+	# Handle special cases.
+	if ( exists($translation->{'specials'}) ) {
+	    foreach my $special ( @{$translation->{'specials'}} ) {
+		&{$special}($input,$parameters);
+	    }
+	}
+	
 	# Translate names.
 	if ( exists($translation->{'names'}) ) {
 	    foreach my $translationPath ( keys(%{$translation->{'names'}}) ) {
@@ -444,5 +456,35 @@ sub Translate {
 	    }
 	    $parameters->insertBefore($wrapperNode,$sibling);
 	}
+    }
+}
+
+sub radiationFieldIntergalacticBackgroundCMB {
+    # Special handling to add CMB radiation into the intergalactic background radiation.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "radiationFieldIntergalacticBackground" parameters.
+    foreach my $node ( $parameters->findnodes("//radiationFieldIntergalacticBackground[\@value]")->get_nodelist() ) {
+	# Construct new summation and CMB nodes, and a copy of the original node.
+	my $summationNode = $input->createElement("radiationFieldIntergalacticBackground");
+	my $cmbNode	  = $input->createElement("radiationField"                       );
+	my $originalNode  = $input->createElement("radiationField"                       );
+	$summationNode->setAttribute('value','summation'                 );
+	$cmbNode      ->setAttribute('value','cosmicMicrowaveBackground' );
+	$originalNode ->setAttribute('value',$node->getAttribute('value'));
+	# Move any children of the original node to the copy.
+	my $childNode = $node->firstChild();
+	while ( $childNode ) {
+	    my $siblingNode = $childNode->nextSibling();
+	    $childNode   ->unbindNode(          );
+	    $originalNode->addChild  ($childNode);
+	    $childNode      = $siblingNode;
+	}
+	# Assemble our new nodes.
+	$summationNode            ->addChild   ($cmbNode            );
+	$summationNode            ->addChild   ($originalNode       );
+	# Insert the new parameters and remove the original.
+	$node         ->parentNode->insertAfter($summationNode,$node);
+	$node         ->parentNode->removeChild(               $node);
     }
 }
