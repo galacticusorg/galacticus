@@ -269,6 +269,11 @@ contains
          &                                                         densityInitial, jacobian
 
     radiusInitial =self                      %radiusInitial(node,radius       )
+    if (radius > 0.0d0 .and. radiusInitial == 0.0d0) then
+       ! No solution for the initial radius was found - assume a destroyed profile.
+       heatedDensity=0.0d0
+       return
+    end if
     densityInitial=self%darkMatterProfileDMO_%density      (node,radiusInitial)
     if (radius == 0.0d0 .and. radiusInitial == 0.0d0) then
        ! At zero radius, the density is unchanged.
@@ -276,9 +281,9 @@ contains
     else if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
        ! No heating, the density is unchanged.
        heatedDensity =+densityInitial
-    else if (.not.self%noShellCrossingIsValid(node_,radiusInitial,radius)) then
+    else if (.not.self%noShellCrossingIsValid(node,radiusInitial,radius)) then
        ! Shell crossing assumption is broken - simply return the density unchanged.
-       heatedDensity =+self%darkMatterProfileDMO_%density      (node,radius       )
+       heatedDensity =+self%darkMatterProfileDMO_%density    (node,radius       )
     else
        massEnclosed=+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
        if (massEnclosed > 0.0d0) then
@@ -420,13 +425,15 @@ contains
     Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
     the heated dark matter profile.
     !!}
+    use :: Error      , only : errorStatusSuccess
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     double precision                            , intent(in   )          :: radiusFinal
-    double precision                            , parameter              :: epsilonExpand=1.0d-2
+    double precision                            , parameter              :: epsilonExpand=1.0d-2, radiusTiny=1.0d-30
     double precision                                                     :: factorExpand
+    integer                                                              :: status
     
     ! If profile is unheated, the initial radius equals the final radius.
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
@@ -449,9 +456,10 @@ contains
                &                       rangeExpandDownward          =0.50d0                       , &
                &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                       rangeExpandType              =rangeExpandMultiplicative    , &
+               &                       rangeDownwardLimit           =radiusTiny                     &
                &                      )
-          self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal)
+          self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal,status=status)
        else
           ! Previous solution exists, and the requested final radius is larger (but not too much larger) than the previous initial
           ! radius. Use the previous initial radius as a guess for the solution, with range expansion in steps determined by the
@@ -468,11 +476,14 @@ contains
                &                       rangeExpandDownward          =1.0d0/factorExpand           , &
                &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                       rangeExpandType              =rangeExpandMultiplicative    , &
+               &                       rangeDownwardLimit           =radiusTiny                     &
                &                      )
-          self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious)
+          self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious,status=status)
        end if       
        self%radiusFinalPrevious=radiusFinal
+       ! If no solution was found, assume a destroyed profile and set the initial radius to zero.
+       if (status /= errorStatusSuccess) self%radiusInitialPrevious=0.0d0
     end if
     heatedRadiusInitial=self%radiusInitialPrevious
     return
@@ -634,6 +645,11 @@ contains
     else if (self%velocityDispersionApproximate) then
        ! Use the approximate solution for velocity dispersion.
        radiusInitial                 = self%radiusInitial                                              (node,radius                                  )
+       if (radius > 0.0d0 .and. radiusInitial == 0.0d0) then
+          ! If no solution was found, assume a destroyed profile and return a zero velocity dispersion.
+          heatedRadialVelocityDispersion=0.0d0
+          return
+       end if
        energySpecific                = self%darkMatterProfileHeating_%specificEnergy                   (node,radiusInitial,self%darkMatterProfileDMO_)
        velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion         (node,radiusInitial                           )**2 &
             &                         -2.0d0/3.0d0*energySpecific
