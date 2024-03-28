@@ -54,14 +54,19 @@ module Dark_Matter_Profiles_Generic
      ! Unique ID for memoization
      integer         (kind_int8               )                            :: genericLastUniqueID
      ! Memoized solutions for the radial velocity dispersion.
-     double precision                          , allocatable, dimension(:) :: genericVelocityDispersionRadialVelocity               , genericVelocityDispersionRadialRadius
-     double precision                                                      :: genericVelocityDispersionRadialRadiusMinimum          , genericVelocityDispersionRadialRadiusMaximum, &
+     double precision                          , allocatable, dimension(:) :: genericVelocityDispersionRadialVelocity                , genericVelocityDispersionRadialRadius
+     double precision                                                      :: genericVelocityDispersionRadialRadiusMinimum           , genericVelocityDispersionRadialRadiusMaximum, &
           &                                                                   genericVelocityDispersionRadialRadiusOuter
      type            (interpolator            ), allocatable               :: genericVelocityDispersionRadial
      ! Memoized solutions for the enclosed mass.
-     double precision                          , allocatable, dimension(:) :: genericEnclosedMassMass                               , genericEnclosedMassRadius
-     double precision                                                      :: genericEnclosedMassRadiusMinimum                      , genericEnclosedMassRadiusMaximum
+     double precision                          , allocatable, dimension(:) :: genericEnclosedMassMass                                , genericEnclosedMassRadius
+     double precision                                                      :: genericEnclosedMassRadiusMinimum                       , genericEnclosedMassRadiusMaximum
      type            (interpolator            ), allocatable               :: genericEnclosedMass
+     logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false.
+     ! Memoized solutions for the potential.
+     double precision                          , allocatable, dimension(:) :: genericPotentialPotential                              , genericPotentialRadius
+     double precision                                                      :: genericPotentialRadiusMinimum                          , genericPotentialRadiusMaximum
+     type            (interpolator            ), allocatable               :: genericPotential
    contains 
      !![
      <methods>
@@ -186,7 +191,7 @@ contains
     use            :: Numerical_Ranges       , only : Make_Range                  , rangeTypeLogarithmic
     use            :: Table_Labels           , only : extrapolationTypeExtrapolate
     use            :: Numerical_Interpolation, only : gsl_interp_linear
-    use            :: Error                  , only : Error_Report
+    use            :: Error                  , only : Error_Report                , errorStatusSuccess
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target      :: self
     type            (treeNode                ), intent(inout), target      :: node
@@ -203,7 +208,8 @@ contains
     double precision                                                       :: radiusIntegralLower              , radiusIntegralUpper, &
          &                                                                    radiusMinimum                    , radiusMaximum      , &
          &                                                                    radiusVirial
-
+    integer                                                                :: status
+    
     ! Validate input.
     if (radiusUpper < radiusLower) call Error_Report('radiusUpper ≥ radiusLower is required'//{introspection:location})
     if (radiusUpper <= 0.0d0) then
@@ -223,10 +229,10 @@ contains
     end if
     if (remakeTable) then
        ! Initialize integrator if necessary.
-    if (.not.initialized) then
-       integrator_=integrator(genericMassIntegrand,toleranceRelative=1.0d-2)
-       initialized=.true.
-    end if
+       if (.not.initialized) then
+          integrator_=integrator(genericMassIntegrand,toleranceRelative=1.0d-2)
+          initialized=.true.
+       end if
        ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
        call self%solverSet  (node)
        radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
@@ -272,7 +278,9 @@ contains
           end if
           radiusIntegralUpper   =radii(i  )
           ! Evaluate the integral.
-          masses           (i)= integrator_%integrate(radiusIntegralLower,radiusIntegralUpper)
+          masses           (i)= integrator_%integrate(radiusIntegralLower,radiusIntegralUpper,status=status)
+          if (status /= errorStatusSuccess .and. .not.self%tolerateEnclosedMassIntegrationFailure) &
+               & call Error_Report('enclosed mass profile integration failed'//{introspection:location})
           if (i > 1) masses(i)=+masses(i  ) &
                &               +masses(i-1)
        end do
@@ -331,43 +339,117 @@ contains
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     \ttfamily radius} (given in units of Mpc) using a numerical calculation.
     !!}
-    use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Integration           , only : integrator
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
+    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
+    use            :: Numerical_Interpolation         , only : gsl_interp_linear
+    use            :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
+    use            :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use            :: Numerical_Integration           , only : integrator
     implicit none
-    class           (darkMatterProfileGeneric         ), intent(inout), target   :: self
-    type            (treeNode                         ), intent(inout), target   :: node
-    double precision                                   , intent(in   )           :: radius
-    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-    double precision                                   , parameter               :: radiusMaximumFactor=1.0d2
-    type            (integrator                       ), save                    :: integrator_
-    logical                                            , save                    :: initialized        =.false.
+    class           (darkMatterProfileGeneric         ), intent(inout), target      :: self
+    type            (treeNode                         ), intent(inout), target      :: node
+    double precision                                   , intent(in   )              :: radius
+    type            (enumerationStructureErrorCodeType), intent(  out), optional    :: status
+    double precision                                   , dimension(:) , allocatable :: potentials                       , radii
+    double precision                                   , parameter                  :: radiusMaximumFactor      =1.0d+02
+    double precision                                   , parameter                  :: countPointsPerOctave     =4.0d+00
+    double precision                                   , parameter                  :: radiusVirialFractionSmall=1.0d-12
+    type            (integrator                       ), save                       :: integrator_
+    logical                                            , save                       :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
-    double precision                                                             :: radiusMaximum
+    integer         (c_size_t                )                                      :: countRadii                       , iMinimum          , &
+         &                                                                             iMaximum                         , i
+    logical                                                                         :: remakeTable
+    double precision                                                                :: radiusMaximum                    , radiusMinimum     , &
+         &                                                                             radiusVirial                     , potentialZeroPoint
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.initialized) then
-       integrator_=integrator(integrandPotential,toleranceRelative=self%toleranceRelativePotential)
-       initialized=.true.
-    end if
-    call self%solverSet  (node)
-    radiusMaximum             =  +radiusMaximumFactor                          &
-         &                       *self%darkMatterHaloScale_%radiusVirial(node)
+    radiusVirial =+self%darkMatterHaloScale_%radiusVirial       (node)
+    radiusMaximum=+                          radiusMaximumFactor       &
+         &        *                          radiusVirial
+    ! Round to the nearest factor of 2.
+    radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
     if (radius < radiusMaximum) then
-       genericPotentialNumerical =   integrator_%integrate(               &
-            &                                              radius       , &
-            &                                              radiusMaximum  &
-            &                                             )
+       ! Reset calculations if necessary.
+       if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node,node%uniqueID())
+       ! Determine if the table must be rebuilt.
+       remakeTable=.false.
+       if (.not.allocated(self%genericPotentialPotential)) then
+          remakeTable=.true.
+       else
+          remakeTable= radius < self%genericPotentialRadiusMinimum &
+               &      .or.                                         &
+               &       radius > self%genericPotentialRadiusMaximum
+       end if
+       if (remakeTable) then
+          ! Initialize integrator if necessary.
+          if (.not.initialized) then
+             integrator_=integrator(integrandPotential,toleranceRelative=self%toleranceRelativePotential)
+             initialized=.true.
+          end if
+          ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
+          call self%solverSet(node)
+          !! Set an initial range of radii that brackets the requested radii.
+          radiusMinimum=max(0.5d0*radius,radiusVirial*radiusVirialFractionSmall)
+          !! Round to the nearest factor of 2.
+          radiusMinimum=2.0d0**floor(log(radiusMinimum)/log(2.0d0))
+          !! Expand to encompass any pre-existing range.
+          if (allocated(self%genericPotentialRadius)) then
+             radiusMinimum=min(radiusMinimum,self%genericPotentialRadiusMinimum)
+             radiusMaximum=max(radiusMaximum,self%genericPotentialRadiusMaximum)
+          end if
+          !! Construct arrays.
+          countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+          allocate(radii     (countRadii))
+          allocate(potentials(countRadii))
+          radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+          ! Copy in any usable results from any previous solution.
+          !! Assume by default that no previous solutions are usable.
+          iMinimum=+huge(0_c_size_t)
+          iMaximum=-huge(0_c_size_t)
+          !! Check that a pre-existing solution exists.
+          if (allocated(self%genericPotentialRadius)) then
+             iMinimum=nint(log(self%genericPotentialRadiusMinimum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+             iMaximum=nint(log(self%genericPotentialRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+             potentials(iMinimum:iMaximum)=self%genericPotentialPotential
+          end if
+          ! Construct a zero-point.
+          potentialZeroPoint=-gravitationalConstantGalacticus                                                   &
+               &             *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radiusMaximum) &
+               &             /                                                                   radiusMaximum
+          ! Solve for the enclosed mass where old results were unavailable.
+          do i=1,countRadii
+             ! Skip cases for which we have a pre-existing solution.
+             if (i >= iMinimum .and. i <= iMaximum) cycle  
+             ! Evaluate the integral.
+             potentials(i)=-integrator_%integrate(radii(i),radiusMaximum) &
+                  &        -potentialZeroPoint
+          end do
+          call self%solverUnset()
+          ! Build the interpolator.
+          if (allocated(self%genericPotential)) deallocate(self%genericPotential)
+          allocate(self%genericPotential)
+          self%genericPotential=interpolator(log(radii),log(potentials),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
+          ! Store the current results for future re-use.
+          if (allocated(self%genericPotentialRadius   )) deallocate(self%genericPotentialRadius   )
+          if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
+          allocate(self%genericPotentialRadius   (countRadii))
+          allocate(self%genericPotentialPotential(countRadii))
+          self%genericPotentialRadius       =radii
+          self%genericPotentialPotential    =potentials
+          self%genericPotentialRadiusMinimum=radiusMinimum
+          self%genericPotentialRadiusMaximum=radiusMaximum
+       end if
+       genericPotentialNumerical=-exp(self%genericPotential%interpolate(log(radius)))
     else
        ! Beyond some large radius approximate as a point mass.
-       genericPotentialNumerical=+gravitationalConstantGalacticus                                                   &
+       call self%solverSet(node)
+       genericPotentialNumerical=-gravitationalConstantGalacticus                                                   &
             &                    *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radiusMaximum) &
-            &                    *(                                                                                 &
-            &                      +1.0d0/radiusMaximum                                                             &
-            &                      -1.0d0/radius                                                                    &
-            &                     )
+            &                    /radius
+       call self%solverUnset()
     end if
-    call self%solverUnset(   )
     return
   end function genericPotentialNumerical
 
@@ -429,7 +511,7 @@ contains
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: radius
 
-    if (radius > 0.0d0) then
+    if (radius > 0.0d0) then   
        genericCircularVelocityNumerical=sqrt(                                 &
             &                                +gravitationalConstantGalacticus &
             &                                *self%enclosedMass(node,radius)  &
@@ -1121,7 +1203,17 @@ contains
     ! close to zero at a few points throughout the halo (which it will be for an isothermal profile), and return the circular
     ! velocity at the virial radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
     basic => node%basic()
-    if     (                                                                                                                                    &
+    if      (                                                                                                                                   &
+         &   Values_Agree(                                                                                                                      &
+         &                      +self                     %circularVelocityNumerical(node,1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
+         &                      +0.0d0                                                                                                        , &
+         &               absTol=+toleranceRelative                                                                                              &
+         &                      *self%darkMatterHaloScale_%velocityVirial           (node                                                    )  &
+         &               )                                                                                                                      &
+         & ) then
+       ! Profile has close to zero velocity - assume a destroyed profile and simply return the virial radius.
+       genericRadiusCircularVelocityMaximumNumerical=                                            self%darkMatterHaloScale_%radiusVirial(node)
+    else if (                                                                                                                                    &
          &   Values_Agree(                                                                                                                      &
          &                       +rootCircularVelocityMaximum                       (     1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                                                       , &
@@ -1150,16 +1242,6 @@ contains
          &                       *basic%mass                                        (                                                        )  &
          &                )                                                                                                                     &
          & ) then
-       genericRadiusCircularVelocityMaximumNumerical=                                            self%darkMatterHaloScale_%radiusVirial(node)
-    else if (                                                                                                                                   &
-         &   Values_Agree(                                                                                                                      &
-         &                      +self                     %circularVelocityNumerical(node,1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
-         &                      +0.0d0                                                                                                        , &
-         &               absTol=+toleranceRelative                                                                                              &
-         &                      *self%darkMatterHaloScale_%velocityVirial           (node                                                    )  &
-         &               )                                                                                                                      &
-         & ) then
-       ! Profile has close to zero velocity - assume a destroyed profile and simply return the virial radius.
        genericRadiusCircularVelocityMaximumNumerical=                                            self%darkMatterHaloScale_%radiusVirial(node)
     else
        genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=                      self%darkMatterHaloScale_%radiusVirial(node))

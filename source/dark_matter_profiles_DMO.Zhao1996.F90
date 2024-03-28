@@ -243,12 +243,16 @@ contains
     self%genericLastUniqueID                         =uniqueID
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericPotentialRadiusMinimum               =+huge(0.0d0)
+    self%genericPotentialRadiusMaximum               =-huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
     if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    if (allocated(self%genericPotentialPotential              )) deallocate(self%genericPotentialPotential              )
+    if (allocated(self%genericPotentialRadius                 )) deallocate(self%genericPotentialRadius                 )
     return
   end subroutine zhao1996CalculationReset
 

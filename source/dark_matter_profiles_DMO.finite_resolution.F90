@@ -170,6 +170,7 @@ contains
     self%lengthResolutionPrevious  =-huge(0.0d0)
     self%enclosedMassPrevious      =-huge(0.0d0)
     self%enclosedMassRadiusPrevious=-huge(0.0d0)
+    self%toleranceRelativePotential=+1.0d-5
     return
   end function finiteResolutionConstructorInternal
 
@@ -218,12 +219,16 @@ contains
     self%enclosedMassRadiusPrevious                  =-huge(0.0d0)
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
+    self%genericPotentialRadiusMinimum               =+huge(0.0d0)
+    self%genericPotentialRadiusMaximum               =-huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
     self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
     if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    if (allocated(self%genericPotentialPotential              )) deallocate(self%genericPotentialPotential              )
+    if (allocated(self%genericPotentialRadius                 )) deallocate(self%genericPotentialRadius                 )
     return
   end subroutine finiteResolutionCalculationReset
 
