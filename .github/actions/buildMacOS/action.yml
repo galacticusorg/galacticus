@@ -68,7 +68,7 @@ runs:
         curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
         tar xvfz qhull-2020-src-8.0.2.tgz
         cd qhull-2020.2
-        make -j3 CC=gcc-11 CXX=g++-11 CC_OPTS1=-std=c23
+        make -j3 CC=gcc-11 CXX=g++-11 CC_OPTS1=-std=gnu17
         sudo make install
         cd ..
         rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
