@@ -21,6 +21,13 @@ runs:
         os_ver=$(sw_vers -productVersion)
         IFS='.' read -r -a ver <<< "$os_ver"
         echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
+    - name: Fix broken Apple include file
+      shell: bash
+      run: |
+        # This removes syntax not supported by the GCC compiler prior to version 13.3.
+        # It should be possible to remove this once a later version of GCC is used.
+        # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
+        sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/usr/include/sys/cdefs.h
     - name: Install MacPorts
       shell: bash
       run: |
@@ -68,7 +75,7 @@ runs:
         curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
         tar xvfz qhull-2020-src-8.0.2.tgz
         cd qhull-2020.2
-        make -j3
+        make -j3 CC=gcc-11 CXX=g++-11
         sudo make install
         cd ..
         rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
@@ -89,7 +96,7 @@ runs:
         curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
         tar -vxzf hdf5-1.8.20.tar.gz 
         cd hdf5-1.8.20 
-        FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+        CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
         make -j3
         sudo make install
         cd ..
