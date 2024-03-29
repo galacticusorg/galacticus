@@ -89,7 +89,7 @@ runs:
         curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
         tar -vxzf hdf5-1.8.20.tar.gz 
         cd hdf5-1.8.20 
-        CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+        FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
         make -j3
         sudo make install
         cd ..
