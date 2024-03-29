@@ -11,9 +11,9 @@ runs:
         echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
         echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
         echo "GALACTICUS_EXEC_PATH=`pwd`" >> $GITHUB_ENV
-        echo "FCCOMPILER=gfortran-11" >> $GITHUB_ENV
-        echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
-        echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
+        echo "FCCOMPILER=gfortran-mp-13" >> $GITHUB_ENV
+        echo "CCOMPILER=gcc-mp-13" >> $GITHUB_ENV
+        echo "CPPCOMPILER=g++-mp-13" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
         echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
         echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
@@ -45,6 +45,9 @@ runs:
         rm ./MacPorts-${macportsbase}.pkg
     - name: Install guile
       shell: bash
+      run: sudo port install gcc13
+    - name: Install guile
+      shell: bash
       run: sudo port install guile18
     - name: Install libmatheval
       shell: bash
@@ -57,7 +60,7 @@ runs:
         sed -E -i~ s/"-lguile"/"-lguile18"/ configure
         sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
-        CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+        CC=gcc-mp-13 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
         make -j3
         sudo make install
         cd ..
@@ -68,7 +71,7 @@ runs:
         curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
         tar xvfz qhull-2020-src-8.0.2.tgz
         cd qhull-2020.2
-        make -j3 CC=gcc-11 CXX=g++-11
+        make -j3 CC=gcc-mp-13 CXX=g++-mp-13
         sudo make install
         cd ..
         rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
@@ -78,7 +81,7 @@ runs:
         curl -L ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
         tar xvfz gsl-2.6.tar.gz
         cd gsl-2.6
-        CC=gcc-11 ./configure --prefix=/usr/local
+        CC=gcc-mp-13 ./configure --prefix=/usr/local
         make -j3
         sudo make install
         cd ..
@@ -89,7 +92,7 @@ runs:
         curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
         tar -vxzf hdf5-1.8.20.tar.gz 
         cd hdf5-1.8.20 
-        CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+        CC=gcc-mp-13 CXX=g++-mp-13 FC=gfortran-mp-13 ./configure --prefix=/usr/local --enable-fortran --enable-production 
         make -j3
         sudo make install
         cd ..
@@ -100,7 +103,7 @@ runs:
         curl -L https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
         tar xvfz FoX-4.1.0.tar.gz
         cd fox-4.1.0
-        FC=gfortran-11 ./configure --prefix=/usr/local
+        FC=gfortran-mp-13 ./configure --prefix=/usr/local
         make -j3
         sudo make install
         cd ..
@@ -111,7 +114,7 @@ runs:
         curl -L ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
         tar xvfz fftw-3.3.4.tar.gz
         cd fftw-3.3.4
-        F77=gfortran-11 CC=gcc-11 ./configure --prefix=/usr/local
+        F77=gfortran-mp-13 CC=gcc-mp-13 ./configure --prefix=/usr/local
         make -j4
         sudo make install
         cd ..
@@ -122,7 +125,7 @@ runs:
         curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
         tar xvfz ann_1.1.2.tar.gz
         cd ann_1.1.2
-        sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
+        sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-mp\-13"/ Make-config
         make macosx-g++
         sudo cp bin/* /usr/local/bin/.
         sudo cp lib/* /usr/local/lib/.
