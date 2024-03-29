@@ -194,14 +194,18 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
     !!}
-    use :: FoX_DOM, only : parseFile
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name
+    use :: FoX_DOM           , only : parseFile
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
+    use :: File_Utilities    , only : File_Exists
+    use :: Display           , only : displayGreen                , displayReset
+    use :: ISO_Varying_String, only : varying_string              , var_str     , operator(//)
     implicit none
     type   (mergerTreeConstructorFullySpecified)                        :: self
     type   (varying_string                     ), intent(in   )         :: fileName
     class  (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
     integer                                                             :: ioErr
+    type   (varying_string                     )                        :: message
     !![
     <constructorAssign variables="fileName, *randomNumberGenerator_"/>
     !!]
@@ -210,7 +214,15 @@ contains
     if (.not.associated(self%document)) allocate(self%document)
     ! Parse the merger tree file.
     self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
-    if (ioErr /= 0) call Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
+    if (ioErr /= 0) then
+       message=var_str("unable to read or parse fully-specified merger tree file '")//self%fileName//"'"
+       if (File_Exists(self%fileName)) then
+          message=message//char(10)//displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --nout "//self%fileName//"` will display any XML errors"
+       else
+          message=message//" - file does not exist"
+       end if
+       call Error_Report(message//{introspection:location})
+    end if
     self%document%copyCount = 1
     ! Get the list of trees.
     call XML_Get_Elements_By_Tag_Name(self%document%doc,"tree",self%trees)
