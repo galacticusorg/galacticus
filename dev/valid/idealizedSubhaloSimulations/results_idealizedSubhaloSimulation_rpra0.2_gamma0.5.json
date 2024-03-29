@@ -1,32 +1,9 @@
 window.ANALYSES_DATA = {
-   "commit" : {
-      "timestamp" : "Wed, 27 Mar 2024 14:55:16 +0000",
-      "message" : "fix(style): Formatting only",
-      "id" : "5d8af8db7fbe60b96437d70092c152863e6c147d",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/5d8af8db7fbe60b96437d70092c152863e6c147d"
-   },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.2_alpha_1.0_beta_3.0_gamma_0.5.xml",
    "results" : [
       {
          "data" : {
-            "yDataset" : [
-               1,
-               0.288223268565401,
-               0.147876249356162,
-               0.0851038179489899,
-               0.0501622684001802,
-               0.0300666914374241,
-               0.017957648865859,
-               0.0106271123743294,
-               0.00620998324370317,
-               0.00354670418422022,
-               0.00168562654900398
-            ],
             "yDatasetTarget" : [
                1,
                0.209356732881388,
@@ -39,6 +16,19 @@ window.ANALYSES_DATA = {
                0.00607042469316562,
                0.00348578413778713,
                0.0018312004092284
+            ],
+            "yDataset" : [
+               1,
+               0.288223268565401,
+               0.147876249356162,
+               0.0851038179489899,
+               0.0501622684001802,
+               0.0300666914374241,
+               0.017957648865859,
+               0.0106271123743294,
+               0.00620998324370317,
+               0.00354670418422022,
+               0.00168562654900398
             ],
             "xDataset" : [
                1,
@@ -55,22 +45,49 @@ window.ANALYSES_DATA = {
             ]
          },
          "attributes" : {
-            "description" : "Satellite bound mass fraction vs. time.",
-            "name" : "satelliteBoundMass",
-            "yAxisLabel" : "M_bound/M_bound,0",
-            "yDataset" : "fractionBoundMass",
             "xAxisIsLog" : 0,
-            "yDatasetTarget" : "fractionBoundMassTarget",
-            "yAxisIsLog" : 1,
-            "xAxisLabel" : "t/Gyr",
-            "xDataset" : "time",
             "targetLabel" : "Simulations",
+            "yAxisLabel" : "M_bound/M_bound,0",
+            "yDatasetTarget" : "fractionBoundMassTarget",
+            "xDataset" : "time",
+            "yDataset" : "fractionBoundMass",
+            "name" : "satelliteBoundMass",
+            "yAxisIsLog" : 1,
+            "description" : "Satellite bound mass fraction vs. time.",
+            "xAxisLabel" : "t/Gyr",
             "logLikelihood" : 40.9680494100607,
             "type" : "function1D"
          }
       },
       {
+         "attributes" : {
+            "logLikelihood" : 22.3962454301193,
+            "type" : "function1D",
+            "xDataset" : "time",
+            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
+            "yAxisLabel" : "R_max/R_max,0",
+            "targetLabel" : "Simulations",
+            "xAxisIsLog" : 0,
+            "xAxisLabel" : "t/Gyr",
+            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "yAxisIsLog" : 1,
+            "yDataset" : "fractionRadiusVelocityMaximum",
+            "name" : "satelliteRadiusVelocityMaximum"
+         },
          "data" : {
+            "xDataset" : [
+               1,
+               4.51960872879017,
+               8.03921745758035,
+               11.459043464678,
+               14.9786521934682,
+               18.4075493570834,
+               21.9271580858735,
+               25.3469840929712,
+               28.8665928217614,
+               32.286418828859,
+               35.8060275576492
+            ],
             "yDataset" : [
                1,
                0.64098761267324,
@@ -96,7 +113,25 @@ window.ANALYSES_DATA = {
                0.221950585500388,
                0.190071887571447,
                0.172516795699341
-            ],
+            ]
+         }
+      },
+      {
+         "attributes" : {
+            "yAxisIsLog" : 1,
+            "description" : "Satellite maximum circular velocity fraction vs. time.",
+            "xAxisLabel" : "t/Gyr",
+            "name" : "satelliteVelocityMaximum",
+            "yDataset" : "fractionVelocityMaximum",
+            "type" : "function1D",
+            "xDataset" : "time",
+            "xAxisIsLog" : 0,
+            "targetLabel" : "Simulations",
+            "yAxisLabel" : "V_max/V_max,0",
+            "yDatasetTarget" : "fractionVelocityMaximumTarget",
+            "logLikelihood" : 20.3906767774734
+         },
+         "data" : {
             "xDataset" : [
                1,
                4.51960872879017,
@@ -109,51 +144,6 @@ window.ANALYSES_DATA = {
                28.8665928217614,
                32.286418828859,
                35.8060275576492
-            ]
-         },
-         "attributes" : {
-            "yAxisIsLog" : 1,
-            "xAxisIsLog" : 0,
-            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
-            "xDataset" : "time",
-            "xAxisLabel" : "t/Gyr",
-            "targetLabel" : "Simulations",
-            "type" : "function1D",
-            "logLikelihood" : 22.3962454301193,
-            "yAxisLabel" : "R_max/R_max,0",
-            "yDataset" : "fractionRadiusVelocityMaximum",
-            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
-            "name" : "satelliteRadiusVelocityMaximum"
-         }
-      },
-      {
-         "attributes" : {
-            "name" : "satelliteVelocityMaximum",
-            "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "xAxisIsLog" : 0,
-            "yAxisLabel" : "V_max/V_max,0",
-            "yDataset" : "fractionVelocityMaximum",
-            "yDatasetTarget" : "fractionVelocityMaximumTarget",
-            "xAxisLabel" : "t/Gyr",
-            "xDataset" : "time",
-            "yAxisIsLog" : 1,
-            "type" : "function1D",
-            "logLikelihood" : 20.3906767774734,
-            "targetLabel" : "Simulations"
-         },
-         "data" : {
-            "yDatasetTarget" : [
-               1,
-               0.796218339219053,
-               0.673024397412466,
-               0.578881426939822,
-               0.498829085413411,
-               0.429515869156509,
-               0.366556980612651,
-               0.309035279095092,
-               0.256723480384866,
-               0.208808484454719,
-               0.161008990610083
             ],
             "yDataset" : [
                1,
@@ -168,20 +158,30 @@ window.ANALYSES_DATA = {
                0.197485727007679,
                0.159186304268215
             ],
-            "xDataset" : [
+            "yDatasetTarget" : [
                1,
-               4.51960872879017,
-               8.03921745758035,
-               11.459043464678,
-               14.9786521934682,
-               18.4075493570834,
-               21.9271580858735,
-               25.3469840929712,
-               28.8665928217614,
-               32.286418828859,
-               35.8060275576492
+               0.796218339219053,
+               0.673024397412466,
+               0.578881426939822,
+               0.498829085413411,
+               0.429515869156509,
+               0.366556980612651,
+               0.309035279095092,
+               0.256723480384866,
+               0.208808484454719,
+               0.161008990610083
             ]
          }
       }
-   ]
+   ],
+   "commit" : {
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abenson@obs.carnegiescience.edu"
+      },
+      "message" : "feat: Add helpful error message when failing to parse a fully-specified merger tree file",
+      "timestamp" : "Thu, 28 Mar 2024 18:08:28 -0700",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/a2807179bd76a02f1216608a7eb7e1b8308fa993",
+      "id" : "a2807179bd76a02f1216608a7eb7e1b8308fa993"
+   }
 }
