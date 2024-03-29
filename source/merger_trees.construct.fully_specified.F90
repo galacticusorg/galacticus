@@ -215,7 +215,7 @@ contains
     ! Parse the merger tree file.
     self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
     if (ioErr /= 0) then
-       message=var_str("unable to read or parse fully-specified merger tree file ")//"'"////self%fileName//"'"
+       message=var_str("unable to read or parse fully-specified merger tree file ")//"'"//self%fileName//"'"
        if (File_Exists(self%fileName)) then
           message=message//char(10)//displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --nout "//self%fileName//"` will display any XML errors"
        else
