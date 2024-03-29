@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711586092548,
+  "lastUpdate": 1711690702229,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "286b169fcc84637043f8092810cafef367fbbf09",
-          "message": "fix: Add missing `close()` of HDF5 file",
-          "timestamp": "2023-07-11T16:28:24-07:00",
-          "tree_id": "7c0d242e9743bf848fbada41e92e8866e57a34f6",
-          "url": "https://github.com/galacticusorg/galacticus/commit/286b169fcc84637043f8092810cafef367fbbf09"
-        },
-        "date": 1689129319166,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 255.502,
-            "unit": "seconds",
-            "range": 1.2568904486862
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0281805844055,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a2807179bd76a02f1216608a7eb7e1b8308fa993",
+          "message": "feat: Add helpful error message when failing to parse a fully-specified merger tree file",
+          "timestamp": "2024-03-28T18:08:28-07:00",
+          "tree_id": "c24c8b3b79152a3757845f20bf8c28a030bb1339",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a2807179bd76a02f1216608a7eb7e1b8308fa993"
+        },
+        "date": 1711690701347,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 431.406,
+            "unit": "seconds",
+            "range": 0.299550329658257
           }
         ]
       }
