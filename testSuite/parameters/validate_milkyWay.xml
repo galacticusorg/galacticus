@@ -31,14 +31,14 @@
     <!-- The value used is the median estimate at r=262kpc from Slizewski et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...924..131S) -->
     <massTree   value="1.520e12"/>
     <radiusTree value="0.262e00"/>
-    <treeCount  value="12"      />
+    <treeCount  value="24"      />
   </mergerTreeBuildMasses>
 
   <!-- Halo mass resolution -->
   <mergerTreeMassResolution value="fixed">
     <!-- All trees are set to have the same halo mass resolution. -->
     <!-- A relatively coarse mass resolution is used to allow the model to run in reasonable time. -->
-    <massResolution value="1.0e8"/>
+    <massResolution value="8.0e7"/>
   </mergerTreeMassResolution>
 
   <!-- Output epochs -->

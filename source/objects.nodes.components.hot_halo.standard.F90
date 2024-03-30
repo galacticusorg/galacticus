@@ -41,7 +41,7 @@ module Node_Component_Hot_Halo_Standard
   use :: Hot_Halo_Ram_Pressure_Stripping           , only : hotHaloRamPressureStrippingClass
   use :: Hot_Halo_Ram_Pressure_Stripping_Timescales, only : hotHaloRamPressureTimescaleClass
   use :: Kind_Numbers                              , only : kind_int8
-  use :: Radiation_Fields                          , only : radiationFieldClass                , radiationFieldCosmicMicrowaveBackground, radiationFieldList, radiationFieldSummation
+  use :: Radiation_Fields                          , only : radiationFieldClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
@@ -282,11 +282,8 @@ module Node_Component_Hot_Halo_Standard
        &                                                                             massHeatingRateRemaining                                    , outerRadiusGrowthRateStored
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,rateCooling,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
-  type           (radiationFieldSummation                            ), pointer   :: radiation
-  type           (radiationFieldCosmicMicrowaveBackground            ), pointer   :: radiationCosmicMicrowaveBackground
-  class          (radiationFieldClass                                ), pointer   :: radiationIntergalacticBackground
-  type           (radiationFieldList                                 ), pointer   :: radiationFieldList_
-  !$omp threadprivate(radiation,radiationCosmicMicrowaveBackground,radiationIntergalacticBackground,radiationFieldList_)
+  class           (radiationFieldClass                               ), pointer   :: radiation
+  !$omp threadprivate(radiation)
 
   ! Tracked properties control.
   logical                                                                         :: trackStrippedGas
@@ -493,12 +490,12 @@ contains
     !!{
     Initializes the tree node hot halo methods module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent                   , satelliteMergerEvent    , postEvolveEvent   , openMPThreadBindingAtLevel, &
-         &                          dependencyRegEx                      , dependencyDirectionAfter, haloFormationEvent
+    use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent    , postEvolveEvent   , openMPThreadBindingAtLevel, &
+         &                          dependencyRegEx        , dependencyDirectionAfter, haloFormationEvent
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
-    use :: Input_Parameters, only : inputParameter                       , inputParameters
-    use :: Radiation_Fields, only : radiationFieldIntergalacticBackground
+    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Radiation_Fields, only : radiationFieldNull
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -529,32 +526,19 @@ contains
        call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard',dependencies=dependencies)
        call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
        call haloFormationEvent  %attach(thread,haloFormation  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
-       allocate(radiation                         )
-       allocate(radiationFieldList_               )
-       allocate(radiationCosmicMicrowaveBackground)
-       !![
-       <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
-       !!]
-       radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
        if (parameters%isPresent('radiationFieldIntergalacticBackground')) then
           !![
-          <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackground" source="parameters"/>
+          <objectBuilder class="radiationField" name="radiation" parameterName="radiationFieldIntergalacticBackground" source="parameters"/>
           !!]
-          select type (radiationIntergalacticBackground)
-          class is (radiationFieldIntergalacticBackground)
-             ! This is as expected.
-          class default
-             call Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
-          end select
-          allocate(radiationFieldList_%next)
-          radiationFieldList_%next%radiationField_ => radiationIntergalacticBackground
        else
-          radiationIntergalacticBackground => null()
+          allocate(radiationFieldNull :: radiation)
+          select type (radiation)
+          type is (radiationFieldNull)
+             !![
+	     <referenceConstruct object="radiation" constructor="radiationFieldNull()"/>
+             !!]
+          end select
        end if
-       !![
-       <referenceConstruct object="radiation" constructor="radiationFieldSummation(radiationFieldList_)"/>
-       !!]
-       nullify(radiationFieldList_)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
@@ -587,8 +571,6 @@ contains
        <objectDestructor name="hotHaloRamPressureTimescale_"      />
        <objectDestructor name="hotHaloOutflowReincorporation_"    />
        <objectDestructor name="coolingRate_"                      />
-       <objectDestructor name="radiationIntergalacticBackground"  />
-       <objectDestructor name="radiationCosmicMicrowaveBackground"/>
        <objectDestructor name="radiation"                         />
        <objectDestructor name="galacticStructure_"                />
        !!]
@@ -1102,7 +1084,6 @@ contains
     use :: Galacticus_Nodes                 , only : interruptTask                        , nodeComponentHotHalo, nodeComponentHotHaloStandard, nodeComponentBasic, &
          &                                           treeNode
     use :: Numerical_Constants_Atomic       , only : atomicMassHydrogen
-    use :: Radiation_Fields                 , only : radiationFieldIntergalacticBackground
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                      , intent(in   )                    :: rate
@@ -1145,13 +1126,7 @@ contains
           temperature            =darkMatterHaloScale_%temperatureVirial(node)
           numberDensityHydrogen  =hydrogenByMass*self%outflowedMass()*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
-          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
-          if (associated(radiationIntergalacticBackground)) then
-             select type (radiationIntergalacticBackground)
-             class is (radiationFieldIntergalacticBackground)
-                call radiationIntergalacticBackground%timeSet(basic%time())
-             end select
-          end if
+          call radiation%timeSet(basic%time())
           ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
           ! Convert from densities to mass rates.
@@ -2153,13 +2128,12 @@ contains
     !!{
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
-    use :: Abundances_Structure                 , only : abundances                           , zeroAbundances
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                   , zeroChemicalAbundances
+    use :: Abundances_Structure                 , only : abundances                          , zeroAbundances
+    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , zeroChemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                   , nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
+    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo  , nodeComponentHotHaloStandard, treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : outflowReturnOnFormation
     use :: Numerical_Constants_Atomic           , only : atomicMassHydrogen
-    use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
     class           (*                   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -2195,13 +2169,7 @@ contains
           numberDensityHydrogen=hydrogenByMass*hotHalo%outflowedMass()*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
           basic => node%basic()
-          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
-          if (associated(radiationIntergalacticBackground)) then
-             select type (radiationIntergalacticBackground)
-             class is (radiationFieldIntergalacticBackground)
-                call radiationIntergalacticBackground%timeSet(basic%time())
-             end select
-          end if
+          call radiation%timeSet(basic%time())
            ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
           ! Convert from densities to masses.

@@ -139,6 +139,7 @@ $taskMaximum->{'isMaximumCost'} = 1;
 open(my $profileFile,">",$profileFileName);
 print $profileFile "<html>\n";
 print $profileFile " <head>\n";
+print $profileFile " <title>Galacticus Build Profile</title>\n";
 print $profileFile "  <style>\n";
 print $profileFile "   body { font:16px Calibri;}\n";
 print $profileFile "   td, th {\n";

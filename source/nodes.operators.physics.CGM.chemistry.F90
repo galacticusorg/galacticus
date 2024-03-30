@@ -27,7 +27,8 @@
   use :: Chemical_Reaction_Rates               , only : chemicalReactionRateClass
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales               , only : darkMatterHaloScaleClass
-  use :: Radiation_Fields                      , only : radiationFieldClass                   , radiationFieldCosmicMicrowaveBackground, radiationFieldSummation, crossSectionFunctionTemplate
+  use :: Hot_Halo_Mass_Distributions           , only : hotHaloMassDistributionClass
+  use :: Radiation_Fields                      , only : radiationFieldClass                   , crossSectionFunctionTemplate
   use :: Numerical_Constants_Physical          , only : plancksConstant                       , speedLight
   use :: Numerical_Constants_Units             , only : angstromsPerMeter                     , electronVolt
 
@@ -60,10 +61,10 @@
       zero.
     </description>
     <deepCopy>
-      <functionClass variables="radiation_, radiationCosmicMicrowaveBackground"/>
+      <functionClass variables="radiation_"/>
     </deepCopy>
     <stateStorable>
-      <functionClass variables="radiation_, radiationCosmicMicrowaveBackground"/>
+      <functionClass variables="radiation_"/>
     </stateStorable>
   </nodeOperator>
   !!]
@@ -79,9 +80,8 @@
      class           (chemicalReactionRateClass              ), pointer                   :: chemicalReactionRate_              => null()
      class           (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_               => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                => null()
-     type            (radiationFieldSummation                ), pointer                   :: radiation_                         => null()
-     type            (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiationCosmicMicrowaveBackground => null()
-     class           (radiationFieldClass                    ), pointer                   :: radiationIntergalacticBackground   => null()
+     class           (hotHaloMassDistributionClass           ), pointer                   :: hotHaloMassDistribution_           => null()
+     class           (radiationFieldClass                    ), pointer                   :: radiation_                         => null()
      logical                                                  , allocatable, dimension(:) :: maskAnalytic
      integer                                                                              :: atomicHydrogenIndex                         , atomicHydrogenCationIndex, &
           &                                                                                  electronIndex
@@ -133,7 +133,7 @@ contains
     Constructor for the {\normalfont \ttfamily cgmChemistry} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
-    use :: Radiation_Fields, only : radiationFieldIntergalacticBackground
+    use :: Radiation_Fields, only : radiationFieldNull
     implicit none
     type            (nodeOperatorCGMChemistry              )                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -143,7 +143,8 @@ contains
     class           (chemicalReactionRateClass             ), pointer       :: chemicalReactionRate_
     class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    class           (radiationFieldClass                   ), pointer       :: radiationIntergalacticBackground
+    class           (radiationFieldClass                   ), pointer       :: radiation_
+    class           (hotHaloMassDistributionClass          ), pointer       :: hotHaloMassDistribution_
     double precision                                                        :: fractionTimescaleEquilibrium
 
     !![
@@ -162,24 +163,24 @@ contains
     !!]
     if (parameters%isPresent('radiationFieldIntergalacticBackground',searchInParents=.true.)) then
        !![
-       <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackground" source="parameters"/>
+       <objectBuilder class="radiationField" name="radiation_" parameterName="radiationFieldIntergalacticBackground" source="parameters"/>
        !!]
-       select type (radiationIntergalacticBackground)
-       class is (radiationFieldIntergalacticBackground)
-          ! This is as expected.
-       class default
-          call Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
-       end select
     else
-       radiationIntergalacticBackground => null()
+       allocate(radiationFieldNull :: radiation_)
+       select type (radiation_)
+       type is (radiationFieldNull)
+          !![
+	  <referenceConstruct object="radiation_" constructor="radiationFieldNull()"/>
+          !!]
+       end select
     end if
-    self=nodeOperatorCGMChemistry(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiationIntergalacticBackground)
+    self=nodeOperatorCGMChemistry(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiation_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="chemicalReactionRate_"             />
     <objectDestructor name="darkMatterHaloScale_"              />
     <objectDestructor name="cosmologyFunctions_"               />
-    <objectDestructor name="radiationIntergalacticBackground"  />
+    <objectDestructor name="radiation_"                        />
     <objectDestructor name="atomicIonizationRateCollisional_"  />
     <objectDestructor name="atomicRecombinationRateRadiative_" />
     <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
@@ -187,12 +188,11 @@ contains
     return
   end function cgmChemistryConstructorParameters
 
-  function cgmChemistryConstructorInternal(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiationIntergalacticBackground) result(self)
+  function cgmChemistryConstructorInternal(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiation_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily cgmChemistry} node operator class.
     !!}
-    use :: Radiation_Fields             , only : radiationFieldList
-    use :: Chemical_Abundances_Structure, only : Chemicals_Index   , Chemicals_Property_Count
+    use :: Chemical_Abundances_Structure, only : Chemicals_Index, Chemicals_Property_Count
     implicit none
     type            (nodeOperatorCGMChemistry              )                         :: self
     double precision                                        , intent(in   )          :: fractionTimescaleEquilibrium
@@ -202,11 +202,9 @@ contains
     class           (chemicalReactionRateClass             ), intent(in   ), target  :: chemicalReactionRate_
     class           (darkMatterHaloScaleClass              ), intent(in   ), target  :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass               ), intent(in   ), target  :: cosmologyFunctions_
-    class           (radiationFieldClass                   ), intent(in   ), pointer :: radiationIntergalacticBackground
-    type            (radiationFieldList                    )               , pointer :: radiationFieldList_
-    !$GLC attributes initialized :: radiationIntergalacticBackground
+    class           (radiationFieldClass                   ), intent(in   ), pointer :: radiation_
     !![
-    <constructorAssign variables="fractionTimescaleEquilibrium, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_, *chemicalReactionRate_, *darkMatterHaloScale_, *cosmologyFunctions_, *radiationIntergalacticBackground"/>
+    <constructorAssign variables="fractionTimescaleEquilibrium, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_, *chemicalReactionRate_, *darkMatterHaloScale_, *cosmologyFunctions_, *radiation_"/>
     !!]
 
     ! Determine if chemicals are being solved for.
@@ -222,22 +220,6 @@ contains
     self%maskAnalytic(self%atomicHydrogenIndex      )=.true.
     self%maskAnalytic(self%atomicHydrogenCationIndex)=.true.
     self%maskAnalytic(self%electronIndex            )=.true.
-    ! Create radiation fields.
-    allocate(radiationFieldList_                    )
-    allocate(self%radiation_                        )
-    allocate(self%radiationCosmicMicrowaveBackground)
-    !![
-    <referenceConstruct owner="self" object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
-    !!]
-    radiationFieldList_%radiationField_ => self%radiationCosmicMicrowaveBackground
-    if (associated(radiationIntergalacticBackground)) then
-       allocate(radiationFieldList_%next)
-       radiationFieldList_%next%radiationField_ => radiationIntergalacticBackground
-    end if
-    !![
-    <referenceConstruct owner="self" object="radiation_" constructor="radiationFieldSummation(radiationFieldList_)"/>
-    !!]
-    nullify(radiationFieldList_)
     return
   end function cgmChemistryConstructorInternal
   
@@ -253,8 +235,6 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"              />
     <objectDestructor name="self%cosmologyFunctions_"               />
     <objectDestructor name="self%radiation_"                        />
-    <objectDestructor name="self%radiationCosmicMicrowaveBackground"/>
-    <objectDestructor name="self%radiationIntergalacticBackground"  />
     <objectDestructor name="self%atomicIonizationRateCollisional_"  />
     <objectDestructor name="self%atomicRecombinationRateRadiative_" />
     <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
@@ -429,7 +409,6 @@ contains
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances 
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo
-    use :: Radiation_Fields                 , only : radiationFieldIntergalacticBackground
     implicit none
     class           (nodeOperatorCGMChemistry), intent(inout)           :: self
     type            (treeNode                ), intent(inout)           :: node
@@ -449,13 +428,7 @@ contains
     ! Get the temperature of the CGM.
     temperature=self%darkMatterHaloScale_%temperatureVirial(node)
     ! Set the radiation background.
-    call self%radiationCosmicMicrowaveBackground%timeSet(basic%time())
-    if (associated(self%radiationIntergalacticBackground)) then
-       select type (radiationIntergalacticBackground => self%radiationIntergalacticBackground)
-       class is (radiationFieldIntergalacticBackground)
-          call radiationIntergalacticBackground%timeSet(basic%time())
-       end select
-    end if
+    call self%radiation_%timeSet(basic%time())
     ! Get the masses of chemicals.
     chemicalMasses=hotHalo%chemicals()
     ! Truncate masses to zero to avoid unphysical behavior.

@@ -20,6 +20,7 @@
 //% Implements Fortran-callable wrappers around the Linux mallinfo2() function.
 
 #ifdef __APPLE__
+#include <stdlib.h>
 #include <malloc/malloc.h>
 #else
 #include <malloc.h>
@@ -54,11 +55,12 @@ size_t mallinfo2_c() {
   size_t uordblks = info.uordblks;
   size_t usmblks  = info.usmblks ;
   size_t hblkhd   = info.hblkhd  ;
+  size_t one      = 1            ;
   // Old mallinfo() uses ints which can overflow and become negative. Trap that here - there's nothing more we can do about
   // this. Newer glibcs support mallinfo2() which does not have this problem.
-  if (uordblks < 0) uordblks=0;
-  if (usmblks  < 0) usmblks =0;
-  if (hblkhd   < 0) hblkhd  =0;
+  if (uordblks < 0 || uordblks > one<<32) uordblks=0;
+  if (usmblks  < 0 || usmblks  > one<<32) usmblks =0;
+  if (hblkhd   < 0 || hblkhd   > one<<32) hblkhd  =0;
   return uordblks+usmblks+hblkhd;
 #endif
 #endif

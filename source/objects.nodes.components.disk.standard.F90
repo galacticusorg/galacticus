@@ -711,11 +711,11 @@ contains
        if (spheroidStarFormationHistory%exists()) then
           timeBegin=  spheroidStarFormationHistory%time(1)
        else
-          basic    => node%basic()
-          timeBegin=  basic   %time ()
+          basic    => node %basic()
+          timeBegin=  basic%time ()
        end if
-       call starFormationHistory_%create(node,historyStarFormation,timeBegin)
-       call disk%starFormationHistorySet(     historyStarFormation          )
+       call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
+       call disk                 %starFormationHistorySet(     historyStarFormation          )
     end if
     ! Record that the disk has been initialized.
     call disk%isInitializedSet(.true.)
