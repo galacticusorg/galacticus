@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711826448886,
+  "lastUpdate": 1711826456831,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "9874ca3b4ade45f41c7c185abe202378dd152829",
-          "message": "fix: Correct class reference",
-          "timestamp": "2023-07-13T07:18:43-07:00",
-          "tree_id": "8ea083cf4817a7613663bff91c3156ba9c7a195e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9874ca3b4ade45f41c7c185abe202378dd152829"
-        },
-        "date": 1689270185536,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5242080709765,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.4439006068673,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25257.8908941139,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8760,6 +8721,45 @@ window.BENCHMARK_DATA = {
             "value": 51.341,
             "unit": "seconds",
             "range": 0.191830393838207
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e34b78a68f5847cf11983f1fd794f3ffe739f1d2",
+          "message": "Merge pull request #595 from galacticusorg/fixUniverseEvolution\n\nAvoid deadlocking when processing universe events",
+          "timestamp": "2024-03-30T15:21:22Z",
+          "tree_id": "727519e6bc024b421e20b21916b2c3378f206ecc",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e34b78a68f5847cf11983f1fd794f3ffe739f1d2"
+        },
+        "date": 1711826456074,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8583188967591,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.61622870029909,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20638.7641722599,
+            "unit": "-logℒ"
           }
         ]
       }
