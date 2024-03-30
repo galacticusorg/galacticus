@@ -1,41 +1,9 @@
 window.ANALYSES_DATA = {
-   "commit" : {
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abenson@obs.carnegiescience.edu"
-      },
-      "id" : "a2807179bd76a02f1216608a7eb7e1b8308fa993",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/a2807179bd76a02f1216608a7eb7e1b8308fa993",
-      "message" : "feat: Add helpful error message when failing to parse a fully-specified merger tree file",
-      "timestamp" : "Thu, 28 Mar 2024 18:08:28 -0700"
-   },
    "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.05_alpha_1.0_beta_3.0_gamma_0.5.xml",
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "results" : [
       {
-         "attributes" : {
-            "yDatasetTarget" : "fractionBoundMassTarget",
-            "targetLabel" : "Simulations",
-            "yAxisIsLog" : 1,
-            "xDataset" : "time",
-            "name" : "satelliteBoundMass",
-            "yAxisLabel" : "M_bound/M_bound,0",
-            "description" : "Satellite bound mass fraction vs. time.",
-            "type" : "function1D",
-            "xAxisLabel" : "t/Gyr",
-            "yDataset" : "fractionBoundMass",
-            "xAxisIsLog" : 0,
-            "logLikelihood" : 21.5812642916508
-         },
          "data" : {
-            "xDataset" : [
-               1,
-               4.12954899853765,
-               7.25909799707531,
-               10.2888642739205,
-               13.4184132724581,
-               16.4481795493033
-            ],
             "yDatasetTarget" : [
                1,
                0.0949603367095694,
@@ -51,10 +19,46 @@ window.ANALYSES_DATA = {
                0.0126114629987425,
                0.00388830372505184,
                0.000744725480557935
+            ],
+            "xDataset" : [
+               1,
+               4.12954899853765,
+               7.25909799707531,
+               10.2888642739205,
+               13.4184132724581,
+               16.4481795493033
             ]
+         },
+         "attributes" : {
+            "name" : "satelliteBoundMass",
+            "targetLabel" : "Simulations",
+            "type" : "function1D",
+            "xAxisIsLog" : 0,
+            "description" : "Satellite bound mass fraction vs. time.",
+            "yAxisLabel" : "M_bound/M_bound,0",
+            "xDataset" : "time",
+            "yDatasetTarget" : "fractionBoundMassTarget",
+            "xAxisLabel" : "t/Gyr",
+            "yDataset" : "fractionBoundMass",
+            "yAxisIsLog" : 1,
+            "logLikelihood" : 21.5812642916508
          }
       },
       {
+         "attributes" : {
+            "logLikelihood" : 7.89676175266811,
+            "xDataset" : "time",
+            "yAxisLabel" : "R_max/R_max,0",
+            "yAxisIsLog" : 1,
+            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "yDataset" : "fractionRadiusVelocityMaximum",
+            "type" : "function1D",
+            "xAxisLabel" : "t/Gyr",
+            "xAxisIsLog" : 0,
+            "targetLabel" : "Simulations",
+            "name" : "satelliteRadiusVelocityMaximum",
+            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget"
+         },
          "data" : {
             "xDataset" : [
                1,
@@ -80,24 +84,18 @@ window.ANALYSES_DATA = {
                0.209413363484532,
                0.132371636209933
             ]
-         },
-         "attributes" : {
-            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
-            "yAxisLabel" : "R_max/R_max,0",
-            "logLikelihood" : 7.89676175266811,
-            "xAxisIsLog" : 0,
-            "yDataset" : "fractionRadiusVelocityMaximum",
-            "xAxisLabel" : "t/Gyr",
-            "name" : "satelliteRadiusVelocityMaximum",
-            "type" : "function1D",
-            "xDataset" : "time",
-            "yAxisIsLog" : 1,
-            "targetLabel" : "Simulations",
-            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget"
          }
       },
       {
          "data" : {
+            "yDataset" : [
+               1,
+               0.684901616604528,
+               0.453288530438494,
+               0.301514783234956,
+               0.193900584057524,
+               0.115486433250093
+            ],
             "xDataset" : [
                1,
                4.12954899853765,
@@ -113,30 +111,32 @@ window.ANALYSES_DATA = {
                0.348572244213638,
                0.229361108356018,
                0.137132802133288
-            ],
-            "yDataset" : [
-               1,
-               0.684901616604528,
-               0.453288530438494,
-               0.301514783234956,
-               0.193900584057524,
-               0.115486433250093
             ]
          },
          "attributes" : {
+            "xDataset" : "time",
             "yAxisLabel" : "V_max/V_max,0",
             "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "name" : "satelliteVelocityMaximum",
-            "xDataset" : "time",
-            "yAxisIsLog" : 1,
-            "targetLabel" : "Simulations",
-            "yDatasetTarget" : "fractionVelocityMaximumTarget",
-            "logLikelihood" : 9.84983054159055,
             "xAxisIsLog" : 0,
+            "type" : "function1D",
+            "name" : "satelliteVelocityMaximum",
+            "targetLabel" : "Simulations",
+            "logLikelihood" : 9.84983054159055,
+            "yAxisIsLog" : 1,
             "yDataset" : "fractionVelocityMaximum",
             "xAxisLabel" : "t/Gyr",
-            "type" : "function1D"
+            "yDatasetTarget" : "fractionVelocityMaximumTarget"
          }
       }
-   ]
+   ],
+   "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/e34b78a68f5847cf11983f1fd794f3ffe739f1d2",
+      "id" : "e34b78a68f5847cf11983f1fd794f3ffe739f1d2",
+      "message" : "Merge pull request #595 from galacticusorg/fixUniverseEvolution",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      },
+      "timestamp" : "Sat, 30 Mar 2024 15:21:22 +0000"
+   }
 }
