@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "percentageBelow" : 50,
-      "percentageAbove" : 50,
-      "target" : 0.006
+   "slope" : {
+      "percentageBelow" : 53.8461538461538,
+      "target" : 0.85,
+      "percentageAbove" : 46.1538461538462
    },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "percentageBelow" : 50,
+      "target" : 0.006,
+      "percentageAbove" : 50
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "id" : "e34b78a68f5847cf11983f1fd794f3ffe739f1d2",
-      "timestamp" : "Sat, 30 Mar 2024 15:21:22 +0000",
-      "message" : "Merge pull request #595 from galacticusorg/fixUniverseEvolution",
+      "id" : "9a84f8498ff587af48f4d1d4d90a77622207bab8",
+      "timestamp" : "Sun, 31 Mar 2024 16:08:06 +0000",
+      "message" : "Merge pull request #596 from galacticusorg/fixEnumerationDescribe",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/9a84f8498ff587af48f4d1d4d90a77622207bab8",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/e34b78a68f5847cf11983f1fd794f3ffe739f1d2"
-   },
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 33.3333333333333,
-      "percentageBelow" : 66.6666666666667
+      }
    }
 }
