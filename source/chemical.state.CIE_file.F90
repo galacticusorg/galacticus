@@ -138,6 +138,7 @@
     and electron density. Otherwise, interpolation is linear in these quantities. The
     electron density is scaled assuming a linear dependence on hydrogen density.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </chemicalState>
   !!]
   type, extends(chemicalStateClass) :: chemicalStateCIEFile
@@ -250,10 +251,10 @@ contains
     !!{
     Return the electron density by interpolating in tabulated CIE data read from a file.
     !!}
-    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Radiation_Fields    , only : radiationFieldClass
-    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -271,7 +272,7 @@ contains
        case (extrapolationTypeZero%ID)
           cieFileElectronDensity=0.0d0
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -280,7 +281,7 @@ contains
        case (extrapolationTypeZero%ID)
           cieFileElectronDensity=0.0d0
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -328,10 +329,10 @@ contains
     Return the logarithmic slope of the electron density with respect to temperature by interpolating in tabulated CIE data
     read from a file.
     !!}
-    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Radiation_Fields    , only : radiationFieldClass
-    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels        , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
@@ -349,7 +350,7 @@ contains
        case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileElectronDensityTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -358,7 +359,7 @@ contains
        case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileElectronDensityTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -445,11 +446,11 @@ contains
     Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     and radiation field. Units of the returned electron density are cm$^-3$.
     !!}
-    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
-    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     type            (chemicalAbundances  ), intent(inout) :: chemicalDensities
@@ -468,7 +469,7 @@ contains
        case (extrapolationTypeZero%ID)
           call chemicalDensities%reset()
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -477,7 +478,7 @@ contains
        case (extrapolationTypeZero%ID)
           call chemicalDensities%reset()
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -631,7 +632,7 @@ contains
     use :: HDF5_Access                  , only : hdf5Access
     use :: IO_HDF5                      , only : hdf5Object
     use :: ISO_Varying_String           , only : varying_string
-    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
+    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     character       (len=*               ), intent(in   ) :: fileName
@@ -677,33 +678,33 @@ contains
     call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
     ! Validate extrapolation methods.
-    if     (                                                              &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     call displayUnindent('done',verbosityLevelDebug)
     !$ call hdf5Access%unset()
@@ -731,16 +732,16 @@ contains
        if (self%gotHydrogenAtomic) self%densityHydrogenAtomic=log(self%densityHydrogenAtomic)
        if (self%gotHydrogenCation) self%densityHydrogenCation=log(self%densityHydrogenCation)
     else
-       if     (                                                              &
-            &   self%extrapolateTemperatureLow  == extrapolationTypePowerLaw &
-            &  .or.                                                          &
-            &   self%extrapolateTemperatureHigh == extrapolationTypePowerLaw &
-            &  .or.                                                          &
-            &   self%extrapolateMetallicityLow  == extrapolationTypePowerLaw &
-            &  .or.                                                          &
-            &   self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
-            & )                                                              &
-            & call Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
+       if     (                                                                 &
+            &   self%extrapolateTemperatureLow  == extrapolationTypeExtrapolate &
+            &  .or.                                                             &
+            &   self%extrapolateTemperatureHigh == extrapolationTypeExtrapolate &
+            &  .or.                                                             &
+            &   self%extrapolateMetallicityLow  == extrapolationTypeExtrapolate &
+            &  .or.                                                             &
+            &   self%extrapolateMetallicityHigh == extrapolationTypeExtrapolate &
+            & )                                                                 &
+            & call Error_Report('extrapolation allowed only in loggable tables'//{introspection:location})
     end if
     ! Build interpolators.
     self%interpolatorTemperature=interpolator(self%temperatures )

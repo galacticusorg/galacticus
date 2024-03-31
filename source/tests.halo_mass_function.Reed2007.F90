@@ -121,6 +121,7 @@ program Tests_Halo_Mass_Function_Reed2007
     transferFunctionFile                                        (                                                                                                      &amp;
      &amp;                                                        fileName                           ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5', &amp;
      &amp;                                                        redshift                           =0.000d0                                                        , &amp;
+     &amp;                                                        acceptNegativeValues               =.false.                                                        , &amp;
      &amp;                                                        cosmologyParameters_               =cosmologyParameters_                                           , &amp;
      &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                                              &amp;
      &amp;                                                       )

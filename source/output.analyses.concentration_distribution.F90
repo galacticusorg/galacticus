@@ -24,6 +24,7 @@
   !![
   <outputAnalysis name="outputAnalysisConcentrationDistribution">
    <description>A concentration distribution function output analysis class.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisConcentrationDistribution

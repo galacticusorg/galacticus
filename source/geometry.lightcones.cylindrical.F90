@@ -248,17 +248,17 @@ contains
     ! not use the automatically generated one as it will include the random number generator hash which does not affect the
     ! covariance.
     write (label,'(e17.10)') self%radiusCylinderComoving
-    fileName=         inputPath                                (pathTypeDataDynamic       )// &
-         &            'largeScaleStructure/'                                               // &
-         &            self%objectType                          (                          )// &
-         &            'CosmicVariance_'                                                    // &
-         &   Hash_MD5(                                                                        &
-         &            self%cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)// &
-         &            self%outputTimes_       %hashedDescriptor(includeSourceDigest=.true.)// &
-         &            self%powerSpectrum_     %hashedDescriptor(includeSourceDigest=.true.)// &
-         &            self%linearGrowth_      %hashedDescriptor(includeSourceDigest=.true.)// &
-         &            trim(adjustl(label))                                                    &
-         &           )                                                                     // &
+    fileName=         inputPath                                (pathTypeDataDynamic                                           )// &
+         &            'largeScaleStructure/'                                                                                   // &
+         &            self%objectType                          (                                                              )// &
+         &            'CosmicVariance_'                                                                                        // &
+         &   Hash_MD5(                                                                                                            &
+         &            self%cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
+         &            self%outputTimes_       %hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
+         &            self%powerSpectrum_     %hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
+         &            self%linearGrowth_      %hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
+         &            trim(adjustl(label))                                                                                        &
+         &           )                                                                                                         // &
          &            '.hdf5'
     allocate(covariance(self%outputTimes_%count(),self%outputTimes_%count()))
     !! Read the covariance matrix from file if possible.

@@ -320,6 +320,9 @@
 	  <nodeOperator value="positionOrphans" iterable="no"/>
 	</nodeOperator>
       </componentPosition>
+      <allowSubhaloPromotions value="true"/>
+      <alwaysPromoteMostMassive value="false"/>
+      <alwaysPromoteMostMassive value="true"/>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
@@ -1060,10 +1063,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <componentBlackHole value="standard">
-    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
-  </componentBlackHole>
-
+      <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+      <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
+    </componentBlackHole>
   </parameters>
 
   <!-- Hot halo ram pressure forces -->
@@ -1288,6 +1290,18 @@
     </powerSpectrumWindowFunction>
   </parameters>
 
+  <!-- Power spectrum normalization methods -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8 value="0.807"/>
+    </cosmologicalMassVariance>
+    <cosmologicalMassVariance value="filteredPower">
+      <normalizationScalar value="2.092e-9"/>
+    </cosmologicalMassVariance>
+  </parameters>
+
   <!-- Dark energy cosmology -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1298,9 +1312,9 @@
     </cosmologyFunctions>
     <criticalOverdensity value="sphericalCollapseClsnlssMttrDrkEnrgy"/>
     <virialDensityContrast value="sphericalCollapseClsnlssMttrDrkEnrgy">
-  <energyFixedAt value="turnaround"/>
-  </virialDensityContrast>
-    </parameters>
+      <energyFixedAt value="turnaround"/>
+    </virialDensityContrast>
+  </parameters>
 
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>
@@ -1340,9 +1354,12 @@
       <redshiftMaximum value="150"/>
     </universeOperator>
     <!-- Background radiation -->
-    <radiationFieldIntergalacticBackground value="intergalacticBackgroundInternal">
-      <wavelengthCountPerDecade value="5"/>
-      <timeCountPerDecade value="2"/>
+    <radiationFieldIntergalacticBackground value="summation">
+      <radiationField value="cosmicMicrowaveBackground"/>
+      <radiationField value="intergalacticBackgroundInternal">
+	<wavelengthCountPerDecade value="5"/>
+	<timeCountPerDecade value="2"/>
+      </radiationField>
     </radiationFieldIntergalacticBackground>
     <!-- Halo mass ranges -->
     <mergerTreeBuildMasses value="sampledDistributionUniform">
@@ -2474,4 +2491,48 @@
     </nodeOperator>
   </parameters>
   
+  <!-- Output time options -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <outputTimes value="list">
+      <redshifts value="0.0 0.2 0.4"/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <timeMinimum value=" 1.0"/>
+      <timeMaximum value="13.0"/>
+      <countTimes  value=" 4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <timeMinimum     value="1.0"/>
+      <redshiftMinimum value="0.1"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <redshiftMaximum value=" 4.0"/>
+      <timeMaximum     value="13.0"/>
+      <countTimes      value=" 4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInTime">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+    <outputTimes value="uniformSpacingInRedshift">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+    <outputTimes value="logarithmicSpacingInRedshift">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countRedshifts  value="4  "/>
+    </outputTimes>
+    <outputTimes value="logarithmicSpacingInCriticalOverdensity">
+      <redshiftMinimum value="0.1"/>
+      <redshiftMaximum value="4.0"/>
+      <countTimes      value="4  "/>
+    </outputTimes>
+  </parameters>
+
 </parameterGrid>

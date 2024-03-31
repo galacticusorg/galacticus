@@ -74,6 +74,7 @@
    <stateStorable>
     <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
    </stateStorable>
+   <runTimeFileDependencies paths="fileName"/>
   </stellarPopulationSpectra>
   !!]
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile

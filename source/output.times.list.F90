@@ -238,7 +238,7 @@ contains
     integer         (c_size_t       )                          :: i
 
     ! If the current time exceeds the last output, return an unphysical value.
-    if      (timeCurrent > self%times(size(self%times))) then
+    if      (timeCurrent >= self%times(size(self%times))) then
        listTimeNext=-1.0d0
        if (present(indexOutput)) indexOutput=-1
     else if (timeCurrent <  self%times(         1)) then

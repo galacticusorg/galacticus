@@ -435,6 +435,7 @@ contains
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
     use :: Display                       , only : displayMessage          , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Histories                     , only : history
     use :: Interface_GSL                 , only : GSL_Success             , GSL_Continue
     use :: ISO_Varying_String            , only : assignment(=)           , operator(//)         , varying_string
     use :: Stellar_Luminosities_Structure, only : abs                     , stellarLuminosities
@@ -453,6 +454,8 @@ contains
     !$omp threadprivate(message)
     type            (stellarLuminosities  ), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
+    type            (history              ), save                   :: historyStellar
+    !$omp threadprivate(historyStellar)
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -502,6 +505,12 @@ contains
              specificAngularMomentum=0.0d0
              call spheroid%        massStellarSet(                  0.0d0)
              call spheroid%  abundancesStellarSet(         zeroAbundances)
+             historyStellar=spheroid%starFormationHistory    ()
+             call historyStellar%reset()
+             call spheroid      %starFormationHistorySet   (historyStellar)
+             historyStellar=spheroid%stellarPropertiesHistory()
+             call historyStellar%reset()
+             call spheroid      %stellarPropertiesHistorySet(historyStellar)
              ! We need to reset the stellar luminosities to zero. We can't simply use the "zeroStellarLuminosities" instance since
              ! our luminosities may have been truncated. If we were to use "zeroStellarLuminosities" then the number of stellar
              ! luminosities associated with the spheroid would change - but we are in the middle of differential evolution here and we
@@ -515,8 +524,8 @@ contains
              specificAngularMomentum=spheroid%angularMomentum()/massSpheroid
           end if
           ! Reset the gas, abundances and angular momentum of the spheroid.
-          call spheroid%        massGasSet(                                                      0.0d0)
-          call spheroid%  abundancesGasSet(                                             zeroAbundances)
+          call spheroid%        massGasSet(                                         0.0d0)
+          call spheroid%  abundancesGasSet(                                zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
@@ -562,20 +571,28 @@ contains
           else
              specificAngularMomentum=spheroid%angularMomentum()/massSpheroid
           end if
-          ! Reset the stellar, abundances and angular momentum of the spheroid.
+          ! Reset the stellar mass, abundances and angular momentum of the spheroid.
           call spheroid%        massStellarSet(                                 0.0d0)
           call spheroid%  abundancesStellarSet(                        zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
+          historyStellar=spheroid%starFormationHistory    ()
+          call historyStellar%reset()
+          call spheroid      %starFormationHistorySet   (historyStellar)
+          historyStellar=spheroid%stellarPropertiesHistory()
+          call historyStellar%reset()
+          call spheroid      %stellarPropertiesHistorySet(historyStellar)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative angular momentum.
        if (spheroid%angularMomentum() < 0.0d0) then
           ! Estimate a reasonable specific angular momentum.
-          specificAngularMomentum=spheroid%radius()*spheroid%velocity()
+          specificAngularMomentum=+spheroid%radius                         () &
+               &                  *spheroid%velocity                       () &
+               &                  /         ratioAngularMomentumScaleRadius
           ! Get the mass of the spheroid.
-          massSpheroid= spheroid%massGas    () &
-               &       +spheroid%massStellar()
+          massSpheroid           =+spheroid%massGas                        () &
+               &                  +spheroid%massStellar                    ()
           ! Reset the angular momentum of the spheroid.
           call spheroid%angularMomentumSet(specificAngularMomentum*massSpheroid)
           ! Indicate that ODE evolution should continue after this state change.
@@ -904,7 +921,7 @@ contains
          &                                                               history_
     double precision                                                  :: angularMomentum               , diskSpecificAngularMomentum    , &
          &                                                               massSpheroid                  , spheroidSpecificAngularMomentum, &
-         &                                                               radiusRemnant                 ,velocityCircularRemnant         , &
+         &                                                               radiusRemnant                 , velocityCircularRemnant        , &
          &                                                               angularMomentumSpecificRemnant
     type            (enumerationDestinationMergerType)                :: destinationGasSatellite       , destinationGasHost             , &
          &                                                               destinationStarsHost          , destinationStarsSatellite

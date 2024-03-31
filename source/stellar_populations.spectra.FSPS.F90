@@ -100,7 +100,7 @@ contains
     !!]
 
     call Interface_FSPS_Version(fspsVersion)
-    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(inputPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v'//fspsVersion//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
+    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(inputPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v'//fspsVersion//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'))
     return
   end function fspsConstructorInternal
 

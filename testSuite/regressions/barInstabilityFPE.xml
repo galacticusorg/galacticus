@@ -163,7 +163,7 @@
     <nodePropertyExtractor value="darkMatterProfileScaleRadius"/>
     <nodePropertyExtractor value="indicesTree"/>
     <nodePropertyExtractor value="nodeIndices"/>
-    <nodePropertyExtractor value="radiusHalfMass"/>
+    <nodePropertyExtractor value="radiusHalfMassStellar"/>
     <!--nodePropertyExtractor value="velocityDispersion">
       <radiusSpecifiers value="stellarMassFraction{0.5}:all:stellar:lineOfSight:1.0"/>
     </nodePropertyExtractor-->

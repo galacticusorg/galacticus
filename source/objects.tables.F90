@@ -128,7 +128,7 @@ module Tables
   end type table1D
 
   interface
-     double precision function Table1D_Interpolate(self,x,table)
+     double precision function Table1D_Interpolate(self,x,table,status)
        !!{
        Interface to {\normalfont \ttfamily table} interpolator.
        !!}
@@ -137,6 +137,7 @@ module Tables
        class           (table1D), intent(inout)           :: self
        double precision         , intent(in   )           :: x
        integer                  , intent(in   ), optional :: table
+       integer                  , intent(  out), optional :: status
      end function Table1D_Interpolate
   end interface
 
@@ -703,7 +704,7 @@ contains
     return
   end subroutine Table_Generic_1D_Interpolator_Initialize
   
-  double precision function Table_Generic_1D_Interpolate(self,x,table)
+  double precision function Table_Generic_1D_Interpolate(self,x,table,status)
     !!{
     Perform generic interpolation in a generic 1D table.
     !!}
@@ -712,6 +713,7 @@ contains
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
+    integer                         , intent(  out), optional :: status
     integer                                                   :: interpolator_
     !![
     <optionalArgument name="table" defaultsTo="1"/>
@@ -723,11 +725,11 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate=self%interpolator_(interpolator_)%interpolate(self%xEffective(x),self%yv(:,table_))
+    Table_Generic_1D_Interpolate=self%interpolator_(interpolator_)%interpolate(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate
   
-  double precision function Table_Generic_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Generic_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform generic interpolation in a generic 1D table.
     !!}
@@ -736,6 +738,7 @@ contains
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
+    integer                         , intent(  out), optional :: status
     integer                                                   :: interpolator_
     !![
     <optionalArgument name="table" defaultsTo="1"/>
@@ -747,7 +750,7 @@ contains
     else
        interpolator_=table_
     end if
-    Table_Generic_1D_Interpolate_Gradient=self%interpolator_(interpolator_)%derivative(self%xEffective(x),self%yv(:,table_))
+    Table_Generic_1D_Interpolate_Gradient=self%interpolator_(interpolator_)%derivative(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Gradient
 
@@ -862,7 +865,7 @@ contains
     return
   end subroutine Table_Linear_1D_Populate_Single
 
-  double precision function Table_Linear_1D_Interpolate(self,x,table)
+  double precision function Table_Linear_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a linear 1D table.
     !!}
@@ -871,6 +874,7 @@ contains
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
     integer                              , intent(in   ), optional :: table
+    integer                              , intent(  out), optional :: status
     integer                                                        :: i    , tableActual
     double precision                                               :: h    , xEffective
 
@@ -878,7 +882,7 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    xEffective=self%xEffective(x)
+    xEffective=self%xEffective(x,status)
     if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
@@ -908,7 +912,7 @@ contains
     return
   end function Table_Linear_1D_Interpolate
 
-  double precision function Table_Linear_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Linear_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a linear 1D table.
     !!}
@@ -917,6 +921,7 @@ contains
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
     integer                              , intent(in   ), optional :: table
+    integer                              , intent(  out), optional :: status
     integer                                                        :: i         , tableActual
     double precision                                               :: xEffective
 
@@ -924,7 +929,7 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    xEffective=self%xEffective(x)
+    xEffective=self%xEffective(x,status)
     if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
@@ -987,14 +992,14 @@ contains
     Return the $x$-values for a 1D table.
     !!}
     implicit none
-    class           (table1DLogarithmicLinear), intent(in   ) :: self
+    class           (table1DLogarithmicLinear), intent(in   )             :: self
     double precision                          , dimension(size(self%xv))  :: Table_Logarithmic_1D_Xs
 
     Table_Logarithmic_1D_Xs=exp(self%table1DLinearLinear%xs())
     return
   end function Table_Logarithmic_1D_Xs
 
-  double precision function Table_Logarithmic_1D_Interpolate(self,x,table)
+  double precision function Table_Logarithmic_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a logarithmic 1D table.
     !!}
@@ -1002,17 +1007,18 @@ contains
     class           (table1DLogarithmicLinear), intent(inout)           :: self
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
+    integer                                   , intent(  out), optional :: status
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_1D_Interpolate=self%table1DLinearLinear%interpolate(self%xLogarithmicPrevious,table)
+    Table_Logarithmic_1D_Interpolate=self%table1DLinearLinear%interpolate(self%xLogarithmicPrevious,table,status)
     return
   end function Table_Logarithmic_1D_Interpolate
 
-  double precision function Table_Logarithmic_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Logarithmic_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a logarithmic 1D table.
     !!}
@@ -1020,13 +1026,14 @@ contains
     class           (table1DLogarithmicLinear), intent(inout)           :: self
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
+    integer                                   , intent(  out), optional :: status
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table)/self%xEffective(x)
+    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
@@ -1339,7 +1346,7 @@ contains
     return
   end subroutine Table_Linear_CSpline_1D_Compute_Spline
 
-  double precision function Table_Linear_CSpline_1D_Interpolate(self,x,table)
+  double precision function Table_Linear_CSpline_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a linear 1D table.
     !!}
@@ -1347,6 +1354,7 @@ contains
     class           (table1DLinearCSpline), intent(inout)           :: self
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
+    integer                               , intent(  out), optional :: status
     integer                                                         :: i         , tableActual
     double precision                                                :: xEffective, dx
 
@@ -1355,7 +1363,7 @@ contains
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
     if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
-       xEffective=self%xEffective(x)
+       xEffective=self%xEffective(x,status)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=                                                    1
@@ -1375,7 +1383,7 @@ contains
     return
   end function Table_Linear_CSpline_1D_Interpolate
 
-  double precision function Table_Linear_CSpline_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Linear_CSpline_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a linear 1D table.
     !!}
@@ -1383,6 +1391,7 @@ contains
     class           (table1DLinearCSpline), intent(inout)           :: self
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
+    integer                               , intent(  out), optional :: status
     integer                                                         :: i         , tableActual
     double precision                                                :: xEffective, dx
 
@@ -1391,7 +1400,7 @@ contains
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
     if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
-       xEffective=self%xEffective(x)
+       xEffective=self%xEffective(x,status)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=                                                    1
@@ -1458,14 +1467,14 @@ contains
     Return the $x$-values for a 1D table.
     !!}
     implicit none
-    class(table1DLogarithmicCSpline), intent(in   ) :: self
-    double precision                           , dimension(size(self%xv))  :: Table_Logarithmic_CSpline_1D_Xs
+    class           (table1DLogarithmicCSpline), intent(in   )            :: self
+    double precision                           , dimension(size(self%xv)) :: Table_Logarithmic_CSpline_1D_Xs
 
     Table_Logarithmic_CSpline_1D_Xs=exp(self%table1DLinearCSpline%xs())
     return
   end function Table_Logarithmic_CSpline_1D_Xs
 
-  double precision function Table_Logarithmic_CSpline_1D_Interpolate(self,x,table)
+  double precision function Table_Logarithmic_CSpline_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a logarithmic 1D table.
     !!}
@@ -1473,17 +1482,18 @@ contains
     class           (table1DLogarithmicCSpline), intent(inout)           :: self
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
+    integer                                    , intent(  out), optional :: status
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_CSpline_1D_Interpolate=self%table1DLinearCSpline%interpolate(self%xLogarithmicPrevious,table)
+    Table_Logarithmic_CSpline_1D_Interpolate=self%table1DLinearCSpline%interpolate(self%xLogarithmicPrevious,table,status)
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate
 
-  double precision function Table_Logarithmic_CSpline_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Logarithmic_CSpline_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a logarithmic 1D table.
     !!}
@@ -1491,13 +1501,14 @@ contains
     class           (table1DLogarithmicCSpline), intent(inout)           :: self
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
+    integer                                    , intent(  out), optional :: status
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table)/self%xEffective(x)
+    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
@@ -1683,7 +1694,7 @@ contains
     return
   end subroutine Table_Monotone_CSpline_1D_Compute_Spline
 
-  double precision function Table_Monotone_CSpline_1D_Interpolate(self,x,table)
+  double precision function Table_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{
     Perform monotonic cubic spline interpolation in a 1D table.
     !!}
@@ -1693,6 +1704,7 @@ contains
     class           (table1DMonotoneCSpline), intent(inout)           :: self
     double precision                        , intent(in   )           :: x
     integer                                 , intent(in   ), optional :: table
+    integer                                 , intent(  out), optional :: status
     integer                                                           :: tableActual
     integer         (c_size_t              )                          :: i
     double precision                                                  :: dx   , xEffective
@@ -1702,7 +1714,7 @@ contains
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
     if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
-       xEffective=self%xEffective(x)
+       xEffective=self%xEffective(x,status)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -1722,7 +1734,7 @@ contains
     return
   end function Table_Monotone_CSpline_1D_Interpolate
 
-  double precision function Table_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform monotonic cubic spline interpolation in a 1D table and return the gradient.
     !!}
@@ -1732,6 +1744,7 @@ contains
     class           (table1DMonotoneCSpline), intent(inout)           :: self
     double precision                        , intent(in   )           :: x
     integer                                 , intent(in   ), optional :: table
+    integer                                 , intent(  out), optional :: status
     integer                                                           :: tableActual
     integer         (c_size_t              )                          :: i
     double precision                                                  :: dx   , xEffective
@@ -1741,7 +1754,7 @@ contains
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
     if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
-       xEffective=self%xEffective(x)
+       xEffective=self%xEffective(x,status)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -1778,25 +1791,34 @@ contains
     return
   end function Table_Monotone_CSpline_Integration_Weights
   
-  double precision function Table1D_Find_Effective_X(self,x)
+  double precision function Table1D_Find_Effective_X(self,x,status)
     !!{
     Return the effective value of $x$ to use in table interpolations.
     !!}
-    use :: Error       , only : Error_Report
-    use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
+    use :: Error       , only : Error_Report                , errorStatusOutOfRange, errorStatusSuccess
+    use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeFix , extrapolationTypeZero, extrapolationTypeAbort
     implicit none
-    class           (table1D), intent(inout) :: self
-    double precision         , intent(in   ) :: x
+    class           (table1D), intent(inout)           :: self
+    double precision         , intent(in   )           :: x
+    integer                  , intent(  out), optional :: status
 
+    if (present(status)) status=errorStatusSuccess
     if      (x < self%xv(1         )) then
        select case (self%extrapolationType(1)%ID)
        case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
           Table1D_Find_Effective_X=     x
        case (extrapolationTypeFix        %ID)
           Table1D_Find_Effective_X=self%xv(1          )
+       case (extrapolationTypeAbort      %ID)
+          Table1D_Find_Effective_X=     x
+          if (present(status)) then
+             status=errorStatusOutOfRange
+          else
+             call Error_Report('x is below range - extrapolation type "abort" forbids extrapolation'//{introspection:location})
+          end if
        case default
           Table1D_Find_Effective_X=0.0d0
-          call Error_Report('x is below range'//{introspection:location})
+          call    Error_Report('x is below range - unknown extrapolation method'                    //{introspection:location})
        end select
     else if (x > self%x(self%xCount)) then
        select case (self%extrapolationType(2)%ID)
@@ -1804,9 +1826,16 @@ contains
           Table1D_Find_Effective_X=     x
        case (extrapolationTypeFix        %ID)
           Table1D_Find_Effective_X=self%xv(self%xCount)
+       case (extrapolationTypeAbort      %ID)
+          Table1D_Find_Effective_X=     x
+          if (present(status)) then
+             status=errorStatusOutOfRange
+          else
+             call Error_Report('x is above range - extrapolation type "abort" forbids extrapolation'//{introspection:location})
+          end if
        case default
           Table1D_Find_Effective_X=0.0d0
-          call Error_Report('x is above range'//{introspection:location})
+          call    Error_Report('x is above range - unknown extrapolation method'                    //{introspection:location})      
        end select
     else
        Table1D_Find_Effective_X=x
@@ -1841,7 +1870,7 @@ contains
     return
   end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
 
-  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate(self,x,table)
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a linear-logarithmic 1D table.
     !!}
@@ -1849,12 +1878,13 @@ contains
     class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
     double precision                                    , intent(in   )           :: x
     integer                                             , intent(in   ), optional :: table
+    integer                                             , intent(  out), optional :: status
 
-    Table_NonUniform_Linear_Logarithmic_1D_Interpolate=exp(self%table1DGeneric%interpolate(x,table))
+    Table_NonUniform_Linear_Logarithmic_1D_Interpolate=exp(self%table1DGeneric%interpolate(x,table,status))
     return
   end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate
 
-  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a linear-logarithmic 1D table.
     !!}
@@ -1862,8 +1892,9 @@ contains
     class           (table1DNonUniformLinearLogarithmic), intent(inout)           :: self
     double precision                                    , intent(in   )           :: x
     integer                                             , intent(in   ), optional :: table
+    integer                                             , intent(  out), optional :: status
 
-    Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient=self%interpolate(x,table)*self%table1DGeneric%interpolateGradient(x,table)
+    Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient=self%interpolate(x,table,status)*self%table1DGeneric%interpolateGradient(x,table,status)
     return
   end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
 
@@ -2432,7 +2463,7 @@ contains
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline
 
-  double precision function Table_Linear_Monotone_CSpline_1D_Interpolate(self,x,table)
+  double precision function Table_Linear_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a linear 1D table.
     !!}
@@ -2440,15 +2471,16 @@ contains
     class           (table1DLinearMonotoneCSpline), intent(inout)           :: self
     double precision                              , intent(in   )           :: x
     integer                                       , intent(in   ), optional :: table
-    integer                                                                 :: i    , tableActual
-    double precision                                                        :: dx   , xEffective
+    integer                                       , intent(  out), optional :: status
+    integer                                                                 :: i     , tableActual
+    double precision                                                        :: dx    , xEffective
 
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
     if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
-       xEffective=self%xEffective(x)
+       xEffective=self%xEffective(x,status)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -2468,7 +2500,7 @@ contains
     return
   end function Table_Linear_Monotone_CSpline_1D_Interpolate
 
-  double precision function Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a linear 1D table.
     !!}
@@ -2476,15 +2508,16 @@ contains
     class           (table1DLinearMonotoneCSpline), intent(inout)           :: self
     double precision                              , intent(in   )           :: x
     integer                                       , intent(in   ), optional :: table
-    integer                                                                 :: i    , tableActual
-    double precision                                                        :: dx   , xEffective
+    integer                                       , intent(  out), optional :: status
+    integer                                                                 :: i     , tableActual
+    double precision                                                        :: dx    , xEffective
 
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
     if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
-       xEffective=self%xEffective(x)
+       xEffective=self%xEffective(x,status)
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
           i=1
@@ -2575,7 +2608,7 @@ contains
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Xs
 
-  double precision function Table_Logarithmic_Monotone_CSpline_1D_Interpolate(self,x,table)
+  double precision function Table_Logarithmic_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{
     Perform linear interpolation in a logarithmic 1D table.
     !!}
@@ -2583,17 +2616,18 @@ contains
     class           (table1DLogarithmicMonotoneCSpline), intent(inout)           :: self
     double precision                                   , intent(in   )           :: x
     integer                                            , intent(in   ), optional :: table
+    integer                                            , intent(  out), optional :: status
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_Monotone_CSpline_1D_Interpolate=self%table1DLinearMonotoneCSpline%interpolate(self%xLogarithmicPrevious,table)
+    Table_Logarithmic_Monotone_CSpline_1D_Interpolate=self%table1DLinearMonotoneCSpline%interpolate(self%xLogarithmicPrevious,table,status)
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate
 
-  double precision function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table)
+  double precision function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table,status)
     !!{
     Perform linear interpolation in a logarithmic 1D table.
     !!}
@@ -2601,13 +2635,14 @@ contains
     class           (table1DLogarithmicMonotoneCSpline), intent(inout)           :: self
     double precision                                   , intent(in   )           :: x
     integer                                            , intent(in   ), optional :: table
+    integer                                            , intent(  out), optional :: status
 
     if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
        self%previousSet         =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table)/self%xEffective(x)
+    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
 

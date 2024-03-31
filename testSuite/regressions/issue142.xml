@@ -421,9 +421,12 @@
   </universeOperator>    
 
   <!-- Background radiation -->
-  <radiationFieldIntergalacticBackground value="intergalacticBackgroundInternal">
-    <wavelengthCountPerDecade value="50"/>
-    <timeCountPerDecade value="10"/>
+  <radiationFieldIntergalacticBackground value="summation">
+    <radiationField value="cosmicMicrowaveBackground"/>
+    <radiationField value="intergalacticBackgroundInternal">
+      <wavelengthCountPerDecade value="50"/>
+      <timeCountPerDecade value="10"/>
+    </radiationField>
   </radiationFieldIntergalacticBackground>
 
   <!-- Halo accretion options -->

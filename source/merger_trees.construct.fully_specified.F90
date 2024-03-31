@@ -126,6 +126,7 @@
    <deepCopy>
      <increment variables="document%copyCount" atomic="yes"/>
    </deepCopy>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
@@ -308,7 +309,8 @@ contains
        <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !!]
        !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
-        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
+       call self%randomSequenceNonDeterministicWarn(tree)
+       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Begin writing report.
        call displayIndent('Initial conditions of fully-specified tree',verbosityLevelInfo)
        ! Iterate over nodes.

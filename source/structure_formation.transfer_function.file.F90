@@ -126,7 +126,8 @@
   If an optional \refClass{transferFunctionClass} object named {\normalfont \ttfamily transferFunctionReference} is supplied then
   that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to
   {\normalfont \ttfamily transferFunctionReference} are also computed.
-  </description>
+   </description>
+   <runTimeFileDependencies paths="fileName"/>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionFile
@@ -139,7 +140,7 @@
      type            (varying_string          )                            :: fileName
      type            (table1DGeneric          )                            :: transfer
      logical                                                               :: massHalfModeAvailable                       , massQuarterModeAvailable, &
-          &                                                                   transferFunctionReferenceAvailable
+          &                                                                   transferFunctionReferenceAvailable          , acceptNegativeValues
      double precision                                                      :: time                                        , redshift                , &
           &                                                                   massHalfMode                                , massQuarterMode
      double precision                          , allocatable, dimension(:) :: wavenumbersLocalMinima_
@@ -187,6 +188,7 @@ contains
     class           (transferFunctionClass   ), pointer       :: transferFunctionReference
     type            (varying_string          )                :: fileName
     double precision                                          :: redshift
+    logical                                                   :: acceptNegativeValues
 
     !![
     <inputParameter>
@@ -200,6 +202,12 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The redshift of the transfer function to read.</description>
     </inputParameter>
+    <inputParameter>
+      <name>acceptNegativeValues</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, negative values in the transfer function are allowed (and the absolute value is taken prior to interpolation). Otherwise, negative values result in an error.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
@@ -212,7 +220,7 @@ contains
     end if
     !![
     <conditionalCall>
-      <call>self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
+      <call>self=transferFunctionFile(char(fileName),redshift,acceptNegativeValues,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
       <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -227,7 +235,7 @@ contains
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
+  function fileConstructorInternal(fileName,redshift,acceptNegativeValues,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
     !!{
     Internal constructor for the file transfer function class.
     !!}
@@ -235,12 +243,13 @@ contains
     type            (transferFunctionFile    )                                  :: self
     character       (len=*                   ), intent(in   )                   :: fileName
     double precision                          , intent(in   )                   :: redshift
+    logical                                   , intent(in   )                   :: acceptNegativeValues
     class           (cosmologyParametersClass), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), intent(in   ), target           :: cosmologyFunctions_
     class           (transferFunctionClass   ), intent(in   ), target, optional :: transferFunctionReference
     integer                                                                     :: status
     !![
-    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
+    <constructorAssign variables="fileName, redshift, acceptNegativeValues, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
@@ -263,7 +272,8 @@ contains
     Internal constructor for the file transfer function class.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayMessage           , displayMagenta, displayReset
+    use :: Display                , only : displayMessage                  , displayMagenta                    , displayReset, displayGreen, &
+         &                                 displayYellow                   , displayBlue
     use :: File_Utilities         , only : File_Name_Expand
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
@@ -331,7 +341,22 @@ contains
     call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
     write (datasetName,'(f9.4)') self%redshift
     call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
-   !$ call hdf5Access%unset()
+    !$ call hdf5Access%unset()
+    ! Validate the transfer function.
+    if (any(transfer == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+    if (any(transfer <  0.0d0)) then
+       if (self%acceptNegativeValues) then
+          transfer=abs(transfer)
+       else
+          call Error_Report(                                                                                                                                                                  &
+          &                 'tabulated transfer function contains points at which T(k) < 0 - all points must be positive'                                           //char(10)             // &
+          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+          &                 {introspection:location}                                                                                                                                          &
+          &                 )
+       end if
+    end if
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
@@ -396,11 +421,28 @@ contains
     !!{
     Return the transfer function at the given wavenumber.
     !!}
+    use :: Error             , only : errorStatusOutOfRange               , errorStatusSuccess, Error_Report
+    use :: Table_Labels      , only : enumerationExtrapolationTypeDescribe
+    use :: ISO_Varying_String, only : var_str
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
+    integer                                               :: status
 
-    fileValue=exp(self%transfer%interpolate(log(wavenumber)))
+    fileValue=exp(self%transfer%interpolate(log(wavenumber),status=status))
+    select case (status)
+    case (errorStatusSuccess)
+       ! Success - nothing to do.
+    case (errorStatusOutOfRange)
+       call Error_Report(                                                                                                                                                                   &
+            &            var_str('wavenumber is outside tabulated range:')                                                                                                     //char(10)// &
+            &            'an extrapolation option "abort" was chosen - either extend the range of your tabulated transfer function or choose a different interpolation method:'          // &
+            &            enumerationExtrapolationTypeDescribe()                                                                                                                          // &
+            &            {introspection:location}                                                                                                                                           &
+            &            )
+    case default
+       call Error_Report('transfer function interpolation failed for unknown reason'//{introspection:location})
+    end select
     if (self%transferFunctionReferenceAvailable)                           &
          & fileValue=+                               fileValue             &
          &           *self%transferFunctionReference%    value(wavenumber)
@@ -411,15 +453,31 @@ contains
     !!{
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
+    use :: Error             , only : errorStatusOutOfRange               , errorStatusSuccess, Error_Report
+    use :: Table_Labels      , only : enumerationExtrapolationTypeDescribe
+    use :: ISO_Varying_String, only : var_str
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    
-    fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    integer                                               :: status
+
+    fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber),status=status)
+    select case (status)
+    case (errorStatusSuccess)
+       ! Success - nothing to do.
+    case (errorStatusOutOfRange)
+       call Error_Report(                                                                                                                                                                   &
+            &            var_str('wavenumber is outside tabulated range:')                                                                                                     //char(10)// &
+            &            'an extrapolation option "abort" was chosen - either extend the range of your tabulated transfer function or choose a different interpolation method:'          // &
+            &            enumerationExtrapolationTypeDescribe()                                                                                                                          // &
+            &            {introspection:location}                                                                                                                                           &
+            &            )
+    case default
+       call Error_Report('transfer function interpolation failed for unknown reason'//{introspection:location})
+    end select
     if (self%transferFunctionReferenceAvailable) &
          & fileLogarithmicDerivative=+                               fileLogarithmicDerivative             &
          &                           +self%transferFunctionReference%    logarithmicDerivative(wavenumber)
-
     return
   end function fileLogarithmicDerivative
   

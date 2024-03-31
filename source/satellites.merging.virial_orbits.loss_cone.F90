@@ -285,11 +285,11 @@ contains
     self%velocity            =Make_Range(self%velocityMinimum,self%velocityMaximum,countVelocities,rangeTypeLinear)
     self%interpolatorVelocity=interpolator(self%velocity)
     ! Build a file name for storing the tabulated solution.
-    self%fileName=inputPath(pathTypeDataDynamic)                   // &
-         &        'darkMatterHalos/'                               // &
-         &        self%objectType      (                          )// &
-         &        '_'                                              // &
-         &        self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &        'darkMatterHalos/'                                                                   // &
+         &        self%objectType      (                                                              )// &
+         &        '_'                                                                                  // &
+         &        self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &        '.hdf5'
     self%fileRead=.false.
     return

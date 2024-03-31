@@ -29,6 +29,7 @@
   !![
   <outputAnalysis name="outputAnalysisStarFormingMainSequence">
    <description>A star forming main sequence output analysis class.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisStarFormingMainSequence

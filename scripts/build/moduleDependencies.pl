@@ -204,10 +204,15 @@ foreach my $fileIdentifier ( sort(keys(%{$modulesPerFile})) ) {
 			 foreach my $availableSubmodule ( @{$submodules{lc($moduleFileName)}} ) {
 			     print "\t\t'".$availableSubmodule->{'name'}."'\n";
 			 }
-			 die('moduleDependencies.pl: no matching submodule found');
+			 die('ERROR: moduleDependencies.pl: no matching submodule found');
 		     }
-		     die('moduleDependencies.pl: multiple matching submodules found')
-			 if ( scalar(@match) >  1 );
+		     if ( scalar(@match) >  1 ) {
+			 print "ERROR: class '".$submodule->{'name'}."' is an extension of class '".$submodule->{'extends'}."' which is multiply defined in files:\n";
+			 foreach ( @match ) {
+			     print "\t".$_->{'source'}."\n";
+			 }
+			 die('moduleDependencies.pl: multiple matching submodules found');
+		     }
 		     $dependsOn = $match[0]->{'fileName'}.".o";
 		 } else {
 		     $dependsOn = $modulesPerFile->{$fileIdentifier}->{'sourceDirectoryDescriptor'}->{'leaf'}.$objectFileName;

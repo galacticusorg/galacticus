@@ -109,10 +109,25 @@ contains
        end if
        call displayMessage("compiling autosps.exe code",verbosityLevelWorking)
        if (static_) then
-          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)'/'\1 \-static'/g Makefile")
+          call System_Command_Do(                                                                                &
+               &                 "cd "//fspsPath//"/src; "                                                    // &
+#ifndef __APPLE__
+               &                 "grep -P '^F90FLAGS := ' Makefile && "                                       // &
+#endif
+               &                 "sed -i~ -E s/'^(F90FLAGS := [^#]*)'/'\1 \-static'/g Makefile"               ,  &
+               &                 status                                                                          &
+               &                )
        else
-          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile")
+          call System_Command_Do(                                                                                &
+               &                 "cd "//fspsPath//"/src; "                                                    // &
+#ifndef __APPLE__
+               &                 "grep -P '^F90FLAGS := ' Makefile && "                                       // &
+#endif
+               &                 "sed -i~ -E s/'^(F90FLAGS := .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile",  &
+               &                 status                                                                          &
+               &                )
        end if
+       if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile' for static/dynamic build"//{introspection:location})
        call System_Command_Do(                                                                                                                                                &
             &                 "cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="'                                                                   // &
 #ifndef __aarch64__

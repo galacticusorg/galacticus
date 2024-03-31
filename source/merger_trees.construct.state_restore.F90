@@ -58,6 +58,7 @@
     Note that currently this method does not support storing and restoring of trees which contain components that have more
     than one instance.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
@@ -158,6 +159,7 @@ contains
        ! Read the tree(s).
        allocate(tree)
        call mergerTreeStateFromFile(tree,char(self%fileName),self%randomNumberGenerator_)
+       call self%randomSequenceNonDeterministicWarn(tree)
     else
        nullify(tree)
     end if

@@ -57,6 +57,7 @@
     \ttfamily age} (in Gyr), {\normalfont \ttfamily luminosity} (in $L_\odot$) and {\normalfont \ttfamily effectiveTemperature}
     (in Kelvin) along the track.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </stellarTracks>
   !!]
   type, extends(stellarTracksClass) :: stellarTracksFile

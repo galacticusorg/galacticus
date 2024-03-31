@@ -27,7 +27,7 @@ module Interfaces_CLASS
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
-  public :: Interface_CLASS_Initialize, Interface_CLASS_Transfer_Function
+  public :: Interface_CLASS_Initialize, Interface_CLASS_Transfer_Function, Interface_CLASS_Normalization
 
   ! Current file format version for transfer function files. Note that this file format matches that used by the "file" transfer
   ! function class.
@@ -103,7 +103,7 @@ contains
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
        command='cd '//classPath//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
-       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^CCFLAG = "/"CCFLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
+       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
        command=command//' "/ Makefile.tmp; make -f Makefile.tmp -j1 class'
        call System_Command_Do(char(command),status);
@@ -479,5 +479,135 @@ contains
     call File_Unlock(fileLock)
     return
   end subroutine Interface_CLASS_Transfer_Function
+
+  double precision function Interface_CLASS_Normalization(cosmologyParameters_) result(normalization)
+    !!{
+    Run CLASS to compute the ratio $\sigma_8^2/A_s$.
+    !!}
+    use               :: Cosmology_Parameters            , only : cosmologyParametersClass, hubbleUnitsLittleH
+    use               :: File_Utilities                  , only : Directory_Remove        , Directory_Make     , File_Exists , File_Lock     , &
+         &                                                        File_Path               , File_Remove        , File_Unlock , lockDescriptor
+    use               :: Error                           , only : Error_Report
+    use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
+    use               :: Hashes_Cryptographic            , only : Hash_MD5
+    use               :: HDF5_Access                     , only : hdf5Access
+    use               :: IO_HDF5                         , only : hdf5Object
+    use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
+    use               :: Input_Parameters                , only : inputParameters
+#ifdef USEMPI
+    use               :: MPI_Utilities                   , only : mpiSelf
+#endif
+    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
+    use               :: String_Handling                 , only : String_C_To_Fortran     , operator(//)
+    use               :: System_Command                  , only : System_Command_Do
+    implicit none
+    class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
+    double precision                          , parameter                       :: normalizationAs     =1.0d-9
+    type            (lockDescriptor          )                                  :: fileLock
+    character       (len=255                 )                                  :: hostName
+    type            (varying_string          )                                  :: classVersion               , parameterFile     , &
+         &                                                                         classPath
+    double precision                                                            :: sigma8
+    integer                                                                     :: status                     , classParameterFile, &
+         &                                                                         classLog, offset
+    type            (hdf5Object              )                                  :: classOutput
+    character       (len=32                  )                                  :: line, parameterLabel
+    type            (varying_string          )                                  :: uniqueLabel                , workPath          , &
+         &                                                                         fileName
+    type            (inputParameters         )                                  :: descriptor
+    logical :: found
+  
+    ! Get a constructor descriptor for this object.
+    descriptor=inputParameters()
+    call cosmologyParameters_%descriptor(descriptor)
+    ! Add primordial helium abundance to the descriptor.
+    write (parameterLabel,'(f4.2)') heliumByMassPrimordial
+    call descriptor%addParameter("Y_He",parameterLabel)
+    ! Add the unique label string to the descriptor.
+    uniqueLabel=descriptor%serializeToString()        // &
+         &      "_sourceDigest:"                      // &
+         &      String_C_To_Fortran(classSourceDigest)
+    call descriptor%destroy()
+    ! Build the file name.
+    fileName=char(inputPath(pathTypeDataDynamic))                    // &
+         &                 'largeScaleStructure/normalization_CLASS_'// &
+         &                 Hash_MD5(uniqueLabel)                     // &
+         &                 '.hdf5'
+    ! Create the directory.
+    call Directory_Make(File_Path(fileName))
+    ! If the file exists but has not yet been read, read it now.
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock(char(fileName),fileLock)
+    if (File_Exists(fileName)) then
+       !$ call hdf5Access %set          (                             )
+       classOutput=hdf5Object(char(fileName))
+       call    classOutput%readAttribute('normalization',normalization)      
+       !$ call hdf5Access %unset        (                             )
+    else
+       ! Ensure CLASS is initialized.
+       call Interface_CLASS_Initialize(classPath,classVersion)
+       ! Construct input file for CLASS.
+       call Get_Environment_Variable('HOSTNAME',hostName)
+       workPath        =inputPath(pathTypeDataDynamic)//'largeScaleStructure/class_normalization_'//trim(hostName)//'_'//GetPID()
+       !$ workPath     =workPath     //'_'//OMP_Get_Thread_Num()
+       !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
+#ifdef USEMPI
+       workPath        =workPath     //'_'//mpiSelf%rankLabel()
+#endif
+       parameterFile=workPath//'/parameters.ini'
+       call Directory_Make(workPath)
+       open(newunit=classParameterFile,file=char(parameterFile),status='unknown',form='formatted')
+       write (classParameterFile,'(a,1x,"=",1x,a,a  )') 'root            ',char(workPath),'/output'
+       write (classParameterFile,'(a,1x,"=",1x,a    )') 'overwrite_root  ','yes'
+       write (classParameterFile,'(a,1x,"=",1x,a    )') 'headers         ','yes'
+       write (classParameterFile,'(a,1x,"=",1x,a    )') 'format          ','class'
+       write (classParameterFile,'(a,1x,"=",1x,a    )') 'output          ','mPk'
+       write (classParameterFile,'(a,1x,"=",1x,a    )') 'modes           ','s'
+       write (classParameterFile,'(a,1x,"=",1x,a    )') 'ic              ','ad'
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'h               ',                                                                                     cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'T_cmb           ',       cosmologyParameters_%temperatureCMB()
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_b         ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm       ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'Omega_k         ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'N_ur            ',3.044d+0
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'YHe             ',heliumByMassPrimordial
+       write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'A_s             ',normalizationAs
+       write (classParameterFile,'(a,1x,"=",1x,i1   )') 'fourier_verbose ',1
+       write (classParameterFile,'(a)'                ) ''
+       close(classParameterFile)
+       ! Run CLASS.
+       call System_Command_Do(classPath//"class "//parameterFile//" >& "//workPath//"/class.log")
+       ! Read the CLASS output.
+       found=.false.
+       open(newUnit=classLog,file=char(workPath)//"/class.log",form="formatted",status="old",iostat=status)
+       do while (status == 0)
+          read (classLog,'(a)',iostat=status) line
+          offset=index(line,"sigma8=")
+          if (offset > 0) then
+             found=.true.
+             read (line(offset+7:),*) sigma8
+          end if
+       end do
+       close(classLog)
+       if (.not.found) call Error_Report("CLASS σ₈ value not found"//{introspection:location})
+       normalization=+sigma8         **2 &
+            &        /normalizationAs
+       ! Remove temporary files.
+       call      File_Remove(parameterFile             )
+       call      File_Remove(workPath//"/class.log"    )
+       call      File_Remove(workPath//"/output_pk.dat")
+       call Directory_Remove(workPath                  )
+       ! Construct the output HDF5 file.
+       !$ call hdf5Access %set           (                              )
+       classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
+       call    classOutput%writeAttribute(normalization ,'normalization')
+       !$ call hdf5Access %unset         (                              )
+    end if
+    ! Unlock the file.
+    call File_Unlock(fileLock)
+    return
+  end function Interface_CLASS_Normalization
 
 end module Interfaces_CLASS

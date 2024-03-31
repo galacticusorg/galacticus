@@ -104,12 +104,18 @@ sub Process_StateStorable {
 	$code::className    = $directive->{'class'};
 	my $classIdentifier = -1;
 	my %classIdentifiers;
+        # <workaround type="gfortran" PR="114535" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=114535">
+        #  <description>
+	#   Issue in module read with elemental finalizer. We therefore `use :: ISO_Varying_String` directly below, following the suggestion of Paul Thomas in Comment 1 of the PR.
+        #  </description>
+	# </workaround>
 	my $outputCodeOpener = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  !!\{
  Store the state of this object to file.
  !!\}
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
+ use            :: ISO_Varying_String
  use            :: Display
  implicit none
  class    ({$className}), intent(inout)              :: self
@@ -117,12 +123,18 @@ subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  type     (c_ptr       ), intent(in   )              :: gslStateFile
  logical                , intent(in   ), optional    :: storeIdentifier
 CODE
+        # <workaround type="gfortran" PR="114535" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=114535">
+        #  <description>
+	#   Issue in module read with elemental finalizer. We therefore `use :: ISO_Varying_String` directly below, following the suggestion of Paul Thomas in Comment 1 of the PR.
+        #  </description>
+	# </workaround>
 	my $inputCodeOpener  = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateRestore(self,stateFile,gslStateFile)
  !!\{
  Store the state of this object to file.
  !!\}
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
+ use            :: ISO_Varying_String
  use            :: Display
  implicit none
  class  ({$className}), intent(inout)               :: self

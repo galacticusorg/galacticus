@@ -793,7 +793,7 @@ contains
     return
   end function softPlus
 
-  subroutine hearin2021StochasticDescriptor(self,descriptor,includeClass)
+  subroutine hearin2021StochasticDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -801,7 +801,7 @@ contains
     implicit none
     class    (darkMatterHaloMassAccretionHistoryHearin2021Stochastic), intent(inout)           :: self
     type     (inputParameters                                       ), intent(inout)           :: descriptor
-    logical                                                          , intent(in   ), optional :: includeClass
+    logical                                                          , intent(in   ), optional :: includeClass  ,includeFileModificationTimes
     character(len=18                                                )                          :: parameterLabel
     type     (inputParameters                                       )                          :: parameters
 

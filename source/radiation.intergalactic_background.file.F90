@@ -67,6 +67,7 @@
     elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must
     be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundFile

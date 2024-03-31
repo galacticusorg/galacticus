@@ -26,8 +26,9 @@ program Tests_IO_HDF5
   use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
        &                            hdf5VarDouble2D
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str
   use :: Kind_Numbers      , only : kind_int8
+  use :: System_Command    , only : System_Command_Do
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                                                                   :: iPass                          , integerValue         , &
@@ -857,6 +858,19 @@ program Tests_IO_HDF5
 
   ! Test identifying HDF5 file.
   call Assert("test if file is HDF5",IO_HDF5_Is_HDF5('testSuite/outputs/test.IO.HDF5.hdf5'),.true.)
+
+  ! Test of h5py compatibility.
+  block
+     type(hdf5Object) :: fileObject
+     call Unit_Tests_Begin_Group("h5py compatibility")
+     call System_Command_Do("./testSuite/scripts/generate_h5py.py")
+     fileObject=hdf5Object("testSuite/outputs/h5py.hdf5",overWrite=.false.,objectsOverwritable=.false.)
+     call fileObject%readAttribute("stringAttribute"            ,          varStringValueReread                            )
+     call fileObject%readAttribute("stringAttribute"            ,          characterValueReread                            )
+     call Assert("read h5py string attribute (character)",characterValueReread,"this is a variable length string")
+     call Assert("read h5py string attribute (varying_string)",varStringValueReread,var_str("this is a variable length string"))
+     call Unit_Tests_End_Group()
+   end block
 
   ! End unit tests.
   call Unit_Tests_End_Group()

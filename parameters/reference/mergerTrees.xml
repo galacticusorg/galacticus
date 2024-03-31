@@ -20,12 +20,17 @@
     <redshiftMaximum    value="100.0"/>
     <branchIntervalStep value="true" />
   </mergerTreeBuilder>
-  <mergerTreeBranchingProbability value="parkinsonColeHelly">
-    <G0                     value="+0.57"/>
-    <gamma1                 value="+0.38"/>
-    <gamma2                 value="-0.01"/>
-    <accuracyFirstOrder     value="+0.10"/>
-    <tolerateRoundOffErrors value="true" />
+  <mergerTreeBranchingProbability value="PCHPlus">
+    <!-- Merger tree branching rates are computed using the PCH+ algorithm, with parameters constrained to match progenitor -->
+    <!-- mass functions in the MDPL simulation suite.                                                                       -->
+    <!-- See: https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-progenitor-halo-mass-functions      -->
+    <!-- CDM assumptions are used here to speed up tree construction.                                                       -->
+    <G0                 value="+1.1425468378985500"/>
+    <gamma1             value="-0.3273597030267590"/>
+    <gamma2             value="+0.0587448775510245"/>
+    <gamma3             value="+0.6456170934757410"/>
+    <accuracyFirstOrder value="+0.1000000000000000"/>
+    <cdmAssumptions     value="true"               />
   </mergerTreeBranchingProbability>
   
 </parameters>

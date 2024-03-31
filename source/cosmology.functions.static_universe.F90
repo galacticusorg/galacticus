@@ -508,7 +508,7 @@ contains
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
-    double precision                                , intent(in   ), optional :: expansionFactor, time
+    double precision                                  , intent(in   ), optional :: expansionFactor, time
     !$GLC attributes unused :: self, time, expansionFactor
 
     staticUniverseEquationOfStateDarkEnergy=-1.0d0
