@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711826456831,
+  "lastUpdate": 1711915681776,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "809b5fdee7af91c64cab0345398e001e14d51639",
-          "message": "fix: Add missing event detach",
-          "timestamp": "2023-07-13T15:26:55-07:00",
-          "tree_id": "f9ad8b632b32d90bddc26703c8edfcf5afe3a520",
-          "url": "https://github.com/galacticusorg/galacticus/commit/809b5fdee7af91c64cab0345398e001e14d51639"
-        },
-        "date": 1689298894436,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.443,
-            "unit": "seconds",
-            "range": 0.0442052033137701
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8760,6 +8730,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20638.7641722599,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a84f8498ff587af48f4d1d4d90a77622207bab8",
+          "message": "Merge pull request #596 from galacticusorg/fixEnumerationDescribe\n\nFix generation of enumeration description functions",
+          "timestamp": "2024-03-31T16:08:06Z",
+          "tree_id": "8b2a44d5cbd9026cfbe313325560e8d709609125",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9a84f8498ff587af48f4d1d4d90a77622207bab8"
+        },
+        "date": 1711915679445,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 54.044,
+            "unit": "seconds",
+            "range": 0.0590796073105112
           }
         ]
       }
