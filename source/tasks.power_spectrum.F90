@@ -46,8 +46,8 @@
      class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_ => null()
      class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_    => null()
      class           (outputTimesClass                 ), pointer :: outputTimes_                 => null()
-     double precision                                             :: wavenumberMinimum                     , wavenumberMaximum
-     integer                                                      :: pointsPerDecade
+     double precision                                             :: wavenumberMinimum                     , wavenumberMaximum, &
+          &                                                          pointsPerDecade
      logical                                                      :: includeNonLinear
      type            (varying_string                   )          :: outputGroup
    contains
@@ -82,8 +82,8 @@ contains
     class           (powerSpectrumWindowFunctionClass), pointer       :: powerSpectrumWindowFunction_
     class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     class           (outputTimesClass                ), pointer       :: outputTimes_
-    double precision                                                  :: wavenumberMinimum           , wavenumberMaximum
-    integer                                                           :: pointsPerDecade
+    double precision                                                  :: wavenumberMinimum           , wavenumberMaximum, &
+         &                                                               pointsPerDecade
     logical                                                           :: includeNonLinear
     type            (varying_string                  )                :: outputGroup
 
@@ -102,7 +102,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>pointsPerDecade</name>
-      <defaultValue>10</defaultValue>
+      <defaultValue>10.0d0</defaultValue>
       <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
       <source>parameters</source>
     </inputParameter>
@@ -195,8 +195,8 @@ contains
     class           (powerSpectrumWindowFunctionClass), intent(in   ), target :: powerSpectrumWindowFunction_
     class           (cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
     class           (outputTimesClass                ), intent(in   ), target :: outputTimes_
-    double precision                                  , intent(in   )         :: wavenumberMinimum           , wavenumberMaximum
-    integer                                           , intent(in   )         :: pointsPerDecade
+    double precision                                  , intent(in   )         :: wavenumberMinimum           , wavenumberMaximum, &
+         &                                                                       pointsPerDecade
     logical                                           , intent(in   )         :: includeNonLinear
     type            (varying_string                  ), intent(in   )         :: outputGroup
     !![
@@ -262,7 +262,7 @@ contains
     ! Get the requested output redshifts.
     outputCount      =self%outputTimes_%count()
     ! Compute number of tabulation points.
-    wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*dble(self%pointsPerDecade))+1
+    wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*self%pointsPerDecade)+1
     ! Allocate arrays for power spectra.
     allocate(wavenumber               (wavenumberCount            ))
     allocate(powerSpectrumLinear      (wavenumberCount,outputCount))

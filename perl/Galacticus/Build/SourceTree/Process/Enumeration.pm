@@ -319,14 +319,14 @@ sub Process_Enumerations {
 		$descriptorFunction .= "    type(varying_string) :: description\n\n";
 		my $description      = "    description=var_str(char(10))//\"Enumeration '".$node->{'directive'}->{'name'}."' has the following members:\"\n";
 		my @entries       = &List::ExtraUtils::as_array($node->{'directive'}->{'entry'});
-		my $lengthMaximum = max map {length($_)} @entries;
+		my $lengthMaximum = max map {length($_->{'label'})} @entries;
 		for(my $i=0;$i<scalar(@entries);++$i) {
 		    my $entry     = $entries[$i];
 		    my $separator = $i == scalar(@entries)-1 ? "." : ";";
 		    $description .= "    description=description//char(10)//\"   ".(" " x ($lengthMaximum-length($entry->{'label'}))).$entry->{'label'}.(exists($entry->{'description'}) ? ": ".$entry->{'description'}.$separator : "")."\"\n";
 		}
-		$descriptorFunction .= "    \n";
-		$descriptorFunction .= "    return\n";
+		$description        .= "    \n";
+		$description        .= "    return\n";
 		$descriptorFunction .= "  end function ".$functionName."\n";
 		$descriptorFunction .= "  ! End auto-generated enumeration function\n";
 		# Insert into the module.

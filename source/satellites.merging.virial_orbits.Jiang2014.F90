@@ -264,9 +264,11 @@ contains
     self%mu   (:,2)=   muRatioIntermediate
     self%mu   (:,3)=   muRatioHigh
     ! Construct a file name for the table.
-    fileName=inputPath(pathTypeDataDynamic)// &
-         &   'satellites/'                 // &
-         &   self%objectType()             // &
+    fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &   'satellites/'                                                                        // &
+         &   self%objectType      (                                                              )// &
+         &   '_'                                                                                  // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.

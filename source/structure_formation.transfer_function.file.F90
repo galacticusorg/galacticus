@@ -126,7 +126,8 @@
   If an optional \refClass{transferFunctionClass} object named {\normalfont \ttfamily transferFunctionReference} is supplied then
   that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to
   {\normalfont \ttfamily transferFunctionReference} are also computed.
-  </description>
+   </description>
+   <runTimeFileDependencies paths="fileName"/>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionFile

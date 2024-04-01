@@ -64,6 +64,7 @@ module Error
   integer, parameter, public :: errorStatusUnderflow    =GSL_eUndrFlw ! Floating point underflow.
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
 
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400

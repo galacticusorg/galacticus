@@ -134,6 +134,7 @@
     heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} datasets contain the relevant quantity for each redshift
     in the {\normalfont \ttfamily redshift} dataset.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateFile

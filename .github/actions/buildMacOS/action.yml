@@ -21,6 +21,15 @@ runs:
         os_ver=$(sw_vers -productVersion)
         IFS='.' read -r -a ver <<< "$os_ver"
         echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
+    - name: Fix broken Apple include file
+      shell: bash
+      run: |
+        # This removes syntax not supported by the GCC compiler prior to version 13.3.
+        # It should be possible to remove this once a later version of GCC is used.
+        # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
+        if [[ "${OS_VER}" -eq 14 ]]; then
+           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/usr/include/sys/cdefs.h
+        fi
     - name: Install MacPorts
       shell: bash
       run: |

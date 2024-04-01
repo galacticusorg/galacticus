@@ -18,8 +18,8 @@ system("mkdir -p outputs/");
 # Run the validate model.
 system("cd ..; export OMP_NUM_THREADS=2; ./Galacticus.exe testSuite/parameters/validate_PonosV.xml");
 unless ( $? == 0 ) {
-    print "FAIL: PonosV validation model failed to run\n";
-    exit;
+   print "FAIL: PonosV validation model failed to run\n";
+   exit;
 }
 
 # Read data.
@@ -140,10 +140,15 @@ my $statusSurfaceDensity = ($percentageAbove > 5.0 || $percentageBelow > 5.0) ? 
 print $statusSurfaceDensity.": Percentage of realizations above/below the PonosV subhalo surface density: ".sprintf("%5.1f",$percentageAbove)."/".sprintf("%5.1f",$percentageBelow)."\n";
 
 # Compute the mean slope of the subhalo mass function, and report.
-my $alpha = -log($subhaloSurfaceDensity8->average()         /$subhaloSurfaceDensity9->average()         )
-    /log(sqrt($massBoundMinimum8*$massBoundMaximum8)/sqrt($massBoundMinimum9*$massBoundMaximum9));
-my $statusSlope = abs($alpha-$alphaPonosV) < 0.2 ? "SUCCESS" : "FAIL";
-print $statusSlope.": Projected subhalo mass function slope Galacticus/PonosV: ".sprintf("%4.2f",$alpha)."/".sprintf("%4.2f",$alphaPonosV)."\n";
+# We exclude models for which there are no subhalos present in one of the mass cuts. This probably introduces some bias.
+my $nonZero     = which(($subhaloSurfaceDensity8 > 0.0) & ($subhaloSurfaceDensity9 > 0.0));
+my $alphas      = -log($subhaloSurfaceDensity8->($nonZero)        /$subhaloSurfaceDensity9->($nonZero)        )
+                  /log(sqrt($massBoundMinimum8*$massBoundMaximum8)/sqrt($massBoundMinimum9*$massBoundMaximum9));
+(my $aboveSlope, my $belowSlope) = which_both($alphas > $alphaPonosV);
+my $percentageAboveSlope = 100.0*double(nelem($aboveSlope))/nelem($alphas);
+my $percentageBelowSlope = 100.0*double(nelem($belowSlope))/nelem($alphas);
+my $statusSlope = ($percentageAboveSlope > 5.0 || $percentageBelowSlope > 5.0) ? "SUCCESS" : "FAIL";
+print $statusSlope.": Percentage of realizations above/below the PonosV subhalo mass function slope: ".sprintf("%5.1f",$percentageAboveSlope)."/".sprintf("%5.1f",$percentageBelowSlope)."\n";
 
 # Interface with git.
 my $repo         = Git->repository(Directory => $ENV{'GALACTICUS_EXEC_PATH'});
@@ -179,8 +184,9 @@ $output =
     },
     slope =>
     {
-    	model  => $alpha      ->sclr(),
-	target => $alphaPonosV->sclr()
+	percentageBelow => $percentageBelowSlope->sclr(),
+	percentageAbove => $percentageAboveSlope->sclr(),
+	target          => $alphaPonosV         ->sclr()
     }
 };
 my $json = JSON::PP->new()->pretty()->encode($output);

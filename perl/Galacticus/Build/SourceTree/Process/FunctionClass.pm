@@ -90,6 +90,7 @@ sub Process_FunctionClass {
 	    # Parse classes.
 	    my %dependencies;
 	    my %classes;
+	    my %classCounts;
 	    foreach my $classLocation ( @classLocations ) {
 		my $classTree = &Galacticus::Build::SourceTree::ParseFile($classLocation);
 		&Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
@@ -109,7 +110,18 @@ sub Process_FunctionClass {
 		die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
 		    unless ( defined($class->{'type'}) );
 		$classes{$class->{'type'}} = $class;
+		push(@{$classCounts{$class->{'type'}}},$class->{'file'});
 	    }
+	    # Check for duplicated class names.
+	    my $duplicatesFound = 0;
+	    foreach my $className ( sort(keys(%classCounts)) ) {
+		next
+		    unless ( scalar(@{$classCounts{$className}}) > 1 );
+		$duplicatesFound = 1;
+		print "Duplicate class '".$className."' found in:\n".join("\n",map {"\t".$_} @{$classCounts{$className}})."\n";
+	    }
+	    die("ERROR: Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): duplicate classes found")
+		if ( $duplicatesFound );
 	    # Sort classes. We first impose an alphanumeric sort to ensure that the ordering is always identical for each build,
 	    # and then impose a topological sort to ensure that dependencies are correctly handled.
 	    my @unsortedClasses = sort(keys(%classes));
@@ -190,11 +202,18 @@ sub Process_FunctionClass {
 	    my $descriptorCode;
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
 	    my %addSubParameters;
-	    my $addLabel         = 0;
-	    my $rankMaximum      = 0;
-	    my $descriptorUsed   = 0;
+	    my $addLabel                  = 0;
+	    my $rankMaximum               = 0;
+	    my $descriptorUsed            = 0;
+	    my $fileModificationCodeAdded = 0;
 	    my $descriptorLinkedListVariables;
 	    @{$descriptorLinkedListVariables} = ();
+	    $descriptorCode .= "logical :: includeFileModificationTimes_\n";
+	    $descriptorCode .= "if (present(includeFileModificationTimes)) then\n";
+	    $descriptorCode .= " includeFileModificationTimes_=includeFileModificationTimes\n";
+	    $descriptorCode .= "else\n";
+	    $descriptorCode .= " includeFileModificationTimes_=.false.\n";
+	    $descriptorCode .= "end if\n";
 	    $descriptorCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
@@ -625,7 +644,8 @@ sub Process_FunctionClass {
 			    # Handle objects built via objectBuilder directives.
 			    if ( defined($descriptorParameters->{'objects'}) ) {
 				foreach ( @{$descriptorParameters->{'objects'}} ) {
-				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters)\n";
+                                    # Always include the class for composited objects - this ensures that the object is actually created.
+				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)\n";
 				}
 			    }
 			    # Handle linked lists.
@@ -637,7 +657,7 @@ sub Process_FunctionClass {
 			}
 			# If the parent constructor was used, call its descriptor method.
 			if ( $parentConstructorUsed ) {
-			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.)\n";
+			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.,includeFileModificationTimes=includeFileModificationTimes)\n";
 			}
 		    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
 			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."': parameter-based constructor not found");
@@ -645,6 +665,40 @@ sub Process_FunctionClass {
 			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."' because:\n   ".join("\n   ",@failureMessage));
 		    }
 		}
+		# Add run-time file dependency modification times if needed.
+		{
+		    $code::type = $nonAbstractClass->{'name'};
+		    my $class = $nonAbstractClass;
+		    while ( $class ) {
+			if ( exists($class->{'runTimeFileDependencies'}) ) {
+			    unless ( $fileModificationCodeAdded ) {
+				$descriptorCode                      = "integer :: status\ncharacter(len=30) :: timeModification\ninteger :: countRunTimeFileDependency\ntype(varying_string) :: fileDependencyParameterName\n".$descriptorCode;
+				$descriptorModules{'File_Utilities' } = 1;
+				$descriptorModules{'String_Handling'} = 1;
+				$descriptorModules{'Error'          } = 1;
+				$fileModificationCodeAdded            = 1;
+			    }
+			    $descriptorCode .= "if (includeFileModificationTimes_) then\ncountRunTimeFileDependency=0\n";
+			    my @paths = split(" ",$class->{'runTimeFileDependencies'}->{'paths'});
+			    foreach $code::path ( @paths ) {
+				$code::introspection = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
+				$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+timeModification=File_Modification_Time(self%{$path},status)
+if (status == errorStatusSuccess) then
+ countRunTimeFileDependency=countRunTimeFileDependency+1
+ fileDependencyParameterName=var_str("runTimeFileDependency")//countRunTimeFileDependency
+ call descriptor%addParameter(char(fileDependencyParameterName),char(self%{$path}//": "//trim(timeModification)))
+else if (status /= errorStatusNotExist) then
+ call Error_Report('unable to get file modification time'//{$introspection})
+end if
+CODE
+			    }
+			    $descriptorCode .= "end if\n";
+			}
+			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		    }
+		}
+		# Call any special descriptor function.
 		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
 		    if ( exists($nonAbstractClass->{'descriptorSpecial'}) );
 	    }
@@ -670,7 +724,7 @@ sub Process_FunctionClass {
 		type        => "void",
 		pass        => "yes",
 		modules     => join(" ",keys(%descriptorModules)),
-		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass" ],
+		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass, includeFileModificationTimes" ],
 		code        => $descriptorCode
 	    };
 	    # Add a "hashedDescriptor" method.
@@ -691,7 +745,7 @@ type   (varying_string )       :: descriptorString
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
 call setLiveNodeLists(descriptor%document,.false.)
-call self%descriptor(descriptor)
+call self%descriptor(descriptor,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
 descriptorString=descriptor%serializeToString()
 call descriptor%destroy()
 if (present(includeSourceDigest)) then
@@ -740,7 +794,7 @@ CODE
 		type        => "type(varying_string)",
 		pass        => "yes",
 		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
-		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
+		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes" ],
 		code        => $hashedDescriptorCode
 	    };
 	    # Add a "objectType" method.
@@ -2337,13 +2391,17 @@ CODE
 		    if ( exists($method->{'modules'}) ) {
 			if ( reftype($method->{'modules'}) ) {
 			    # Array of modules, with possible "only" clauses.
-			    foreach my $module ( @{$method->{'modules'}} ) {
-				$modulePostContains->{'content'} .= "      use ".$module->{'name'}.(exists($module->{'only'}) ? ", only : ".join(",",@{$module->{'only'}}) : "")."\n";
+			    my @modules = reftype($method->{'modules'}) eq "ARRAY" ? @{$method->{'modules'}} : &List::ExtraUtils::hashList($method->{'modules'},keyAs => "name");
+			    foreach my $module ( @modules ) {
+				my $moduleName = $module->{'name'};
+				my $prefix = $moduleName =~ m/OMP_Lib/ ? "!\$ " : "";
+				$modulePostContains->{'content'} .= "      ".$prefix."use ".$moduleName.(exists($module->{'only'}) ? ", only : ".join(",",&List::ExtraUtils::as_array($module->{'only'})) : "")."\n";
 			    }
 			} else {
 			    # Simple space-separated list of modules.
 			    foreach ( split(/\s+/,$method->{'modules'}) ) {
-				$modulePostContains->{'content'} .= "      use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
+				my $prefix = $_ =~ m/OMP_Lib/ ? "!\$ " : "";
+				$modulePostContains->{'content'} .= "      ".$prefix."use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
 			    }
 			}
 		    }

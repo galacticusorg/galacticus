@@ -190,7 +190,7 @@ contains
     return
   end function identityEpochTime
 
-  subroutine identityDescriptor(self,descriptor,includeClass)
+  subroutine identityDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -198,8 +198,8 @@ contains
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeClass
-    !$GLC attributes unused :: self
+    logical                          , intent(in   ), optional :: includeClass, includeFileModificationTimes
+    !$GLC attributes unused :: self, includeFileModificationTimes
 
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('transferFunction','identity')
     return

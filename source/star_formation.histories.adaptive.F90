@@ -542,7 +542,7 @@ contains
     return
   end function adaptivePerOutputTabulationIsStatic
 
-  subroutine adaptiveDescriptor(self,descriptor,includeClass)
+  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -551,7 +551,7 @@ contains
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor
-    logical                                , intent(in   ), optional :: includeClass
+    logical                                , intent(in   ), optional :: includeClass              , includeFileModificationTimes
     character(len=18                      )                          :: parameterLabel
     type     (inputParameters             )                          :: parameters
     integer                                                          :: i
@@ -571,6 +571,6 @@ contains
        metallicityBoundariesLabel=metallicityBoundariesLabel//trim(adjustl(parameterLabel))//" "
     end do
     call parameters%addParameter('metallicityBoundaries',char(metallicityBoundariesLabel))
-    call self%outputTimes_%descriptor(parameters)
+    call self%outputTimes_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine adaptiveDescriptor

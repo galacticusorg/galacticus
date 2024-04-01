@@ -141,6 +141,7 @@
     energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by
     {\normalfont \ttfamily energyContinuum}.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionCIEFile
