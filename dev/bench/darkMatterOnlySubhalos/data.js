@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711915691864,
+  "lastUpdate": 1712107820015,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "39dfab13c1182699c13cd567e044e9ac529d3141",
-          "message": "fix: Correct spelling errors",
-          "timestamp": "2023-07-18T15:39:54-07:00",
-          "tree_id": "3355c10b5cde42580b96cb26d4fd515307daf393",
-          "url": "https://github.com/galacticusorg/galacticus/commit/39dfab13c1182699c13cd567e044e9ac529d3141"
-        },
-        "date": 1689740259525,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 48.207,
-            "unit": "seconds",
-            "range": 0.041401690786501
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8760,6 +8730,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20567.9361805495,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ad57e23c33a9b4cde3ab619dee4a5c61c166c613",
+          "message": "fix: Ensure objects are allocated before attempting to deallocate",
+          "timestamp": "2024-04-02T11:44:35-07:00",
+          "tree_id": "3048857c251de0375e874fac214fb0d2605cd580",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ad57e23c33a9b4cde3ab619dee4a5c61c166c613"
+        },
+        "date": 1712107817439,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.47,
+            "unit": "seconds",
+            "range": 0.164869645477579
           }
         ]
       }
