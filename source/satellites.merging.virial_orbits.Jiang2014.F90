@@ -242,7 +242,7 @@ contains
     double precision                              , allocatable  , dimension(:,:) :: distribution_
     double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum,  &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
-    logical                                                                       :: limitFound
+    logical                                                                       :: limitFound                         , success
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     type            (varying_string              )                                :: fileName
     type            (hdf5Object                  )                                :: file
@@ -273,6 +273,7 @@ contains
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    success=.false.
     do attempt=0,1
        call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
@@ -291,7 +292,8 @@ contains
           end do
           call    file      %close()
           !$ call hdf5Access%unset()
-       else
+          success=.true.
+       else if (attempt == 1) then
           ! Tabulate Voight distribution functions for speed.
           integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
           integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
@@ -366,8 +368,10 @@ contains
           end do
           call    file      %close()
           !$ call hdf5Access%unset()
+          success=.true.
        end if
-       call File_Unlock(fileLock)
+       call File_Unlock(fileLock,sync=attempt == 1)
+       if (success) exit
     end do
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
