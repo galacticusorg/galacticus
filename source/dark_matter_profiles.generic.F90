@@ -362,7 +362,8 @@ contains
          &                                                                             iMaximum                         , i
     logical                                                                         :: remakeTable
     double precision                                                                :: radiusMaximum                    , radiusMinimum     , &
-         &                                                                             radiusVirial                     , potentialZeroPoint
+         &                                                                             radiusVirial                     , potentialZeroPoint, &
+         &                                                                             massRadiusMaximum
 
     if (present(status)) status=structureErrorCodeSuccess
     radiusVirial =+self%darkMatterHaloScale_%radiusVirial       (node)
@@ -390,58 +391,69 @@ contains
           end if
           ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
           call self%solverSet(node)
-          !! Set an initial range of radii that brackets the requested radii.
-          radiusMinimum=max(0.5d0*radius,radiusVirial*radiusVirialFractionSmall)
-          !! Round to the nearest factor of 2.
-          radiusMinimum=2.0d0**floor(log(radiusMinimum)/log(2.0d0))
-          !! Expand to encompass any pre-existing range.
-          if (allocated(self%genericPotentialRadius)) then
-             radiusMinimum=min(radiusMinimum,self%genericPotentialRadiusMinimum)
-             radiusMaximum=max(radiusMaximum,self%genericPotentialRadiusMaximum)
+          !! Check the mass at the maximum radius is non-zero.
+          massRadiusMaximum=solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radiusMaximum)
+          if (massRadiusMaximum > 0.0d0) then
+             !! Set an initial range of radii that brackets the requested radii.
+             radiusMinimum=max(0.5d0*radius,radiusVirial*radiusVirialFractionSmall)
+             !! Round to the nearest factor of 2.
+             radiusMinimum=2.0d0**floor(log(radiusMinimum)/log(2.0d0))
+             !! Expand to encompass any pre-existing range.
+             if (allocated(self%genericPotentialRadius)) then
+                radiusMinimum=min(radiusMinimum,self%genericPotentialRadiusMinimum)
+                radiusMaximum=max(radiusMaximum,self%genericPotentialRadiusMaximum)
+             end if
+             !! Construct arrays.
+             countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+             allocate(radii     (countRadii))
+             allocate(potentials(countRadii))
+             radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+             ! Copy in any usable results from any previous solution.
+             !! Assume by default that no previous solutions are usable.
+             iMinimum=+huge(0_c_size_t)
+             iMaximum=-huge(0_c_size_t)
+             !! Check that a pre-existing solution exists.
+             if (allocated(self%genericPotentialRadius)) then
+                iMinimum=nint(log(self%genericPotentialRadiusMinimum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+                iMaximum=nint(log(self%genericPotentialRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+                potentials(iMinimum:iMaximum)=self%genericPotentialPotential
+             end if
+             ! Construct a zero-point.
+             potentialZeroPoint=-gravitationalConstantGalacticus &
+                  &             *massRadiusMaximum               &
+                  &             /radiusMaximum
+             ! Solve for the enclosed mass where old results were unavailable.
+             do i=1,countRadii
+                ! Skip cases for which we have a pre-existing solution.
+                if (i >= iMinimum .and. i <= iMaximum) cycle  
+                ! Evaluate the integral.
+                potentials(i)=-integrator_%integrate(radii(i),radiusMaximum) &
+                     &        -potentialZeroPoint
+             end do
+             call self%solverUnset()
+             ! Build the interpolator.
+             if (allocated(self%genericPotential)) deallocate(self%genericPotential)
+             allocate(self%genericPotential)
+             self%genericPotential=interpolator(log(radii),log(potentials),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
+             ! Store the current results for future re-use.
+             if (allocated(self%genericPotentialRadius   )) deallocate(self%genericPotentialRadius   )
+             if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
+             allocate(self%genericPotentialRadius   (countRadii))
+             allocate(self%genericPotentialPotential(countRadii))
+             self%genericPotentialRadius       =radii
+             self%genericPotentialPotential    =potentials
+             self%genericPotentialRadiusMinimum=radiusMinimum
+             self%genericPotentialRadiusMaximum=radiusMaximum
+          else
+             ! The profile contains no mass. Leave the table unallocated.
+             if (allocated(self%genericPotential)) deallocate(self%genericPotential)
           end if
-          !! Construct arrays.
-          countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
-          allocate(radii     (countRadii))
-          allocate(potentials(countRadii))
-          radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
-          ! Copy in any usable results from any previous solution.
-          !! Assume by default that no previous solutions are usable.
-          iMinimum=+huge(0_c_size_t)
-          iMaximum=-huge(0_c_size_t)
-          !! Check that a pre-existing solution exists.
-          if (allocated(self%genericPotentialRadius)) then
-             iMinimum=nint(log(self%genericPotentialRadiusMinimum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
-             iMaximum=nint(log(self%genericPotentialRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
-             potentials(iMinimum:iMaximum)=self%genericPotentialPotential
-          end if
-          ! Construct a zero-point.
-          potentialZeroPoint=-gravitationalConstantGalacticus                                                   &
-               &             *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radiusMaximum) &
-               &             /                                                                   radiusMaximum
-          ! Solve for the enclosed mass where old results were unavailable.
-          do i=1,countRadii
-             ! Skip cases for which we have a pre-existing solution.
-             if (i >= iMinimum .and. i <= iMaximum) cycle  
-             ! Evaluate the integral.
-             potentials(i)=-integrator_%integrate(radii(i),radiusMaximum) &
-                  &        -potentialZeroPoint
-          end do
-          call self%solverUnset()
-          ! Build the interpolator.
-          if (allocated(self%genericPotential)) deallocate(self%genericPotential)
-          allocate(self%genericPotential)
-          self%genericPotential=interpolator(log(radii),log(potentials),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
-          ! Store the current results for future re-use.
-          if (allocated(self%genericPotentialRadius   )) deallocate(self%genericPotentialRadius   )
-          if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
-          allocate(self%genericPotentialRadius   (countRadii))
-          allocate(self%genericPotentialPotential(countRadii))
-          self%genericPotentialRadius       =radii
-          self%genericPotentialPotential    =potentials
-          self%genericPotentialRadiusMinimum=radiusMinimum
-          self%genericPotentialRadiusMaximum=radiusMaximum
        end if
-       genericPotentialNumerical=-exp(self%genericPotential%interpolate(log(radius)))
+       if (allocated(self%genericPotential)) then
+          genericPotentialNumerical=-exp(self%genericPotential%interpolate(log(max(radius,self%genericPotentialRadiusMinimum))))
+       else
+          genericPotentialNumerical=+0.0d0
+       end if
     else
        ! Beyond some large radius approximate as a point mass.
        call self%solverSet(node)
