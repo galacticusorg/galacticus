@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712107835195,
+  "lastUpdate": 1712299620024,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "809b5fdee7af91c64cab0345398e001e14d51639",
-          "message": "fix: Add missing event detach",
-          "timestamp": "2023-07-13T15:26:55-07:00",
-          "tree_id": "f9ad8b632b32d90bddc26703c8edfcf5afe3a520",
-          "url": "https://github.com/galacticusorg/galacticus/commit/809b5fdee7af91c64cab0345398e001e14d51639"
-        },
-        "date": 1689298898904,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 247.074,
-            "unit": "seconds",
-            "range": 0.217670393036068
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 15.8033053792017,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "49bb79e525b43544af3c0342b3199b8e3f656141",
+          "message": "Merge pull request #598 from galacticusorg/fixJiang2014OrbitsFileLock\n\nFix file locking in the `virialOrbitJiang2014` class",
+          "timestamp": "2024-04-05T02:44:00Z",
+          "tree_id": "9dec9b16322946f41101f690f9b298053c8dd390",
+          "url": "https://github.com/galacticusorg/galacticus/commit/49bb79e525b43544af3c0342b3199b8e3f656141"
+        },
+        "date": 1712299619224,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 470.891,
+            "unit": "seconds",
+            "range": 0.589042358411205
           }
         ]
       }
