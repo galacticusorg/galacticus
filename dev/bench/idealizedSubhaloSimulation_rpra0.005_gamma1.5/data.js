@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712107840288,
+  "lastUpdate": 1712299633514,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -255,6 +255,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/ad57e23c33a9b4cde3ab619dee4a5c61c166c613"
         },
         "date": 1712107839028,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 48.658652770965,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 35.0646477379663,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.7506130737105,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "49bb79e525b43544af3c0342b3199b8e3f656141",
+          "message": "Merge pull request #598 from galacticusorg/fixJiang2014OrbitsFileLock\n\nFix file locking in the `virialOrbitJiang2014` class",
+          "timestamp": "2024-04-05T02:44:00Z",
+          "tree_id": "9dec9b16322946f41101f690f9b298053c8dd390",
+          "url": "https://github.com/galacticusorg/galacticus/commit/49bb79e525b43544af3c0342b3199b8e3f656141"
+        },
+        "date": 1712299632661,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
