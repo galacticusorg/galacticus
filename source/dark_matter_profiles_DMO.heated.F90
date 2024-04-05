@@ -55,7 +55,8 @@
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_     => null()
      integer         (kind=kind_int8                   )          :: lastUniqueID
-     double precision                                             :: radiusFinalPrevious                    , radiusInitialPrevious
+     double precision                                             :: radiusFinalPrevious                    , radiusInitialPrevious, &
+          &                                                          fractionRadiusFinalSmall
      type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
      logical                                                      :: velocityDispersionApproximate
      type            (rootFinder                       )          :: finder
@@ -122,7 +123,8 @@ contains
     class           (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
     type            (varying_string                )                :: nonAnalyticSolver
     logical                                                         :: velocityDispersionApproximate
-    double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
+         &                                                             fractionRadiusFinalSmall
 
     !![
     <inputParameter>
@@ -149,11 +151,17 @@ contains
       <source>parameters</source>
       <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
     </inputParameter>
+    <inputParameter>
+      <name>fractionRadiusFinalSmall</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -163,7 +171,7 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     !!}
@@ -175,10 +183,11 @@ contains
     class           (darkMatterProfileHeatingClass    ), intent(in   ), target :: darkMatterProfileHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
     logical                                            , intent(in   )         :: velocityDispersionApproximate
-    double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion      , toleranceRelativeVelocityDispersionMaximum
+    double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion      , toleranceRelativeVelocityDispersionMaximum       , &
+         &                                                                        fractionRadiusFinalSmall
     double precision                                   , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative                         =1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, fractionRadiusFinalSmall, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
@@ -528,17 +537,16 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radiusInitial
-    double precision, parameter     :: fractionRadiusSmall=1.0d-3
     double precision                :: massEnclosed
     
-    if (radiusInitial < fractionRadiusSmall*radiusFinal_) then
+    if (radiusInitial < self_%fractionRadiusFinalSmall*radiusFinal_) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
        ! no root exists. In this case shell crossing is likely to be occurring. Simply return a value of zero, which places the
        ! root at the current radius.
        if (.not.self_%noShellCrossingIsValid(node_,radiusInitial,radiusFinal_)) then
           heatedRadiusInitialRoot=0.0d0
-          return
+         return
        end if
     end if
     massEnclosed           =+self_%darkMatterProfileDMO_    %enclosedMass  (node_,radiusInitial                            )
