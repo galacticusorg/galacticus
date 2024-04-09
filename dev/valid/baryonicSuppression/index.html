@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes" />
+    <style>
+      html {
+        font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: #fff;
+        font-size: 16px;
+      }
+      body {
+        color: #4a4a4a;
+        margin: 8px;
+        font-size: 1em;
+        font-weight: 400;
+      }
+      header {
+        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+      }
+      main {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: #3273dc;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #000;
+      }
+      button {
+        color: #fff;
+        background-color: #3298dc;
+        border-color: transparent;
+        cursor: pointer;
+        text-align: center;
+      }
+      button:hover {
+        background-color: #2793da;
+        flex: none;
+      }
+      .spacer {
+        flex: auto;
+      }
+      .small {
+        font-size: 0.75rem;
+      }
+      footer {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+      }
+      .header-label {
+        margin-right: 4px;
+      }
+      .benchmark-set {
+        margin: 8px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .benchmark-title {
+        font-size: 3rem;
+        font-weight: 600;
+        word-break: break-word;
+        text-align: center;
+      }
+      .benchmark-graphs {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .benchmark-chart {
+        max-width: 1000px;
+      }
+    </style>
+    <title>Validation - Baryonic Suppression</title>
+  </head>
+
+  <body>
+    <header id="header">
+      <div class="header-item">
+        <strong class="header-label">Last Update:</strong>
+        <span id="last-update"></span>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Repository:</strong>
+        <a id="repository-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Commit:</strong>
+        <a id="commit-link" rel="noopener"></a>
+      </div>
+      <div class="header-item">
+        <strong class="header-label">Parameter File:</strong>
+        <a id="parameter-link" rel="noopener"></a>
+      </div>
+    </header>
+    <main id="main">
+      <div>
+	This page contains results used to validate the behavior of <a href="https://github.com/galacticusorg/galacticus">Galacticus</a> in calculations related to the suppression of structure growth by baryonic physics. Specifically, the ratio of the halo mass function in models with baryons to a model without baryons (dark matter only) is computed and compared to the hydrodynamical simulations of <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240317044Z">Zheng et al. (2024)</a>.<p>
+
+	  <a href="https://ui.adsabs.harvard.edu/abs/2024arXiv240317044Z">Zheng et al. (2024)</a> consider two models. In their "NR" model (labelled "no reionization" in the plots below), there is no intergalactic background radiation and no radiative cooling. In their "RI" model the reionization of the universe is modeled by switching on the Haardt & Madau (1996) background radiation field at \(z=6\). We mimic this behavior in <a href="https://github.com/galacticusorg/galacticus">Galacticus</a>.
+      </div>
+    </main>
+    <footer>
+      <button id="dl-button">Download data as JSON</button>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-error-bars@3.9.1/build/index.umd.min.js"></script>
+    <script type="text/javascript"
+	    src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+     <script src="results_baryonicSuppression.json"></script>
+    <script id="main-script">
+      'use strict';
+      (function() {
+        // Colors from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml
+        const toolColors = {
+          cargo: '#dea584',
+          go: '#00add8',
+          benchmarkjs: '#f1e05a',
+          benchmarkluau: '#000080',
+          pytest: '#3572a5',
+          googlecpp: '#f34b7d',
+          catch2: '#f34b7d',
+          julia: '#a270ba',
+          benchmarkdotnet: '#178600',
+          customBiggerIsBetter: '#38ff38',
+          customSmallerIsBetter: '#ff3838',
+          _: '#333333'
+        };
+
+        function init() {
+
+          const data = window.BARYONICSUPPRESSION_DATA;
+
+          // Render header
+          document.getElementById('last-update').textContent = new Date(data.commit.timestamp).toString();
+          const repoLink = document.getElementById('repository-link');
+          repoLink.href = data.repoUrl;
+          repoLink.textContent = data.repoUrl;
+          const commitLink = document.getElementById('commit-link');
+          commitLink.href = data.commit.url;
+          commitLink.textContent = data.commit.id;
+          const parameterLink = document.getElementById('parameter-link');
+          parameterLink.href = data.repoUrl+'/blob/'+data.commit.id+'/'+data.parameterFile;
+          parameterLink.textContent = data.parameterFile;
+
+          // Render footer
+          document.getElementById('dl-button').onclick = () => {
+            const dataUrl = 'data:,' + JSON.stringify(data, null, 2);
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'data.json';
+            a.click();
+          };
+
+          // Prepare data points for charts
+          return data;
+        }
+
+        function renderAllChars(data) {
+
+          function renderGraph(parent, i, data) {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'benchmark-chart';
+            parent.appendChild(canvas);
+
+            const options = {
+              plugins: {
+                legend: {
+                  labels: {
+                    usePointStyle: true
+                          },
+                        },
+                      },
+              scales: {
+                x: {
+                    ticks: {
+                      beginAtZero: false
+                    },
+                    title: {
+                      display: true,
+                      text: 'log₁₀(M₂₀₀/M☉)'
+                    }
+                  },
+                y: {
+                    ticks: {
+                      beginAtZero: false
+                    },
+                    title: {
+                      display: true,
+                      text: 'HMF ratio'
+                    },
+                    min: 0.6,
+                    max: 1.2
+                  },
+              },
+            };
+
+            const dataModelWithBaryons  = [];
+            const dataTargetWithBaryons = [];
+            const dataModelWithBaryonsNoReion  = [];
+            const dataTargetWithBaryonsNoReion = [];
+            for (let j = 0; j < data.massHalo.length; j++) {
+                const pModel  = {x: data.massHalo[j], y: data.model.withBaryons[i].ratio[j], yMin: data.model.withBaryons[i].ratio[j]-data.model.withBaryons[i].ratioError[j], yMax: data.model.withBaryons[i].ratio[j]+data.model.withBaryons[i].ratioError[j]};
+		dataModelWithBaryons.push(pModel);
+                const pTarget = {x: data.massHalo[j], y: data.target.withBaryons[i][j]};
+		dataTargetWithBaryons.push(pTarget);
+                const pModelNoReion  = {x: data.massHalo[j], y: data.model.withBaryons_noReionization[i].ratio[j], yMin: data.model.withBaryons_noReionization[i].ratio[j]-data.model.withBaryons_noReionization[i].ratioError[j], yMax: data.model.withBaryons_noReionization[i].ratio[j]+data.model.withBaryons_noReionization[i].ratioError[j]};
+		dataModelWithBaryonsNoReion.push(pModelNoReion);
+                const pTargetNoReion = {x: data.massHalo[j], y: data.target.withBaryons_noReionization[i][j]};
+		dataTargetWithBaryonsNoReion.push(pTargetNoReion);
+            }
+
+            new Chart(canvas, {
+              type: 'scatterWithErrorBars',
+              data: {
+                datasets:
+                  [
+                    {
+                      label: 'Galacticus',
+                      data: dataModelWithBaryons,
+                      borderColor: '#ff0000',
+                      backgroundColor: '#ffff00',
+		      pointStyle: 'circle',
+                    },
+                    {
+                      label: 'Zheng et al. (2024)',
+                      data: dataTargetWithBaryons,
+                      borderColor: '#483D8B',
+                      backgroundColor: '#6495ED',
+		      pointStyle: 'circle',
+                    }, 
+                    {
+                      label: 'Galacticus (no reionization)',
+                      data: dataModelWithBaryonsNoReion,
+                      borderColor: '#ff0000',
+                      backgroundColor: '#ffff00',
+		      pointStyle: 'star',
+                    },
+                    {
+                      label: 'Zheng et al. (2024; no reionization)',
+                      data: dataTargetWithBaryonsNoReion,
+                      borderColor: '#483D8B',
+                      backgroundColor: '#6495ED',
+		      pointStyle: 'star',
+                    }
+                  ]
+              },
+              options: options
+            });
+          }
+
+          function renderAnalysis(i, data, main) {
+            const setElem = document.createElement('div');
+            setElem.className = 'analysis';
+            main.appendChild(setElem);
+
+            const nameElem = document.createElement('h1');
+            nameElem.className = 'analysis-title';
+            nameElem.textContent = 'z = '+data.redshift[i];
+            setElem.appendChild(nameElem);
+
+            const graphsElem = document.createElement('div');
+            graphsElem.className = 'analysis-graphs';
+            setElem.appendChild(graphsElem);
+
+            renderGraph(graphsElem, i, data)
+          }
+
+          const main = document.getElementById('main');
+          for (let i = 1; i <= 4; i++) {
+            renderAnalysis(i, data, main);
+          }
+        }
+        renderAllChars(init()); // Start
+      })();
+    </script>
+  </body>
+</html>
