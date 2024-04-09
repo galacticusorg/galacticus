@@ -112,7 +112,7 @@ contains
     <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="parameters"/>
     !!]
-    self=satelliteTidalStrippingZentner2005(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_)
+    self=satelliteTidalStrippingZentner2005(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
@@ -122,7 +122,7 @@ contains
     return
   end function zentner2005ConstructorParameters
 
-  function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_) result(self)
+  function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
     !!}
@@ -130,10 +130,11 @@ contains
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
     class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
+    class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                    , intent(in   )         :: efficiency
     logical                                             , intent(in   )         :: useDynamicalTimeScale
     !![
-    <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_, *galacticStructure_"/>
+    <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_, *galacticStructure_, *darkMatterHaloScale_"/>
     !!]
 
     return
