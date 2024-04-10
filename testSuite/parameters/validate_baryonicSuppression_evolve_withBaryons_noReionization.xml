@@ -21,7 +21,9 @@
   <!-- Structure formation options -->
   <linearGrowth value="baryonsDarkMatter" >
     <cambCountPerDecade                   value="100"   />
+    <!-- Use pure dark matter initial conditions as used in the target hydro simulation -->
     <darkMatterOnlyInitialConditions      value="true"  />
+    <!-- Use a small baryon fraction here to approximate pure dark matter initial conditions as used in the target hydro simulation -->
     <cosmologyParametersInitialConditions value="simple" >
       <HubbleConstant  value="67.77000"/>
       <OmegaMatter     value=" 0.30700"/>
