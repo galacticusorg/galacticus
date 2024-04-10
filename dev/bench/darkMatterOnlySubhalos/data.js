@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712299624069,
+  "lastUpdate": 1712739048439,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7b0674e6a668eb79826a8ef45e97f6566501f19a",
-          "message": "fix: Add missing `allocate()`",
-          "timestamp": "2023-07-20T08:24:57-07:00",
-          "tree_id": "4f4ab15cd37d37687c9cbfe13cf4d14fb9fdbe23",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7b0674e6a668eb79826a8ef45e97f6566501f19a"
-        },
-        "date": 1689878605774,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.666,
-            "unit": "seconds",
-            "range": 0.0232465051156257
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8760,6 +8730,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20681.1447966228,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "466c04b2b741a22d51551deb51143752b68dbcd7",
+          "message": "Merge pull request #599 from galacticusorg/featDocClassDefaults\n\nSpecify class defaults in the documentation",
+          "timestamp": "2024-04-10T04:55:20Z",
+          "tree_id": "78ab2e2e8819507f92d5046852c62cfaf7f8dda5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/466c04b2b741a22d51551deb51143752b68dbcd7"
+        },
+        "date": 1712739045873,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.844,
+            "unit": "seconds",
+            "range": 0.128617261672262
           }
         ]
       }
