@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "surfaceDensity" : {
+      "percentageBelow" : 43.75,
+      "percentageAbove" : 56.25,
+      "target" : 0.006
+   },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/49bb79e525b43544af3c0342b3199b8e3f656141",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "message" : "Merge pull request #598 from galacticusorg/fixJiang2014OrbitsFileLock",
-      "id" : "49bb79e525b43544af3c0342b3199b8e3f656141",
-      "timestamp" : "Fri, 5 Apr 2024 02:44:00 +0000"
-   },
-   "surfaceDensity" : {
-      "percentageAbove" : 46.875,
-      "percentageBelow" : 53.125,
-      "target" : 0.006
+      "url" : "https://github.com/galacticusorg/galacticus/commit/466c04b2b741a22d51551deb51143752b68dbcd7",
+      "id" : "466c04b2b741a22d51551deb51143752b68dbcd7",
+      "timestamp" : "Wed, 10 Apr 2024 04:55:20 +0000",
+      "message" : "Merge pull request #599 from galacticusorg/featDocClassDefaults"
    },
    "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 35.7142857142857,
-      "percentageBelow" : 64.2857142857143
+      "percentageBelow" : 53.3333333333333,
+      "percentageAbove" : 46.6666666666667,
+      "target" : 0.85
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
