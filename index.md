@@ -34,5 +34,6 @@ Here you can find:
 	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.2_gamma1.0.html)
 	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.4_gamma0.0.html)
     * [Strong lensing measurements](https://galacticusorg.github.io/galacticus/dev/valid/strongLensing/)
+    * [Baryonic suppression of structure growth](https://galacticusorg.github.io/galacticus/dev/valid/baryonicSuppression/)
 * Meta metrics
     * [Build profile](https://galacticusorg.github.io/galacticus/dev/bench/meta/buildProfile)
