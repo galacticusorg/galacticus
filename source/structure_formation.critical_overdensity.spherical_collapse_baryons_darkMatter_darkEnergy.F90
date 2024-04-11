@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   use :: Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
   use :: Dark_Matter_Particles                , only : darkMatterParticle                                , darkMatterParticleClass
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
-  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy, enumerationCllsnlssMttrDarkEnergyFixedAtType
   use :: Tables                               , only : table1D
 
   !![
@@ -48,6 +48,7 @@
           &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum
      double precision                                                                  :: normalization
      logical                                                                           :: tableStore
+     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: overdensityCriticalClustered                , overdensityCriticalUnclustered
      class           (darkMatterParticleClass                           ), pointer     :: darkMatterParticle_               => null()
      class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
@@ -83,7 +84,8 @@ contains
     Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
     which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters          , only : inputParameter                                , inputParameters
+    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type            (inputParameters                                         ), intent(inout) :: parameters
@@ -94,6 +96,7 @@ contains
     class           (intergalacticMediumFilteringMassClass                   ), pointer       :: intergalacticMediumFilteringMass_
     double precision                                                                          :: normalization
     logical                                                                                   :: tableStore
+    type            (varying_string                                          )                :: energyFixedAt
 
     !![
     <inputParameter>
@@ -108,13 +111,21 @@ contains
       <defaultValue>.true.</defaultValue>
       <description>If true, store/restore the tabulated solution to/from file when possible.</description>
     </inputParameter>
+    <inputParameter>
+      <name>energyFixedAt</name>
+      <defaultValue>var_str('turnaround')</defaultValue>
+      <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+        ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+        \citealt{percival_cosmological_2005}; \S8.)</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"         name="cosmologicalMassVariance_"         source="parameters"/>
     <objectBuilder class="darkMatterParticle"               name="darkMatterParticle_"               source="parameters"/>
     <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
     !!]
-    self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,normalization)
+    self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),normalization)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"             />
@@ -126,13 +137,12 @@ contains
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,normalization) result(self)
+  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,energyFixedAt,normalization) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
     !!}
-    use :: Dark_Matter_Particles     , only : darkMatterParticleCDM
-    use :: Error                     , only : Error_Report
-    use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined
+    use :: Dark_Matter_Particles, only : darkMatterParticleCDM
+    use :: Error                , only : Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                          :: self
     class           (cosmologyFunctionsClass                                 ), target  , intent(in   ) :: cosmologyFunctions_
@@ -141,18 +151,19 @@ contains
     class           (darkMatterParticleClass                                 ), target  , intent(in   ) :: darkMatterParticle_
     class           (intergalacticMediumFilteringMassClass                   ), target  , intent(in   ) :: intergalacticMediumFilteringMass_
     logical                                                                             , intent(in   ) :: tableStore
+    type            (enumerationCllsnlssMttrDarkEnergyFixedAtType            )          , intent(in   ) :: energyFixedAt
     double precision                                                          , optional, intent(in   ) :: normalization
     !![
     <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, normalization"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, energyFixedAt, normalization"/>
     !!]
 
     self%tableInitialized=.false.
     allocate(self%sphericalCollapseSolverClustered_  )
     allocate(self%sphericalCollapseSolverUnclustered_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     !!]
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)

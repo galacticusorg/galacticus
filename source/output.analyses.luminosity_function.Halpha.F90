@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -278,15 +278,15 @@ contains
     use :: Galactic_Filters                        , only : galacticFilterClass
     use :: Error                                   , only : Error_Report
     use :: Geometry_Surveys                        , only : surveyGeometryClass
-    use :: ISO_Varying_String                      , only : var_str                                    , varying_string
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyEmssnLine
+    use :: ISO_Varying_String                      , only : var_str                                        , varying_string
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
     use :: Numerical_Constants_Astronomical        , only : megaParsec
     use :: Numerical_Constants_Units               , only : ergs
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
-    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                 , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
-          &                                                 outputAnalysisPropertyOperatorSequence     , propertyOperatorList
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10        , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
+          &                                                 outputAnalysisPropertyOperatorSequence         , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
     use :: Output_Times                            , only : outputTimesClass
@@ -312,7 +312,7 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorLmnstyEmssnLine           )               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -350,7 +350,7 @@ contains
        lineNames(1)=var_str('balmerAlpha6565')
     end if
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyEmssnLine           (starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_           ,lineNames,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_           ,lineNames,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     !!]
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )

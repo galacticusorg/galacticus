@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -118,7 +118,7 @@ contains
          &                                                            mergee
     class  (nodeComponentSatellite        ), pointer               :: satellite               , satelliteProgenitor
     class  (nodeComponentBasic            ), pointer               :: basic                   , basicProgenitor
-    type   (mergerTreeWalkerIsolatedNodes  )                        :: treeWalker
+    type   (mergerTreeWalkerIsolatedNodes )                        :: treeWalker
     type   (keplerOrbit                   )                        :: virialOrbitNode         , virialOrbitProgenitor
     logical                                                        :: satelliteProgenitorFound
     !$GLC attributes unused :: self
@@ -132,7 +132,7 @@ contains
             &  .and.                                        &
             &   .not.           node%isPrimaryProgenitor()  &
             & ) then
-          satellite   => node     %satellite  (autoCreate=.true.)
+          satellite       => node     %satellite  (autoCreate=.true.)
           virialOrbitNode =  satellite%virialOrbit(                 )
           if (.not.virialOrbitNode%isDefined()) then
              ! Check for a primary progenitor with a pre-existing satellite.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@ module Supernovae_Type_Ia
   !!{
   Implements a class for calculations of Type Ia supernovae.
   !!}
+  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass
   implicit none
   private
 
@@ -40,22 +41,25 @@ module Supernovae_Type_Ia
     <description>Return the range of initial stellar masses that contribute to the Type Ia population.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: age               , metallicity       </argument>
-    <argument>double precision, intent(  out) :: massInitialMinimum, massInitialMaximum</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout) :: initialMassFunction_                    </argument>
+    <argument>double precision                          , intent(in   ) :: age                 , metallicity       </argument>
+    <argument>double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum</argument>
    </method>
    <method name="number" >
     <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout), target :: initialMassFunction_                  </argument>
+    <argument>double precision                          , intent(in   )         :: initialMass         , age, metallicity</argument>
    </method>
    <method name="yield" >
     <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   )           :: initialMass, age, metallicity</argument>
-    <argument>integer         , intent(in   ), optional :: atomIndex</argument>
+    <argument>class           (initialMassFunctionClass), intent(inout)           :: initialMassFunction_                  </argument>
+    <argument>double precision                          , intent(in   )           :: initialMass         , age, metallicity</argument>
+    <argument>integer                                   , intent(in   ), optional :: atomIndex                             </argument>
    </method>
   </functionClass>
   !!]

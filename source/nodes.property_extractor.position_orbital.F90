@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,14 +86,14 @@ contains
     return
   end function positionOrbitalElementCount
 
-  function positionOrbitalExtract(self,node,time,instance)
+  function positionOrbitalExtract(self,node,time,instance) result(position)
     !!{
     Implement a positionOrbital output analysis.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentSatellite, nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    double precision                                      , dimension(:) , allocatable :: positionOrbitalExtract
+    double precision                                      , dimension(:) , allocatable :: position
     class           (nodePropertyExtractorPositionOrbital), intent(inout), target      :: self
     type            (treeNode                            ), intent(inout), target      :: node
     double precision                                      , intent(in   )              :: time
@@ -103,15 +103,15 @@ contains
     class           (nodeComponentSatellite              ), pointer                    :: satellite
     !$GLC attributes unused :: self, instance, time
 
-    allocate(positionOrbitalExtract(3))
-    positionOrbitalExtract =  0.0d0
-    nodeWork               => node
+    allocate(position(3))
+    position =  0.0d0
+    nodeWork => node
     ! Walk up through all host halos of this node, accumulating position offsets from the host node center.
     do while (associated(nodeWork))
-       basic                   =>  nodeWork %basic                 ()
-       satellite               =>  nodeWork %satellite             ()
-       positionOrbitalExtract  =  +          positionOrbitalExtract   &
-            &                     +satellite%position              ()
+       basic     =>  nodeWork %basic    ()
+       satellite =>  nodeWork %satellite()
+       position  =  +position              &
+            &       +satellite%position ()
        if (nodeWork%isSatellite()) then
           ! Current node is a satellite, simply move to its parent.
           nodeWork => nodeWork%parent

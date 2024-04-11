@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,7 +53,7 @@
   
     This approach ensures that the number of timesteps never exceeds {\normalfont \ttfamily [countTimeStepsMaximum]}, results
     in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
-    the output time, and allows simple (interpolation-free) consolidation of accumulate star formation from the previous output
+    the output time, and allows simple (interpolation-free) consolidation of accumulated star formation from the previous output
     time's timesteps to those of the current output time.
   
     Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
@@ -84,6 +84,7 @@
    contains
      final     ::                                adaptiveDestructor
      procedure :: create                      => adaptiveCreate
+     procedure :: update                      => adaptiveUpdate
      procedure :: rate                        => adaptiveRate
      procedure :: scales                      => adaptiveScales
      procedure :: times                       => adaptiveTimes
@@ -370,24 +371,29 @@ contains
     return
   end subroutine adaptiveDestructor
 
-  subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin)
+  subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin,timeEnd)
     !!{
     Create the history required for storing star formation history.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (starFormationHistoryAdaptive), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    type            (history                     ), intent(inout) :: historyStarFormation
-    double precision                              , intent(in   ) :: timeBegin
-    class           (nodeComponentBasic          ), pointer       :: basic
-    integer         (c_size_t                    )                :: indexOutput
-    double precision                                              :: timeNext
+    class           (starFormationHistoryAdaptive), intent(inout)           :: self
+    type            (treeNode                    ), intent(inout)           :: node
+    type            (history                     ), intent(inout)           :: historyStarFormation
+    double precision                              , intent(in   )           :: timeBegin
+    double precision                              , intent(in   ), optional :: timeEnd
+    class           (nodeComponentBasic          ), pointer                 :: basic
+    integer         (c_size_t                    )                          :: indexOutput
+    double precision                                                        :: timeNext
     !$GLC attributes unused :: timeBegin
 
     ! Get the time and index of the next output
-    basic    => node             %basic   (                                                )
-    timeNext =  self%outputTimes_%timeNext(timeCurrent=basic%time(),indexOutput=indexOutput)
+    if (present(timeEnd)) then
+       indexOutput=self%outputTimes_%index(timeEnd)
+    else
+       basic    => node             %basic   (                                                )
+       timeNext =  self%outputTimes_%timeNext(timeCurrent=basic%time(),indexOutput=indexOutput)
+    end if
     ! Create the appropriate history.
     call historyStarFormation%create(int(self%countMetallicities+1),size(self%intervals(indexOutput)%time))
     historyStarFormation%time=self%intervals(indexOutput)%time
@@ -536,7 +542,7 @@ contains
     return
   end function adaptivePerOutputTabulationIsStatic
 
-  subroutine adaptiveDescriptor(self,descriptor,includeClass)
+  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -545,7 +551,7 @@ contains
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor
-    logical                                , intent(in   ), optional :: includeClass
+    logical                                , intent(in   ), optional :: includeClass              , includeFileModificationTimes
     character(len=18                      )                          :: parameterLabel
     type     (inputParameters             )                          :: parameters
     integer                                                          :: i
@@ -565,6 +571,6 @@ contains
        metallicityBoundariesLabel=metallicityBoundariesLabel//trim(adjustl(parameterLabel))//" "
     end do
     call parameters%addParameter('metallicityBoundaries',char(metallicityBoundariesLabel))
-    call self%outputTimes_%descriptor(parameters)
+    call self%outputTimes_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine adaptiveDescriptor

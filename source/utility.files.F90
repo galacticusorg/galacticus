@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,10 +33,10 @@ module File_Utilities
   use            :: Locks             , only : ompLock
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists    , File_Rename   , File_Lock       , &
-       &    File_Unlock        , Executable_Find, File_Path     , File_Name       , &
-       &    File_Name_Temporary, File_Remove    , Directory_Make, File_Name_Expand, &
-       &    Directory_Remove
+  public :: Count_Lines_in_File, File_Exists           , File_Rename   , File_Lock       , &
+       &    File_Unlock        , Executable_Find       , File_Path     , File_Name       , &
+       &    File_Name_Temporary, File_Remove           , Directory_Make, File_Name_Expand, &
+       &    Directory_Remove   , File_Modification_Time
 
   interface Count_Lines_in_File
      !!{
@@ -53,6 +53,14 @@ module File_Utilities
      module procedure File_Exists_Char
      module procedure File_Exists_VarStr
   end interface File_Exists
+
+  interface File_Modification_Time
+     !!{
+     Generic interface for file modification functions.
+     !!}
+     module procedure File_Modification_Time_Char
+     module procedure File_Modification_Time_VarStr
+  end interface File_Modification_Time
 
   interface File_Path
      !!{
@@ -615,4 +623,44 @@ contains
     return
   end function File_Name_Expand
 
+  function File_Modification_Time_VarStr(fileName,status) result(timeModification)
+    !!{
+    Return the modification time of the named file.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, char
+    implicit none
+    character(len=30        )                          :: timeModification
+    type     (varying_string), intent(in   )           :: fileName
+    integer                  , intent(  out), optional :: status
+    
+    timeModification=File_Modification_Time(char(fileName),status)
+    return
+  end function File_Modification_Time_VarStr
+  
+  function File_Modification_Time_Char(fileName,status) result(timeModification)
+    !!{
+    Return the modification time of the named file.
+    !!}
+    use :: Error, only : Error_Report, errorStatusSuccess, errorStatusNotExist
+    implicit none
+    character(len=30)                          :: timeModification
+    character(len=* ), intent(in   )           :: fileName
+    integer          , intent(  out), optional :: status
+    integer          , dimension(13)           :: statValues
+
+    if (present(status)) status=errorStatusSuccess
+    if (File_Exists(fileName)) then       
+       call stat(fileName,statValues)
+       timeModification=ctime(statValues(10))
+    else
+       timeModification=""
+       if (present(status)) then
+          status=errorStatusNotExist
+       else
+          call Error_Report('file "'//fileName//'" does not exist'//{introspection:location})
+       end if
+    end if
+    return
+  end function File_Modification_Time_Char
+  
 end module File_Utilities

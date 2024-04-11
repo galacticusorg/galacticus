@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,8 +41,14 @@
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_     => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_    => null()
    contains
+     !![
+     <methods>
+       <method method="node" description="Get the node from which to compute halo properties."/>
+     </methods>
+     !!]
      final     ::                haloScalingDestructor
      procedure :: outflowRate => haloScalingOutflowRate
+     procedure :: node        => haloScalingNode
   end type stellarFeedbackOutflowsHaloScaling
 
   interface stellarFeedbackOutflowsHaloScaling
@@ -145,18 +151,20 @@ contains
     !!{
     Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     class           (stellarFeedbackOutflowsHaloScaling), intent(inout) :: self
     class           (nodeComponent                     ), intent(inout) :: component
     double precision                                    , intent(in   ) :: rateEnergyInput    , rateStarFormation
     double precision                                    , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive
+    type            (treeNode                          ), pointer       :: node
     class           (nodeComponentBasic                ), pointer       :: basic
     double precision                                                    :: expansionFactor    , velocityVirial
     !$GLC attributes unused :: rateStarFormation
 
     ! Get the basic component.
-    basic => component%hostNode%basic()
+    node  => self%node (component)
+    basic => node%basic(         )
     ! Get virial velocity and expansion factor.
     velocityVirial =self%darkMatterHaloScale_%velocityVirial (component%hostNode  )
     expansionFactor=self%cosmologyFunctions_ %expansionFactor(basic    %time    ())
@@ -178,3 +186,18 @@ contains
     rateOutflowExpulsive=+0.0d0
     return
   end subroutine haloScalingOutflowRate
+
+  function haloScalingNode(self,component) result(node)
+    !!{
+    Returns a pointer to the node from which to extract halo properties.
+    !!}
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    type (treeNode                          ), pointer       :: node
+    class(stellarFeedbackOutflowsHaloScaling), intent(inout) :: self
+    class(nodeComponent                     ), intent(in   ) :: component
+    !$GLC attributes unused :: self
+
+    node => component%hostNode
+    return
+  end function haloScalingNode

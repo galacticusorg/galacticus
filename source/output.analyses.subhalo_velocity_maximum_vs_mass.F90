@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@
   !![
   <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
    <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSubhaloVMaxVsMass
@@ -165,9 +166,9 @@ contains
     class           (darkMatterProfileDMOClass      ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                 , intent(in   ), optional       :: redshift
     double precision                                 , allocatable  , dimension(:  ) :: massesTarget            , functionTarget                  , &
-         &                                                                            functionErrorTarget
+         &                                                                              functionErrorTarget
     double precision                                 , allocatable  , dimension(:,:) :: functionCovarianceTarget
-    double precision                                                                 :: massMinimum             , massMaximum               , &
+    double precision                                                                 :: massMinimum             , massMaximum                     , &
          &                                                                              time                    , redshift_
     integer         (c_size_t                         )                              :: countMasses             , i
     type            (varying_string                   )                              :: labelTarget
@@ -352,7 +353,7 @@ contains
          &                                                                              galacticFilterSubhalos_                                         , &
          &                                                                              outputTimes_                                                    , &
          &                                                                              outputAnalysisCovarianceModelPoisson                            , &
-         &                                                         likelihoodNormalize =.true.                                                          , &
+         &                                                         likelihoodNormalize =.false.                                                         , &
          &                                                         xAxisLabel          =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
          &                                                         yAxisLabel          =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
          &                                                         xAxisIsLog          =.true.                                                          , &

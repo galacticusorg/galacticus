@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -201,11 +201,11 @@ contains
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
     self%normalizationMatterDominated=+self%linearGrowthCollisionlessMatter_%value(timeNow,normalize=normalizeMatterDominated) &
          &                            /self%linearGrowthCollisionlessMatter_%value(timeNow                                   )
-    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
-         &                      'largeScaleStructure/'                           // &
-         &                      self%objectType      (                          )// &
-         &                      '_'                                              // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
+         &                      'largeScaleStructure/'                                                               // &
+         &                      self%objectType      (                                                              )// &
+         &                      '_'                                                                                  // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     return
@@ -231,7 +231,7 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !!{
     Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
+    $D(1)=1$ for a baryons plus dark matter plus cosmological constant cosmology.
     !!}
     use    :: File_Utilities       , only : File_Lock                       , File_Unlock
     use    :: Error                , only : Error_Report
@@ -242,23 +242,23 @@ contains
     use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
     use    :: Tables               , only : table1DGeneric
     implicit none
-    class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
-    double precision                               , intent(in   )           :: time
-    double precision                               , intent(in   ), optional :: wavenumber
-    double precision                               , parameter               :: odeToleranceAbsolute          =   1.0d-10, odeToleranceRelative                = 1.0d-10
-    integer                                        , parameter               :: growthTablePointsPerDecadeTime=1000      , growthTablePointsPerDecadeWavenumber=100
-    double precision                               , dimension(4)            :: growthFactorODEVariables
-    double precision                               , dimension(2)            :: redshiftsInitial                         , timesInitial
-    integer                                                                  :: i                                        , j
-    double precision                                                         :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
-         &                                                                      timeNow                                  , linearGrowthFactorPresent                    , &
-         &                                                                      timePresent                              , timeBigCrunch                                , &
-         &                                                                      wavenumberLogarithmic
-    integer                                                                  :: growthTableNumberPoints
-    type            (odeSolver                    )                          :: solver
-    type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
-    integer                                                                  :: countWavenumbers
-    !$ integer      (omp_lock_kind                )                          :: lockBaryons                              , lockDarkMatter
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)              :: self
+    double precision                               , intent(in   )              :: time
+    double precision                               , intent(in   ), optional    :: wavenumber
+    double precision                               , parameter                  :: odeToleranceAbsolute          =   1.0d-10, odeToleranceRelative                = 1.0d-10
+    integer                                        , parameter                  :: growthTablePointsPerDecadeTime=1000      , growthTablePointsPerDecadeWavenumber=100
+    double precision                               , dimension(4)               :: growthFactorODEVariables
+    double precision                               , dimension(2)               :: redshiftsInitial                         , timesInitial
+    double precision                               , dimension(:) , allocatable :: linearGrowthFactorPresent
+    integer                                                                     :: i                                        , j
+    double precision                                                            :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
+         &                                                                         timeNow                                  , wavenumberLogarithmic                        , &
+         &                                                                         timePresent                              , timeBigCrunch
+    integer                                                                     :: growthTableNumberPoints
+    type            (odeSolver                    )                             :: solver
+    type            (table1DGeneric               )                             :: transferFunctionDarkMatter               , transferFunctionBaryons
+    integer                                                                     :: countWavenumbers
+    !$ integer      (omp_lock_kind                )                             :: lockBaryons                              , lockDarkMatter
 
     ! Check if we need to recompute our table.
     if (self%remakeTable(time)) then
@@ -305,10 +305,11 @@ contains
        ! Create table.
        countWavenumbers=int(dble(growthTablePointsPerDecadeWavenumber)*log10(self%tableWavenumberMaximum/self%tableWavenumberMinimum))+1
        call self%growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints,self%tableWavenumberMinimum,self%tableWavenumberMaximum,countWavenumbers,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
+       allocate(linearGrowthFactorPresent(countWavenumbers))
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver,linearGrowthFactorPresent)
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver)
        allocate(cosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(intergalacticMediumState_,mold=self%intergalacticMediumState_)
        !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
@@ -321,7 +322,7 @@ contains
        !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
        !$omp do
        do j=1,countWavenumbers
-          wavenumber_=self%growthFactor%y(j)
+          wavenumber_          =self%growthFactor%y(j)
           wavenumberLogarithmic=log(wavenumber_)
           ! Solve ODE to get corresponding expansion factors. Initialize with solution from CAMB.
           !$ call OMP_Set_Lock  (lockDarkMatter)
@@ -351,13 +352,20 @@ contains
        <objectDestructor name="cosmologyFunctions_"      />
        <objectDestructor name="intergalacticMediumState_"/>
        !!]
+       !$omp barrier
+       !$omp single
+       ! Get present day growth factor at every wavenumber.
+       do j=1,countWavenumbers
+          linearGrowthFactorPresent(j)=self%growthFactor%interpolate(timePresent,self%growthFactor%y(j))
+       end do
+       !$omp end single
+       !$omp barrier
        !$omp do
        do j=1,countWavenumbers
           ! Normalize to growth factor of unity at present day.
-          linearGrowthFactorPresent=self%growthFactor%interpolate(timePresent,self%growthFactor%y(j))
           do i=1,growthTableNumberPoints
-             call self%growthFactor%populate(self%growthFactor%z(i,j,table=indexDarkMatter)/linearGrowthFactorPresent,i,j,table=indexDarkMatter)
-             call self%growthFactor%populate(self%growthFactor%z(i,j,table=indexBaryons   )/linearGrowthFactorPresent,i,j,table=indexBaryons   )
+             call self%growthFactor%populate(self%growthFactor%z(i,j,table=indexDarkMatter)/linearGrowthFactorPresent(j),i,j,table=indexDarkMatter)
+             call self%growthFactor%populate(self%growthFactor%z(i,j,table=indexBaryons   )/linearGrowthFactorPresent(j),i,j,table=indexBaryons   )
           end do
        end do
        !$omp end do
@@ -485,7 +493,7 @@ contains
     else
        wavenumber_=wavenumberReference
     end if
-    ! Interpolate to get the expansion factor.
+    ! Interpolate to get the linear growth factor.
     baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=indexDarkMatter)
     ! Normalize.
     select case (normalize_%ID)

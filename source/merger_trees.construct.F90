@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,6 +44,44 @@ module Merger_Tree_Construction
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
     <argument>logical          , intent(  out) :: finished</argument>
+   </method>
+   <method name="randomSequenceNonDeterministicWarn" >
+    <description>Display a warning if the merger tree random number generator sequence is non-deterministic.</description>
+    <modules>
+      <name>Display</name>
+      <only>displayMessage, displayMagenta, displayReset</only>
+    </modules>
+    <modules>
+      <name>MPI_Utilities</name>
+      <only>mpiSelf</only>
+    </modules>
+    <modules>
+      <name>OMP_Lib</name>
+      <only>OMP_Get_Max_Threads</only>
+    </modules>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(mergerTree), intent(inout) :: tree</argument>
+    <code>
+     logical, save :: nonDeterministicWarned=.false.
+
+     if (.not.nonDeterministicWarned) then
+        !$omp critical (treeRandomSequenceNonDeterministicWarn)
+        if (.not.nonDeterministicWarned) then
+           if        (                                                                                                                                                                   &amp;
+                !$ &amp;   (tree%randomNumberGenerator_%openMPIndependent() .and. OMP_Get_Max_Threads() > 1)                                                                             &amp;
+                !$ &amp;  .or.                                                                                                                                                           &amp;
+                &amp;      (tree%randomNumberGenerator_%   mpiIndependent() .and. mpiSelf%count      () > 1)                                                                             &amp;
+                &amp;    ) call displayMessage(                                                                                                                                          &amp;
+                &amp;                          displayMagenta()//'WARNING:'//displayReset()//                                                                                            &amp;
+                &amp;                          " per-tree random number sequences may not be deterministic - see:"                                                          //char(10)// &amp;
+                &amp;                          "        https://github.com/galacticusorg/galacticus/wiki/Troubleshooting#non-deterministic-per-tree-random-number-sequences"             &amp;
+                &amp;                          )
+           nonDeterministicWarned=.true.
+        end if
+        !$omp end critical (treeRandomSequenceNonDeterministicWarn)
+     end if
+    </code>
    </method>
   </functionClass>
   !!]

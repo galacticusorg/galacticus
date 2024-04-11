@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,6 +41,7 @@
      type   (c_ptr ) :: gslRandomNumberGenerator=c_null_ptr
    contains
      final     ::                         gslDestructor
+     procedure :: openMPIndependent    => gslOpenMPIndependent
      procedure :: mpiIndependent       => gslMPIIndependent
      procedure :: uniformSample        => gslUniformSample
      procedure :: poissonSample        => gslPoissonSample
@@ -258,10 +259,25 @@ contains
     !!}
     implicit none    
     class(randomNumberGeneratorGSL), intent(inout) :: self
-    
+
+#ifdef USEMPI
     gslMPIIndependent=self%mpiRankOffset
+#else
+    gslMPIIndependent=.false.
+#endif
     return
   end function gslMPIIndependent
+
+  logical function gslOpenMPIndependent(self)
+    !!{
+    Return true if this random number generator produces independent sequences per OpenMP thread.
+    !!}
+    implicit none    
+    class(randomNumberGeneratorGSL), intent(inout) :: self
+    
+    gslOpenMPIndependent=self%ompThreadOffset
+    return
+  end function gslOpenMPIndependent
 
   double precision function gslUniformSample(self)
     !!{

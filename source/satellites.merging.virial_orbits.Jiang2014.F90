@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -235,13 +235,14 @@ contains
     class           (virialDensityContrastClass  ), intent(in   ), target         :: virialDensityContrast_
     class           (darkMatterProfileDMOClass   ), intent(in   ), target         :: darkMatterProfileDMO_
     integer                                       , parameter                     :: tableCount                 =1000
-    integer                                                                       :: i                                  , j                                    , k
+    integer                                                                       :: i                                  , j                                    , k                   , &
+         &                                                                           attempt
     type            (distributionFunction1DVoight)                                :: voightDistribution
     double precision                              , parameter                     :: toleranceAbsolute           =0.0d+0, toleranceRelative             =1.0d-3
     double precision                              , allocatable  , dimension(:,:) :: distribution_
     double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum,  &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
-    logical                                                                       :: limitFound
+    logical                                                                       :: limitFound                         , success
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     type            (varying_string              )                                :: fileName
     type            (hdf5Object                  )                                :: file
@@ -264,106 +265,114 @@ contains
     self%mu   (:,2)=   muRatioIntermediate
     self%mu   (:,3)=   muRatioHigh
     ! Construct a file name for the table.
-    fileName=inputPath(pathTypeDataDynamic)// &
-         &   'satellites/'                 // &
-         &   self%objectType()             // &
+    fileName=inputPath(pathTypeDataDynamic)                                                       // &
+         &   'satellites/'                                                                        // &
+         &   self%objectType      (                                                              )// &
+         &   '_'                                                                                  // &
+         &   self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
-    if (File_Exists(fileName)) then
-       !$ call hdf5Access%set()
-       call file%openFile         (char(fileName)                                                   )
-       call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
-       call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
-       call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
-       call file%readDatasetStatic('velocityTotalRootMeanSquared',self%velocityTotalRootMeanSquared_)
-       do i=1,3
-          do j=1,3
-             call file%readDataset(char(var_str('distribution_')//i//'_'//j) , distribution_)
-             call self%voightDistributions(i,j)%create  (limitLower        ,limitUpper,tableCount)
-             call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
-          end do
-       end do
-       call    file      %close()
-       !$ call hdf5Access%unset()
-    else
-       ! Tabulate Voight distribution functions for speed.
-       integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
-       integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
-       ! Build the distribution function for total velocity.
-       do i=1,3
-          do j=1,3
-             ! Build the distribution.
-             ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
-             ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
-             ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
-             ! half-maximum is estimated using the approximation of Olivero (1977; Journal of Quantitative Spectroscopy and
-             ! Radiative Transfer; 17; 233; http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
-             fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
-             fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
-             halfWidthHalfMaximum          =+0.5d0                                     &
-                  &                         *(                                         &
-                  &                           +      0.5346d0                          &
-                  &                           *      fullWidthHalfMaximumLorentzian    &
-                  &                           +sqrt(                                   &
-                  &                                 +0.2166d0                          &
-                  &                                 *fullWidthHalfMaximumLorentzian**2 &
-                  &                                 +fullWidthHalfMaximumGaussian  **2 &
-                  &                                )                                   &
-                  &                          )
-             limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
-             limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
-             voightDistribution=distributionFunction1DVoight(                        &
-                  &                                          self%gamma(i,j)       , &
-                  &                                          self%mu   (i,j)       , &
-                  &                                          self%sigma(i,j)       , &
-                  &                                          limitLower            , &
-                  &                                          limitUpper              &
-                  &                                         )
-             ! Tabulate the cumulative distribution.
-             call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
-             !$omp parallel do
-             do k=2,tableCount-1
-                call self%voightDistributions(i,j)%populate(min(1.0d0,max(0.0d0,voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)))),k)
+    success=.false.
+    do attempt=0,1
+       call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
+       if (File_Exists(fileName)) then
+          !$ call hdf5Access%set()
+          call file%openFile         (char(fileName)                                                   )
+          call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
+          call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
+          call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
+          call file%readDatasetStatic('velocityTotalRootMeanSquared',self%velocityTotalRootMeanSquared_)
+          do i=1,3
+             do j=1,3
+                call file%readDataset(char(var_str('distribution_')//i//'_'//j) , distribution_)
+                call self%voightDistributions(i,j)%create  (limitLower        ,limitUpper,tableCount)
+                call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
              end do
-             !$omp end parallel do
-             ! Ensure tabulation starts at 0 and reaches 1.
-             call self%voightDistributions(i,j)%populate(0.0d0,         1)
-             call self%voightDistributions(i,j)%populate(1.0d0,tableCount)
-             ! Ensure that 0 and 1 are unique within the table, by making any duplicated table entries slightly beyond these
-             ! values. This ensures that when seeking values in this table we do not exceed the plausible range.
-             limitFound=.false.
-             do k=1,tableCount
-                if (limitFound)  call self%voightDistributions(i,j)%populate(1.0d0+1.0d-6,k)
-                if (self%voightDistributions(i,j)%y(k) >= 1.0d0) limitFound=.true.
-             end do
-             limitFound=.false.
-             do k=tableCount,1,-1
-                if (limitFound) call self%voightDistributions(i,j)%populate(0.0d0-1.0d-6,k)
-                if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
-             end do
-             ! Compute the mean magnitude of tangential velocity.
-             self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
-             ! Compute the root mean squared total velocity.
-             self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
           end do
-       end do
-       !$ call hdf5Access%set()
-       call file%openFile      (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
-       call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
-       call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
-       call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
-       call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
-       do i=1,3
-          do j=1,3
-             call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
+          call    file      %close()
+          !$ call hdf5Access%unset()
+          success=.true.
+       else if (attempt == 1) then
+          ! Tabulate Voight distribution functions for speed.
+          integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+          integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+          ! Build the distribution function for total velocity.
+          do i=1,3
+             do j=1,3
+                ! Build the distribution.
+                ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
+                ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
+                ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
+                ! half-maximum is estimated using the approximation of Olivero (1977; Journal of Quantitative Spectroscopy and
+                ! Radiative Transfer; 17; 233; http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
+                fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
+                fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
+                halfWidthHalfMaximum          =+0.5d0                                     &
+                     &                         *(                                         &
+                     &                           +      0.5346d0                          &
+                     &                           *      fullWidthHalfMaximumLorentzian    &
+                     &                           +sqrt(                                   &
+                     &                                 +0.2166d0                          &
+                     &                                 *fullWidthHalfMaximumLorentzian**2 &
+                     &                                 +fullWidthHalfMaximumGaussian  **2 &
+                     &                                )                                   &
+                     &                          )
+                limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
+                limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
+                voightDistribution=distributionFunction1DVoight(                        &
+                     &                                          self%gamma(i,j)       , &
+                     &                                          self%mu   (i,j)       , &
+                     &                                          self%sigma(i,j)       , &
+                     &                                          limitLower            , &
+                     &                                          limitUpper              &
+                     &                                         )
+                ! Tabulate the cumulative distribution.
+                call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
+                !$omp parallel do
+                do k=2,tableCount-1
+                   call self%voightDistributions(i,j)%populate(min(1.0d0,max(0.0d0,voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)))),k)
+                end do
+                !$omp end parallel do
+                ! Ensure tabulation starts at 0 and reaches 1.
+                call self%voightDistributions(i,j)%populate(0.0d0,         1)
+                call self%voightDistributions(i,j)%populate(1.0d0,tableCount)
+                ! Ensure that 0 and 1 are unique within the table, by making any duplicated table entries slightly beyond these
+                ! values. This ensures that when seeking values in this table we do not exceed the plausible range.
+                limitFound=.false.
+                do k=1,tableCount
+                   if (limitFound)  call self%voightDistributions(i,j)%populate(1.0d0+1.0d-6,k)
+                   if (self%voightDistributions(i,j)%y(k) >= 1.0d0) limitFound=.true.
+                end do
+                limitFound=.false.
+                do k=tableCount,1,-1
+                   if (limitFound) call self%voightDistributions(i,j)%populate(0.0d0-1.0d-6,k)
+                   if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
+                end do
+                ! Compute the mean magnitude of tangential velocity.
+                self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
+                ! Compute the root mean squared total velocity.
+                self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
+             end do
           end do
-       end do
-       call    file      %close()
-       !$ call hdf5Access%unset()
-    end if
-    call File_Unlock(fileLock)
+          !$ call hdf5Access%set()
+          call file%openFile      (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
+          call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
+          call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
+          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
+          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
+          do i=1,3
+             do j=1,3
+                call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
+             end do
+          end do
+          call    file      %close()
+          !$ call hdf5Access%unset()
+          success=.true.
+       end if
+       call File_Unlock(fileLock,sync=attempt == 1)
+       if (success) exit
+    end do
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![

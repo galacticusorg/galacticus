@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
 
   !!{
   Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
@@ -34,11 +34,12 @@
    <description>
     A satellite tidal radius class which uses the method of \cite{king_structure_1962}:
     \begin{equation}
-    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c} \omega^2-d^2\Phi/dr^2}\right)^{1/3},
     \end{equation}
-    where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
-    host. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the
-    baryonic components.
+    where $\omega$ is the orbital angular velocity of the satellite, $\Phi(r)$ is the gravitational potential due to the host,
+    and $\gamma_\mathrm{c}=${\normalfont \ttfamily [efficiencyCentrifugal]} is the a model parameter that controls the efficiency of
+    centrifugal force. The calculation is based on the dark matter only density profile of the satellite---no accounting is
+    made for the baryonic components.
    </description>
   </satelliteTidalStrippingRadius>
   !!]
@@ -50,8 +51,8 @@
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      class           (galacticStructureClass  ), pointer :: galacticStructure_   => null()
-     double precision                                    :: radiusTidalPrevious           , expandMultiplier, &
-          &                                                 fractionDarkMatter
+     double precision                                    :: radiusTidalPrevious           , expandMultiplier     , &
+          &                                                 fractionDarkMatter            , efficiencyCentrifugal
      integer         (kind_int8               )          :: lastUniqueID
      type            (rootFinder              )          :: finder
      logical                                             :: applyPreInfall
@@ -89,15 +90,22 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (satelliteTidalStrippingRadiusKing1962)                :: self
-    type   (inputParameters                      ), intent(inout) :: parameters
-    class  (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
-    class  (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
-    class  (galacticStructureClass               ), pointer       :: galacticStructure_
-    logical                                                       :: applyPreInfall
+    type            (satelliteTidalStrippingRadiusKing1962)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    class           (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
+    class           (galacticStructureClass               ), pointer       :: galacticStructure_
+    double precision                                                       :: efficiencyCentrifugal
+    logical                                                                :: applyPreInfall
 
     !![
-     <inputParameter>
+    <inputParameter>
+      <name>efficiencyCentrifugal</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>Efficiency of the centrifugal force. For zero value, the centrifugal force is neglected in computing the tidal radius.</description>
+    </inputParameter>
+    <inputParameter>
       <name>applyPreInfall</name>
       <defaultValue>.false.</defaultValue>
       <description>If true, tidal radii are computed pre-infall.</description>
@@ -107,7 +115,7 @@ contains
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=satelliteTidalStrippingRadiusKing1962(applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
+    self=satelliteTidalStrippingRadiusKing1962(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -117,7 +125,7 @@ contains
     return
   end function king1962ConstructorParameters
 
-  function king1962ConstructorInternal(applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
+  function king1962ConstructorInternal(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
     !!}
@@ -126,10 +134,11 @@ contains
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
     class           (galacticStructureClass               ), intent(in   ), target :: galacticStructure_
+    double precision                                       , intent(in   )         :: efficiencyCentrifugal
     logical                                                , intent(in   )         :: applyPreInfall
     double precision                                       , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="applyPreInfall, *cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="efficiencyCentrifugal, applyPreInfall, *cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     self%fractionDarkMatter=+(                                         & 
@@ -291,7 +300,7 @@ contains
        tidalFieldRadial                =+0.0d0
     end if
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
-    tidalPull=frequencyAngular**2-tidalFieldRadial
+    tidalPull=self%efficiencyCentrifugal*frequencyAngular**2-tidalFieldRadial
     if     (                                                                          &
          &   tidalPull                                             >  0.0d0           &
          &  .and.                                                                     &

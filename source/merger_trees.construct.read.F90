@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -133,10 +133,15 @@
       forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
       allowing to nodes to move between their branches.
     \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
-      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily true}
-      then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If {\normalfont
-        \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily false} then subhalos are not permitted to become
-      isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
+      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily true} then such
+      cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter
+      {\normalfont \ttfamily [alwaysPromoteMostMassive]}$=${\normalfont \ttfamily true} then the most massive progenitor is treated
+      as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if {\normalfont \ttfamily
+      [alwaysPromoteMostMassive]}$=${\normalfont \ttfamily false} then a most massive progenitor that is a subhalo is only treated
+      as the primary progenitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
+      is treated as the primary progenitor). If {\normalfont \ttfamily [allowSubhaloPromotions]}$=${\normalfont \ttfamily false}
+      then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all
+      such cases from the tree:\\
     
       \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
     
@@ -232,7 +237,7 @@
      integer         (kind_int8                                 )                            :: beginAt
      double precision                                                                        :: treeWeightCurrent
      logical                                                                                 :: allowBranchJumps
-     logical                                                                                 :: allowSubhaloPromotions
+     logical                                                                                 :: allowSubhaloPromotions                          , alwaysPromoteMostMassive
      integer         (c_size_t                                  )                            :: forestSizeMaximum                               , treeNumberOffset
      logical                                                                                 :: presetMergerTimes
      logical                                                                                 :: presetMergerNodes
@@ -275,13 +280,14 @@
        <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
        <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
        <method description="Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}." method="nodeLocation" />
-       <method description=" Return the sort index of the given {\normalfont \ttfamily descendantIndex}." method="descendantNodeSortIndex" />
+       <method description="Return the sort index of the given {\normalfont \ttfamily descendantIndex}." method="descendantNodeSortIndex" />
        <method description="Destroy the sorted list of node indices." method="destroyNodeIndices" />
        <method description="Builds pointers from each node to its descendant node." method="buildDescendantPointers" />
        <method description="Create parent pointer links between isolated nodes and assign times and masses to those nodes." method="buildIsolatedParentPointers" />
        <method description="Assign named properties to nodes." method="assignNamedProperties" />
        <method description="Assign scale radii to nodes." method="assignScaleRadii" />
        <method description="Scan for and record mergers between nodes." method="scanForMergers" />
+       <method description="Set the virial orbit in a node." method="setOrbit" />
        <method description="Assign angular momenta to nodes." method="assignAngularMomenta" />
        <method description="Assign pointers to merge targets." method="assignMergers" />
        <method description="Search for subhalos which move between branches/trees." method="scanForBranchJumps" />
@@ -314,6 +320,7 @@
      procedure :: assignNamedProperties         => readAssignNamedProperties
      procedure :: assignScaleRadii              => readAssignScaleRadii
      procedure :: scanForMergers                => readScanForMergers
+     procedure :: setOrbit                      => readSetOrbit
      procedure :: assignAngularMomenta          => readAssignAngularMomenta
      procedure :: assignMergers                 => readAssignMergers
      procedure :: scanForBranchJumps            => readScanForBranchJumps
@@ -410,7 +417,8 @@ contains
          &                                                                              presetAngularMomenta3D              , presetOrbits                        , &
          &                                                                              presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                              presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
-         &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps
+         &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps                    , &
+         &                                                                              alwaysPromoteMostMassive
     type            (varying_string                     )                            :: subhaloAngularMomentaMethod
     double precision                                                                 :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                              presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
@@ -574,6 +582,12 @@ contains
       <description>Specifies whether subhalos are permitted to be promoted to being isolated halos.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>alwaysPromoteMostMassive</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, the most massive progenitor is always promoted to be the primary progenitor \emph{even if} it is a subhalo. Otherwise, isolated progenitors are given priority over subhalo progenitors, even if they are less massive.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     allocate(presetNamedReals   (parameters%count('presetNamedReals'   ,zeroIfNotPresent=.true.)))
     if (size(presetNamedReals   ) > 0) then
@@ -627,6 +641,7 @@ contains
          &                         enumerationSubhaloAngularMomentaMethodEncode(char(subhaloAngularMomentaMethod         ),includesPrefix=.false.), &
          &                                                                           allowBranchJumps                                             , &
          &                                                                           allowSubhaloPromotions                                       , &
+         &                                                                           alwaysPromoteMostMassive                                     , &
          &                                                                           presetMergerTimes                                            , &
          &                                                                           presetMergerNodes                                            , &
          &                                                                           presetSubhaloMasses                                          , &
@@ -677,7 +692,7 @@ contains
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalAngularMomenta,presetAngularMomenta,presetAngularMomenta3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,alwaysPromoteMostMassive,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalAngularMomenta,presetAngularMomenta,presetAngularMomenta3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     !!}
@@ -712,14 +727,15 @@ contains
          &                                                                                       presetAngularMomenta3D              , presetOrbits                        , &
          &                                                                                       presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
          &                                                                                       presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
-         &                                                                                       treeIndexToRootNodeIndex            , allowBranchJumps
+         &                                                                                       treeIndexToRootNodeIndex            , allowBranchJumps                    , &
+         &                                                                                       alwaysPromoteMostMassive
     type            (enumerationSubhaloAngularMomentaMethodType), intent(in   )               :: subhaloAngularMomentaMethod
     double precision                                            , intent(in   )               :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                                       presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                                  )                              :: iOutput                             , i
     type            (varying_string                            )                              :: message
     !![
-    <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalAngularMomenta, presetAngularMomenta, presetAngularMomenta3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, alwaysPromoteMostMassive, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalAngularMomenta, presetAngularMomenta, presetAngularMomenta3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
     !!]
 
     ! Initialize statuses.
@@ -782,7 +798,7 @@ contains
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowBranchJumps.and..not.self%presetMergerTimes) then
        message=displayMagenta()//'WARNING:'//displayReset()//' allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
-       message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
+       message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jumps from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach "1" because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
        message=message//' ---           ---'//char(10)
        message=message//' |1|<==========|a|'//char(10)
        message=message//' ---           ---'//char(10)
@@ -797,6 +813,9 @@ contains
        message=message//' ---     ---   ---'//{introspection:location}//char(10)
        call Warn(message)
     end if
+    ! Disallow always promoting the most massive progenitor if subhalo promotions are not allowed.
+    if (self%alwaysPromoteMostMassive.and..not.self%allowSubhaloPromotions) &
+         & call Error_Report('[alwaysPromoteMostMassive]=true requires [allowSubhaloPromotions]=true - in order to always promote the most massive progenitor it must be allowed to promote subhalos'//{introspection:location})
     ! Perform sanity checks if subhalos are not included.
     if (self%mergerTreeImporter_%treesHaveSubhalos() == booleanFalse) then
        if (self%presetMergerTimes   ) call Error_Report('cannot preset merger times as no subhalos are present; try setting [presetMergerTimes]=false'      //{introspection:location})
@@ -1005,6 +1024,7 @@ contains
        <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !!]
        !$omp end critical(mergerTreeConstructReadDeepCopyReset)
+       call self%randomSequenceNonDeterministicWarn(tree)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store internal state.
        message='Storing state for tree #'
@@ -1309,19 +1329,21 @@ contains
           call self%scanForMergers                                                   (nodes,nodeList,historyCountMaximum)
           ! If a split forest was used, but all trees from it have now been processed, remove the split forest data as we no
           ! longer need it at this point.
-          if (returnSplitForest .and. self%splitForestNextTree == size(self%splitForestTreeStart)) then
-             deallocate(self%splitForestTreeSize )
-             deallocate(self%splitForestTreeStart)
-             deallocate(self%splitForestPushTo   )
-             deallocate(self%splitForestPullFrom )
-             deallocate(self%splitForestPushType )
-             deallocate(self%splitForestMapIndex )
+          if (returnSplitForest) then
+             if (self%splitForestNextTree == size(self%splitForestTreeStart)) then
+                deallocate(self%splitForestTreeSize )
+                deallocate(self%splitForestTreeStart)
+                deallocate(self%splitForestPushTo   )
+                deallocate(self%splitForestPullFrom )
+                deallocate(self%splitForestPushType )
+                deallocate(self%splitForestMapIndex )
+             end if
           end if
           ! Release the lock on split forest data if necessary as we're finished using it. This allows other threads to begin
           ! using the split forest data.
           !$ if (self%forestSizeMaximum > 0) call OMP_Unset_Lock(self%splitForestLock)
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
-          call self%assignMergers             (nodes,nodeList)
+          call self%assignMergers           (nodes,nodeList)
           ! Find cases where something that was a subhalo stops being a subhalo and add events to handle.
           call self%scanForSubhaloPromotions(nodes,nodeList)
           ! Search for subhalos which move between branches/trees.
@@ -1377,7 +1399,7 @@ contains
     !!{
     Create a sorted list of node indices with an index into the original array.
     !!}
-    use :: Error          , only : Warn
+    use :: Error                     , only : Warn
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
     use :: String_Handling           , only : operator(//)
@@ -1589,15 +1611,20 @@ contains
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
     implicit none
-    class  (mergerTreeConstructorRead), intent(inout)                              :: self
-    class  (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
-    type   (treeNodeList             )               , dimension(:), intent(inout) :: nodeList
-    class  (nodeData                 ), pointer                                    :: descendantNode          , progenitorNode
-    class  (nodeEvent                ), pointer                                    :: newEvent                , pairEvent
-    type   (treeNode                 ), pointer                                    :: promotionNode           , node
-    integer(c_size_t                 )                                             :: iNode
-    logical                                                                        :: isolatedProgenitorExists, nodeIsMostMassive
-    type   (progenitorIterator       )                                             :: progenitors
+    class           (mergerTreeConstructorRead), intent(inout)                              :: self
+    class           (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
+    type            (treeNodeList             )               , dimension(:), intent(inout) :: nodeList
+    class           (nodeData                 ), pointer                                    :: descendantNode          , progenitorNode
+    class           (nodeEvent                ), pointer                                    :: newEvent                , pairEvent
+    type            (treeNode                 ), pointer                                    :: promotionNode           , node             , &
+         &                                                                                     nodeNew
+    class           (nodeComponentBasic       ), pointer                                    :: basic
+    integer         (c_size_t                 )                                             :: iNode
+    integer                                                                                 :: i
+    logical                                                                                 :: isolatedProgenitorExists, nodeIsMostMassive, &
+         &                                                                                     progenitorIsIsolated
+    type            (progenitorIterator       )                                             :: progenitors
+    double precision                                                                        :: timeSubhaloPromotion
 
     ! Return immediately if subhalo promotion is not allowed.
     if (.not.self%allowSubhaloPromotions) return
@@ -1613,27 +1640,72 @@ contains
              nodeIsMostMassive       =.true.
              call progenitors%descendantSet(self,descendantNode,nodes)
              do while (progenitors%next(nodes))
-                progenitorNode => progenitors%current(nodes)
-                if (progenitorNode%nodeIndex == progenitorNode%hostIndex) then
-                   isolatedProgenitorExists=.true.
-                else if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) then
-                   nodeIsMostMassive=.false.
+                progenitorNode       => progenitors   %current  (nodes)
+                progenitorIsIsolated =  progenitorNode%nodeIndex        == progenitorNode%hostIndex
+                if (progenitorIsIsolated) isolatedProgenitorExists=.true.
+                if (self%alwaysPromoteMostMassive) then
+                   ! Find the most massive progenitor. We treat isolated and non-isolated nodes differently, such that if there
+                   ! are two nodes of precisely equal mass (which can happen due to the discrete nature of masses in N-body
+                   ! simulations for example), one isolated and one not isolated, we treat the isolated one as the primary
+                   ! progenitor.
+                   if     (                                                                                    &
+                        &   (.not.progenitorIsIsolated .and. progenitorNode%nodeMass >  nodes(iNode)%nodeMass) &
+                        &  .or.                                                                                &
+                        &   (     progenitorIsIsolated .and. progenitorNode%nodeMass >= nodes(iNode)%nodeMass) &
+                        & ) nodeIsMostMassive=.false.
+                else
+                   if     (                                                                                    &
+                        &    .not.progenitorIsIsolated .and. progenitorNode%nodeMass >  nodes(iNode)%nodeMass  &
+                        & ) nodeIsMostMassive=.false.
                 end if
              end do
-             if (.not.progenitors%exist() .or. .not.isolatedProgenitorExists) then
+             ! Determine if we must promote the subhalo.
+             if     (                                                                                  &
+                  &   .not.progenitors%exist                   () .or.  .not.isolatedProgenitorExists  & ! Only promote a subhalo if no isolated halo exists.
+                  &  .or.                                                                              &
+                  &   (    self       %alwaysPromoteMostMassive   .and.      nodeIsMostMassive       ) & ! Always promote the most massive halo - isolated or not.
+                  & ) then
                 if (nodeIsMostMassive) then
-                   ! Node is isolated, has no isolated node that descends into it, and our subhalo is the most massive subhalo which
-                   ! descends into it. Therefore, our subhalo must be promoted to become an isolated halo again.
-                   node          => nodeList(nodes(iNode)  %isolatedNodeIndex)%node
-                   promotionNode => nodeList(descendantNode%isolatedNodeIndex)%node
+                   ! Node is isolated, has no isolated node that descends into it, and our subhalo is the most massive subhalo
+                   ! which descends into it, or we are always promoting the most massive progenitor, even if it is a subhalo and
+                   ! there are isolated progenitors. Therefore, our subhalo must be promoted to become an isolated halo again.
+                   !
+                   ! If other isolated progenitors exist, we need to insert a placeholder node as the primary progenitor.
+                   if (isolatedProgenitorExists) then
+                      allocate(nodeNew)
+                      call nodeList(descendantNode%isolatedNodeIndex)%node%copyNodeTo(nodeNew)
+                      if (nodeNew%satelliteCount() > 0) then
+                         ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+                         do i=nodeNew%satelliteCount(),1,-1
+                            call nodeNew%satelliteRemove(i)
+                         end do
+                      end if
+                      nodeNew                                         %sibling        => nodeList(descendantNode%isolatedNodeIndex)%node%firstChild
+                      nodeNew                                         %parent         => nodeList(descendantNode%isolatedNodeIndex)%node
+                      nodeNew                                         %firstSatellite => null()
+                      nodeNew                                         %firstChild     => null()
+                      nodeNew                                         %mergeTarget    => null()
+                      nodeNew                                         %firstMergee    => null()
+                      nodeNew                                         %siblingMergee  => null()
+                      nodeNew                                         %event          => null()
+                      nodeList(descendantNode%isolatedNodeIndex)%node%firstChild      => nodeNew
+                      basic                                                           => nodeNew                                        %basic     ()
+                      call basic%timeSet(basic%time()*(1.0d0-1.0d-6))
+                      promotionNode        =>                                                  nodeNew
+                      timeSubhaloPromotion =  basic                                           %    time()
+                   else
+                      promotionNode        => nodeList      (descendantNode%isolatedNodeIndex)%node
+                      timeSubhaloPromotion =  descendantNode                                  %nodeTime
+                   end if
+                   node                    => nodeList      (nodes(iNode)  %isolatedNodeIndex)%node
                    allocate(nodeEventSubhaloPromotion ::  newEvent)
                    allocate(nodeEventSubhaloPromotion :: pairEvent)
-                   call node     %attachEvent( newEvent)
+                   call          node%attachEvent( newEvent)
                    call promotionNode%attachEvent(pairEvent)
-                   newEvent %time =  descendantNode%nodeTime
+                   newEvent %time =  timeSubhaloPromotion
                    newEvent %node => promotionNode
                    newEvent %task => nodeSubhaloPromotionPerform
-                   pairEvent%time =  descendantNode%nodeTime
+                   pairEvent%time =  timeSubhaloPromotion
                    pairEvent%node => node
                    pairEvent%task => null()
                    pairEvent%ID   =  newEvent%ID
@@ -1641,10 +1713,10 @@ contains
                    ! Node is isolated, has no isolated node that descends into it, and our subhalo is not the most massive subhalo
                    ! which descends into it. Therefore, our subhalo must branch jump if this is allowed.
                    call readCreateBranchJumpEvent(                                                 &
-                        &                        nodeList(nodes(inode)  %isolatedNodeIndex)%node, &
-                        &                        nodeList(descendantNode%isolatedNodeIndex)%node, &
-                        &                        descendantNode%nodeTime                          &
-                        &                       )
+                        &                         nodeList(nodes(iNode)  %isolatedNodeIndex)%node, &
+                        &                         nodeList(descendantNode%isolatedNodeIndex)%node, &
+                        &                         descendantNode%nodeTime                          &
+                        &                        )
                 end if
              end if
           end if
@@ -2282,45 +2354,30 @@ contains
     !!{
     Scan for and record mergers between nodes.
     !!}
-    use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , nodeComponentPosition, nodeComponentSatellite, treeNode, &
-          &                                     treeNodeList
-    use :: Kepler_Orbits               , only : keplerOrbit
+         &                                      treeNodeList
     use :: Merger_Tree_Read_Importers  , only : nodeData
     use :: Satellite_Merging_Timescales, only : satelliteMergeTimeInfinite
-    use :: String_Handling             , only : operator(//)
-    use :: Vectors                     , only : Vector_Magnitude
     implicit none
     class           (mergerTreeConstructorRead)                         , intent(inout) :: self
     class           (nodeData                 ), target   , dimension(:), intent(inout) :: nodes
     type            (treeNodeList             )           , dimension(:), intent(inout) :: nodeList
     integer         (c_size_t                 )                         , intent(  out) :: historyCountMaximum
-    class           (nodeData                 ), pointer                                :: lastSeenNode                      , progenitorNode            , &
+    class           (nodeData                 ), pointer                                :: lastSeenNode                , progenitorNode            , &
          &                                                                                 node
-    type            (treeNode                 ), pointer                                :: firstProgenitor                   , hostNode                  , &
-         &                                                                                 orbitalPartner                    , satelliteNode
-    double precision                                      , dimension(3)                :: hostPosition                      , relativePosition          , &
-         &                                                                                 satellitePosition
-    double precision                                      , dimension(3)                :: hostVelocity                      , relativeVelocity          , &
-         &                                                                                 satelliteVelocity
-    logical                                    , parameter                              :: acceptUnboundOrbits       =.false.
-    integer                                    , parameter                              :: passAssign                =1      , passMerge               =2
-    class           (nodeComponentBasic       ), pointer                                :: basicChild                        , basicOrbitalPartner       , &
-         &                                                                                 basicSatellite                    , basic
-    class           (nodeComponentPosition    ), pointer                                :: positionChild                     , positionHost              , &
-         &                                                                                 positionSatellite                 , position
-    class           (nodeComponentSatellite   ), pointer                                :: satelliteSatellite                , satellite
-    type            (keplerOrbit              )                                         :: orbit
-    integer                                                                             :: iNode                             , pass_
-    integer         (c_size_t                 )                                         :: historyCount                      , iIsolatedNode
+    type            (treeNode                 ), pointer                                :: firstProgenitor             , hostNode                  , &
+         &                                                                                 orbitalPartner              , satelliteNode
+    integer                                    , parameter                              :: passAssign                =1, passMerge               =2
+    class           (nodeComponentBasic       ), pointer                                :: basicChild                  , basic
+    class           (nodeComponentSatellite   ), pointer                                :: satellite
+    class           (nodeComponentPosition    ), pointer                                :: position                    , positionChild
+    integer                                                                             :: iNode                       , pass_
+    integer         (c_size_t                 )                                         :: historyCount                , iIsolatedNode
     integer         (kind_int8                )                                         :: progenitorMassMaximumIndex
-    logical                                                                             :: branchMerges                      , branchTipReached          , &
-         &                                                                                 endOfBranch                       , isolatedProgenitorExists  , &
-         &                                                                                 nodeWillMerge
-    double precision                                                                    :: radiusApocenter                   , radiusPericenter          , &
-         &                                                                                 radiusVirial                      , timeSubhaloMerges         , &
-         &                                                                                 progenitorMassMaximum
-    type            (varying_string           )                                         :: message
+    logical                                                                             :: branchMerges                , branchTipReached          , &
+         &                                                                                 endOfBranch                 , isolatedProgenitorExists  , &
+         &                                                                                 nodeWillMerge               , nodeIsMostMassive
+    double precision                                                                    :: timeSubhaloMerges           , progenitorMassMaximum
     type            (progenitorIterator       )                                         :: progenitors
 
     ! Initialize.
@@ -2333,6 +2390,15 @@ contains
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Find the subset with descendants.
              if (associated(nodes(iNode)%descendant)) then
+                nodeIsMostMassive=.true.
+                ! Determine if this is the most massive progenitor.
+                if (self%alwaysPromoteMostMassive) then
+                   call progenitors%descendantSet(self,nodes(iNode)%descendant,nodes)
+                   do while (progenitors%next(nodes))
+                      progenitorNode => progenitors%current(nodes)
+                      if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) nodeIsMostMassive=.false.
+                   end do
+                end if
                 ! Flag indicating if this is a node for which a merging time should be set.
                 nodeWillMerge=.false.
                 ! Select the subset which have a subhalo descendant, or which are an initial subhalo.
@@ -2441,10 +2507,11 @@ contains
                 else if (pass_ == passAssign) then
                    ! If on the isolated node index assigning pass, skip to the next halo.
                    cycle
-                else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
-                   ! Descendant is not a subhalo but this node is not the primary progenitor. Assume the halo merges
-                   ! instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of the
-                   ! parent halo.)
+                else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor() .or. ( self%alwaysPromoteMostMassive .and. .not.nodeIsMostMassive )) then
+                   ! Descendant is not a subhalo but this node is not the primary progenitor. Or we are always promoting the most
+                   ! massive progenitor, even if it is a subhalo and there are isolated progenitors present. Assume the halo
+                   ! merges instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of
+                   ! the parent halo.)
                    basic             => nodeList(iIsolatedNode)%node%parent%basic()
                    timeSubhaloMerges =  basic                              %time ()
                    ! Flag that this node will merge.
@@ -2510,89 +2577,129 @@ contains
     if (self%presetOrbits) then
        iIsolatedNode=0
        do iNode=1,size(nodes)
-         if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeReachabilityUnreachable%ID) then
+          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeReachabilityUnreachable%ID) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
-             ! Set the orbit for this halo.
+             ! Find the most massive progenitor.
+             nodeIsMostMassive=.true.
+             if (self%alwaysPromoteMostMassive) then
+                if (self%alwaysPromoteMostMassive.and.associated(nodes(iNode)%descendant)) then
+                   call progenitors%descendantSet(self,nodes(iNode)%descendant,nodes)
+                   do while (progenitors%next(nodes))
+                      progenitorNode => progenitors%current(nodes)
+                      if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) nodeIsMostMassive=.false.
+                   end do
+                end if
+             end if
+             ! Set the orbit for this halo if required. For this to be required we must first have a parent node. Then, we must be
+             ! either not the primary progenitor, or there must be a more massive subhalo which will be promoted.
              satelliteNode => nodeList(iIsolatedNode)%node
-             if (associated(satelliteNode%parent).and..not.satelliteNode%isPrimaryProgenitor()) then
+             if (associated(satelliteNode%parent) .and. (.not.satelliteNode%isPrimaryProgenitor() .or. (self%alwaysPromoteMostMassive .and. .not.nodeIsMostMassive))) then
                 ! Find the orbital partner.
                 hostNode => satelliteNode%parent%firstChild
-                ! If the parent node has no progenitors, then we are forced to use the parent node
-                ! itself as the orbital partner.
+                ! If the parent node has no progenitors, then we are forced to use the parent node itself as the orbital partner.
                 if (associated(hostNode)) then
                    orbitalPartner => hostNode     %parent
                 else
                    hostNode       => satelliteNode%parent
                    orbitalPartner => hostNode
                 end if
-                ! Get components.
-                basicSatellite      => satelliteNode             %basic    (                 )
-                positionSatellite   => satelliteNode             %position (                 )
-                satelliteSatellite  => satelliteNode             %satellite(autoCreate=.true.)
-                positionHost        => hostNode                  %position (                 )
-                basicOrbitalPartner => orbitalPartner            %basic    (                 )
-                ! Get position and velocity.
-                satellitePosition            =  positionSatellite%position (                 )
-                satelliteVelocity            =  positionSatellite%velocity (                 )
-                hostPosition                 =       positionHost%position (                 )
-                hostVelocity                 =       positionHost%velocity (                 )
-                ! Find relative position and velocity.
-                relativePosition=satellitePosition-hostPosition
-                relativeVelocity=satelliteVelocity-hostVelocity
-                ! Update position/velocity for periodicity and Hubble flow.
-                call self%phaseSpacePositionRealize(basicSatellite%time(),relativePosition,relativeVelocity)
-                ! Catch zero separation halos.
-                if (Vector_Magnitude(relativePosition) == 0.0d0) then
-                   if (self%presetOrbitsSetAll) then
-                      ! The satellite and host have zero separation, so no orbit can be
-                      ! computed. Since all orbits must be set, choose an orbit at random.
-                      orbit=self%virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
-                      call satelliteSatellite%virialOrbitSet(orbit)
-                   else
-                      message='merging halos ['
-                      message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
-                      call Error_Report(message//{introspection:location})
-                   end if
-                else
-                   ! Create the orbit.
-                   orbit=readOrbitConstruct(basicSatellite%mass(),basicOrbitalPartner%mass(),relativePosition,relativeVelocity)
-                   ! Propagate to the virial radius.
-                   radiusPericenter=orbit               %radiusPericenter(              )
-                   radiusApocenter =orbit               %radiusApocenter (              )
-                   radiusVirial    =self%darkMatterHaloScale_%radiusVirial    (orbitalPartner)
-                   ! Check if the orbit intersects the virial radius.
-                   if     (                                                                      &
-                        &    radiusVirial >= radiusPericenter                                    &
-                        &  .and.                                                                 &
-                        &   (radiusVirial <= radiusApocenter          .or. .not.orbit%isBound()) &
-                        &  .and.                                                                 &
-                        &   (.not.self%presetOrbitsBoundOnly .or.      orbit%isBound()) &
-                        & ) then
-                      call orbit%propagate(radiusVirial,infalling=.true.)
-                      ! Set the orbit.
-                      call satelliteSatellite%virialOrbitSet(orbit)
-                      ! If the satellite component supports full phase-space position, set that
-                      ! also.
-                      if (satelliteSatellite%positionIsSettable()) call satelliteSatellite%positionSet(relativePosition)
-                      if (satelliteSatellite%velocityIsSettable()) call satelliteSatellite%velocitySet(relativeVelocity)
-                   else if (self%presetOrbitsSetAll) then
-                      ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                      orbit=self%virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
-                      call satelliteSatellite%virialOrbitSet(orbit)
-                   else if (self%presetOrbitsAssertAllSet) then
-                      message='virial orbit could not be set for node '
-                      message=message//satelliteNode%index()//char(10)
-                      message=message//' -> set [presetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
-                      message=message//'    (this may lead to other problems)'
-                      call Error_Report(message//{introspection:location})
-                   end if
-                end if
+                call self%setOrbit(satelliteNode,hostNode,orbitalPartner)
              end if
           end if
        end do
     end if
     return
   end subroutine readScanForMergers
+
+  subroutine readSetOrbit(self,satelliteNode,hostNode,orbitalPartner)
+    !!{
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit
+    use :: Vectors         , only : Vector_Magnitude
+    use :: String_Handling , only : operator(//)
+    implicit none
+    class           (mergerTreeConstructorRead), intent(inout)           :: self
+    type            (treeNode                 ), intent(inout)           :: satelliteNode              , hostNode           , &
+         &                                                                  orbitalPartner
+    class           (nodeComponentBasic       ), pointer                 :: basicOrbitalPartner        , basicSatellite
+    class           (nodeComponentPosition    ), pointer                 :: positionSatellite          , positionHost
+    class           (nodeComponentSatellite   ), pointer                 :: satelliteSatellite
+    type            (keplerOrbit              )                          :: orbit
+    logical                                    , parameter               :: acceptUnboundOrbits=.false.
+    double precision                                      , dimension(3) :: hostPosition               , relativePosition   , &
+         &                                                                  satellitePosition
+    double precision                                      , dimension(3) :: hostVelocity               , relativeVelocity   , &
+         &                                                                  satelliteVelocity
+    double precision                                                     :: radiusApocenter            , radiusPericenter   , &
+         &                                                                  radiusVirial
+    type            (varying_string           )                          :: message
+
+    ! Get components.
+    basicSatellite      => satelliteNode    %basic    (                 )
+    positionSatellite   => satelliteNode    %position (                 )
+    satelliteSatellite  => satelliteNode    %satellite(autoCreate=.true.)
+    positionHost        => hostNode         %position (                 )
+    basicOrbitalPartner => orbitalPartner   %basic    (                 )
+    ! Get position and velocity.
+    satellitePosition   =  positionSatellite%position (                 )
+    satelliteVelocity   =  positionSatellite%velocity (                 )
+    hostPosition        =       positionHost%position (                 )
+    hostVelocity        =       positionHost%velocity (                 )
+    ! Find relative position and velocity.
+    relativePosition=satellitePosition-hostPosition
+    relativeVelocity=satelliteVelocity-hostVelocity
+    ! Update position/velocity for periodicity and Hubble flow.
+    call self%phaseSpacePositionRealize(basicSatellite%time(),relativePosition,relativeVelocity)
+    ! Catch zero separation halos.
+    if (Vector_Magnitude(relativePosition) == 0.0d0) then
+       if (self%presetOrbitsSetAll) then
+          ! The satellite and host have zero separation, so no orbit can be
+          ! computed. Since all orbits must be set, choose an orbit at random.
+          orbit=self%virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
+          call satelliteSatellite%virialOrbitSet(orbit)
+       else
+          message='merging halos ['
+          message=message//satelliteNode%index()//' and '//hostNode%index()//'] have zero separation'
+          call Error_Report(message//{introspection:location})
+       end if
+    else
+       ! Create the orbit.
+       orbit=readOrbitConstruct(basicSatellite%mass(),basicOrbitalPartner%mass(),relativePosition,relativeVelocity)
+       ! Propagate to the virial radius.
+       radiusPericenter=orbit                    %radiusPericenter(              )
+       radiusApocenter =orbit                    %radiusApocenter (              )
+       radiusVirial    =self%darkMatterHaloScale_%radiusVirial    (orbitalPartner)
+       ! Check if the orbit intersects the virial radius.
+       if     (                                                              &
+            &    radiusVirial >= radiusPericenter                            &
+            &  .and.                                                         &
+            &   (radiusVirial <= radiusApocenter  .or. .not.orbit%isBound()) &
+            &  .and.                                                         &
+            &   (.not.self%presetOrbitsBoundOnly  .or.      orbit%isBound()) &
+            & ) then
+          call orbit%propagate(radiusVirial,infalling=.true.)
+          ! Set the orbit.
+          call satelliteSatellite%virialOrbitSet(orbit)
+          ! If the satellite component supports full phase-space position, set that
+          ! also.
+          if (satelliteSatellite%positionIsSettable()) call satelliteSatellite%positionSet(relativePosition)
+          if (satelliteSatellite%velocityIsSettable()) call satelliteSatellite%velocitySet(relativeVelocity)
+       else if (self%presetOrbitsSetAll) then
+          ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
+          orbit=self%virialOrbit_%orbit(satelliteNode,hostNode,acceptUnboundOrbits)
+          call satelliteSatellite%virialOrbitSet(orbit)
+       else if (self%presetOrbitsAssertAllSet) then
+          message='virial orbit could not be set for node '
+          message=message//satelliteNode%index()//char(10)
+          message=message//' -> set [presetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
+          message=message//'    (this may lead to other problems)'
+          call Error_Report(message//{introspection:location})
+       end if
+        end if
+    return
+  end subroutine readSetOrbit
 
   logical function massIsGreater(node1,node2)
     !!{
@@ -2612,7 +2719,7 @@ contains
          &         )
     return
   end function massIsGreater
-  
+
   subroutine readAssignMergers(self,nodes,nodeList)
     !!{
     Assign pointers to merge targets.
@@ -3044,8 +3151,8 @@ contains
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (nodeData          ), dimension(:), intent(inout) :: nodes
-    type   (treeNode          ), pointer                     :: nodeNew          , nodeSatellite
-    class  (nodeComponentBasic), pointer                     :: newBasicComponent
+    type   (treeNode          ), pointer                     :: nodeNew , nodeSatellite
+    class  (nodeComponentBasic), pointer                     :: basicNew
     integer                                                  :: iNode
 
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
@@ -3062,14 +3169,14 @@ contains
                 ! quantities which use the node index as a label in dataset names for example).
                 allocate(nodeNew)
                 call nodes(iNode)%node%parent%copyNodeTo(nodeNew)
-                nodeNew%sibling                         => nodes(iNode)%node
-                nodeNew%parent                          => nodes(iNode)%node%parent
-                nodeNew%firstChild                      => null()
-                nodeNew%mergeTarget                     => null()
-                nodeNew%siblingMergee                   => null()
-                nodes(iNode)%node%parent%firstChild     => nodeNew
-                newBasicComponent                       => nodeNew%basic()
-                call newBasicComponent%timeSet(newBasicComponent%time()*(1.0d0-1.0d-6))
+                nodeNew%sibling                     => nodes(iNode)%node
+                nodeNew%parent                      => nodes(iNode)%node%parent
+                nodeNew%firstChild                  => null()
+                nodeNew%mergeTarget                 => null()
+                nodeNew%siblingMergee               => null()
+                nodes(iNode)%node%parent%firstChild => nodeNew
+                basicNew                            => nodeNew%basic()
+                call basicNew%timeSet(basicNew%time()*(1.0d0-1.0d-6))
                 ! Events remain attached to the original and we do not want to duplicate them.
                 nodeNew%event => null()
                 ! Any satellites are now attached to the copy.
@@ -4151,16 +4258,16 @@ contains
           ! Assign virial orbit if necessary.
           if (self%presetOrbits) then
              ! Propagate orbit to the virial radius.
-             radiusPericenter     =  orbit               %radiusPericenter   (        )
-             radiusApocenter      =  orbit               %radiusApocenter    (        )
-             radiusVirial         =  self%darkMatterHaloScale_%radiusVirial       (nodeHost)
+             radiusPericenter     =  orbit               %radiusPericenter (        )
+             radiusApocenter      =  orbit               %radiusApocenter  (        )
+             radiusVirial         =  self%darkMatterHaloScale_%radiusVirial(nodeHost)
              ! Check if the orbit intersects the virial radius.
-             if     (                                                                      &
-                  &    radiusVirial >= radiusPericenter                                    &
-                  &  .and.                                                                 &
-                  &   (radiusVirial <= radiusApocenter          .or. .not.orbit%isBound()) &
-                  &  .and.                                                                 &
-                  &   (.not.self%presetOrbitsBoundOnly .or.      orbit%isBound()) &
+             if     (                                                              &
+                  &    radiusVirial >= radiusPericenter                            &
+                  &  .and.                                                         &
+                  &   (radiusVirial <= radiusApocenter  .or. .not.orbit%isBound()) &
+                  &  .and.                                                         &
+                  &   (.not.self%presetOrbitsBoundOnly  .or.      orbit%isBound()) &
                   & ) then
                 call orbit%propagate(radiusVirial,infalling=.true.)
                 ! Set the orbit.

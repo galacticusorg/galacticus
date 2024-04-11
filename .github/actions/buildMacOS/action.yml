@@ -1,0 +1,210 @@
+name: Build Galacticus build environment on MacOS
+
+runs:
+  using: 'composite'
+  steps:
+    - name: "Set environmental variables"
+      shell: bash
+      run: |
+        echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+        echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
+        echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
+        echo "GALACTICUS_EXEC_PATH=`pwd`" >> $GITHUB_ENV
+        echo "FCCOMPILER=gfortran-11" >> $GITHUB_ENV
+        echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
+        echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
+        echo "BUILDPATH=./work/build" >> $GITHUB_ENV
+        echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
+        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
+        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp" >> $GITHUB_ENV
+        os_ver=$(sw_vers -productVersion)
+        IFS='.' read -r -a ver <<< "$os_ver"
+        echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
+    - name: Fix broken Apple include file
+      shell: bash
+      run: |
+        # This removes syntax not supported by the GCC compiler prior to version 13.3.
+        # It should be possible to remove this once a later version of GCC is used.
+        # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
+        if [[ "${OS_VER}" -eq 14 ]]; then
+           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/usr/include/sys/cdefs.h
+        fi
+    - name: Install MacPorts
+      shell: bash
+      run: |
+        if [[ "${OS_VER}" -eq 11 ]]; then
+           macportsversion=2.7.1
+           macportsbase=2.7.1-11-BigSur
+        elif [[ "${OS_VER}" -eq 12 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-12-Monterey
+        elif [[ "${OS_VER}" -eq 13 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-13-Ventura
+        elif [[ "${OS_VER}" -eq 14 ]]; then
+           macportsversion=2.9.1
+           macportsbase=2.9.1-14-Sonoma
+        else
+           echo Unknown MacOS version: ${os_ver}
+           exit 1
+        fi
+        curl -L https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
+        sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
+        rm ./MacPorts-${macportsbase}.pkg
+    - name: Install guile
+      shell: bash
+      run: sudo port install guile18
+    - name: Install libmatheval
+      shell: bash
+      run: |
+        curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.12.tar.gz --output libmatheval-1.1.12.tar.gz
+        tar xvfz libmatheval-1.1.12.tar.gz
+        cd libmatheval-1.1.12
+        # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+        sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
+        sed -E -i~ s/"-lguile"/"-lguile18"/ configure
+        sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
+        # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
+        CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+        make -j3
+        sudo make install
+        cd ..
+        rm -rf libmatheval-1.1.12.tar.gz libmatheval-1.1.12
+    - name: Install qhull
+      shell: bash
+      run: |
+        curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
+        tar xvfz qhull-2020-src-8.0.2.tgz
+        cd qhull-2020.2
+        make -j3 CC=gcc-11 CXX=g++-11
+        sudo make install
+        cd ..
+        rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
+    - name: Install GSL
+      shell: bash
+      run: |
+        curl -L ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
+        tar xvfz gsl-2.6.tar.gz
+        cd gsl-2.6
+        CC=gcc-11 ./configure --prefix=/usr/local
+        make -j3
+        sudo make install
+        cd ..
+        rm -rf gsl-2.6 gsl-2.6.tar.gz
+    - name: Install HDF5
+      shell: bash
+      run: |
+        curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
+        tar -vxzf hdf5-1.8.20.tar.gz 
+        cd hdf5-1.8.20 
+        CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+        make -j3
+        sudo make install
+        cd ..
+        rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz
+    - name: Install FoX
+      shell: bash
+      run: |
+        curl -L https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
+        tar xvfz FoX-4.1.0.tar.gz
+        cd fox-4.1.0
+        FC=gfortran-11 ./configure --prefix=/usr/local
+        make -j3
+        sudo make install
+        cd ..
+        rm -rf fox-4.1.0 FoX-4.1.0.tar.gz
+    - name: Install FFTW3
+      shell: bash
+      run: |
+        curl -L ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
+        tar xvfz fftw-3.3.4.tar.gz
+        cd fftw-3.3.4
+        F77=gfortran-11 CC=gcc-11 ./configure --prefix=/usr/local
+        make -j4
+        sudo make install
+        cd ..
+        rm -rf fftw-3.3.4 fftw-3.3.4.tar.gz
+    - name: Install ANN
+      shell: bash
+      run: |
+        curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
+        tar xvfz ann_1.1.2.tar.gz
+        cd ann_1.1.2
+        sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
+        make macosx-g++
+        sudo cp bin/* /usr/local/bin/.
+        sudo cp lib/* /usr/local/lib/.
+        sudo cp -R include/* /usr/local/include/.
+    - name: Install IO::Socket::SSL
+      shell: bash
+      run: |
+        if [[ "${OS_VER}" -ge 14 ]]; then
+           # For OS version 14 and above install OpenSSL and specify the exact version to use.
+           sudo port install openssl11
+           export OPENSSL_PREFIX=/opt/local/libexec/openssl11
+        fi
+        curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
+        tar xvfz Net-SSLeay-1.90.tar.gz
+        cd Net-SSLeay-1.90
+        perl Makefile.PL
+        make -j3
+        sudo make install
+        cd ..
+        curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-1.966.tar.gz --output IO-Socket-SSL-1.966.tar.gz
+        tar xvfz IO-Socket-SSL-1.966.tar.gz
+        cd IO-Socket-SSL-1.966
+        perl Makefile.PL
+        make -j3
+        sudo make install
+        cd ..
+        curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
+        tar xvfz Sys-CPU-0.52.tar.gz
+        cd Sys-CPU-0.52
+        perl Makefile.PL
+        make -j3
+        sudo make install
+        cd ..
+    - name: Install CPAN
+      shell: bash
+      run: |
+        sudo perl -MCPAN -e shell
+        sudo perl -MCPAN -e 'install Bundle::CPAN'
+    - name: Install Perl modules
+      shell: bash
+      run: |
+        export CFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
+        sudo perl -MCPAN -e 'force("install","NestedMap")'
+        sudo perl -MCPAN -e 'force("install","Scalar::Util")'
+        sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
+        sudo perl -MCPAN -e 'force("install","Text::Table")'
+        sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
+        sudo perl -MCPAN -e 'force("install","Path::Tiny")'
+        sudo perl -MCPAN -e 'force("install","PkgConfig")'
+        sudo perl -MCPAN -e 'force("install","Alien::Base::Wrapper")'
+        sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
+        sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX")'
+        sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX::Parser")'
+        if [[ "${OS_VER}" -ge 12 ]]; then
+           # For OS versions 12 and above we need to ensure that the ParserDetails.ini is set up.
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()" 
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" 
+        fi
+        sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
+        sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
+        sudo perl -MCPAN -e 'force("install","Text::Template")'
+        sudo perl -MCPAN -e 'force("install","List::Uniq")'
+        sudo perl -MCPAN -e 'force("install","IO::Util")'
+        sudo perl -MCPAN -e 'force("install","Class::Util")'
+        sudo perl -MCPAN -e 'force("install","CGI::Builder")'
+        sudo perl -MCPAN -e 'force("install","Simple")'
+        sudo perl -MCPAN -e 'force("install","Readonly")'
+        sudo perl -MCPAN -e 'force("install","File::Slurp")'
+        sudo perl -MCPAN -e 'force("install","XML::Simple")'
+        sudo perl -MCPAN -e 'force("install","List::MoreUtils")'
+        sudo perl -MCPAN -e 'force("install","Clone")'
+        sudo perl -MCPAN -e 'force("install","IO::Scalar")'
+        sudo perl -MCPAN -e 'force("install","Regexp::Common")'
+        sudo perl -MCPAN -e 'force("install","LaTeX::Encode")'
+        sudo perl -MCPAN -e 'force("install","Sub::Identify")'

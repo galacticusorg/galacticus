@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -183,6 +183,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      darkMatterParticle_                =darkMatterParticleCDM_                     , &
           &                                                                                                                      intergalacticMediumFilteringMass_  =intergalacticMediumFilteringMassGnedin2000_, &
           &                                                                                                                      tableStore                         =.false.                                    , &
+          &                                                                                                                      energyFixedAt                      =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      normalization                      =1.0d0                                        &
           &                                                                                                                     )
      virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_ =virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                  &

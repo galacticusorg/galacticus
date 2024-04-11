@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,31 +128,27 @@ contains
     !!{
     Run CAMB as necessary to compute transfer functions.
     !!}
-    use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor, &
-         &                                                        File_Name_Temporary
-    use               :: Error                           , only : Error_Report
-    use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
-    use               :: HDF5                            , only : hsize_t
-    use               :: Hashes_Cryptographic            , only : Hash_MD5
-    use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
-    use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
-          &                                                       operator(//)                , operator(==)       , varying_string
-    use               :: Input_Parameters                , only : inputParameters
-#ifdef USEMPI
-    use               :: MPI_Utilities                   , only : mpiSelf
-#endif
-    use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
-    use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
-    !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num          , OMP_In_Parallel
-    use               :: Sorting                         , only : sortIndex
-    use               :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
-    use               :: System_Command                  , only : System_Command_Do
-    use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
-    use               :: Tables                          , only : table                       , table1DGeneric
+    use            :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
+    use            :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
+         &                                                     File_Path                   , File_Remove        , File_Unlock   , lockDescriptor, &
+         &                                                     File_Name_Temporary
+    use            :: Error                           , only : Error_Report
+    use            :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
+    use            :: HDF5                            , only : hsize_t
+    use            :: Hashes_Cryptographic            , only : Hash_MD5
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
+          &                                                    operator(//)                , operator(==)       , varying_string
+    use            :: Input_Parameters                , only : inputParameters
+    use            :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use            :: Numerical_Interpolation         , only : GSL_Interp_cSpline
+    use            :: Sorting                         , only : sortIndex
+    use            :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
+    use            :: System_Command                  , only : System_Command_Do
+    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
+    use            :: Tables                          , only : table                       , table1DGeneric
     implicit none
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
@@ -171,10 +167,7 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     character       (len=255                 )                                  :: hostName                                , cambTransferLine
     type            (varying_string          )                                  :: cambPath                                , cambVersion             , &
-         &                                                                         parameterFile
-#ifdef USEMPI
-    type            (varying_string          )                                  :: mpiRankLabel
-#endif
+         &                                                                         parameterFile                           , outputRoot
     double precision                                                            :: wavenumberCAMB
     integer                                                                     :: status                                  , cambParameterFile       , &
          &                                                                         i                                       , cambTransferFile        , &
@@ -184,8 +177,7 @@ contains
          &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
          &                                                                         speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
-         &                                                                         redshiftLabel                           , indexLabel              , &
-         &                                                                         fileSuffix
+         &                                                                         redshiftLabel                           , indexLabel
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                , &
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
@@ -311,25 +303,11 @@ contains
        ! Construct input file for CAMB.
        call Get_Environment_Variable('HOSTNAME',hostName)
        workPath     =inputPath(pathTypeDataDynamic)//'largeScaleStructure/'
-       parameterFile=File_Name_Temporary('transfer_function_parameters',char(workPath))
-       parameterFile=parameterFile//'.txt'
-#ifdef USEMPI
-       mpiRankLabel=mpiSelf%rankLabel()
-       !$ if (OMP_In_Parallel()) then
-       !$ write (fileSuffix,'(a1,i8.8,a1,i4.4,a1,a)') '.',GetPID(),".",OMP_Get_Thread_Num(),".",char(mpiRankLabel)
-       !$ else
-       write    (fileSuffix,'(a1,i8.8,        a1,a)') '.',GetPID()                         ,".",char(mpiRankLabel)
-       !$ end if
-#else
-       !$ if (OMP_In_Parallel()) then
-       !$ write (fileSuffix,'(a1,i8.8,a1,i4.4     )') '.',GetPID(),".",OMP_Get_Thread_Num()
-       !$ else
-       write    (fileSuffix,'(a1,i8.8             )') '.',GetPID()
-       !$ end if
-#endif
+       parameterFile=File_Name_Temporary('transfer_function_parameters',char(workPath))//'.txt'
+       outputRoot   =File_Name_Temporary('camb'                        ,char(workPath))
        call Directory_Make(workPath)
        open(newunit=cambParameterFile,file=char(parameterFile),status='unknown',form='formatted')
-       write (cambParameterFile,'(a,1x,"=",1x,a    )') 'output_root                  ','camb'
+       write (cambParameterFile,'(a,1x,"=",1x,a    )') 'output_root                  ',char(outputRoot)
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'get_scalar_cls               ','F'
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'get_vector_cls               ','F'
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'get_tensor_cls               ','F'
@@ -385,8 +363,8 @@ contains
        do i=countRedshiftsUnique,1,-1
           write (indexLabel,'(i4)') countRedshiftsUnique+1-i
           write (cambParameterFile,'(a,a,a,1x,"=",1x,a      )') 'transfer_redshift('   ,trim(adjustl(indexLabel)),')'               ,trim(adjustl(redshiftLabelsCombined(i)))
-          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a,a)') 'transfer_filename('   ,trim(adjustl(indexLabel)),')','transfer_'   ,trim(adjustl(redshiftLabelsCombined(i))),trim(adjustl(fileSuffix)),'.dat'
-          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a,a)') 'transfer_matterpower(',trim(adjustl(indexLabel)),')','matterpower_',trim(adjustl(redshiftLabelsCombined(i))),trim(adjustl(fileSuffix)),'.dat'
+          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a,a)') 'transfer_filename('   ,trim(adjustl(indexLabel)),')','transfer_'   ,trim(adjustl(redshiftLabelsCombined(i))),'.dat'
+          write (cambParameterFile,'(a,a,a,1x,"=",1x,a,a,a,a)') 'transfer_matterpower(',trim(adjustl(indexLabel)),')','matterpower_',trim(adjustl(redshiftLabelsCombined(i))),'.dat'
        end do
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'scalar_output_file           ','scalCls.dat'
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'vector_output_file           ','vecCls.dat'
@@ -434,7 +412,7 @@ contains
        allocate(wavenumbers      (0    ))
        allocate(transferFunctions(0,0,0))
        do j=1,countRedshiftsUnique
-          transferFileName='camb_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//trim(adjustl(fileSuffix))//'.dat'
+          transferFileName=outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
           if (j == 1) then
              countWavenumber=Count_Lines_In_File(transferFileName,"#")
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
@@ -458,11 +436,11 @@ contains
           close(cambTransferFile)
        end do
        ! Remove temporary files.
-       call File_Remove(parameterFile    )
-       call File_Remove('camb_params.ini')
+       call File_Remove(parameterFile            )
+       call File_Remove(outputRoot//'_params.ini')
        do i=1,countRedshiftsUnique
-          call File_Remove('camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//trim(adjustl(fileSuffix))//'.dat')
-          call File_Remove('camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//trim(adjustl(fileSuffix))//'.dat')
+          call File_Remove(outputRoot//'_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
+          call File_Remove(outputRoot//'_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat')
        end do
        ! Convert from CAMB units to Galacticus units.
        wavenumbers=+wavenumbers                                                   &

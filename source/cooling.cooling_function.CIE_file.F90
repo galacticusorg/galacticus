@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -141,6 +141,7 @@
     energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by
     {\normalfont \ttfamily energyContinuum}.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionCIEFile
@@ -244,11 +245,11 @@ contains
     !!{
     Return the cooling function by interpolating in tabulated CIE data read from a file.
     !!}
-    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
-    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
@@ -268,7 +269,7 @@ contains
        case (extrapolationTypeZero%ID)
           cieFileCoolingFunction=0.0d0
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -277,7 +278,7 @@ contains
        case (extrapolationTypeZero%ID)
           cieFileCoolingFunction=0.0d0
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -325,12 +326,12 @@ contains
     !!{
     Return the fraction of the cooling function due to emission in the given energy band by interpolating in tabulated CIE data read from a file.
     !!}
-    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use            :: Error                        , only : Error_Report
     use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
-    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout)  :: self 
     type            (treeNode              ), intent(inout)  :: node
@@ -357,7 +358,7 @@ contains
        select case (self%extrapolateTemperatureLow%ID)
        case (extrapolationTypeZero%ID)
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -365,7 +366,7 @@ contains
        select case (self%extrapolateTemperatureHigh%ID)
        case (extrapolationTypeZero%ID)
           return
-       case (extrapolationTypeFix%ID,extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeFix%ID,extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -417,11 +418,11 @@ contains
     Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
     read from a file.
     !!}
-    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances               , metallicityTypeLinearByMassSolar
+    use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
     use, intrinsic :: ISO_C_Binding                , only : c_size_t
     use            :: Radiation_Fields             , only : radiationFieldClass
-    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypePowerLaw, extrapolationTypeZero
+    use            :: Table_Labels                 , only : extrapolationTypeFix      , extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
@@ -444,7 +445,7 @@ contains
        case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileCoolingFunctionTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMinimum
        end select
     end if
@@ -453,7 +454,7 @@ contains
        case (extrapolationTypeZero%ID,extrapolationTypeFix%ID)
           cieFileCoolingFunctionTemperatureLogSlope=0.0d0
           return
-       case (extrapolationTypePowerLaw%ID)
+       case (extrapolationTypeExtrapolate%ID)
           temperatureUse=self%temperatureMaximum
        end select
     end if
@@ -548,7 +549,7 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : varying_string
-    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
+    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     type            (varying_string        ), intent(in   ) :: fileName
@@ -591,33 +592,33 @@ contains
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
     call temperatureDataset%close()
     ! Validate extrapolation methods.
-    if     (                                                              &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityLow  /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateMetallicityHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureLow  /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    if     (                                                              &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
-         &  .and.                                                         &
-         &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
+    if     (                                                                 &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeFix         &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeZero        &
+         &  .and.                                                            &
+         &   self%extrapolateTemperatureHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Read optional datasets.
     if (coolingFunctionFile%hasDataset('energyContinuum')) then
@@ -646,19 +647,19 @@ contains
        self%temperatures        =log(self%temperatures        )
        self%coolingFunctionTable=log(self%coolingFunctionTable)
     else
-       if     (                                                             &
-            &  self%extrapolateTemperatureLow  == extrapolationTypePowerLaw &
-            &  .or.                                                         &
-            &  self%extrapolateTemperatureHigh == extrapolationTypePowerLaw &
-            & )                                                             &
-            & call Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
+       if     (                                                                &
+            &  self%extrapolateTemperatureLow  == extrapolationTypeExtrapolate &
+            &  .or.                                                            &
+            &  self%extrapolateTemperatureHigh == extrapolationTypeExtrapolate &
+            & )                                                                &
+            & call Error_Report('extrapolation allowed only in loggable tables'//{introspection:location})
     end if
-    if     (                                                             &
-         &  self%extrapolateMetallicityLow  == extrapolationTypePowerLaw &
-         &   .or.                                                        &
-         &  self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
-         & )                                                             &
-         & call Error_Report('power law extrapolation not allowed in metallicity'//{introspection:location})
+    if     (                                                                &
+         &  self%extrapolateMetallicityLow  == extrapolationTypeExtrapolate &
+         &   .or.                                                           &
+         &  self%extrapolateMetallicityHigh == extrapolationTypeExtrapolate &
+         & )                                                                &
+         & call Error_Report('extrapolation not allowed in metallicity'//{introspection:location})
     ! Build interpolators.
     self       %interpolatorMetallicity=interpolator(self%metallicities  )
     self       %interpolatorTemperature=interpolator(self%temperatures   )

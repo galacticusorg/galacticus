@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -278,7 +278,7 @@ contains
                      &  .or.                             &
                      &   status /= errorStatusOutOfRange &
                      & ) then                   
-                   message="save state due to falure of hotHaloRamPressureStrippingFont2008 radius solver"
+                   message="save state due to failure of hotHaloRamPressureStrippingFont2008 radius solver"
                    call State_Set_           (var_str('debugState'))
                    call State_Store_         (message)
                    call mergerTreeStateStore_(node_%hostTree,'storedTree.dat')

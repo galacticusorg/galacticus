@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -137,7 +137,8 @@
   If an optional \refClass{transferFunctionClass} object named {\normalfont \ttfamily transferFunctionReference} is supplied then
   that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to
   {\normalfont \ttfamily transferFunctionReference} are also computed.
-  </description>
+   </description>
+   <runTimeFileDependencies paths="fileName"/>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionFile
@@ -151,7 +152,8 @@
      type            (varying_string                     )                            :: fileName
      type            (table1DGeneric                     )                            :: transfer
      logical                                                                          :: massHalfModeAvailable                        , massQuarterModeAvailable, &
-          &                                                                              transferFunctionReferenceAvailable           , extrapolateSmooth
+          &                                                                              transferFunctionReferenceAvailable           , extrapolateSmooth       , &
+          &                                                                              acceptNegativeValues
      double precision                                                                 :: time                                         , redshift                , &
           &                                                                              massHalfMode                                 , massQuarterMode         , &
           &                                                                              factorWavenumberSmoothExtrapolation          , slopeSmooth             , &
@@ -201,6 +203,7 @@ contains
     class           (transferFunctionClass   ), pointer       :: transferFunctionReference
     type            (varying_string          )                :: fileName                 , transferFunctionType
     double precision                                          :: redshift                 , factorWavenumberSmoothExtrapolation
+    logical                                                   :: acceptNegativeValues
 
     !![
     <inputParameter>
@@ -226,6 +229,12 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=${\normalfont \ttfamily [factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
     </inputParameter>
+    <inputParameter>
+      <name>acceptNegativeValues</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, negative values in the transfer function are allowed (and the absolute value is taken prior to interpolation). Otherwise, negative values result in an error.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
@@ -238,7 +247,7 @@ contains
     end if
     !![
     <conditionalCall>
-      <call>self=transferFunctionFile(char(fileName),enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
+      <call>self=transferFunctionFile(char(fileName),enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,acceptNegativeValues,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
       <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -253,7 +262,7 @@ contains
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,transferFunctionType,redshift,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
+  function fileConstructorInternal(fileName,transferFunctionType,redshift,acceptNegativeValues,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
     !!{
     Internal constructor for the file transfer function class.
     !!}
@@ -262,12 +271,13 @@ contains
     character       (len=*                              ), intent(in   )                   :: fileName
     type            (enumerationTransferFunctionTypeType), intent(in   )                   :: transferFunctionType
     double precision                                     , intent(in   )                   :: redshift                 , factorWavenumberSmoothExtrapolation
+    logical                                              , intent(in   )                   :: acceptNegativeValues
     class           (cosmologyParametersClass           ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), intent(in   ), target           :: cosmologyFunctions_
     class           (transferFunctionClass              ), intent(in   ), target, optional :: transferFunctionReference
     integer                                                                                :: status
     !![
-    <constructorAssign variables="fileName, transferFunctionType, redshift, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
+    <constructorAssign variables="fileName, transferFunctionType, redshift, acceptNegativeValues, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
@@ -290,7 +300,8 @@ contains
     Internal constructor for the file transfer function class.
     !!}    
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayMessage           , displayMagenta, displayReset
+    use :: Display                , only : displayMessage                  , displayMagenta                    , displayReset, displayGreen, &
+         &                                 displayYellow                   , displayBlue
     use :: File_Utilities         , only : File_Name_Expand
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
@@ -376,6 +387,35 @@ contains
     ! Close the file.
     call fileObject%close()
     !$ call hdf5Access%unset()
+    ! Validate the transfer functions.
+    if (any(transferDarkMatter == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+    if (any(transferDarkMatter <  0.0d0)) then
+       if (self%acceptNegativeValues) then
+          transferDarkMatter=abs(transferDarkMatter)
+       else
+          call Error_Report(                                                                                                                                                                  &
+          &                 'tabulated dark matter transfer function contains points at which T(k) < 0 - all points must be positive'                               //char(10)             // &
+          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+          &                 {introspection:location}                                                                                                                                          &
+          &                 )
+       end if
+    end if
+    if (any(transferBaryons  == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+    if (any(transferBaryons  <  0.0d0)) then
+       if (self%acceptNegativeValues) then
+          transferBaryons =abs(transferBaryons )
+       else
+          call Error_Report(                                                                                                                                                                  &
+          &                 'tabulated baryon transfer function contains points at which T(k) < 0 - all points must be positive'                                    //char(10)             // &
+          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+          &                 {introspection:location}                                                                                                                                          &
+          &                 )
+       end if
+    end if
     ! Construct the final transfer function.
     select case (self%transferFunctionType%ID)
     case (transferFunctionTypeDarkMatter%ID)
@@ -389,7 +429,7 @@ contains
     end select
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
-   wavenumberLogarithmic=log(wavenumber)
+    wavenumberLogarithmic=log(wavenumber)
     transferLogarithmic  =log(transfer  )
     ! If smooth extrapolation to high wavenumbers is required, find the wavenumbers over which to average the slope.
     self%extrapolateSmooth=extrapolateWavenumberHigh == extrapolationTypeExtrapolate .and. self%factorWavenumberSmoothExtrapolation > 0.0d0
@@ -462,17 +502,35 @@ contains
     !!{
     Return the transfer function at the given wavenumber.
     !!}
+    use :: Error             , only : errorStatusOutOfRange               , errorStatusSuccess, Error_Report
+    use :: Table_Labels      , only : enumerationExtrapolationTypeDescribe
+    use :: ISO_Varying_String, only : var_str
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
+    integer                                               :: status
     double precision                                      :: wavenumberLogarithmic
-
+    
     wavenumberLogarithmic=log(wavenumber)
     if (self%extrapolateSmooth .and. wavenumberLogarithmic > self%wavenumberLogarithmicSmooth) then
        fileValue=exp(self%transferLogarithmicSmooth+self%slopeSmooth*(wavenumberLogarithmic-self%wavenumberLogarithmicSmooth))
+       status   =errorStatusSuccess
     else
-       fileValue=exp(self%transfer%interpolate(wavenumberLogarithmic))
+       fileValue=exp(self%transfer%interpolate(wavenumberLogarithmic,status=status))
     end if
+    select case (status)
+    case (errorStatusSuccess)
+       ! Success - nothing to do.
+    case (errorStatusOutOfRange)
+       call Error_Report(                                                                                                                                                                   &
+            &            var_str('wavenumber is outside tabulated range:')                                                                                                     //char(10)// &
+            &            'an extrapolation option "abort" was chosen - either extend the range of your tabulated transfer function or choose a different interpolation method:'          // &
+            &            enumerationExtrapolationTypeDescribe()                                                                                                                          // &
+            &            {introspection:location}                                                                                                                                           &
+            &            )
+    case default
+       call Error_Report('transfer function interpolation failed for unknown reason'//{introspection:location})
+    end select
     if (self%transferFunctionReferenceAvailable)                           &
          & fileValue=+                               fileValue             &
          &           *self%transferFunctionReference%    value(wavenumber)
@@ -483,17 +541,35 @@ contains
     !!{
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
+    use :: Error             , only : errorStatusOutOfRange               , errorStatusSuccess, Error_Report
+    use :: Table_Labels      , only : enumerationExtrapolationTypeDescribe
+    use :: ISO_Varying_String, only : var_str
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
     double precision                                      :: wavenumberLogarithmic
+    integer                                               :: status
 
     wavenumberLogarithmic=log(wavenumber)
     if (self%extrapolateSmooth .and. wavenumberLogarithmic > self%wavenumberLogarithmicSmooth) then
        fileLogarithmicDerivative=+self%slopeSmooth
+       status                   =errorStatusSuccess
     else
-       fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+       fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber),status=status)
     end if
+    select case (status)
+    case (errorStatusSuccess)
+       ! Success - nothing to do.
+    case (errorStatusOutOfRange)
+       call Error_Report(                                                                                                                                                                   &
+            &            var_str('wavenumber is outside tabulated range:')                                                                                                     //char(10)// &
+            &            'an extrapolation option "abort" was chosen - either extend the range of your tabulated transfer function or choose a different interpolation method:'          // &
+            &            enumerationExtrapolationTypeDescribe()                                                                                                                          // &
+            &            {introspection:location}                                                                                                                                           &
+            &            )
+    case default
+       call Error_Report('transfer function interpolation failed for unknown reason'//{introspection:location})
+    end select
     if (self%transferFunctionReferenceAvailable) &
          & fileLogarithmicDerivative=+                               fileLogarithmicDerivative             &
          &                           +self%transferFunctionReference%    logarithmicDerivative(wavenumber)

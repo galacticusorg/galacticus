@@ -1,0 +1,90 @@
+name: Test Code (Reuseable Workflow)
+on:
+  workflow_call:
+    inputs:
+      runner: # The name of the runner on which to run the test
+        required: false
+        default: ubuntu-latest
+        type: string
+      artifact: # The name of the artifact to download to retrieve the executable
+        required: true
+        type: string
+      executable: # The name of the test executable to be run and tested
+        required: true
+        type: string
+      expectFail: # Set to zero if FAIL is not expected, 1 if FAIL is expected
+        required: false
+        default: 0
+        type: number
+      expectCrash: # Set to zero if code crash is not expected, 1 if code crash is expected
+        required: false
+        default: 0
+        type: number
+      mpi: # Set to 0/1 to indicate if the executable should be run without/with MPI
+        required: false
+        default: 0
+        type: string
+      requirePython: # Set to 0/1 to indicate if Python tools are required
+        required: false
+        default: 0
+        type: number
+defaults:
+  run:
+    shell: bash
+jobs:
+  Test-Code:
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:latest' || '' }}
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Check out repository datasets
+        uses: actions/checkout@v4      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact }}
+      - name: Install tools
+        if: ${{ format('{0}',inputs.requirePython) == '1' }}
+        run: |
+          apt -y update && apt -y upgrade
+          apt -y install python3-numpy python3-h5py
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./${{ inputs.executable }}
+          set -o pipefail
+          if [ ${{ inputs.mpi }} == 1 ]; then
+           if [ ${{ inputs.expectCrash }} == 1 ]; then
+            ! mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           else
+            mpirun -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+           fi
+          else
+           if [ ${{ inputs.expectCrash }} == 1 ]; then
+            ! ./${{ inputs.executable }} 2>&1 | tee test.log
+           else
+            ./${{ inputs.executable }} 2>&1 | tee test.log
+           fi
+          fi
+          if [ ${{ inputs.expectFail }} == 1 ]; then
+           grep -q FAIL test.log
+          else
+           ! grep -q FAIL test.log
+          fi
+      - run: echo "This job's status is ${{ job.status }}."

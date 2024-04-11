@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Dark matter subhalo evolution model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <verbosityLevel value="working"/>
+
+  <!-- Task -->
+  <task value="powerSpectra"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="67.40000"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaMatter     value=" 0.26000"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaDarkEnergy value=" 0.69000"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaBaryon     value=" 0.00000"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8                           value="0.8111"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <tolerance                         value="3.0e-4"/>
+    <toleranceTopHat                   value="3.0e-4"/>
+    <nonMonotonicIsFatal               value="false" />
+    <monotonicInterpolation            value="true"  />
+    <powerSpectrumWindowFunction       value="topHat"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="halfModeSlope">
+    <massHalfMode  value="=10.0^7.7"/>
+    <slopeHalfMode value="-1.0"/>
+    <transferFunction value="identity"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw" >
+    <index               value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+ 
+  <!-- Output options -->
+  <outputFileName value="transferFunctionHalfModeSlope-1.0.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,6 +64,7 @@ module Error
   integer, parameter, public :: errorStatusUnderflow    =GSL_eUndrFlw ! Floating point underflow.
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
+  integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
 
   ! Time to wait after errors under MPI.
   integer                    :: errorWaitTime          =86400

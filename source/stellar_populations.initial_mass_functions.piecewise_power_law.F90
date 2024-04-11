@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,11 +46,12 @@
           &                                         massLower    , massUpper, &
           &                                         mass
    contains
-     procedure :: massMinimum => piecewisePowerLawMassMinimum
-     procedure :: massMaximum => piecewisePowerLawMassMaximum
-     procedure :: phi         => piecewisePowerLawPhi
-     procedure :: tabulate    => piecewisePowerLawTabulate
-     procedure :: label       => piecewisePowerLawLabel
+     procedure :: massMinimum      => piecewisePowerLawMassMinimum
+     procedure :: massMaximum      => piecewisePowerLawMassMaximum
+     procedure :: phi              => piecewisePowerLawPhi
+     procedure :: numberCumulative => piecewisePowerLawNumberCumulative
+     procedure :: tabulate         => piecewisePowerLawTabulate
+     procedure :: label            => piecewisePowerLawLabel
   end type initialMassFunctionPiecewisePowerLaw
 
   interface initialMassFunctionPiecewisePowerLaw
@@ -218,6 +219,32 @@ contains
     end do
     return
   end function piecewisePowerLawPhi
+
+  double precision function piecewisePowerLawNumberCumulative(self,massLower,massUpper) result(number)
+    !!{
+    Evaluate a piecewise power-law stellar initial mass function.
+    !!}
+    implicit none
+    class           (initialMassFunctionPiecewisePowerLaw), intent(inout) :: self
+    double precision                                      , intent(in   ) :: massLower , massUpper
+    double precision                                                      :: massLower_, massUpper_
+    integer                                                               :: i
+
+    number=0.0d0
+    do i=1,self%countPieces
+       massLower_=max(massLower,self%massLower(i))
+       massUpper_=min(massUpper,self%massUpper(i))
+       if (massUpper_ > massLower_)                               &
+            & number=+     number                                 &
+            &        +                     self%normalization(i)  &
+            &        /              (1.0d0+self%exponent     (i)) &
+            &        *(                                           &
+            &          +massUpper_**(1.0d0+self%exponent     (i)) &
+            &          -massLower_**(1.0d0+self%exponent     (i)) &
+            &        )
+    end do
+    return
+  end function piecewisePowerLawNumberCumulative
 
   subroutine piecewisePowerLawTabulate(self,imfTable)
     !!{

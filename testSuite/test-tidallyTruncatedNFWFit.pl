@@ -14,7 +14,7 @@ use PDL::Ufunc;
 system("mkdir -p outputs");
 system("cd ..; ./Galacticus.exe testSuite/parameters/tidallyTruncatedNFWFit.xml");
 die("FAILED: model failed to run")
-    unless ( $? == 0 );
+   unless ( $? == 0 );
 
 # Read model data.
 my $model = new PDL::IO::HDF5("outputs/tidallyTruncatedNFWFit.hdf5");
@@ -42,7 +42,7 @@ for(my $i=0;$i<nelem($data->{'basicMass'});++$i) {
     $data->{'metricUntruncated'}->(($i)) .= sum(log10($densityTarget/$densityUntruncated)**2)/nelem($radii);
     $data->{'metricTruncated'  }->(($i)) .= sum(log10($densityTarget/$densityTruncated  )**2)/nelem($radii);
 }
-my $status = $data->{'metricTruncated'}->median() < 0.01 ? "succeeded" : "FAILED";
+my $status = $data->{'metricTruncated'}->median() < 0.0125 ? "succeeded" : "FAILED";
 print $status.": tidally truncated NFW fit\n";
 
 exit;

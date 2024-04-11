@@ -29,7 +29,7 @@ jobs:
           sudo apt install -y yamllint
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.yml
@@ -62,7 +62,7 @@ jobs:
           sudo apt install -y libxml2-utils
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.xml
@@ -99,7 +99,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed scripts
         id: changed-scripts
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.pl
@@ -139,7 +139,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed modules
         id: changed-modules
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.pm
@@ -173,7 +173,7 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.F90
@@ -213,7 +213,7 @@ jobs:
           make -j2 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.F90
@@ -232,11 +232,16 @@ jobs:
           exit $status
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: warnings.md
+      - name: Output to a job summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat warnings.md >> $GITHUB_STEP_SUMMARY
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true'
+        continue-on-error: true
         uses: thollander/actions-comment-pull-request@v2
         with:
           filePath: warnings.md
@@ -264,7 +269,7 @@ jobs:
           make -j2 work/build/stateStorables.xml
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v44
         with:
           files: |
             **/*.tex
@@ -276,7 +281,7 @@ jobs:
           done
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: warnings.md
       - name: Comment on the PR if any warnings were found

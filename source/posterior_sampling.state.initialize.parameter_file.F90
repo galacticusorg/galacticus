@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,9 +25,10 @@
 
   !![
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile">
-   <description>
-    This class initializes all chains to values read from a parameter file.
-  </description>
+    <description>
+      This class initializes all chains to values read from a parameter file.
+    </description>
+    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeParameterFile

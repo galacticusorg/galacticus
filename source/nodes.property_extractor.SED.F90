@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@
   use :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass
   use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
   use :: Star_Formation_Histories              , only : starFormationHistoryClass
+  use :: Stellar_Luminosities_Structure        , only : enumerationFrameType
 
   type :: sedTemplate
      !!{
@@ -36,17 +37,6 @@
      double precision          , allocatable, dimension(:    ) :: wavelength
      double precision          , allocatable, dimension(:,:,:) :: sed
   end type sedTemplate
-
-  !![
-  <enumeration>
-    <name>frame</name>
-    <description>Frame for SED calculations.</description>
-    <encodeFunction>yes</encodeFunction>
-    <decodeFunction>yes</decodeFunction>
-    <entry label="rest"    />
-    <entry label="observed"/>
-  </enumeration>
-  !!]
      
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSED">
@@ -113,8 +103,9 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily sed} property extractor class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters          , only : inputParameter                , inputParameters
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
+    use :: Input_Parameters              , only : inputParameter                , inputParameters
+    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode
+    use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
     implicit none
     type            (nodePropertyExtractorSED                  )                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -258,7 +249,8 @@ contains
     !!{
     Return the number of array elements in the {\normalfont \ttfamily sed} property extractors.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error                         , only : Error_Report
+    use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
     implicit none
     integer         (c_size_t                )                              :: sedSize
     class           (nodePropertyExtractorSED), intent(inout)               :: self
@@ -414,7 +406,8 @@ contains
     !!{
     Return wavelengths at which the SED is tabulated.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error                         , only : Error_Report
+    use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved
     implicit none
     double precision                          , dimension(:) , allocatable :: sedWavelengths
     class           (nodePropertyExtractorSED), intent(inout)              :: self
@@ -605,14 +598,15 @@ contains
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
-    use    :: Abundances_Structure , only : abundances             , metallicityTypeLinearByMassSolar, adjustElementsReset
-    use    :: Display              , only : displayIndent          , displayUnindent                 , displayCounter     , displayCounterClear, &
-         &                                  verbosityLevelWorking
-    use    :: Error                , only : Error_Report
-    use    :: Histories            , only : history
-    use    :: Numerical_Integration, only : integrator
-    use    :: Multi_Counters       , only : multiCounter
-    use    :: Locks                , only : ompLock
+    use    :: Abundances_Structure          , only : abundances           , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use    :: Display                       , only : displayIndent        , displayUnindent                 , displayCounter     , displayCounterClear, &
+         &                                           verbosityLevelWorking
+    use    :: Error                         , only : Error_Report
+    use    :: Histories                     , only : history
+    use    :: Numerical_Integration         , only : integrator
+    use    :: Multi_Counters                , only : multiCounter
+    use    :: Locks                         , only : ompLock
+    use    :: Stellar_Luminosities_Structure, only : frameRest            , frameObserved
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     double precision                                            , dimension(:,:,:), allocatable :: sedLuminosityMean
@@ -884,11 +878,12 @@ contains
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters    , only : inputParameters
-    use :: String_Handling     , only : String_C_To_Fortran
-    use :: Hashes_Cryptographic, only : Hash_MD5
-    use :: FoX_DOM             , only : setLiveNodeLists
-    use :: Histories           , only : history
+    use :: Input_Parameters              , only : inputParameters
+    use :: String_Handling               , only : String_C_To_Fortran
+    use :: Hashes_Cryptographic          , only : Hash_MD5
+    use :: FoX_DOM                       , only : setLiveNodeLists
+    use :: Histories                     , only : history
+    use :: Stellar_Luminosities_Structure, only : enumerationFrameDecode
     implicit none
     type     (varying_string          )                :: sedHistoryHashedDescriptor
     class    (nodePropertyExtractorSED), intent(in   ) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,8 +47,8 @@
      class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_    => null()
      class           (outputTimesClass                 ), pointer :: outputTimes_                 => null()
      double precision                                             :: wavenumberMinimum                     , wavenumberMaximum   , &
+          &                                                          pointsPerDecade                       , pointsPerUnit       , &
           &                                                          massSmoothingWindowFunction
-     integer                                                      :: pointsPerDecade                       , pointsPerUnit
      logical                                                      :: includeNonLinear                      , spacingIsLogarithmic
      type            (varying_string                   )          :: outputGroup
    contains
@@ -85,8 +85,8 @@ contains
     class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     class           (outputTimesClass                ), pointer       :: outputTimes_
     double precision                                                  :: wavenumberMinimum           , wavenumberMaximum, &
+         &                                                               pointsPerDecade             , pointsPerUnit    , &
          &                                                               massSmoothingWindowFunction
-    integer                                                           :: pointsPerDecade             , pointsPerUnit
     logical                                                           :: includeNonLinear
     type            (varying_string                  )                :: outputGroup
 
@@ -103,7 +103,7 @@ contains
        !![
        <inputParameter>
 	 <name>pointsPerDecade</name>
-	 <defaultValue>10</defaultValue>
+	 <defaultValue>10.0d0</defaultValue>
 	 <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
 	 <source>parameters</source>
        </inputParameter>
@@ -145,10 +145,18 @@ contains
     <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
     <objectBuilder class="transferFunction"            name="transferFunction_"            source="parameters"/>
     <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
-    <objectBuilder class="powerSpectrumNonlinear"      name="powerSpectrumNonlinear_"      source="parameters"/>
     <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"    name="cosmologicalMassVariance_"    source="parameters"/>
     <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
+    !!]
+    if (includeNonLinear) then
+       !![
+       <objectBuilder class="powerSpectrumNonlinear"   name="powerSpectrumNonlinear_"      source="parameters"/>
+       !!]
+    else
+       powerSpectrumNonlinear_ => null()
+    end if
+    !![
     <conditionalCall>
       <call>
         self=taskPowerSpectra(                              &amp;
@@ -220,8 +228,8 @@ contains
     class           (cosmologicalMassVarianceClass   ), intent(in   ), target   :: cosmologicalMassVariance_
     class           (outputTimesClass                ), intent(in   ), target   :: outputTimes_
     double precision                                  , intent(in   )           :: wavenumberMinimum           , wavenumberMaximum, &
-         &                                                                        massSmoothingWindowFunction
-    integer                                           , intent(in   ), optional :: pointsPerDecade             , pointsPerUnit
+         &                                                                         massSmoothingWindowFunction
+    double precision                                  , intent(in   ), optional :: pointsPerDecade             , pointsPerUnit
     logical                                           , intent(in   )           :: includeNonLinear
     type            (varying_string                  ), intent(in   )           :: outputGroup
     !![
@@ -292,9 +300,9 @@ contains
     outputCount      =self%outputTimes_%count()
     ! Compute number of tabulation points.
     if (self%spacingIsLogarithmic) then
-       wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*dble(self%pointsPerDecade))+1
+       wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*self%pointsPerDecade)+1
     else
-       wavenumberCount=int(     (self%wavenumberMaximum-self%wavenumberMinimum)*dble(self%pointsPerUnit  ))+1
+       wavenumberCount=int(     (self%wavenumberMaximum-self%wavenumberMinimum)*self%pointsPerUnit  )+1
     end if
     ! Allocate arrays for power spectra.
     allocate(wavenumber               (wavenumberCount            ))

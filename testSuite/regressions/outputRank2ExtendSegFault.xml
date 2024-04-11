@@ -102,8 +102,11 @@
   <mergerTreeOperator value="sequence">
     <mergerTreeOperator value="massAccretionHistory"/>
   </mergerTreeOperator>
-  <radiationFieldIntergalacticBackground value="intergalacticBackgroundFile">
-    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+  <radiationFieldIntergalacticBackground value="summation">
+    <radiationField value="cosmicMicrowaveBackground"/>
+    <radiationField value="intergalacticBackgroundFile">
+      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+    </radiationField>
   </radiationFieldIntergalacticBackground>
   
   

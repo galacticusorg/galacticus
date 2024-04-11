@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1033,18 +1033,18 @@ contains
     use, intrinsic :: ISO_C_Binding  , only : c_double           , c_int
     use            :: String_Handling, only : operator(//)
     implicit none
-    integer         (kind=c_int                   ), intent(in   )                                              :: status
-    real            (kind=c_double                ), intent(in   )                                              :: time
-    real            (kind=c_double                ), intent(in   ), dimension(:                               ) :: y
+    integer         (kind=c_int                   ), intent(in   )                                       :: status
+    real            (kind=c_double                ), intent(in   )                                       :: time
+    real            (kind=c_double                ), intent(in   ), dimension(:                        ) :: y
     real            (kind=c_double                )               , dimension(self_%propertyCountActive) :: dydt          , yError, &
-         &                                                                                                         yTolerance
-    type            (varying_string               )                                                             :: message       , line
-    integer                                                                                                     :: lengthMaximum
-    type            (enumerationVerbosityLevelType)                                                             :: verbosityLevel
-    integer         (c_size_t                     )                                                             :: i
-    character       (len =12                      )                                                             :: label
-    integer         (kind=c_int                   )                                                             :: odeStatus
-    double precision                                                                                            :: stepFactor
+         &                                                                                                  yTolerance
+    type            (varying_string               )                                                      :: message       , line
+    integer                                                                                              :: lengthMaximum
+    type            (enumerationVerbosityLevelType)                                                      :: verbosityLevel
+    integer         (c_size_t                     )                                                      :: i
+    character       (len =12                      )                                                      :: label
+    integer         (kind=c_int                   )                                                      :: odeStatus
+    double precision                                                                                     :: stepFactor
 
     ! Check if this is the final trial for this node.
     if (self_%trialCount == trialCountMaximum-1) then
@@ -1108,7 +1108,7 @@ contains
 
     forall(i=1:self_%propertyCountActive)
        standardODEStepTolerances(i)=+    self_%odeToleranceRelative     &
-            &                       *abs(propertyValues                   (i)) &
+            &                       *abs(      propertyValues      (i)) &
             &                       +    self_%odeToleranceAbsolute     &
             &                       *    self_%propertyScalesActive(i)
     end forall

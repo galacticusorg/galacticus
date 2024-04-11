@@ -73,7 +73,9 @@
   <powerSpectrumPrimordialTransferred value="simple"  />
 
   <!-- Structure formation options -->
-  <linearGrowth          value="baryonsDarkMatter"                    />
+  <linearGrowth          value="baryonsDarkMatter"                     >
+    <cambCountPerDecade value="100"/>
+  </linearGrowth>
   <criticalOverdensity   value="sphericalCollapseBrynsDrkMttrDrkEnrgy"/>
   <virialDensityContrast value="sphericalCollapseBrynsDrkMttrDrkEnrgy"/>
   <haloMassFunction      value="shethTormen"                           >

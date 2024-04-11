@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -431,11 +431,11 @@ contains
                 if (self%storeToFile) then
                    ! Construct name of the file to which this would be stored.
                    if (.not.stellarPopulationHashedDescriptorComputed) then
-                      stellarPopulationHashedDescriptor        =stellarPopulation_%hashedDescriptor(includeSourceDigest=.true.)
+                      stellarPopulationHashedDescriptor        =stellarPopulation_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)
                       stellarPopulationHashedDescriptorComputed=.true.
                    end if
                    if (.not.associated(stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_,stellarPopulationSpectraPostprocessorPrevious_)) then
-                      postprocessorHashedDescriptor                  =  stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%hashedDescriptor(includeSourceDigest=.true.)
+                      postprocessorHashedDescriptor                  =  stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)
                       stellarPopulationSpectraPostprocessorPrevious_ => stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_
                    end if
                    luminositiesFileName=self%storeDirectory                  // &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,6 +32,7 @@
    <stateStorable>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </stateStorable>
+   <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSubhaloMassFunction
@@ -592,13 +593,15 @@ contains
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
     tree realizations, although it in principal could be model-dependent.
     !!}
+    use :: Numerical_Constants_Math         , only : Pi
     use :: Models_Likelihoods_Constants     , only : logImpossible
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none
     class           (outputAnalysisSubhaloMassFunction             ), intent(inout) :: self
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: distribution
     integer                                                                         :: i
-    double precision                                                                :: negativeBinomialProbabilitySuccess
+    double precision                                                                :: negativeBinomialProbabilitySuccess, countEffective, &
+         &                                                                             variance
 
     call self%finalizeAnalysis()
     subhaloMassFunctionLogLikelihood=0.0d0
@@ -609,6 +612,17 @@ contains
              return
           end if
        else
+          ! Compute the likelihood assuming a negative binomial distribution. Note that we "de-normalize" the likelihood by
+          ! multiplying by √[2πσᵢ²] (the normalization term in the corresponding normal distribution). This is useful to allow
+          ! (-logℒ) to be used as a metric for significant shifts in the model results, without changing the relative
+          ! likelihood of models (as this de-normalization shift is a constant multiplicative factor).
+          countEffective                    = dble(max(1.0d0,self%massFunctionTarget(i)))
+          variance                          =+       countEffective                       &
+               &                             *(                                           &
+               &                               +     1.0d0                                &
+               &                               +self%negativeBinomialScatterFractional**2 &
+               &                               *     countEffective                       &
+               &                              )
           negativeBinomialProbabilitySuccess=+  1.0d0                                                          &
                &                             /(                                                                &
                &                               +1.0d0                                                          &
@@ -616,7 +630,13 @@ contains
                &                              )
           distribution                      = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
           subhaloMassFunctionLogLikelihood  =+subhaloMassFunctionLogLikelihood                                                                                                    &
-               &                             +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+               &                             +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i))) &
+               &                             +0.50d0                                                                                                                              &
+               &                             *log(                                                                                                                                &
+               &                                  +2.0d0                                                                                                                          &
+               &                                  *Pi                                                                                                                             &
+               &                                  *variance                                                                                                                       &
+               &                                 )
        end if
     end do
     return

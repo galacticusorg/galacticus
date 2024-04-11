@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,6 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
   !!{
   Implements a node operator class that propagates satellite halos along their orbits.
@@ -397,9 +399,15 @@ contains
     ! so the velocity remains constant between kicks).
     if (.not.node%isSatellite()) return
     if (radius <= 0.0d0) return ! If radius is non-positive, assume no acceleration.
-    massEnclosedSatellite=max(0.0d0,self%galacticStructure_%massEnclosed(node    ,radius  ))
-    massEnclosedHost     =          self%galacticStructure_%massEnclosed(nodeHost,radius  )
-    acceleration         =          self%galacticStructure_%acceleration(nodeHost,position)
+    massEnclosedSatellite=max(                                                                  &
+         &                                                     0.0d0                          , &
+         &                    min(                                                              &
+         &                        self     %galacticStructure_%massEnclosed(node    ,radius  ), &
+         &                        satellite                   %boundMass   (                 )  &
+         &                       )                                                              &
+         &                   )
+    massEnclosedHost     =        self     %galacticStructure_%massEnclosed(nodeHost,radius  )
+    acceleration         =        self     %galacticStructure_%acceleration(nodeHost,position)
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
     ! satellite and host orbiting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).

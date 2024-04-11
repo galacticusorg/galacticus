@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,22 +82,22 @@
      A cosmological mass variance class computing variance from a filtered power spectrum.
      !!}
      private
-     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                     => null()
-     class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                      => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_      => null() , powerSpectrumPrimordialTransferredReference => null()
-     class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference        => null()
-     class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                            => null()
-     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                        => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_             => null() , powerSpectrumWindowFunctionTopHat_          => null()
-     logical                                                                              :: initialized                              =  .false., nonMonotonicIsFatal                                  , &
+     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
+     class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null() , powerSpectrumPrimordialTransferredReference => null()
+     class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
+     class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
+     class           (transferFunctionClass                  ), pointer                   :: transferFunction_                   => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null() , powerSpectrumWindowFunctionTopHat_          => null()
+     logical                                                                              :: initialized                         =  .false., nonMonotonicIsFatal                                  , &
           &                                                                                  integrationFailureIsFatal
-     double precision                                                                     :: tolerance                                          , toleranceTopHat                                      , &
-          &                                                                                  sigma8Value                                        , sigmaNormalization                                   , &
-          &                                                                                  massMinimum                                        , massMaximum                                          , &
-          &                                                                                  timeMinimum                                        , timeMaximum                                          , &
-          &                                                                                  timeMinimumLogarithmic                             , timeLogarithmicDeltaInverse                          , &
-          &                                                                                  wavenumberReference                                , wavenumberHalfMode                                   , &
-          &                                                                                  rootVarianceLogarithmicGradientTolerance
+     double precision                                                                     :: tolerance                                     , toleranceTopHat                                      , &
+          &                                                                                  sigma8Value                                   , sigmaNormalization                                   , &
+          &                                                                                  massMinimum                                   , massMaximum                                          , &
+          &                                                                                  timeMinimum                                   , timeMaximum                                          , &
+          &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
+          &                                                                                  wavenumberReference                           , wavenumberHalfMode                                   , &
+          &                                                                                  rootVarianceLogarithmicGradientTolerance      , amplitudeScalar
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      type            (varying_string                         )                            :: fileName
@@ -171,11 +171,11 @@ contains
     class           (transferFunctionClass                  ), pointer       :: transferFunction_
     double precision                                                         :: sigma8Value                             , tolerance                                  , &
          &                                                                      toleranceTopHat                         , wavenumberReference                        , &
-         &                                                                      rootVarianceLogarithmicGradientTolerance
+         &                                                                      rootVarianceLogarithmicGradientTolerance, amplitudeScalar
     logical                                                                  :: monotonicInterpolation                  , nonMonotonicIsFatal                        , &
          &                                                                      truncateAtParticleHorizon               , storeTabulations                           , &
          &                                                                      integrationFailureIsFatal
-
+    
     !![
     <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                        source="parameters"                                                  />
     <objectBuilder    class="cosmologyFunctions"                 name="cosmologyFunctions_"                         source="parameters"                                                  />
@@ -191,12 +191,13 @@ contains
     else
        nullify(powerSpectrumWindowFunctionTopHat_)
     end if
-    if (parameters%isPresent('wavenumberReference')) then
-       if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
-       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Error_Report('parameters must contain a "reference" section'//{introspection:location})
+    if      (parameters%isPresent('wavenumberReference')) then
+       if (              parameters%isPresent('sigma_8'                                                )) call Error_Report('sigma_8 must not be specified if a reference wavenumber is specified'                //{introspection:location})
+       if (              parameters%isPresent('amplitudeScalar'                                        )) call Error_Report('amplitudeScalar must not be specified if a reference wavenumber is specified'        //{introspection:location})
+       if (.not.         parameters%isPresent('reference'                         ,requireValue=.false.)) call Error_Report('parameters must contain a "reference" section if a reference wavenumber is specified'//{introspection:location})
        referenceParameters=parameters%subParameters('reference',requireValue=.false.)
-       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
-       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
+       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'                               )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'            //{introspection:location})
+       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred'                     )) call Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'  //{introspection:location})
        !![
        <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
        <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />
@@ -204,6 +205,15 @@ contains
          <name>wavenumberReference</name>
          <source>parameters</source>
          <description>The reference wavenumber at which the amplitude of the power spectrum is matched to that in the reference model.</description>
+       </inputParameter>
+       !!]
+    else if (parameters%isPresent('amplitudeScalar')) then
+       if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
+       !![
+       <inputParameter>
+         <name>amplitudeScalar</name>
+         <source>parameters</source>
+         <description>The amplitude of the primordial scalar power spectrum, $A_\mathrm{s}$, such that $P_\chi(k) = A_\mathrm{s} (k/k_\mathrm{s0})^{n_\mathrm{s}-1}$ with $k_\mathrm{s0}=0.05$~Mpc$^{-1}$.</description>
        </inputParameter>
        !!]
     else       
@@ -287,11 +297,12 @@ contains
        &amp;                                {conditions}                                                                       &amp;
        &amp;                               )
      </call>
-     <argument name="sigma8"                                      value="sigma8Value"                                 condition=".not.parameters%isPresent('wavenumberReference')"                   />
-     <argument name="cosmologicalMassVarianceReference"           value="cosmologicalMassVarianceReference"           condition="     parameters%isPresent('wavenumberReference')"                   />
-     <argument name="wavenumberReference"                         value="wavenumberReference"                         condition="     parameters%isPresent('wavenumberReference')"                   />
-     <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
-     <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+     <argument name="sigma8"                                      value="sigma8Value"                                 condition=".not.parameters%isPresent('wavenumberReference').and..not.parameters%isPresent('amplitudeScalar')"/>
+     <argument name="amplitudeScalar"                             value="amplitudeScalar"                             condition="                                                          parameters%isPresent('amplitudeScalar')"/>
+     <argument name="cosmologicalMassVarianceReference"           value="cosmologicalMassVarianceReference"           condition="     parameters%isPresent('wavenumberReference')"                                                 />
+     <argument name="wavenumberReference"                         value="wavenumberReference"                         condition="     parameters%isPresent('wavenumberReference')"                                                 />
+     <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                                                 />
+     <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"                              />
     </conditionalCall>
     <inputParametersValidate source="parameters" extraAllowedNames="reference"/>
     !!]
@@ -317,7 +328,7 @@ contains
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,integrationFailureIsFatal,monotonicInterpolation,rootVarianceLogarithmicGradientTolerance,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+  function filteredPowerConstructorInternal(sigma8,amplitudeScalar,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,integrationFailureIsFatal,monotonicInterpolation,rootVarianceLogarithmicGradientTolerance,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     !!}
@@ -325,13 +336,15 @@ contains
     use :: Error                          , only : Error_Report
     use :: Input_Paths                    , only : inputPath                        , pathTypeDataDynamic
     use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
+    use :: Interfaces_CLASS               , only : Interface_CLASS_Normalization
     use :: Error                          , only : errorStatusSuccess
     use :: Numerical_Constants_Math       , only : Pi
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
     double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat       , &
          &                                                                                        rootVarianceLogarithmicGradientTolerance
-    double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8
+    double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8                , &
+         &                                                                                        amplitudeScalar
     logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
          &                                                                                        truncateAtParticleHorizon                  , storeTabulations      , &
          &                                                                                        integrationFailureIsFatal
@@ -359,9 +372,17 @@ contains
           !!]
        end select
     end if
-    if (present(sigma8)) then
+    if      (present(sigma8         )) then
        if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       if (     present(amplitudeScalar    )                                                                                                                ) call Error_Report('sigma8 is specified, can not also specify scalar amplitude'      //{introspection:location})
        self%sigma8Value                                 =  sigma8
+       self%normalizationSigma8                         =  .true.
+       self%cosmologicalMassVarianceReference           => null()
+       self%powerSpectrumPrimordialTransferredReference => null()
+    else if (present(amplitudeScalar)) then
+       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       self%amplitudeScalar                             =  amplitudeScalar
+       self%sigma8Value                                 =  sqrt(amplitudeScalar*Interface_CLASS_Normalization(self%cosmologyParameters_))
        self%normalizationSigma8                         =  .true.
        self%cosmologicalMassVarianceReference           => null()
        self%powerSpectrumPrimordialTransferredReference => null()
@@ -377,11 +398,11 @@ contains
     end if
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
-    self%fileName              =inputPath(pathTypeDataDynamic)                   // &
-         &                      'largeScaleStructure/'                           // &
-         &                      self%objectType      (                          )// &
-         &                      '_'                                              // &
-         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+    self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
+         &                      'largeScaleStructure/'                                                               // &
+         &                      self%objectType      (                                                              )// &
+         &                      '_'                                                                                  // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                      '.hdf5'
     call Directory_Make(File_Path(self%fileName))
     if (present(transferFunction_)) then
@@ -1515,7 +1536,7 @@ contains
     return
   end function filteredPowerRemakeTable
 
-  subroutine filteredPowerDescriptor(self,descriptor,includeClass)
+  subroutine filteredPowerDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -1523,16 +1544,16 @@ contains
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeClass
+    logical                                         , intent(in   ), optional :: includeClass, includeFileModificationTimes
     type     (inputParameters                      )                          :: parameters
 
-    call self%descriptorNormalizationOnly(descriptor,includeClass)
+    call self%descriptorNormalizationOnly(descriptor,includeClass,includeFileModificationTimes)
     parameters=descriptor%subparameters('cosmologicalMassVariance')
-    call self%powerSpectrumWindowFunction_%descriptor(parameters)
+    call self%powerSpectrumWindowFunction_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine filteredPowerDescriptor
 
-  subroutine filteredPowerDescriptorNormalizationOnly(self,descriptor,includeClass)
+  subroutine filteredPowerDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage
     only (i.e. we exclude the window function).
@@ -1541,7 +1562,7 @@ contains
     implicit none
     class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
-    logical                                         , intent(in   ), optional :: includeClass
+    logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters    , referenceParameters
 
@@ -1566,10 +1587,10 @@ contains
     call    parameters%addParameter('nonMonotonicIsFatal'   ,trim(adjustl(parameterLabel)))
     write    (parameterLabel,'(l1)'    ) self%monotonicInterpolation
     call    parameters%addParameter('monotonicInterpolation',trim(adjustl(parameterLabel)))
-    call    self%cosmologyParameters_                       %descriptor(parameters)
-    call    self%cosmologyFunctions_                        %descriptor(parameters)
-    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)
-    call    self%linearGrowth_                              %descriptor(parameters)
-    call    self%transferFunction_                          %descriptor(parameters)
+    call    self%cosmologyParameters_                       %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%cosmologyFunctions_                        %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%linearGrowth_                              %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call    self%transferFunction_                          %descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine filteredPowerDescriptorNormalizationOnly

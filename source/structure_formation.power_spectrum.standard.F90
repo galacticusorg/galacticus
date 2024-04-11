@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,7 +156,7 @@ contains
     return
   end function standardPowerDimensionless
 
-  subroutine standardDescriptor(self,descriptor,includeClass)
+  subroutine standardDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
       !!{
       Generate a descriptor for the standard power spectrum class.
       !!}
@@ -164,7 +164,7 @@ contains
       implicit none
       class  (powerSpectrumStandard), intent(inout)           :: self
       type   (inputParameters      ), intent(inout)           :: descriptor
-      logical                       , intent(in   ), optional :: includeClass
+      logical                       , intent(in   ), optional :: includeClass, includeFileModificationTimes
       type   (inputParameters      )                          :: parameters
       !![
       <optionalArgument name="includeClass" defaultsTo=".true." />
@@ -172,7 +172,7 @@ contains
       
       if (includeClass_) call descriptor%addParameter('powerSpectrum','standard')
       parameters=descriptor%subparameters('powerSpectrum')
-      if (associated(self%cosmologicalMassVariance_          )) call self%cosmologicalMassVariance_          %descriptorNormalizationOnly(parameters)
-      if (associated(self%powerSpectrumPrimordialTransferred_)) call self%powerSpectrumPrimordialTransferred_%descriptor                 (parameters)
+      if (associated(self%cosmologicalMassVariance_          )) call self%cosmologicalMassVariance_          %descriptorNormalizationOnly(parameters,includeClass,includeFileModificationTimes)
+      if (associated(self%powerSpectrumPrimordialTransferred_)) call self%powerSpectrumPrimordialTransferred_%descriptor                 (parameters,includeClass,includeFileModificationTimes)
       return      
     end subroutine standardDescriptor

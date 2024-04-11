@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,6 +57,7 @@
     \ttfamily age} (in Gyr), {\normalfont \ttfamily luminosity} (in $L_\odot$) and {\normalfont \ttfamily effectiveTemperature}
     (in Kelvin) along the track.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </stellarTracks>
   !!]
   type, extends(stellarTracksClass) :: stellarTracksFile

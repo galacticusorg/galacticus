@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,10 +68,10 @@ contains
           ! Check for existence of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
              call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
-             call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status)
+             call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status,retries=5,retryWait=60)
              if (status /= 0) then
                 ! Try the "old/" subdirectory. Sometimes the source is moved to this path prior to a new release.
-                call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status)
+                call download('"http://data.nublado.org/cloudy_releases/c'//char(cloudyVersionMajor)//'/old/'//char(cloudyVersion)//'.tar.gz"',char(cloudyPath)//'.tar.gz',status=status,retries=5,retryWait=60)
                 if (status /= 0) call Error_Report("failed to download Cloudy code"//{introspection:location})
              end if
           end if

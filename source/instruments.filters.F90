@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -389,13 +389,19 @@ contains
     use :: IO_HDF5                  , only : hdf5Object
     use :: Numerical_Constants_Units, only : angstromsPerMeter
     implicit none
-    type(hdf5Object) :: filtersGroup, dataset
-
-    if (.not.allocated(filterResponses)) return
+    type            (hdf5Object) :: filtersGroup       , dataset
+    integer                      :: i
+    double precision             :: wavelengthEffective
+    
+    if (countFilterResponses == 0) return
+    ! Ensure effective wavelengths are set.
+    do i=1,countFilterResponses
+       wavelengthEffective=Filter_Wavelength_Effective(i)
+    end do
     !$ call hdf5Access%set()
     filtersGroup=outputFile%openGroup('Filters','Properties of filters used.')
-    call filtersGroup%writeDataset(filterResponses%name               ,'name'               ,'Filter name.'                                               )
-    call filtersGroup%writeDataset(filterResponses%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
+    call filtersGroup%writeDataset(filterResponses(1:countFilterResponses)%name               ,'name'               ,'Filter name.'                                               )
+    call filtersGroup%writeDataset(filterResponses(1:countFilterResponses)%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
     call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
     call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
     call dataset     %close()

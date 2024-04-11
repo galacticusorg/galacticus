@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -335,7 +335,7 @@ contains
     return
   end function instantReionizationTemperature
 
-  subroutine instantReionizationDescriptor(self,descriptor,includeClass)
+  subroutine instantReionizationDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
@@ -343,7 +343,7 @@ contains
     implicit none
     class    (intergalacticMediumStateInstantReionization), intent(inout)           :: self
     type     (inputParameters                            ), intent(inout)           :: descriptor
-    logical                                               , intent(in   ), optional :: includeClass
+    logical                                               , intent(in   ), optional :: includeClass  , includeFileModificationTimes
     character(len=18                                     )                          :: parameterLabel
     type     (inputParameters                            )                          :: parameters
 
@@ -355,7 +355,7 @@ contains
     call parameters%addParameter('reionizationTemperature',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%presentDayTemperature
     call parameters%addParameter('presentDayTemperature'  ,trim(adjustl(parameterLabel)))
-    call self%cosmologyFunctions_ %descriptor(parameters)
-    call self%cosmologyParameters_%descriptor(parameters)
+    call self%cosmologyFunctions_ %descriptor(parameters,includeClass,includeFileModificationTimes)
+    call self%cosmologyParameters_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine instantReionizationDescriptor

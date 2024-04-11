@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -282,14 +282,14 @@ contains
        call    treeGroup %close()
        !$ call hdf5Access%unset()
        ! Free workspace.
-       deallocate(propertiesDouble   )
-       deallocate(propertiesInteger  )
-       deallocate(namesDouble        )
-       deallocate(namesInteger       )
-       deallocate(descriptionsDouble )
-       deallocate(descriptionsInteger)
-       deallocate(unitsInSIDouble    )
-       deallocate(unitsInSIInteger   )
+       if (allocated(propertiesDouble   )) deallocate(propertiesDouble   )
+       if (allocated(propertiesInteger  )) deallocate(propertiesInteger  )
+       if (allocated(namesDouble        )) deallocate(namesDouble        )
+       if (allocated(namesInteger       )) deallocate(namesInteger       )
+       if (allocated(descriptionsDouble )) deallocate(descriptionsDouble )
+       if (allocated(descriptionsInteger)) deallocate(descriptionsInteger)
+       if (allocated(unitsInSIDouble    )) deallocate(unitsInSIDouble    )
+       if (allocated(unitsInSIInteger   )) deallocate(unitsInSIInteger   )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do

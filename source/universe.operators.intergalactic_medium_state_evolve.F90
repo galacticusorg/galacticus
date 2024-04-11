@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -157,12 +157,6 @@ contains
     <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                      />
     <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackground"/>
     !!]
-    select type (radiationField_)
-    class is (radiationFieldIntergalacticBackground)
-       ! This is as expected.
-    class default
-       call Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
-    end select
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     self=universeOperatorIntergalacticMediumStateEvolve(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_)
@@ -739,10 +733,7 @@ contains
               recombinationDielectronicRateTo  =+0.0d0
            end if
            ! Set the epoch for the intergalactic background radiation field.
-           select type (radiationField_ => self_%radiationField_)
-           class is (radiationFieldIntergalacticBackground)
-              call radiationField_%timeSet(time)
-           end select
+           call self_%radiationField_%timeSet(time)
            ! Compute rate of photoionizations from this ion.
            if (electronNumber  > 0) then
               ! Set the ground state for this photoionization calculation.

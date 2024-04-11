@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -277,6 +277,7 @@ contains
        <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
        !!]
        !$omp end critical(mergerTreeConstructBuildDeepCopyReset)
+       call self%randomSequenceNonDeterministicWarn(tree)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber

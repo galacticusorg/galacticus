@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -276,10 +276,10 @@ module Cosmological_Density_Field
     <description>Return a descriptor for this object suitable for normalization-only usage.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type   (inputParameters), intent(inout)           :: descriptor  </argument>
-    <argument>logical                 , intent(in   ), optional :: includeClass</argument>
+    <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
+    <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
     <code>
-      call self%descriptor(descriptor,includeClass)
+      call self%descriptor(descriptor,includeClass,includeFileModificationTimes)
     </code>
    </method>
    <method name="powerNormalization" >
@@ -549,6 +549,7 @@ contains
     class(  criticalOverdensityClass), intent(inout) :: self
     type   (treeNode                ), intent(inout) :: node
     integer(kind_int8               ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
 
     self%lastUniqueID=uniqueID
     return

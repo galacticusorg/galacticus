@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -263,6 +263,7 @@ contains
           if (allocated(snapshotInterpolator)) deallocate(snapshotInterpolator)
           allocate(snapshotInterpolator)
           snapshotInterpolator=interpolator(snapshotTime(1:snapshotCount))
+          deallocate(snapshotTime)
        else
           snapshotCount=0
        end if
@@ -310,6 +311,7 @@ contains
        deallocate(descendantIndex)
        deallocate(nodeMass       )
        deallocate(nodeRedshift   )
+       if (self%snapshotsRequired                       ) deallocate(nodeSnapshot)
        if (defaultPositionComponent%positionIsGettable()) deallocate(nodePosition)
        if (defaultPositionComponent%velocityIsGettable()) deallocate(nodeVelocity)
        ! Move to the next tree.

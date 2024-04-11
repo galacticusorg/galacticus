@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,6 +20,7 @@
   !![
   <outputTimes name="outputTimesSimulationSnapshots">
    <description>An output times class which matches output times to snapshot times of a simulation.</description>
+   <runTimeFileDependencies paths="fileName"/>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesSimulationSnapshots

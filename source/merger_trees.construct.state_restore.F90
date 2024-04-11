@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,6 +58,7 @@
     Note that currently this method does not support storing and restoring of trees which contain components that have more
     than one instance.
    </description>
+   <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
@@ -158,6 +159,7 @@ contains
        ! Read the tree(s).
        allocate(tree)
        call mergerTreeStateFromFile(tree,char(self%fileName),self%randomNumberGenerator_)
+       call self%randomSequenceNonDeterministicWarn(tree)
     else
        nullify(tree)
     end if

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1020,18 +1020,18 @@ contains
        if (.not.self%subresolutionHypergeometricInitialized) call self%subresolutionHypergeometric%destroy()
        call self%subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        do i=1,xCount
-          call self%subresolutionHypergeometric%populate(                                                                                         &
-               &                                    +sqrtTwoOverPi                                                                                &
-               &                                    *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
-               &                                    /                                               (-self%gamma1+1.0d0)                          &
-               &                                    *Hypergeometric_2F1(                                                                          &
-               &                                                                          self%hypergeometricA(self%gamma1)                     , &
-               &                                                                          [      1.5d0-0.5d0*self%gamma1]                       , &
-               &                                                                          1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
-               &                                                        toleranceRelative=self%precisionHypergeometric                            &
-               &                                                       )                                                                        , &
-               &                                    i                                                                                             &
-               &                                   )
+          call self%subresolutionHypergeometric%populate(                                                                                              &
+               &                                         +sqrtTwoOverPi                                                                                &
+               &                                         *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
+               &                                         /                                               (-self%gamma1+1.0d0)                          &
+               &                                         *Hypergeometric_2F1(                                                                          &
+               &                                                                               self%hypergeometricA(self%gamma1)                     , &
+               &                                                                               [      1.5d0-0.5d0*self%gamma1]                       , &
+               &                                                                               1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
+               &                                                             toleranceRelative=self%precisionHypergeometric                            &
+               &                                                            )                                                                        , &
+               &                                         i                                                                                             &
+               &                                        )
        end do
        self%subresolutionHypergeometricInitialized=.true.
     end if
