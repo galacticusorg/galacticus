@@ -139,22 +139,24 @@ unless ( $? == 0 ) {
 }
 
 # Read data and repackage into a file suitable for re-reading by other models.
-my $model         = new PDL::IO::HDF5( "outputs/validate_baryonicSuppression_IGM_evolution.hdf5");
-my $igmFile       = new PDL::IO::HDF5(">outputs/validate_baryonicSuppression_IGM.hdf5"          );
-my $data;
-my $igmProperties = $model        ->group  ('igmProperties')       ;
-$data->{$_}       = $igmProperties->dataset($_             )->get()
-    foreach ( 'redshift', 'temperature', 'densityHydrogen1', 'densityHydrogen2', 'densityHelium1', 'densityHelium2', 'densityHelium3' );
-$data->{'hIonizedFraction' } =  $data->{'densityHydrogen2'}                                                         /($data->{'densityHydrogen1'}+$data->{'densityHydrogen2'}                          );
-$data->{'heIonizedFraction'} = ($data->{'densityHelium2'  }+$data->{'densityHelium3'}                              )/($data->{'densityHelium1'  }+$data->{'densityHelium2'  }+$data->{'densityHelium3'});
-$data->{'electronFraction' } = ($data->{'densityHydrogen2'}+$data->{'densityHelium2'}+2.0*$data->{'densityHelium3'})/($data->{'densityHydrogen1'}+$data->{'densityHydrogen2'}                          );
-$igmFile->dataset('redshift'         )->set($data->{'redshift'         });
-$igmFile->dataset('matterTemperature')->set($data->{'temperature'      });
-$igmFile->dataset('hIonizedFraction' )->set($data->{'hIonizedFraction' });
-$igmFile->dataset('heIonizedFraction')->set($data->{'heIonizedFraction'});
-$igmFile->dataset('electronFraction' )->set($data->{'electronFraction' });
-$igmFile->attrSet(extrapolationAllowed => pdl long 1);
-$igmFile->attrSet(fileFormat           => pdl long 1);
+{
+    my $model         = new PDL::IO::HDF5( "outputs/validate_baryonicSuppression_IGM_evolution.hdf5");
+    my $igmFile       = new PDL::IO::HDF5(">outputs/validate_baryonicSuppression_IGM.hdf5"          );
+    my $data;
+    my $igmProperties = $model        ->group  ('igmProperties')       ;
+    $data->{$_}       = $igmProperties->dataset($_             )->get()
+	foreach ( 'redshift', 'temperature', 'densityHydrogen1', 'densityHydrogen2', 'densityHelium1', 'densityHelium2', 'densityHelium3' );
+    $data->{'hIonizedFraction' } =  $data->{'densityHydrogen2'}                                                         /($data->{'densityHydrogen1'}+$data->{'densityHydrogen2'}                          );
+    $data->{'heIonizedFraction'} = ($data->{'densityHelium2'  }+$data->{'densityHelium3'}                              )/($data->{'densityHelium1'  }+$data->{'densityHelium2'  }+$data->{'densityHelium3'});
+    $data->{'electronFraction' } = ($data->{'densityHydrogen2'}+$data->{'densityHelium2'}+2.0*$data->{'densityHelium3'})/($data->{'densityHydrogen1'}+$data->{'densityHydrogen2'}                          );
+    $igmFile->dataset('redshift'         )->set($data->{'redshift'         });
+    $igmFile->dataset('matterTemperature')->set($data->{'temperature'      });
+    $igmFile->dataset('hIonizedFraction' )->set($data->{'hIonizedFraction' });
+    $igmFile->dataset('heIonizedFraction')->set($data->{'heIonizedFraction'});
+    $igmFile->dataset('electronFraction' )->set($data->{'electronFraction' });
+    $igmFile->attrSet(extrapolationAllowed => pdl long 1);
+    $igmFile->attrSet(fileFormat           => pdl long 1);
+}
 
 # Establish bins in halo mass.
 my $massHaloLogarithmicBins = pdl sequence(8)/7.0*3.5+4.0;
