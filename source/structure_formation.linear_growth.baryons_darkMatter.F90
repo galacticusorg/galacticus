@@ -189,7 +189,7 @@ contains
     class           (intergalacticMediumStateClass), target   , intent(in   ) :: intergalacticMediumState_
     double precision                                                          :: timeBigCrunch                  , timeNow
     !![
-    <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, *cosmologyParameters_, *cosmologyParametersInitialConditions_, *cosmologyFunctions_, *intergalacticMediumState_"/>
+    <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, darkMatterOnlyInitialConditions, *cosmologyParameters_, *cosmologyParametersInitialConditions_, *cosmologyFunctions_, *intergalacticMediumState_"/>
     !!]
 
     self%tableInitialized      =.false.
@@ -349,8 +349,10 @@ contains
           growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
           !$ call OMP_Unset_Lock(lockDarkMatter)
           if (self%darkMatterOnlyInitialConditions) then
+             !$ call OMP_Set_Lock  (lockDarkMatter)
              call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
              growthFactorDerivativeBaryons=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+             !$ call OMP_Unset_Lock(lockDarkMatter)
           else
              !$ call OMP_Set_Lock  (lockBaryons   )
              call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
