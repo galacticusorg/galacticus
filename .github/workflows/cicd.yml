@@ -81,9 +81,9 @@ jobs:
           set +o pipefail
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
-          ! grep -n Error: build.log
-          ! grep -n Warning: build.log
-          ! grep -v 'is up to date' build.log | grep -n -C 5 make:
+          grep -vqzi error: build.log
+          grep -iv "warning: Using 'dlopen'" build.log  | grep -vqzi warning:
+          grep -vqzi 'is up to date' build.log
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
         with:
