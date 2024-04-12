@@ -82,7 +82,7 @@ jobs:
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
           grep -vqzi error: build.log
-          grep -iv "warning: Using 'dlopen'" build.log  | grep -vqzi warning:
+          grep -vqzi warning: build.log
           grep -vqzi 'is up to date' build.log
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
