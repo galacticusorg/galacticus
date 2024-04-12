@@ -38,33 +38,33 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                        , Unit_Tests_End_Group                                        , Unit_Tests_Finish
   use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
-  double precision                                                                 , dimension(5), parameter :: redshift                                                   =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
-  integer                                                                                        , parameter :: countFractionBaryon                                        =25
-  double precision                                                                               , parameter :: fractionBaryonsMaximum                                     =0.5d0
-  type            (cosmologyParametersSimple                                      )                          :: cosmologyParametersDMO_                                                                     , cosmologyParametersBaryons_
-  type            (cosmologyFunctionsMatterLambda                                 )                          :: cosmologyFunctionsMatterLambda_
-  type            (cosmologicalMassVarianceFilteredPower                          )                          :: cosmologicalMassVarianceFilteredPower_
-  type            (linearGrowthBaryonsDarkMatter                                  )                          :: linearGrowthBaryonsDarkMatter_
-  type            (linearGrowthCollisionlessMatter                                )                          :: linearGrowthCollisionlessMatter_
-  type            (intergalacticMediumStateSimple                                 )                          :: intergalacticMediumState_
-  type            (darkMatterParticleCDM                                          )                          :: darkMatterParticleCDM_
-  type            (powerSpectrumWindowFunctionSharpKSpace                         )                          :: powerSpectrumWindowFunctionSharpKSpace_
-  type            (powerSpectrumPrimordialPowerLaw                                )                          :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionIdentity                                       )                          :: transferFunctionIdentity_
-  type            (powerSpectrumPrimordialTransferredSimple                       )                          :: powerSpectrumPrimordialTransferredSimple_
-  type            (intergalacticMediumFilteringMassGnedin2000                     )                          :: intergalacticMediumFilteringMassGnedin2000_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt   )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
-  type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy       )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
+  double precision                                                                , dimension(5), parameter :: redshift                                                   =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0]
+  integer                                                                                       , parameter :: countFractionBaryon                                        =25
+  double precision                                                                              , parameter :: fractionBaryonsMaximum                                     =0.5d0
+  type            (cosmologyParametersSimple                                     )                          :: cosmologyParametersDMO_                                                                     , cosmologyParametersBaryons_
+  type            (cosmologyFunctionsMatterLambda                                )                          :: cosmologyFunctionsMatterLambda_
+  type            (cosmologicalMassVarianceFilteredPower                         )                          :: cosmologicalMassVarianceFilteredPower_
+  type            (linearGrowthBaryonsDarkMatter                                 )                          :: linearGrowthBaryonsDarkMatter_
+  type            (linearGrowthCollisionlessMatter                               )                          :: linearGrowthCollisionlessMatter_
+  type            (intergalacticMediumStateSimple                                )                          :: intergalacticMediumState_
+  type            (darkMatterParticleCDM                                         )                          :: darkMatterParticleCDM_
+  type            (powerSpectrumWindowFunctionSharpKSpace                        )                          :: powerSpectrumWindowFunctionSharpKSpace_
+  type            (powerSpectrumPrimordialPowerLaw                               )                          :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionIdentity                                      )                          :: transferFunctionIdentity_
+  type            (powerSpectrumPrimordialTransferredSimple                      )                          :: powerSpectrumPrimordialTransferredSimple_
+  type            (intergalacticMediumFilteringMassGnedin2000                    )                          :: intergalacticMediumFilteringMassGnedin2000_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
+  type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_
-  type            (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy     )                          :: virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_
-  character       (len=1024                                                       )                          :: message                                                                                     , outputFractions
-  integer                                                                                                    :: i                                                                                           , j                         , &
-       &                                                                                                        outputFile
-  double precision                                                                                           :: expansionFactor                                                                             , time                      , &
-       &                                                                                                        criticalOverdensityBaryons                                                                  , criticalOverdensityDMO    , &
-       &                                                                                                        virialDensityContrastBaryons                                                                , virialDensityContrastDMO  , &
-       &                                                                                                        radiusTurnaroundBaryons                                                                     , radiusTurnaroundDMO       , &
-       &                                                                                                        fractionBaryons
+  type            (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy    )                          :: virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_
+  character       (len=1024                                                      )                          :: message                                                                                     , outputFractions
+  integer                                                                                                   :: i                                                                                           , j                         , &
+       &                                                                                                       outputFile
+  double precision                                                                                          :: expansionFactor                                                                             , time                      , &
+       &                                                                                                       criticalOverdensityBaryons                                                                  , criticalOverdensityDMO    , &
+       &                                                                                                       virialDensityContrastBaryons                                                                , virialDensityContrastDMO  , &
+       &                                                                                                       radiusTurnaroundBaryons                                                                     , radiusTurnaroundDMO       , &
+       &                                                                                                       fractionBaryons
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -184,6 +184,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      cosmologicalMassVariance_            =cosmologicalMassVarianceFilteredPower_     , &
           &                                                                                                                      darkMatterParticle_                  =darkMatterParticleCDM_                     , &
           &                                                                                                                      intergalacticMediumFilteringMass_    =intergalacticMediumFilteringMassGnedin2000_, &
+          &                                                                                                                      tablePointsPerOctave                 =300                                        , &
           &                                                                                                                      tableStore                           =.false.                                    , &
           &                                                                                                                      energyFixedAt                        =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      normalization                        =1.0d0                                        &
@@ -195,6 +196,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
 
      virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_      =virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy     (                                                                                   &
           &                                                                                                                      tableStore                           =.true.                                     , &
+          &                                                                                                                      tablePointsPerOctave                 =300                                        , &
           &                                                                                                                      energyFixedAt                        =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      cosmologyParameters_                 =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyFunctions_                  =cosmologyFunctionsMatterLambda_            , &
