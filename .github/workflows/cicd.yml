@@ -81,9 +81,9 @@ jobs:
           set +o pipefail
           chmod u=wrx ./scripts/build/buildProfiler.pl
           ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
-          grep -vqzi error: build.log
-          grep -vqzi warning: build.log
-          grep -vqzi 'is up to date' build.log
+          grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
+          grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
+          grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
         with:
