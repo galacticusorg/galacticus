@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712739102073,
+  "lastUpdate": 1713044292017,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -333,6 +333,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/466c04b2b741a22d51551deb51143752b68dbcd7"
         },
         "date": 1712739100852,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 13.9314461307549,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 6.5537461106679,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 5.00086399252571,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ace5ce0714ef1f3e486e4cf3d7d2a643b828e999",
+          "message": "Merge pull request #600 from galacticusorg/featValidateBaryonicSuppression\n\nAdd a validation test for baryonic suppression of structure formation",
+          "timestamp": "2024-04-13T16:36:37Z",
+          "tree_id": "68fdbd599d3956a2242b5a837e1cbc29b6dc8bbb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ace5ce0714ef1f3e486e4cf3d7d2a643b828e999"
+        },
+        "date": 1713044291284,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
