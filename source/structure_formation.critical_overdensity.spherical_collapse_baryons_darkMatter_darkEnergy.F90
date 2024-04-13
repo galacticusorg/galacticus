@@ -47,6 +47,7 @@
      double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
           &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum
      double precision                                                                  :: normalization
+     integer                                                                           :: tablePointsPerOctave
      logical                                                                           :: tableStore
      type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: overdensityCriticalClustered                , overdensityCriticalUnclustered
@@ -97,6 +98,7 @@ contains
     double precision                                                                          :: normalization
     logical                                                                                   :: tableStore
     type            (varying_string                                          )                :: energyFixedAt
+    integer                                                                                   :: tablePointsPerOctave
 
     !![
     <inputParameter>
@@ -119,13 +121,19 @@ contains
         \citealt{percival_cosmological_2005}; \S8.)</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>tablePointsPerOctave</name>
+      <source>parameters</source>
+      <defaultValue>300</defaultValue>
+      <description>The number of points per octave of time at which to tabulate solutions.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"         name="cosmologicalMassVariance_"         source="parameters"/>
     <objectBuilder class="darkMatterParticle"               name="darkMatterParticle_"               source="parameters"/>
     <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
     !!]
-    self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),normalization)
+    self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),normalization)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"             />
@@ -137,7 +145,7 @@ contains
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,energyFixedAt,normalization) result(self)
+  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,energyFixedAt,normalization) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
     !!}
@@ -151,19 +159,20 @@ contains
     class           (darkMatterParticleClass                                 ), target  , intent(in   ) :: darkMatterParticle_
     class           (intergalacticMediumFilteringMassClass                   ), target  , intent(in   ) :: intergalacticMediumFilteringMass_
     logical                                                                             , intent(in   ) :: tableStore
+    integer                                                                             , intent(in   ) :: tablePointsPerOctave
     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType            )          , intent(in   ) :: energyFixedAt
     double precision                                                          , optional, intent(in   ) :: normalization
     !![
     <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, energyFixedAt, normalization"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, tablePointsPerOctave, energyFixedAt, normalization"/>
     !!]
 
     self%tableInitialized=.false.
     allocate(self%sphericalCollapseSolverClustered_  )
     allocate(self%sphericalCollapseSolverUnclustered_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,self%tablePointsPerOctave,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,self%tablePointsPerOctave,self%energyFixedAt,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     !!]
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
