@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712739060045,
+  "lastUpdate": 1713044262588,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "1f32936198271b9e5df881509f9be6aa4998aa4b",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2023-07-21T14:15:16Z",
-          "tree_id": "7a5cf54ad84d157ca14192aaccd9976aa0ca66ca",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1f32936198271b9e5df881509f9be6aa4998aa4b"
-        },
-        "date": 1689959834294,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.396,
-            "unit": "seconds",
-            "range": 0.0246251903530547
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8760,6 +8730,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20391.9532745316,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ace5ce0714ef1f3e486e4cf3d7d2a643b828e999",
+          "message": "Merge pull request #600 from galacticusorg/featValidateBaryonicSuppression\n\nAdd a validation test for baryonic suppression of structure formation",
+          "timestamp": "2024-04-13T16:36:37Z",
+          "tree_id": "68fdbd599d3956a2242b5a837e1cbc29b6dc8bbb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ace5ce0714ef1f3e486e4cf3d7d2a643b828e999"
+        },
+        "date": 1713044260883,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.191,
+            "unit": "seconds",
+            "range": 0.0559901777107139
           }
         ]
       }
