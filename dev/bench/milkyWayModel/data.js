@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1712739066701,
+  "lastUpdate": 1713044266166,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "4c70ce3c81e7f2a407ca546ff3baa2ff272b2025",
-          "message": "feat: Add a `galacticFilter` to select the most massive branch",
-          "timestamp": "2023-07-19T08:48:42-07:00",
-          "tree_id": "a92196979c460ef8b9a16f704989aecf4a6c6a0f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4c70ce3c81e7f2a407ca546ff3baa2ff272b2025"
-        },
-        "date": 1689791835390,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 153.258,
-            "unit": "seconds",
-            "range": 0.0938275013014038
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9305507730765,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ace5ce0714ef1f3e486e4cf3d7d2a643b828e999",
+          "message": "Merge pull request #600 from galacticusorg/featValidateBaryonicSuppression\n\nAdd a validation test for baryonic suppression of structure formation",
+          "timestamp": "2024-04-13T16:36:37Z",
+          "tree_id": "68fdbd599d3956a2242b5a837e1cbc29b6dc8bbb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ace5ce0714ef1f3e486e4cf3d7d2a643b828e999"
+        },
+        "date": 1713044265430,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 381.857,
+            "unit": "seconds",
+            "range": 0.298868031068483
           }
         ]
       }
