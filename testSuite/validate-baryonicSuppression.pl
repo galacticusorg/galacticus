@@ -120,13 +120,13 @@ $target->{'withBaryons_noReionization'}->[1] =
 # Define χ² targets for each dataset.
 my $chiSquaredTarget;
 $chiSquaredTarget->{'withBaryons'               }->[1] = 6.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[1] = 2.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[1] = 4.0;
 $chiSquaredTarget->{'withBaryons'               }->[2] = 3.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[2] = 1.0;
-$chiSquaredTarget->{'withBaryons'               }->[3] = 3.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[2] = 2.0;
+$chiSquaredTarget->{'withBaryons'               }->[3] = 5.0;
 $chiSquaredTarget->{'withBaryons_noReionization'}->[3] = 1.0;
-$chiSquaredTarget->{'withBaryons'               }->[4] = 2.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 1.0;
+$chiSquaredTarget->{'withBaryons'               }->[4] = 3.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 2.0;
 
 # Make output directory.
 system("mkdir -p outputs/");
