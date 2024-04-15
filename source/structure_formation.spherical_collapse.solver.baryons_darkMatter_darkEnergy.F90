@@ -35,6 +35,7 @@
      private
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      logical                                    :: baryonsCluster
+     integer                                    :: tablePointsPerOctave
    contains
      final     ::             baryonsDarkMatterDarkEnergyDestructor
      procedure :: tabulate => baryonsDarkMatterDarkEnergyTabulate
@@ -68,6 +69,7 @@ contains
     class  (cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
     type   (varying_string                                    )                :: energyFixedAt
     logical                                                                    :: baryonsCluster
+    integer                                                                    :: tablePointsPerOctave
 
     !![
     <inputParameter>
@@ -81,10 +83,16 @@ contains
       <defaultValue>var_str('turnaround')</defaultValue>
       <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
     </inputParameter>
+    <inputParameter>
+      <name>tablePointsPerOctave</name>
+      <source>parameters</source>
+      <defaultValue>300</defaultValue>
+      <description>The number of points per octave of time at which to tabulate solutions.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
+    self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -93,7 +101,7 @@ contains
     return
   end function baryonsDarkMatterDarkEnergyConstructorParameters
 
-  function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
     !!}
@@ -104,11 +112,12 @@ contains
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                        :: self
     logical                                                    , intent(in   )         :: baryonsCluster
+    integer                                                    , intent(in   )         :: tablePointsPerOctave
     type   (enumerationCllsnlssMttrDarkEnergyFixedAtType      ), intent(in   )         :: energyFixedAt
     class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="baryonsCluster, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
+    <constructorAssign variables="baryonsCluster, tablePointsPerOctave, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
     !!]
 
     self%fileNameCriticalOverdensity  =inputPath(pathTypeDataDynamic)                                                       // &
@@ -217,7 +226,7 @@ contains
     timeMinimum=2.0d0**floor  (log(timeMinimum)/log(2.0d0))
     timeMaximum=2.0d0**ceiling(log(timeMaximum)/log(2.0d0))
     ! Determine number of points to tabulate.
-    countTimes=nint(log(timeMaximum/timeMinimum)/log(2.0d0)*dble(tablePointsPerOctave))
+    countTimes=nint(log(timeMaximum/timeMinimum)/log(2.0d0)*dble(self%tablePointsPerOctave))
     ! Copy baryon clustering option to module-scope.
     baryonsCluster=self%baryonsCluster
     ! Deallocate table if currently allocated.
@@ -225,8 +234,8 @@ contains
        ! Store the current solution.
        timesPrevious      =sphericalCollapse_%xs()
        valuesPrevious     =sphericalCollapse_%ys()
-       iTimeMinimum       =nint(log(timesPrevious(                 1 )/timeMinimum)/log(2.0d0)*tablePointsPerOctave)+1
-       iTimeMaximum       =nint(log(timesPrevious(size(timesPrevious))/timeMinimum)/log(2.0d0)*tablePointsPerOctave)+1
+       iTimeMinimum       =nint(log(timesPrevious(                 1 )/timeMinimum)/log(2.0d0)*self%tablePointsPerOctave)+1
+       iTimeMaximum       =nint(log(timesPrevious(size(timesPrevious))/timeMinimum)/log(2.0d0)*self%tablePointsPerOctave)+1
        countTimesEffective=countTimes-(iTimeMaximum-iTimeMinimum+1)
        ! Destroy the table.
        call sphericalCollapse_%destroy()

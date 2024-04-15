@@ -313,7 +313,7 @@ my $ionizingLuminosityPerMass   = $integrand->($hydrogenContinuum,:,:)->sumover(
 my $logHydrogenLuminosities = pdl [ 48.0, 49.0, 50.0, 51.0, 52.0 ];
 
 # Define hydrogen densities, nₕ, to tabulate.
-my $logHydrogenDensities    = pdl [  1.0,  1.5,  2.0,  2.5,  3.0 ];
+my $logHydrogenDensities    = pdl [  1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ];
 
 # Define the list of lines to extract. The following dictionary contains keys which match the line names in the Cloudy emission
 # lines output file, and values which are our internal names for these lines.

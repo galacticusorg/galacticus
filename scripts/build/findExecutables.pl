@@ -54,7 +54,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	$(FCCOMPILER) -c {$workDirectoryName.$fileNameRoot}.parameters.F90 -o {$workDirectoryName.$fileNameRoot}.parameters.o $(FCFLAGS)
 	./scripts/build/sourceDigests.pl `pwd` {$fileNameRoot}.exe
 	$(CCOMPILER) -c {$workDirectoryName.$fileNameRoot}.md5s.c -o {$workDirectoryName.$fileNameRoot}.md5s.o $(CFLAGS)
-	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` {$workDirectoryName.$fileNameRoot}.parameters.o {$workDirectoryName.$fileNameRoot}.md5s.o -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)`
+	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` {$workDirectoryName.$fileNameRoot}.parameters.o {$workDirectoryName.$fileNameRoot}.md5s.o -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.pl
 
 MAKE
 	}

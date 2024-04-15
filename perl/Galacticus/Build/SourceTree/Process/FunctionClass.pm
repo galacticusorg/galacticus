@@ -2447,14 +2447,21 @@ CODE
 	    }
 
 	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
-            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n"; 
+            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n";
+	    if ( exists($directive->{'default'}) ) {
+		$documentationPhysics .= "Default implementation: \\refPhysics{".$directive->{'name'}.ucfirst($directive->{'default'})."}\n\n";
+	    } else {
+		$documentationPhysics .= "No default implementation\n\n";
+	    }
 	    foreach my $className ( sort {lc($a) cmp lc($b)} keys(%classes) ) {
 		my $class = $classes{$className};
                 (my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
                 $suffix = lcfirst($suffix)
                     unless ( $suffix =~ m/^[A-Z]{2}/ );
                 $documentationPhysics .= "\\subsection{\\normalfont \\ttfamily ".$suffix."}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
-                $documentationPhysics .= $class->{'description'}."\n";
+                $documentationPhysics .= $class->{'description'}."\n\n";
+		$documentationPhysics .= "\\noindent \\textbf{(Default)}\n\n"
+		    if ( exists($directive->{'default'}) && $directive->{'name'}.ucfirst($directive->{'default'}) eq $class->{'name'} );
                 $documentationPhysics .= "\\noindent \\emph{Implemented by} \\refClass{".$class->{'name'}."}\n";
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $classes{$className}->{'tree'}->{'firstChild'};

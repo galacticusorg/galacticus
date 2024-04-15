@@ -282,14 +282,14 @@ contains
        call    treeGroup %close()
        !$ call hdf5Access%unset()
        ! Free workspace.
-       deallocate(propertiesDouble   )
-       deallocate(propertiesInteger  )
-       deallocate(namesDouble        )
-       deallocate(namesInteger       )
-       deallocate(descriptionsDouble )
-       deallocate(descriptionsInteger)
-       deallocate(unitsInSIDouble    )
-       deallocate(unitsInSIInteger   )
+       if (allocated(propertiesDouble   )) deallocate(propertiesDouble   )
+       if (allocated(propertiesInteger  )) deallocate(propertiesInteger  )
+       if (allocated(namesDouble        )) deallocate(namesDouble        )
+       if (allocated(namesInteger       )) deallocate(namesInteger       )
+       if (allocated(descriptionsDouble )) deallocate(descriptionsDouble )
+       if (allocated(descriptionsInteger)) deallocate(descriptionsInteger)
+       if (allocated(unitsInSIDouble    )) deallocate(unitsInSIDouble    )
+       if (allocated(unitsInSIInteger   )) deallocate(unitsInSIInteger   )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do
