@@ -188,12 +188,12 @@ contains
        nullify(powerSpectrumWindowFunctionTopHat_)
     end if
     if      (parameters%isPresent('wavenumberReference')) then
-       if (parameters%isPresent('sigma_8'        )) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'        //{introspection:location})
-       if (parameters%isPresent('amplitudeScalar')) call Error_Report('amplitudeScalar must not be specified if a power spectrum amplitude is specified'//{introspection:location})
-       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Error_Report('parameters must contain a "reference" section'//{introspection:location})
+       if (              parameters%isPresent('sigma_8'                                                )) call Error_Report('sigma_8 must not be specified if a reference wavenumber is specified'                //{introspection:location})
+       if (              parameters%isPresent('amplitudeScalar'                                        )) call Error_Report('amplitudeScalar must not be specified if a reference wavenumber is specified'        //{introspection:location})
+       if (.not.         parameters%isPresent('reference'                         ,requireValue=.false.)) call Error_Report('parameters must contain a "reference" section if a reference wavenumber is specified'//{introspection:location})
        referenceParameters=parameters%subParameters('reference',requireValue=.false.)
-       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
-       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
+       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'                               )) call Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'            //{introspection:location})
+       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred'                     )) call Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'  //{introspection:location})
        !![
        <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
        <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />

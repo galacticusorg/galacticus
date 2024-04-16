@@ -208,7 +208,6 @@
   <outputAnalysis value="spinDistributionBett2007">
     <errorTolerant value="true"/>
     <logNormalRange value="1.44411312812926"/>
-    <timeRecent value="0.533408761742939"/>
   </outputAnalysis>
   <outputTimes value="list">
     <redshifts value="0.0"/>

@@ -431,7 +431,8 @@ contains
     integer         (omp_lock_kind                )                                  :: initializationLock
     integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
     !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters)
-    logical                                                                          :: checkpointRestored                        , checkpointing
+    logical                                                                          :: checkpointRestored                        , checkpointing              , &
+         &                                                                              universeUpdated
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -785,6 +786,7 @@ contains
           end if
           treesDidEvolve=.false.
           !$omp critical(universeTransform)
+          universeUpdated=.false.
           if (associated(self%universeProcessed%trees)) then
              ! Transfer processed trees back to the waiting universe.
              self%universeWaiting  %trees => self%universeProcessed%trees
@@ -795,7 +797,8 @@ contains
                 if (event_%time < universalEvolveToTime) then
                    call Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
                 else if (event_%time == universalEvolveToTime) then
-                   success=event_%task(self%universeWaiting)
+                   universeUpdated=.true.
+                   success        =event_%task(self%universeWaiting)
                    if (success) call self%universeWaiting%removeEvent(event_)
                    exit
                 end if
@@ -805,6 +808,8 @@ contains
           end if
           !$omp end critical(universeTransform)
           !$omp end master
+          !$omp barrier
+          if (universeUpdated) finished=.false.
           !$omp barrier
        end if
     end do treeProcess
