@@ -450,7 +450,7 @@ contains
              allocate(likelihoodPerBin    (             0 ))
              allocate(countHalosMeanPerBin(             0 ))
           end if
-          ! Assume Poisson statistics. We treat each bin as independent with a pure Poisson/negative binomial distribution.
+          ! Assume Poisson/negative binomial statistics. We treat each bin as independent with a pure Poisson/negative binomial distribution.
           haloMassFunctionEvaluate=0.0d0
           do i=1,size(self%mass)
              ! Find the mean number of halos expected in this bin based on our model mass function.
