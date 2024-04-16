@@ -293,6 +293,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     <!-- Parameters of the dark matter halo mass function. -->
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::a"/>
+      <label value="a" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.03"/>
 	<limitUpper value="3.00"/>
@@ -305,6 +306,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::b"/>
+      <label value="b" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-3.00"/>
 	<limitUpper value="+3.00"/>
@@ -317,6 +319,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
      <modelParameter value="active">
       <name value="haloMassFunctionParameters::c" />
+      <label value="c" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -329,6 +332,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::p"/>
+      <label value="p" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-3.0"/>
 	<limitUpper value="+3.0"/>
@@ -341,6 +345,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::q"/>
+      <label value="q" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-3.00"/>
 	<limitUpper value="+3.00"/>
@@ -353,6 +358,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::normalization"/>
+      <label value="A" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="0.00"/>
 	<limitUpper value="1.00"/>
@@ -367,6 +373,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     <!-- Pseudo-halo model parameters -->
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::normalizationPseudoHalos"/>
+      <label value="A" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="logUniform">
 	<limitLower value="1.0e-8"/>
 	<limitUpper value="1.0e-5"/>
@@ -379,6 +386,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::exponentMassParticlePseudoHalos"/>
+      <label value="\epsilon" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="+0.00"/>
 	<limitUpper value="+4.00"/>
@@ -391,6 +399,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::exponentNormalizationPseudoHalos" />
+      <label value="\alpha" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -403,6 +412,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::exponentMassPseudoHalos"/>
+      <label value="\beta" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-5.00"/>
 	<limitUpper value="-1.00"/>
@@ -415,6 +425,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::exponentRedshiftPseudoHalos"/>
+      <label value="\gamma" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-3.00"/>
 	<limitUpper value="+0.00"/>
@@ -426,6 +437,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
       </distributionFunction1DPerturber>
     </modelParameter>
     <modelParameter value="active">
+      <label value="\delta" ignoreWarnings="true"/>
       <name value="haloMassFunctionParameters::exponentOverdensityPseudoHalos"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-3.00"/>
@@ -441,6 +453,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     <!-- Window function parameters -->
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::cW0" />
+      <label value="c_\mathrm\{W,0\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -454,6 +467,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::beta0" />
+      <label value="\beta_0" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -467,6 +481,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::cW1" />
+      <label value="c_\mathrm\{W,1\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -480,6 +495,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::beta1" />
+      <label value="\beta_1" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -494,6 +510,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
 
     <modelParameter value="active">
       <name value="varianceFractionalModelDiscrepancy"/>
+      <label value="\mathcal\{C\}_\mathrm\{disc\}" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="logUniform">
     	<limitLower value="1.0e-6"/>
     	<limitUpper value="1.0e+0"/>
@@ -549,6 +566,7 @@ CODE
 	$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::perturbation{$perturbationLabel}" />
+      <label value="\epsilon_\mathrm\{{$perturbationLabel}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -581,6 +599,7 @@ CODE
 	$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::isolationBias{$isolationBiasLabel}" />
+      <label value="\mathcal\{I\}_\mathrm\{{$isolationBiasLabel}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -595,6 +614,7 @@ CODE
     </modelParameter>    
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::isolationBiasExponent{$isolationBiasLabel}" />
+      <label value="\alpha_\mathrm\{{$isolationBiasLabel}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -626,6 +646,7 @@ foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
     $configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::massMinimumParticleCount{$class}" />
+      <label value="N_\mathrm\{min,{$class}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -638,6 +659,7 @@ foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::efficiencyAtMassMinimum{$class}" />
+      <label value="\epsilon_\mathrm\{min,{$class}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -650,6 +672,7 @@ foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::exponentMassDetection{$class}" />
+      <label value="\alpha_\mathrm\{min,{$class}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -662,6 +685,7 @@ foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters::exponentRedshiftDetection{$class}" />
+      <label value="\beta_\mathrm\{min,{$class}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
