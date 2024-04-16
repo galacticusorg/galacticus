@@ -44,7 +44,8 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (haloEnvironmentClass         ), pointer :: haloEnvironment_          => null()
-     double precision                                         :: massBackground                     , factorMassEnvironment
+     double precision                                         :: massBackground                     , factorMassEnvironment     , &
+          &                                                      timePrevious                       , varianceBackgroundPrevious
    contains
      !![
      <methods>
@@ -126,6 +127,9 @@ contains
     ! Evaluate and store the mass of the background.
     self%massBackground=+                      factorMassEnvironment   &
          &              *self%haloEnvironment_%environmentMass      ()
+    ! Initialize memoized results.
+    self%timePrevious              =-huge(0.0d0)
+    self%varianceBackgroundPrevious=-huge(0.0d0)
     return
   end function variancePeakBackgroundSplitConstructorInternal
 
@@ -223,9 +227,12 @@ contains
     varianceTotal     =self%cosmologicalMassVariance_%rootVariance      (mass,time)**2
     varianceBackground=self                          %varianceBackground(     time)
     if (varianceTotal > varianceBackground) then
-       variancePeakBackgroundSplitRootVarianceLogarithmicGradient=+self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time)    &
-            &                                                     *                               varianceTotal                                 &
-            &                                                     /self                          %rootVariance                   (mass,time)**2
+       variancePeakBackgroundSplitRootVarianceLogarithmicGradient=+self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time) &
+            &                                                     *                               varianceTotal                              &
+            &                                                     /(                                                                         &
+            &                                                       +                             varianceTotal                              &
+            &                                                       -                             varianceBackground                         &
+            &                                                      )
     else
        variancePeakBackgroundSplitRootVarianceLogarithmicGradient=+0.0d0
     end if
@@ -239,20 +246,24 @@ contains
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
-    double precision                                             , intent(in   ) :: mass         , time
-    double precision                                             , intent(  out) :: rootVariance , rootVarianceLogarithmicGradient
-    double precision                                                             :: varianceTotal, varianceBackground
+    double precision                                             , intent(in   ) :: mass             , time
+    double precision                                             , intent(  out) :: rootVariance     , rootVarianceLogarithmicGradient
+    double precision                                                             :: varianceTotal    , varianceBackground                  , &
+         &                                                                          variance         , rootVarianceTotalLogarithmicGradient, &
+         &                                                                          rootVarianceTotal
 
-    varianceTotal     =self%cosmologicalMassVariance_%rootVariance      (mass,time)**2
-    varianceBackground=self                          %varianceBackground(     time)
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,time,rootVarianceTotal,rootVarianceTotalLogarithmicGradient)
+    varianceTotal     =     rootVarianceTotal       **2
+    varianceBackground=self%varianceBackground(time)
     if (varianceTotal > varianceBackground) then
-       rootVariance                   =+sqrt(                                                                              &
-            &                                +varianceTotal                                                                &
-            &                                -varianceBackground                                                           &
-            &                               )
-       rootVarianceLogarithmicGradient=+      self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time)    &
-            &                          *                                     varianceTotal                                 &
-            &                          /                                     rootVariance                              **2
+       variance                       =+(                    &
+            &                            +varianceTotal      &
+            &                            -varianceBackground &
+            &                           )
+       rootVariance                   =+sqrt(variance)
+       rootVarianceLogarithmicGradient=+rootVarianceTotalLogarithmicGradient &
+            &                          *varianceTotal                        &
+            &                          /variance
     else
        rootVariance                   =+0.0d0
        rootVarianceLogarithmicGradient=+0.0d0
@@ -290,10 +301,14 @@ contains
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     double precision                                             , intent(in   ) :: time
 
-    if (self%massBackground < huge(0.0d0)) then
-       variancePeakBackgroundSplitVarianceBackground=self%cosmologicalMassVariance_%rootVariance(self%massBackground,time)**2
-    else
-       variancePeakBackgroundSplitVarianceBackground=0.0d0
+    if (time /= self%timePrevious) then
+       self%timePrevious=time
+       if (self%massBackground < huge(0.0d0)) then
+          self%varianceBackgroundPrevious=self%cosmologicalMassVariance_%rootVariance(self%massBackground,time)**2
+       else
+          self%varianceBackgroundPrevious=0.0d0
+       end if
     end if
+    variancePeakBackgroundSplitVarianceBackground=self%varianceBackgroundPrevious
     return
   end function variancePeakBackgroundSplitVarianceBackground
