@@ -203,12 +203,12 @@ contains
 
       ! Get the error at this mass scale.
       call basic%massSet(massPrime)
-      massError=+massPrime                                                                &
+      massError              =+massPrime                                                  &
            &                  *min(                                                       &
            &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
            &                       self%errorFractionalMaximum                            &
            &                      )
-      ! Return the convolution integrand.
+      ! Return the convolution integrand. Ignore factors of √2π here as these will cancel out in the above.
       errorConvolvedConvolution=+massFunctionIntrinsic%differential(time_,massPrime,node=node) &
            &                    *exp(                                                          &
            &                         -0.5d0                                                    &
@@ -220,10 +220,6 @@ contains
            &                           /massError                                              &
            &                          )**2                                                     &
            &                        )                                                          &
-           &                    /sqrt(                                                         &
-           &                          +2.0d0                                                   &
-           &                          *Pi                                                      &
-           &                         )                                                         &
            &                    /massError
       return
     end function errorConvolvedConvolution
@@ -243,7 +239,7 @@ contains
            &                       self%nbodyHaloMassError_   %errorFractional(nodeWork), &
            &                       self%errorFractionalMaximum                            &
            &                      )
-      ! Return the convolution integrand.
+      ! Return the convolution integrand. Ignore factors of √2π here as these will cancel out in the above.
       errorConvolvedNormalization=+exp(                                                   &
            &                           -0.5d0                                             &
            &                           *(                                                 &
@@ -254,10 +250,6 @@ contains
            &                             /massError                                       &
            &                            )**2                                              &
            &                          )                                                   &
-           &                      /sqrt(                                                  &
-           &                            +2.0d0                                            &
-           &                            *Pi                                               &
-           &                           )                                                  &
            &                      /massError
       return
     end function errorConvolvedNormalization
