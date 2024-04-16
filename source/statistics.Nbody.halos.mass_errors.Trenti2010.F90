@@ -28,7 +28,7 @@ Contains a module which implements an N-body dark matter halo mass error class u
    <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
   </nbodyHaloMassError>
   !!]
-  type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorTrenti2010
+  type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorTrenti2010
      !!{
      An N-body halo mass error class using the model of \cite{trenti_how_2010}.
      !!}
@@ -36,10 +36,12 @@ Contains a module which implements an N-body dark matter halo mass error class u
      ! Parameters of the correlation model.
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
      double precision                                   :: correlationNormalization             , correlationMassExponent, &
-          &                                                correlationRedshiftExponent          , massParticle
+          &                                                correlationRedshiftExponent          , massParticle           , &
+          &                                                normalization
    contains
-     final     ::                trenti2010Destructor
-     procedure :: correlation => trenti2010Correlation
+     final     ::                    trenti2010Destructor
+     procedure :: errorFractional => trenti2010ErrorFractional
+     procedure :: correlation     => trenti2010Correlation
   end type nbodyHaloMassErrorTrenti2010
 
   interface nbodyHaloMassErrorTrenti2010
@@ -110,21 +112,23 @@ contains
     comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
     normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error              , only : Error_Report
+    use :: Math_Exponentiation, only : cubeRoot
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                                  :: self
     double precision                              , intent(in   )                   :: massParticle
-    double precision                              , intent(in   ), optional         :: correlationNormalization               , correlationMassExponent, &
+    double precision                              , intent(in   ), optional         :: correlationNormalization             , correlationMassExponent, &
          &                                                                             correlationRedshiftExponent
     class           (cosmologyFunctionsClass     ), intent(in   ), optional, target :: cosmologyFunctions_
-    double precision                              , parameter                       :: exponent                =-1.000d0/3.0d0
-    double precision                              , parameter                       :: normalization           =+0.135d0
-    double precision                              , parameter                       :: particleNumberReference =+1.000d3
+    double precision                              , parameter                       :: normalization               =+0.135d0
+    double precision                              , parameter                       :: particleNumberReference     =+1.000d3
 
-    self%massParticle                  =massParticle
-    self%normalizationSquared          =(normalization*(massReference/particleNumberReference/massParticle)**exponent)**2
-    self%exponent                      =                                                                     exponent
-    self%fractionalErrorHighMassSquared=+0.0d0
+    self%massParticle =+massParticle
+    self%normalization=+normalization                     &
+         &             *cubeRoot(                         &
+         &                       +particleNumberReference &
+         &                       *massParticle            &
+         &                      )
     ! Set correlation properties.
     if (present(correlationNormalization).or.present(correlationMassExponent).or.present(correlationRedshiftExponent)) then
        if (.not.(present(correlationNormalization).and.present(correlationMassExponent).and.present(correlationRedshiftExponent))) &
@@ -161,6 +165,23 @@ contains
     end if
     return
   end subroutine trenti2010Destructor
+
+  double precision function trenti2010ErrorFractional(self,node)
+    !!{
+    Return the fractional error on the mass of an N-body halo in the power-law error model.
+    !!}
+    use :: Galacticus_Nodes   , only : nodeComponentBasic, treeNode
+    use :: Math_Exponentiation, only : cubeRoot
+    implicit none
+    class           (nbodyHaloMassErrorTrenti2010), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    class           (nodeComponentBasic          ), pointer       :: basic
+
+    basic                     =>           node %basic        ()
+    trenti2010ErrorFractional =  +         self %normalization    &
+         &                       /cubeRoot(basic%mass         ())
+    return
+  end function trenti2010ErrorFractional
 
   double precision function trenti2010Correlation(self,node1,node2)
     !!{
