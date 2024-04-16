@@ -187,26 +187,27 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout), target   :: self
-    double precision                                  , intent(in   )           :: time   , mass
+    double precision                                  , intent(in   )           :: time                           , mass
     type            (treeNode                        ), intent(inout), optional :: node
-    double precision                                                            :: alpha  , nu          , &
-         &                                                                         nuPrime, massVariance
+    double precision                                                            :: alpha                          , nu          , &
+         &                                                                         nuPrime                        , rootVariance, &
+         &                                                                         rootVarianceLogarithmicGradient
 
     ! Set a default value.
     bhattacharya2011Differential=0.0d0
     ! Determine the mass variance. If zero, return zero mass function.
-    massVariance=self%cosmologicalMassVariance_%rootVariance(mass,time)
-    if (massVariance <=    0.0d0) return
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,time,rootVariance,rootVarianceLogarithmicGradient)
+    if (rootVariance <=    0.0d0) return
     ! Compute the mass function.
     nu                     =+(                                                                &
          &                    +self%criticalOverdensity_%value(time=time,mass=mass,node=node) &
-         &                    /massVariance                                                   &
+         &                    /rootVariance                                                   &
          &                   )**2
     if (nu           <=    0.0d0) return
     nuPrime                =+self%a(time,mass)                                                &
          &                  *nu
     if (nuPrime      >  1500.0d0) return ! Exponential term will be zero beyond this point.
-    alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))
+    alpha                  =+abs(rootVarianceLogarithmicGradient)
     bhattacharya2011Differential=+self%cosmologyParameters_%OmegaMatter    () &
          &                       *self%cosmologyParameters_%densityCritical() &
          &                       /mass**2                                     &
