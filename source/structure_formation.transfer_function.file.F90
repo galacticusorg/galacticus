@@ -388,32 +388,36 @@ contains
     call fileObject%close()
     !$ call hdf5Access%unset()
     ! Validate the transfer functions.
-    if (any(transferDarkMatter == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
-    if (any(transferDarkMatter <  0.0d0)) then
-       if (self%acceptNegativeValues) then
-          transferDarkMatter=abs(transferDarkMatter)
-       else
-          call Error_Report(                                                                                                                                                                  &
-          &                 'tabulated dark matter transfer function contains points at which T(k) < 0 - all points must be positive'                               //char(10)             // &
-          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
-          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
-          &                 {introspection:location}                                                                                                                                          &
-          &                 )
+    if (allocated(transferDarkMatter)) then
+       if (any(transferDarkMatter == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+       if (any(transferDarkMatter <  0.0d0)) then
+          if (self%acceptNegativeValues) then
+             transferDarkMatter=abs(transferDarkMatter)
+          else
+             call Error_Report(                                                                                                                                                                  &
+                  &            'tabulated dark matter transfer function contains points at which T(k) < 0 - all points must be positive'                               //char(10)             // &
+                  &            displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+                  &            '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                  &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+                  &            {introspection:location}                                                                                                                                          &
+                  &           )
+          end if
        end if
     end if
-    if (any(transferBaryons  == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
-    if (any(transferBaryons  <  0.0d0)) then
-       if (self%acceptNegativeValues) then
-          transferBaryons =abs(transferBaryons )
-       else
-          call Error_Report(                                                                                                                                                                  &
-          &                 'tabulated baryon transfer function contains points at which T(k) < 0 - all points must be positive'                                    //char(10)             // &
-          &                 displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
-          &                 '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-          &                 'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
-          &                 {introspection:location}                                                                                                                                          &
-          &                 )
+    if (allocated(transferBaryons   )) then
+       if (any(transferBaryons  == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+       if (any(transferBaryons  <  0.0d0)) then
+          if (self%acceptNegativeValues) then
+             transferBaryons =abs(transferBaryons )
+          else
+             call Error_Report(                                                                                                                                                                  &
+                  &            'tabulated baryon transfer function contains points at which T(k) < 0 - all points must be positive'                                    //char(10)             // &
+                  &            displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+                  &            '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                  &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+                  &            {introspection:location}                                                                                                                                          &
+                  &           )
+          end if
        end if
     end if
     ! Construct the final transfer function.
