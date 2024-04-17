@@ -142,6 +142,7 @@ contains
     !!{
     Return the integrated halo mass function at the given time and mass.
     !!}
+    use :: Error, only : errorStatusSuccess
     implicit none
     class           (haloMassFunctionAccelerator), intent(inout), target           :: self
     double precision                             , intent(in   )                   :: time    , massLow, &
@@ -152,6 +153,7 @@ contains
     call self%tabulate(time,massLow,massHigh,node)
     massFunction=-exp(self%massFunctionIntegrated_%interpolate(log(massHigh))) &
          &       +exp(self%massFunctionIntegrated_%interpolate(log(massLow )))
+    if (present(status)) status=errorStatusSuccess
     return
   end function acceleratorIntegrated
   
@@ -187,6 +189,7 @@ contains
     double precision                             , allocatable  , dimension(:)           :: mass                                                       , massFunction, &
          &                                                                                  massFunctionIntegrated                                     , massFraction
     double precision                             , parameter                             :: massRatio             =exp(log(2.0d0)/countPointsPerOctave)
+    double precision                             , parameter                             :: massFunctionTiny      =1.0d-100
     double precision                                                                     :: massMinimum                                                , massMaximum , &
          &                                                                                  slope
     integer         (c_size_t                   )                                        :: countMasses                                                , iMinimum    , &
@@ -235,11 +238,11 @@ contains
        ! Skip cases for which we have a pre-existing solution.
        if (i >= iMinimum .and. i <= iMaximum) cycle
        ! Evaluate the mass function.
-       massFunction(i)=max(self%haloMassFunction_%differential(time,mass(i),node),tiny(0.0d0))
+       massFunction(i)=max(self%haloMassFunction_%differential(time,mass(i),node),massFunctionTiny)
     end do
     ! Compute the integrated mass function.
-    massFraction         (countMasses)=tiny(0.0d0)
-    massFunctionIntegrated(countMasses)=tiny(0.0d0)
+    massFraction          (countMasses)=massFunctionTiny
+    massFunctionIntegrated(countMasses)=massFunctionTiny
     do i=countMasses-1,1,-1
        slope  =+log(                   &
             &       +massFunction(i+1) &
