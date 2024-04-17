@@ -370,7 +370,7 @@ contains
     double precision                                                                         :: countHalosMean                           , stoppingTimeParameter   , &
          &                                                                                      varianceFractionalModelDiscrepancy       , logLikelihood
     type            (varying_string                           )                              :: message
-    character       (len=16                                   )                              :: label
+    character       (len=17                                   )                              :: label
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -446,6 +446,8 @@ contains
           if (self%report) then
              allocate(likelihoodPerBin    (size(self%mass)))
              allocate(countHalosMeanPerBin(size(self%mass)))
+             likelihoodPerBin    =+0.0d0
+             countHalosMeanPerBin=-1.0d0
           else
              allocate(likelihoodPerBin    (             0 ))
              allocate(countHalosMeanPerBin(             0 ))
@@ -484,10 +486,9 @@ contains
                         &        -          stoppingTimeParameter    *log                       (countHalosMean/stoppingTimeParameter+1.0d0                       )
                    if (self%report) likelihoodPerBin(i)=logLikelihood
                 end if
-                haloMassFunctionEvaluate=+haloMassFunctionEvaluate      &
+                haloMassFunctionEvaluate=+haloMassFunctionEvaluate &
                      &                   +logLikelihood
-                &                   
-                     if (self%report) likelihoodPerBin(i)=logLikelihood
+                if (self%report) likelihoodPerBin(i)=logLikelihood
              end if
           end do
        else
@@ -500,7 +501,7 @@ contains
     end if
     if (self%report) then
        call displayIndent("Likelihood report for: "//char(self%fileName))
-       write (label,'(e16.10)') haloMassFunctionEvaluate
+       write (label,'(e17.10)') haloMassFunctionEvaluate
        if (self%likelihoodPoisson) then
           if (varianceFractionalModelDiscrepancy <= 0.0d0) then
              call displayMessage("Likelihood model: Poisson"          )
@@ -510,23 +511,27 @@ contains
        else
           call    displayMessage("Likelihood model: normal"           )
        end if
-       call displayMessage("logℒ = "//trim(label))
-       if (self%likelihoodPoisson) then 
-          call displayIndent("per bin likelihoods")
-          do i=1,size(self%mass)
-             write (label,'(i4)') i
-             message=trim(label)//": "
-             write (label,'(e16.10)') log10(self%mass                (i))
-             message=message//"log₁₀(M/M☉) = " //trim(label)//"; "
-             write (label,'(e16.10)')            likelihoodPerBin    (i)
-             message=message//"logℒ = "        //trim(label)//"; "
-             write (label,'(i07)'   )       self%countHalos          (i)
-             message=message//"Nhalo(target) = "//trim(label)//"; "
-             write (label,'(e16.10)')            countHalosMeanPerBin(i)
-             message=message//"Nhalo(model) = " //trim(label)
-             call displayMessage(message)
-          end do
-          call displayUnindent("done")
+       if (evaluationFailed) then
+          call displayMessage("model evaluation failed - no likelihood computed")
+       else
+          call displayMessage("logℒ = "//trim(label))
+          if (self%likelihoodPoisson) then
+             call displayIndent("per bin likelihoods")
+             do i=1,size(self%mass)
+                write (label,'(i4)') i
+                message=trim(label)//": "
+                write (label,'(e17.10)') log10(self%mass                (i))
+                message=message//"log₁₀(M/M☉) = " //trim(label)//"; "
+                write (label,'(e17.10)')            likelihoodPerBin    (i)
+                message=message//"logℒ = "        //trim(label)//"; "
+                write (label,'(i07)'   )       self%countHalos          (i)
+                message=message//"Nhalo(target) = "//trim(label)//"; "
+                write (label,'(e17.10)')            countHalosMeanPerBin(i)
+                message=message//"Nhalo(model) = " //trim(label)
+                call displayMessage(message)
+             end do
+             call displayUnindent("done")
+          end if
        end if
        call displayUnindent("done")
     end if
