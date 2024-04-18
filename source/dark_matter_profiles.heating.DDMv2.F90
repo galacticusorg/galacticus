@@ -37,6 +37,7 @@
      !!}
      private
      class           (darkMatterParticleClass), pointer     :: darkMatterParticle_     => null()
+     class           (darkMatterHaloScaleClass     ), pointer             :: darkMatterHaloScale_ => null()
      logical                                                :: heating_, massLoss_
      double precision                                       :: lifetime_, massSplitting_, gamma_
   contains
@@ -64,19 +65,22 @@ contains
     type            (darkMatterProfileHeatingDDMv2), target              :: self
     type            (inputParameters              ), intent(inout)       :: parameters
     class           (darkMatterParticleClass      ), pointer             :: darkMatterParticle_
+    class           (darkMatterHaloScaleClass     ), pointer             :: darkMatterHaloScale_
          
     !![
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=darkMatterProfileHeatingDDMv2(darkMatterParticle_)
+    self=darkMatterProfileHeatingDDMv2(darkMatterParticle_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"  />
+    <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function DDMv2ConstructorParameters
 
-  function DDMv2ConstructorInternal(darkMatterParticle_) result(self)
+  function DDMv2ConstructorInternal(darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily DDM} dark matter profile heating scales class.
     !!}
@@ -84,8 +88,9 @@ contains
     implicit none
     type            (darkMatterProfileHeatingDDMv2)                        :: self
     class           (darkMatterParticleClass      ), intent(in   ), target :: darkMatterParticle_
+    class           (darkMatterHaloScaleClass    ), intent(in   ), target  :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="*darkMatterParticle_"/>
+    <constructorAssign variables="*darkMatterParticle_,*darkMatterHaloScale_"/>
     !!]
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
@@ -113,13 +118,16 @@ contains
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Statistics_Distributions    , only : distributionFunction1DNonCentralChiDegree3
     implicit none
     class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     class           (nodeComponentBasic           ), pointer       :: basic
-    double precision                                               :: heatingEnergy, massLossEnergy
+    double precision                               , parameter     :: fractionRadiusVirialMaximum=1.0d3
+    type            (distributionFunction1DNonCentralChiDegree3)   :: distributionSpeed
+    double precision                                               :: heatingEnergy, massLossEnergy, decayingEscapeFraction, velocityDispersion, velocityEscape
 
     basic             => node%basic()
     heatingEnergy = 0.0d0
@@ -133,7 +141,38 @@ contains
                             &             *darkMatterProfileDMO_%enclosedMass(node, radius)        &
                             &             *gravitationalConstantGalacticus/radius                  &
                             &             *(+1.0d0 - exp(-basic%time() / self%lifetime_))
-    DDMv2SpecificEnergy = heatingEnergy + massLossEnergy
+    velocityDispersion=darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    if (velocityDispersion > 0.0d0) then
+      if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+        velocityEscape=+sqrt(                                                                                                              &
+            &               +2.0d0                                                                                                         &
+            &               *(                                                                                                             &
+            &         +darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
+            &                 -darkMatterProfileDMO_%potential(node,radius            )                                               &
+            &                )                                                                                                             &
+            &              )
+      else
+        velocityEscape=+0.0d0
+      end if
+      distributionSpeed     =distributionFunction1DNonCentralChiDegree3(                                                                   &
+            &                                                            +(                                                                &
+            &              +self%massSplitting_                                                                                            &
+            &              *speedLight                                                                                                     &
+            &                                                              /kilo                                                           &
+            &              /velocityDispersion                                                                                             &
+            &                                                             )**2                                                             &
+            &                                                           )
+      decayingEscapeFraction=+1.0d0                           &
+            &                 -distributionSpeed%cumulative(  &
+            &                                               ( &
+            &                                 +velocityEscape &
+            &                             /velocityDispersion &
+            &                                            )**2 &
+            &                                              )
+    else
+      decayingEscapeFraction = +1.0d0
+    end if
+    DDMv2SpecificEnergy = (1.0d0-decayingEscapeFraction)*heatingEnergy + (decayingEscapeFraction+self%massSplitting_*(1.0d0-decayingEscapeFraction))*massLossEnergy
     return
   end function DDMv2SpecificEnergy
 
@@ -146,25 +185,106 @@ contains
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Statistics_Distributions    , only : distributionFunction1DNonCentralChiDegree3
     implicit none
     class           (darkMatterProfileHeatingDDMv2), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
     class           (nodeComponentBasic           ), pointer       :: basic
-    double precision                                               :: heatGradient, massLossGradient
+    double precision                               , parameter     :: fractionRadiusVirialMaximum=1.0d3
+    double precision                               , parameter     :: radiusEpsilon=1.0d-6
+    type            (distributionFunction1DNonCentralChiDegree3)   :: distributionSpeed
+    double precision                                               :: heatGradient, massLossGradient, decayingEscapeFractionGradient, decayingEscapeFraction, decayingEscapeFractionUpper, velocityDispersion, velocityDispersionUpper, velocityEscape, velocityEscapeUpper, radiusUpper, massLossEnergy, heatingEnergy
 
     basic             => node%basic()
+    massLossEnergy = +0.0d0
+    heatingEnergy = +0.0d0
     if (self%massLoss_) then
       massLossGradient=self%gamma_*self%massSplitting_                                                              &
              &        *(darkMatterProfileDMO_%enclosedMass(node, radius)*gravitationalConstantGalacticus/radius&
              &        +gravitationalConstantGalacticus*4.0d0*Pi*darkMatterProfileDMO_%density(node, radius)*radius**2)/radius &
              &        *(+1.0d0 - exp(-basic%time() / self%lifetime_))
+      massLossEnergy =  self%gamma_*self%massSplitting_ &
+                            & *darkMatterProfileDMO_%enclosedMass(node, radius)        &
+                            & *gravitationalConstantGalacticus/radius                  &
+                            &             *(+1.0d0 - exp(-basic%time() /self%lifetime_))
     else
       massLossGradient=+0.0d0
     end if
+    if (self%heating_) then
+      heatingEnergy = +0.5d0*( &
+                        &              +1.0d0 - exp(-basic%time() / self%lifetime_)                 &
+                        &                     ) &
+                        &              *self%massSplitting_**2 &
+                        &              *(speedLight/kilo)**2
+    end if
+    velocityDispersion=darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    if (velocityDispersion > 0.0d0) then
+      if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+        velocityEscape=+sqrt(                 &
+            &               +2.0d0            &
+            &               *(                &
+            &+darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node))&
+            &                 -darkMatterProfileDMO_%potential(node,radius)                                                 &
+            &                )                &
+            &              )
+      else
+        velocityEscape=+0.0d0
+      end if
+      distributionSpeed     =distributionFunction1DNonCentralChiDegree3( &
+            &                                                            +( &
+            &              +self%massSplitting_                             &
+            &              *speedLight                                      &
+            &                                                              /kilo &
+            &              /velocityDispersion                                   &
+            &                                                             )**2   &
+            &                                                           )
+      decayingEscapeFraction=+1.0d0                           &
+            &                 -distributionSpeed%cumulative(  &
+            &                                               ( &
+            &                                 +velocityEscape &
+            &                             /velocityDispersion &
+            &                                            )**2 &
+            &                                              )
+    else
+      decayingEscapeFraction = +1.0d0
+    end if
+    radiusUpper = radius+radiusEpsilon
+    velocityDispersionUpper=darkMatterProfileDMO_%radialVelocityDispersion(node,radiusUpper)
+    if (velocityDispersionUpper > 0.0d0) then
+      if (radiusUpper < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+        velocityEscapeUpper=+sqrt(                 &
+        &               +2.0d0            &
+        &               *(                &
+        &+darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node))&
+        &-darkMatterProfileDMO_%potential(node,radiusUpper) &
+        &                )                &
+        &              )
+      else
+        velocityEscapeUpper=+0.0d0
+      end if
+      distributionSpeed     =distributionFunction1DNonCentralChiDegree3( &
+      &                                                            +( &
+      &              +self%massSplitting_                             &
+      &              *speedLight                                      &
+      &                                                              /kilo &
+      &              /velocityDispersionUpper                                   &
+      &                                                             )**2   &
+      &                                                           )
+      decayingEscapeFractionUpper=1.0d0                           &
+      &                 -distributionSpeed%cumulative(  &
+      &                                               ( &
+      &                                 +velocityEscapeUpper &
+      &                             /velocityDispersionUpper &
+      &                                            )**2 &
+      &                                              )
+    else
+      decayingEscapeFractionUpper=+1.0d0
+    end if
+    decayingEscapeFractionGradient = (decayingEscapeFractionUpper-decayingEscapeFractionUpper-decayingEscapeFraction)/radiusEpsilon
     heatGradient=+0.0d0
-    DDMv2SpecificEnergyGradient = massLossGradient + heatGradient
+    DDMv2SpecificEnergyGradient = (decayingEscapeFraction-self%massSplitting_*(1.0d0-decayingEscapeFraction))*massLossGradient + decayingEscapeFractionGradient*(1.0d0-self%massSplitting_)*massLossEnergy - decayingEscapeFractionGradient*heatingEnergy
     return
   end function DDMv2SpecificEnergyGradient
 
