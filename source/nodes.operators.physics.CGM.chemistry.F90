@@ -27,7 +27,6 @@
   use :: Chemical_Reaction_Rates               , only : chemicalReactionRateClass
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales               , only : darkMatterHaloScaleClass
-  use :: Hot_Halo_Mass_Distributions           , only : hotHaloMassDistributionClass
   use :: Radiation_Fields                      , only : radiationFieldClass                   , crossSectionFunctionTemplate
   use :: Numerical_Constants_Physical          , only : plancksConstant                       , speedLight
   use :: Numerical_Constants_Units             , only : angstromsPerMeter                     , electronVolt
@@ -80,7 +79,6 @@
      class           (chemicalReactionRateClass              ), pointer                   :: chemicalReactionRate_              => null()
      class           (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_               => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                => null()
-     class           (hotHaloMassDistributionClass           ), pointer                   :: hotHaloMassDistribution_           => null()
      class           (radiationFieldClass                    ), pointer                   :: radiation_                         => null()
      logical                                                  , allocatable, dimension(:) :: maskAnalytic
      integer                                                                              :: atomicHydrogenIndex                         , atomicHydrogenCationIndex, &
@@ -144,7 +142,6 @@ contains
     class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (radiationFieldClass                   ), pointer       :: radiation_
-    class           (hotHaloMassDistributionClass          ), pointer       :: hotHaloMassDistribution_
     double precision                                                        :: fractionTimescaleEquilibrium
 
     !![
