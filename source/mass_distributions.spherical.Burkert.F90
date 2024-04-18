@@ -221,20 +221,20 @@ contains
     ! Initialize memoized results.
     self%densityScaleFreeMinimum                      =+huge(0.0d0)
     self%densityScaleFreeMaximum                      =-huge(0.0d0)
-    self%densityScaleFreeRadiusMinimum                =+2.0d0
-    self%densityScaleFreeRadiusMaximum                =+0.5d0
+    self%densityScaleFreeRadiusMinimum                =+1.0d0
+    self%densityScaleFreeRadiusMaximum                =+1.0d0
     self%massScaleFreeMinimum                         =+huge(0.0d0)
     self%massScaleFreeMaximum                         =-huge(0.0d0)
-    self%massScaleFreeRadiusMinimum                   =+2.0d0
-    self%massScaleFreeRadiusMaximum                   =+0.5d0
+    self%massScaleFreeRadiusMinimum                   =+1.0d0
+    self%massScaleFreeRadiusMaximum                   =+1.0d0
     self%angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0)
     self%angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeRadiusMinimum=+2.0d0
-    self%angularMomentumSpecificScaleFreeRadiusMaximum=+0.5d0
+    self%angularMomentumSpecificScaleFreeRadiusMinimum=+1.0d0
+    self%angularMomentumSpecificScaleFreeRadiusMaximum=+1.0d0
     self%timeFreefallScaleFreeMinimum                 =+huge(0.0d0)
     self%timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
-    self%timeFreefallScaleFreeRadiusMinimum           =+2.0d0
-    self%timeFreefallScaleFreeRadiusMaximum           =+0.5d0
+    self%timeFreefallScaleFreeRadiusMinimum           =+1.0d0
+    self%timeFreefallScaleFreeRadiusMaximum           =+1.0d0
     return
   end function massDistributionBurkertConstructorInternal
 
@@ -420,7 +420,7 @@ contains
     !!{
     Computes the radius enclosing a given mass or mass fraction for burkert mass distributions.
     !!}    
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
+    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
     use :: Error           , only : Error_Report
     implicit none
     class           (massDistributionBurkert     ), intent(inout), target       :: self
@@ -447,15 +447,15 @@ contains
     massScaleFree=+     mass_                   &
          &        /self%densityNormalization    &
          &        /self%scaleLength         **3
-    if     (                                           &
-         &   massScaleFree < self%massScaleFreeMinimum &
-         &  .or.                                       &
-         &   massScaleFree > self%massScaleFreeMaximum &
+    if     (                                            &
+         &   massScaleFree <= self%massScaleFreeMinimum &
+         &  .or.                                        &
+         &   massScaleFree >  self%massScaleFreeMaximum &
          & ) then
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMinimum) > massScaleFree)
+       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMinimum) >= massScaleFree)
           self%massScaleFreeRadiusMinimum=0.5d0*self%massScaleFreeRadiusMinimum
        end do
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMaximum) < massScaleFree)
+       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMaximum) <  massScaleFree)
           self%massScaleFreeRadiusMaximum=2.0d0*self%massScaleFreeRadiusMaximum
        end do
        countRadii=int(log10(self%massScaleFreeRadiusMaximum/self%massScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
@@ -491,15 +491,15 @@ contains
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
-    if     (                                                 &
-         &   densityScaleFree < self%densityScaleFreeMinimum &
-         &  .or.                                             &
-         &   densityScaleFree > self%densityScaleFreeMaximum &
+    if     (                                                  &
+         &   densityScaleFree <= self%densityScaleFreeMinimum &
+         &  .or.                                              &
+         &   densityScaleFree >  self%densityScaleFreeMaximum &
          & ) then
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMinimum) < densityScaleFree)
+       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMinimum) <  densityScaleFree)
           self%densityScaleFreeRadiusMinimum=0.5d0*self%densityScaleFreeRadiusMinimum
        end do
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMaximum) > densityScaleFree)
+       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMaximum) >= densityScaleFree)
           self%densityScaleFreeRadiusMaximum=2.0d0*self%densityScaleFreeRadiusMaximum
        end do
        countRadii=int(log10(self%densityScaleFreeRadiusMaximum/self%densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
@@ -584,15 +584,15 @@ contains
          &                                 *self%densityNormalization          &
          &                                )                                    &
          &                           /      self%scaleLength               **2
-    if     (                                                                                 &
-         &   angularMomentumSpecificScaleFree < self%angularMomentumSpecificScaleFreeMinimum &
-         &  .or.                                                                             &
-         &   angularMomentumSpecificScaleFree > self%angularMomentumSpecificScaleFreeMaximum &
+    if     (                                                                                  &
+         &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
+         &  .or.                                                                              &
+         &   angularMomentumSpecificScaleFree >  self%angularMomentumSpecificScaleFreeMaximum &
          & ) then
-       do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMinimum) > angularMomentumSpecificScaleFree)
+       do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMinimum) >= angularMomentumSpecificScaleFree)
           self%angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*self%angularMomentumSpecificScaleFreeRadiusMinimum
        end do
-       do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMaximum) < angularMomentumSpecificScaleFree)
+       do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMaximum) <  angularMomentumSpecificScaleFree)
           self%angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*self%angularMomentumSpecificScaleFreeRadiusMaximum
        end do
        countRadii=int(log10(self%angularMomentumSpecificScaleFreeRadiusMaximum/self%angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
@@ -891,16 +891,16 @@ contains
     integer                                                                :: countRadii                 , i
     type            (integrator             )                              :: integrator_
 
-    if     (                                                   &
-         &   timeScaleFree < self%timeFreefallScaleFreeMinimum &
-         &  .or.                                               &
-         &   timeScaleFree > self%timeFreefallScaleFreeMaximum &
+    if     (                                                    &
+         &   timeScaleFree <= self%timeFreefallScaleFreeMinimum &
+         &  .or.                                                &
+         &   timeScaleFree >  self%timeFreefallScaleFreeMaximum &
          & ) then
        integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMinimum) > timeScaleFree)
+       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMinimum) >= timeScaleFree)
           self%timeFreefallScaleFreeRadiusMinimum=0.5d0*self%timeFreefallScaleFreeRadiusMinimum
        end do
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMaximum) < timeScaleFree)
+       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMaximum) <  timeScaleFree)
           self%timeFreefallScaleFreeRadiusMaximum=2.0d0*self%timeFreefallScaleFreeRadiusMaximum
        end do
        countRadii=int(log10(self%timeFreefallScaleFreeRadiusMaximum/self%timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
