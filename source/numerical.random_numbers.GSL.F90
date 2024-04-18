@@ -41,6 +41,7 @@
      type   (c_ptr ) :: gslRandomNumberGenerator=c_null_ptr
    contains
      final     ::                         gslDestructor
+     procedure :: openMPIndependent    => gslOpenMPIndependent
      procedure :: mpiIndependent       => gslMPIIndependent
      procedure :: uniformSample        => gslUniformSample
      procedure :: poissonSample        => gslPoissonSample
@@ -258,10 +259,25 @@ contains
     !!}
     implicit none    
     class(randomNumberGeneratorGSL), intent(inout) :: self
-    
+
+#ifdef USEMPI
     gslMPIIndependent=self%mpiRankOffset
+#else
+    gslMPIIndependent=.false.
+#endif
     return
   end function gslMPIIndependent
+
+  logical function gslOpenMPIndependent(self)
+    !!{
+    Return true if this random number generator produces independent sequences per OpenMP thread.
+    !!}
+    implicit none    
+    class(randomNumberGeneratorGSL), intent(inout) :: self
+    
+    gslOpenMPIndependent=self%ompThreadOffset
+    return
+  end function gslOpenMPIndependent
 
   double precision function gslUniformSample(self)
     !!{

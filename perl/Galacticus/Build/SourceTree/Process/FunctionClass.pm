@@ -90,6 +90,7 @@ sub Process_FunctionClass {
 	    # Parse classes.
 	    my %dependencies;
 	    my %classes;
+	    my %classCounts;
 	    foreach my $classLocation ( @classLocations ) {
 		my $classTree = &Galacticus::Build::SourceTree::ParseFile($classLocation);
 		&Galacticus::Build::SourceTree::ProcessTree($classTree, errorTolerant => 1);
@@ -109,7 +110,18 @@ sub Process_FunctionClass {
 		die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
 		    unless ( defined($class->{'type'}) );
 		$classes{$class->{'type'}} = $class;
+		push(@{$classCounts{$class->{'type'}}},$class->{'file'});
 	    }
+	    # Check for duplicated class names.
+	    my $duplicatesFound = 0;
+	    foreach my $className ( sort(keys(%classCounts)) ) {
+		next
+		    unless ( scalar(@{$classCounts{$className}}) > 1 );
+		$duplicatesFound = 1;
+		print "Duplicate class '".$className."' found in:\n".join("\n",map {"\t".$_} @{$classCounts{$className}})."\n";
+	    }
+	    die("ERROR: Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): duplicate classes found")
+		if ( $duplicatesFound );
 	    # Sort classes. We first impose an alphanumeric sort to ensure that the ordering is always identical for each build,
 	    # and then impose a topological sort to ensure that dependencies are correctly handled.
 	    my @unsortedClasses = sort(keys(%classes));
@@ -2379,13 +2391,17 @@ CODE
 		    if ( exists($method->{'modules'}) ) {
 			if ( reftype($method->{'modules'}) ) {
 			    # Array of modules, with possible "only" clauses.
-			    foreach my $module ( @{$method->{'modules'}} ) {
-				$modulePostContains->{'content'} .= "      use ".$module->{'name'}.(exists($module->{'only'}) ? ", only : ".join(",",@{$module->{'only'}}) : "")."\n";
+			    my @modules = reftype($method->{'modules'}) eq "ARRAY" ? @{$method->{'modules'}} : &List::ExtraUtils::hashList($method->{'modules'},keyAs => "name");
+			    foreach my $module ( @modules ) {
+				my $moduleName = $module->{'name'};
+				my $prefix = $moduleName =~ m/OMP_Lib/ ? "!\$ " : "";
+				$modulePostContains->{'content'} .= "      ".$prefix."use ".$moduleName.(exists($module->{'only'}) ? ", only : ".join(",",&List::ExtraUtils::as_array($module->{'only'})) : "")."\n";
 			    }
 			} else {
 			    # Simple space-separated list of modules.
 			    foreach ( split(/\s+/,$method->{'modules'}) ) {
-				$modulePostContains->{'content'} .= "      use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
+				my $prefix = $_ =~ m/OMP_Lib/ ? "!\$ " : "";
+				$modulePostContains->{'content'} .= "      ".$prefix."use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
 			    }
 			}
 		    }
@@ -2431,14 +2447,21 @@ CODE
 	    }
 
 	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
-            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n"; 
+            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n";
+	    if ( exists($directive->{'default'}) ) {
+		$documentationPhysics .= "Default implementation: \\refPhysics{".$directive->{'name'}.ucfirst($directive->{'default'})."}\n\n";
+	    } else {
+		$documentationPhysics .= "No default implementation\n\n";
+	    }
 	    foreach my $className ( sort {lc($a) cmp lc($b)} keys(%classes) ) {
 		my $class = $classes{$className};
                 (my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
                 $suffix = lcfirst($suffix)
                     unless ( $suffix =~ m/^[A-Z]{2}/ );
                 $documentationPhysics .= "\\subsection{\\normalfont \\ttfamily ".$suffix."}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
-                $documentationPhysics .= $class->{'description'}."\n";
+                $documentationPhysics .= $class->{'description'}."\n\n";
+		$documentationPhysics .= "\\noindent \\textbf{(Default)}\n\n"
+		    if ( exists($directive->{'default'}) && $directive->{'name'}.ucfirst($directive->{'default'}) eq $class->{'name'} );
                 $documentationPhysics .= "\\noindent \\emph{Implemented by} \\refClass{".$class->{'name'}."}\n";
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $classes{$className}->{'tree'}->{'firstChild'};

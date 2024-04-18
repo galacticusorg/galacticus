@@ -77,7 +77,6 @@
 
   ! Resolution of tabulated solutions.
   integer         , parameter :: tablePointsPerDecade=1000
-  integer         , parameter :: tablePointsPerOctave= 300
 
   ! Variables used in root finding.
   double precision            :: OmegaDarkEnergyEpochal, OmegaMatterEpochal, &

@@ -48,7 +48,7 @@ my @output =
     );
 
 my $json = JSON::PP->new()->pretty()->encode(\@output);
-open(my $reportFile,">","outputs/benchmark_milkyWay.json");
+open(my $reportFile,">","outputs/benchmark_milkyWayModel.json");
 print $reportFile $json;
 close($reportFile);
 

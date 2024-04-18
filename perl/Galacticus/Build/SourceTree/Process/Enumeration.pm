@@ -325,8 +325,8 @@ sub Process_Enumerations {
 		    my $separator = $i == scalar(@entries)-1 ? "." : ";";
 		    $description .= "    description=description//char(10)//\"   ".(" " x ($lengthMaximum-length($entry->{'label'}))).$entry->{'label'}.(exists($entry->{'description'}) ? ": ".$entry->{'description'}.$separator : "")."\"\n";
 		}
-		$descriptorFunction .= "    \n";
-		$descriptorFunction .= "    return\n";
+		$description        .= "    \n";
+		$description        .= "    return\n";
 		$descriptorFunction .= "  end function ".$functionName."\n";
 		$descriptorFunction .= "  ! End auto-generated enumeration function\n";
 		# Insert into the module.

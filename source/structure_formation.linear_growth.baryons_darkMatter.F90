@@ -45,26 +45,26 @@
      of radiation perturbations.
      !!}
      private
-     logical                                                    :: tableInitialized                 =  .false.
-     double precision                                           :: tableTimeMinimum                           , tableTimeMaximum      , &
-          &                                                        tableWavenumberMinimum                     , tableWavenumberMaximum, &
-          &                                                        fractionDarkMatter                         , fractionBaryons       , &
-          &                                                        normalizationMatterDominated               , redshiftInitial       , &
+     logical                                                    :: tableInitialized                 =  .false., darkMatterOnlyInitialConditions
+     double precision                                           :: tableTimeMinimum                           , tableTimeMaximum                               , &
+          &                                                        tableWavenumberMinimum                     , tableWavenumberMaximum                         , &
+          &                                                        fractionDarkMatter                         , fractionBaryons                                , &
+          &                                                        normalizationMatterDominated               , redshiftInitial                                , &
           &                                                        redshiftInitialDelta
      integer                                                    :: cambCountPerDecade
      type            (table2DLogLogLin               )          :: growthFactor
      type            (varying_string                 )          :: fileName
-     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_             => null() , cosmologyParametersInitialConditions_ => null()
      class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_              => null()
      class           (intergalacticMediumStateClass  ), pointer :: intergalacticMediumState_        => null()
      type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
    contains
      !![
      <methods>
-       <method description="Tabulate linear growth factor." method="retabulate" />
-       <method description="Read the tabulated mass variance from file." method="fileWrite" />
-       <method description="Read the tabulated mass variance from file." method="fileRead" />
-       <method description="Return true if the table must be remade." method="remakeTable" />
+       <method description="Tabulate linear growth factor."              method="retabulate" />
+       <method description="Read the tabulated mass variance from file." method="fileWrite"  />
+       <method description="Read the tabulated mass variance from file." method="fileRead"   />
+       <method description="Return true if the table must be remade."    method="remakeTable"/>
      </methods>
      !!]
      final     ::                                         baryonsDarkMatterDestructor
@@ -116,11 +116,12 @@ contains
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
-    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_           , cosmologyParametersInitialConditions_
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
-    double precision                                               :: redshiftInitial          , redshiftInitialDelta
+    double precision                                               :: redshiftInitial                , redshiftInitialDelta
     integer                                                        :: cambCountPerDecade
+    logical                                                        :: darkMatterOnlyInitialConditions
 
     !![
     <inputParameter>
@@ -141,21 +142,37 @@ contains
       <defaultValue>0</defaultValue>
       <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    <inputParameter>
+      <name>darkMatterOnlyInitialConditions</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, set the initial conditions for baryonic modes using the dark matter mode initial conditions.</description>
+    </inputParameter>
+    <objectBuilder    class="cosmologyParameters"      name="cosmologyParameters_"                  source="parameters"                                                     />
+    <objectBuilder    class="cosmologyFunctions"       name="cosmologyFunctions_"                   source="parameters"                                                     />
+    <objectBuilder    class="intergalacticMediumState" name="intergalacticMediumState_"             source="parameters"                                                     />
     !!]
-    self=baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_)
+    if (parameters%isPresent('cosmologyParametersInitialConditions')) then
+       !![
+       <objectBuilder class="cosmologyParameters"      name="cosmologyParametersInitialConditions_" source="parameters" parameterName="cosmologyParametersInitialConditions"/>
+       !!]
+    else
+       !![
+       <objectBuilder class="cosmologyParameters"      name="cosmologyParametersInitialConditions_" source="parameters"                                                     />
+       !!]
+    end if
+    self=baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,darkMatterOnlyInitialConditions,cosmologyParameters_,cosmologyParametersInitialConditions_,cosmologyFunctions_,intergalacticMediumState_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyParameters_"     />
-    <objectDestructor name="cosmologyFunctions_"      />
-    <objectDestructor name="intergalacticMediumState_"/>
+    <objectDestructor name="cosmologyParameters_"                 />
+    <objectDestructor name="cosmologyParametersInitialConditions_"/>
+    <objectDestructor name="cosmologyFunctions_"                  />
+    <objectDestructor name="intergalacticMediumState_"            />
     !!]
     return
   end function baryonsDarkMatterConstructorParameters
 
-  function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_) result(self)
+  function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,darkMatterOnlyInitialConditions,cosmologyParameters_,cosmologyParametersInitialConditions_,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
     !!}
@@ -164,14 +181,15 @@ contains
     use :: Input_Paths   , only : inputPath     , pathTypeDataDynamic
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                           :: self
-    double precision                                          , intent(in   ) :: redshiftInitial          , redshiftInitialDelta
+    double precision                                          , intent(in   ) :: redshiftInitial                , redshiftInitialDelta
     integer                                                   , intent(in   ) :: cambCountPerDecade
-    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_
+    logical                                                   , intent(in   ) :: darkMatterOnlyInitialConditions
+    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_           , cosmologyParametersInitialConditions_
     class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), target   , intent(in   ) :: intergalacticMediumState_
-    double precision                                                          :: timeBigCrunch            , timeNow
+    double precision                                                          :: timeBigCrunch                  , timeNow
     !![
-    <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_"/>
+    <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, darkMatterOnlyInitialConditions, *cosmologyParameters_, *cosmologyParametersInitialConditions_, *cosmologyFunctions_, *intergalacticMediumState_"/>
     !!]
 
     self%tableInitialized      =.false.
@@ -219,10 +237,11 @@ contains
     type (linearGrowthBaryonsDarkMatter), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyParameters_"            />
-    <objectDestructor name="self%cosmologyFunctions_"             />
-    <objectDestructor name="self%intergalacticMediumState_"       />
-    <objectDestructor name="self%linearGrowthCollisionlessMatter_"/>
+    <objectDestructor name="self%cosmologyParameters_"                 />
+    <objectDestructor name="self%cosmologyParametersInitialConditions_"/>
+    <objectDestructor name="self%cosmologyFunctions_"                  />
+    <objectDestructor name="self%intergalacticMediumState_"            />
+    <objectDestructor name="self%linearGrowthCollisionlessMatter_"     />
     !!]
     call self%growthFactor%destroy()
     return
@@ -297,7 +316,7 @@ contains
        ! Get the initial conditions from CAMB.
        call transferFunctionDarkMatter%destroy()
        call transferFunctionBaryons   %destroy()
-       call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,countPerDecade=self%cambCountPerDecade,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
+       call Interface_CAMB_Transfer_Function(self%cosmologyParametersInitialConditions_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,countPerDecade=self%cambCountPerDecade,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))
        ! Destroy current table.
@@ -326,13 +345,20 @@ contains
           wavenumberLogarithmic=log(wavenumber_)
           ! Solve ODE to get corresponding expansion factors. Initialize with solution from CAMB.
           !$ call OMP_Set_Lock  (lockDarkMatter)
-          call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
+          call    self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
           growthFactorDerivativeDarkMatter=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
           !$ call OMP_Unset_Lock(lockDarkMatter)
-          !$ call OMP_Set_Lock  (lockBaryons   )
-          call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
-          growthFactorDerivativeBaryons   =(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
-          !$ call OMP_Unset_Lock(lockBaryons   )
+          if (self%darkMatterOnlyInitialConditions) then
+             !$ call OMP_Set_Lock  (lockDarkMatter)
+             call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexDarkMatter)
+             growthFactorDerivativeBaryons=(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2)-transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+             !$ call OMP_Unset_Lock(lockDarkMatter)
+          else
+             !$ call OMP_Set_Lock  (lockBaryons   )
+             call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=indexBaryons   )
+             growthFactorDerivativeBaryons=(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
+             !$ call OMP_Unset_Lock(lockBaryons   )
+          end if
           solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =self%growthFactor                    %x(i-1                        )
