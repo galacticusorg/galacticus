@@ -68,6 +68,7 @@
      procedure :: radiusInitial          => sphericalHeatedRadiusInitial
      procedure :: noShellCrossingIsValid => sphericalHeatedNoShellCrossingIsValid
      procedure :: density                => sphericalHeatedDensity
+     procedure :: massEnclosedBySphere   => sphericalHeatedMassEnclosedBySphere
      procedure :: radiusEnclosingMass    => sphericalHeatedRadiusEnclosingMass
      procedure :: useUndecorated         => sphericalHeatedUseUndecorated
   end type massDistributionSphericalHeated
@@ -259,6 +260,20 @@ contains
     return
   end function sphericalHeatedDensity
 
+  double precision function sphericalHeatedMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+    !!{
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a heated mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSphericalHeated), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: radius
+    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+
+    mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius),componentType,massType)
+    return
+  end function sphericalHeatedMassEnclosedBySphere
+  
   double precision function sphericalHeatedRadiusInitial(self,radiusFinal) result(radiusInitial)
     !!{
     Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
