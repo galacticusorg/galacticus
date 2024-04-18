@@ -469,17 +469,14 @@ contains
             & +56201.0d0/340200.0d0/sqrt(2.0d0)*massScaleFree**3.5d0 &
             & +  358.0d0/  1701.0d0            *massScaleFree**4
     else
-       radius=-self%scaleLength                 &
-            & *(                                &
-            &   +1.0d0                          &
-            &   /Lambert_W0(                    &
-            &               -exp(               &
-            &                    -1.0d0         &
-            &                    -massScaleFree &
-            &                   )               &
-            &              )                    &
-            &   +1.0d0                          &
-            &  )
+       radius=-1.0d0                          &
+            & /Lambert_W0(                    &
+            &             -exp(               &
+            &                  -1.0d0         &
+            &                  -massScaleFree &
+            &                 )               &
+            &            )                    &
+            & -1.0d0
     end if
     radius=+radius           &
          & *self%scaleLength
