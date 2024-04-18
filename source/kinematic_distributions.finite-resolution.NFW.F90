@@ -103,6 +103,8 @@ contains
     self%velocityDispersion1DRadiusMaximum          =-huge(0.0d0)
     self%velocityDispersion1DLengthResolutionMinimum=+huge(0.0d0)
     self%velocityDispersion1DLengthResolutionMaximum=-huge(0.0d0)
+    self%velocityDispersion1DRadiusPrevious         =-huge(0.0d0)
+    self%velocityDispersion1DPrevious               =-huge(0.0d0)
     return
   end function finiteResolutionNFWConstructorInternal
   
