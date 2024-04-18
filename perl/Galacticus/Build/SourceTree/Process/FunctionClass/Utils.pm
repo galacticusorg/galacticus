@@ -19,7 +19,7 @@ sub Class_Dependencies {
 	if ( $classNode->{'type'} eq $directiveName ) {
 	    $class->{'node'} = $classNode;
 	    $class->{$_    } = $classNode->{'directive'}->{$_}
-	        foreach ( keys(%{$classNode->{'directive'}}) );
+	        foreach ( sort(keys(%{$classNode->{'directive'}})) );
 	}
 	if ( $classNode->{'type'} eq "type" ) {
 	    # Parse class openers to find dependencies.

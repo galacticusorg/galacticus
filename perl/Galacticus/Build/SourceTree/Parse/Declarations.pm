@@ -303,7 +303,7 @@ sub parseDeclaration {
     # Parse an individual declaration line.
     my $line = shift();
     my $declaration;
-    foreach ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+    foreach ( sort(keys(%Fortran::Utils::intrinsicDeclarations)) ) {
 	if ( my @matches = ( $line =~ $Fortran::Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
 	    my $intrinsic  = $Fortran::Utils::intrinsicDeclarations{$_}->{'intrinsic'};
 	    my $type;
