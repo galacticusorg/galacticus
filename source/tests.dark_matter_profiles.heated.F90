@@ -93,14 +93,12 @@ program Test_Dark_Matter_Profiles_Heated
   type            (coordinateSpherical                                           )               :: coordinates                                                     , coordinatesHeated    , &
        &                                                                                            coordinatesInitial
   double precision                                                                               :: radiusVirial                                                    , radiusHeated         , &
-       &                                                                                            density                                                         , densityAnalytic      , &
+       &                                                                                            massEnclosedAnalytic                                            , densityAnalytic      , &
        &                                                                                            radiusInitial                                                   , radiusInitialAnalytic, &
-       &                                                                                            massEnclosed                                                    , massEnclosedAnalytic , &
        &                                                                                            radius                                                          , toleranceRelative    , &
        &                                                                                            massEnclosed_                                                   , density_             , &
-       &                                                                                            velocityDispersion                                              , velocityDispersion_  , &
        &                                                                                            velocityDispersionAnalytic                                      , radiusScaled         , &
-       &                                                                                            toleranceRelativeVelocityDispersionAssert
+       &                                                                                            toleranceRelativeVelocityDispersionAssert                       , velocityDispersion_
   integer                                                                                        :: i                                                               , profileType
   character       (len=5                                                         )               :: radiusLabel
   character       (len=128                                                       )               :: profileName
@@ -291,15 +289,11 @@ program Test_Dark_Matter_Profiles_Heated
              &                           /6.0d0                                                                                                                                                   &
              &                           /densityAnalytic                                                                                                                                         &
              &                          )
-        if (profileType == 1) then
-           call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius'     ,radiusInitial      ,radiusInitialAnalytic     ,relTol=toleranceRelative)
-           call Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'      ,massEnclosed_      ,massEnclosedAnalytic      ,relTol=toleranceRelative)
-           call Assert('r='//trim(radiusLabel)//'rᵥ; density'            ,density_           ,densityAnalytic           ,relTol=toleranceRelative)
-        call    Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion',velocityDispersion_,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
-        end if
-        call    Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'      ,massEnclosed       ,massEnclosedAnalytic      ,relTol=toleranceRelative)
-        call    Assert('r='//trim(radiusLabel)//'rᵥ; density'            ,density            ,densityAnalytic           ,relTol=toleranceRelative)
-        call    Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion',velocityDispersion ,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
+        if (profileType == 1) &
+             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius'     ,radiusInitial      ,radiusInitialAnalytic     ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'      ,massEnclosed_      ,massEnclosedAnalytic      ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'            ,density_           ,densityAnalytic           ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion',velocityDispersion_,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
      end do
      call Unit_Tests_End_Group()
      !![
