@@ -176,7 +176,7 @@ sub Process_ClassDocumentation {
 	open(my $classFile,">",$classFileName);
 	print $classFile $xml->XMLout($classes,RootName => "classes",NoAttr => 1);
 	close($classFile);
-	push(@outputPrevious,keys(%{$classes}));
+	push(@outputPrevious,sort(keys(%{$classes})));
     }
 }
 
