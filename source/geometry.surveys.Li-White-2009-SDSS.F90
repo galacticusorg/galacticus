@@ -279,14 +279,14 @@ contains
          &                                                                        i             , randomUnit
     double precision                                                           :: rightAscension, declination
     type            (varying_string               )                            :: message
-    type   (lockDescriptor                )                                           :: lock
+    type            (lockDescriptor               )                            :: lock
     integer                                                                    :: status
 
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
        call Directory_Make(inputPath(pathTypeDataDynamic)//"surveyGeometry")
-       call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)
-       if (.not.File_Exists(mangleFiles(1))) then
+       call File_Lock  (char(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat"),lock,lockIsShared=.false.)
+       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
           call download("https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat",char(inputPath(pathTypeDataDynamic))//"surveyGeometry/lss_random-0.dr72.dat",status=status)
           if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
        end if
