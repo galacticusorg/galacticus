@@ -851,17 +851,18 @@ contains
     class           (kinematicsDistributionClass), intent(inout)              :: self
     double precision                             , intent(in   )              :: radius
     class           (massDistributionClass      ), intent(inout)              :: massDistributionEmbedding
-    double precision                                            , parameter   :: radiusTinyFactor         =1.0d-9 , radiusLargeFactor       =5.0d2
+    double precision                                            , parameter   :: radiusTinyFactor         =1.0d-9 , factorDensityLarge       =1.0d+6
     double precision                                            , parameter   :: countPointsPerOctave     =2.0d0
     double precision                                            , parameter   :: toleranceFactor          =2.0d0
     double precision                             , dimension(:) , allocatable :: velocityDispersions              , radii
-    double precision                                                          :: radiusMinimum                    , radiusMaximum                 , &
-         &                                                                       toleranceRelative                , density                       , &
-         &                                                                       jeansIntegral                    , radiusOuter_                  , &
-         &                                                                       radiusLower                      , radiusUpper                   , &
-         &                                                                       radiusLowerJeansEquation         , radiusUpperJeansEquation      , &
+    double precision                                                          :: radiusMinimum                    , radiusMaximum                   , &
+         &                                                                       toleranceRelative                , density                         , &
+         &                                                                       jeansIntegral                    , radiusOuter_                    , &
+         &                                                                       radiusLower                      , radiusUpper                     , &
+         &                                                                       radiusLowerJeansEquation         , radiusUpperJeansEquation        , &
+         &                                                                       densityMaximum                   , densityOuter_                   , &
          &                                                                       jeansIntegralPrevious
-    integer         (c_size_t                   )                             :: countRadii                       , iMinimum                      , &
+    integer         (c_size_t                   )                             :: countRadii                       , iMinimum                        , &
          &                                                                       iMaximum                         , i
     integer                                                                   :: status
     type            (coordinateSpherical        )                             :: coordinates
@@ -898,8 +899,19 @@ contains
           radiusMinimum=min(radiusMinimum,self%velocityDispersionRadialRadiusMinimum__)
           radiusMaximum=max(radiusMaximum,self%velocityDispersionRadialRadiusMaximum__)
        end if
-       !! Set a suitable outer radius for integration.
-       radiusOuter_=radiusLargeFactor*radiusMaximum
+       !! Set a suitable outer radius for integration. We require that the density at the outer radius be much smaller than that
+       !! at the maximum radius. This should ensure that any constribution to the Jeans integral from beyond this outer radius is
+       !! negligible.
+       !!! Start at the maximum radius and gradually increase the outer radius until the density is sufficiently small.
+       coordinates    =[radiusMaximum,0.0d0,0.0d0]
+       densityMaximum=massDistributionEmbedding%density(coordinates)
+       radiusOuter_  =radiusMaximum
+       densityOuter_ =densityMaximum
+       do while (densityOuter_ > densityMaximum/factorDensityLarge)
+          radiusOuter_ =radiusOuter_*2.0d0
+          coordinates  =[radiusOuter_,0.0d0,0.0d0]
+          densityOuter_=massDistributionEmbedding%density(coordinates)
+       end do
        !! Construct arrays.
        countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
        allocate(radii              (countRadii))
@@ -941,21 +953,21 @@ contains
           if (radiusLower > radiusOuter_) then
              jeansIntegral         =0.0d0
              velocityDispersions(i)=0.0d0
-         else
-            ! Evaluate the integral.
-            coordinates             =[radiusLower,0.0d0,0.0d0]
-            density                 =massDistributionEmbedding%density            (coordinates                                                                )
-            radiusLowerJeansEquation=self                     %jeansEquationRadius(radiusLower                                      ,massDistributionEmbedding)
-            radiusUpperJeansEquation=self                     %jeansEquationRadius(radiusUpper                                      ,massDistributionEmbedding)
-            jeansIntegral           =integrator_              %integrate          (radiusLowerJeansEquation,radiusUpperJeansEquation,status                   )
-            if (status /= errorStatusSuccess) then
-               ! Integration failed.
-               toleranceRelative=+     toleranceFactor                     &
+          else
+             ! Evaluate the integral.
+             coordinates             =[radiusLower,0.0d0,0.0d0]
+             density                 =massDistributionEmbedding%density            (coordinates                                                                )
+             radiusLowerJeansEquation=self                     %jeansEquationRadius(radiusLower                                      ,massDistributionEmbedding)
+             radiusUpperJeansEquation=self                     %jeansEquationRadius(radiusUpper                                      ,massDistributionEmbedding)
+             jeansIntegral           =integrator_              %integrate          (radiusLowerJeansEquation,radiusUpperJeansEquation,status                   )
+             if (status /= errorStatusSuccess) then
+                ! Integration failed.
+                toleranceRelative=+     toleranceFactor                     &
                      &            *self%toleranceRelativeVelocityDispersion
                 do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
                    call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
-                  jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
-                  if (status == errorStatusSuccess) then
+                   jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
+                   if (status == errorStatusSuccess) then
                       exit
                    else
                       toleranceRelative=+toleranceFactor   &
