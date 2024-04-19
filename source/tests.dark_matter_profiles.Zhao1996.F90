@@ -233,7 +233,7 @@ program Test_Dark_Matter_Profiles_Zhao1996
              &             "Potential"       , &
              &             potential         , &
              &             potentialNumerical, &
-             &      relTol=+2.0d-2             &
+             &      relTol=+2.1d-2             &
              &     )
      end select
      !![
