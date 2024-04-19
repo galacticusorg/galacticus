@@ -215,7 +215,7 @@ sub AddUses {
     # adopt the most permissive of the possibilities (e.g. if the new module is OpenMP-only, but the existing module use is not
     # OpenMP, then we need to keep it as not-OpenMP - furthermore we need to do this on a per-symbol basis, requiring that we have
     # OpenMP and conditions status per symbol and reproduce this correctly when updating the code).
-    foreach my $moduleName ( keys(%{$moduleUses->{'moduleUse'}}) ) {
+    foreach my $moduleName ( sort(keys(%{$moduleUses->{'moduleUse'}})) ) {
 	push(@{$usesNode->{'moduleOrder'}},$moduleName)
 	    unless ( grep {$_ eq $moduleName} @{$usesNode->{'moduleOrder'}} );
 	$usesNode->{'moduleUse'}->{$moduleName}->{'openMP'    } = $moduleUses->{'moduleUse'}->{$moduleName}->{'openMP'    };
@@ -227,7 +227,7 @@ sub AddUses {
 		delete($usesNode->{'moduleUse'}->{$moduleName}->{'only'});
 	    } else {
 		$usesNode->{'moduleUse'}->{$moduleName}->{'only'}->{$_} = 1x2
-		    foreach ( keys(%{$moduleUses->{'moduleUse'}->{$moduleName}->{'only'}}) );
+		    foreach ( sort(keys(%{$moduleUses->{'moduleUse'}->{$moduleName}->{'only'}})) );
 	    }
 	}
     }
@@ -255,7 +255,7 @@ sub UpdateUses {
     # Determine name and column widths.
     my $nameLengthMax = 0;
     my @columnLengthMax = ( 0, 0, 0, 0 );
-    foreach my $moduleName ( keys(%{$usesNode->{'moduleUse'}}) ) {
+    foreach my $moduleName ( sort(keys(%{$usesNode->{'moduleUse'}})) ) {
 	$nameLengthMax = length($moduleName)
 	    if ( length($moduleName) > $nameLengthMax );
 	if ( $usesNode->{'moduleUse'}->{$moduleName}->{'only'} ) {

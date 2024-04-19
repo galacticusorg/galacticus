@@ -129,7 +129,7 @@ sub UpdateVisibilities {
     foreach my $visibility ( "public", "private" ) {
 	next
 	    unless ( exists($visibilitiesNode->{'visibility'}->{$visibility}) && scalar(keys(%{$visibilitiesNode->{'visibility'}->{$visibility}})) );
-	$code .= $visibility." :: ".join(", ",keys(%{$visibilitiesNode->{'visibility'}->{$visibility}}))."\n";
+	$code .= $visibility." :: ".join(", ",sort(keys(%{$visibilitiesNode->{'visibility'}->{$visibility}})))."\n";
     }
     $visibilitiesNode->{'firstChild'}->{'content'} = $code;
 }

@@ -75,7 +75,7 @@ sub Process_StateStorable {
 
     # Remove any type definitions which do not match the storable class.
     if ( scalar(@directiveNodes) > 0 ) {
-	foreach my $className ( keys(%classes) ) {
+	foreach my $className ( sort(keys(%classes)) ) {
 	    my $matched = 0;
 	    my $parentClassName = $className;
 	    while ( ! $matched ) {

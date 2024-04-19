@@ -12,7 +12,7 @@ sub sort {
     my %dependencies = %{shift()};
     # First build an array of dependencies.
     my @dependency;
-    foreach my $object ( keys(%dependencies) ) {
+    foreach my $object ( sort(keys(%dependencies)) ) {
 	# Skip cases where the object is not present in the object list.
 	next
 	    unless ( grep {$_ eq $object} @objects );

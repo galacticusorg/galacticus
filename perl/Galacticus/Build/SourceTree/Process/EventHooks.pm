@@ -49,7 +49,7 @@ sub Process_EventHooks {
 		    open(my $declarations,"<",\$hook->{'interface'});
 		    while ( ! eof($declarations) ) {
 			&Fortran::Utils::Get_Fortran_Line($declarations,my $rawLine, my $processedLine, my $bufferedComments);
-			foreach my $declarator ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+			foreach my $declarator ( sort(keys(%Fortran::Utils::intrinsicDeclarations)) ) {
 			    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$declarator}->{'regEx'} ) ) {
 				push(@code::arguments,&Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$declarator}->{'variables'}],keepQualifiers => 0));
 				last;

@@ -162,7 +162,7 @@ sub BuildTree {
     # Run all defined parsers on the tree.
     my @unitParsers = ( "directives" );
     for(my $stage=0;$stage<2;++$stage) {
-	foreach my $parser ( keys(%Galacticus::Build::SourceTree::Hooks::parseHooks) ) {
+	foreach my $parser ( sort(keys(%Galacticus::Build::SourceTree::Hooks::parseHooks)) ) {
 	    next
 		if ( exists($options{'parsers'}) && ! grep {$_ eq $parser} @{$options{'parsers'}} );
 	    &{$Galacticus::Build::SourceTree::Hooks::parseHooks{$parser}}($tree)
@@ -183,7 +183,7 @@ sub ProcessTree {
     my @processors = sort(keys(%Galacticus::Build::SourceTree::Hooks::processHooks));
     # Perform a topological sort to enforce dependencies.
     my %dependencies;
-    foreach my $processor ( keys(%Galacticus::Build::SourceTree::Hooks::processDependencies) ) {
+    foreach my $processor ( sort(keys(%Galacticus::Build::SourceTree::Hooks::processDependencies)) ) {
 	foreach my $dependent ( @{$Galacticus::Build::SourceTree::Hooks::processDependencies{$processor}} ) {
 	    push(@{$dependencies{$dependent}},$processor);
 	}
@@ -265,7 +265,7 @@ sub Build_Children {
 	$lineNumber += $rawLine =~ tr/\n//;
 	# Check for unit opening.
 	my $unitFound;	
-	foreach my $unitType ( keys(%unitOpeners) ) {
+	foreach my $unitType ( sort(keys(%unitOpeners)) ) {
 	    if ( my @matches = ( $processedLine =~ $unitOpeners{$unitType}->{'regEx'} ) ) {		
 		# A match is found, extract the name of the unit, store current line number.
 		my $lineNumberOpener = $lineNumber;
@@ -700,7 +700,7 @@ sub SetVisibility {
     foreach ( 'private', 'public' ) {
 	if ( exists($visibilityNode->{'visibility'}->{$_}) ) {
 	    $newContent .= "  ".$_;
-	    $newContent .= " :: ".join(", ",keys(%{$visibilityNode->{'visibility'}->{$_}}))
+	    $newContent .= " :: ".join(", ",sort(keys(%{$visibilityNode->{'visibility'}->{$_}})))
 		if ( $visibilityNode->{'visibility'}->{$_} );
 	    $newContent .= "\n";
 	}
