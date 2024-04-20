@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713044284664,
+  "lastUpdate": 1713586354965,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -372,6 +372,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/ace5ce0714ef1f3e486e4cf3d7d2a643b828e999"
         },
         "date": 1713044284024,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c8dd069abdd6e76f85bd796c98848db2d3b86b7",
+          "message": "Merge pull request #604 from galacticusorg/fixGeometryDatasets\n\nUpdate the URL for SDSS DR7 geometry data file",
+          "timestamp": "2024-04-19T23:10:12Z",
+          "tree_id": "32c13fd5d1c88e3e5c03a4ddebb6045f6cb2a491",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5c8dd069abdd6e76f85bd796c98848db2d3b86b7"
+        },
+        "date": 1713586354168,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
