@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713044273537,
+  "lastUpdate": 1713586334980,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7b0674e6a668eb79826a8ef45e97f6566501f19a",
-          "message": "fix: Add missing `allocate()`",
-          "timestamp": "2023-07-20T08:24:57-07:00",
-          "tree_id": "4f4ab15cd37d37687c9cbfe13cf4d14fb9fdbe23",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7b0674e6a668eb79826a8ef45e97f6566501f19a"
-        },
-        "date": 1689878611075,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 157.593,
-            "unit": "seconds",
-            "range": 0.219239823025248
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.004689344697,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c8dd069abdd6e76f85bd796c98848db2d3b86b7",
+          "message": "Merge pull request #604 from galacticusorg/fixGeometryDatasets\n\nUpdate the URL for SDSS DR7 geometry data file",
+          "timestamp": "2024-04-19T23:10:12Z",
+          "tree_id": "32c13fd5d1c88e3e5c03a4ddebb6045f6cb2a491",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5c8dd069abdd6e76f85bd796c98848db2d3b86b7"
+        },
+        "date": 1713586334195,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 459.418,
+            "unit": "seconds",
+            "range": 0.258355568924718
           }
         ]
       }
