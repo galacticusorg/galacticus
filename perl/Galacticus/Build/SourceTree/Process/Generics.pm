@@ -52,7 +52,7 @@ sub Process_Generics {
 				foreach my $element ( 'opener', 'closer', 'name' ) {
 				    if ( exists($copyNode->{$element}) ) {
 					$copyNode->{$element} = &ReplaceGeneric           ($copyNode->{$element},$node->{'directive'}->{'identifier'},$instance,$_)
-					    foreach ( keys(%{$instance}) );
+					    foreach ( sort(keys(%{$instance})) );
 					$copyNode->{$element} = &ReplaceGenericConditional($copyNode->{$element},$node->{'directive'}->{'identifier'},$instance   );
 				    }
 				}
@@ -62,7 +62,7 @@ sub Process_Generics {
 				    open(my $code,"<",\$copyNode->{'content'});
 				    while ( my $line = <$code> ) {
 					$line = &ReplaceGeneric           ($line,$node->{'directive'}->{'identifier'},$instance,$_)
-					    foreach ( keys(%{$instance}) );
+					    foreach ( sort(keys(%{$instance})) );
 					$line = &ReplaceGenericConditional($line,$node->{'directive'}->{'identifier'},$instance   );
 					$newCode .= $line;
 				    }
@@ -116,7 +116,7 @@ sub Process_Generics {
 				    foreach my $instance ( &List::ExtraUtils::as_array($node->{'directive'}->{'instance'}) ) {
 					my $copiedLine = $line;
 					$copiedLine = &ReplaceGeneric           ($copiedLine,$node->{'directive'}->{'identifier'},$instance,$_)
-					    foreach ( keys(%{$instance}) );
+					    foreach ( sort(keys(%{$instance})) );
 					$copiedLine = &ReplaceGenericConditional($copiedLine,$node->{'directive'}->{'identifier'},$instance   );
 					$newCode .= $copiedLine;
 				    }

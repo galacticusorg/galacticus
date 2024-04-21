@@ -424,7 +424,7 @@ sub Process_FunctionClass {
 		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		}
 		# Validate sub-parameters.
-		foreach my $subParameterName ( keys(%subParameters) ) {
+		foreach my $subParameterName ( sort(keys(%subParameters)) ) {
 		    unless ( exists($subParameters{$subParameters{$subParameterName}->{'parent'}}) || $subParameters{$subParameterName}->{'parent'} eq "parameters" ) {
 			$supported = -7;
 			push(@failureMessage,"subparameter hierarchy failure");
@@ -450,7 +450,7 @@ sub Process_FunctionClass {
 			    # Get subparameters.
 			    $addSubParameters{'parameters'} = 1;
 			    $descriptorCode   .= "parameters=descriptor%subparameters('".$directive->{'name'}."')\n";
-			    foreach my $subParameterName (keys(%subParameters) ) {
+			    foreach my $subParameterName ( sort(keys(%subParameters)) ) {
 				$addSubParameters{$subParameterName} = 1;
 				$descriptorCode .= $subParameters{$subParameterName}->{'source'};
 			    }
@@ -711,7 +711,7 @@ CODE
 	    } else {
 		$descriptorCode  = " !\$GLC attributes unused :: descriptor, includeClass\n".$descriptorCode;
 	    }
- 	    $descriptorCode  = "type(inputParameters) :: ".join(",",keys(%addSubParameters))."\n".$descriptorCode
+ 	    $descriptorCode  = "type(inputParameters) :: ".join(",",sort(keys(%addSubParameters)))."\n".$descriptorCode
 		if ( %addSubParameters );
  	    $descriptorCode  = "character(len=18) :: parameterLabel\n".$descriptorCode
 		if ( $addLabel );
@@ -723,7 +723,7 @@ CODE
 		description => "Return an input parameter list descriptor which could be used to recreate this object.",
 		type        => "void",
 		pass        => "yes",
-		modules     => join(" ",keys(%descriptorModules)),
+		modules     => join(" ",sort(keys(%descriptorModules))),
 		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass, includeFileModificationTimes" ],
 		code        => $descriptorCode
 	    };
@@ -964,7 +964,7 @@ CODE
 		    $allowedParametersCode .= "type is (".$className.")\n";
 		    # Include the class and all parent classes for which the parent class parameter constructor is called.
 		    while ( defined($className) ) {
-			foreach my $source ( keys(%{$allowedParameters->{$className}->{'parameters'}}) ) {
+			foreach my $source ( sort(keys(%{$allowedParameters->{$className}->{'parameters'}})) ) {
 			    $allowedParametersCode .= "  if (objectsOnly) then\n";
 			    {
 				my $parameterCount = exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}) ? scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}}) : 0;
@@ -1241,7 +1241,7 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		modules     => join(" ",keys(%{$deepCopy->{'modules'}})),
+		modules     => join(" ",sort(keys(%{$deepCopy->{'modules'}}))),
 		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
 		code        => $deepCopy->{'code'}
 	    };
@@ -1261,9 +1261,9 @@ CODE
 		pass        => "yes",
 		code        => $deepCopy->{'finalizeCode'}
 	    };
-	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",keys(%{$deepCopy->{'resetModules'   }}))
+	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'resetModules'   }})))
 		if ( scalar(keys(%{$deepCopy->{'resetModules'   }})) > 0 );
-	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",keys(%{$deepCopy->{'finalizeModules'}}))
+	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'finalizeModules'}})))
 		if ( scalar(keys(%{$deepCopy->{'finalizeModules'}})) > 0 );
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStores =
@@ -1358,7 +1358,7 @@ CODE
 		    (my $stateStoreExplicitInputCode, my $stateStoreExplicitOutputCode, my %stateStoreExplicitModules) = &stateStoreExplicitFunction($nonAbstractClass);
 		    $stateStore->{'inputCode'}  .= $stateStoreExplicitInputCode;
 		    $stateStore->{'outputCode'} .= $stateStoreExplicitOutputCode;
-		    foreach my $module ( keys(%stateStoreExplicitModules) ) {
+		    foreach my $module ( sort(keys(%stateStoreExplicitModules)) ) {
 			$stateStores->{'stateStoreModules'  }->{$module} = 1;
 			$stateStores->{'stateRestoreModules'}->{$module} = 1;
 		    }
@@ -1481,7 +1481,7 @@ CODE
 		description => "Store the state of this object to file.",
 		type        => "void",
 		pass        => "yes",
-		modules     => join(" ",keys(%{$stateStores->{'stateStoreModules'}})),
+		modules     => join(" ",sort(keys(%{$stateStores->{'stateStoreModules'}}))),
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateStoreCode
 	    };
@@ -1498,7 +1498,7 @@ CODE
 		description => "Restore the state of this object from file.",
 		type        => "void",
 		pass        => "yes",
-		modules     => join(" ",keys(%{$stateStores->{'stateRestoreModules'}})),
+		modules     => join(" ",sort(keys(%{$stateStores->{'stateRestoreModules'}}))),
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
 		code        => $stateRestoreCode
 	    };
@@ -1578,7 +1578,7 @@ CODE
 	    $modulePreContains->{'content'} .= "    !![\n";
 	    $modulePreContains->{'content'} .= "    <methods>\n";
 	    my $generics;
-            foreach my $methodName ( keys(%methods) ) {
+            foreach my $methodName ( sort(keys(%methods)) ) {
                 next
                     if ( $methodName eq "destructor" );
                 my $method = $methods{$methodName};
@@ -1593,7 +1593,7 @@ CODE
 		}
 		my $separator = "";
 		foreach my $argument ( @arguments ) {
-		    foreach my $intrinsic ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+		    foreach my $intrinsic ( sort(keys(%Fortran::Utils::intrinsicDeclarations)) ) {
 			my $declarator = $Fortran::Utils::intrinsicDeclarations{$intrinsic};
 			if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
 			    my $intrinsicName =                          $declarator->{'intrinsic' }  ;
@@ -1670,7 +1670,7 @@ CODE
 		    align  => "left"
 		}
 		);
-            foreach ( keys(%methods) ) {
+            foreach ( sort(keys(%methods)) ) {
                 next
                     if ( $_ eq "destructor" );
                 my $method = $methods{$_};
@@ -2178,7 +2178,7 @@ CODE
 			    }
 			} elsif ( $classNode->{'type'} eq "visibility" ) {
 			    # Visibility statements must go in the module.
-			    push(@{$codeContent->{'submodule'}->{$class->{'type'}}->{'interfaces'}},map {lc($_)} keys(%{$classNode->{'visibility'}->{'public'}}));
+			    push(@{$codeContent->{'submodule'}->{$class->{'type'}}->{'interfaces'}},map {lc($_)} sort(keys(%{$classNode->{'visibility'}->{'public'}})));
 			    delete($classNode->{'visibility'}->{'private'})
 				if ( exists($classNode->{'visibility'}->{'private'}) );
 			    &Galacticus::Build::SourceTree::Parse::Visibilities::UpdateVisibilities($classNode);
@@ -2287,11 +2287,11 @@ CODE
 		@moduleSymbols = uniq(sort(map {lc($_)} @moduleSymbols));
 		foreach my $moduleUseNode ( @moduleUseNodes ) {
 		    # Remove symbols not used.
-		    foreach my $moduleName ( keys(%{$moduleUseNode->{'moduleUse'}}) ) {
+		    foreach my $moduleName ( sort(keys(%{$moduleUseNode->{'moduleUse'}})) ) {
 			if ( exists($moduleUseNode->{'moduleUse'}->{$moduleName}->{'all'}) ) {
 			    # All symbols imported - keep this module for now - in principle we would like to have no cases were all symbols are imported though!
 			} else {
-			    foreach my $symbolName ( keys(%{$moduleUseNode->{'moduleUse'}->{$moduleName}->{'only'}}) ) {
+			    foreach my $symbolName ( sort(keys(%{$moduleUseNode->{'moduleUse'}->{$moduleName}->{'only'}})) ) {
 				delete($moduleUseNode->{'moduleUse'}->{$moduleName}->{'only'}->{$symbolName})
 				    unless ( grep {$_ eq lc($symbolName)} @moduleSymbols );
 			    }
@@ -2319,7 +2319,7 @@ CODE
 	    };
             &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$bindingNode);
 	    # Create functions.
-	    foreach my $methodName ( keys(%methods) ) {
+	    foreach my $methodName ( sort(keys(%methods)) ) {
                 my $method = $methods{$methodName};
                 next
                     if ( exists($method->{'function'}) );
@@ -2678,7 +2678,7 @@ CODE
 	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'}, $codeContent        ->{'module'}->{'interfaces'} );
 	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);	   
 	    # Generate submodule files.
-	    foreach my $className ( keys(%{$codeContent->{'submodule'}}) ) {
+	    foreach my $className ( sort(keys(%{$codeContent->{'submodule'}})) ) {
                 # Submodule names are just the class name with an underscore appended.
                 my $submoduleName = $className."_";
 		# Build a file node.
