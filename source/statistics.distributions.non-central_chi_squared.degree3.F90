@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a degree-3 non-central $\chi^2$ 1D distibution function.
+  Implementation of a degree-3 non-central $\chi^2$ 1D distribution function.
   !!}
 
   !![
@@ -30,10 +30,11 @@
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNonCentralChiDegree3
      !!{
-     Implementation of a non-central $\chi^2$ distibution function with 3 degrees of freedom.
+     Implementation of a non-central $\chi^2$ distribution function with 3 degrees of freedom.
      !!}
      private
      double precision :: lambda
+     double precision :: xMinimum, xMaximum
    contains
      procedure :: density    => nonCentralChiSquaredDegree3Density
      procedure :: cumulative => nonCentralChiSquaredDegree3Cumulative
@@ -87,10 +88,14 @@ contains
     type            (distributionFunction1DNonCentralChiDegree3)                                  :: self
     double precision                                            , intent(in   )                   :: lambda
     class           (randomNumberGeneratorClass                ), intent(in   ), optional, target :: randomNumberGenerator_
+    double precision                                            , parameter                        :: offsetMaximum        =10.d0
     !![
     <constructorAssign variables="lambda, *randomNumberGenerator_"/>
     !!]
 
+    ! Compute the x values beyond which we approximate the PDF as zero.
+    self%xMinimum=(max(0.0d0,sqrt(self%lambda)-offsetMaximum))**2
+    self%xMaximum=(          sqrt(self%lambda)+offsetMaximum )**2
     return
   end function nonCentralChiSquaredDegree3ConstructorInternal
 
@@ -128,7 +133,7 @@ contains
     class           (distributionFunction1DNonCentralChiDegree3), intent(inout) :: self
     double precision                                            , intent(in   ) :: x
 
-    if (x < 0.0d0) then
+    if (x < self%xMinimum .or. x > self%xMaximum) then
        nonCentralChiSquaredDegree3Density=+0.0d0
     else
        nonCentralChiSquaredDegree3Density=+0.5d0                                  &
@@ -163,8 +168,10 @@ contains
     class           (distributionFunction1DNonCentralChiDegree3), intent(inout) :: self
     double precision                                            , intent(in   ) :: x
 
-    if (x < 0.0d0) then
+    if      (x < self%xMinimum) then
        nonCentralChiSquaredDegree3Cumulative=+0.0d0
+    else if (x > self%xMaximum) then
+       nonCentralChiSquaredDegree3Cumulative=+1.0d0
     else
        ! Evaluate the CDF. Note that the sinh() term (see,
        ! e.g. https://en.wikipedia.org/wiki/Noncentral_chi-squared_distribution#Cumulative_distribution_function) is expressed in
