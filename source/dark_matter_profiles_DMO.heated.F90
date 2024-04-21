@@ -122,7 +122,7 @@ contains
     class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
     type            (varying_string                )                :: nonAnalyticSolver
-    logical                                                         :: velocityDispersionApproximate
+    logical                                                         :: velocityDispersionApproximate      , tolerateVelocityMaximumFailure
     double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
          &                                                             fractionRadiusFinalSmall           , toleranceRelativePotential
 
@@ -138,6 +138,12 @@ contains
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
       <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerateVelocityMaximumFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, tolerate failures to find the radius of the maximum circular velocity.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceRelativeVelocityDispersion</name>
@@ -167,7 +173,7 @@ contains
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,tolerateVelocityMaximumFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -177,7 +183,7 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateVelocityMaximumFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     !!}
@@ -188,12 +194,12 @@ contains
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileHeatingClass    ), intent(in   ), target :: darkMatterProfileHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
-    logical                                            , intent(in   )         :: velocityDispersionApproximate
+    logical                                            , intent(in   )         :: velocityDispersionApproximate            , tolerateVelocityMaximumFailure
     double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion      , toleranceRelativeVelocityDispersionMaximum       , &
          &                                                                        fractionRadiusFinalSmall                 , toleranceRelativePotential
     double precision                                   , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative                         =1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, fractionRadiusFinalSmall, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, tolerateVelocityMaximumFailure, fractionRadiusFinalSmall, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.

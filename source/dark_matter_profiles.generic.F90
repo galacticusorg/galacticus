@@ -55,18 +55,19 @@ module Dark_Matter_Profiles_Generic
      integer         (kind_int8               )                            :: genericLastUniqueID
      ! Memoized solutions for the radial velocity dispersion.
      double precision                          , allocatable, dimension(:) :: genericVelocityDispersionRadialVelocity                , genericVelocityDispersionRadialRadius
-     double precision                                                      :: genericVelocityDispersionRadialRadiusMinimum           , genericVelocityDispersionRadialRadiusMaximum, &
+     double precision                                                      :: genericVelocityDispersionRadialRadiusMinimum           , genericVelocityDispersionRadialRadiusMaximum       , &
           &                                                                   genericVelocityDispersionRadialRadiusOuter
      type            (interpolator            ), allocatable               :: genericVelocityDispersionRadial
      ! Memoized solutions for the enclosed mass.
      double precision                          , allocatable, dimension(:) :: genericEnclosedMassMass                                , genericEnclosedMassRadius
      double precision                                                      :: genericEnclosedMassRadiusMinimum                       , genericEnclosedMassRadiusMaximum
      type            (interpolator            ), allocatable               :: genericEnclosedMass
-     logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false.
      ! Memoized solutions for the potential.
      double precision                          , allocatable, dimension(:) :: genericPotentialPotential                              , genericPotentialRadius
      double precision                                                      :: genericPotentialRadiusMinimum                          , genericPotentialRadiusMaximum
      type            (interpolator            ), allocatable               :: genericPotential
+     ! Options controlling tolerance of failures.
+     logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false., tolerateVelocityMaximumFailure             =.false.
    contains 
      !![
      <methods>
@@ -1193,24 +1194,28 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Error               , only : errorStatusSuccess       , Error_Report
     implicit none
     class           (darkMatterProfileGeneric), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
-    double precision                          , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                          , parameter     :: toleranceAbsolute=0.0d+0, toleranceRelative=1.0d-6, &
+         &                                                       radiusTiny       =1.0d-9
     class           (nodeComponentBasic      ), pointer       :: basic
     type            (rootFinder              )                :: finder
-
-    call self%solverSet  (node)
-    finder      =  rootFinder(                                                             &
-         &                    rootFunction                 =rootCircularVelocityMaximum  , &
-         &                    toleranceAbsolute            =toleranceAbsolute            , &
-         &                    toleranceRelative            =toleranceRelative            , &
-         &                    rangeExpandDownward          =0.5d0                        , &
-         &                    rangeExpandUpward            =2.0d0                        , &
-         &                    rangeExpandType              =rangeExpandMultiplicative    , &
-         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
-         &                   )
+    integer                                                   :: status
+    
+    call self%solverSet(node)
+    finder =rootFinder(                                                             &
+         &             rootFunction                 =rootCircularVelocityMaximum  , &
+         &             toleranceAbsolute            =toleranceAbsolute            , &
+         &             toleranceRelative            =toleranceRelative            , &
+         &             rangeExpandDownward          =0.5d0                        , &
+         &             rangeExpandUpward            =2.0d0                        , &
+         &             rangeExpandType              =rangeExpandMultiplicative    , &
+         &             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &             rangeDownwardLimit           =radiusTiny                     &
+         &            )
     ! Isothermal profiles have dVc²/dr=0 everywhere. To handle these profiles, first test if the root function is sufficiently
     ! close to zero at a few points throughout the halo (which it will be for an isothermal profile), and return the circular
     ! velocity at the virial radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
@@ -1256,7 +1261,9 @@ contains
          & ) then
        genericRadiusCircularVelocityMaximumNumerical=                                            self%darkMatterHaloScale_%radiusVirial(node)
     else
-       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=                      self%darkMatterHaloScale_%radiusVirial(node))
+       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=                      self%darkMatterHaloScale_%radiusVirial(node),status=status)
+       if (status /= errorStatusSuccess .and. .not.self%tolerateVelocityMaximumFailure) &
+            & call Error_Report('failed to find radius of maximum circular velocity'//{introspection:location})
     end if
     call self%solverUnset(   )
     return
