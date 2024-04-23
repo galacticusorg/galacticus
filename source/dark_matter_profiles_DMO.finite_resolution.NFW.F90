@@ -1110,9 +1110,10 @@ contains
     type            (enumerationStructureErrorCodeType      ), intent(  out), optional :: status
     class           (nodeComponentBasic                     ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile         ), pointer                 :: darkMatterProfile
+    double precision                                         , parameter               :: radiusScaleFreeSmall     =1.0d-3
+    double precision                                         , parameter               :: radiusScaleFreeLarge     =1.0d+5
     double precision                                                                   :: concentration                   , radiusScaleFree, &
          &                                                                                lengthResolutionScaleFree
-    double precision                                         , parameter               :: radiusScaleFreeSmall     =1.0d-3
 
     if (present(status)) status=structureErrorCodeSuccess
     if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
@@ -1123,7 +1124,10 @@ contains
        concentration                =   self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree    =   self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        self%potentialRadiusPrevious =                             radius
-       if (radiusScaleFree < radiusScaleFreeSmall) then
+       if      (radiusScaleFree > radiusScaleFreeLarge) then
+          ! Truncate to zero at very large radii.
+          self%potentialPrevious=0.0d0
+       else if (radiusScaleFree < radiusScaleFreeSmall) then
           ! Series expansion for small radii.
           self%potentialPrevious       =  -gravitationalConstantGalacticus                              &
                &                          *basic            %mass ()                                    &
