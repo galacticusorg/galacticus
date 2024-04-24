@@ -135,11 +135,11 @@ contains
     !!{
     Assess and record an assertion.
     !!}
-    use                            :: Error               , only : Error_Report
-    use                            :: ISO_Varying_String  , only : assignment(=), operator(//), var_str
-    use                            :: Numerical_Comparison, only : Values_Agree
-    {Type¦match¦^integerLong¦  use :: Kind_Numbers        , only : kind_int8¦}
-    {Type¦match¦^varyingString¦use :: ISO_Varying_String  , only : operator(==) , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=)¦}
+    use                                  :: Error               , only : Error_Report
+    use                                  :: Numerical_Comparison, only : Values_Agree
+    {Type¦match¦^integerLong¦        use :: Kind_Numbers        , only : kind_int8¦}
+    {Type¦match¦^varyingString¦      use :: ISO_Varying_String  , only : operator(==) , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=), operator(//), var_str¦}
+    {Type¦match¦^(?!(varyingString))¦use :: ISO_Varying_String  , only : assignment(=), operator(//), var_str¦}
     character                                  (len=*         ), intent(in   )              :: testName
     {Type¦intrinsic}                                           , intent(in   )  {Type¦rank} :: value1    , value2
     integer                                                    , intent(in   ), optional    :: compare
@@ -148,6 +148,7 @@ contains
     logical                                                    , allocatable    {Type¦rank} :: passed
     type                                       (varying_string)                             :: comparison
     character                                  (len=256       )                             :: label
+    character                                  (len= 2        )                             :: separator    
     !![
     <optionalArgument name="compare" defaultsTo="compareEquals"/>
     !!]
@@ -194,10 +195,13 @@ contains
     result%label =trim(testName)
     if (.not.{Type¦reduction¦passed}) then
        result%note=var_str('')
+       separator  =''
        !![
        <forEach variable="passed">
-        if (.not.passed{index}) then
-         write (label,'(%index%,1x,a1)') {{index}},':'; result%note=result%note//trim(adjustl(label))
+	 if (.not.passed{index}) then
+	 if (separator /= "") result%note=result%note//separator
+         separator='; '
+         write (label,%index%) {{index}}; result%note=result%note//trim(adjustl(label))//': '
          {Type¦match¦^varyingString¦result%note=result%note//value1{index}¦}
          {Type¦match¦^character¦result%note=result%note//trim(value1{index})¦}
          {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value1{index}; result%note=result%note//trim(adjustl(label))¦}
@@ -261,12 +265,12 @@ contains
              case (testFailed%ID)
                 failCount=failCount+1
                 message=" FAILED: "//result%label
-                if (result%note /= "") message=message//" ["//result%note//"]"
+                if (result%note /= "") message=message//" {"//result%note//"}"
              case (testPassed%ID)
                 passCount=passCount+1
                 message=" passed: "//result%label
              case (testSkipped%ID)
-                message="skipped: "//result%label//" ["//result%note//"]"
+                message="skipped: "//result%label//" {"//result%note//"}"
              end select
              call displayMessage(message)
           else
