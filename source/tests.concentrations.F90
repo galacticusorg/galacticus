@@ -145,12 +145,12 @@ program Test_Concentrations
            call Node_Components_Initialize       (parameters)
            call Node_Components_Thread_Initialize(parameters)
            ! Read the Colossus target data (and parameters used) from file.
-           countMasses=Count_Lines_in_File(inputPath(pathTypeExec)//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'.txt','#')
+           countMasses=Count_Lines_in_File(inputPath(pathTypeExec)//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'_z'//trim(label)//'.txt','#')
            i=0
            allocate(mass(               countMasses))
            allocate(concentration      (countMasses))
            allocate(concentrationTarget(countMasses))
-           open(newUnit=colossusFile,file='testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'_z'//trim(label)//'.txt',status='old',form='formatted')
+           open(newUnit=colossusFile,file=char(inputPath(pathTypeExec))//'testSuite/data/concentrationsColossus/'//char(modelLabel(iModel))//'_z'//trim(label)//'.txt',status='old',form='formatted')
            do while (.true.)
               read (colossusFile,'(a)',ioStat=status) line
               if (status /= 0) exit
