@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713586343032,
+  "lastUpdate": 1714072543395,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "1f32936198271b9e5df881509f9be6aa4998aa4b",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2023-07-21T14:15:16Z",
-          "tree_id": "7a5cf54ad84d157ca14192aaccd9976aa0ca66ca",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1f32936198271b9e5df881509f9be6aa4998aa4b"
-        },
-        "date": 1689959840190,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 171.579,
-            "unit": "seconds",
-            "range": 1.3141053610724
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9471137503404,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c986aaafcb98f6b42ff0a61bce57444185c5b940",
+          "message": "Merge pull request #605 from galacticusorg/featConcentrationTests\n\nExpand the tests of concentration models",
+          "timestamp": "2024-04-25T14:13:09Z",
+          "tree_id": "6546ebdbf1715cbf79460a1c573613bfdb4ac007",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c986aaafcb98f6b42ff0a61bce57444185c5b940"
+        },
+        "date": 1714072542628,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 351.195,
+            "unit": "seconds",
+            "range": 0.179411538085769
           }
         ]
       }
