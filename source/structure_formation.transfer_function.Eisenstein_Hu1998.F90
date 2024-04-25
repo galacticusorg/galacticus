@@ -240,41 +240,29 @@ contains
     return
   end subroutine eisensteinHu1998Destructor
 
-  subroutine eisensteinHu1998ComputeFactors(self,wavenumber__)
+  subroutine eisensteinHu1998ComputeFactors(self,wavenumber)
     !!{
     Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1998}'' transfer function class.
     !!}
     use :: Numerical_Constants_Math, only : e
     implicit none
     class           (transferFunctionEisensteinHu1998), intent(inout) :: self
-    double precision                                  , intent(in   ) :: wavenumber__
+    double precision                                  , intent(in   ) :: wavenumber
     double precision                                                  :: wavenumberScaleFree, DwavenumberScaleFree, &
          &                                                               f                  , Df                  , &
          &                                                               T0t                , DT0t                , &
          &                                                               T0t1bc             , DT0t1bc             , &
          &                                                               T0t11              , DT0t11              , &
-         &                                                               C                  , C1bc                , &
-         &                                                               C11                , st, Dst
-
-double precision :: termBaryons1, DtermBaryons1, termBaryons2, DtermBaryons2, termBaryons3, DtermBaryons3, DC, DC11, DC1bc
-    
-
-    integer :: i
-    double precision :: wavenumber,ap,bp,cp,dp,w
-
-
-wavenumber=wavenumber__
+         &                                                               st                 , Dst                 , &
+         &                                                               termBaryons1       , DtermBaryons1       , &
+         &                                                               termBaryons2       , DtermBaryons2       , &
+         &                                                               termBaryons3       , DtermBaryons3       , &
+         &                                                               C                  , DC                  , &
+         &                                                               C11                , DC11                , &
+         &                                                               C1bc               , DC1bc
     
     ! If called again with the same wavenumber, return without recomputing result.
     if (wavenumber == self%wavenumberPrevious) return
-
-
-    ! do i=1,2
-    !    w=1.0d+2
-    !    if (i==1) wavenumber=w
-    !    if (i==2) wavenumber=w*1.000001d0
-
-    
     wavenumberScaleFree=+     wavenumber         &
          &              /self%wavenumberEquality &
          &              /13.41d0
@@ -296,12 +284,10 @@ wavenumber=wavenumber__
     ! Baryonic transfer function (eq. 21).
     C11                             =+14.2d0+386.0d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)
     T0t11                           =+log(e+1.8d0*wavenumberScaleFree)/(log(e+1.8d0*wavenumberScaleFree)+C11*wavenumberScaleFree**2)
-
-
-    termBaryons1=T0t11/(1.0d0+(wavenumber*self%distanceSoundHorizon/5.2d0)**2)
-    termBaryons2=self%alphaBaryons/(1.0d0+(self%betaBaryons/wavenumber/self%distanceSoundHorizon)**3)*exp(-(wavenumber/self%wavenumberSilk)**1.4d0)
-    termBaryons3=sin(wavenumber*st)/(wavenumber*st)
-
+    termBaryons1                    =+T0t11            /(1.0d0+(                 wavenumber*self%distanceSoundHorizon/5.2d0)**2)
+    termBaryons2                    =+self%alphaBaryons/(1.0d0+(self%betaBaryons/wavenumber/self%distanceSoundHorizon      )**3)*exp(-(wavenumber/self%wavenumberSilk)**1.4d0)
+    termBaryons3                    =+sin(wavenumber*st) &
+         &                           /   (wavenumber*st)
     self%transferFunctionBaryons    =+(termBaryons1+termBaryons2)*termBaryons3
     ! Evaluate derivatives of functons.
     DwavenumberScaleFree            =+1.0d0                   &
@@ -309,33 +295,20 @@ wavenumber=wavenumber__
          &                           /13.41d0
     Df                              =- 4.0d0*  wavenumber**3*(self%distanceSoundHorizon/5.4d0)**4     &
          &                           /(1.0d0+(+wavenumber   * self%distanceSoundHorizon/5.4d0)**4)**2
-    DC=-386.0d0*69.9d0*1.08d0*wavenumberScaleFree**0.08d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)**2
-    DC1bc=-386.0d0*69.9d0*1.08d0*wavenumberScaleFree**0.08d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)**2
-    DC11=-386.0d0*69.9d0*1.08d0*wavenumberScaleFree**0.08d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)**2
-    DT0t11                          =+DT0(C11 ,DC11,1.0d0              )
-    DT0t                            =+DT0(C   ,DC,self%betaDarkMatter)
+    DC                              =-386.0d0*69.9d0*1.08d0*wavenumberScaleFree**0.08d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)**2
+    DC1bc                           =-386.0d0*69.9d0*1.08d0*wavenumberScaleFree**0.08d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)**2
+    DC11                            =-386.0d0*69.9d0*1.08d0*wavenumberScaleFree**0.08d0/(+1.0d0+69.9d0*wavenumberScaleFree**1.08d0)**2
+    DT0t11                          =+DT0(C11 ,DC11 ,1.0d0              )
+    DT0t                            =+DT0(C   ,DC   ,self%betaDarkMatter)
     DT0t1bc                         =+DT0(C1bc,DC1bc,self%betaDarkMatter)
     Dst                             =+self%bNode**3/(+1.0d0+(self%bNode/wavenumber/self%distanceSoundHorizon)**3)**(4.0d0/3.0d0)/wavenumber**4/self%distanceSoundHorizon**2
-    DtermBaryons1=-2.0d0*wavenumber*self%distanceSoundHorizon**2*T0t11/5.2d0**2/(1.0d0+(wavenumber*self%distanceSoundHorizon/5.2d0)**2)**2+DT0t11/(1.0d0+(wavenumber*self%distanceSoundHorizon/5.2d0)**2)
-    DtermBaryons2=termBaryons2*(3.0d0/(1.0d0+(wavenumber*self%distanceSoundHorizon/self%betaBaryons)**3)-1.4d0*(wavenumber/self%wavenumberSilk)**1.4d0)/wavenumber
-    DtermBaryons3=(cos(wavenumber*st)/(wavenumber*st)-sin(wavenumber*st)/(wavenumber*st)**2)*(st+wavenumber*Dst)
+    DtermBaryons1                   =-2.0d0*wavenumber*self%distanceSoundHorizon**2*T0t11/5.2d0**2/(1.0d0+(wavenumber*self%distanceSoundHorizon/5.2d0)**2)**2+DT0t11/(1.0d0+(wavenumber*self%distanceSoundHorizon/5.2d0)**2)
+    DtermBaryons2                   =termBaryons2*(3.0d0/(1.0d0+(wavenumber*self%distanceSoundHorizon/self%betaBaryons)**3)-1.4d0*(wavenumber/self%wavenumberSilk)**1.4d0)/wavenumber
+    DtermBaryons3                   =(cos(wavenumber*st)/(wavenumber*st)-sin(wavenumber*st)/(wavenumber*st)**2)*(st+wavenumber*Dst)
     self%DtransferFunctionDarkMatter=+Df*T0t1bc+       f *DT0t1bc &
          &                           -Df*T0t   +(1.0d0-f)*DT0t
-    self%DtransferFunctionBaryons   =(DtermBaryons1+DtermBaryons2)*termBaryons3+(termBaryons1+termBaryons2)*DtermBaryons3
-
- !    if (i==1) then
- !       ap=termBaryons1
- !       bp=termBaryons2
- !       cp=termBaryons3
- !       dp=self%transferFunctionBaryons
- !    else
- !       write (0,*) (termBaryons1-ap)/w/0.000001d0,DtermBaryons1,(termBaryons2-bp)/w/0.000001d0,DtermBaryons2,(termBaryons3-cp)/w/0.000001d0,DtermBaryons3,(self%transferFunctionBaryons-dp)/w/0.000001d0,self%DtransferFunctionBaryons
- !    end if
-    
- ! end do
- ! stop
-
-
+    self%DtransferFunctionBaryons   =+(DtermBaryons1+DtermBaryons2)* termBaryons3 &
+         &                           +( termBaryons1+ termBaryons2)*DtermBaryons3
     ! Record the wavenumber for which factors were computed.
     self%wavenumberPrevious        =+wavenumber
     return
@@ -367,7 +340,12 @@ wavenumber=wavenumber__
            &      *(C*wavenumberScaleFree**2+log(e+1.8d0*wavenumberScaleFree*beta))    &
            &     )                                                                     &
            &   )                                                                       &
-           &  *DwavenumberScaleFree-wavenumberScaleFree**2*log(e+1.8d0*wavenumberScaleFree*beta)/(C*wavenumberScaleFree**2+log(e+1.8d0*wavenumberScaleFree*beta))**2*DC*DwavenumberScaleFree
+           &  *DwavenumberScaleFree                                                    &
+           &  -wavenumberScaleFree**2                                                  &
+           &  *                          log(e+1.8d0*wavenumberScaleFree*beta)         &
+           &  /(C*wavenumberScaleFree**2+log(e+1.8d0*wavenumberScaleFree*beta))**2     &
+           &  *DC                                                                      &
+           &  *DwavenumberScaleFree
       return
     end function DT0
 
