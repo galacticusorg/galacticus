@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713586347053,
+  "lastUpdate": 1714072554053,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -411,6 +411,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5c8dd069abdd6e76f85bd796c98848db2d3b86b7"
         },
         "date": 1713586346261,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 48.658652770965,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 35.0646477379663,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.7506130737105,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c986aaafcb98f6b42ff0a61bce57444185c5b940",
+          "message": "Merge pull request #605 from galacticusorg/featConcentrationTests\n\nExpand the tests of concentration models",
+          "timestamp": "2024-04-25T14:13:09Z",
+          "tree_id": "6546ebdbf1715cbf79460a1c573613bfdb4ac007",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c986aaafcb98f6b42ff0a61bce57444185c5b940"
+        },
+        "date": 1714072553284,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
