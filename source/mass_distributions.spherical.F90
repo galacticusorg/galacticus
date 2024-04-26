@@ -309,7 +309,7 @@ contains
     potential         =  +0.0d0
     potentialPrevious =  +1.0d0
     radius            =  +coordinates%rSpherical()
-    radiusMaximum     =  +radius
+    radiusMaximum     =  +            radius
     do while (.not.Values_Agree(potential,potentialPrevious,relTol=toleranceRelative))
        potentialPrevious=+potential
        radiusMaximum    =+radiusMaximum                        &
@@ -331,7 +331,7 @@ contains
     !!}
     implicit none
     class(massDistributionSpherical        ), intent(inout), target   :: self
-    class(coordinate                       ), intent(in   )           :: coordinates1               , coordinates2
+    class(coordinate                       ), intent(in   )           :: coordinates1 , coordinates2
     type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type (enumerationStructureErrorCodeType), intent(  out), optional :: status
