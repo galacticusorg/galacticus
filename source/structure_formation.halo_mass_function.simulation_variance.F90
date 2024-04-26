@@ -160,54 +160,57 @@ contains
     double precision                                    , intent(in   )           :: time                             , mass
     type            (treeNode                          ), intent(inout), optional :: node
     double precision                                    , parameter               :: wavenumberMaximumFractional=1.0d2
-    type            (varying_string                    )                          :: fileNameVariance
-    type            (lockDescriptor                    )                          :: fileLock
-    type            (hdf5Object                        )                          :: varianceFile
-    character       (len=12                            )                          :: timeLabel                        , lengthCubeLabel
  
     ! Find the variance of a cosmological box simulation if the time differs from the previous time for which this was calculated.
     if (time /= self%timePrevious) then
-       self%timePrevious=time
-       write (lengthCubeLabel,'(e12.6)') self%lengthSimulationCube
-       write (      timeLabel,'(e12.6)')      time
-       fileNameVariance=inputPath(pathTypeDataDynamic)                                  // &
-         &              'largeScaleStructure/'                                          // &
-         &              self%objectType()                                               // &
-         &              'CubeVariance_'                                                 // &
-         &              'lengthSimulationCube_'//trim(lengthCubeLabel)//'_'             // &
-         &              'time_'                //trim(      timeLabel)//'_'             // &
-         &              self%powerSpectrum_%hashedDescriptor(includeSourceDigest=.true.)// &
-         &              '.hdf5'
-       if (File_Exists(fileNameVariance)) then
-          call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
-          !$ call hdf5Access%set()
-          call varianceFile%openFile     (char(fileNameVariance),readOnly=.true.                 )
-          call varianceFile%readAttribute('variance'             ,        self%varianceSimulation)
-          call varianceFile%close        (                                                       )
-          !$ call hdf5Access%unset()
-          call File_Unlock(fileLock)
-       else
-          call displayIndent('computing simulation variance',verbosityLevelWorking)
-          call displayMessage('                time = '//timeLabel      //' Gyr',verbosityLevelWorking)
-          call displayMessage('lengthSimulationCube = '//lengthCubeLabel//' Mpc',verbosityLevelWorking)
-          powerSpectrum_         => self%powerSpectrum_
-          time_                   =       time
-          lengthSimulationCube_   =  self%lengthSimulationCube
-          integratorX             =  integrator(integrandVarianceSimulationX,toleranceRelative=1.0d-6)
-          integratorY             =  integrator(integrandVarianceSimulationY,toleranceRelative=1.0d-6)
-          integratorZ             =  integrator(integrandVarianceSimulationZ,toleranceRelative=1.0d-6)
-          wavenumberMinimum       =  +0.0d0
-          wavenumberMaximum       =  +wavenumberMaximumFractional/self%lengthSimulationCube
-          self%varianceSimulation =  integratorX%integrate(wavenumberMinimum,wavenumberMaximum)
-          call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
-          !$ call hdf5Access%set()
-          call varianceFile%openFile      (char(fileNameVariance) ,readOnly=.false.   ,overWrite=.true.)
-          call varianceFile%writeAttribute(self%varianceSimulation,         'variance'                 )
-          call varianceFile%close         (                                                            )
-          !$ call hdf5Access%unset()
-          call File_Unlock(fileLock)
-          call displayUnindent('done',verbosityLevelWorking)
-       end if
+       block
+         type     (varying_string) :: fileNameVariance
+         type     (lockDescriptor) :: fileLock
+         type     (hdf5Object    ) :: varianceFile
+         character(len=12        ) :: timeLabel       , lengthCubeLabel
+         
+         self%timePrevious=time
+         write (lengthCubeLabel,'(e12.6)') self%lengthSimulationCube
+         write (      timeLabel,'(e12.6)')      time
+         fileNameVariance=inputPath(pathTypeDataDynamic)                                  // &
+              &           'largeScaleStructure/'                                          // &
+              &           self%objectType()                                               // &
+              &           'CubeVariance_'                                                 // &
+              &           'lengthSimulationCube_'//trim(lengthCubeLabel)//'_'             // &
+              &           'time_'                //trim(      timeLabel)//'_'             // &
+              &           self%powerSpectrum_%hashedDescriptor(includeSourceDigest=.true.)// &
+              &           '.hdf5'
+         if (File_Exists(fileNameVariance)) then
+            call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
+            !$ call hdf5Access%set()
+            call varianceFile%openFile     (char(fileNameVariance),readOnly=.true.                 )
+            call varianceFile%readAttribute('variance'             ,        self%varianceSimulation)
+            call varianceFile%close        (                                                       )
+            !$ call hdf5Access%unset()
+            call File_Unlock(fileLock)
+         else
+            call displayIndent('computing simulation variance',verbosityLevelWorking)
+            call displayMessage('                time = '//timeLabel      //' Gyr',verbosityLevelWorking)
+            call displayMessage('lengthSimulationCube = '//lengthCubeLabel//' Mpc',verbosityLevelWorking)
+            powerSpectrum_         => self%powerSpectrum_
+            time_                   =       time
+            lengthSimulationCube_   =  self%lengthSimulationCube
+            integratorX             =  integrator(integrandVarianceSimulationX,toleranceRelative=1.0d-6)
+            integratorY             =  integrator(integrandVarianceSimulationY,toleranceRelative=1.0d-6)
+            integratorZ             =  integrator(integrandVarianceSimulationZ,toleranceRelative=1.0d-6)
+            wavenumberMinimum       =  +0.0d0
+            wavenumberMaximum       =  +wavenumberMaximumFractional/self%lengthSimulationCube
+            self%varianceSimulation =  integratorX%integrate(wavenumberMinimum,wavenumberMaximum)
+            call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
+            !$ call hdf5Access%set()
+            call varianceFile%openFile      (char(fileNameVariance) ,readOnly=.false.   ,overWrite=.true.)
+            call varianceFile%writeAttribute(self%varianceSimulation,         'variance'                 )
+            call varianceFile%close         (                                                            )
+            !$ call hdf5Access%unset()
+            call File_Unlock(fileLock)
+            call displayUnindent('done',verbosityLevelWorking)
+         end if
+       end block
     end if
     ! Modify the mass function by the perturbation.
     massFunction=+self%massFunction_%differential(time,mass,node)                        &
@@ -263,10 +266,10 @@ contains
        integrandVarianceSimulationZ=+0.0d0
     else
        ! We integrate only over positive wavenumbers, so we include a factor 8 here to account for the other octants.
-       integrandVarianceSimulationZ=+8.0d0                                            &
+       integrandVarianceSimulationZ=+8.0d0                                           &
             &                       *powerSpectrum_%power(wavenumberMagnitude,time_) &
-            &                       *windowFunctionX                                  &
-            &                       *windowFunctionY                                  &
+            &                       *windowFunctionX                                 &
+            &                       *windowFunctionY                                 &
             &                       *windowFunctionZ
     end if
     return
