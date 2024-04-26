@@ -215,6 +215,7 @@ contains
     !!]
 
     self%dimensionless                                 =.false.
+    self%lengthResolutionScalefreePrevious             =-huge(0.0d0)
     self%massEnclosedMassPrevious                      =-huge(0.0d0)
     self%massEnclosedRadiusPrevious                    =-huge(0.0d0)
     self%potentialPrevious                             =-huge(0.0d0)
@@ -493,7 +494,9 @@ contains
             &                       /self       %radiusScale
        if (radiusScaleFree < radiusScaleFreeSmall) then
           ! Series expansion for small radii.
-          self%potentialPrevious       =  -gravitationalConstantGalacticus                                   &
+          self%potentialPrevious       =  -4.0d0                                                             &
+               &                          *Pi                                                                &
+               &                          *gravitationalConstantGalacticus                                   &
                &                          *self%densityNormalization                                         &
                &                          *self%radiusScale         **2                                      &
                &                          *(                                                                 &
@@ -514,7 +517,9 @@ contains
                &                            /6.0d0                                                           &
                &                           )
        else
-          self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                                    &
+          self%potentialPrevious       =  -4.0d0                                                                                                                              &
+               &                          *Pi                                                                                                                                 &
+               &                          *gravitationalConstantGalacticus                                                                                                    &
                &                          *self%densityNormalization                                                                                                          &
                &                          *self%radiusScale         **2                                                                                                       &
                &                          *(                                                                                                                                  &
@@ -573,14 +578,13 @@ contains
     use :: Error           , only : Error_Report
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
-    double precision                                              , intent(in   ), optional :: mass                     , massFractional
+    double precision                                              , intent(in   ), optional :: mass             , massFractional
     type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
     integer         (c_size_t                                    ), dimension(0:1)          :: jLengthResolution
     double precision                                              , dimension(0:1)          :: hLengthResolution
     integer                                                                                 :: iLengthResolution
-    double precision                                                                        :: lengthResolutionScaleFree, mass_         , &
-         &                                                                                     massScaleFree
+    double precision                                                                        :: mass_            , massScaleFree
 
     if (.not.self%matches(componentType,massType)) then
        radius=0.0d0
@@ -599,11 +603,11 @@ contains
        ! Find scale free mass, and the maximum such mass reached in the profile.
        massScaleFree=+     mass                    &
             &        /self%densityNormalization    &
-            &        *self%radiusScale         **3
+            &        /self%radiusScale         **3
        ! Ensure table is sufficiently extensive.
        call self%radiusEnclosingMassTabulate(massScaleFree,self%lengthResolutionScaleFree)
        ! Interpolate to get the scale free radius enclosing the scale free mass.
-       call self%radiusEnclosingMassTableLengthResolutionInterpolator%linearFactors(lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
+       call self%radiusEnclosingMassTableLengthResolutionInterpolator%linearFactors(self%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
        jLengthResolution(1)=jLengthResolution(0)+1
        self%radiusEnclosingMassPrevious=0.0d0
        do iLengthResolution=0,1
@@ -638,13 +642,13 @@ contains
        retabulate=.false.
        if (.not.self%radiusEnclosingMassTableInitialized) then
           retabulate=.true.
-       else if (                                                              &
-            &    mass             < self%radiusEnclosingMassMassMinimum       &
-            &   .or.                                                          &
-            &    mass             > self%radiusEnclosingMassMassMaximum       &
-            &   .or.                                                          &
+       else if (                                                                    &
+            &    mass             < self%radiusEnclosingMassMassMinimum             &
+            &   .or.                                                                &
+            &    mass             > self%radiusEnclosingMassMassMaximum             &
+            &   .or.                                                                &
             &    lengthResolution < self%radiusEnclosingMassLengthResolutionMinimum &
-            &   .or.                                                          &
+            &   .or.                                                                &
             &    lengthResolution > self%radiusEnclosingMassLengthResolutionMaximum &
             &  ) then
           retabulate=.true.
@@ -667,7 +671,7 @@ contains
        end if
        allocate(self%radiusEnclosingMassTableLengthResolution(                                       self%radiusEnclosingMassTableLengthResolutionCount))
        allocate(self%radiusEnclosingMassTableMass            (self%radiusEnclosingMassTableMassCount                                                   ))
-       allocate(self%radiusEnclosingMassTable                (self%radiusEnclosingMassTablemassCount,self%radiusEnclosingMassTableLengthResolutionCount))
+       allocate(self%radiusEnclosingMassTable                (self%radiusEnclosingMassTableMassCount,self%radiusEnclosingMassTableLengthResolutionCount))
        ! Create a range of radii and core radii.
        self%radiusEnclosingMassTableMass            =Make_Range(self%radiusEnclosingMassMassMinimum            ,self%radiusEnclosingMassMassMaximum            ,self%radiusEnclosingMassTableMassCount            ,rangeType=rangeTypeLogarithmic)
        self%radiusEnclosingMassTableLengthResolution=Make_Range(self%radiusEnclosingMassLengthResolutionMinimum,self%radiusEnclosingMassLengthResolutionMaximum,self%radiusEnclosingMassTableLengthResolutionCount,rangeType=rangeTypeLogarithmic)
@@ -839,8 +843,6 @@ contains
        densityScaleFree       =+     density                   &
             &                  /self%densityNormalization
        densityScaleFreeMaximum=+1.0d0                          &
-            &                  /4.0d0                          &
-            &                  /Pi                             &
             &                  /self%lengthResolutionScaleFree
        if      (densityScaleFree >= densityScaleFreeMaximum) then
           ! Maximum density is exceeded - return zero radius.
@@ -945,7 +947,7 @@ contains
           iLengthResolution_=iLengthResolution
           do iDensity=1,self%radiusEnclosingDensityTableDensityCount
              iDensity_=iDensity
-             if (self%radiusEnclosingDensityTableDensity(iDensity) > 1.0d0/self%radiusEnclosingDensityTableLengthResolution(iLengthResolution)/4.0d0/Pi) then
+             if (self%radiusEnclosingDensityTableDensity(iDensity) > 1.0d0/self%radiusEnclosingDensityTableLengthResolution(iLengthResolution)) then
                 ! Density exceeds the maximum density in the profile - so set zero radius.
                 self%radiusEnclosingDensityTable(iDensity,iLengthResolution)=0.0d0
              else
@@ -1088,7 +1090,7 @@ contains
     integer         (c_size_t                                    ), dimension(0:1)           :: jLengthResolution
     double precision                                              , dimension(0:1)           :: hLengthResolution
     integer                                                                                  :: iLengthResolution
-    
+
     if (self%energyPrevious > 0.0d0) then
        ! Ensure table is sufficiently extensive.
        call self%energyTabulate(self%lengthResolutionScaleFree,radiusOuter/self%radiusScale)
@@ -1175,10 +1177,10 @@ contains
        do iLengthResolution=1,self%energyTableLengthResolutionCount
           iLengthResolution_=iLengthResolution
           do iRadiusOuter=1,self%energyTableRadiusOuterCount
-             radiusOuter_=self%energyTableRadiusOuter(iRadiusOuter)
-             energyPotential                             =+integratorPotential%integrate(       0.0d0,                 radiusOuter_)
-             energyKinetic                               =+integratorKinetic  %integrate(       0.0d0,                 radiusOuter_)/4.0d0/Pi
-             pseudoPressure                              =+integratorPressure %integrate(radiusOuter_,multiplierRadius*radiusOuter_)/4.0d0/Pi
+             radiusOuter_                                    =self%energyTableRadiusOuter(iRadiusOuter)
+             energyPotential                                 =+integratorPotential%integrate(       0.0d0,                 radiusOuter_)
+             energyKinetic                                   =+integratorKinetic  %integrate(       0.0d0,                 radiusOuter_)
+             pseudoPressure                                  =+integratorPressure %integrate(radiusOuter_,multiplierRadius*radiusOuter_)
              self%energyTable(iRadiusOuter,iLengthResolution)=-0.5d0                                                                                             &
                   &                                           *(                                                                                                 &
                   &                                             +energyPotential                                                                                 &
