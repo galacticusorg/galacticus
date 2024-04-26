@@ -730,7 +730,8 @@ contains
                &  - 8.0d0/3.0d0*Pi*radius**3 &
                &  + 3.0d0      *Pi*radius**4 &
                &  -16.0d0/5.0d0*Pi*radius**5 &
-               &  +10.0d0/3.0d0*Pi*radius**6
+               &  +10.0d0/3.0d0*Pi*radius**6 &
+               &  -24.0d0/7.0d0*Pi*radius**7
        else
           ! Use full solution.
           mass   =+4.0d0                &
