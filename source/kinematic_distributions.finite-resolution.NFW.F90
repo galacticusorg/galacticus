@@ -65,7 +65,7 @@
   end interface kinematicsDistributionFiniteResolutionNFW
 
   ! Tabulation resolution parameters.
-  integer, parameter :: velocityDispersion1DTableRadiusPointsPerDecade    =100
+  integer, parameter :: velocityDispersion1DTableRadiusPointsPerDecade          =100
   integer, parameter :: velocityDispersion1DTableLengthResolutionPointsPerDecade=100
 
   class(kinematicsDistributionFiniteResolutionNFW   ), pointer :: self_
@@ -132,7 +132,7 @@ contains
     integer         (c_size_t                                 ), dimension(0:1) :: jLengthResolution
     double precision                                           , dimension(0:1) :: hLengthResolution
     integer                                                                     :: iLengthResolution
-    double precision :: radiusScaleFree, radiusScaleFreeEffective
+    double precision                                                            :: radiusScaleFree                      , radiusScaleFreeEffective
 
     select type (massDistributionEmbedding)
     class is (massDistributionSphericalFiniteResolutionNFW)
@@ -141,7 +141,7 @@ contains
        ! Compute the effective radius. In the core of the profile the velocity dispersion must become constant. Therefore, we
        ! limit the smallest radius we consider to a small fraction of the core radius. Below this radius a constant velocity
        ! dispersion is assumed.
-       radiusScaleFree=coordinates%rSpherical()/massDistributionEmbedding%radiusScale
+       radiusScaleFree         =coordinates%rSpherical()/massDistributionEmbedding%radiusScale
        radiusScaleFreeEffective=max(radiusScaleFree,lengthResolutionScaleFreeSmall*massDistributionEmbedding%lengthResolutionScaleFree)
        ! Ensure table is sufficiently extensive.
        call self%velocityDispersion1DTabulate(massDistributionEmbedding,radiusScaleFreeEffective,massDistributionEmbedding%lengthResolutionScaleFree)
@@ -158,8 +158,8 @@ contains
             &                            *sqrt(                                                   &
             &                                  +gravitationalConstantGalacticus                   &
             &                                  *massDistributionEmbedding%densityNormalization    &
-            &                                  /massDistributionEmbedding%radiusScale         **2 &
-            &)
+            &                                  *massDistributionEmbedding%radiusScale         **2 &
+            &                                 )
     end if
     velocityDispersion=self%velocityDispersion1DPrevious
     class default
@@ -179,7 +179,7 @@ contains
     class           (kinematicsDistributionFiniteResolutionNFW   ), intent(inout), target :: self
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: massDistributionEmbedding
     double precision                                              , intent(in   )         :: radius                           , radiusCore
-    double precision                                              , parameter             :: radiusTiny               =1.0d-1
+    double precision                                              , parameter             :: radiusTiny               =1.0d-2
     type            (integrator                                  ), save                  :: integrator_
     logical                                                       , save                  :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
@@ -233,11 +233,11 @@ contains
           initialized=.true.
        end if
        ! Loop over radii and α and populate tables.
-       self_       => self
-       massDistributionEmbedding_       => massDistributionEmbedding
-       radiusOuter =  max(10.0d0*self%velocityDispersion1DRadiusMaximum,1000.0d0)
+       self_                      => self
+       massDistributionEmbedding_ => massDistributionEmbedding
+       radiusOuter                =  max(10.0d0*self%velocityDispersion1DRadiusMaximum,1000.0d0)
        do iLengthResolution=1,self%velocityDispersion1DTableLengthResolutionCount
-          iLengthResolution_         =iLengthResolution
+          iLengthResolution_   =iLengthResolution
           jeansIntegralPrevious=0.0d0
           do iRadius=self%velocityDispersion1DTableRadiusCount,1,-1
              ! For radii that are tiny compared to the core radius the velocity dispersion become almost constant. Simply assume this to avoid floating point errors.
@@ -342,7 +342,7 @@ contains
     !!{
     Restore the tabulated velocity dispersion data from file.
     !!}
-    use :: File_Utilities    , only : File_Exists    , File_Lock          , File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
@@ -362,8 +362,8 @@ contains
     if (File_Exists(fileName)) then
        if (allocated(self%velocityDispersion1DTableRadius)) then
           deallocate(self%velocityDispersion1DTableLengthResolution)
-          deallocate(self%velocityDispersion1DTableRadius    )
-          deallocate(self%velocityDispersion1DTable          )
+          deallocate(self%velocityDispersion1DTableRadius          )
+          deallocate(self%velocityDispersion1DTable                )
        end if
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
