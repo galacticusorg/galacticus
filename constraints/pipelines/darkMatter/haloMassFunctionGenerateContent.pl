@@ -8,7 +8,7 @@ use XML::Simple;
 use PDL;
 use PDL::IO::HDF5;
 use Galacticus::Options;
-use Galacticus::Constraints::HaloMassFunctions qw(iterate selectSimulations matchSelection);
+use Galacticus::Constraints::HaloMassFunctions qw(iterate);
 use List::Util;
 use List::ExtraUtils;
 use Data::Dumper;
@@ -32,9 +32,6 @@ foreach my $path ( 'pipelinePath', 'outputDirectory' ) {
     $options{$path} .= "/"
 	unless ( $options{$path} =~ m/\/$/ );
 }
-
-# Extract simulation select from command line options.
-my @selections = &selectSimulations(\%options);
 
 # Set global parameters.
 $content::countParticlesMinimum = 100  ;
@@ -229,6 +226,7 @@ my $configOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- Likelihood -->
   <posteriorSampleLikelihood value="independentLikelihoods">
+    <orderRotation value="byRankOnNode"/> <!-- Rotation likelihoods by the on-node rank to ensure that each process begins with a different power spectrum class. -->
 CODE
 my $configInitializer = fill_in_string(<<'CODE', PACKAGE => 'content');
   </posteriorSampleLikelihood>

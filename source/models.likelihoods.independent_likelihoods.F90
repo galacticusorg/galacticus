@@ -34,6 +34,18 @@
   end type posteriorSampleLikelihoodList
 
   !![
+  <enumeration>
+   <name>orderRotation</name>
+   <description>Specifies how to rotate the order of likelihood evaluation by process number.</description>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="none"        />
+   <entry label="byRank"      />
+   <entry label="byRankOnNode"/>
+  </enumeration>
+  !!]
+
+  !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
    <description>A posterior sampling likelihood class which combines other likelihoods assumed to be independent.</description>
    <linkedList type="posteriorSampleLikelihoodList" variable="modelLikelihoods" next="next" object="modelLikelihood_" objectType="posteriorSampleLikelihoodClass"/>
@@ -44,6 +56,7 @@
      Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
      !!}
      private
+     type            (enumerationOrderRotationType )          :: orderRotation
      type            (posteriorSampleLikelihoodList), pointer :: modelLikelihoods    => null()
      double precision                                         :: logLikelihoodAccept
      logical                                                  :: report
@@ -75,12 +88,19 @@ contains
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
-    type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_
-    integer                                                                 :: i                 , parameterMapCount
+    type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_  , modelLikelihoodLast
+    integer                                                                 :: i                 , parameterMapCount  , &
+         &                                                                     countRotation     , countLikelihoods
     type   (enumerationInputParameterErrorStatusType       )                :: errorStatus
-    type   (varying_string                                 )                :: parameterMapJoined
+    type   (varying_string                                 )                :: parameterMapJoined, orderRotation
 
     !![
+    <inputParameter>
+      <name>orderRotation</name>
+      <source>parameters</source>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>The order in which evaluation of likelihoods should be rotated as a function of process number.</description>
+    </inputParameter>
     <inputParameter>
       <name>logLikelihoodAccept</name>
       <variable>self%logLikelihoodAccept</variable>
@@ -103,7 +123,8 @@ contains
          & ) call Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
-    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
+    countLikelihoods                  =  parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
+    do i=1,countLikelihoods
        if (associated(modelLikelihood_)) then
           allocate(modelLikelihood_%next)
           modelLikelihood_ => modelLikelihood_%next
@@ -137,13 +158,36 @@ contains
           call Error_Report('invalid parameter'//{introspection:location})
        end if
     end do
+    !! Perform rotation of likelihoods.
+    self%orderRotation=enumerationOrderRotationEncode(char(orderRotation),includesPrefix=.false.)
+    countRotation     =0
+    select case (self%orderRotation%ID)
+    case (orderRotationNone        %ID)
+       countRotation=0
+    case (orderRotationByRank      %ID)
+       countRotation=mpiSelf%rank      ()
+    case (orderRotationByRankOnNode%ID)
+       countRotation=mpiSelf%rankOnNode()
+    end select
+    if (countRotation > 0 .and. countLikelihoods > 0) then
+       do i=1,countRotation
+          modelLikelihood_    => self%modelLikelihoods
+          modelLikelihoodLast => self%modelLikelihoods
+          do while (associated(modelLikelihoodLast%next))
+             modelLikelihoodLast => modelLikelihoodLast%next
+          end do
+          self               %modelLikelihoods => modelLikelihood_%next
+          modelLikelihoodLast%next             => modelLikelihood_
+          modelLikelihood_   %next             => null()
+       end do
+    end if
     !![
     <inputParametersValidate source="parameters" multiParameters="posteriorSampleLikelihood, parameterMap, parameterInactiveMap" extraAllowedNames="parameterMap parameterInactiveMap"/>
     !!]
     return
   end function independentLikelihoodsConstructorParameters
 
-  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report) result(self)
+  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report,orderRotation) result(self)
     !!{
     Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
     !!}
@@ -152,8 +196,9 @@ contains
     type            (posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
     double precision                                                         , intent(in   ) :: logLikelihoodAccept
     logical                                                                  , intent(in   ) :: report
+    type            (enumerationOrderRotationType                   )        , intent(in   ) :: orderRotation
     !![
-    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept, report"/>
+    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept, report, orderRotation"/>
     !!]
 
     return
