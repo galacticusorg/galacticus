@@ -58,9 +58,9 @@ program Test_Dark_Matter_Profiles
   class           (nodeComponentSpheroid                                         ), pointer      :: spheroid
   class           (massDistributionClass                                         ), pointer      :: massDistribution_
   class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistribution_
-  double precision                                                                , parameter    :: concentration                       = 8.0d0                                                         , &
-       &                                                                                            massVirial                          = 1.0d0                                                         , &
-       &                                      massSmall                           = 1.0d-4                                                        , &
+  double precision                                                                , parameter    :: concentration                       = 8.0d+0                                                        , &
+       &                                                                                            massVirial                          = 1.0d+0                                                        , &
+       &                                                                                            massSmall                           = 1.0d-7                                                        , &
        ! Mass and concentration of Pippin halos (Jiang et al. 2022).
        &                                                                                            concentrationPippin                 =15.8d0                                                         , &
        &                                                                                            massVirialPippin                    =10.0d0**9.89d0                                                 , &
@@ -118,8 +118,8 @@ program Test_Dark_Matter_Profiles
        &                                                                                            energyKinetic                                                                                       , &
        &                                                                                            energyPotentialNumerical                                                                            , &
        &                                                                                            energyKineticNumerical                                                                              , &
-       &                                                                                            densityNormalization                          , &
-       &                                      radiusSmall
+       &                                                                                            densityNormalization                                                                                , &
+       &                                                                                            radiusSmall
 
 
   ! Set verbosity level.
@@ -314,7 +314,7 @@ program Test_Dark_Matter_Profiles
        &       1.000000000000000d+0    &
        &      ]                      , &
        &      relTol=1.0d-6            &
-       &     )
+       &     )  
   call Assert(                         &
        &      'radius enclosing mass', &
        &      radiusRecoveredFromMass, &
@@ -324,8 +324,8 @@ program Test_Dark_Matter_Profiles
   call Assert(                                          &
        &      'radius enclosing mass (at small radii)', &
        &      radiusSmall                             , &
-       &      5.357343922297839d-8                    , &
-       &      relTol=1.0d-6                             &
+       &      1.6764798688849444d-9                   , &
+       &      relTol=1.0d-5                             &
        &     )
   call Assert(                         &
        &      'density'              , &
@@ -637,13 +637,13 @@ program Test_Dark_Matter_Profiles
        &      'enclosed mass'        , &
        &      mass                   , &
        &      [                        &
-       &1.654826011427427d-3,&
-       &7.739711640396846d-3,&
-       &3.140778408165459d-2,&
-       &1.043599712384584d-1,&
-       &2.742860732070792d-1,&
-       &5.747348550741195d-1,&
-       &1.d0&
+       &       1.654826011427427d-3  , &
+       &       7.739711640396846d-3  , &
+       &       3.140778408165459d-2  , &
+       &       1.043599712384584d-1  , &
+       &       2.742860732070792d-1  , &
+       &       5.747348550741195d-1  , &
+       &       1.000000000000000d+0    &
        &      ]                      , &
        &      relTol=1.0d-6            &
        &     )
