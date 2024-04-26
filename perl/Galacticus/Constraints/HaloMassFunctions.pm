@@ -8,6 +8,7 @@ use XML::Simple;
 use PDL;
 use Storable qw(dclone);
 use Exporter 'import';
+use Data::Dumper;
 our @EXPORT_OK = qw(iterate selectSimulations matchSelection);
 
 sub iterate {
@@ -149,6 +150,27 @@ sub iterate {
 		    }
 		}
 	    }
+	}
+    }
+    # Re-order to avoid spread models with the same power spectrum class. This optimizes load balancing when recalculation of σ(M)
+    # is required, allowing different MPI processes to begin with models that have different power spectra and so will store these
+    # to different files.
+    if ( $optionsExtra{'stopAfter'} eq "redshift" ) {
+	my %powerSpectrumClasses;
+	foreach my $entry ( @simulationList ) {
+	    push(@{$powerSpectrumClasses{$entry->{'simulation'}->{'powerSpectrumClass'}->{'value'}}},$entry);
+	}
+	my @simulationListReordered = ();
+	while ( scalar(keys(%powerSpectrumClasses)) > 0 ) {
+	    foreach my $powerSpectrumClass ( sort(keys(%powerSpectrumClasses)) ) {
+		push(@simulationListReordered,pop(@{$powerSpectrumClasses{$powerSpectrumClass}}));
+		delete($powerSpectrumClasses{$powerSpectrumClass})
+		    if ( scalar(@{$powerSpectrumClasses{$powerSpectrumClass}}) == 0 );
+	    }
+	}
+	@simulationList = @simulationListReordered;
+	foreach my $entry ( @simulationList ) {
+	    print $entry->{'simulation'}->{'powerSpectrumClass'}->{'value'}."\n";
 	}
     }
     # Return the iterable list that we have constructed.
