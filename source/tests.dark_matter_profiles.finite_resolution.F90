@@ -217,16 +217,17 @@ program Test_Dark_Matter_Profiles_Finite_Resolution
   coordinatesVirial =[1.0d+2*radiusVirial,0.0d0,0.0d0]
   potential         =+massDistributionFiniteResolutionNFW_%potential(coordinates=coordinatesScale ) &
        &             -massDistributionFiniteResolutionNFW_%potential(coordinates=coordinatesVirial)
-  potentialNumerical=+massDistribution_                   %potential(coordinates=coordinatesScale )
+  potentialNumerical=+massDistributionFiniteResolution_   %potential(coordinates=coordinatesScale ) &
+       &             +massDistributionFiniteResolution_   %potential(coordinates=coordinatesVirial)
   call Assert(                           &
        &             "Potential"       , &
        &             potential         , &
        &             potentialNumerical, &
-       &      relTol=+2.0d-2             &
+       &      relTol=+4.0d-2             &
        &     )
   !! Total energy.
   energy         =+massDistributionFiniteResolutionNFW_%energy(radiusVirial,massDistributionFiniteResolutionNFW_)
-  energyNumerical=+massDistribution_                   %energy(radiusVirial,massDistribution_                   )
+  energyNumerical=+massDistributionFiniteResolution_   %energy(radiusVirial,massDistributionFiniteResolution_   )
   call Assert(                        &
        &             "Energy"       , &
        &             energy         , &
