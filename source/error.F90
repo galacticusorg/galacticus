@@ -103,12 +103,6 @@ contains
     !!{
     Display an error message.
     !!}
-#ifndef UNCLEANEXIT
-    use    :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use    :: HDF5         , only : H5Close_F
-#endif
 #ifdef USEMPI
     use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -117,7 +111,6 @@ contains
     use    :: System_Output, only : stdOutIsATTY
     implicit none
     character(len=*  ), intent(in   ) :: message
-    integer                           :: error
 #ifdef USEMPI
     integer                           :: mpiRank
     character(len=128)                :: hostName
@@ -141,11 +134,7 @@ contains
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
@@ -256,12 +245,6 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use    :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use    :: HDF5         , only : H5Close_F
-#endif
 #ifdef USEMPI
     use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -269,7 +252,6 @@ contains
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    integer            :: error
 #ifdef USEMPI
     integer            :: mpiRank
     character(len=128) :: hostName
@@ -287,11 +269,7 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #endif
     call Warn_Review( )
     call BackTrace  ( )
@@ -319,12 +297,6 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use    :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use    :: HDF5         , only : H5Close_F
-#endif
 #ifdef USEMPI
     use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -332,7 +304,6 @@ contains
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    integer            :: error
 #ifdef USEMPI
     integer            :: mpiRank
     character(len=128) :: hostName
@@ -350,11 +321,7 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #endif
     call Warn_Review( )
     call BackTrace  ( )
@@ -382,12 +349,6 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use    :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use    :: HDF5         , only : H5Close_F
-#endif
 #ifdef USEMPI
     use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -395,7 +356,6 @@ contains
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    integer            :: error
 #ifdef USEMPI
     integer            :: mpiRank
     character(len=128) :: hostName
@@ -413,11 +373,7 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #endif
     call Warn_Review( )
     call BackTrace  ( )
@@ -445,12 +401,6 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use    :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use    :: HDF5         , only : H5Close_F
-#endif
 #ifdef USEMPI
     use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -458,7 +408,6 @@ contains
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    integer            :: error
 #ifdef USEMPI
     integer            :: mpiRank
     character(len=128) :: hostName
@@ -476,11 +425,7 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #endif
     call Warn_Review( )
     call BackTrace  ( )
@@ -508,12 +453,6 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use    :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use    :: HDF5         , only : H5Close_F
-#endif
 #ifdef USEMPI
     use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -521,7 +460,6 @@ contains
     use    :: Display      , only : displayBold       , displayRed     , displayReset
     use    :: System_Output, only : stdOutIsATTY
     implicit none
-    integer            :: error
 #ifdef USEMPI
     integer            :: mpiRank
     character(len=128) :: hostName
@@ -539,11 +477,7 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #endif
     call Warn_Review( )
     call BackTrace  ( )
@@ -571,16 +505,9 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use :: HDF5_Access  , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use :: HDF5         , only : H5Close_F
-#endif
     use :: Display      , only : displayBold , displayRed, displayReset
     use :: System_Output, only : stdOutIsATTY
     implicit none
-    integer :: error
 
     if (stdOutIsATTY()) then
        write (0,*) displayRed()//displayBold()//'Galacticus exceeded available CPU time - will try to flush data before exiting.'//displayReset()
@@ -589,11 +516,7 @@ contains
     end if
     call Flush(0)
 #ifndef UNCLEANEXIT
-    !$ if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$ call        hdf5Access%unset(     )
+    call closeHDF5()
 #endif
     call Exit(errorStatusXCPU)
     return
@@ -603,12 +526,6 @@ contains
     !!{
     Handle errors from the GSL library, by flushing all data and then aborting.
     !!}
-#ifndef UNCLEANEXIT
-    use               :: HDF5_Access       , only : hdf5Access
-#endif
-#ifndef UNCLEANEXIT
-    use               :: HDF5              , only : H5Close_F
-#endif
     use   , intrinsic :: ISO_C_Binding     , only : c_char
     use               :: ISO_Varying_String, only : char
 #ifdef USEMPI
@@ -620,7 +537,6 @@ contains
     use               :: System_Output     , only : stdOutIsATTY
     character(c_char), dimension(*) :: file       , reason
     integer  (c_int ), value        :: errorNumber, line
-    integer                         :: error
 #ifdef USEMPI
     integer                         :: mpiRank
     character(len=128)              :: hostName
@@ -641,11 +557,7 @@ contains
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
 #ifndef UNCLEANEXIT
-       !$ if (.not.hdf5Access%ownedByThread()) &
-       !$      & call hdf5Access%set  (     )
-       call           H5Close_F       (error)
-       call           H5Close_C       (     )
-       !$ call        hdf5Access%unset(     )
+       call closeHDF5()
 #endif
        call Warn_Review( )
        call BackTrace  ( )
@@ -751,4 +663,26 @@ contains
     return
   end subroutine Error_Wait_Set
 
+#ifndef UNCLEANEXIT
+  subroutine closeHDF5()
+    !!{
+    Close HDF5 functionality on error.
+    !!}
+    use :: HDF5         , only : H5Close_F
+    use :: HDF5_Access  , only : hdf5Access, hdf5AccessInitialized
+    implicit none
+    integer :: error
+    
+    !$ if (hdf5AccessInitialized) then
+    !$    if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$    if (hdf5AccessInitialized      ) &
+    !$      & call hdf5Access%unset(     )
+    !$ end if
+    return
+  end subroutine closeHDF5
+#endif
+  
 end module Error
