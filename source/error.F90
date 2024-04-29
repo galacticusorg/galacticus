@@ -112,7 +112,7 @@ contains
     implicit none
     character(len=*  ), intent(in   ) :: message
 #ifdef USEMPI
-    integer                           :: mpiRank
+    integer                           :: mpiRank , error
     character(len=128)                :: hostName
     logical                           :: flag
 #endif
@@ -253,7 +253,7 @@ contains
     use    :: System_Output, only : stdOutIsATTY
     implicit none
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , error
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -305,7 +305,7 @@ contains
     use    :: System_Output, only : stdOutIsATTY
     implicit none
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , error
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -357,7 +357,7 @@ contains
     use    :: System_Output, only : stdOutIsATTY
     implicit none
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , error
     character(len=128) :: hostName
     logical            :: flag
 #endif
