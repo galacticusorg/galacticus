@@ -409,7 +409,7 @@ contains
     use    :: System_Output, only : stdOutIsATTY
     implicit none
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , error
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -461,7 +461,7 @@ contains
     use    :: System_Output, only : stdOutIsATTY
     implicit none
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , error
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -538,7 +538,7 @@ contains
     character(c_char), dimension(*) :: file       , reason
     integer  (c_int ), value        :: errorNumber, line
 #ifdef USEMPI
-    integer                         :: mpiRank
+    integer                         :: mpiRank    , error
     character(len=128)              :: hostName
     logical                         :: flag
 #endif
