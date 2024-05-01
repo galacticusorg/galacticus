@@ -313,6 +313,7 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
     !!}
+    use :: Display           , only : displayGreen                     , displayReset
     use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : node                             , getExceptionCode, inException, DOMException
     use :: Error             , only : Error_Report
@@ -350,10 +351,18 @@ contains
           parseSuccess=.false.
           errorMessage=errorMessage//char(10)//'I/O error [code='//errorStatus//']'
        else
-          call Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
+          call Error_Report(                                                                                                                                                                &
+               &            'Unable to find parameter file: "' //trim(fileName)//'"'//                                                                                                      &
+               &            {introspection:location}                                                                                                                                        &
+               &           )
        end if
     end if
-    if (.not.parseSuccess) call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'" {"'//fileNameFailed//'"}: '//errorMessage//{introspection:location})
+    if (.not.parseSuccess)                                                                                                                                                                   &
+         & call Error_Report(                                                                                                                                                                &
+         &                   'Unable to parse parameter file: "'//trim(fileName)//'" {"'//fileNameFailed//'"}: '//errorMessage//char(10)//                                                   &
+         &                   displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --noout "//trim(fileName)//"` will display any XML errors"// &
+         &                   {introspection:location}                                                                                                                                        &
+         &                  )
     !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Get_First_Element_By_Tag_Name(              &
          &                                             doc         , &

@@ -44,30 +44,32 @@ program Tests_Linear_Growth_EdS_Baryons
   ! Initialize event hooks.
   call eventsHooksInitialize()
   ! Construct model.
-  cosmologyParameters_=cosmologyParametersSimple          (                                                      &
-       &                                                   OmegaMatter               = 1.00d0                  , &
-       &                                                   OmegaBaryon               = 0.05d0                  , &
-       &                                                   OmegaDarkEnergy           = 0.00d0                  , &
-       &                                                   temperatureCMB            = 2.78d0                  , &
-       &                                                   HubbleConstant            =70.00d0                    &
+  cosmologyParameters_=cosmologyParametersSimple          (                                                                 &
+       &                                                   OmegaMatter                          = 1.00d0                  , &
+       &                                                   OmegaBaryon                          = 0.05d0                  , &
+       &                                                   OmegaDarkEnergy                      = 0.00d0                  , &
+       &                                                   temperatureCMB                       = 2.78d0                  , &
+       &                                                   HubbleConstant                       =70.00d0                    &
        &                                                  )
-  cosmologyFunctions_ =cosmologyFunctionsMatterLambda     (                                                      &
-       &                                                                              cosmologyParameters_       &
+  cosmologyFunctions_ =cosmologyFunctionsMatterLambda     (                                                                 &
+       &                                                                                         cosmologyParameters_       &
        &                                                  )
-  intergalacticMediumState_=intergalacticMediumStateSimple(                                                      &
-       &                                                   reionizationRedshift      = 8.00d0                  , &
-       &                                                   reionizationTemperature   = 1.00d4                  , &
-       &                                                   preReionizationTemperature= 1.00d4                  , &
-       &                                                   cosmologyFunctions_       =cosmologyFunctions_      , &
-       &                                                   cosmologyParameters_      =cosmologyParameters_       &
+  intergalacticMediumState_=intergalacticMediumStateSimple(                                                                 &
+       &                                                   reionizationRedshift                 = 8.00d0                  , &
+       &                                                   reionizationTemperature              = 1.00d4                  , &
+       &                                                   preReionizationTemperature           = 1.00d4                  , &
+       &                                                   cosmologyFunctions_                  =cosmologyFunctions_      , &
+       &                                                   cosmologyParameters_                 =cosmologyParameters_       &
        &                                                  )
-  linearGrowth_       =linearGrowthBaryonsDarkMatter      (                                                      &
-       &                                                   redshiftInitial           =100.0d0                  , &
-       &                                                   redshiftInitialDelta      =  1.0d0                  , &
-       &                                                   cambCountPerDecade        =  0                      , &
-       &                                                   cosmologyParameters_      =cosmologyParameters_     , &
-       &                                                   cosmologyFunctions_       =cosmologyFunctions_      , &
-       &                                                   intergalacticMediumState_ =intergalacticMediumState_  &
+  linearGrowth_       =linearGrowthBaryonsDarkMatter      (                                                                 &
+       &                                                   redshiftInitial                      =100.0d0                  , &
+       &                                                   redshiftInitialDelta                 =  1.0d0                  , &
+       &                                                   cambCountPerDecade                   =  0                      , &
+       &                                                   darkMatterOnlyInitialConditions      =.false.                  , &
+       &                                                   cosmologyParameters_                 =cosmologyParameters_     , &
+       &                                                   cosmologyParametersInitialConditions_=cosmologyParameters_     , &
+       &                                                   cosmologyFunctions_                  =cosmologyFunctions_      , &
+       &                                                   intergalacticMediumState_            =intergalacticMediumState_  &
        &                                                  )
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: Einstein-de Sitter with baryons")

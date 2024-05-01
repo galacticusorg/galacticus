@@ -462,6 +462,7 @@ contains
              call Error_Report(                                                                                                                                                                                                                   &
                   &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
                   &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                  &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
                   &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
                   &           )
           else
@@ -593,6 +594,7 @@ contains
                 call Error_Report(                                                                                                                                                                                                                   &
                      &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
                      &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                     &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
                      &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
                      &           )
              else
