@@ -210,7 +210,7 @@ contains
       ! Get a lock on the relevant lock file.
       call File_Lock(char(self%fileName),fileLock)
       ! Read the newly created file.
-      call self%readFile(char(self%fileName))
+      call self%readFile(char(self%fileName),invalidateCache=.true.)
       ! Unlock the lock file.
       call File_Unlock(fileLock)
     end block

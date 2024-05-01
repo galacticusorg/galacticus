@@ -67,6 +67,16 @@ simulation cube.
        &                                           wavenumberMinimum      , wavenumberMaximum, &
        &                                           lengthSimulationCube_  , time_
   !$omp threadprivate(powerSpectrum_,wavenumberX,windowFunctionX,wavenumberY,windowFunctionY,wavenumberZ,windowFunctionZ,lengthSimulationCube_,integratorX,integratorY,integratorZ,wavenumberMinimum,wavenumberMaximum,time_)
+
+  ! Cached copies of computed variances. These are used to avoid re-reading from file if the same solution is requested multiple times.
+  type :: cachedVariance
+     type            (varying_string) :: fileName
+     double precision                 :: variance
+  end type cachedVariance
+
+  integer                , parameter                                                                       :: sizeCache      =25
+  integer                                       :: countCache      =0, lastCache=0
+  type   (cachedVariance), dimension(sizeCache) :: cachedVariances
   
 contains
 
@@ -168,6 +178,7 @@ contains
          type     (lockDescriptor) :: fileLock
          type     (hdf5Object    ) :: varianceFile
          character(len=12        ) :: timeLabel       , lengthCubeLabel
+         integer                   :: useCache        , i
          
          self%timePrevious=time
          write (lengthCubeLabel,'(e12.6)') self%lengthSimulationCube
@@ -180,37 +191,58 @@ contains
               &           'time_'                //trim(      timeLabel)//'_'             // &
               &           self%powerSpectrum_%hashedDescriptor(includeSourceDigest=.true.)// &
               &           '.hdf5'
-         if (File_Exists(fileNameVariance)) then
-            call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
-            !$ call hdf5Access%set()
-            call varianceFile%openFile     (char(fileNameVariance),readOnly=.true.                 )
-            call varianceFile%readAttribute('variance'             ,        self%varianceSimulation)
-            call varianceFile%close        (                                                       )
-            !$ call hdf5Access%unset()
-            call File_Unlock(fileLock)
-         else
-            call displayIndent('computing simulation variance',verbosityLevelWorking)
-            call displayMessage('                time = '//timeLabel      //' Gyr',verbosityLevelWorking)
-            call displayMessage('lengthSimulationCube = '//lengthCubeLabel//' Mpc',verbosityLevelWorking)
-            powerSpectrum_         => self%powerSpectrum_
-            time_                   =       time
-            lengthSimulationCube_   =  self%lengthSimulationCube
-            integratorX             =  integrator(integrandVarianceSimulationX,toleranceRelative=1.0d-6)
-            integratorY             =  integrator(integrandVarianceSimulationY,toleranceRelative=1.0d-6)
-            integratorZ             =  integrator(integrandVarianceSimulationZ,toleranceRelative=1.0d-6)
-            wavenumberMinimum       =  +0.0d0
-            wavenumberMaximum       =  +wavenumberMaximumFractional/self%lengthSimulationCube
-            self%varianceSimulation =  integratorX%integrate(wavenumberMinimum,wavenumberMaximum)
-            call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
-            !$ call hdf5Access%set()
-            call varianceFile%openFile      (char(fileNameVariance) ,readOnly=.false.   ,overWrite=.true.)
-            call varianceFile%writeAttribute(self%varianceSimulation,         'variance'                 )
-            call varianceFile%close         (                                                            )
-            !$ call hdf5Access%unset()
-            call File_Unlock(fileLock)
-            call displayUnindent('done',verbosityLevelWorking)
+         !$omp critical(haloMassFunctionSimulationVarianceCache)
+         useCache=0
+         if (countCache > 0) then
+            do i=1,countCache
+               if (cachedVariances(i)%fileName == fileNameVariance) then
+                  useCache=i
+                  exit
+               end if
+            end do
          end if
-       end block
+         if (useCache /= 0) self%varianceSimulation=cachedVariances(useCache)%variance
+         !$omp end critical(haloMassFunctionSimulationVarianceCache)
+         if (useCache ==0 ) then
+            if (File_Exists(fileNameVariance)) then
+               call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.true.)
+               !$ call hdf5Access%set()
+               call varianceFile%openFile     (char(fileNameVariance),readOnly=.true.                 )
+               call varianceFile%readAttribute('variance'             ,        self%varianceSimulation)
+               call varianceFile%close        (                                                       )
+               !$ call hdf5Access%unset()
+               call File_Unlock(fileLock)
+            else
+               call displayIndent('computing simulation variance',verbosityLevelWorking)
+               call displayMessage('                time = '//timeLabel      //' Gyr',verbosityLevelWorking)
+               call displayMessage('lengthSimulationCube = '//lengthCubeLabel//' Mpc',verbosityLevelWorking)
+               powerSpectrum_         => self%powerSpectrum_
+               time_                   =       time
+               lengthSimulationCube_   =  self%lengthSimulationCube
+               integratorX             =  integrator(integrandVarianceSimulationX,toleranceRelative=1.0d-6)
+               integratorY             =  integrator(integrandVarianceSimulationY,toleranceRelative=1.0d-6)
+               integratorZ             =  integrator(integrandVarianceSimulationZ,toleranceRelative=1.0d-6)
+               wavenumberMinimum       =  +0.0d0
+               wavenumberMaximum       =  +wavenumberMaximumFractional/self%lengthSimulationCube
+               self%varianceSimulation =  integratorX%integrate(wavenumberMinimum,wavenumberMaximum)
+               call File_Lock(char(fileNameVariance),fileLock,lockIsShared=.false.)
+               !$ call hdf5Access%set()
+               call varianceFile%openFile      (char(fileNameVariance) ,readOnly=.false.   ,overWrite=.true.)
+               call varianceFile%writeAttribute(self%varianceSimulation,         'variance'                 )
+               call varianceFile%close         (                                                            )
+               !$ call hdf5Access%unset()
+               call File_Unlock(fileLock)
+               call displayUnindent('done',verbosityLevelWorking)
+            end if
+            !$omp critical(haloMassFunctionSimulationVarianceCache)
+            lastCache=lastCache+1
+            if (lastCache > sizeCache) lastCache=1
+            countCache=max(countCache,lastCache)
+            cachedVariances(lastCache)%fileName=fileNameVariance
+            cachedVariances(lastCache)%variance=self%varianceSimulation
+            !$omp end critical(haloMassFunctionSimulationVarianceCache)
+         end if
+      end block
     end if
     ! Modify the mass function by the perturbation.
     massFunction=+self%massFunction_%differential(time,mass,node)                        &

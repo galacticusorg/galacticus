@@ -254,12 +254,27 @@ contains
     end if
     if (tableStore) call File_Unlock(fileLock)
     !$omp critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
-    lastCache (calculationType%ID)=lastCache(calculationType%ID)+1
-    if (lastCache(calculationType%ID) > sizeCache) lastCache(calculationType%ID)=1
-    countCache(calculationType%ID)=max(countCache(calculationType%ID),lastCache(calculationType%ID))
-    cachedTables(lastCache(calculationType%ID),calculationType%ID)%fileName  =fileName
-    cachedTables(lastCache(calculationType%ID),calculationType%ID)%timeTable =table_  %xs() 
-    cachedTables(lastCache(calculationType%ID),calculationType%ID)%valueTable=table_  %ys()
+    useCache=0
+    if (countCache(calculationType%ID) > 0) then
+       do i=1,countCache(calculationType%ID)
+          if (cachedTables(i,calculationType%ID)%fileName == fileName) then
+             useCache=i
+             exit
+          end if
+       end do
+    end if
+    if (useCache == 0) then
+       lastCache (calculationType%ID)=lastCache(calculationType%ID)+1
+       if (lastCache(calculationType%ID) > sizeCache) lastCache(calculationType%ID)=1
+       countCache(calculationType%ID)=max(countCache(calculationType%ID),lastCache(calculationType%ID))
+       useCache                      =lastCache(calculationType%ID)
+    else
+       deallocate(cachedTables(useCache,calculationType%ID)%timeTable )
+       deallocate(cachedTables(useCache,calculationType%ID)%valueTable)
+    end if
+    cachedTables(useCache,calculationType%ID)%fileName  =fileName
+    cachedTables(useCache,calculationType%ID)%timeTable =table_  %xs() 
+    cachedTables(useCache,calculationType%ID)%valueTable=table_  %ys()
     !$omp end critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     return
   end subroutine cllsnlssMttCsmlgclCnstntGetTable

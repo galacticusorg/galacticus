@@ -188,6 +188,17 @@
   ! module.
   integer, parameter :: fileFormatVersionCurrent=2
 
+  ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same transfer function is requested multiple times.
+  type :: cachedTransferFunction
+     type            (varying_string                  )                            :: hashedDescriptor
+     type            (enumerationExtrapolationTypeType)                            :: extrapolateWavenumberLow, extrapolateWavenumberHigh
+     double precision                                  , allocatable, dimension(:) :: wavenumber              , transfer
+  end type cachedTransferFunction
+
+  integer                        , parameter            :: sizeCache              =25
+  integer                                               :: countCache             = 0, lastCache=0
+  type   (cachedTransferFunction), dimension(sizeCache) :: cachedTransferFunctions
+
 contains
 
   function fileConstructorParameters(parameters) result(self)
@@ -295,7 +306,7 @@ contains
     return
   end function fileConstructorInternal
 
-  subroutine fileReadFile(self,fileName)
+  subroutine fileReadFile(self,fileName,invalidateCache)
     !!{
     Internal constructor for the file transfer function class.
     !!}    
@@ -310,127 +321,177 @@ contains
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
     implicit none
-    class           (transferFunctionFile            ), intent(inout)             :: self
-    character       (len=*                           ), intent(in   )             :: fileName
-    double precision                                  , allocatable, dimension(:) :: transfer                       , wavenumber               , &
-         &                                                                           transferLogarithmic            , wavenumberLogarithmic    , &
-         &                                                                           transferDarkMatter             , transferBaryons
-    class           (cosmologyParametersClass        ), pointer                   :: cosmologyParametersFile
-    double precision                                  , parameter                 :: toleranceUniformity     =1.0d-6
-    double precision                                                              :: HubbleConstant                 , OmegaBaryon              , &
-         &                                                                           OmegaMatter                    , OmegaDarkEnergy          , &
-         &                                                                           temperatureCMB                 , slope
-    type            (enumerationExtrapolationTypeType)                            :: extrapolateWavenumberLow       , extrapolateWavenumberHigh
-    integer                                                                       :: versionNumber                  , i                        , &
-         &                                                                           countLocalMinima
-    character       (len=32                          )                            :: datasetName
-    type            (varying_string                  )                            :: limitTypeVar
-    type            (hdf5Object                      )                            :: fileObject                     , parametersObject         , &
-         &                                                                           extrapolationObject            , wavenumberObject         , &
-         &                                                                           darkMatterGroup                , baryonsGroup
+    class           (transferFunctionFile            ), intent(inout)               :: self
+    character       (len=*                           ), intent(in   )               :: fileName
+    logical                                           , intent(in   ), optional     :: invalidateCache
+    double precision                                  , allocatable  , dimension(:) :: transfer                       , wavenumber               , &
+         &                                                                             transferLogarithmic            , wavenumberLogarithmic    , &
+         &                                                                             transferDarkMatter             , transferBaryons
+    class           (cosmologyParametersClass        ), pointer                     :: cosmologyParametersFile
+    double precision                                  , parameter                   :: toleranceUniformity     =1.0d-6
+    double precision                                                                :: HubbleConstant                 , OmegaBaryon              , &
+         &                                                                             OmegaMatter                    , OmegaDarkEnergy          , &
+         &                                                                             temperatureCMB
+    type            (enumerationExtrapolationTypeType)                              :: extrapolateWavenumberLow       , extrapolateWavenumberHigh
+    integer                                                                         :: versionNumber                  , i                        , &
+         &                                                                             countLocalMinima               , useCache
+    character       (len=32                          )                              :: datasetName
+    type            (varying_string                  )                              :: limitTypeVar
+    type            (hdf5Object                      )                              :: fileObject                     , parametersObject         , &
+         &                                                                             extrapolationObject            , wavenumberObject         , &
+         &                                                                             darkMatterGroup                , baryonsGroup
+    !$GLC attributes initialized :: wavenumber, transfer
+    !![
+    <optionalArgument name="invalidateCache" defaultsTo=".false."/>
+    !!]
 
-    ! Open and read the HDF5 data file.
-    !$ call hdf5Access%set()
-    call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
-    ! Check that the file has the correct format version number.
-    call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
-    if (versionNumber /= fileFormatVersionCurrent) call Error_Report("file '"//char(File_Name_Expand(fileName))//"' has the incorrect version number"//{introspection:location})
-    ! Check that parameters match if any are present.
-    parametersObject=fileObject%openGroup('parameters')
-    allocate(cosmologyParametersSimple :: cosmologyParametersFile)
-    select type (cosmologyParametersFile)
-    type is (cosmologyParametersSimple)
-       call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
-       call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
-       call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
-       call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
-       call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
-       cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
-       if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaBaryon from transfer function file does not match internal value'    )
-       if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaMatter from transfer function file does not match internal value'    )
-       if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaDarkEnergy from transfer function file does not match internal value')
-       if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'HubbleConstant from transfer function file does not match internal value' )
-       if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-            & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'temperatureCMB from transfer function file does not match internal value' )
-    end select
-    deallocate(cosmologyParametersFile)
-    call parametersObject%close()
-    ! Get extrapolation methods.
-    extrapolationObject=fileObject         %openGroup('extrapolation')
-    wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
-    call wavenumberObject%readAttribute('low' ,limitTypeVar)
-    extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-    call wavenumberObject%readAttribute('high',limitTypeVar)
-    extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
-    call wavenumberObject   %close()
-    call extrapolationObject%close()
-    ! Read wavenumbers.
-    call fileObject%readDataset('wavenumber',wavenumber)
-    ! Read the transfer function from file.
-    write (datasetName,'(f9.4)') self%redshift
-    select case (self%transferFunctionType%ID)
+    !$omp critical(transferFunctionFileCache)
+    useCache=0
+    if (.not.invalidateCache_ .and. countCache > 0) then
+       do i=1,countCache
+          if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+             useCache=i
+             exit
+          end if
+       end do
+    end if
+    if (useCache /= 0) then
+       wavenumber               =cachedTransferFunctions(useCache)%wavenumber
+       transfer                 =cachedTransferFunctions(useCache)%transfer
+       extrapolateWavenumberLow =cachedTransferFunctions(useCache)%extrapolateWavenumberLow
+       extrapolateWavenumberHigh=cachedTransferFunctions(useCache)%extrapolateWavenumberHigh
+    end if
+    !$omp end critical(transferFunctionFileCache)
+    if (useCache == 0) then
+       ! Open and read the HDF5 data file.
+       !$ call hdf5Access%set()
+       call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
+       ! Check that the file has the correct format version number.
+       call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
+       if (versionNumber /= fileFormatVersionCurrent) call Error_Report("file '"//char(File_Name_Expand(fileName))//"' has the incorrect version number"//{introspection:location})
+       ! Check that parameters match if any are present.
+       parametersObject=fileObject%openGroup('parameters')
+       allocate(cosmologyParametersSimple :: cosmologyParametersFile)
+       select type (cosmologyParametersFile)
+       type is (cosmologyParametersSimple)
+          call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
+          call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
+          call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
+          call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
+          call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
+          cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
+          if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+               & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaBaryon from transfer function file does not match internal value'    )
+          if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+               & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaMatter from transfer function file does not match internal value'    )
+          if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+               & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'OmegaDarkEnergy from transfer function file does not match internal value')
+          if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+               & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'HubbleConstant from transfer function file does not match internal value' )
+          if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+               & call displayMessage(displayMagenta()//'WARNING: '//displayReset()//'temperatureCMB from transfer function file does not match internal value' )
+       end select
+       deallocate(cosmologyParametersFile)
+       call parametersObject%close()
+       ! Get extrapolation methods.
+       extrapolationObject=fileObject         %openGroup('extrapolation')
+       wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
+       call wavenumberObject%readAttribute('low' ,limitTypeVar)
+       extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+       call wavenumberObject%readAttribute('high',limitTypeVar)
+       extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+       call wavenumberObject   %close()
+       call extrapolationObject%close()
+       ! Read wavenumbers.
+       call fileObject%readDataset('wavenumber',wavenumber)
+       ! Read the transfer function from file.
+       write (datasetName,'(f9.4)') self%redshift
+       select case (self%transferFunctionType%ID)
        case (transferFunctionTypeDarkMatter%ID,transferFunctionTypeTotal%ID)
           darkMatterGroup=fileObject%openGroup('darkMatter')
           call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transferDarkMatter)
           call darkMatterGroup%close      (                                                                  )
-    end select
-    select case (self%transferFunctionType%ID)
+       end select
+       select case (self%transferFunctionType%ID)
        case (transferFunctionTypeTotal%ID)
           baryonsGroup   =fileObject%openGroup('baryons'   )
           call baryonsGroup   %readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transferBaryons   )
           call baryonsGroup   %close      (                                                                  )
-    end select
-    ! Close the file.
-    call fileObject%close()
-    !$ call hdf5Access%unset()
-    ! Validate the transfer functions.
-    if (allocated(transferDarkMatter)) then
-       if (any(transferDarkMatter == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
-       if (any(transferDarkMatter <  0.0d0)) then
-          if (self%acceptNegativeValues) then
-             transferDarkMatter=abs(transferDarkMatter)
-          else
-             call Error_Report(                                                                                                                                                                  &
-                  &            'tabulated dark matter transfer function contains points at which T(k) < 0 - all points must be positive'                               //char(10)             // &
-                  &            displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
-                  &            '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-                  &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
-                  &            {introspection:location}                                                                                                                                          &
-                  &           )
+       end select
+       ! Close the file.
+       call fileObject%close()
+       !$ call hdf5Access%unset()
+       ! Validate the transfer functions.
+       if (allocated(transferDarkMatter)) then
+          if (any(transferDarkMatter == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+          if (any(transferDarkMatter <  0.0d0)) then
+             if (self%acceptNegativeValues) then
+                transferDarkMatter=abs(transferDarkMatter)
+             else
+                call Error_Report(                                                                                                                                                                  &
+                     &            'tabulated dark matter transfer function contains points at which T(k) < 0 - all points must be positive'                               //char(10)             // &
+                     &            displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+                     &            '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                     &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+                     &            {introspection:location}                                                                                                                                          &
+                     &           )
+             end if
           end if
        end if
-    end if
-    if (allocated(transferBaryons   )) then
-       if (any(transferBaryons  == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
-       if (any(transferBaryons  <  0.0d0)) then
-          if (self%acceptNegativeValues) then
-             transferBaryons =abs(transferBaryons )
-          else
-             call Error_Report(                                                                                                                                                                  &
-                  &            'tabulated baryon transfer function contains points at which T(k) < 0 - all points must be positive'                                    //char(10)             // &
-                  &            displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
-                  &            '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
-                  &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
-                  &            {introspection:location}                                                                                                                                          &
-                  &           )
+       if (allocated(transferBaryons   )) then
+          if (any(transferBaryons  == 0.0d0)) call Error_Report('tabulated transfer function contains points at which T(k) = 0 - all points must be non-zero'//{introspection:location})
+          if (any(transferBaryons  <  0.0d0)) then
+             if (self%acceptNegativeValues) then
+                transferBaryons =abs(transferBaryons )
+             else
+                call Error_Report(                                                                                                                                                                  &
+                     &            'tabulated baryon transfer function contains points at which T(k) < 0 - all points must be positive'                                    //char(10)             // &
+                     &            displayGreen()//"HELP: "//displayReset()//'set '                                                                                                               // &
+                     &            '<'//displayBlue()//'acceptNegativeValues'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                     &            'to interpolate in |T(k)| such that negative values are acceptable'                                                                                            // &
+                     &            {introspection:location}                                                                                                                                          &
+                     &           )
+             end if
           end if
        end if
+       ! Construct the final transfer function.
+       select case (self%transferFunctionType%ID)
+       case (transferFunctionTypeDarkMatter%ID)
+          transfer=+ transferDarkMatter
+       case (transferFunctionTypeTotal     %ID)
+          transfer=+(                                               &
+               &     +transferDarkMatter*(+OmegaMatter-OmegaBaryon) &
+               &     +transferBaryons    *             OmegaBaryon  &
+               &    )                                               &
+               &   /                       OmegaMatter
+       end select
+       ! Cache this transfer function for possible later reuse.
+       !$omp critical(transferFunctionFileCache)
+       useCache=0
+       if (countCache > 0) then
+          do i=1,countCache
+             if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+                useCache=i
+                exit
+             end if
+          end do
+       end if
+       if (useCache == 0) then
+          lastCache=lastCache+1
+          if (lastCache > sizeCache) lastCache=1
+          countCache=max(countCache,lastCache)
+          useCache  =lastCache
+       else
+          deallocate(cachedTransferFunctions(useCache)%wavenumber)
+          deallocate(cachedTransferFunctions(useCache)%transfer  )
+       end if
+       cachedTransferFunctions(useCache)%hashedDescriptor         =self%hashedDescriptor()
+       cachedTransferFunctions(useCache)%wavenumber               =wavenumber
+       cachedTransferFunctions(useCache)%transfer                 =transfer
+       cachedTransferFunctions(useCache)%extrapolateWavenumberLow =extrapolateWavenumberLow
+       cachedTransferFunctions(useCache)%extrapolateWavenumberHigh=extrapolateWavenumberHigh
+       !$omp end critical(transferFunctionFileCache)
     end if
-    ! Construct the final transfer function.
-    select case (self%transferFunctionType%ID)
-    case (transferFunctionTypeDarkMatter%ID)
-       transfer=+ transferDarkMatter
-    case (transferFunctionTypeTotal     %ID)
-       transfer=+(                                               &
-            &     +transferDarkMatter*(+OmegaMatter-OmegaBaryon) &
-            &     +transferBaryons    *             OmegaBaryon  &
-            &    )                                               &
-            &   /                       OmegaMatter
-    end select
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
