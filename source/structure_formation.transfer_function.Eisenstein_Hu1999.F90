@@ -495,10 +495,10 @@ contains
          &                                                                          - self%L                                                                       &
          &                                  *(+2.0d0*self%C*self%wavenumberEffective+dLdwavenumberEffective+dCdwavenumberEffective*self%wavenumberEffective**2)    &
          &                                  /(                                      + self%L               + self%C               *self%wavenumberEffective**2)**2 &
-         &                                 )&
-         &*wavenumberEffectiveDerivative&
-         &*wavenumber&
-         &/transferFunction
+         &                                 )                                                                                                                       &
+         &                                *wavenumberEffectiveDerivative                                                                                           &
+         &                                *wavenumber                                                                                                              &
+         &                                /transferFunction
     ! Apply correction for scales close to horizon.
     if     (                                    &
          &   self%neutrinoMassFraction >  0.0d0 &

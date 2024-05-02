@@ -313,6 +313,7 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
     !!}
+    use :: Display       , only : displayGreen                     , displayReset
     use :: File_Utilities, only : File_Exists
     use :: FoX_dom       , only : node
     use :: Error         , only : Error_Report
@@ -333,9 +334,16 @@ contains
     doc => XML_Parse(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
+          call Error_Report(                                                                                                                                                                &
+               &            'Unable to parse parameter file: "'//trim(fileName)//'"'//char(10)//                                                                                            &
+               &            displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --noout "//trim(fileName)//"` will display any XML errors"// &
+               &            {introspection:location}                                                                                                                                        &
+               &           )
        else
-          call Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
+          call Error_Report(                                                                                                                                                                &
+               &            'Unable to find parameter file: "' //trim(fileName)//'"'//                                                                                                      &
+               &            {introspection:location}                                                                                                                                        &
+               &           )
        end if
     end if
     parameterNode => XML_Get_First_Element_By_Tag_Name(              &
