@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714515234498,
+  "lastUpdate": 1714759111069,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "e6747f30f80465bdf9ddb468c73a58456bb962ed",
-          "message": "feat: Add build and release of MacOS debug symbols for Galacticus",
-          "timestamp": "2023-07-25T15:47:57Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e6747f30f80465bdf9ddb468c73a58456bb962ed"
-        },
-        "date": 1690312015109,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 179.349,
-            "unit": "seconds",
-            "range": 0.400186081717066
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10676,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 15.873914066425,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9e6a229062512e24a763699e077ff6fd844f3cd8",
+          "message": "Merge pull request #607 from galacticusorg/fixTruncatedPowerTreeBuild\n\nFix truncated power tree build",
+          "timestamp": "2024-05-03T12:56:09Z",
+          "tree_id": "f20baa8b4200480f055a3d954784e6dcdac45320",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9e6a229062512e24a763699e077ff6fd844f3cd8"
+        },
+        "date": 1714759110260,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 354.715,
+            "unit": "seconds",
+            "range": 0.331714485660458
           }
         ]
       }
