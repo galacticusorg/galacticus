@@ -1702,8 +1702,8 @@ program Test_Dark_Matter_Profiles
   call spheroid%massStellarSet(fractionMassBaryonicJiang  *                           massVirialJiang                                                )
   call spheroid%     radiusSet(fractionRadiusHalfMassJiang*darkMatterHaloScalePippin_%radiusVirial   (nodeJiang)/radiusHalfMassDimensionlessHernquist)
   call Calculations_Reset(nodeJiang)
-  massDistribution_       => darkMatterProfileDMOSIDMIsothermal_%get                   (nodeJiang)
-  kinematicsDistribution_ => massDistribution_                  %kinematicsDistribution(         )
+  massDistribution_       => darkMatterProfileSIDMIsothermal_%get                   (nodeJiang)
+  kinematicsDistribution_ => massDistribution_               %kinematicsDistribution(         )
   !! Target values were measured from Figure A1 of Jiang et al. (2022).
   select type (massDistribution_)
   class is (massDistributionSphericalSIDM)
@@ -1728,7 +1728,7 @@ program Test_Dark_Matter_Profiles
           &     )
   end select
   call Unit_Tests_End_Group()
- !![
+  !![
   <objectDestructor name="massDistribution_"      />
   <objectDestructor name="kinematicsDistribution_"/>
   !!]
