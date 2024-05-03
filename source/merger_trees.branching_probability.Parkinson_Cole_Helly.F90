@@ -503,21 +503,25 @@ contains
     double precision                                                  , intent(in   ) :: deltaCritical             , haloMass   , &
          &                                                                               massResolution            , time
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
-    double precision                                                                  :: parentHalfMassSigma       , parentSigma
+    double precision                                                                  :: parentHalfMassSigma       , parentSigma, &
+         &                                                                               varianceResidual
     !$GLC attributes unused :: deltaCritical, time
 
     ! Get σ and δ_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
        parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,self%timeParent)
        parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,self%timeParent)
-       parkinsonColeHellyStepMaximum=+self%accuracyFirstOrder        &
-            &                        *sqrt(                          &
-            &                              +2.0d0                    &
-            &                              *(                        &
-            &                                +parentHalfMassSigma**2 &
-            &                                -parentSigma        **2 &
-            &                               )                        &
-            &                             )
+       varianceResidual             =+parentHalfMassSigma**2 &
+            &                        -parentSigma        **2
+       if (varianceResidual > 0.0d0) then
+          parkinsonColeHellyStepMaximum=+self%accuracyFirstOrder &
+               &                        *sqrt(                   &
+               &                              +2.0d0             &
+               &                              *varianceResidual  &
+               &                             )
+       else
+          parkinsonColeHellyStepMaximum=largeStep
+       end if
     else
        parkinsonColeHellyStepMaximum=largeStep
     end if
@@ -555,8 +559,8 @@ contains
     Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     !!}
-    use :: Display, only : displayGreen    , displayBlue, displayYellow, displayReset
-    use :: Error  , only : errorStatusRound, errorStatusSuccess
+    use :: Display, only : displayGreen    , displayBlue             , displayYellow     , displayReset
+    use :: Error  , only : errorStatusRound, errorStatusMaxIterations, errorStatusSuccess
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
@@ -589,15 +593,22 @@ contains
                &                                                                        log(massMaximum), &
                &                                                                 status=status            &
                &                                                                )
-          if (.not.(status == errorStatusSuccess .or. (status == errorStatusRound .and. self_%tolerateRoundOffErrors))) then
-             if (status == errorStatusRound) then
+          if (.not.(status == errorStatusSuccess .or. ((status == errorStatusRound .or. status == errorStatusMaxIterations) .and. self_%tolerateRoundOffErrors))) then
+             if    (status == errorStatusRound          ) then
                 call Error_Report(                                                                                                                                                                                                                   &
                      &            'probability integral failed to converge due to round-off errors - this can happen below the cut off scale in truncated power spectra'//char(10)//                                                                 &
                      &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
                      &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
                      &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
                      &           )
-             else
+             else if (status == errorStatusMaxIterations) then
+                call Error_Report(                                                                                                                                                                                                                   &
+                     &            'probability integral failed to converge due to exceeding the maximum number of iterations - this can happen below the cut off scale in truncated power spectra'//char(10)//                                       &
+                     &             displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'tolerateRoundOffErrors'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"true"'//displayReset()//'/> '// &
+                     &            'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> '                // &
+                     &            'to ignore round-off errors and proceed'//{introspection:location}                                                                                                                                                 &
+                     &           )
+             else 
                 call Error_Report('probability integral failed to converge'//{introspection:location})
              end if
           end if
@@ -714,190 +725,194 @@ contains
     !$GLC attributes unused :: node
 
     ! Get σ and δ_critical for the parent halo.
-    if (haloMass > 2.0d0*massResolution) then
-       call self%computeCommonFactors(deltaCritical,time,haloMass,node)
-       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,self%resolutionSigma,self%resolutionAlpha)
-       if (massResolution /= self%massResolutionTabulated .or. self%cosmologicalMassVariance_%growthIsMassDependent()) then
-          ! Resolution changed - recompute σ and α at resolution limit. Also reset the hypergeometric factor tables since
-          ! these depend on resolution.
-          self%upperBoundHypergeometricInitialized=.false.
-       end if
-       resolutionSigmaOverParentSigma=self%resolutionSigma/self%sigmaParent
-       ! Estimate probability.
-       if (resolutionSigmaOverParentSigma > 1.0d0) then
-          ! Compute relevant σ and α.
-          call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%massHaloParent,self%timeParent,halfParentSigma,halfParentAlpha)
-          ! Iterative over available bounds.
-          parkinsonColeHellyProbabilityBound=0.0d0
-          do iBound=1,2
-             ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
-             ! pass through the bounds evaluation, and if both αs are sufficiently large. (This last condition is required
-             ! since we raise quantities to the power of 1/α which can cause problems for very small α.)
-             usingCDMAssumptions= self%cdmAssumptions                       &
-                  &              .and.                                      &
-                  &               iBound                    == 1            &
-                  &              .and.                                      &
-                  &               abs(self%resolutionAlpha) >  alphaMinimum &
-                  &              .and.                                      &
-                  &               abs(     halfParentAlpha) >  alphaMinimum
-             ! Compute the effective value of γ.
-             gammaEffective=self%gamma1
-             if (usingCDMAssumptions) then
-                select case (bound%ID)
-                case (mergerTreeBranchingBoundLower%ID)
-                   gammaEffective=gammaEffective-1.0d0/self%resolutionAlpha
-                case (mergerTreeBranchingBoundUpper%ID)
-                   gammaEffective=gammaEffective-1.0d0/     halfParentAlpha
-                end select
-             end if
-             ! Compute probability factors. The logic here becomes complicated, as we use various optimizations and tabulations to
-             ! speed up calculation.
-             !
-             ! Tabulations will only be used if self%tabulateHypergeometric is true.
-             !
-             ! Set status to success by default.
-             statusLower=GSL_Success
-             statusUpper=GSL_Success
-             ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors,
-             if (.not.usingCDMAssumptions.and.self%hypergeometricTabulate) then
-                ! CDM assumptions are not being used. In this case we can use the same table of hypergeometric factors as the
-                ! subresolution merger fraction.
-                call parkinsonColeHellySubresolutionHypergeometricTabulate(self,resolutionSigmaOverParentSigma)
-                call parkinsonColeHellySubresolutionHypergeometricTabulate(self,halfParentSigma   /self%sigmaParent)
-                probabilityIntegrandLower=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+resolutionSigmaOverParentSigma  -1.0d0)/self%sigmaParent
-                probabilityIntegrandUpper=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+halfParentSigma/self%sigmaParent-1.0d0)/self%sigmaParent
-             else
-                ! Next, check if CDM assumptions are being used, we're allowed to tabulate hypergeometric factors, and the bound
-                ! requested is the upper bound.
-                if     ( usingCDMAssumptions                    &
-                     &  .and.                                   &
-                     &   self%hypergeometricTabulate            &
-                     &  .and.                                   &
-                     &   bound == mergerTreeBranchingBoundUpper &
-                     & ) then
-                   ! Use a tabulation of the hypergeometric functions for the upper bound, made using CDM assumptions. Since the
-                   ! tables already include the difference between the upper and lower integrand, we simply set the lower
-                   ! integrand to zero here.
-                   call parkinsonColeHellyUpperBoundHypergeometricTabulate(self,self%massHaloParent,massResolution)
-                   probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent)/self%resolutionSigma
-                   probabilityIntegrandLower=0.0d0
-                else
-                   ! Use a direct calculation of the hypergeometric factors in this case.
-                   hyperGeometricFactorLower=Hypergeometric_2F1(                                                           &
-                        &                                                         self%hypergeometricA(gammaEffective)   , &
-                        &                                                         [      1.5d0-0.5d0*gammaEffective]     , &
-                        &                                                         1.0d0/resolutionSigmaOverParentSigma**2, &
-                        &                                       toleranceRelative=self%precisionHypergeometric           , &
-                        &                                       status           =statusLower                              &
-                        &                                      )
-                   if (statusLower /= GSL_Success) then
-                      if (usingCDMAssumptions) then
-                         if (.not.self%hypergeometricFailureWarned) then
-                            self%hypergeometricFailureWarned=.true.
-                            call displayMessage(                                                                                                                      &
-                                 &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
-                                 &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
-                                 &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
-                                 &              verbosityLevelWarn                                                                                                    &
-                                 &             )
-                         end if
-                         cycle
-                      else
-                         parkinsonColeHellyProbabilityBound=0.0d0
-                         call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
-                      end if
-                   end if
-                   probabilityIntegrandLower=+sqrtTwoOverPi                                            &
-                        &                    *(self%factorG0Gamma2/self%sigmaParent)                   &
-                        &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0)) &
-                        &                    /(1.0d0-gammaEffective)                                   &
-                        &                    *hyperGeometricFactorLower
-                   ! Check if we can use a table to compute the upper factor.
-                   hyperGeometricFactorUpper=Hypergeometric_2F1(                                                          &
-                        &                                                         self%hypergeometricA(gammaEffective)  , &
-                        &                                                         [      1.5d0-0.5d0*gammaEffective]    , &
-                        &                                                         self%sigmaParent**2/halfParentSigma**2, &
-                        &                                       toleranceRelative=self%precisionHypergeometric          , &
-                        &                                       status           =statusUpper                             &
-                        &                                      )
-                   if (statusUpper /= GSL_Success) then
-                      if (usingCDMAssumptions) then
-                         if (.not.self%hypergeometricFailureWarned) then
-                            self%hypergeometricFailureWarned=.true.
-                            call displayMessage(                                                                                                                      &
-                                 &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
-                                 &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
-                                 &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
-                                 &              verbosityLevelWarn                                                                                                    &
-                                 &             )
-                         end if
-                         cycle
-                      else
-                         parkinsonColeHellyProbabilityBound=0.0d0
-                         call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
-                      end if
-                   end if
-                   probabilityIntegrandUpper=+sqrtTwoOverPi                                                &
-                        &                    *(self%factorG0Gamma2/self%sigmaParent)                       &
-                        &                    *((halfParentSigma/self%sigmaParent)**(gammaEffective-1.0d0)) &
-                        &                    /(1.0d0-gammaEffective)                                       &
-                        &                    *hyperGeometricFactorUpper
-                end if
-             end if
-             ! Compute the bound.
-             select case (bound%ID)
-             case (mergerTreeBranchingBoundLower%ID)
-                if (usingCDMAssumptions) then
-                   parkinsonColeHellyProbabilityBound=+(                               &
-                        &                               +probabilityIntegrandUpper     &
-                        &                               -probabilityIntegrandLower     &
-                        &                              )                               &
-                        &                             *self%massHaloParent             &
-                        &                             /massResolution                  &
-                        &                             *(                               &
-                        &                               +self%resolutionSigma          &
-                        &                               /self%sigmaParent              &
-                        &                              )**(1.0d0/self%resolutionAlpha)
-                else
-                   parkinsonColeHellyProbabilityBound=+(                               &
-                        &                               +probabilityIntegrandUpper     &
-                        &                               -probabilityIntegrandLower     &
-                        &                              )                               &
-                        &                             *       self%massHaloParent      &
-                        &                             /(0.5d0*self%massHaloParent)
-                end if
-             case (mergerTreeBranchingBoundUpper%ID)
-                if (usingCDMAssumptions) then
-                   parkinsonColeHellyProbabilityBound=+(                               &
-                        &                               +probabilityIntegrandUpper     &
-                        &                               -probabilityIntegrandLower     &
-                        &                              )                               &
-                        &                             *self%massHaloParent             &
-                        &                             /massResolution                  &
-                        &                             *(                               &
-                        &                               +self%resolutionSigma          &
-                        &                               /self%sigmaParent              &
-                        &                              )**(1.0d0/halfParentAlpha)
-                else
-                   parkinsonColeHellyProbabilityBound=+(                               &
-                        &                               +probabilityIntegrandUpper     &
-                        &                               -probabilityIntegrandLower     &
-                        &                              )                               &
-                        &                             *self%massHaloParent             &
-                        &                             /massResolution
-                end if
-             case default
-                parkinsonColeHellyProbabilityBound=-1.0d0
-                call Error_Report('unknown bound type'//{introspection:location})
-             end select
-             if (statusUpper == GSL_Success .and. statusLower == GSL_Success) exit
-          end do
-       else
-          parkinsonColeHellyProbabilityBound=-1.0d0
-       end if
-    else
+    if (haloMass <= 2.0d0*massResolution) then
        parkinsonColeHellyProbabilityBound=0.0d0
+       return
     end if
+    call self%computeCommonFactors(deltaCritical,time,haloMass,node)
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,self%resolutionSigma,self%resolutionAlpha)
+    if (massResolution /= self%massResolutionTabulated .or. self%cosmologicalMassVariance_%growthIsMassDependent()) then
+       ! Resolution changed - recompute σ and α at resolution limit. Also reset the hypergeometric factor tables since
+       ! these depend on resolution.
+       self%upperBoundHypergeometricInitialized=.false.
+    end if
+    resolutionSigmaOverParentSigma=self%resolutionSigma/self%sigmaParent
+    ! Estimate probability.
+    if (resolutionSigmaOverParentSigma <= 1.0d0) then
+       parkinsonColeHellyProbabilityBound=-1.0d0
+       return
+    end if
+    ! Compute relevant σ and α.
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%massHaloParent,self%timeParent,halfParentSigma,halfParentAlpha)
+    if (halfParentSigma <= self%sigmaParent) then
+       parkinsonColeHellyProbabilityBound=-1.0d0
+       return
+    end if
+    ! Iterative over available bounds.
+    parkinsonColeHellyProbabilityBound=0.0d0
+    do iBound=1,2
+       ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
+       ! pass through the bounds evaluation, and if both αs are sufficiently large. (This last condition is required
+       ! since we raise quantities to the power of 1/α which can cause problems for very small α.)
+       usingCDMAssumptions= self%cdmAssumptions                       &
+            &              .and.                                      &
+            &               iBound                    == 1            &
+            &              .and.                                      &
+            &               abs(self%resolutionAlpha) >  alphaMinimum &
+            &              .and.                                      &
+            &               abs(     halfParentAlpha) >  alphaMinimum
+       ! Compute the effective value of γ.
+       gammaEffective=self%gamma1
+       if (usingCDMAssumptions) then
+          select case (bound%ID)
+          case (mergerTreeBranchingBoundLower%ID)
+             gammaEffective=gammaEffective-1.0d0/self%resolutionAlpha
+          case (mergerTreeBranchingBoundUpper%ID)
+             gammaEffective=gammaEffective-1.0d0/     halfParentAlpha
+          end select
+       end if
+       ! Compute probability factors. The logic here becomes complicated, as we use various optimizations and tabulations to
+       ! speed up calculation.
+       !
+       ! Tabulations will only be used if self%tabulateHypergeometric is true.
+       !
+       ! Set status to success by default.
+       statusLower=GSL_Success
+       statusUpper=GSL_Success
+       ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors,
+       if (.not.usingCDMAssumptions.and.self%hypergeometricTabulate) then
+          ! CDM assumptions are not being used. In this case we can use the same table of hypergeometric factors as the
+          ! subresolution merger fraction.
+          call parkinsonColeHellySubresolutionHypergeometricTabulate(self,resolutionSigmaOverParentSigma)
+          call parkinsonColeHellySubresolutionHypergeometricTabulate(self,halfParentSigma   /self%sigmaParent)
+          probabilityIntegrandLower=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+resolutionSigmaOverParentSigma  -1.0d0)/self%sigmaParent
+          probabilityIntegrandUpper=+self%factorG0Gamma2*self%subresolutionHypergeometric%interpolate(+halfParentSigma/self%sigmaParent-1.0d0)/self%sigmaParent
+       else
+          ! Next, check if CDM assumptions are being used, we're allowed to tabulate hypergeometric factors, and the bound
+          ! requested is the upper bound.
+          if     ( usingCDMAssumptions                    &
+               &  .and.                                   &
+               &   self%hypergeometricTabulate            &
+               &  .and.                                   &
+               &   bound == mergerTreeBranchingBoundUpper &
+               & ) then
+             ! Use a tabulation of the hypergeometric functions for the upper bound, made using CDM assumptions. Since the
+             ! tables already include the difference between the upper and lower integrand, we simply set the lower
+             ! integrand to zero here.
+             call parkinsonColeHellyUpperBoundHypergeometricTabulate(self,self%massHaloParent,massResolution)
+             probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent)/self%resolutionSigma
+             probabilityIntegrandLower=0.0d0
+          else
+             ! Use a direct calculation of the hypergeometric factors in this case.
+             hyperGeometricFactorLower=Hypergeometric_2F1(                                                           &
+                  &                                                         self%hypergeometricA(gammaEffective)   , &
+                  &                                                         [      1.5d0-0.5d0*gammaEffective]     , &
+                  &                                                         1.0d0/resolutionSigmaOverParentSigma**2, &
+                  &                                       toleranceRelative=self%precisionHypergeometric           , &
+                  &                                       status           =statusLower                              &
+                  &                                      )
+             if (statusLower /= GSL_Success) then
+                if (usingCDMAssumptions) then
+                   if (.not.self%hypergeometricFailureWarned) then
+                      self%hypergeometricFailureWarned=.true.
+                      call displayMessage(                                                                                                                      &
+                           &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
+                           &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
+                           &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
+                           &              verbosityLevelWarn                                                                                                    &
+                           &             )
+                   end if
+                   cycle
+                else
+                   parkinsonColeHellyProbabilityBound=0.0d0
+                   call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
+                end if
+             end if
+             probabilityIntegrandLower=+sqrtTwoOverPi                                            &
+                  &                    *(self%factorG0Gamma2/self%sigmaParent)                   &
+                  &                    *(resolutionSigmaOverParentSigma**(gammaEffective-1.0d0)) &
+                  &                    /(1.0d0-gammaEffective)                                   &
+                  &                    *hyperGeometricFactorLower
+             ! Check if we can use a table to compute the upper factor.
+             hyperGeometricFactorUpper=Hypergeometric_2F1(                                                          &
+                  &                                                         self%hypergeometricA(gammaEffective)  , &
+                  &                                                         [      1.5d0-0.5d0*gammaEffective]    , &
+                  &                                                         self%sigmaParent**2/halfParentSigma**2, &
+                  &                                       toleranceRelative=self%precisionHypergeometric          , &
+                  &                                       status           =statusUpper                             &
+                  &                                      )
+             if (statusUpper /= GSL_Success) then
+                if (usingCDMAssumptions) then
+                   if (.not.self%hypergeometricFailureWarned) then
+                      self%hypergeometricFailureWarned=.true.
+                      call displayMessage(                                                                                                                      &
+                           &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
+                           &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
+                           &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
+                           &              verbosityLevelWarn                                                                                                    &
+                           &             )
+                   end if
+                   cycle
+                else
+                   parkinsonColeHellyProbabilityBound=0.0d0
+                   call Error_Report('hypergeometric function evaluation failed'//{introspection:location})
+                end if
+             end if
+             probabilityIntegrandUpper=+sqrtTwoOverPi                                                &
+                  &                    *(self%factorG0Gamma2/self%sigmaParent)                       &
+                  &                    *((halfParentSigma/self%sigmaParent)**(gammaEffective-1.0d0)) &
+                  &                    /(1.0d0-gammaEffective)                                       &
+                  &                    *hyperGeometricFactorUpper
+          end if
+       end if
+       ! Compute the bound.
+       select case (bound%ID)
+       case (mergerTreeBranchingBoundLower%ID)
+          if (usingCDMAssumptions) then
+             parkinsonColeHellyProbabilityBound=+(                               &
+                  &                               +probabilityIntegrandUpper     &
+                  &                               -probabilityIntegrandLower     &
+                  &                              )                               &
+                  &                             *self%massHaloParent             &
+                  &                             /massResolution                  &
+                  &                             *(                               &
+                  &                               +self%resolutionSigma          &
+                  &                               /self%sigmaParent              &
+                  &                              )**(1.0d0/self%resolutionAlpha)
+          else
+             parkinsonColeHellyProbabilityBound=+(                               &
+                  &                               +probabilityIntegrandUpper     &
+                  &                               -probabilityIntegrandLower     &
+                  &                              )                               &
+                  &                             *       self%massHaloParent      &
+                  &                             /(0.5d0*self%massHaloParent)
+          end if
+       case (mergerTreeBranchingBoundUpper%ID)
+          if (usingCDMAssumptions) then
+             parkinsonColeHellyProbabilityBound=+(                               &
+                  &                               +probabilityIntegrandUpper     &
+                  &                               -probabilityIntegrandLower     &
+                  &                              )                               &
+                  &                             *self%massHaloParent             &
+                  &                             /massResolution                  &
+                  &                             *(                               &
+                  &                               +self%resolutionSigma          &
+                  &                               /self%sigmaParent              &
+                  &                              )**(1.0d0/halfParentAlpha)
+          else
+             parkinsonColeHellyProbabilityBound=+(                               &
+                  &                               +probabilityIntegrandUpper     &
+                  &                               -probabilityIntegrandLower     &
+                  &                              )                               &
+                  &                             *self%massHaloParent             &
+                  &                             /massResolution
+          end if
+       case default
+          parkinsonColeHellyProbabilityBound=-1.0d0
+          call Error_Report('unknown bound type'//{introspection:location})
+       end select
+       if (statusUpper == GSL_Success .and. statusLower == GSL_Success) exit
+    end do     
     return
   end function parkinsonColeHellyProbabilityBound
 
@@ -1018,7 +1033,7 @@ contains
        end if
     end if
     if (tabulate) then
-       xCount=int(log10(xMaximum/xMinimum)*dble(xCountPerDecade))+1
+       xCount=max(int(log10(xMaximum/xMinimum)*dble(xCountPerDecade))+1,2)
        if (.not.self%subresolutionHypergeometricInitialized) call self%subresolutionHypergeometric%destroy()
        call self%subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        do i=1,xCount
