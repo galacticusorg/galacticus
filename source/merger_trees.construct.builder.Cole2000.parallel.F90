@@ -75,10 +75,10 @@ contains
     class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), pointer       :: cosmologicalMassVariance_
     class           (mergerTreeBuildControllerClass     ), pointer       :: mergerTreeBuildController_
-    double precision                                                     :: mergeProbability           , accretionLimit         , &
-         &                                                                  redshiftMaximum            , toleranceResolutionSelf, &
-         &                                                                  toleranceResolutionParent  , toleranceTimeEarliest
-    logical                                                              :: branchIntervalStep
+    double precision                                                     :: mergeProbability          , accretionLimit         , &
+         &                                                                  redshiftMaximum           , toleranceResolutionSelf, &
+         &                                                                  toleranceResolutionParent , toleranceTimeEarliest
+    logical                                                              :: branchIntervalStep        , ignoreNoProgress
 
     ! Check and read parameters.
     !![
@@ -124,6 +124,12 @@ contains
       <defaultValue>1.0d-3</defaultValue>
       <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
     </inputParameter>
+    <inputParameter>
+      <name>ignoreNoProgress</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, failure to make progress on a branch will be ignored (and the branch terminated).</description>
+    </inputParameter>
     <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"        source="parameters"/>
     <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"       source="parameters"/>
@@ -138,6 +144,7 @@ contains
          &                                                                                                                   branchIntervalStep          , &
          &                                                                                                                   toleranceResolutionSelf     , &
          &                                                                                                                   toleranceResolutionParent   , &
+         &                                                                                                                   ignoreNoProgress            , &
          &                                                                                                                   mergerTreeMassResolution_   , &
          &                                                                                                                   cosmologyFunctions_         , &
          &                                                                                                                   criticalOverdensity_        , &
@@ -155,7 +162,7 @@ contains
     return
   end function cole2000ParallelConstructorParameters
 
-  function cole2000ParallelConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
+  function cole2000ParallelConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,ignoreNoProgress,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
@@ -165,14 +172,14 @@ contains
     double precision                                     , intent(in   )         :: mergeProbability          , accretionLimit         , &
          &                                                                          timeEarliest              , toleranceResolutionSelf, &
          &                                                                          toleranceResolutionParent , toleranceTimeEarliest
-    logical                                              , intent(in   )         :: branchIntervalStep
+    logical                                              , intent(in   )         :: branchIntervalStep        , ignoreNoProgress
     class           (mergerTreeMassResolutionClass      ), intent(in   ), target :: mergerTreeMassResolution_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
     class           (mergerTreeBuildControllerClass     ), intent(in   ), target :: mergerTreeBuildController_
     !![
-    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, ignoreNoProgress, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
     ! Store maximum redshift.
