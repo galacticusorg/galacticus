@@ -272,6 +272,10 @@ contains
          &                 toleranceRelative=toleranceRelative                   &
          &                )    
     self%dimensionless=self%massDistribution_%isDimensionless()
+    ! Initialize state.
+    self%radiusPreviousIndex       = 0
+    self%radiusPreviousIndexMaximum= 0
+    self%radiusPrevious            =-1.0d0
     return
   end function sphericalAdiabaticGnedin2004ConstructorInternal
 
@@ -449,7 +453,7 @@ contains
     return
   end function sphericalAdiabaticGnedin2004RadiusInitial
 
-  double precision function sphericalAdiabaticGnedin2004RadiusInitialDerivative(self,radius)
+  double precision function sphericalAdiabaticGnedin2004RadiusInitialDerivative(self,radius) result(radiusInitialDerivative)
     !!{
     Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     \cite{gnedin_response_2004}.
@@ -474,7 +478,7 @@ contains
     call self%computeFactors(radius,computeGradientFactors=.true.)
     ! Return unit derivative if radius is larger than the virial radius.
     if (radius >= self%radiusVirial) then
-       sphericalAdiabaticGnedin2004RadiusInitialDerivative=1.0d0
+       radiusInitialDerivative=1.0d0
        return
     end if
     ! Validate.
@@ -545,8 +549,8 @@ contains
        call displayUnindent(''     )
        call Error_Report('Overflow in initial radius derivative calculation'//{introspection:location})
     end if
-    sphericalAdiabaticGnedin2004RadiusInitialDerivative=+numerator   &
-         &                                              /denominator
+    radiusInitialDerivative=+numerator   &
+         &                  /denominator
     return
   end function sphericalAdiabaticGnedin2004RadiusInitialDerivative
 
@@ -572,9 +576,7 @@ contains
     self%baryonicFinalTerm=velocityCircularSquared*self%radiusFinalMean*self%radiusFinal/gravitationalConstantGalacticus
     ! Compute the baryonic contribution to the rotation curve.
     if (computeGradientFactors) then
-       velocityCircularSquaredGradient =+self%massDistributionBaryonic%rotationCurveGradient(self%radiusFinalMean) &
-            &                           *2.0d0                                                                     &
-            &                           *sqrt(velocityCircularSquared)
+       velocityCircularSquaredGradient =+self%massDistributionBaryonic%rotationCurveGradient(self%radiusFinalMean)
        self%baryonicFinalTermDerivative=+     velocityCircularSquaredGradient                                      &
             &                           *self%radiusOrbitalMeanDerivative(self%radiusFinal)                        &
             &                           *self%radiusFinalMean                                                      &
