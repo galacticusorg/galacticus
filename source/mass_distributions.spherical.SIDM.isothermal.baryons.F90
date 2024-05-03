@@ -194,7 +194,7 @@ contains
     use :: Multidimensional_Minimizer      , only : multiDMinimizer
     implicit none
     class           (massDistributionSphericalSIDMIsothermalBaryons), intent(inout)              :: self
-    integer         (c_size_t                                      ), parameter                  :: propertyCount                =2
+    integer         (c_size_t                                      ), parameter                  :: propertyCount                =   2
     integer                                                         , parameter                  :: countTable                   =1000
     double precision                                                , parameter                  :: odeToleranceAbsolute         =1.0d-3, odeToleranceRelative     =1.0d-3
     double precision                                                , parameter                  :: fractionRadiusInitial        =1.0d-6
@@ -212,7 +212,7 @@ contains
          &                                                                                          velocityDispersionInteraction       , mass                            , &
          &                                                                                          density
     type            (coordinateSpherical                           )                             :: coordinatesInteraction
-    
+
     ! Find the interaction radius.
     radiusInteraction            =self%radiusInteraction                     (                      )
     coordinatesInteraction       =[radiusInteraction,0.0d0,0.0d0]
