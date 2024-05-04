@@ -1,9 +1,21 @@
 window.ANALYSES_DATA = {
    "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.2_alpha_1.0_beta_3.0_gamma_0.5.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "results" : [
       {
          "data" : {
+            "xDataset" : [
+               1,
+               4.51960872879017,
+               8.03921745758035,
+               11.459043464678,
+               14.9786521934682,
+               18.4075493570834,
+               21.9271580858735,
+               25.3469840929712,
+               28.8665928217614,
+               32.286418828859,
+               35.8060275576492
+            ],
             "yDatasetTarget" : [
                1,
                0.209356732881388,
@@ -29,50 +41,37 @@ window.ANALYSES_DATA = {
                0.00620998324370317,
                0.00354670418422022,
                0.00168562654900398
-            ],
-            "xDataset" : [
-               1,
-               4.51960872879017,
-               8.03921745758035,
-               11.459043464678,
-               14.9786521934682,
-               18.4075493570834,
-               21.9271580858735,
-               25.3469840929712,
-               28.8665928217614,
-               32.286418828859,
-               35.8060275576492
             ]
          },
          "attributes" : {
-            "yDataset" : "fractionBoundMass",
-            "type" : "function1D",
-            "xAxisLabel" : "t/Gyr",
-            "name" : "satelliteBoundMass",
-            "yAxisIsLog" : 1,
-            "targetLabel" : "Simulations",
-            "logLikelihood" : 40.9680494100607,
-            "xAxisIsLog" : 0,
-            "description" : "Satellite bound mass fraction vs. time.",
-            "yAxisLabel" : "M_bound/M_bound,0",
             "yDatasetTarget" : "fractionBoundMassTarget",
-            "xDataset" : "time"
+            "name" : "satelliteBoundMass",
+            "xAxisIsLog" : 0,
+            "xAxisLabel" : "t/Gyr",
+            "description" : "Satellite bound mass fraction vs. time.",
+            "targetLabel" : "Simulations",
+            "yDataset" : "fractionBoundMass",
+            "xDataset" : "time",
+            "type" : "function1D",
+            "yAxisLabel" : "M_bound/M_bound,0",
+            "logLikelihood" : 40.9680494100607,
+            "yAxisIsLog" : 1
          }
       },
       {
          "data" : {
-            "xDataset" : [
+            "yDataset" : [
                1,
-               4.51960872879017,
-               8.03921745758035,
-               11.459043464678,
-               14.9786521934682,
-               18.4075493570834,
-               21.9271580858735,
-               25.3469840929712,
-               28.8665928217614,
-               32.286418828859,
-               35.8060275576492
+               0.64098761267324,
+               0.486425878893243,
+               0.396401583731146,
+               0.33605483223769,
+               0.292477555514086,
+               0.25708493556608,
+               0.228415004539108,
+               0.203546866014631,
+               0.182032811952957,
+               0.163085675822829
             ],
             "yDatasetTarget" : [
                1,
@@ -87,49 +86,49 @@ window.ANALYSES_DATA = {
                0.190071887571447,
                0.172516795699341
             ],
-            "yDataset" : [
+            "xDataset" : [
                1,
-               0.64098761267324,
-               0.486425878893243,
-               0.396401583731146,
-               0.33605483223769,
-               0.292477555514086,
-               0.25708493556608,
-               0.228415004539108,
-               0.203546866014631,
-               0.182032811952957,
-               0.163085675822829
+               4.51960872879017,
+               8.03921745758035,
+               11.459043464678,
+               14.9786521934682,
+               18.4075493570834,
+               21.9271580858735,
+               25.3469840929712,
+               28.8665928217614,
+               32.286418828859,
+               35.8060275576492
             ]
          },
          "attributes" : {
-            "xDataset" : "time",
+            "yDataset" : "fractionRadiusVelocityMaximum",
             "description" : "Satellite maximum circular velocity radius fraction vs. time.",
-            "yAxisLabel" : "R_max/R_max,0",
-            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
-            "xAxisIsLog" : 0,
+            "name" : "satelliteRadiusVelocityMaximum",
+            "type" : "function1D",
+            "xDataset" : "time",
             "targetLabel" : "Simulations",
+            "xAxisLabel" : "t/Gyr",
+            "xAxisIsLog" : 0,
+            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
             "logLikelihood" : 22.3962454301193,
             "yAxisIsLog" : 1,
-            "xAxisLabel" : "t/Gyr",
-            "name" : "satelliteRadiusVelocityMaximum",
-            "yDataset" : "fractionRadiusVelocityMaximum",
-            "type" : "function1D"
+            "yAxisLabel" : "R_max/R_max,0"
          }
       },
       {
          "attributes" : {
-            "xDataset" : "time",
-            "yDatasetTarget" : "fractionVelocityMaximumTarget",
-            "yAxisLabel" : "V_max/V_max,0",
-            "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "yAxisIsLog" : 1,
-            "xAxisLabel" : "t/Gyr",
-            "name" : "satelliteVelocityMaximum",
-            "xAxisIsLog" : 0,
-            "logLikelihood" : 20.3906767774734,
-            "type" : "function1D",
             "targetLabel" : "Simulations",
-            "yDataset" : "fractionVelocityMaximum"
+            "yDataset" : "fractionVelocityMaximum",
+            "description" : "Satellite maximum circular velocity fraction vs. time.",
+            "xAxisLabel" : "t/Gyr",
+            "xAxisIsLog" : 0,
+            "name" : "satelliteVelocityMaximum",
+            "yDatasetTarget" : "fractionVelocityMaximumTarget",
+            "logLikelihood" : 20.3906767774734,
+            "yAxisIsLog" : 1,
+            "yAxisLabel" : "V_max/V_max,0",
+            "type" : "function1D",
+            "xDataset" : "time"
          },
          "data" : {
             "yDataset" : [
@@ -145,19 +144,6 @@ window.ANALYSES_DATA = {
                0.197485727007679,
                0.159186304268215
             ],
-            "yDatasetTarget" : [
-               1,
-               0.796218339219053,
-               0.673024397412466,
-               0.578881426939822,
-               0.498829085413411,
-               0.429515869156509,
-               0.366556980612651,
-               0.309035279095092,
-               0.256723480384866,
-               0.208808484454719,
-               0.161008990610083
-            ],
             "xDataset" : [
                1,
                4.51960872879017,
@@ -170,18 +156,32 @@ window.ANALYSES_DATA = {
                28.8665928217614,
                32.286418828859,
                35.8060275576492
+            ],
+            "yDatasetTarget" : [
+               1,
+               0.796218339219053,
+               0.673024397412466,
+               0.578881426939822,
+               0.498829085413411,
+               0.429515869156509,
+               0.366556980612651,
+               0.309035279095092,
+               0.256723480384866,
+               0.208808484454719,
+               0.161008990610083
             ]
          }
       }
    ],
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "message" : "Merge pull request #607 from galacticusorg/fixTruncatedPowerTreeBuild",
-      "id" : "9e6a229062512e24a763699e077ff6fd844f3cd8",
-      "timestamp" : "Fri, 3 May 2024 12:56:09 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/9e6a229062512e24a763699e077ff6fd844f3cd8",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/8b2d9cc16747e1474f9541a994a8e22d6cfc5f4d",
       "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      }
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
+      },
+      "id" : "8b2d9cc16747e1474f9541a994a8e22d6cfc5f4d",
+      "message" : "fix: Ensure variables are always initialized",
+      "timestamp" : "Fri, 3 May 2024 16:39:46 -0700"
    }
 }
