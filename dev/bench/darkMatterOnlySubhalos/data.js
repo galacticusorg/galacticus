@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714858876708,
+  "lastUpdate": 1714946679987,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "3fea25a0a779c2b879057cf7328e7c70e15ec77c",
-          "message": "fix: Deallocate object to avoid memory leak",
-          "timestamp": "2023-07-31T03:33:40Z",
-          "tree_id": "22001050019317d78ef5424a28a1eb411d04349e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3fea25a0a779c2b879057cf7328e7c70e15ec77c"
-        },
-        "date": 1690786445157,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 56.33,
-            "unit": "seconds",
-            "range": 0.0252982212808682
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20638.76417226,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c5f25df726ff476ef524039d148d77866e685413",
+          "message": "Merge pull request #609 from galacticusorg/fixTruncatedPowerTreeBuild\n\nCatch rounding errors in branch mass calculation",
+          "timestamp": "2024-05-05T17:04:01Z",
+          "tree_id": "ad03593a4a2893efb77824e5d1a36e5feee823cf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c5f25df726ff476ef524039d148d77866e685413"
+        },
+        "date": 1714946677738,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.808,
+            "unit": "seconds",
+            "range": 0.192144737112207
           }
         ]
       }
