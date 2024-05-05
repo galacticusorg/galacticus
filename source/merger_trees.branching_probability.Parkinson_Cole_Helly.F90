@@ -353,6 +353,8 @@ contains
 
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)
       if (massFractionSigma**2 <= self%sigmaParentSquared) then
+         R      =+1.0d0
+      else
          R      =+(                             &
               &    +massFractionAlpha           &
               &    /halfMassAlpha               &
@@ -368,8 +370,6 @@ contains
               &    *massFractionSigma           &
               &    /halfMassSigma               &
               &   )**self%gamma1
-      else
-         R      =+1.0d0
       end if
       return
     end function R
