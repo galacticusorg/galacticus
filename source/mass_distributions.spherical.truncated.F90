@@ -184,8 +184,8 @@ contains
        x_                                                 =+(+     radius               -self%radiusTruncateMinimum) &
             &                                              /(+self%radiusTruncateMaximum-self%radiusTruncateMinimum)
        if (present(x                 )) x                 =+x_
-       if (present(multiplier        )) multiplier        =  +1.0d0       &
-            &                                                -3.0d0*x_**2 &
+       if (present(multiplier        )) multiplier        =  +1.0d0                                                  &
+            &                                                -3.0d0*x_**2                                            &
             &                                                +2.0d0*x_**3
        if (present(multiplierGradient)) multiplierGradient=+(                                                        &
             &                                                -6.0d0*x_                                               &
@@ -233,7 +233,7 @@ contains
        densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic=.false.,componentType=componentType,massType=massType) &
             &          *                       multiplier                                                                                           &
             &          +self%massDistribution_%density              (coordinates                    ,componentType=componentType,massType=massType) &
-            &          +                       multiplierGradient
+            &          *                       multiplierGradient
        if (logarithmic_) densityGradient=+            densityGradient                                     &
             &                            *coordinates%rSpherical     (                                  ) &
             &                            /self       %density        (coordinates,componentType,massType)

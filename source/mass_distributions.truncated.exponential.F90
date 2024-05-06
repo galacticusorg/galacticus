@@ -226,27 +226,26 @@ contains
     !!]
 
      if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
-        densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic,componentType,massType)
+        densityGradient=+self%massDistribution_%densityGradientRadial(coordinates               ,logarithmic,componentType=componentType,massType=massType)
      else
         coordinatesTruncateMinimum=[self%radiusTruncateMinimum,0.0d0,0.0d0]
-        densityGradient=+self%massDistribution_%densityGradientRadial(coordinates               ,componentType=componentType,massType=massType,logarithmic=.false.) &
-             &          +self%massDistribution_%density              (coordinatesTruncateMinimum,componentType=componentType,massType=massType                    ) &
-             &          *(                                                                                                                                          &
-             &             +coordinates%rSpherical           ()                                                                                                     &
-             &             /self       %radiusTruncateMinimum                                                                                                       &
-             &            )**self%kappa                                                                                                                             &
-             &           *exp(                                                                                                                                      &
-             &                -(                                                                                                                                    &
-             &                  +coordinates%rSpherical           ()                                                                                                &
-             &                  -self       %radiusTruncateMinimum                                                                                                  &
-             &                 )                                                                                                                                    &
-             &                /  self       %radiusTruncateDecay                                                                                                    &
-             &               )                                                                                                                                      &
-             &           *(                                                                                                                                         &
-             &             +self       %kappa                                                                                                                       &
-             &             -coordinates%rSpherical         ()                                                                                                       &
-             &             /self       %radiusTruncateDecay                                                                                                         &
-             &            )                                                                                                                                         &
+        densityGradient=+self%massDistribution_%density              (coordinatesTruncateMinimum            ,componentType=componentType,massType=massType) &
+             &          *(                                                                                                                                  &
+             &             +coordinates%rSpherical           ()                                                                                             &
+             &             /self       %radiusTruncateMinimum                                                                                               &
+             &            )**self%kappa                                                                                                                     &
+             &           *exp(                                                                                                                              &
+             &                -(                                                                                                                            &
+             &                  +coordinates%rSpherical           ()                                                                                        &
+             &                  -self       %radiusTruncateMinimum                                                                                          &
+             &                 )                                                                                                                            &
+             &                /  self       %radiusTruncateDecay                                                                                            &
+             &               )                                                                                                                              &
+             &           *(                                                                                                                                 &
+             &             +self       %kappa                                                                                                               &
+             &             -coordinates%rSpherical         ()                                                                                               &
+             &             /self       %radiusTruncateDecay                                                                                                 &
+             &            )                                                                                                                                 &
              &           /  coordinates%rSpherical         ()
         if (logarithmic_) densityGradient=+            densityGradient                                     &
              &                            *coordinates%rSpherical     (                                  ) &
