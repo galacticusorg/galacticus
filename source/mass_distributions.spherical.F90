@@ -849,7 +849,7 @@ contains
     double precision                              , intent(in   )           :: time
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                              , parameter               :: timeLogarithmicStep=0.1d0
+    double precision                              , parameter               :: timeLogarithmicStep=1.0d-2
     type            (differentiator              )                          :: differentiator_
 
     if (.not.self%matches(componentType,massType)) then

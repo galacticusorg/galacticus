@@ -811,9 +811,9 @@ contains
        return
     end if
     timeScale    =+1.0d0/sqrt(                                 &
-         &              +gravitationalConstantGalacticus &
-         &              *self%densityNormalization       &
-         &             )                                 &
+         &                    +gravitationalConstantGalacticus &
+         &                    *self%densityNormalization       &
+         &                   )                                 &
          &        *Mpc_per_km_per_s_To_Gyr
     timeScaleFree=+time                                  &
          &        /timeScale
@@ -841,12 +841,12 @@ contains
        return
     end if
     timeScale    =+1.0d0/sqrt(                                 &
-         &              +gravitationalConstantGalacticus &
-         &              *self%densityNormalization       &
-         &             )                                 &
+         &                    +gravitationalConstantGalacticus &
+         &                    *self%densityNormalization       &
+         &                   )                                 &
          &        *Mpc_per_km_per_s_To_Gyr
     timeScaleFree=+time                                  &
-         &        *timeScale
+         &        /timeScale
     call self%timeFreefallTabulate(timeScaleFree)
     radiusIncreaseRate=+self%timeFreefallScaleFree_%derivative(timeScaleFree) &
          &             *self%scaleLength                                      &

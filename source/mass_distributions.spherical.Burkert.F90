@@ -864,7 +864,7 @@ contains
          &             )                                 &
          &        *Mpc_per_km_per_s_To_Gyr
     timeScaleFree=+time                                  &
-         &        *timeScale
+         &        /timeScale
     if (timeScaleFree <= timeFreefallScaleFreeMinimum) then
        radiusIncreaseRate=0.0d0
        return
