@@ -505,7 +505,7 @@ contains
     type (enumerationMassTypeType     ), intent(in   ), optional :: massType
     !$GLC attributes unused :: self, componentType, massType
 
-    radius=0.0d0
+    radius=1.0d0
     return
   end function isothermalRadiusRotationCurveMaximum
 
