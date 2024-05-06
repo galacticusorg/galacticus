@@ -852,7 +852,7 @@ contains
     double precision                             , intent(in   )              :: radius
     class           (massDistributionClass      ), intent(inout)              :: massDistributionEmbedding
     double precision                                            , parameter   :: radiusTinyFactor         =1.0d-9 , factorDensityLarge       =1.0d+6
-    double precision                                            , parameter   :: countPointsPerOctave     =2.0d0
+    double precision                                            , parameter   :: countPointsPerOctave     =10.0d0
     double precision                                            , parameter   :: toleranceFactor          =2.0d0
     double precision                             , dimension(:) , allocatable :: velocityDispersions              , radii
     double precision                                                          :: radiusMinimum                    , radiusMaximum                   , &
