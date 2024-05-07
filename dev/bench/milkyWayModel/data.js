@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714946704324,
+  "lastUpdate": 1715047004234,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "bd3358fc3d5e9193b16179658b145d8cda342de3",
-          "message": "Merge pull request #443 from galacticusorg/buildRefactor\n\nReduce code duplication in state store/restore method builder",
-          "timestamp": "2023-07-29T16:33:18Z",
-          "tree_id": "4368532e9b45c02424efdff762c0c3fe55b81f79",
-          "url": "https://github.com/galacticusorg/galacticus/commit/bd3358fc3d5e9193b16179658b145d8cda342de3"
-        },
-        "date": 1690675733094,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 207.49,
-            "unit": "seconds",
-            "range": 0.101173118961713
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9239061922846,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17",
+          "message": "Merge pull request #610 from galacticusorg/featLogNormalConstructor\n\nAdd alternative specificiation of log-normal distribution parameters",
+          "timestamp": "2024-05-06T20:55:32Z",
+          "tree_id": "e4dd16ee1ef6a39c816357ef190457c6496a15c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17"
+        },
+        "date": 1715047003074,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 353.137,
+            "unit": "seconds",
+            "range": 0.144520240804182
           }
         ]
       }
