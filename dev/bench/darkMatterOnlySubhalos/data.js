@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714946689779,
+  "lastUpdate": 1715046999120,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f7f8371f7d5d628d316d6eb76a4c12e965dfa7c8",
-          "message": "fix: Fix syntax",
-          "timestamp": "2023-07-31T08:18:56-07:00",
-          "tree_id": "621d7216d3e9eaf25349b9c6cac9ddccdf2b7acd",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f7f8371f7d5d628d316d6eb76a4c12e965dfa7c8"
-        },
-        "date": 1690830144799,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.586,
-            "unit": "seconds",
-            "range": 0.0571699221621342
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20405.9424512488,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17",
+          "message": "Merge pull request #610 from galacticusorg/featLogNormalConstructor\n\nAdd alternative specificiation of log-normal distribution parameters",
+          "timestamp": "2024-05-06T20:55:32Z",
+          "tree_id": "e4dd16ee1ef6a39c816357ef190457c6496a15c1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17"
+        },
+        "date": 1715046997168,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.494,
+            "unit": "seconds",
+            "range": 0.0588931235368681
           }
         ]
       }
