@@ -39,14 +39,16 @@
      A dark matter halo profile class implementing \cite{penarrubia_impact_2010} dark matter halos.
      !!}
      private
-     double precision :: betaStripped                             , muRadius                                   , &
-          &              etaRadius                                , muVelocity                                 , &
-          &              etaVelocity                              , ratioRadiusMaximumRadiusScaleStripped      , &
-          &              ratioRadiusMaximumRadiusScaleUnstripped  , ratioVelocityMaximumVelocityScaleUnstripped, &
-          &              ratioVelocityMaximumVelocityScaleStripped
+     double precision                                   :: betaStripped                                     , muRadius                                       , &
+          &                                                etaRadius                                        , muVelocity                                     , &
+          &                                                etaVelocity                                      , ratioRadiusMaximumRadiusScaleStripped          , &
+          &                                                ratioRadiusMaximumRadiusScaleUnstripped
+     type           (massDistributionZhao1996), pointer :: massDistributionStripped                => null(), massDistributionUnstripped            => null()
    contains
-     procedure :: exponents   => penarrubia2010Exponents
-     procedure :: scaleRadius => penarrubia2010ScaleRadius
+     final     ::                  penarrubia2010Destructor
+     procedure :: exponents     => penarrubia2010Exponents
+     procedure :: scaleRadius   => penarrubia2010ScaleRadius
+     procedure :: normalization => penarrubia2010Normalization
   end type darkMatterProfileDMOPenarrubia2010
 
   interface darkMatterProfileDMOPenarrubia2010
@@ -118,6 +120,11 @@ contains
       <source>parameters</source>
       <description>The parameter $\eta$ of the \cite{penarrubia_impact_2010} tidal track for $V_\mathrm{max}$.</description>
     </inputParameter>
+    <inputParameter>
+      <name>etaVelocity</name>
+      <source>parameters</source>
+      <description>The parameter $\eta$ of the \cite{penarrubia_impact_2010} tidal track for $V_\mathrm{max}$.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
     self=darkMatterProfileDMOPenarrubia2010(alpha,beta,gamma,betaStripped,muRadius,etaRadius,muVelocity,etaVelocity,darkMatterHaloScale_)
@@ -140,22 +147,35 @@ contains
          &                                                                         gamma                   , betaStripped              , &
          &                                                                         muRadius                , etaRadius                 , &
          &                                                                         muVelocity              , etaVelocity
-    type            (massDistributionZhao1996          )                        :: massDistributionStripped, massDistributionUnstripped
     !![
     <constructorAssign variables="alpha, beta, gamma, betaStripped, muRadius, etaRadius, muVelocity, etaVelocity, *darkMatterHaloScale_"/>
     !!]
 
-    massDistributionStripped  =massDistributionZhao1996(alpha,betaStripped,gamma,scaleLength=1.0d0,densityNormalization=1.0d0)
-    massDistributionUnstripped=massDistributionZhao1996(alpha,beta        ,gamma,scaleLength=1.0d0,densityNormalization=1.0d0)
-    self%ratioRadiusMaximumRadiusScaleStripped      =+massDistributionStripped  %  radiusRotationCurveMaximum(            )
-    self%ratioRadiusMaximumRadiusScaleUnstripped    =+massDistributionUnstripped%  radiusRotationCurveMaximum(            )
-    self%ratioVelocityMaximumVelocityScaleStripped  =+massDistributionStripped  %velocityRotationCurveMaximum(            ) &
-         &                                           /massDistributionStripped  %        rotationCurve       (radius=1.0d0)
-    self%ratioVelocityMaximumVelocityScaleUnstripped=+massDistributionUnstripped%velocityRotationCurveMaximum(            ) &
-         &                                           /massDistributionUnstripped%        rotationCurve       (radius=1.0d0)
+    allocate(self%massDistributionStripped  )
+    allocate(self%massDistributionUnstripped)
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="massDistributionStripped"   constructor="massDistributionZhao1996(alpha,betaStripped,gamma,scaleLength=1.0d0,mass=1.0d0,radiusOuter=1.0d0)"/>
+    <referenceConstruct isResult="yes" owner="self" object="massDistributionUnstripped" constructor="massDistributionZhao1996(alpha,beta        ,gamma,scaleLength=1.0d0,mass=1.0d0,radiusOuter=1.0d0)"/>
+    !!]
+    self%ratioRadiusMaximumRadiusScaleStripped      =+self%massDistributionStripped  %  radiusRotationCurveMaximum(            )
+    self%ratioRadiusMaximumRadiusScaleUnstripped    =+self%massDistributionUnstripped%  radiusRotationCurveMaximum(            )
     return
   end function penarrubia2010ConstructorInternal
 
+  subroutine penarrubia2010Destructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
+    !!}
+    implicit none
+    type(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%massDistributionStripped"  />
+    <objectDestructor name="self%massDistributionUnstripped"/>
+    !!]
+    return
+  end subroutine penarrubia2010Destructor
+  
   subroutine penarrubia2010Exponents(self,node,alpha,beta,gamma)
     !!{
     Compute the exponents of the {\normalfont \ttfamily penarrubia2010} dark matter halo profile.
@@ -219,3 +239,48 @@ contains
          &      *darkMatterProfile%scale                                  ()
     return
   end function penarrubia2010ScaleRadius
+
+  double precision function penarrubia2010Normalization(self,node)
+    !!{
+    Compute the mass normalization of the {\normalfont \ttfamily penarrubia2010} dark matter halo profile.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
+    implicit none
+    class(darkMatterProfileDMOPenarrubia2010       ), intent(inout) :: self
+    type (treeNode                                 ), intent(inout) :: node
+    class(nodeComponentBasic                       ), pointer       :: basic
+    class           (nodeComponentSatellite        ), pointer       :: satellite
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: fractionMassBound     , fractionVelocityMaximum, &
+         &                                                             radiusScale           , radiusVirial           , &
+         &                                                             velocityRotationFactor
+    
+    basic                   =>  node     %basic            ()
+    satellite               =>  node     %satellite        ()
+    darkMatterProfile       =>  node     %darkMatterProfile()
+    fractionMassBound       =  +satellite%boundMass        () &
+         &                     /basic    %mass             ()
+    fractionVelocityMaximum =  +2.0d0              **self%muVelocity  &
+         &                     *  fractionMassBound**self%etaVelocity &
+         &                     /(                                     &
+         &                       +1.0d0                               &
+         &                       +fractionMassBound                   &
+         &                      )                  **self%muVelocity
+    radiusScale             =darkMatterProfile                     %scale       (    )
+    radiusVirial            =self             %darkMatterHaloScale_%radiusVirial(node)
+    if (fractionMassBound >= fractionMassTransition) then
+       velocityRotationFactor=+self%massDistributionUnstripped%        rotationCurve       (radius=radiusVirial/self%scaleRadius(node)) &
+            &                 /self%massDistributionUnstripped%velocityRotationCurveMaximum(                                          )
+    else
+       velocityRotationFactor=+self%massDistributionStripped  %        rotationCurve       (radius=radiusVirial/self%scaleRadius(node)) &
+            &                 /self%massDistributionStripped  %velocityRotationCurveMaximum(                                          )
+    end if
+    penarrubia2010Normalization=+basic%mass()                                                                                    &
+         &                      *fractionVelocityMaximum**2                                                                      &
+         &                      *velocityRotationFactor **2                                                                      &
+         &                      /(                                                                                               &
+         &                        +self%massDistributionUnstripped%rotationCurve               (radius=radiusVirial/radiusScale) &
+         &                        /self%massDistributionUnstripped%velocityRotationCurveMaximum(                               ) &
+         &                       )**2
+    return
+  end function penarrubia2010Normalization

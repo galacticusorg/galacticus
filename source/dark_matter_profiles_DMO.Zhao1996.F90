@@ -43,10 +43,11 @@
      double precision                                      :: alpha                         , beta, &
           &                                                   gamma
    contains   
-     final     ::                zhao1996Destructor
-     procedure :: get         => zhao1996Get
-     procedure :: exponents   => zhao1996Exponents
-     procedure :: scaleRadius => zhao1996ScaleRadius
+     final     ::                  zhao1996Destructor
+     procedure :: get           => zhao1996Get
+     procedure :: exponents     => zhao1996Exponents
+     procedure :: scaleRadius   => zhao1996ScaleRadius
+     procedure :: normalization => zhao1996Normalization
   end type darkMatterProfileDMOZhao1996
 
   interface darkMatterProfileDMOZhao1996
@@ -117,7 +118,6 @@ contains
     !!{
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo   , massTypeDark                  , weightByMass
     use :: Mass_Distributions        , only : massDistributionZhao1996, kinematicsDistributionZhao1996
     implicit none
@@ -127,9 +127,9 @@ contains
     type            (treeNode                       ), intent(inout)           :: node
     type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
     integer                                          , intent(in   ), optional :: weightIndex
-    class           (nodeComponentBasic             ), pointer                 :: basic
     double precision                                                           :: alpha                  , beta       , &
-         &                                                                        gamma                  , scaleRadius
+         &                                                                        gamma                  , scaleRadius, &
+         &                                                                        mass
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -142,14 +142,14 @@ contains
     allocate(massDistributionZhao1996 :: massDistribution_)
     select type(massDistribution_)
     type is (massDistributionZhao1996)
-       basic       => node%basic      (    )
-       scaleRadius =  self%scaleRadius(node)       
+       mass       =self%normalization(node)
+       scaleRadius=self%scaleRadius  (node)
        call self%exponents(node,alpha,beta,gamma)
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
            massDistributionZhao1996(                                                                       &amp;
-           &amp;                    mass         =basic %mass                                      (    ), &amp;
+           &amp;                    mass         =       mass                                            , &amp;
            &amp;                    radiusOuter  =self  %darkMatterHaloScale_%radiusVirial         (node), &amp;
            &amp;                    scaleLength  =       scaleRadius                                     , &amp;
            &amp;                    alpha        =       alpha                                           , &amp;
@@ -221,3 +221,18 @@ contains
     zhao1996ScaleRadius =  darkMatterProfile%scale            ()
     return
   end function zhao1996ScaleRadius
+
+  double precision function zhao1996Normalization(self,node)
+    !!{
+    Compute the mass normalization of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class(darkMatterProfileDMOZhao1996), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    class(nodeComponentBasic          ), pointer       :: basic
+
+    basic                 => node %basic()
+    zhao1996Normalization =  basic%mass ()
+    return
+  end function zhao1996Normalization
