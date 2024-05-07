@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c5f25df726ff476ef524039d148d77866e685413",
-      "id" : "c5f25df726ff476ef524039d148d77866e685413",
-      "timestamp" : "Sun, 5 May 2024 17:04:01 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17",
+      "timestamp" : "Mon, 6 May 2024 20:55:32 +0000",
+      "message" : "Merge pull request #610 from galacticusorg/featLogNormalConstructor",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "message" : "Merge pull request #609 from galacticusorg/fixTruncatedPowerTreeBuild"
+      "id" : "c94146ffaa5bb9a39a9e2dc555b98ec5b5761d17"
    },
    "slope" : {
+      "percentageBelow" : 53.3333333333333,
       "target" : 0.85,
-      "percentageBelow" : 64.2857142857143,
-      "percentageAbove" : 35.7142857142857
+      "percentageAbove" : 46.6666666666667
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageBelow" : 53.125,
-      "target" : 0.006,
-      "percentageAbove" : 46.875
+      "percentageAbove" : 56.25,
+      "percentageBelow" : 43.75,
+      "target" : 0.006
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
