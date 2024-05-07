@@ -64,7 +64,7 @@ while ( my $line = <$makefile> ) {
     # If this line sets compiler flags, and no false entries exist in the preprocessor conditions stack, extract all preprocessor
     # directives from the line.
     push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$line))
-	if ( ! grep {! $_} @conditionsStack && $line =~ m/^\s*FCFLAGS\s*\+??=/ );
+	if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ && ! grep {! $_} @conditionsStack );
 }
 close($makefile);
 # Extract any preprocessor directives specified via the GALACTICUS_FCFLAGS environment variable.
@@ -266,15 +266,15 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		pop (@preprocessorConditionalsStack                                    )
 		    if ( $line =~ m/^\#endif\s*$/                   );
 		$preprocessorConditionalsStack[-1]->{'state'} = 1-$preprocessorConditionalsStack[-1]->{'state'}
-		if ( $line =~ m/^\#else\s*$/                    );
+		    if ( $line =~ m/^\#else\s*$/                    );
 		# Determine whether or not the current code will be conditionally compiled.
 		$conditionallyCompile = 1;
 		foreach my $preprocessorConditional ( @preprocessorConditionalsStack ) {
 		    my $conditionalActive = 
 			(grep {$_ eq $preprocessorConditional->{'name'}} @preprocessorDirectives)
 			?
-			$preprocessorConditional->{'state'} 
-		    : 
+			  $preprocessorConditional->{'state'} 
+		        : 
 			1-$preprocessorConditional->{'state'};
 		    $conditionallyCompile = 0	
 			if ( $conditionalActive == 0 );
