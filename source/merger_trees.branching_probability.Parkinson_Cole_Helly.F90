@@ -352,21 +352,25 @@ contains
       double precision                :: massFractionSigma, massFractionAlpha
 
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)
-      R      =+(                             &
-           &    +massFractionAlpha           &
-           &    /halfMassAlpha               &
-           &   )                             &
-           &  *self%V(massFraction,haloMass) &
-           &  /B                             &
-           &  /massFraction**beta            &
-           &  *(                             &
-           &    +(                           &
-           &      +2.0d0                     &
-           &      *massFraction              &
-           &     )**mu                       &
-           &    *massFractionSigma           &
-           &    /halfMassSigma               &
-           &   )**self%gamma1
+      if (massFractionSigma**2 <= self%sigmaParentSquared) then
+         R      =+1.0d0
+      else
+         R      =+(                             &
+              &    +massFractionAlpha           &
+              &    /halfMassAlpha               &
+              &   )                             &
+              &  *self%V(massFraction,haloMass) &
+              &  /B                             &
+              &  /massFraction**beta            &
+              &  *(                             &
+              &    +(                           &
+              &      +2.0d0                     &
+              &      *massFraction              &
+              &     )**mu                       &
+              &    *massFractionSigma           &
+              &    /halfMassSigma               &
+              &   )**self%gamma1
+      end if
       return
     end function R
 
