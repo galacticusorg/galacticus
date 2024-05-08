@@ -138,7 +138,7 @@ contains
             &             *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_)
     class default
        velocityDispersion=0.0d0
-       call Error_Report('expecting a spherical scaler mass distribution'//{introspection:location})
+       call Error_Report('expecting a spherical scaler mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
   end function kinematicsSphericalScalerVelocityDispersion1D

@@ -113,7 +113,7 @@ contains
        end if
     class default
        velocityDispersion=0.0d0
-       call Error_Report('expecting an SIDMIsothermal mass distribution but found type "'//char(massDistributionEmbedding%objectType())//'"'//{introspection:location})
+       call Error_Report('expecting an SIDMIsothermal mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
   end function sidmIsothermalVelocityDispersion1D

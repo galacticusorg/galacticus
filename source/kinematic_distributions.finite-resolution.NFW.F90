@@ -164,7 +164,7 @@ contains
     velocityDispersion=self%velocityDispersion1DPrevious
     class default
        velocityDispersion=0.0d0
-       call Error_Report('expecting an finite-resolution NFW mass distribution'//{introspection:location})
+       call Error_Report('expecting a finite-resolution NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
   end function finiteResolutionNFWVelocityDispersion1D

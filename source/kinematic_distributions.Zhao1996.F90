@@ -250,7 +250,7 @@ contains
             &                   *      massDistributionEmbedding%scaleLength
     class default
        velocityDispersion=0.0d0
-       call Error_Report('expecting a Zhao1996 mass distribution'//{introspection:location})
+       call Error_Report('expecting a Zhao1996 mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
   end function zhao1996VelocityDispersion1D

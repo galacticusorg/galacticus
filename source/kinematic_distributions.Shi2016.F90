@@ -97,7 +97,7 @@ contains
             &          *massDistributionEmbedding%scaleFactorVelocity
     class default
        velocityRadial=0.0d0
-       call Error_Report('expecting a Shi2016 mass distribution'//{introspection:location})
+       call Error_Report('expecting a Shi2016 mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
   end function shi2016KinematicsVelocityRadial

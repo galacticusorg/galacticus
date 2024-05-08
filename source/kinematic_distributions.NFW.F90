@@ -251,7 +251,7 @@ contains
             &             *      massDistributionEmbedding%scaleLength
     class default
        velocityDispersion=0.0d0
-       call Error_Report('expecting an NFW mass distribution'//{introspection:location})
+       call Error_Report('expecting an NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
     end select
     return
   end function nfwVelocityDispersion1D
