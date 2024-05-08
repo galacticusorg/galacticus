@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715047009344,
+  "lastUpdate": 1715128561326,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2da1da445ed3f84caabd4ae61c2d73c9fe015a3b",
-          "message": "Merge pull request #444 from galacticusorg/projectedDensity\n\nInclude mass outside of the virial radius in projected density calculations",
-          "timestamp": "2023-08-01T01:37:00Z",
-          "tree_id": "3dcca2c14dbe14011d83c7e060dc9e0dbc4e34f4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2da1da445ed3f84caabd4ae61c2d73c9fe015a3b"
-        },
-        "date": 1690866899234,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 72.803,
-            "unit": "seconds",
-            "range": 0.415839031357038
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20675.296504755,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "723170fb1690257be9b0588c0a83c9e559a584ae",
+          "message": "Merge pull request #611 from galacticusorg/fixUseDependencies\n\nCorrect logic used in parsing preprocessor conditionals when determining module `use` dependencies",
+          "timestamp": "2024-05-07T19:34:26Z",
+          "tree_id": "2043658ed9e475712830735bee55ae0d15d2927b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/723170fb1690257be9b0588c0a83c9e559a584ae"
+        },
+        "date": 1715128560026,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.443,
+            "unit": "seconds",
+            "range": 0.0535172869262118
           }
         ]
       }
