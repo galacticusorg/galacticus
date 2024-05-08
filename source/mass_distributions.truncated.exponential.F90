@@ -214,13 +214,15 @@ contains
     Return the density gradient at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Error      , only : Error_Report
     implicit none
-    class  (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
-    class  (coordinate                                   ), intent(in   )           :: coordinates
-    logical                                               , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType                      ), intent(in   ), optional :: massType
-    type   (coordinateSpherical                          )                          :: coordinatesTruncateMinimum
+    class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
+    class           (coordinate                                   ), intent(in   )           :: coordinates
+    logical                                                        , intent(in   ), optional :: logarithmic
+    type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
+    type            (coordinateSpherical                          )                          :: coordinatesTruncateMinimum
+    double precision                                                                         :: density
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
@@ -231,9 +233,9 @@ contains
         coordinatesTruncateMinimum=[self%radiusTruncateMinimum,0.0d0,0.0d0]
         densityGradient=+self%massDistribution_%density              (coordinatesTruncateMinimum            ,componentType=componentType,massType=massType) &
              &          *(                                                                                                                                  &
-             &             +coordinates%rSpherical           ()                                                                                             &
-             &             /self       %radiusTruncateMinimum                                                                                               &
-             &            )**self%kappa                                                                                                                     &
+             &            +coordinates%rSpherical           ()                                                                                              &
+             &            /self       %radiusTruncateMinimum                                                                                                &
+             &           )**self%kappa                                                                                                                      &
              &           *exp(                                                                                                                              &
              &                -(                                                                                                                            &
              &                  +coordinates%rSpherical           ()                                                                                        &
@@ -247,9 +249,16 @@ contains
              &             /self       %radiusTruncateDecay                                                                                                 &
              &            )                                                                                                                                 &
              &           /  coordinates%rSpherical         ()
-        if (logarithmic_) densityGradient=+            densityGradient                                     &
-             &                            *coordinates%rSpherical     (                                  ) &
-             &                            /self       %density        (coordinates,componentType,massType)
+        if (logarithmic_) then
+           density=self%density(coordinates,componentType,massType)
+           if (density > 0.0d0) then
+              densityGradient=+            densityGradient                                     &
+                   &          *coordinates%rSpherical     (                                  ) &
+                   &          /self       %density        (coordinates,componentType,massType)
+           else if (densityGradient /= 0.0d0) then
+              call Error_Report('density is zero, but gradient is non-zero - logarithmic gradient is undefined'//{introspection:location})
+           end if
+        end if
      end if
     return
   end function sphericalTruncatedExponentialDensityGradientRadial
