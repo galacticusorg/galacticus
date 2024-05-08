@@ -291,6 +291,11 @@ contains
        radiusInitial=radiusFinal
        return
     end if
+    ! Zero radius always remains at zero.
+    if (radiusFinal <= 0.0d0) then
+       radiusInitial=0.0d0
+       return
+    end if
     ! Find the initial radius in the unheated profile.
     if (radiusFinal /= self%radiusFinalPrevious) then
        self_        => self
