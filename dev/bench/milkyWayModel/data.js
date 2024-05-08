@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715047013978,
+  "lastUpdate": 1715128565086,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "3fea25a0a779c2b879057cf7328e7c70e15ec77c",
-          "message": "fix: Deallocate object to avoid memory leak",
-          "timestamp": "2023-07-31T03:33:40Z",
-          "tree_id": "22001050019317d78ef5424a28a1eb411d04349e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3fea25a0a779c2b879057cf7328e7c70e15ec77c"
-        },
-        "date": 1690786449521,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 196.53,
-            "unit": "seconds",
-            "range": 0.463158720095747
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9752813405279,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "723170fb1690257be9b0588c0a83c9e559a584ae",
+          "message": "Merge pull request #611 from galacticusorg/fixUseDependencies\n\nCorrect logic used in parsing preprocessor conditionals when determining module `use` dependencies",
+          "timestamp": "2024-05-07T19:34:26Z",
+          "tree_id": "2043658ed9e475712830735bee55ae0d15d2927b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/723170fb1690257be9b0588c0a83c9e559a584ae"
+        },
+        "date": 1715128564347,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 460.331,
+            "unit": "seconds",
+            "range": 0.385511219027315
           }
         ]
       }
