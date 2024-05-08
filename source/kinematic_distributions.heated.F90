@@ -148,18 +148,18 @@ contains
     class is (massDistributionSphericalHeated)
        if (massDistributionEmbedding%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
           ! Use the original, unheated profile velocity dispersion.
-          velocityDispersion=massDistributionEmbedding%massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
+          velocityDispersion=massDistributionEmbedding%massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_)
        else if (self%velocityDispersionApproximate) then
           ! Use the approximate solution for velocity dispersion.
-          radiusInitial                 =+massDistributionEmbedding%radiusInitial                                                                 (coordinates%rSpherical        ()                          )
+          radiusInitial                 =+massDistributionEmbedding%radiusInitial                                                                 (coordinates%rSpherical        ()                                            )
           coordinatesInitial            = [radiusInitial,0.0d0,0.0d0]
-          energySpecific                =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy               (            radiusInitial       ,massDistributionEmbedding)
-          velocityDispersionSquare      =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (            coordinatesInitial  ,massDistributionEmbedding)**2 &
+          energySpecific                =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy               (            radiusInitial       ,massDistributionEmbedding                  )
+          velocityDispersionSquare      =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (            coordinatesInitial  ,massDistributionEmbedding%massDistribution_)**2 &
                &                         -2.0d0/3.0d0*energySpecific
           velocityDispersion            =+sqrt(max(0.0d0,velocityDispersionSquare))
        else
           ! Use a numerical solution.
-          velocityDispersion            =+self                                                                      %velocityDispersion1DNumerical(coordinates                     ,massDistributionEmbedding)
+          velocityDispersion            =+self                                                                      %velocityDispersion1DNumerical(coordinates                     ,massDistributionEmbedding                  )
        end if
     class default
        velocityDispersion               =+0.0d0

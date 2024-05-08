@@ -50,7 +50,7 @@
        <method method="radiusFreefallIncreaseRateNonAnalytic"        description="Compute freefall radius growth rate for non-analytic cases."                              />
        <method method="potentialNonAnalytic"                         description="Compute gravitational potential for non-analytic cases."                                  />
        <method method="energyPotentialNonAnalytic"                   description="Compute gravitational potential energy for non-analytic cases."                           />
-       <method method="energyKinetciNonAnalytic"                     description="Compute kinetic energy for non-analytic cases."                                           />
+       <method method="energyKineticNonAnalytic"                     description="Compute kinetic energy for non-analytic cases."                                           />
        <method method="useUndecorated"                               description="Return true if the undecorated solution (instead of a numerical solution) should be used."/>
      </methods>
      !!]
@@ -475,9 +475,9 @@ contains
     class           (massDistributionClass             ), intent(inout) :: massDistributionEmbedding
 
     if (self%useUndecorated()) then
-       energy=self%massDistribution_%energyKinetic         (radiusOuter,massDistributionEmbedding)
+       energy=self%massDistribution_%energyKinetic         (radiusOuter,self%massDistribution_        )
     else
-       energy=self                  %energyKineticNumerical(radiusOuter,massDistributionEmbedding)
+       energy=self                  %energyKineticNumerical(radiusOuter,     massDistributionEmbedding)
     end if
     return
   end function sphericalDecoratorEnergyKineticNonAnalytic

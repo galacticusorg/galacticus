@@ -614,8 +614,8 @@ contains
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                             &
-               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
+          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                                       &
+               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,coordinates,velocity,componentType,massType)
           massDistribution_              =>  massDistribution_%next
        end do
     end if
