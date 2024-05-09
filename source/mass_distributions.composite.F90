@@ -38,8 +38,9 @@
      !!{
      A composite mass distribution class.
      !!}
-     type(massDistributionList                   ), pointer :: massDistributions => null()
-     type(enumerationMassDistributionSymmetryType)          :: symmetry_
+     type   (massDistributionList                   ), pointer :: massDistributions => null()
+     type   (enumerationMassDistributionSymmetryType)          :: symmetry_
+     logical                                                   :: isSingleComponent
    contains
      !![
      <methods>
@@ -63,6 +64,7 @@
      procedure :: densitySquareIntegral   => compositeDensitySquareIntegral
      procedure :: potential               => compositePotential
      procedure :: massEnclosedBySphere    => compositeMassEnclosedBySphere
+     procedure :: radiusEnclosingMass     => compositeRadiusEnclosingMass
      procedure :: rotationCurve           => compositeRotationCurve
      procedure :: rotationCurveGradient   => compositeRotationCurveGradient
      procedure :: chandrasekharIntegral   => compositeChandrasekharIntegral
@@ -158,12 +160,16 @@ contains
     Initialize a composite mass distribution.
     !!}
     implicit none
-    class(massDistributionComposite              ), intent(inout) :: self
-    type (massDistributionList                   ), pointer       :: massDistribution_
-    type (enumerationMassDistributionSymmetryType)                :: symmetry_
-
+    class  (massDistributionComposite              ), intent(inout) :: self
+    type   (massDistributionList                   ), pointer       :: massDistribution_
+    type   (enumerationMassDistributionSymmetryType)                :: symmetry_
+    logical                                                         :: firstComponent
+    
     ! Begin by assuming the highest degree of symmetry.
     self%symmetry_=massDistributionSymmetrySpherical
+    ! Begin by assuming a single component.
+    self%isSingleComponent=.true.
+    firstComponent        =.true.
     ! Examine each distribution.
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
@@ -187,6 +193,12 @@ contains
           case default
              call Error_Report('unknown symmetry'//{introspection:location})
           end select
+          ! Record if we have multiple components.
+          if (firstComponent) then
+             firstComponent=.false.
+          else
+             self%isSingleComponent=.false.
+          end if
           ! Move to the next mass distribution.
           massDistribution_ => massDistribution_%next
        end do
@@ -457,11 +469,11 @@ contains
     Computes the mass enclosed within a sphere in a composite mass distribution.
     !!}
     implicit none
-    class           (massDistributionComposite  ), intent(inout), target   :: self
-    double precision                             , intent(in   )           :: radius
-    type           (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type           (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (massDistributionList       )               , pointer  :: massDistribution_
+    class           (massDistributionComposite   ), intent(inout), target   :: self
+    double precision                              , intent(in   )           :: radius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type            (massDistributionList        )               , pointer  :: massDistribution_
 
     compositeMassEnclosedBySphere=0.0d0
     if (associated(self%massDistributions)) then
@@ -475,6 +487,24 @@ contains
     return
   end function compositeMassEnclosedBySphere
 
+  double precision function compositeRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+    !!{
+    Computes the radius enclosing a given mass or mass fraction for composite mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionComposite   ), intent(inout), target   :: self
+    double precision                              , intent(in   ), optional :: mass         , massFractional
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+
+    if (self%isSingleComponent) then
+       radius=self%massDistributions%massDistribution_%radiusEnclosingMass         (mass,massFractional,componentType,massType)
+    else
+       radius=self                                    %radiusEnclosingMassNumerical(mass,massFractional,componentType,massType)
+    end if
+    return
+  end function compositeRadiusEnclosingMass
+  
   double precision function compositeRotationCurve(self,radius,componentType,massType)
     !!{
     Return the rotation curve for a composite mass distribution.
