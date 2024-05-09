@@ -45,9 +45,10 @@
      Implementation of an exponentially-truncated spherical mass distribution.
      !!}
      private
-     double precision :: radiusTruncateMinimum, radiusTruncateDecay, &
-          &              massAtTruncation     , massTotal_         , &
-          &              kappa
+     double precision :: radiusTruncateMinimum      , radiusTruncateDecay          , &
+          &              massAtTruncation           , massTotal_                   , &
+          &              densityAtTruncation        , kappa                        , &
+          &              massEnclosedExponentialTerm, massEnclosedGammaFunctionTerm
    contains
      final     ::                           sphericalTruncatedExponentialDestructor
      procedure :: density                => sphericalTruncatedExponentialDensity
@@ -130,7 +131,8 @@ contains
     !!{
     Constructor for ``sphericalTruncatedExponential'' mass distribution class.
     !!}
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    use :: Coordinates    , only : coordinateSpherical                   , assignment(=)
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
     type            (massDistributionSphericalTruncatedExponential)                          :: self
     class           (massDistributionSpherical                    ), intent(in   ), target   :: massDistribution_
@@ -144,23 +146,31 @@ contains
     <constructorAssign variables="radiusTruncateMinimum, radiusTruncateDecay, nonAnalyticSolver, *massDistribution_, componentType, massType"/>
     !!]
 
-    coordinatesTruncateMinimum=[self%radiusTruncateMinimum,0.0d0,0.0d0]
-    self%massAtTruncation     =+self%massDistribution_%massEnclosedBySphere(                                               &
-         &                                                                               +self%radiusTruncateMinimum       &
-         &                                                                  )
-    self%massTotal_           =+self                  %massEnclosedBySphere(                                               &
-         &                                                                               +self%radiusTruncateMinimum       &
-         &                                                                               +     fractionRadialDecayMaximum  &
-         &                                                                               *self%radiusTruncateDecay         &
-         &                                                                  )
-    self%kappa                =+self%radiusTruncateMinimum                                                                 &
-         &                     /self%radiusTruncateDecay                                                                   &
-         &                     +self%massDistribution_%densityGradientRadial(                                              &
-         &                                                                               coordinatesTruncateMinimum      , &
-         &                                                                   logarithmic=.true.                            &
-         &                                                                  )
-    self%dimensionless        = self%massDistribution_%isDimensionless      (                                              &
-         &                                                                  )
+    coordinatesTruncateMinimum        =[self%radiusTruncateMinimum,0.0d0,0.0d0]
+    self%kappa                        =+self%radiusTruncateMinimum                                                                                                &
+         &                             /self%radiusTruncateDecay                                                                                                  &
+         &                             +self%massDistribution_%densityGradientRadial(                                                                             &
+         &                                                                                       coordinatesTruncateMinimum                                     , &
+         &                                                                           logarithmic=.true.                                                           &
+         &                                                                          )
+    self%massEnclosedExponentialTerm  =+exp                                   (                 self%radiusTruncateMinimum/self%radiusTruncateDecay)              &
+            &  /                                                              (                 self%radiusTruncateMinimum/self%radiusTruncateDecay)**self%kappa
+    self%massEnclosedGammaFunctionTerm=+Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappa,self%radiusTruncateMinimum/self%radiusTruncateDecay)
+    self%densityAtTruncation          =+self%massDistribution_%density              (                                                                             &
+         &                                                                                       coordinatesTruncateMinimum                                       &
+         &                                                                          )
+    self%massAtTruncation             =+self%massDistribution_%massEnclosedBySphere (                                                                             &
+         &                                                                                       +self%radiusTruncateMinimum                                      &
+         &                                                                          )
+    self%massTotal_                   =+self                  %massEnclosedBySphere (                                                                             &
+         &                                                                                       +self%radiusTruncateMinimum                                      &
+         &                                                                                       +     fractionRadialDecayMaximum                                 &
+         &                                                                                       *self%radiusTruncateDecay                                        &
+         &                                                                          )
+    self%dimensionless                = self%massDistribution_%isDimensionless      (                                                                             &
+         &                                                                          )
+    self%componentType                = self%massDistribution_%componentType
+    self%massType                     = self%massDistribution_%massType
     return
   end function sphericalTruncatedExponentialConstructorInternal
 
@@ -172,7 +182,7 @@ contains
     type(massDistributionSphericalTruncatedExponential), intent(inout) :: self
     
     !![
-    <objectDestcutor name="self%massDistribution_"/>
+    <objectDestructor name="self%massDistribution_"/>
     !!]
     return
   end subroutine sphericalTruncatedExponentialDestructor
@@ -181,30 +191,31 @@ contains
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class(massDistributionSphericalTruncatedExponential), intent(inout)           :: self
     class(coordinate                                   ), intent(in   )           :: coordinates
     type (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
     type (enumerationMassTypeType                      ), intent(in   ), optional :: massType
-    type (coordinateSpherical                          )                          :: coordinatesTruncateMinimum
     
+    if (.not.self%matches(componentType,massType)) then
+       density=+0.0d0
+       return
+    end if
     if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
-       density                   =+self%massDistribution_%density(coordinates,componentType,massType)
+       density=+self%massDistribution_%density(coordinates,componentType,massType)
     else
-       coordinatesTruncateMinimum=[self%radiusTruncateMinimum,0.0d0,0.0d0]
-       density                   =+self%massDistribution_%density(coordinatesTruncateMinimum,componentType,massType) &
-            &                     *(                                                                                 &
-            &                       +coordinates%rSpherical           ()                                             &
-            &                       /self       %radiusTruncateMinimum                                               &
-            &                      )**self%kappa                                                                     &
-            &                     *exp(                                                                              &
-            &                          -(                                                                            &
-            &                            +coordinates%rSpherical           ()                                        &
-            &                            -self       %radiusTruncateMinimum                                          &
-            &                           )                                                                            &
-            &                          /  self       %radiusTruncateDecay                                            &
-            &                        )
+       density=+self%densityAtTruncation                   &
+            &  *(                                          &
+            &    +coordinates%rSpherical           ()      &
+            &    /self       %radiusTruncateMinimum        &
+            &   )**self%kappa                              &
+            &  *exp(                                       &
+            &       -(                                     &
+            &         +coordinates%rSpherical           () &
+            &         -self       %radiusTruncateMinimum   &
+            &        )                                     &
+            &       /  self       %radiusTruncateDecay     &
+            &     )
     end if
     return
   end function sphericalTruncatedExponentialDensity
@@ -213,53 +224,54 @@ contains
     !!{
     Return the density gradient at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
-    use :: Coordinates, only : coordinateSpherical, assignment(=)
-    use :: Error      , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
     class           (coordinate                                   ), intent(in   )           :: coordinates
     logical                                                        , intent(in   ), optional :: logarithmic
     type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
-    type            (coordinateSpherical                          )                          :: coordinatesTruncateMinimum
     double precision                                                                         :: density
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-     if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
-        densityGradient=+self%massDistribution_%densityGradientRadial(coordinates               ,logarithmic,componentType=componentType,massType=massType)
-     else
-        coordinatesTruncateMinimum=[self%radiusTruncateMinimum,0.0d0,0.0d0]
-        densityGradient=+self%massDistribution_%density              (coordinatesTruncateMinimum            ,componentType=componentType,massType=massType) &
-             &          *(                                                                                                                                  &
-             &            +coordinates%rSpherical           ()                                                                                              &
-             &            /self       %radiusTruncateMinimum                                                                                                &
-             &           )**self%kappa                                                                                                                      &
-             &           *exp(                                                                                                                              &
-             &                -(                                                                                                                            &
-             &                  +coordinates%rSpherical           ()                                                                                        &
-             &                  -self       %radiusTruncateMinimum                                                                                          &
-             &                 )                                                                                                                            &
-             &                /  self       %radiusTruncateDecay                                                                                            &
-             &               )                                                                                                                              &
-             &           *(                                                                                                                                 &
-             &             +self       %kappa                                                                                                               &
-             &             -coordinates%rSpherical         ()                                                                                               &
-             &             /self       %radiusTruncateDecay                                                                                                 &
-             &            )                                                                                                                                 &
-             &           /  coordinates%rSpherical         ()
-        if (logarithmic_) then
-           density=self%density(coordinates,componentType,massType)
-           if (density > 0.0d0) then
-              densityGradient=+            densityGradient                                     &
-                   &          *coordinates%rSpherical     (                                  ) &
-                   &          /self       %density        (coordinates,componentType,massType)
-           else if (densityGradient /= 0.0d0) then
-              call Error_Report('density is zero, but gradient is non-zero - logarithmic gradient is undefined'//{introspection:location})
-           end if
-        end if
-     end if
+    if (.not.self%matches(componentType,massType)) then
+       densityGradient=+0.0d0
+       return
+    end if
+    if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
+       densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic,componentType=componentType,massType=massType)
+    else
+       densityGradient=+self%densityAtTruncation                    &
+            &          *(                                           &
+            &            +coordinates%rSpherical           ()       &
+            &            /self       %radiusTruncateMinimum         &
+            &           )**self%kappa                               &
+            &           *exp(                                       &
+            &                -(                                     &
+            &                  +coordinates%rSpherical           () &
+            &                  -self       %radiusTruncateMinimum   &
+            &                 )                                     &
+            &                /  self       %radiusTruncateDecay     &
+            &               )                                       &
+            &           *(                                          &
+            &             +self       %kappa                        &
+            &             -coordinates%rSpherical         ()        &
+            &             /self       %radiusTruncateDecay          &
+            &            )                                          &
+            &           /  coordinates%rSpherical         ()
+       if (logarithmic_) then
+          density=self%density(coordinates,componentType,massType)
+          if (density > 0.0d0) then
+             densityGradient=+            densityGradient                                     &
+                  &          *coordinates%rSpherical     (                                  ) &
+                  &          /self       %density        (coordinates,componentType,massType)
+          else if (densityGradient /= 0.0d0) then
+             call Error_Report('density is zero, but gradient is non-zero - logarithmic gradient is undefined'//{introspection:location})
+          end if
+       end if
+    end if
     return
   end function sphericalTruncatedExponentialDensityGradientRadial
 
@@ -269,8 +281,8 @@ contains
     !!}
     implicit none
     class(massDistributionSphericalTruncatedExponential), intent(inout)           :: self
-    type (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    type (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
+    type (enumerationMassTypeType                      ), intent(in   ), optional :: massType
 
     if (self%matches(componentType,massType)) then
        mass=self%massTotal_
@@ -284,30 +296,30 @@ contains
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for truncatedExponential mass distributions.
     !!}
-    use :: Coordinates    , only : coordinateSpherical                   , assignment(=)
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
     class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
     double precision                                               , intent(in   )           :: radius
     type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
-    type            (coordinateSpherical                          )                          :: coordinatesTruncateMinimum
     
+    if (.not.self%matches(componentType,massType)) then
+       mass=+0.0d0
+       return
+    end if
     if (radius <= self%radiusTruncateMinimum) then
-       mass                      =+self%massDistribution_%massEnclosedBySphere           (     radius               ,componentType,massType)
+       mass   =+self%massDistribution_%massEnclosedBySphere(radius,componentType,massType)
     else
-       coordinatesTruncateMinimum=[self%radiusTruncateMinimum,0.0d0,0.0d0]
-       mass                      =+self%massDistribution_%massEnclosedBySphere           (self%radiusTruncateMinimum,componentType,massType)                  &
-            &                     +4.0d0                                                                                                                      &
-            &                     *Pi                                                                                                                         &
-            &                     *self%massDistribution_%density(coordinatesTruncateMinimum)                                                                 &
-            &                     *self%radiusTruncateDecay**3                                                                                                &
-            &                     *                                     exp(                 self%radiusTruncateMinimum/self%radiusTruncateDecay)             &
-            &                     /                                        (                 self%radiusTruncateMinimum/self%radiusTruncateDecay)**self%kappa &
-            &                     *(                                                                                                                          &
-            &                       +Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappa,self%radiusTruncateMinimum/self%radiusTruncateDecay)             &
-            &                       +Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappa,     radius               /self%radiusTruncateDecay)             &
-            &                     )
+       mass   =+self%massAtTruncation                                                                      &
+            &  +4.0d0                                                                                      &
+            &  *Pi                                                                                         &
+            &  *self%densityAtTruncation                                                                   &
+            &  *self%radiusTruncateDecay**3                                                                &
+            &  *self%massEnclosedExponentialTerm                                                           &
+            &  *(                                                                                          &
+            &    +self%massEnclosedGammaFunctionTerm                                                       &
+            &    -Gamma_Function_Incomplete_Unnormalized(3.0d0+self%kappa,radius/self%radiusTruncateDecay) &
+            &  )
     end if
     return
   end function sphericalTruncatedExponentialMassEnclosedBySphere
@@ -318,11 +330,15 @@ contains
     !!}
     implicit none
     class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
-    double precision                                    , intent(in   ), optional :: mass         , massFractional
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-    double precision                                                              :: mass_
+    double precision                                               , intent(in   ), optional :: mass         , massFractional
+    type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
+    double precision                                                                         :: mass_
     
+    if (.not.self%matches(componentType,massType)) then
+       radius=0.0d0
+       return
+    end if
     if (present(mass)) then
        mass_  =+     mass
     else if (present(massFractional)) then
