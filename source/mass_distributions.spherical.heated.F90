@@ -65,6 +65,7 @@
        <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
      </methods>
      !!]
+     final     ::                           sphericalHeatedDestructor
      procedure :: radiusInitial          => sphericalHeatedRadiusInitial
      procedure :: noShellCrossingIsValid => sphericalHeatedNoShellCrossingIsValid
      procedure :: density                => sphericalHeatedDensity
@@ -163,7 +164,7 @@ contains
          &                              toleranceAbsolute=toleranceAbsolute, &
          &                              toleranceRelative=toleranceRelative  &
          &                             )
-    self%dimensionless     =.false.
+    self%dimensionless      =.false.
     return
   end function sphericalHeatedConstructorInternal
 
@@ -209,6 +210,10 @@ contains
          &                                                                        densityInitial    , massEnclosed , &
          &                                                                        jacobian
     
+    if (.not.self%matches(componentType,massType)) then
+       density=+0.0d0
+       return
+    end if
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating, the density is unchanged.
        density=+self%massDistribution_%density(coordinates,componentType,massType)
@@ -270,7 +275,11 @@ contains
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
 
-    mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius),componentType,massType)
+    if (.not.self%matches(componentType,massType)) then
+       mass=0.0d0
+    else
+       mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius),componentType,massType)
+    end if
     return
   end function sphericalHeatedMassEnclosedBySphere
   
