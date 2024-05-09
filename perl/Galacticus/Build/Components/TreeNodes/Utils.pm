@@ -246,7 +246,7 @@ sub Tree_Node_Mass_Distribution {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => [ "i" ]
+		 variables  => [ "i", "iMassDistribution" ]
 	     },
 	     {
 		 intrinsic  => "type",
@@ -257,10 +257,29 @@ sub Tree_Node_Mass_Distribution {
 	    ]
     };
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-massDistributionList_  => null()
-massDistributionList__ => null()
-next_                  => null()
-next__                 => null()
+! Search for a match to our ID.
+iMassDistribution=0
+do i=1,massDistributionsCount
+ if (massDistributions__(i)%uniqueID == self%uniqueID()) then
+  iMassDistribution=i
+  exit
+ end if
+end do
+! If no existing mass distribution matched, free up space for a new one.
+if (iMassDistribution == 0) then
+ massDistributionsLast=massDistributionsLast+1
+ if (massDistributionsLast > massDistributionsCount) massDistributionsLast=1
+ !![
+ <objectDestructor name="massDistributions__(massDistributionsLast)%massDistribution_"/>
+ !!]
+ massDistributions__(massDistributionsLast)%uniqueID=-huge(kind_int8)
+ iMassDistribution=massDistributionsLast
+end if
+if (.not.associated(massDistributions__(iMassDistribution)%massDistribution_)) then
+ massDistributionList_  => null()
+ massDistributionList__ => null()
+ next_                  => null()
+ next__                 => null()
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -278,55 +297,60 @@ CODE
 	#   </description>
 	# </workaround>
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(self%component{ucfirst($class->{'name'})})) then
-   do i=1,size(self%component{ucfirst($class->{'name'})})
-     massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution(componentType,massType)
-     if (associated(massDistributionComponent)) then
-       if (massDistributionComponent%matches(componentType,massType)) then
-         if (associated(massDistributionList_)) then
-           allocate(next_ %next)
-           allocate(next__%next)
-           next_  => next_ %next
-           next__ => next__%next
-         else
-           allocate(massDistributionList_ )
-           allocate(massDistributionList__)
-           next_  => massDistributionList_
-           next__ => massDistributionList__
-         end if
-         next_ %massDistribution_ => massDistributionComponent
-         next__%massDistribution_ => massDistributionComponent
-         next_ %next              => null()
-         next__%next              => null()
-       else
-         !![
-         <objectDestructor name="massDistributionComponent"/>
-         !!]
-       end if
-     end if
-   end do
-end if
+ if (allocated(self%component{ucfirst($class->{'name'})})) then
+    do i=1,size(self%component{ucfirst($class->{'name'})})
+      massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution(componentType,massType)
+      if (associated(massDistributionComponent)) then
+        if (massDistributionComponent%matches(componentType,massType)) then
+          if (associated(massDistributionList_)) then
+            allocate(next_ %next)
+            allocate(next__%next)
+            next_  => next_ %next
+            next__ => next__%next
+          else
+            allocate(massDistributionList_ )
+            allocate(massDistributionList__)
+            next_  => massDistributionList_
+            next__ => massDistributionList__
+          end if
+          next_ %massDistribution_ => massDistributionComponent
+          next__%massDistribution_ => massDistributionComponent
+          next_ %next              => null()
+          next__%next              => null()
+        else
+          !![
+          <objectDestructor name="massDistributionComponent"/>
+          !!]
+        end if
+      end if
+    end do
+ end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-allocate(massDistributionComposite :: massDistribution_)
-select type (massDistribution_)
-type is (massDistributionComposite)
+ allocate(massDistributionComposite :: massDistributions__(iMassDistribution)%massDistribution_)
+ select type (massDistribution__ => massDistributions__(iMassDistribution)%massDistribution_)
+ type is (massDistributionComposite)
+   !![
+   <referenceConstruct isResult="yes" object="massDistribution__" constructor="massDistributionComposite(massDistributionList_)"/>
+   !!]
+ end select
+ massDistributions__(iMassDistribution)%uniqueID =  self                                  %uniqueID         ()
+ next_ => massDistributionList__
+ do while (associated(next_))
   !![
-  <referenceConstruct isResult="yes" object="massDistribution_" constructor="massDistributionComposite(massDistributionList_)"/>
+  <objectDestructor name="next_%massDistribution_"/>
   !!]
-end select
-next_ => massDistributionList__
-do while (associated(next_))
- !![
- <objectDestructor name="next_%massDistribution_"/>
- !!]
- next__ => next_%next
- deallocate(next_)
- next_  => next__
-end do
-nullify(massDistributionList_ )
-nullify(massDistributionList__)
+  next__ => next_%next
+  deallocate(next_)
+  next_  => next__
+ end do
+ nullify(massDistributionList_ )
+ nullify(massDistributionList__)
+end if
+!![
+<referenceAcquire target="massDistribution_" source="massDistributions__(iMassDistribution)%massDistribution_"/>
+!!]
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

@@ -36,6 +36,7 @@ module Galacticus_Nodes
   use            :: ISO_Varying_String                 , only : varying_string
   use            :: Kepler_Orbits                      , only : keplerOrbit
   use            :: Kind_Numbers                       , only : kind_int8
+  use            :: Mass_Distributions                 , only : massDistributionClass
   use            :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
   use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar, megaParsec
   use            :: Numerical_Constants_Prefixes       , only : kilo
@@ -43,8 +44,9 @@ module Galacticus_Nodes
   use            :: Stellar_Luminosities_Structure     , only : stellarLuminosities
   use            :: Tensors                            , only : tensorNullR2D3Sym            , tensorRank2Dimension3Symmetric
   private
-  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
-       &    nodeEventBuildFromRaw       , propertyEvaluate          , propertyActive                , propertyInactive
+  public :: nodeClassHierarchyInitialize    , nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
+       &    nodeEventBuildFromRaw           , propertyEvaluate          , propertyActive                , propertyInactive, &
+       &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy
   
   type, public :: treeNodeList
      !!{
@@ -234,6 +236,17 @@ module Galacticus_Nodes
   integer           , public :: rateComputeState    =propertyTypeActive
   !$omp threadprivate(rateComputeState)
 
+  ! Memoized massDistributions
+  type :: massDistributionArray
+     private
+     integer(kind_int8            )          :: uniqueID          =  -huge(kind_int8)
+     class  (massDistributionClass), pointer :: massDistribution_ =>  null(         )
+  end type massDistributionArray
+  integer                       , parameter                         :: massDistributionsCount=2
+  integer                                                           :: massDistributionsLast =0
+  type   (massDistributionArray), dimension(massDistributionsCount) :: massDistributions__
+  !$omp threadprivate(massDistributions__,massDistributionsLast)
+  
   ! Define a constructor for treeNodes.
   interface treeNode
      module procedure Tree_Node_Constructor
@@ -1291,7 +1304,6 @@ module Galacticus_Nodes
     A null implementation of the enclosed mass in a component. Always returns zero.
     !!}
     use :: Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType
-    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistribution_
     class  (nodeComponent               ), intent(inout)           :: self
@@ -1797,5 +1809,42 @@ module Galacticus_Nodes
          &            (propertyType == propertyTypeInactive .and.      propertyIsInactive)
     return
   end function propertyEvaluate
+
+  subroutine massDistributionCalculationReset(massDistributionsLast,node,uniqueID)
+    !!{
+    Reset the memoized {\normalfont \ttfamily massDistribution} due to a {\normalfont \ttfamily calculationReset} event.
+    !!}
+    implicit none
+    integer           , intent(inout) :: massDistributionsLast
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    integer                           :: i
+    !$GLC attributes unused :: massDistributionsLast, node
+
+    do i=1,massDistributionsCount
+       if (massDistributions__(i)%uniqueID == uniqueID) then
+          !![
+	  <objectDestructor name="massDistributions__(i)%massDistribution_"/>
+          !!]
+          massDistributions__(i)%uniqueID=-huge(kind_int8)
+       end if
+    end do
+    return
+  end subroutine massDistributionCalculationReset
+  
+  subroutine massDistributionsDestroy()
+    !!{
+    Destroy memoized {\normalfont \ttfamily massDistributions}.
+    !!}
+    implicit none    
+    integer :: i
+
+    do i=1,massDistributionsCount
+       !![
+       <objectDestructor name="massDistributions__(i)%massDistribution_"/>
+       !!]
+    end do
+    return
+  end subroutine massDistributionsDestroy
   
 end module Galacticus_Nodes
