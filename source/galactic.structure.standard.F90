@@ -412,7 +412,7 @@ contains
     if (massTarget <= 0.0d0) then
        standardRadiusEnclosingMass=0.0d0
        call self%restore()
-      return
+       return
     end if
     self_ => self
     node_ => node
@@ -829,7 +829,7 @@ contains
     positionCartesian_ =  positionCartesian
     velocityCartesian_ =  velocityCartesian
     position           =  positionCartesian
-    velocity           =  positionCartesian
+    velocity           =  velocityCartesian
     ! Evaluate the density.
     massDistribution_         => node             %massDistribution     (                                                                                            componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
     massDistributionPerturber => nodeSatellite    %massDistribution     (                                                                                            componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
