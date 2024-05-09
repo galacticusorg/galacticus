@@ -305,7 +305,8 @@ contains
               &amp;                                        massType                     =                          massTypeDark                         &amp;
               &amp;                                       )
 	    </constructor>
-	  </referenceConstruct>
+          </referenceConstruct>
+          <objectDestructor name="massDistributionDecorated"/>
           !!]
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})

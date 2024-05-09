@@ -162,6 +162,9 @@ contains
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
        end select
+       !![
+       <objectDestructor name="massDistributionDecorated"/>
+       !!]
     end select
     allocate(kinematicsDistribution_)
     !![
