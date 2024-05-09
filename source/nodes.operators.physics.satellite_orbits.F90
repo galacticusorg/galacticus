@@ -361,7 +361,7 @@ contains
     !!{
     Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite , nodecomponentbasic
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
