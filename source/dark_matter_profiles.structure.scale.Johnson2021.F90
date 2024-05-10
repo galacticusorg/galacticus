@@ -353,6 +353,8 @@ contains
                &                 +1.0d0                                                    &
                &                 +self%energyBoost                                         &
                &                )
+          call nodeUnresolved%destroy()
+          deallocate(nodeUnresolved)
           !![
           <objectDestructor name="massDistribution_"/>
 	  !!]
