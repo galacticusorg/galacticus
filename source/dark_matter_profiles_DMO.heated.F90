@@ -132,9 +132,9 @@ contains
     class           (darkMatterProfileHeatingClass    ), intent(in   ), target :: darkMatterProfileHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
     logical                                            , intent(in   )         :: velocityDispersionApproximate
-    double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum
+    double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
-    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, *darkMatterProfileDMO_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
