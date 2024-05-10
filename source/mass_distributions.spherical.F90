@@ -629,9 +629,14 @@ contains
     else
        velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding)
     end if
-    xV                            =+velocity_             &
-         &                         /velocityDispersion    &
-         &                         /sqrt(2.0d0)
+    if (velocityDispersion > 0.0d0) then    
+       xV                         =+velocity_             &
+            &                      /velocityDispersion    &
+            &                      /sqrt(2.0d0)
+    else
+       
+       xV                         =+huge(0.0d0)
+    end if
     velocityCartesian             = velocity
     velocityCartesian_            = velocityCartesian
     sphericalChandrasekharIntegral=-density               &
