@@ -383,8 +383,9 @@ contains
     Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     !!}
     use :: Display                   , only : displayMessage       , verbosityLevelWarn
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark      , radiusLarge
     use :: Error                     , only : Error_Report
+    use :: Numerical_Comparison      , only : Values_Agree
     use :: ISO_Varying_String        , only : assignment(=)        , operator(//)      , varying_string
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -395,7 +396,7 @@ contains
     type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
     integer                                       , intent(in   ), optional :: weightIndex
     double precision                              , intent(in   ), optional :: massFractional, mass
-    double precision                                                        :: radiusGuess
+    double precision                                                        :: radiusGuess   , massEnclosedLarge
     type            (varying_string              )                          :: message
     character       (len=11                      )                          :: massLabel
 
@@ -434,9 +435,21 @@ contains
     else
        radiusGuess=self%darkMatterHaloScale_%radiusVirial               (node)
     end if
-    self%radiusEnclosingMassPrevious=self%finderMass%find                       (rootGuess=radiusGuess)
-    self%uniqueIDPrevious           =node           %uniqueID                   (                     )
-    standardRadiusEnclosingMass     =self           %radiusEnclosingMassPrevious
+    massEnclosedLarge=self_%massEnclosed(node_,radiusLarge,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    if (massEnclosedLarge <= massTarget) then
+       ! The target mass is not reached at even a very large radius.
+       if (Values_Agree(massEnclosedLarge,massTarget,relTol=1.0d-3)) then
+          ! The mass is sufficiently close to the target value, simply return large radius.
+          self%radiusEnclosingMassPrevious=radiusLarge
+       else
+          call Error_Report('unable to find a radius enclosing the rquested mass'//{introspection:location})
+       end if
+    else
+       ! Find the radius enclosing the target mass.
+       self%radiusEnclosingMassPrevious=self%finderMass%find(rootGuess=radiusGuess)
+    end if
+    self%uniqueIDPrevious      =node%uniqueID                   ()
+    standardRadiusEnclosingMass=self%radiusEnclosingMassPrevious
     call self%restore()
     return
   end function standardRadiusEnclosingMass
