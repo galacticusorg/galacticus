@@ -137,7 +137,7 @@ contains
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class(           kinematicsDistributionHeated), intent(inout) :: self
+    class           (kinematicsDistributionHeated), intent(inout) :: self
     class           (coordinate                  ), intent(in   ) :: coordinates
     class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding
     double precision                                              :: radiusInitial            , energySpecific, &
