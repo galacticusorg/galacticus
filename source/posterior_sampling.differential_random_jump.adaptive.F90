@@ -22,6 +22,8 @@
   distribution which scales with the range spanned by the sample states.
   !!}
 
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  
   !![
   <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
    <description>
@@ -38,6 +40,8 @@
      adaptive distribution which scales with the range spanned by the sample states.
      !!}
      private
+     integer(c_size_t) :: countLargeJumps , countJumps
+     logical           :: warnedLargeJumps
    contains
      procedure :: sample => adaptiveSample
   end type posteriorSampleDffrntlEvltnRandomJumpAdaptive
@@ -47,6 +51,7 @@
      Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
+     module procedure adaptiveConstructorInternal
   end interface posteriorSampleDffrntlEvltnRandomJumpAdaptive
 
 contains
@@ -68,26 +73,56 @@ contains
     return
   end function adaptiveConstructorParameters
 
+  function adaptiveConstructorInternal() result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(posteriorSampleDffrntlEvltnRandomJumpAdaptive) :: self
+
+    self%warnedLargeJumps=.false.
+    self%countJumps      =0_c_size_t
+    self%countLargeJumps =0_c_size_t
+    return
+  end function adaptiveConstructorInternal
+
   function adaptiveSample(self,modelParameters_,simulationState)
     !!{
     Sample from the random jump distribution.
     !!}
     use :: MPI_Utilities, only : mpiSelf
+    use :: Display      , only : displayMessage, displayMagenta, displayReset
     implicit none
     class           (posteriorSampleDffrntlEvltnRandomJumpAdaptive)                                   , intent(inout) :: self
     type            (modelParameterList                           ), dimension(:)                     , intent(in   ) :: modelParameters_
     class           (posteriorSampleStateClass                    )                                   , intent(inout) :: simulationState
     double precision                                               , dimension(size(modelParameters_))                :: adaptiveSample
     double precision                                               , dimension(size(modelParameters_))                :: parameterRange
+    integer         (c_size_t                                     ), parameter                                        :: countMinimum    =100_c_size_t
     integer                                                                                                           :: i
-    !$GLC attributes unused :: self
+    double precision                                                                                                  :: sizeJump
+    logical                                                                                                           :: jumpIsLarge
 
     ! Find the current range of each parameter.
-    parameterRange=mpiSelf%maxval(simulationState%get())-mpiSelf%minval(simulationState%get())
+    parameterRange=+mpiSelf%maxval(simulationState%get()) &
+         &         -mpiSelf%minval(simulationState%get())
+    jumpIsLarge   =.false.
     adaptiveSample=0.0d0
     do i=1,size(modelParameters_)
-       adaptiveSample(i)=adaptiveSample(i)+modelParameters_(i)%modelParameter_%randomPerturbation()*parameterRange(i)
+       sizeJump         =modelParameters_(i)%modelParameter_%randomPerturbation()
+       adaptiveSample(i)=adaptiveSample(i)+sizeJump*parameterRange(i)
+       if (abs(sizeJump) >= 1.0d0) jumpIsLarge=.true.
     end do
+    if (.not.self%warnedLargeJumps) then
+       if (jumpIsLarge)                                            &
+            & self%countLargeJumps=self%countLargeJumps+1_c_size_t
+       self       %countJumps     =self%countJumps     +1_c_size_t
+       if (self%countJumps > countMinimum .and. self%countLargeJumps > self%countJumps/10_c_size_t) then
+          call displayMessage(displayMagenta()//'WARNING:'//displayReset()//': random jumps to model parameters are O(1) more than 10% of the time - consider using smaller jumps')
+          self%warnedLargeJumps=.true.
+       end if
+    end if
     return
   end function adaptiveSample
 
