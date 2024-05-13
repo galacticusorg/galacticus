@@ -234,16 +234,6 @@ my $configInitializer = fill_in_string(<<'CODE', PACKAGE => 'content');
   <posteriorSampleStateInitialize value="latinHypercube">
     <maximinTrialCount value="100"/>
   </posteriorSampleStateInitialize>   
-CODE
-my $configResumer = fill_in_string(<<'CODE', PACKAGE => 'content');
-  </posteriorSampleLikelihood>
-
-  <posteriorSampleStateInitialize value="resume">
-    <logFileRoot  value="{$outputDirectory}haloMassFunctionChains"/>
-    <restoreState value="true"                                    />
-  </posteriorSampleStateInitialize>   
-CODE
-my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
 
   <!-- MCMC -->
   <posteriorSampleSimulation value="differentialEvolution">
@@ -255,8 +245,30 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     <reportCount            value="    10"                                  />
     <sampleOutliers         value="false"                                   />
     <logFlushCount          value="     1"                                  />
+    <appendLogs             value="false"                                   />
+CODE
+my $configResumer = fill_in_string(<<'CODE', PACKAGE => 'content');
+  </posteriorSampleLikelihood>
+
+  <posteriorSampleStateInitialize value="resume">
+    <logFileRoot  value="{$outputDirectory}haloMassFunctionChains"/>
+    <restoreState value="true"                                    />
+  </posteriorSampleStateInitialize>   
+
+  <!-- MCMC -->
+  <posteriorSampleSimulation value="differentialEvolution">
+    <stepsMaximum           value="100000"                                  />
+    <acceptanceAverageCount value="    10"                                  />
+    <stateSwapCount         value="    20"                                  />
+    <slowStepCount          value="    10"                                  />
+    <logFileRoot            value="{$outputDirectory}haloMassFunctionChains"/>
+    <reportCount            value="    10"                                  />
+    <sampleOutliers         value="false"                                   />
+    <logFlushCount          value="     1"                                  />
     <appendLogs             value="true"                                    />
 
+CODE
+my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     <posteriorSampleState value="correlation">
       <acceptedStateCount value="100"/>
     </posteriorSampleState>
@@ -279,13 +291,14 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
     <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>
 
     <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >
-      <gammaInitial          value="0.50e+0"/>
+      <gammaInitial          value="0.10e+0"/>
       <gammaAdjustFactor     value="1.10e+0"/>
-      <gammaMinimum          value="1.00e-2"/>
+      <gammaMinimum          value="1.00e-4"/>
       <gammaMaximum          value="3.00e+0"/>
       <acceptanceRateMinimum value="0.10e+0"/>
       <acceptanceRateMaximum value="0.90e+0"/>
       <updateCount           value="10"     />
+      <logFileName           value="{$outputDirectory}haloMassFunctionGamma.log"/>
     </posteriorSampleDffrntlEvltnProposalSize>
 
     <!-- Parameters of the dark matter halo mass function. -->

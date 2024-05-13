@@ -44,13 +44,16 @@
      Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
      !!}
      private
-     double precision :: gammaCurrent            , gammaAdjustFactor    , &
-          &              gammaInitial
-     double precision :: gammaMinimum            , gammaMaximum
-     double precision :: acceptanceRateMinimum   , acceptanceRateMaximum
-     integer          :: updateCount             , lastUpdateCount
-     logical          :: outliersInAcceptanceRate
+     double precision                 :: gammaCurrent            , gammaAdjustFactor    , &
+          &                              gammaInitial
+     double precision                 :: gammaMinimum            , gammaMaximum
+     double precision                 :: acceptanceRateMinimum   , acceptanceRateMaximum
+     integer                          :: updateCount             , lastUpdateCount
+     logical                          :: outliersInAcceptanceRate
+     type            (varying_string) :: logFileName
+     integer                          :: logFileUnit
    contains
+     final     ::          adaptiveDestructor
      procedure :: gamma => adaptiveGamma
   end type posteriorSampleDffrntlEvltnProposalSizeAdaptive
 
@@ -78,8 +81,14 @@ contains
          &                                                                               acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                                           :: updateCount
     logical                                                                           :: outliersInAcceptanceRate
+    type            (varying_string                                 )                 :: logFileName
 
     !![
+    <inputParameter>
+      <name>logFileName</name>
+      <description>The name of a file to which to log reports of adjustments to $\gamma$. If empty, no reports are logged.</description>
+      <source>parameters</source>
+    </inputParameter>
     <inputParameter>
       <name>gammaInitial</name>
       <description>The initial proposal size, $\gamma$.</description>
@@ -122,33 +131,51 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
+    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
+  function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
     !!{
     Constructor for the ``adaptive'' differential evolution proposal size class.
     !!}
+    use :: MPI_Utilities, only : mpiSelf
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self
+    type            (varying_string                                 ), intent(in   ) :: logFileName
     double precision                                                 , intent(in   ) :: gammaInitial            , gammaAdjustFactor    , &
          &                                                                              gammaMinimum            , gammaMaximum         , &
          &                                                                              acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
     logical                                                          , intent(in   ) :: outliersInAcceptanceRate
     !![
-    <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
+    <constructorAssign variables="logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
     !!]
 
     self%gammaCurrent   =gammaInitial
     self%lastUpdateCount=0
+    if (mpiSelf%rank() == 0 .and. logFileName /= '') then
+       open(newunit=self%logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    else
+       self%logFileUnit=-huge(0)
+    end if
     return
   end function adaptiveConstructorInternal
 
+  subroutine adaptiveDestructor(self)
+    !!{
+    Destructor for the ``adaptive'' differential evolution proposal size class.
+    !!}
+    implicit none
+    type(posteriorSampleDffrntlEvltnProposalSizeAdaptive), intent(inout) :: self
+    
+    if (self%logFileUnit /= -huge(0)) close(self%logFileUnit)
+    return
+  end subroutine adaptiveDestructor
+  
   double precision function adaptiveGamma(self,simulationState,simulationConvergence)
     !!{
     Return the proposal size.
@@ -186,7 +213,7 @@ contains
              acceptanceRate=mpiSelf%average(simulationState%acceptanceRate(),mask=.not.areOutliers)
           end if
        end if
-       if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
+       if (mpiSelf%rank() == 0) then
           if (acceptanceRate < 0.0d0) then
              label="unknown"
           else
@@ -194,21 +221,24 @@ contains
           end if
           message='After '
           message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
-          call displayMessage(message)
+          if (displayVerbosity() >= verbosityLevelStandard) call displayMessage(message)
+          if (self%logFileUnit /= -huge(0)) write (self%logFileUnit,*) char(message)
        end if
        ! If the acceptance rate is out of range, adjust γ.
        if (acceptanceRate >= 0.0d0) then
           if      (acceptanceRate > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
              self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
-             if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
+             if (mpiSelf%rank() == 0) then
                 write (label,'(f8.5)') self%gammaCurrent
-                call displayMessage('Adjusting γ up to '//label)
+                if (displayVerbosity() >= verbosityLevelStandard) call displayMessage('Adjusting γ up to '//label)
+                if (self%logFileUnit /= -huge(0)) write (self%logFileUnit,*) 'Adjusting γ up to '//label
              end if
           else if (acceptanceRate < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
              self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
-             if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
+             if (mpiSelf%rank() == 0) then
                 write (label,'(f8.5)') self%gammaCurrent
-                call displayMessage('Adjusting γ down to '//label)
+                if (displayVerbosity() >= verbosityLevelStandard) call displayMessage('Adjusting γ down to '//label)
+                if (self%logFileUnit /= -huge(0)) write (self%logFileUnit,*) 'Adjusting γ down to '//label
              end if
           end if
        end if
