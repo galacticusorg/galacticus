@@ -50,6 +50,9 @@ my %options =
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
+# Create work directory.
+system("mkdir -p ".$options{'workDirectory'});
+
 # Parse property options.
 if ( exists($options{'property'}) ) {
     my @properties;
