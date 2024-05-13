@@ -229,7 +229,7 @@ contains
     return
   end function fileFuzzyDarkMatterConstructorInternal
 
-  subroutine fileFuzzyDarkMatterReadFile(self,fileName,invalidateCache)
+  subroutine fileFuzzyDarkMatterReadFile(self,fileName,invalidateCache,lockCache)
     !!{
     Read in the transfer function data from a file.
     !!}
@@ -242,10 +242,11 @@ contains
     implicit none
     class           (transferFunctionFileFuzzyDarkMatter), intent(inout)           :: self
     character       (len=*                              ), intent(in   )           :: fileName
-    logical                                              , intent(in   ), optional :: invalidateCache
+    logical                                              , intent(in   ), optional :: invalidateCache, lockCache
     double precision                                                               :: fuzzyDMMass    , fuzzyDMDensityFraction
     type            (hdf5Object                         )                          :: fileObject     , parametersObject
-
+    !$GLC attributes unused :: invalidateCache, lockCache
+    
     ! Open and read the HDF5 data file.
     call hdf5Access%set()
     call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)

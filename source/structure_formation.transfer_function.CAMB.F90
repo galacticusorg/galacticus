@@ -189,31 +189,55 @@ contains
     implicit none
     class           (transferFunctionCAMB), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    logical                                               :: makeTransferFunction
+    logical                                               :: makeTransferFunction, cacheUsed
+    integer                                               :: useCache            , i
 
-    ! If the file has been read and the wavenumber is within range, simply return.
-    makeTransferFunction=.false.
-    if (self%initialized) then
-       if     (                                       &
-            &   wavenumber > exp(self%transfer%x(-1)) &
-            &  .and.                                  &
-            &   .not.self%wavenumberMaximumReached    &
-            & ) makeTransferFunction=.true.
-    else
-       makeTransferFunction=.true.
+    ! Check for a cached transfer function that we can reuse.
+    cacheUsed=.false.
+    if (.not.self%initialized) then
+       !$omp critical(transferFunctionFileCache)
+       useCache=0
+       if (countCache > 0) then
+          do i=1,countCache
+             if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+                useCache=i
+                exit
+             end if
+          end do
+       end if
+       if (useCache /= 0 .and. wavenumber <= cachedTransferFunctions(useCache)%wavenumber(size(cachedTransferFunctions(useCache)%wavenumber))) then
+          ! We have a cached entry with sufficient extent, so "read" it. No need to lock the file here as we know that it will be
+          ! restored from cache.
+          call self%readFile(char(self%fileName),invalidateCache=.false.,lockCache=.false.)
+          cacheUsed=.true.
+       end if
+       !$omp end critical(transferFunctionFileCache)
     end if
-    if (.not.makeTransferFunction) return
-    ! Retrieve the transfer function.
-    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
-    block
-      type(lockDescriptor) :: fileLock
-      ! Get a lock on the relevant lock file.
-      call File_Lock(char(self%fileName),fileLock)
-      ! Read the newly created file.
-      call self%readFile(char(self%fileName),invalidateCache=.true.)
-      ! Unlock the lock file.
-      call File_Unlock(fileLock)
-    end block
+    if (.not.cacheUsed) then
+       ! If the file has been read and the wavenumber is within range, simply return.
+       makeTransferFunction=.false.
+       if (self%initialized) then
+          if     (                                       &
+               &   wavenumber > exp(self%transfer%x(-1)) &
+               &  .and.                                  &
+               &   .not.self%wavenumberMaximumReached    &
+               & ) makeTransferFunction=.true.
+       else
+          makeTransferFunction=.true.
+       end if
+       if (.not.makeTransferFunction) return
+       ! Retrieve the transfer function.
+       call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
+       block
+         type(lockDescriptor) :: fileLock
+         ! Get a lock on the relevant lock file.
+         call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+         ! Read the newly created file.
+         call self%readFile(char(self%fileName),invalidateCache=.true.)
+         ! Unlock the lock file.
+         call File_Unlock(fileLock)
+       end block
+    end if
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

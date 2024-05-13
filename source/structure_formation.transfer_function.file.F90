@@ -306,7 +306,7 @@ contains
     return
   end function fileConstructorInternal
 
-  subroutine fileReadFile(self,fileName,invalidateCache)
+  subroutine fileReadFile(self,fileName,invalidateCache,lockCache)
     !!{
     Internal constructor for the file transfer function class.
     !!}    
@@ -323,7 +323,7 @@ contains
     implicit none
     class           (transferFunctionFile            ), intent(inout)               :: self
     character       (len=*                           ), intent(in   )               :: fileName
-    logical                                           , intent(in   ), optional     :: invalidateCache
+    logical                                           , intent(in   ), optional     :: invalidateCache                , lockCache
     double precision                                  , allocatable  , dimension(:) :: transfer                       , wavenumber               , &
          &                                                                             transferLogarithmic            , wavenumberLogarithmic    , &
          &                                                                             transferDarkMatter             , transferBaryons
@@ -343,25 +343,16 @@ contains
     !$GLC attributes initialized :: wavenumber, transfer
     !![
     <optionalArgument name="invalidateCache" defaultsTo=".false."/>
+    <optionalArgument name="lockCache"       defaultsTo=".true." />
     !!]
 
-    !$omp critical(transferFunctionFileCache)
-    useCache=0
-    if (.not.invalidateCache_ .and. countCache > 0) then
-       do i=1,countCache
-          if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
-             useCache=i
-             exit
-          end if
-       end do
+    if (lockCache_) then
+       !$omp critical(transferFunctionFileCache)
+       call restoreFromCache()
+       !$omp end critical(transferFunctionFileCache)
+    else
+       call restoreFromCache()
     end if
-    if (useCache /= 0) then
-       wavenumber               =cachedTransferFunctions(useCache)%wavenumber
-       transfer                 =cachedTransferFunctions(useCache)%transfer
-       extrapolateWavenumberLow =cachedTransferFunctions(useCache)%extrapolateWavenumberLow
-       extrapolateWavenumberHigh=cachedTransferFunctions(useCache)%extrapolateWavenumberHigh
-    end if
-    !$omp end critical(transferFunctionFileCache)
     if (useCache == 0) then
        ! Open and read the HDF5 data file.
        !$ call hdf5Access%set()
@@ -546,6 +537,33 @@ contains
        allocate(self%wavenumbersLocalMinima_(               0))
     end if
     return
+
+  contains
+
+    subroutine restoreFromCache()
+      !!{
+      Attempt to restore the transfer function from cache.
+      !!}
+      implicit none
+      
+      useCache=0
+      if (.not.invalidateCache_ .and. countCache > 0) then
+         do i=1,countCache
+            if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+               useCache=i
+               exit
+            end if
+         end do
+      end if
+      if (useCache /= 0) then
+         wavenumber               =cachedTransferFunctions(useCache)%wavenumber
+         transfer                 =cachedTransferFunctions(useCache)%transfer
+         extrapolateWavenumberLow =cachedTransferFunctions(useCache)%extrapolateWavenumberLow
+         extrapolateWavenumberHigh=cachedTransferFunctions(useCache)%extrapolateWavenumberHigh
+      end if
+      return
+    end subroutine restoreFromCache
+    
   end subroutine fileReadFile
 
   subroutine fileDestructor(self)
