@@ -26,6 +26,7 @@ my %options;
 $options{'outputDirectory'} = getcwd()."/pipeline";
 $options{'updateResults'  } = "yes";
 $options{'callgrind'      } = "no";
+$options{'generateContent'} = "yes";
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Specify the pipeline path.
@@ -101,10 +102,12 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 foreach my $task ( @tasks ) {
     print "Begin task: ".$task->{'label'}."\n";
     # Generate all required files for this task.
-    print "  Generating content...\n";
-    system($pipelinePath.$task->{'label'}."GenerateContent.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options));
-    print "  ...done\n";
-
+    if ( $options{'generateContent'} eq "yes" ) {
+	print "  Generating content...\n";
+	system($pipelinePath.$task->{'label'}."GenerateContent.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options));
+	print "  ...done\n";
+    }
+    
     # Construct the post-processing command and write to file.
     my $postProcessCommand = $pipelinePath.$task->{'label'}."PostProcess.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options);
     open(my $postProcessCommandFile,">",$options{'outputDirectory'}."/postProcessCommand.txt");
@@ -166,7 +169,7 @@ foreach my $task ( @tasks ) {
 	    $parametersDetermined{$parameterNames[$i]} = $parametersMaximumLikelihood->(($i));
 	}
 	print "  ...done\n";
-	
+
 	# Output the determined parameters.
 	print "  Outputing maximum likelihood parameters...\n";
 	open(my $resultsFile,">".$options{'outputDirectory'}."/results.txt");
