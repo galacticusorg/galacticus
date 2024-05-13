@@ -169,7 +169,7 @@ contains
     case (orderRotationByRankOnNode%ID)
        countRotation=mpiSelf%rankOnNode()
     end select
-    if (countRotation > 0 .and. countLikelihoods > 0) then
+    if (countRotation > 0 .and. countLikelihoods > 1) then
        do i=1,countRotation
           modelLikelihood_    => self%modelLikelihoods
           modelLikelihoodLast => self%modelLikelihoods
