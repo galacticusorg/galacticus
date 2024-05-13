@@ -462,7 +462,7 @@ contains
     timeEvaluate        =-1.0
     timeEvaluatePrevious=real(timeEvaluateInitial)
     call CPU_Time(timePreEvaluate )
-    call self%posterior(self%posteriorSampleState_,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
+    call self%posterior(self%posteriorSampleState_,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)    
     call CPU_Time(timePostEvaluate)
     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
     timeEvaluatePrevious=timeEvaluate
@@ -884,8 +884,12 @@ contains
             &                                                              self%posteriorSampleConvergence_  &
             &                                                             )
     end if
-    ! Disable steps in slow parameters, except for on slow steps.
-    if (mod(self%posteriorSampleState_%count(),self%slowStepCount) /= 0) then
+    ! Disable steps in slow parameters, except for on slow steps, or state swap steps.
+    if     (                                                                  &
+         &   mod(self%posteriorSampleState_%count(),self%slowStepCount ) /= 0 &
+         &  .and.                                                             &
+         &   mod(self%posteriorSampleState_%count(),self%stateSwapCount) /= 0 &
+         & ) then
        where (self%modelParametersActiveIsSlow)
           stepSize=0.0d0
        end where
