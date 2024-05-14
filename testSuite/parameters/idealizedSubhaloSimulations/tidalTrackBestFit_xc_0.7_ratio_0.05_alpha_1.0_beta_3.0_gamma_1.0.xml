@@ -63,9 +63,6 @@
       <darkMatterProfileDMO value="truncatedExponential">
         <darkMatterProfileDMO  value="NFW"/>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="1.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMO>
       <nonAnalyticSolver                   value="numerical"/>
@@ -206,9 +203,6 @@
       <darkMatterProfileDMOUnheated value="truncatedExponential" >
         <darkMatterProfileDMO  value="NFW"/>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="1.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMOUnheated>
     </outputAnalysis>
@@ -218,9 +212,6 @@
       <darkMatterProfileDMOUnheated value="truncatedExponential" >
         <darkMatterProfileDMO  value="NFW"/>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="1.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMOUnheated>
     </outputAnalysis> 
