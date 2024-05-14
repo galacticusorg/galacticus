@@ -216,7 +216,7 @@ contains
     end if
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating, the density is unchanged.
-       density=+self%massDistribution_%density(coordinates,componentType,massType)
+       density=+self%massDistribution_%density(coordinates)
        return
     end if
     radius            =coordinates           %rSpherical   (                  )
@@ -278,7 +278,7 @@ contains
     if (.not.self%matches(componentType,massType)) then
        mass=0.0d0
     else
-       mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius),componentType,massType)
+       mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius))
     end if
     return
   end function sphericalHeatedMassEnclosedBySphere
