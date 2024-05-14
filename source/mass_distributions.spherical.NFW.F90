@@ -451,14 +451,16 @@ contains
     else if (present(massFractional)) then
        call Error_Report('mass is unbounded, so mass fraction is undefined'//{introspection:location})
     else
-       call Error_Report('either mass or massFractional must be supplied'//{introspection:location})
+       call Error_Report('either mass or massFractional must be supplied'  //{introspection:location})
     end if
     massScaleFree=+     mass_                &
          &        /     4.0d0                &
          &        /     Pi                   &
          &        /self%densityNormalization &
          &        /self%scaleLength**3
-    if (massScaleFree < massScaleFreeSmall) then
+    if      (massScaleFree <= 0.0d0             ) then
+       radius=+0.0d0
+    else if (massScaleFree <  massScaleFreeSmall) then
        ! Use a series solution for very small radii.
        radius=+                     sqrt(2.0d0)*massScaleFree**0.5d0 &
             & +    4.0d0/     3.0d0            *massScaleFree        &
