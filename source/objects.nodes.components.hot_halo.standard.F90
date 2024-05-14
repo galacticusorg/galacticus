@@ -2281,7 +2281,7 @@ contains
        !![
        <objectDestructor name="kinematicsDistribution_"/>
        !!]
-     end if
+    end if
     return
   end function Node_Component_Hot_Halo_Standard_Mass_Distribution
 

@@ -41,9 +41,8 @@ Contains a module which implements the standard galactic structure functions.
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                   => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                  => null()
-     type            (rootFinder              )          :: finderMass                                     , finderSurfaceDensity
-     double precision                                    :: radiusEnclosingMassPrevious                    , potentialOffset     , &
-          &                                                 radiusEnclosingSurfaceDensityPrevious
+     type            (rootFinder              )          :: finderSurfaceDensity
+     double precision                                    :: radiusEnclosingSurfaceDensityPrevious          , potentialOffset
      integer         (kind_int8               )          :: uniqueIDPrevious
      logical                                             :: potentialOffsetComputed
    contains
@@ -97,20 +96,20 @@ Contains a module which implements the standard galactic structure functions.
   end type galacticStructureStateList
 
   ! State stack used to allow recursive calling of these functions.
-  type            (galacticStructureStateList       ), pointer :: galacticStructureState_, galacticStructureStateHead_
+  type            (galacticStructureStateList       ), pointer      :: galacticStructureState_, galacticStructureStateHead_
   !$omp threadprivate(galacticStructureState_,galacticStructureStateHead_)
 
   ! Submodule-scope variables used in callback functions and root-finding.
-  type            (enumerationStructureErrorCodeType),                            :: status_
-  double precision                                   , dimension(3)               :: positionSpherical_           , positionCartesian_ , &
-       &                                                                             positionCylindrical_         , velocityCartesian_
+  type            (enumerationStructureErrorCodeType),              :: status_
+  double precision                                   , dimension(3) :: positionSpherical_     , positionCartesian_ , &
+       &                                                               positionCylindrical_   , velocityCartesian_
   !$omp threadprivate(status_,positionSpherical_,positionCartesian_,positionCylindrical_,velocityCartesian_)
 
   ! Submodule-scope variables used in root finding.
-  double precision                                                                :: massTarget                   , surfaceDensityTarget
-  type            (treeNode                         ), pointer                    :: node_
-  class           (galacticStructureStandard        ), pointer                    :: self_
-  !$omp threadprivate(self_,node_,massTarget,surfaceDensityTarget)
+  double precision                                                  :: surfaceDensityTarget
+  type            (treeNode                         ), pointer      :: node_
+  class           (galacticStructureStandard        ), pointer      :: self_
+  !$omp threadprivate(self_,node_,surfaceDensityTarget)
 
 contains
 
@@ -152,19 +151,8 @@ contains
     !!]
 
     self%potentialOffsetComputed              =.false.
-    self%radiusEnclosingMassPrevious          =-huge(0.0d0)
     self%radiusEnclosingSurfaceDensityPrevious=-huge(0.0d0)
     self%uniqueIDPrevious                     =-1_kind_int8
-    self%finderMass                           =rootFinder(                                                             &
-               &                                          rootFunction                 =massEnclosedRoot             , &
-               &                                          rangeExpandDownward          =0.5d0                        , &
-               &                                          rangeExpandUpward            =2.0d0                        , &
-               &                                          rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                                          rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                                          rangeExpandType              =rangeExpandMultiplicative    , &
-               &                                          toleranceAbsolute            =0.0d+0                       , &
-               &                                          toleranceRelative            =1.0d-6                         &
-               &                                         )
     self%finderSurfaceDensity                 =rootFinder(                                                             &
             &                                             rootFunction                 =surfaceDensityRoot           , &
             &                                             rangeExpandDownward          =0.5d0                        , &
@@ -219,7 +207,6 @@ contains
     !$GLC attributes unused :: node
 
     self%potentialOffsetComputed              =.false.
-    self%radiusEnclosingMassPrevious          =-huge(0.0d0)
     self%radiusEnclosingSurfaceDensityPrevious=-huge(0.0d0)
     self%uniqueIDPrevious                     =uniqueID
     return
@@ -236,13 +223,6 @@ contains
          &                                    massTypeAll                       , componentTypeAll
     use :: Coordinates               , only : assignment(=)                     , coordinateSpherical
     use :: Error                     , only : Error_Report
-    !![
-    <include directive="densityTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.density.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard      ), intent(inout)               :: self
     type            (treeNode                       ), intent(inout)               :: node
@@ -255,7 +235,6 @@ contains
     class           (massDistributionClass          ), pointer                     :: massDistribution_
     type            (enumerationCoordinateSystemType)                              :: coordinateSystemActual
     type            (coordinateSpherical            )                              :: position_
-    double precision                                                               :: densityComponent__
 
     ! Determine position in spherical coordinate system to use.
     if (present(coordinateSystem)) then
@@ -280,13 +259,6 @@ contains
     density           =  massDistribution_ %density         (position_,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="densityTask" type="functionCall" functionType="function" returnParameter="densityComponent__">
-     <functionArgs>node,positionSpherical_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_</functionArgs>
-     <onReturn>density=density+densityComponent__</onReturn>
-    !!]
-    include 'galactic_structure.density.tasks.inc'
-    !![
-    </include>
     !!]
     call self%restore()
     return
@@ -299,13 +271,6 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : massTypeAll          , componentTypeAll
     use :: Mass_Distributions        , only : massDistributionClass
-    !![
-    <include directive="densitySphericalAverageTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.density_spherical_average.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard       ), intent(inout)           :: self
     type            (treeNode                        ), intent(inout)           :: node
@@ -315,7 +280,6 @@ contains
     type            (enumerationWeightByType         ), intent(in   ), optional :: weightBy
     integer                                           , intent(in   ), optional :: weightIndex
     class           (massDistributionClass           ), pointer                 :: massDistribution_
-    double precision                                                            :: densitySphericalAverageComponent__
     
     call self%defaults(radius=radius,componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Compute the spherically-averaged density.
@@ -323,13 +287,6 @@ contains
     density           =  massDistribution_%densitySphericalAverage(radius,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="densitySphericalAverageTask" type="functionCall" functionType="function" returnParameter="densitySphericalAverageComponent__">
-     <functionArgs>node,radius,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_</functionArgs>
-     <onReturn>density=density+densitySphericalAverageComponent__</onReturn>
-    !!]
-    include 'galactic_structure.density_spherical_average.tasks.inc'
-    !![
-    </include>
     !!]
     call self%restore()
     return
@@ -341,13 +298,6 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : massTypeAll          , componentTypeAll
     use :: Mass_Distributions        , only : massDistributionClass
-    !![
-    <include directive="enclosedMassTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.enclosed_mass.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard   ), intent(inout)           :: self
     type            (treeNode                    ), intent(inout)           :: node
@@ -366,13 +316,6 @@ contains
     ! Call routines to supply the masses for all components.
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="massComponent">
-     <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_</functionArgs>
-     <onReturn>massEnclosed=massEnclosed+massComponent</onReturn>
-    !!]
-    include 'galactic_structure.enclosed_mass.tasks.inc'
-    !![
-    </include>
     !!]
     call self%restore()
     return
@@ -382,12 +325,7 @@ contains
     !!{
     Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
     !!}
-    use :: Display                   , only : displayMessage       , verbosityLevelWarn
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark      , radiusLarge
-    use :: Error                     , only : Error_Report
-    use :: Numerical_Comparison      , only : Values_Agree
-    use :: ISO_Varying_String        , only : assignment(=)        , operator(//)      , varying_string
-    use :: String_Handling           , only : operator(//)
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (galacticStructureStandard   ), intent(inout), target   :: self
     type            (treeNode                    ), intent(inout), target   :: node
@@ -396,89 +334,23 @@ contains
     type            (enumerationWeightByType     ), intent(in   ), optional :: weightBy
     integer                                       , intent(in   ), optional :: weightIndex
     double precision                              , intent(in   ), optional :: massFractional, mass
-    double precision                                                        :: radiusGuess   , massEnclosedLarge
-    type            (varying_string              )                          :: message
-    character       (len=11                      )                          :: massLabel
+    class           (massDistributionClass       ), pointer                 :: massDistribution_
 
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
-    ! Determine what mass to use.
-    if (present(mass)) then
-       if (present(massFractional)) call Error_Report('only one mass or massFractional can be specified'//{introspection:location})
-       massTarget=mass
-    else if (present(massFractional)) then
-       massTarget=massFractional*self%massEnclosed(node,componentType=galacticStructureState_%state%componentType_,massType=galacticStructureState_%state%massType_,weightBy=galacticStructureState_%state%weightBy_,weightIndex=galacticStructureState_%state%weightIndex_)
-    else
-       call Error_Report('either mass or massFractional must be specified'//{introspection:location})
-    end if
-    if (massTarget <= 0.0d0) then
-       standardRadiusEnclosingMass=0.0d0
-       call self%restore()
-       return
-    end if
-    self_ => self
-    node_ => node
-    ! Solve for the radius.
-    if (massEnclosedRoot(0.0d0) >= 0.0d0) then
-       message='Enclosed mass in galaxy (ID='
-       write (massLabel,'(e10.4)') self%massEnclosed(node_,0.0d0,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-       message=message//node%index()//') seems to be finite ('//trim(massLabel)
-       write (massLabel,'(e10.4)') massTarget
-       message=message//') at zero radius (was seeking '      //trim(massLabel)
-       message=message//') - returning zero radius.'
-       call displayMessage(message,verbosityLevelWarn)
-       standardRadiusEnclosingMass=0.0d0
-       call self%restore()
-       return
-    end if
-    if (self%radiusEnclosingMassPrevious >= 0.0d0) then
-       radiusGuess=self                     %radiusEnclosingMassPrevious
-    else
-       radiusGuess=self%darkMatterHaloScale_%radiusVirial               (node)
-    end if
-    massEnclosedLarge=self_%massEnclosed(node_,radiusLarge,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    if (massEnclosedLarge <= massTarget) then
-       ! The target mass is not reached at even a very large radius.
-       if (Values_Agree(massEnclosedLarge,massTarget,relTol=1.0d-3)) then
-          ! The mass is sufficiently close to the target value, simply return large radius.
-          self%radiusEnclosingMassPrevious=radiusLarge
-       else
-          call Error_Report('unable to find a radius enclosing the rquested mass'//{introspection:location})
-       end if
-    else
-       ! Find the radius enclosing the target mass.
-       self%radiusEnclosingMassPrevious=self%finderMass%find(rootGuess=radiusGuess)
-    end if
-    self%uniqueIDPrevious      =node%uniqueID                   ()
-    standardRadiusEnclosingMass=self%radiusEnclosingMassPrevious
+    massDistribution_           => node             %massDistribution   (                    galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    standardRadiusEnclosingMass =  massDistribution_%radiusEnclosingMass(mass,massFractional,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_                                                                                   )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     call self%restore()
     return
   end function standardRadiusEnclosingMass
-
-  double precision function massEnclosedRoot(radius)
-    !!{
-    Root function used in solving for the radius that encloses a given mass.
-    !!}
-    double precision, intent(in   ) :: radius
-
-    massEnclosedRoot=+self_%massEnclosed(node_,radius,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_) &
-         &           -      massTarget
-    return
-  end function massEnclosedRoot
 
   double precision function standardVelocityRotation(self,node,radius,componentType,massType) result(velocityRotation)
     !!{
     Compute the rotation curve a given radius.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
-    use :: Galacticus_Nodes          , only : treeNode
-    use :: Mass_Distributions        , only : massDistributionClass
-    !![
-    <include directive="rotationCurveTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.rotation_curve.tasks.modules.inc'
-    !![
-    </include>
-    !!]
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (galacticStructureStandard   ), intent(inout)           :: self
     type            (treeNode                    ), intent(inout)           :: node
@@ -486,20 +358,13 @@ contains
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     double precision                              , intent(in   )           :: radius
     class           (massDistributionClass       ), pointer                 :: massDistribution_
-    double precision                                                        :: velocityRotationComponent__, rotationCurveSquared
+    double precision                                                        :: rotationCurveSquared
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
     massDistribution_    => node             %massDistribution(                                                                                                                          )
     rotationCurveSquared =  massDistribution_%rotationCurve   (galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)**2
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="velocityRotationComponent__">
-     <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
-     <onReturn>rotationCurveSquared=rotationCurveSquared+velocityRotationComponent__**2</onReturn>
-    !!]
-    include 'galactic_structure.rotation_curve.tasks.inc'
-    !![
-    </include>
     !!]
     ! We've added velocities in quadrature, so now take the square root.
     velocityRotation=sqrt(rotationCurveSquared)
@@ -512,15 +377,7 @@ contains
     Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     !!}
     use :: Error             , only : Error_Report
-    use :: Galacticus_Nodes  , only : treeNode
     use :: Mass_Distributions, only : massDistributionClass
-    !![
-    <include directive="rotationCurveGradientTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.rotation_curve.gradient.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard   ), intent(inout)           :: self
     type            (treeNode                    ), intent(inout)           :: node
@@ -528,20 +385,13 @@ contains
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     double precision                              , intent(in   )           :: radius
     class           (massDistributionClass       )               , pointer  :: massDistribution_
-    double precision                                                        :: velocityRotationGradientComponent__, velocityRotation
+    double precision                                                        :: velocityRotation
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
     massDistribution_        => node             %massDistribution     (                                                                                                                          )
     velocityRotationGradient =  massDistribution_%rotationCurveGradient(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="velocityRotationGradientComponent__">
-     <functionArgs>node,galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
-     <onReturn>velocityRotationGradient=velocityRotationGradient+velocityRotationGradientComponent__</onReturn>
-    !!]
-    include 'galactic_structure.rotation_curve.gradient.tasks.inc'
-    !![
-    </include>
     !!]
     ! Convert the summed dV²/dr to dV/dr.
     velocityRotation=+self%velocityRotation(node,radius,componentType,massType)
@@ -573,7 +423,6 @@ contains
     class           (massDistributionClass            ), pointer                 :: massDistribution_
     type            (coordinateCylindrical            )                          :: position
 
-    
     ! Initialize status.
     if (present(status)) status=structureErrorCodeSuccess
     ! Reset calculations if this is a new node.
@@ -659,18 +508,6 @@ contains
     return
   end function standardSurfaceDensity
 
-  double precision function surfaceDensityComponent(component)
-    !!{
-    Unary function returning the surface density in a component. Suitable for mapping over components.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    surfaceDensityComponent=component%surfaceDensity(positionCylindrical_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    return
-  end function surfaceDensityComponent
-
   double precision function standardRadiusEnclosingSurfaceDensity(self,node,surfaceDensity,componentType,massType,weightBy,weightIndex) result(radius)
     !!{
     Return the radius enclosing a given surface density in {\normalfont \ttfamily node}.
@@ -723,13 +560,6 @@ contains
     use :: Coordinates       , only : assignment(=)        , coordinateCartesian
     use :: Galacticus_Nodes  , only : treeNode
     use :: Mass_Distributions, only : massDistributionClass
-    !![
-    <include directive="accelerationTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.acceleration.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard   ), intent(inout)               :: self
     double precision                                             , dimension(3) :: acceleration
@@ -737,7 +567,6 @@ contains
     double precision                              , intent(in   ), dimension(3) :: positionCartesian
     type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                                             , dimension(3) :: accelerationComponent__
     class           (massDistributionClass       ), pointer                     :: massDistribution_
     type            (coordinateCartesian         )                              :: position
 
@@ -748,13 +577,6 @@ contains
     acceleration       =  massDistribution_%acceleration    (position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="accelerationTask" type="functionCall" functionType="function" returnParameter="accelerationComponent__">
-     <functionArgs>node,positionCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
-     <onReturn>acceleration=acceleration+accelerationComponent__</onReturn>
-    !!]
-    include 'galactic_structure.acceleration.tasks.inc'
-    !![
-    </include>
     !!]
     call self%restore()
     return
@@ -768,13 +590,6 @@ contains
     use :: Mass_Distributions, only : massDistributionClass
     use :: Coordinates       , only : assignment(=)                 , coordinateCartesian
     use :: Tensors           , only : tensorRank2Dimension3Symmetric
-    !![
-    <include directive="tidalTensorTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.tidal_tensor.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (galacticStructureStandard     ), intent(inout)               :: self
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor
@@ -782,7 +597,6 @@ contains
     double precision                                , intent(in   ), dimension(3) :: positionCartesian
     type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensorComponent__
     class           (massDistributionClass         ), pointer                     :: massDistribution_
     type            (coordinateCartesian           )                              :: position
     
@@ -793,13 +607,6 @@ contains
     tidalTensor        =  massDistribution_%tidalTensor     (position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     !![
     <objectDestructor name="massDistribution_"/>
-    <include directive="tidalTensorTask" type="functionCall" functionType="function" returnParameter="tidalTensorComponent__">
-     <functionArgs>node,positionCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
-     <onReturn>tidalTensor=tidalTensor+tidalTensorComponent__</onReturn>
-    !!]
-    include 'galactic_structure.tidal_tensor.tasks.inc'
-    !![
-    </include>
     !!]
     call self%restore()
     return
@@ -819,24 +626,16 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
     use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinates               , only : assignment(=)        , coordinateCartesian
-    !![
-    <include directive="chandrasekharIntegralTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.chandrasekharIntegral.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     double precision                                               , dimension(3) :: chandrasekharIntegral
     class           (galacticStructureStandard     ), intent(inout)               :: self
-    type            (treeNode                      ), intent(inout), target       :: node                              , nodeSatellite
-    double precision                                , intent(in   ), dimension(3) :: positionCartesian                 , velocityCartesian
+    type            (treeNode                      ), intent(inout), target       :: node                       , nodeSatellite
+    double precision                                , intent(in   ), dimension(3) :: positionCartesian          , velocityCartesian
     type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
-    integer                                         , parameter                   :: chandrasekharIntegralSize       =3
-    double precision                                               , dimension(3) :: chandrasekharIntegralComponent__
-    class           (massDistributionClass         ), pointer                     :: massDistribution_                 , massDistributionPerturber
-    type            (coordinateCartesian           )                              :: position                          , velocity
+    integer                                         , parameter                   :: chandrasekharIntegralSize=3
+    class           (massDistributionClass         ), pointer                     :: massDistribution_          , massDistributionPerturber
+    type            (coordinateCartesian           )                              :: position                   , velocity
 
     call self%defaults(componentType=componentType,massType=massType)
     positionCartesian_ =  positionCartesian
@@ -850,13 +649,6 @@ contains
     !![
     <objectDestructor name="massDistribution_"        />
     <objectDestructor name="massDistributionPerturber"/>
-    <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="chandrasekharIntegralComponent__">
-     <functionArgs>node,nodeSatellite,positionCartesian_,velocityCartesian_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_</functionArgs>
-     <onReturn>chandrasekharIntegral=chandrasekharIntegral+chandrasekharIntegralComponent__</onReturn>
-    !!]
-    include 'galactic_structure.chandrasekharIntegral.tasks.inc'
-    !![
-    </include>
     !!]
     call self%restore()
     return

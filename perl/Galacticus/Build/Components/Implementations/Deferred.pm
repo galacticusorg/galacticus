@@ -38,13 +38,18 @@ sub Implementation_Deferred_Binding_Pointers {
 	# Skip non-deferred bindings.
 	next
 	    unless ( $binding->{'isDeferred'} );
+	# Determine the name of the procedure template.
+	my $baseMember = $member;
+	while ( exists($baseMember->{'extends'}) && grep {$_->{'method'} eq $binding->{'method'}} @{$baseMember->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
+	    $baseMember = $baseMember->{'extends'};
+	}
 	# Create a pointer at the implementation level.
 	my $componentFunctionName = $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'});
 	push(
 	    @{$build->{'variables'}},
 	    {
 		intrinsic  => "procedure",
-		type       => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'}),
+		type       => $class->{'name'}.ucfirst($baseMember->{'name'}).ucfirst($binding->{'method'}),
 		attributes => [ "pointer" ],
 		variables  => [ $componentFunctionName."Deferred" ]
 	    },
@@ -65,6 +70,11 @@ sub Implementation_Deferred_Binding_Attachers {
     foreach my $binding ( grep {$_->{'isDeferred'}} @{$member->{'bindings'}->{'binding'}} ) {
 	# Create the name of the function.
 	$code::memberFunctionName = $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'});
+	# Determine the name of the procedure template.
+	my $baseMember = $member;
+	while ( exists($baseMember->{'extends'}) && grep {$_->{'method'} eq $binding->{'method'}} @{$baseMember->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
+	    $baseMember = $baseMember->{'extends'};
+	}
 	# Create the function.
 	my $function =
 	{
@@ -75,7 +85,7 @@ sub Implementation_Deferred_Binding_Attachers {
 		[
 		 {
 		     intrinsic  => "procedure",
-		     type       => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'}),
+		     type       => $class->{'name'}.ucfirst($baseMember->{'name'}).ucfirst($binding->{'method'}),
 		     isArgument => 1,
 		     variables  => [ "deferredFunction" ]
 		 }
@@ -219,8 +229,9 @@ CODE
       call self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
 CODE
 	    } else {
+		$code::assigner = $isPointer ? " => " : "=";
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$returnName}=self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
+      {$returnName}{$assigner}self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
 CODE
 	    }
 	} else {
