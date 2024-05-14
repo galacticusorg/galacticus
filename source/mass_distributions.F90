@@ -87,39 +87,46 @@ module Mass_Distributions
     <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
     <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
     <code>
-      type(enumerationComponentTypeType) :: componentType_
-      type(enumerationMassTypeType     ) :: massType_
       if (present(componentType)) then
-         componentType_=componentType
+         massDistributionMatches   = componentType == componentTypeAll                                                                                                                          &amp;
+           &amp;                    .or.                                                                                                                                                        &amp;
+           &amp;                     componentType == self%componentType
+         if (massDistributionMatches.and.present(massType)) then
+            massDistributionMatches= massType      == massTypeAll                                                                                                                               &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeDark       .and.  self%massType == massTypeDark                                                                                   &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeGaseous    .and.  self%massType == massTypeGaseous                                                                                &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeStellar    .and.  self%massType ==                                       massTypeStellar                                          &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeBlackHole  .and.  self%massType ==                                                                             massTypeBlackHole  &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeBaryonic   .and. (self%massType == massTypeGaseous .or. self%massType == massTypeStellar                                        ) &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeGalactic   .and. (self%massType == massTypeGaseous .or. self%massType == massTypeStellar .or. self%massType == massTypeBlackHole)
+         end if
       else
-         componentType_=componentTypeAll
-      end if
-      if (present(massType     )) then
-         massType_     =massType     
-      else
-         massType_     =massTypeAll
-      end if
-      massDistributionMatches= (                                                                                                                                                             &amp;
-         &amp;                   massType_      == massTypeAll                                                                                                                               &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   massType_      == massTypeDark       .and.  self%massType == massTypeDark                                                                                   &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   massType_      == massTypeBaryonic   .and. (self%massType == massTypeGaseous .or. self%massType == massTypeStellar                                        ) &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   massType_      == massTypeGalactic   .and. (self%massType == massTypeGaseous .or. self%massType == massTypeStellar .or. self%massType == massTypeBlackHole) &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   massType_      == massTypeGaseous    .and.  self%massType == massTypeGaseous                                                                                &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   massType_      == massTypeStellar    .and.  self%massType ==                                       massTypeStellar                                          &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   massType_      == massTypeBlackHole  .and.  self%massType ==                                                                             massTypeBlackHole  &amp;
-         &amp;                 )                                                                                                                                                             &amp;
-         &amp;                .and.                                                                                                                                                          &amp;
-         &amp;                 (                                                                                                                                                             &amp;
-         &amp;                   componentType_ == componentTypeAll                                                                                                                          &amp;
-         &amp;                  .or.                                                                                                                                                         &amp;
-         &amp;                   componentType_ == self%componentType                                                                                                                        &amp;
-         &amp;                 )      
+         if (present(massType)) then
+            ! Match on mass distribution only.
+            massDistributionMatches= massType      == massTypeAll                                                                                                                               &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeDark       .and.  self%massType == massTypeDark                                                                                   &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeGaseous    .and.  self%massType == massTypeGaseous                                                                                &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeStellar    .and.  self%massType ==                                       massTypeStellar                                          &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeBlackHole  .and.  self%massType ==                                                                             massTypeBlackHole  &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeBaryonic   .and. (self%massType == massTypeGaseous .or. self%massType == massTypeStellar                                        ) &amp;
+              &amp;                 .or.                                                                                                                                                        &amp;
+              &amp;                  massType      == massTypeGalactic   .and. (self%massType == massTypeGaseous .or. self%massType == massTypeStellar .or. self%massType == massTypeBlackHole)
+         else
+            ! No selection was requested, so we always match.
+            massDistributionMatches=.true.
+         end if
+      end if     
     </code>
    </method>
    <method name="symmetry" >
