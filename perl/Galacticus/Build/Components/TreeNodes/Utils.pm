@@ -265,10 +265,15 @@ do i=1,massDistributionsCount
   exit
  end if
 end do
-! If no existing mass distribution matched, free up space for a new one.
+! If no existing mass distribution matched, free up space for a new one. Avoid replacing the parent of a node as parent/child
+! massDistribution pairs are frequently used (e.g. in orbital evolution calculations).
 if (iMassDistribution == 0) then
- massDistributionsLast=massDistributionsLast+1
- if (massDistributionsLast > massDistributionsCount) massDistributionsLast=1
+ massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
+ if (associated(massDistributions__(massDistributionsLast)%massDistribution_)) then
+  if (associated(self%parent) .and. massDistributions__(massDistributionsLast)%uniqueID == self%parent%uniqueID()) then
+   massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
+  end if
+ end if
  !![
  <objectDestructor name="massDistributions__(massDistributionsLast)%massDistribution_"/>
  !!]
