@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715128572331,
+  "lastUpdate": 1715804616823,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f7f8371f7d5d628d316d6eb76a4c12e965dfa7c8",
-          "message": "fix: Fix syntax",
-          "timestamp": "2023-07-31T08:18:56-07:00",
-          "tree_id": "621d7216d3e9eaf25349b9c6cac9ddccdf2b7acd",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f7f8371f7d5d628d316d6eb76a4c12e965dfa7c8"
-        },
-        "date": 1690830149213,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 225.964,
-            "unit": "seconds",
-            "range": 0.121739065210309
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9524765085691,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "8c7611aac02fff4bbda217bdb738c08ee7182b20",
+          "message": "fix: Update from old `\\makeglossary` command to new `\\makeglossaries` command",
+          "timestamp": "2024-05-15T15:19:01Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8c7611aac02fff4bbda217bdb738c08ee7182b20"
+        },
+        "date": 1715804616226,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 366.983,
+            "unit": "seconds",
+            "range": 0.34322601882395
           }
         ]
       }
