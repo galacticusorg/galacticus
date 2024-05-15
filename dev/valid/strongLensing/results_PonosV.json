@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "slope" : {
-      "percentageAbove" : 46.6666666666667,
-      "target" : 0.85,
-      "percentageBelow" : 53.3333333333333
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      },
-      "timestamp" : "Tue, 7 May 2024 19:34:26 +0000",
-      "id" : "723170fb1690257be9b0588c0a83c9e559a584ae",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/723170fb1690257be9b0588c0a83c9e559a584ae",
-      "message" : "Merge pull request #611 from galacticusorg/fixUseDependencies"
-   },
    "surfaceDensity" : {
       "percentageAbove" : 56.25,
       "target" : 0.006,
       "percentageBelow" : 43.75
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageBelow" : 53.3333333333333,
+      "percentageAbove" : 46.6666666666667,
+      "target" : 0.85
+   },
+   "commit" : {
+      "author" : {
+         "email" : "abenson@obs.carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "id" : "8c7611aac02fff4bbda217bdb738c08ee7182b20",
+      "timestamp" : "Wed, 15 May 2024 08:19:01 -0700",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/8c7611aac02fff4bbda217bdb738c08ee7182b20",
+      "message" : "fix: Update from old `\\makeglossary` command to new `\\makeglossaries` command"
    }
 }
