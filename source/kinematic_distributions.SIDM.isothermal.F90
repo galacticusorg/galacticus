@@ -94,26 +94,32 @@ contains
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
-    class(kinematicsDistributionSIDMIsothermal), intent(inout) :: self
-    class(coordinate                          ), intent(in   ) :: coordinates
-    class(massDistributionClass               ), intent(inout) :: massDistributionEmbedding
+    class(kinematicsDistributionSIDMIsothermal), intent(inout), target :: self
+    class(coordinate                          ), intent(in   )         :: coordinates
+    class(massDistributionClass               ), intent(inout)         :: massDistributionEmbedding
 
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalSIDMIsothermal       )
-       if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
-          velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
-       else
-          velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
-       end if
-    class is (massDistributionSphericalSIDMIsothermalBaryons)
-       if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
-          velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
-       else
-          velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
-       end if
-    class default
-       velocityDispersion=0.0d0
-       call Error_Report('expecting an SIDMIsothermal mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
-    end select
+    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+       ! For the case of a self-gravitating SIDM isothermal distribution we have a constant velocity dispersion in the core region.
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalSIDMIsothermal       )
+          if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
+             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+          else
+             velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
+          end if
+       class is (massDistributionSphericalSIDMIsothermalBaryons)
+          if (coordinates%rSpherical() > massDistributionEmbedding%radiusInteraction()) then
+             velocityDispersion=self                     %velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+          else
+             velocityDispersion=massDistributionEmbedding%velocityDispersionCentral
+          end if
+       class default
+          velocityDispersion=0.0d0
+          call Error_Report('expecting an SIDMIsothermal mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
+       end select
+    else
+       ! Our SIDM isothermal distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+    end if
     return
   end function sidmIsothermalVelocityDispersion1D

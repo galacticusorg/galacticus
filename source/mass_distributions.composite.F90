@@ -40,7 +40,7 @@
      !!}
      type   (massDistributionList                   ), pointer :: massDistributions => null()
      type   (enumerationMassDistributionSymmetryType)          :: symmetry_
-     logical                                                   :: isSingleComponent
+     logical                                                   :: isSingleComponent          , isCollisionless
    contains
      !![
      <methods>
@@ -50,7 +50,6 @@
      final     ::                            compositeDestructor
      procedure :: initialize              => compositeInitialize
      procedure :: matches                 => compositeMatches
-     procedure :: kinematicsDistribution  => compositeKinematicsDistribution
      procedure :: symmetry                => compositeSymmetry
      procedure :: isDimensionless         => compositeIsDimensionless
      procedure :: massTotal               => compositeMassTotal
@@ -163,13 +162,16 @@ contains
     class  (massDistributionComposite              ), intent(inout) :: self
     type   (massDistributionList                   ), pointer       :: massDistribution_
     type   (enumerationMassDistributionSymmetryType)                :: symmetry_
-    logical                                                         :: firstComponent
+    logical                                                         :: firstComponent   , haveKinematics
     
     ! Begin by assuming the highest degree of symmetry.
     self%symmetry_=massDistributionSymmetrySpherical
     ! Begin by assuming a single component.
     self%isSingleComponent=.true.
     firstComponent        =.true.
+    ! Begin by assuming a collisionless distribution.
+    self%isCollisionless  =.true.
+    haveKinematics        =.true.
     ! Examine each distribution.
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
@@ -199,9 +201,31 @@ contains
           else
              self%isSingleComponent=.false.
           end if
+          ! Check for collisional components.
+          if (associated(massDistribution_%massDistribution_%kinematicsDistribution_)) then
+             if (massDistribution_%massDistribution_%kinematicsDistribution_%isCollisional()) self%isCollisionless=.false.
+          else
+             haveKinematics=.false.
+          end if
           ! Move to the next mass distribution.
           massDistribution_ => massDistribution_%next
        end do
+       ! Establish a kinematics distribution.
+       if (haveKinematics) then
+          if (self%isSingleComponent) then
+             ! For a single component, simply use the kinematics distribution from that component
+             call self%setKinematicsDistribution(self%massDistributions%massDistribution_%kinematicsDistribution_)
+          else if (self%isCollisionless) then
+             ! Construct a collisionless mass distribution.
+             allocate(kinematicsDistributionCollisionless :: self%kinematicsDistribution_)
+             select type (kinematicsDistribution_ => self%kinematicsDistribution_)
+             type is (kinematicsDistributionCollisionless)
+                !![
+		<referenceConstruct owner="self" object="kinematicsDistribution_" nameAssociated="kinematicsDistribution_" constructor="kinematicsDistributionCollisionless()"/>
+	        !!]
+             end select
+          end if
+       end if
     end if
     return
   end subroutine compositeInitialize
@@ -217,29 +241,6 @@ contains
     symmetry=self%symmetry_
     return
   end function compositeSymmetry
-
-  function compositeKinematicsDistribution(self,componentType,massType) result(kinematicsDistribution_)
-    !!{
-    Return the kinematics distribution from a composite mass distribution.
-    !!}
-    implicit none
-    class(kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
-    class(massDistributionComposite   ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type (massDistributionList        ), pointer                 :: massDistribution_
-
-    kinematicsDistribution_ => null()
-    massDistribution_ => self%massDistributions
-    do while (associated(massDistribution_))
-       if (massDistribution_%massDistribution_%matches(componentType,massType)) then
-          if (associated(kinematicsDistribution_)) call Error_Report('multiple matching kinematic distributions - not currently supported'//{introspection:location}) 
-          kinematicsDistribution_ => massDistribution_%massDistribution_%kinematicsDistribution(componentType,massType)
-       end if
-       massDistribution_ => massDistribution_%next
-    end do
-    return
-  end function compositeKinematicsDistribution
 
   logical function compositeIsDimensionless(self)
     !!{

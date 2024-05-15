@@ -47,6 +47,10 @@
      module procedure heatedConstructorInternal
   end interface kinematicsDistributionHeated
 
+  ! State used to indicate whether we are solving for a self-gravitating heated system or not.
+  logical :: isSelfGravitating=.true.
+  !$omp threadprivate(isSelfGravitating)
+
 contains
 
   function heatedConstructorParameters(parameters) result(self)
@@ -137,34 +141,43 @@ contains
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class           (kinematicsDistributionHeated), intent(inout) :: self
-    class           (coordinate                  ), intent(in   ) :: coordinates
-    class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding
-    double precision                                              :: radiusInitial            , energySpecific, &
-         &                                                           velocityDispersionSquare
-    type            (coordinateSpherical         )                :: coordinatesInitial
+    class           (kinematicsDistributionHeated), intent(inout), target :: self
+    class           (coordinate                  ), intent(in   )         :: coordinates
+    class           (massDistributionClass       ), intent(inout)         :: massDistributionEmbedding
+    double precision                                                      :: radiusInitial            , energySpecific, &
+         &                                                                   velocityDispersionSquare
+    type            (coordinateSpherical         )                        :: coordinatesInitial
     
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalHeated)
-       if (massDistributionEmbedding%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-          ! Use the original, unheated profile velocity dispersion.
-          velocityDispersion=massDistributionEmbedding%massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_)
-       else if (self%velocityDispersionApproximate) then
-          ! Use the approximate solution for velocity dispersion.
-          radiusInitial                 =+massDistributionEmbedding%radiusInitial                                                                 (coordinates%rSpherical        ()                                            )
-          coordinatesInitial            = [radiusInitial,0.0d0,0.0d0]
-          energySpecific                =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy               (            radiusInitial       ,massDistributionEmbedding                  )
-          velocityDispersionSquare      =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (            coordinatesInitial  ,massDistributionEmbedding%massDistribution_)**2 &
-               &                         -2.0d0/3.0d0*energySpecific
-          velocityDispersion            =+sqrt(max(0.0d0,velocityDispersionSquare))
-       else
-          ! Use a numerical solution.
-          velocityDispersion            =+self                                                                      %velocityDispersion1DNumerical(coordinates                     ,massDistributionEmbedding                  )
-       end if
-    class default
-       velocityDispersion               =+0.0d0
-       call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
-    end select
+    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+       ! For the case of a self-gravitating heated distribution we have an optimized numerical solution for the velocity dispersion.
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalHeated)
+          if (massDistributionEmbedding%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+             ! Use the original, unheated profile velocity dispersion.
+             velocityDispersion=massDistributionEmbedding%massDistribution_%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_)
+          else if (self%velocityDispersionApproximate) then
+             ! Use the approximate solution for velocity dispersion.
+             radiusInitial                 =+massDistributionEmbedding%radiusInitial                                                                 (coordinates%rSpherical        ()                                            )
+             coordinatesInitial            = [radiusInitial,0.0d0,0.0d0]
+             energySpecific                =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy               (            radiusInitial       ,massDistributionEmbedding                  )
+             velocityDispersionSquare      =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (            coordinatesInitial  ,massDistributionEmbedding%massDistribution_)**2 &
+                  &                         -2.0d0/3.0d0*energySpecific
+             velocityDispersion            =+sqrt(max(0.0d0,velocityDispersionSquare))
+          else
+             ! Use a numerical solution.
+             velocityDispersion            =+self                                                                      %velocityDispersion1DNumerical(coordinates                     ,massDistributionEmbedding                  )
+          end if
+          class default
+          velocityDispersion               =+0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
+       end select
+    else
+       ! Our heated distribution is embedded in another distribution. We must compute the velocity dispersion numerically. We set
+       ! state to indicate that we must solve for a non-self-gravitating system.
+       isSelfGravitating =.false.
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+       isSelfGravitating =.true.
+    end if
     return
   end function heatedVelocityDispersion1D
   
@@ -181,7 +194,7 @@ contains
      r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))}.
     \end{equation}
     !!}
-    use :: Error, only : Error_Report
+    use :: Error                           , only : Error_Report
     use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -192,30 +205,33 @@ contains
          &                                                           massEnclosed
     type            (coordinateSpherical         )                :: coordinates
 
-    
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalHeated)
-       massEnclosed  =+massDistributionEmbedding                         %massDistribution_%massEnclosedBySphere(radius                          )
-       energySpecific=+massDistributionEmbedding%massDistributionHeating_                  %specificEnergy      (radius,massDistributionEmbedding)
-       radiusFinal   =+1.0d0                                                               &
-            &         /(                                                                   &
-            &           +1.0d0/radius                                                      &
-            &           -2.0d0*energySpecific/gravitationalConstantGalacticus/massEnclosed &
-            &          )
-       if (radiusFinal > 0.0d0) then
-          coordinates                 = [radius,0.0d0,0.0d0]
-          heatedJeansEquationIntegrand=+gravitationalConstantGalacticus                                  &
-               &                       *massEnclosed                                                     &
-               &                       *massDistributionEmbedding%massDistribution_%density(coordinates) &
-               &                       / radius             **2                                          &
-               &                       *(radius/radiusFinal)**4
-       else
-          heatedJeansEquationIntegrand=+0.0d0
-       end if
-    class default
-       heatedJeansEquationIntegrand   =+0.0d0
-       call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
-    end select
+    if (isSelfGravitating) then
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalHeated)
+          massEnclosed  =+massDistributionEmbedding                         %massDistribution_%massEnclosedBySphere(radius                          )
+          energySpecific=+massDistributionEmbedding%massDistributionHeating_                  %specificEnergy      (radius,massDistributionEmbedding)
+          radiusFinal   =+1.0d0                                                               &
+               &         /(                                                                   &
+               &           +1.0d0/radius                                                      &
+               &           -2.0d0*energySpecific/gravitationalConstantGalacticus/massEnclosed &
+               &          )
+          if (radiusFinal > 0.0d0) then
+             coordinates                 = [radius,0.0d0,0.0d0]
+             heatedJeansEquationIntegrand=+gravitationalConstantGalacticus                                  &
+                  &                       *massEnclosed                                                     &
+                  &                       *massDistributionEmbedding%massDistribution_%density(coordinates) &
+                  &                       / radius             **2                                          &
+                  &                       *(radius/radiusFinal)**4
+          else
+             heatedJeansEquationIntegrand=+0.0d0
+          end if
+          class default
+          heatedJeansEquationIntegrand   =+0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
+       end select
+    else
+       heatedJeansEquationIntegrand=self%kinematicsDistributionClass%jeansEquationIntegrand(radius,massDistributionEmbedding)
+    end if
     return
   end function heatedJeansEquationIntegrand
 
@@ -230,12 +246,16 @@ contains
     double precision                              , intent(in   ) :: radius
     class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding
 
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalHeated)
-       heatedJeansEquationRadius=massDistributionEmbedding%radiusInitial(radius)
-    class default
-       heatedJeansEquationRadius=0.0d0
-       call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
-    end select
+    if (isSelfGravitating) then
+       select type (massDistributionEmbedding)
+          class is (massDistributionSphericalHeated)
+          heatedJeansEquationRadius=massDistributionEmbedding%radiusInitial(radius)
+          class default
+          heatedJeansEquationRadius=0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
+       end select
+    else
+       heatedJeansEquationRadius=self%kinematicsDistributionClass%jeansEquationRadius(radius,massDistributionEmbedding)
+    end if
     return
   end function heatedJeansEquationRadius

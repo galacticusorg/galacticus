@@ -170,16 +170,21 @@ contains
     return
   end function isothermalTemperatureGradientLogarithmic
 
-  double precision function isothermalVelocityDispersion1D(self,coordinates,massDistributionEmbedding)
+  double precision function isothermalVelocityDispersion1D(self,coordinates,massDistributionEmbedding) result(velocityDispersion)
     !!{
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionIsothermal), intent(inout) :: self
-    class(coordinate                      ), intent(in   ) :: coordinates
-    class(massDistributionClass           ), intent(inout) :: massDistributionEmbedding
-    !$GLC attributes unused :: coordinates, massDistributionEmbedding
+    class(kinematicsDistributionIsothermal), intent(inout), target :: self
+    class(coordinate                      ), intent(in   )         :: coordinates
+    class(massDistributionClass           ), intent(inout)         :: massDistributionEmbedding
     
-    isothermalVelocityDispersion1D=self%velocityDispersion_
+    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+       ! For the case of a self-gravitating isothermal distribution we have an analytic solution for the velocity dispersion.
+       velocityDispersion=self%velocityDispersion_
+    else
+       ! Our isothermal distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
+    end if
     return
   end function isothermalVelocityDispersion1D

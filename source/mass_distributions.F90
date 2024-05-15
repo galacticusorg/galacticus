@@ -583,6 +583,7 @@ module Mass_Distributions
     <description>Return the 1D velocity dispersion at the given coordinate.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
     <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding</argument>
     <code>
@@ -772,6 +773,7 @@ contains
     class(kinematicsDistributionClass), intent(in   ), target :: kinematicsDistribution_
 
     !![
+    <objectDestructor name="self%kinematicsDistribution_"/>
     <referenceAcquire owner="self" target="kinematicsDistribution_" source="kinematicsDistribution_"/>
     !!]
     return

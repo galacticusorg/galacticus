@@ -110,9 +110,9 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll, massTypeAll
     implicit none
-    class(kinematicsDistributionLocal), intent(inout) :: self
-    class(coordinate                 ), intent(in   ) :: coordinates
-    class(massDistributionClass      ), intent(inout) :: massDistributionEmbedding
+    class(kinematicsDistributionLocal), intent(inout), target :: self
+    class(coordinate                 ), intent(in   )         :: coordinates
+    class(massDistributionClass      ), intent(inout)         :: massDistributionEmbedding
     
     localVelocityDispersion1D=+self                     %alpha                                                                &
          &                    *massDistributionEmbedding%rotationCurve(coordinates%rSpherical(),componentTypeAll,massTypeAll)

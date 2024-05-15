@@ -93,56 +93,59 @@ contains
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class           (kinematicsDistributionTruncated), intent(inout) :: self
-    class           (coordinate                     ), intent(in   ) :: coordinates
-    class           (massDistributionClass          ), intent(inout) :: massDistributionEmbedding
-    class           (kinematicsDistributionClass    ), pointer       :: kinematicsDistribution_
-    type            (coordinateSpherical            )                :: coordinatesTruncateMinimum
-    logical                                                          :: analytic
-    double precision                                                 :: density                   , velocityDispersionDecorated
+    class           (kinematicsDistributionTruncated), intent(inout), target :: self
+    class           (coordinate                     ), intent(in   )         :: coordinates
+    class           (massDistributionClass          ), intent(inout)         :: massDistributionEmbedding
+    class           (kinematicsDistributionClass    ), pointer               :: kinematicsDistribution_
+    type            (coordinateSpherical            )                        :: coordinatesTruncateMinimum
+    logical                                                                  :: analytic
+    double precision                                                         :: density                   , velocityDispersionDecorated
 
     analytic=.false.
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalTruncated)
-       if (coordinates%rSpherical() < massDistributionEmbedding%radiusTruncateMinimum) then
-          ! Use the decorated mass distribution solution, adjusted for the outer truncation shell.
-          analytic                                           =   .true.
-          kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                      )
-          density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                           )
-          velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_)
-          if (.not.self%velocityDispersionTruncateMinimumComputed) then
-             coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]
-             self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                            )
-             self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_)
-             self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  )
-             self%velocityDispersionTruncateMinimumComputed  =   .true.
+    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+       ! For the case of a self-gravitating truncated distribution we have a piecewise solution for the velocity dispersion in some cases.
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalTruncated)
+          if (coordinates%rSpherical() < massDistributionEmbedding%radiusTruncateMinimum) then
+             ! Use the decorated mass distribution solution, adjusted for the outer truncation shell.
+             analytic                                           =   .true.
+             kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                      )
+             density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                           )
+             velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_)
+             if (.not.self%velocityDispersionTruncateMinimumComputed) then
+                coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]
+                self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                            )
+                self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_)
+                self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  )
+                self%velocityDispersionTruncateMinimumComputed  =   .true.
+             end if
+             !![
+             <objectDestructor name="kinematicsDistribution_"/>
+             !!]
           end if
-          !![
-          <objectDestructor name="kinematicsDistribution_"/>
-          !!]
-       end if
-    class is (massDistributionSphericalTruncatedExponential)
-       if (coordinates%rSpherical() < massDistributionEmbedding%radiusTruncateMinimum) then
-          ! Use the decorated mass distribution solution, adjusted for the outer truncation shell.
-          analytic                                           =   .true.
-          kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                      )
-          density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                           )
-          velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_)
-          if (.not.self%velocityDispersionTruncateMinimumComputed) then
-             coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]
-             self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                            )
-             self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_)
-             self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  )
-             self%velocityDispersionTruncateMinimumComputed  =   .true.
+       class is (massDistributionSphericalTruncatedExponential)
+          if (coordinates%rSpherical() < massDistributionEmbedding%radiusTruncateMinimum) then
+             ! Use the decorated mass distribution solution, adjusted for the outer truncation shell.
+             analytic                                           =   .true.
+             kinematicsDistribution_                            =>  massDistributionEmbedding%massDistribution_%kinematicsDistribution       (                                                                      )
+             density                                            =   massDistributionEmbedding                  %density                      (coordinates                                                           )
+             velocityDispersionDecorated                        =   kinematicsDistribution_                    %velocityDispersion1D         (coordinates               ,massDistributionEmbedding%massDistribution_)
+             if (.not.self%velocityDispersionTruncateMinimumComputed) then
+                coordinatesTruncateMinimum                      =  [massDistributionEmbedding                  %radiusTruncateMinimum,0.0d0,0.0d0]
+                self%densityTruncateMinimum                     =   massDistributionEmbedding                  %density                      (coordinatesTruncateMinimum                                            )
+                self%velocityDispersionDecoratedTruncateMinimum =   kinematicsDistribution_                    %velocityDispersion1D         (coordinatesTruncateMinimum,massDistributionEmbedding%massDistribution_)
+                self%velocityDispersionTruncateMinimum          =   self                                       %velocityDispersion1DNumerical(coordinatesTruncateMinimum,massDistributionEmbedding                  )
+                self%velocityDispersionTruncateMinimumComputed  =   .true.
+             end if
+             !![
+             <objectDestructor name="kinematicsDistribution_"/>
+             !!]
           end if
-          !![
-          <objectDestructor name="kinematicsDistribution_"/>
-          !!]
-       end if
-    class default
-       velocityDispersion=+0.0d0
-       call Error_Report('mass distribution must be of the `massDistributionSphericalTruncated` or `massDistributionSphericalTruncatedExponential` class'//{introspection:location})
-    end select
+       class default
+          velocityDispersion=+0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalTruncated` or `massDistributionSphericalTruncatedExponential` class'//{introspection:location})
+       end select
+    end if
     ! Use a numerical solution if no analytic solution was available.
     if (analytic) then
        velocityDispersion=+sqrt(                                                      &

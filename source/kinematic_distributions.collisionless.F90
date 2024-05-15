@@ -88,9 +88,9 @@ contains
     Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an collisionless kinematic distribution.
     !!}
     implicit none
-    class(kinematicsDistributionCollisionless), intent(inout) :: self
-    class(coordinate                         ), intent(in   ) :: coordinates
-    class(massDistributionClass              ), intent(inout) :: massDistributionEmbedding
+    class(kinematicsDistributionCollisionless), intent(inout), target :: self
+    class(coordinate                         ), intent(in   )         :: coordinates
+    class(massDistributionClass              ), intent(inout)         :: massDistributionEmbedding
 
     velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
     return

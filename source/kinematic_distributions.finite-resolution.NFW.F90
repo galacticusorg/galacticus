@@ -125,47 +125,53 @@ contains
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout)  :: self
-    class           (coordinate                               ), intent(in   )  :: coordinates
-    class           (massDistributionClass                    ), intent(inout)  :: massDistributionEmbedding
-    double precision                                           , parameter      :: lengthResolutionScaleFreeSmall=1.0d-3
-    integer         (c_size_t                                 ), dimension(0:1) :: jLengthResolution
-    double precision                                           , dimension(0:1) :: hLengthResolution
-    integer                                                                     :: iLengthResolution
-    double precision                                                            :: radiusScaleFree                      , radiusScaleFreeEffective
+    class           (kinematicsDistributionFiniteResolutionNFW), intent(inout) , target :: self
+    class           (coordinate                               ), intent(in   )          :: coordinates
+    class           (massDistributionClass                    ), intent(inout)          :: massDistributionEmbedding
+    double precision                                           , parameter              :: lengthResolutionScaleFreeSmall=1.0d-3
+    integer         (c_size_t                                 ), dimension(0:1)         :: jLengthResolution
+    double precision                                           , dimension(0:1)         :: hLengthResolution
+    integer                                                                             :: iLengthResolution
+    double precision                                                                    :: radiusScaleFree                      , radiusScaleFreeEffective
 
-    select type (massDistributionEmbedding)
-    class is (massDistributionSphericalFiniteResolutionNFW)
-    if (coordinates%rSpherical() /= self%velocityDispersion1DRadiusPrevious) then
-       self%velocityDispersion1DRadiusPrevious=coordinates%rSpherical()
-       ! Compute the effective radius. In the core of the profile the velocity dispersion must become constant. Therefore, we
-       ! limit the smallest radius we consider to a small fraction of the core radius. Below this radius a constant velocity
-       ! dispersion is assumed.
-       radiusScaleFree         =coordinates%rSpherical()/massDistributionEmbedding%radiusScale
-       radiusScaleFreeEffective=max(radiusScaleFree,lengthResolutionScaleFreeSmall*massDistributionEmbedding%lengthResolutionScaleFree)
-       ! Ensure table is sufficiently extensive.
-       call self%velocityDispersion1DTabulate(massDistributionEmbedding,radiusScaleFreeEffective,massDistributionEmbedding%lengthResolutionScaleFree)
-       ! Interpolate to get the velocity dispersion.
-       call self%velocityDispersion1DTableLengthResolutionInterpolator%linearFactors(massDistributionEmbedding%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
-       jLengthResolution(1)=jLengthResolution(0)+1
-       self%velocityDispersion1DPrevious=0.0d0
-       do iLengthResolution=0,1
-          self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                                                                                                                             &
-               &                            +self%velocityDispersion1DTableRadiusInterpolator%interpolate(radiusScaleFreeEffective,self%velocityDispersion1DTable(:,jLengthResolution(iLengthResolution))) &
-               &                            *                                                                                                                       hLengthResolution(iLengthResolution)
-       end do
-       self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                       &
-            &                            *sqrt(                                                   &
-            &                                  +gravitationalConstantGalacticus                   &
-            &                                  *massDistributionEmbedding%densityNormalization    &
-            &                                  *massDistributionEmbedding%radiusScale         **2 &
-            &                                 )
+    if (associated(massDistributionEmbedding%kinematicsDistribution_,self)) then
+       ! For the case of a self-gravitating finite-resolution NFW distribution we have a tabulated solution for the velocity dispersion.
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalFiniteResolutionNFW)
+          if (coordinates%rSpherical() /= self%velocityDispersion1DRadiusPrevious) then
+             self%velocityDispersion1DRadiusPrevious=coordinates%rSpherical()
+             ! Compute the effective radius. In the core of the profile the velocity dispersion must become constant. Therefore, we
+             ! limit the smallest radius we consider to a small fraction of the core radius. Below this radius a constant velocity
+             ! dispersion is assumed.
+             radiusScaleFree         =coordinates%rSpherical()/massDistributionEmbedding%radiusScale
+             radiusScaleFreeEffective=max(radiusScaleFree,lengthResolutionScaleFreeSmall*massDistributionEmbedding%lengthResolutionScaleFree)
+             ! Ensure table is sufficiently extensive.
+             call self%velocityDispersion1DTabulate(massDistributionEmbedding,radiusScaleFreeEffective,massDistributionEmbedding%lengthResolutionScaleFree)
+             ! Interpolate to get the velocity dispersion.
+             call self%velocityDispersion1DTableLengthResolutionInterpolator%linearFactors(massDistributionEmbedding%lengthResolutionScaleFree,jLengthResolution(0),hLengthResolution)
+             jLengthResolution(1)=jLengthResolution(0)+1
+             self%velocityDispersion1DPrevious=0.0d0
+             do iLengthResolution=0,1
+                self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                                                                                                                             &
+                     &                            +self%velocityDispersion1DTableRadiusInterpolator%interpolate(radiusScaleFreeEffective,self%velocityDispersion1DTable(:,jLengthResolution(iLengthResolution))) &
+                     &                            *                                                                                                                       hLengthResolution(iLengthResolution)
+             end do
+             self%velocityDispersion1DPrevious=+self%velocityDispersion1DPrevious                       &
+                  &                            *sqrt(                                                   &
+                  &                                  +gravitationalConstantGalacticus                   &
+                  &                                  *massDistributionEmbedding%densityNormalization    &
+                  &                                  *massDistributionEmbedding%radiusScale         **2 &
+                  &                                 )
+          end if
+          velocityDispersion=self%velocityDispersion1DPrevious
+          class default
+          velocityDispersion=0.0d0
+          call Error_Report('expecting a finite-resolution NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
+       end select
+    else
+       ! Our finite resolution NFW distribution is embedded in another distribution. We must compute the velocity dispersion numerically.
+       velocityDispersion=self%velocityDispersion1DNumerical(coordinates,massDistributionEmbedding)
     end if
-    velocityDispersion=self%velocityDispersion1DPrevious
-    class default
-       velocityDispersion=0.0d0
-       call Error_Report('expecting a finite-resolution NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
-    end select
     return
   end function finiteResolutionNFWVelocityDispersion1D
   
