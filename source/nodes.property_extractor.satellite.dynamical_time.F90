@@ -18,18 +18,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
+!+    Contributions to this file made by: Charles Gannon
+  
 !!{
-Contains a module which implements a satellite dynamical time extractor class
+Provides a class that implements a satellite dynamical time extractor.
 !!}
 
-  use :: Satellite_Tidal_Stripping_Radii,   only : satelliteTidalStrippingRadiusClass
-  use :: Galactic_Structure             ,   only : galacticStructureClass
+  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
+  use :: Galactic_Structure             , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteDynamicalTime">
    <description>
-    A satellite dynamical time extractor class. Extracts the satellite dynamical time in Gyr
+     A satellite dynamical time extractor class. Extracts the satellite dynamical time in units of Gyr, following the definition
+     from \cite{binney_galactic_2008}:     
+     \begin{equation}
+     \tau_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 \mathrm{G} \rho_\mathrm{tidal}}} = \sqrt{\frac{\pi^2 r_\mathrm{tidal}^3}{4 \mathrm{G} M_\mathrm{tidal}}},
+     \end{equation}     
+     with $\rho_\mathrm{tidal}$ being the density within the tidal radius, $r_\mathrm{tidal}$, of the satellite which encloses a
+     mass $M_\mathrm{tidal}$.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -64,20 +71,20 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorSatelliteDynamicalTime  )                 :: self
-    type (inputParameters                              ), intent(inout)  :: parameters
-    class(satelliteTidalStrippingRadiusClass           ), pointer        :: satelliteTidalStrippingRadius_
-    class(galacticStructureClass                       ), pointer        :: galacticStructure_
+    type (nodePropertyExtractorSatelliteDynamicalTime)                :: self
+    type (inputParameters                            ), intent(inout) :: parameters
+    class(satelliteTidalStrippingRadiusClass         ), pointer       :: satelliteTidalStrippingRadius_
+    class(galacticStructureClass                     ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
     !!]
     self=nodePropertyExtractorSatelliteDynamicalTime(satelliteTidalStrippingRadius_, galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="galacticStructure_"/>
+    <objectDestructor name="galacticStructure_"            />
     !!]
     return
   end function dynamicalTimeConstructorParameters
@@ -91,8 +98,7 @@ contains
     class(satelliteTidalStrippingRadiusClass         ), intent(in   ), target :: satelliteTidalStrippingRadius_
     class(galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*satelliteTidalStrippingRadius_"/>
-    <constructorAssign variables="*galacticStructure_"/>
+    <constructorAssign variables="*satelliteTidalStrippingRadius_, *galacticStructure_"/>
     !!]
 
     return
@@ -107,7 +113,7 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%galacticStructure_"            />
     !!]
     return
   end subroutine dynamicalTimeDestructor
@@ -117,31 +123,24 @@ contains
     Implement a dynamical time property extractor.
     !!}
     use :: Numerical_Constants_Math         , only :  Pi
-    use :: Numerical_Constants_Astronomical , only :  gravitationalConstantGalacticus, megaParsec, year
-    use :: Numerical_Constants_Prefixes     , only :  kilo                           , giga
+    use :: Numerical_Constants_Astronomical , only :  gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
     implicit none
-    class(nodePropertyExtractorSatelliteDynamicalTime)   , intent(inout)    , target      :: self
-    type (treeNode                                   )   , intent(inout)    , target      :: node
-    type (multiCounter                               )   , intent(inout)    , optional    :: instance
-    double precision                                                             :: radiusTidal, massTidal
+    class           (nodePropertyExtractorSatelliteDynamicalTime), intent(inout), target   :: self
+    type            (treeNode                                   ), intent(inout), target   :: node
+    type            (multiCounter                               ), intent(inout), optional :: instance
+    double precision                                                                       :: radiusTidal, massTidal
     !$GLC attributes unused :: instance
-    radiusTidal           =self%satelliteTidalStrippingRadius_%radius(node)
-    massTidal             =self%galacticStructure_%massEnclosed(node,radiusTidal)
-    dynamicalTimeExtract  =(                                            &  
-                           &   +3.0d0                                   &
-                           &   *Pi                                      &
-                           &   *radiusTidal**3                          &
-                           &   /16.0d0                                  &
-                           &   /(                                       & 
-                           &       +gravitationalConstantGalacticus     &
-                           &       *kilo**2                             &
-                           &       /megaParsec**2                       &
-                           &       *year**2                             &
-                           &       *giga**2                             &
-                           &   )                                        &
-                           &   /massTidal                               &
-                           & )**0.5d0 
 
+    radiusTidal           =self%satelliteTidalStrippingRadius_%radius      (node            )
+    massTidal             =self%galacticStructure_            %massEnclosed(node,radiusTidal)
+    dynamicalTimeExtract  =+sqrt(                                    &  
+         &                       +Pi                             **2 &
+         &                       /4.0d0                              &
+         &                       *radiusTidal**3                     &
+         &                       /gravitationalConstantGalacticus    &
+         &                       /massTidal                          &
+         &                       *Mpc_per_km_per_s_To_Gyr        **2 &
+         &                      )
     return
   end function dynamicalTimeExtract
 
@@ -167,7 +166,7 @@ contains
     class(nodePropertyExtractorSatelliteDynamicalTime), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    dynamicalTimeDescription=var_str('Dynamical time of satellite in [Gyr].')
+    dynamicalTimeDescription=var_str('Dynamical time of satellite [Gyr].')
     return
   end function dynamicalTimeDescription
 
