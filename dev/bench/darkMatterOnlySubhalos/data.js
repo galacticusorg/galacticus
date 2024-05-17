@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715804621071,
+  "lastUpdate": 1715911699678,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "d7c95ab107aca859ee58abcbda553d5d5df46b33",
-          "message": "fix: Mark variable as `threadprivate`\n\nVariable `treeTimeLatest` in `taskEvolveForests` class was not `threadprivate`, but is used independently without locking by all threads. Marking it `threadprivate` avoids possible race conditions.",
-          "timestamp": "2023-08-02T14:27:27Z",
-          "tree_id": "c66d3c0a485581f3a76d1b2f49ce139a509b137e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d7c95ab107aca859ee58abcbda553d5d5df46b33"
-        },
-        "date": 1690998482013,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.816,
-            "unit": "seconds",
-            "range": 0.0296715351819036
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8768,6 +8738,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20638.76417226,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1e63a6f88043de32994aaa77082f06853d544697",
+          "message": "Merge pull request #613 from cgannonucm/massLossTimescale\n\nAdded nodePropertyExtractorSatelliteDynamicalTime",
+          "timestamp": "2024-05-16T21:07:14Z",
+          "tree_id": "5c12c823d990fcac32f8c6f439869ee7ab0b2f48",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1e63a6f88043de32994aaa77082f06853d544697"
+        },
+        "date": 1715911698246,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.232,
+            "unit": "seconds",
+            "range": 0.033340665861053
           }
         ]
       }
