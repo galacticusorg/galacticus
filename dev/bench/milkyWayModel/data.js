@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715804626079,
+  "lastUpdate": 1715911703277,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2da1da445ed3f84caabd4ae61c2d73c9fe015a3b",
-          "message": "Merge pull request #444 from galacticusorg/projectedDensity\n\nInclude mass outside of the virial radius in projected density calculations",
-          "timestamp": "2023-08-01T01:37:00Z",
-          "tree_id": "3dcca2c14dbe14011d83c7e060dc9e0dbc4e34f4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2da1da445ed3f84caabd4ae61c2d73c9fe015a3b"
-        },
-        "date": 1690866904119,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 169.642,
-            "unit": "seconds",
-            "range": 0.178167337073197
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0402054672062,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1e63a6f88043de32994aaa77082f06853d544697",
+          "message": "Merge pull request #613 from cgannonucm/massLossTimescale\n\nAdded nodePropertyExtractorSatelliteDynamicalTime",
+          "timestamp": "2024-05-16T21:07:14Z",
+          "tree_id": "5c12c823d990fcac32f8c6f439869ee7ab0b2f48",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1e63a6f88043de32994aaa77082f06853d544697"
+        },
+        "date": 1715911702533,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 365.601,
+            "unit": "seconds",
+            "range": 0.221596254481848
           }
         ]
       }
