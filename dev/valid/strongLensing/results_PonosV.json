@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "commit" : {
+      "id" : "1e63a6f88043de32994aaa77082f06853d544697",
+      "timestamp" : "Thu, 16 May 2024 21:07:14 +0000",
+      "message" : "Merge pull request #613 from cgannonucm/massLossTimescale",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/1e63a6f88043de32994aaa77082f06853d544697",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      }
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "surfaceDensity" : {
-      "percentageAbove" : 56.25,
-      "target" : 0.006,
-      "percentageBelow" : 43.75
+      "percentageBelow" : 50,
+      "percentageAbove" : 50,
+      "target" : 0.006
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
-      "percentageBelow" : 53.3333333333333,
-      "percentageAbove" : 46.6666666666667,
-      "target" : 0.85
-   },
-   "commit" : {
-      "author" : {
-         "email" : "abenson@obs.carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "id" : "8c7611aac02fff4bbda217bdb738c08ee7182b20",
-      "timestamp" : "Wed, 15 May 2024 08:19:01 -0700",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/8c7611aac02fff4bbda217bdb738c08ee7182b20",
-      "message" : "fix: Update from old `\\makeglossary` command to new `\\makeglossaries` command"
+      "target" : 0.85,
+      "percentageBelow" : 66.6666666666667,
+      "percentageAbove" : 33.3333333333333
    }
 }
