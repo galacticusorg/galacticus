@@ -130,9 +130,11 @@ contains
     type            (multiCounter                               ), intent(inout), optional :: instance
     double precision                                                                       :: radiusTidal, massTidal
     !$GLC attributes unused :: instance
-
+    dynamicalTimeExtract  =-1.0d0
     radiusTidal           =self%satelliteTidalStrippingRadius_%radius      (node            )
-    massTidal             =self%galacticStructure_            %massEnclosed(node,radiusTidal)
+    if (radiusTidal <= 0.0d0) return
+    massTidal             =self%galacticStructure_            %massEnclosed(node,radiusTidal) 
+    if (massTidal <= 0.0d0) return
     dynamicalTimeExtract  =+sqrt(                                    &  
          &                       +Pi                             **2 &
          &                       /4.0d0                              &
