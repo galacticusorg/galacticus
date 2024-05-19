@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715911710558,
+  "lastUpdate": 1716103368123,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "55cac102888b7b0324e90e11ddc2e673fa851131",
-          "message": "Merge pull request #445 from galacticusorg/buildRefactor\n\nReplace `include` directives with events in some trivial cases",
-          "timestamp": "2023-08-02T01:22:21Z",
-          "tree_id": "8e731ac7269422465ea73bfbf9eb0741167bf769",
-          "url": "https://github.com/galacticusorg/galacticus/commit/55cac102888b7b0324e90e11ddc2e673fa851131"
-        },
-        "date": 1690951072163,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 223.701,
-            "unit": "seconds",
-            "range": 0.0787965735289962
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9899801726123,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "382632c3338de551059e7bf7dbd623376afb07f3",
+          "message": "Merge pull request #614 from cgannonucm/dynamicalTimeUpdate\n\nfix: floating point exception in nodePropertyExtractorSatelliteDynamicalTime",
+          "timestamp": "2024-05-19T02:21:49Z",
+          "tree_id": "6fbfe364a29187c4ef414456affbc6e8cd3bdd13",
+          "url": "https://github.com/galacticusorg/galacticus/commit/382632c3338de551059e7bf7dbd623376afb07f3"
+        },
+        "date": 1716103367345,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 470.874,
+            "unit": "seconds",
+            "range": 0.274128437035186
           }
         ]
       }
