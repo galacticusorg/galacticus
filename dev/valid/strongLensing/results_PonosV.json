@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "id" : "1e63a6f88043de32994aaa77082f06853d544697",
-      "timestamp" : "Thu, 16 May 2024 21:07:14 +0000",
-      "message" : "Merge pull request #613 from cgannonucm/massLossTimescale",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/1e63a6f88043de32994aaa77082f06853d544697",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      }
+   "slope" : {
+      "percentageAbove" : 46.6666666666667,
+      "percentageBelow" : 53.3333333333333,
+      "target" : 0.85
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageBelow" : 50,
-      "percentageAbove" : 50,
+      "percentageAbove" : 56.25,
+      "percentageBelow" : 43.75,
       "target" : 0.006
    },
-   "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 66.6666666666667,
-      "percentageAbove" : 33.3333333333333
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/382632c3338de551059e7bf7dbd623376afb07f3",
+      "timestamp" : "Sun, 19 May 2024 02:21:49 +0000",
+      "author" : {
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
+      },
+      "message" : "Merge pull request #614 from cgannonucm/dynamicalTimeUpdate",
+      "id" : "382632c3338de551059e7bf7dbd623376afb07f3"
    }
 }
