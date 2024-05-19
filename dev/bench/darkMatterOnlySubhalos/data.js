@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716103364185,
+  "lastUpdate": 1716103371805,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5b2eae9907a38e091f3228cf60551515d2280cfa",
-          "message": "fix: Improve formatting of error message",
-          "timestamp": "2023-08-03T16:59:23-07:00",
-          "tree_id": "927595231056b72ecab922d996b75d34c175bb00",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5b2eae9907a38e091f3228cf60551515d2280cfa"
-        },
-        "date": 1691118286263,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5315751069983,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.4657217377668,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25134.956813135,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8768,6 +8729,45 @@ window.BENCHMARK_DATA = {
             "value": 52.953,
             "unit": "seconds",
             "range": 0.0780647167423537
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "382632c3338de551059e7bf7dbd623376afb07f3",
+          "message": "Merge pull request #614 from cgannonucm/dynamicalTimeUpdate\n\nfix: floating point exception in nodePropertyExtractorSatelliteDynamicalTime",
+          "timestamp": "2024-05-19T02:21:49Z",
+          "tree_id": "6fbfe364a29187c4ef414456affbc6e8cd3bdd13",
+          "url": "https://github.com/galacticusorg/galacticus/commit/382632c3338de551059e7bf7dbd623376afb07f3"
+        },
+        "date": 1716103371110,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8023779643596,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.80748249268548,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 21368.2909191331,
+            "unit": "-logℒ"
           }
         ]
       }
