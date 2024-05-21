@@ -44,22 +44,6 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 	print "Please enter your e-mail SMTP password:\n";
 	$smtpPassword = &getPassword;
     }
-    elsif ( $emailConfig->{'passwordFrom'} eq "kdewallet" ) {
-	my $appName          = "Galacticus";
-	my $folderName       = "glc-test-all";
-	require Net::DBus;
-	my $bus           = Net::DBus->find;
-	my $walletService = $bus->get_service("org.kde.kwalletd");
-	my $walletObject  = $walletService->get_object("/modules/kwalletd");
-	my $walletID      = $walletObject->open("kdewallet",0,$appName);
-	if ( $walletObject->hasEntry($walletID,$folderName,"smtpPassword",$appName) == 1 ) {
-	    $smtpPassword = $walletObject->readPassword($walletID,$folderName,"smtpPassword",$appName); 
-	} else {
-	    print "Please enter your e-mail SMTP password:\n";
-	    $smtpPassword = &getPassword;
-	    $walletObject->writePassword($walletID,$folderName,"smtpPassword",$smtpPassword,$appName); 
-	}
-    }
 }
 
 my $repoRevisionHash;
