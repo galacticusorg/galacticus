@@ -287,7 +287,7 @@ contains
     !$ call hdf5Access%set()
     NSCCollapse=outputFile%openGroup("NSCCollapse","Data related to the NSC collapse.")
     ! Append to the datasets.
-    call    NSCCollapse%writeDataset([radiusNSC                 ],"radius"      ,"radius mass of the NSC."        ,appendTo=.true.)
+    call    NSCCollapse%writeDataset([radiusNSC                 ],"radius"      ,"radius of the NSC."             ,appendTo=.true.)
     call    NSCCollapse%writeDataset([velocityNSC               ],"velocity"    ,"velocity mass of the NSC."      ,appendTo=.true.)
     call    NSCCollapse%writeDataset([massStellarNSC            ],"massStellar" ,"Stellar mass of the NSC."       ,appendTo=.true.)
     call    NSCCollapse%writeDataset([massCriticalNSC           ],"massCritical","Critical mass of the NSC."      ,appendTo=.true.)
@@ -296,6 +296,6 @@ contains
     call    NSCCollapse%writeDataset([basic%time()              ],"time"        ,"The time of the NSC collapse."  ,appendTo=.true.)
     call    NSCCollapse%writeDataset([node%hostTree%volumeWeight],"volumeWeight","The weight of the NSC."         ,appendTo=.true.)
     call    NSCCollapse%close       (                                                                                             )
-    !$ call hdf5Access  %unset      (                                                                                             )
+    !$ call hdf5Access %unset       (                                                                                             )
     return
   end subroutine Collapse_Output

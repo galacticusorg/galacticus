@@ -70,12 +70,12 @@ double precision function Node_Component_NSC_Standard_Radius(self)
    implicit none 
    class(nodeComponentNSCStandard), intent(inout) :: self 
    double precision               , save          :: M_0 = 1.0d6
-   double precision                               :: dynamicalMassNSC
+   double precision                               :: stellarMassNSC
 
-   dynamicalMassNSC = self%massGas()+self%massStellar()
+   stellarMassNSC = self%massStellar()
    !The radius is retunerd in Mpc units.
-   if (dynamicalMassNSC >0.0d0) then
-      Node_Component_NSC_Standard_Radius = radiusNorm*sqrt(dynamicalMassNSC/M_0)
+   if (stellarMassNSC >0.0d0) then
+      Node_Component_NSC_Standard_Radius = radiusNorm*sqrt(stellarMassNSC/M_0)
    else
       Node_Component_NSC_Standard_Radius = 0.0d0
    end if
