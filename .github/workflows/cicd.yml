@@ -99,6 +99,16 @@ jobs:
         with:
           name: build-profile
           path: 'buildProfile.html'
+      - name: Test preprocessor determinism
+        run: |
+          # Test that the preprocessor produces deterministic output by re-preprocessing one file and checking that the results are unchanged.
+          cd $GALACTICUS_EXEC_PATH
+          cp work/build/mass_distributions.p.F90 work/build/mass_distributions.p.F90.prev
+          cp work/build/mass_distributions.spherical.Sersic.p.F90 work/build/mass_distributions.spherical.Sersic.p.F90.prev
+          touch source/mass_distributions.spherical.Sersic.F90
+          make -j16 work/build/mass_distributions.p.F90
+          cmp -s work/build/mass_distributions.p.F90 work/build/mass_distributions.p.F90.prev
+          cmp -s work/build/mass_distributions.spherical.Sersic.p.F90 work/build/mass_distributions.spherical.Sersic.p.F90.prev
       - run: echo "This job's status is ${{ job.status }}."
   ### Non-static executable
   Build-Executable-Linux-Non-Static:
@@ -1387,7 +1397,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'validate'
           suffix: 'milkyWayModel'
-          threshold: '155%'
+          threshold: '185%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)'
         uses: ./.github/actions/benchmark

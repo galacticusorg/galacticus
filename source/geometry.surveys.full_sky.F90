@@ -224,9 +224,10 @@ contains
     !!{
     Compute the window function for the survey.
     !!}
+#ifdef FFTW3AVAIL
     use            :: FFTW3        , only : fftw_plan_dft_3d  , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
          &                                  fftw_destroy_plan
-#ifdef FFTW3UNAVAIL
+#else
     use            :: Error        , only : Error_Report
 #endif
     use, intrinsic :: ISO_C_Binding, only : c_ptr             , c_double_complex

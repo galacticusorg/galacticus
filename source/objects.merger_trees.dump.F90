@@ -176,6 +176,8 @@ contains
     else
        nodeMassMinimum=0.0d0
        nodeMassMaximum=0.0d0
+       timeMinimum    =0.0d0
+       timeMaximum    =0.0d0
     end if
     ! Open an output file and write the GraphViz opening.
     write (treeIndexFormatted  ,'(i16)') tree%index

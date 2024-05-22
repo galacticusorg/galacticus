@@ -32,20 +32,20 @@ sub Analyze_UseDuplication {
 		    my $nodeChild = $nodeParent->{'firstChild'};
 		    while ( $nodeChild ) {
 			if ( $nodeChild->{'type'} eq "moduleUse" ) {
-			    push(@usedModules,keys(%{$nodeChild->{'moduleUse'}}));
+			    push(@usedModules,sort(keys(%{$nodeChild->{'moduleUse'}})));
 			}
 			$nodeChild = $nodeChild->{'sibling'};
 		    }
 		    $nodeParent = $nodeParent->{'parent'};
 		}
-		foreach my $moduleName ( keys(%{$node->{'moduleUse'}}) ) {
+		foreach my $moduleName ( sort(keys(%{$node->{'moduleUse'}})) ) {
 		    if ( grep {$moduleName eq $_} @usedModules ) {
 			print "Warning: module '".$moduleName."' used in ".$node->{'parent'}->{'name'}."() was already used in container [file: ".$fileName."]\n";
 		    }
 		}
 	    }
 	    # Determine symbols used from each module.
-	    foreach my $module ( keys(%{$node->{'moduleUse'}}) ) {
+	    foreach my $module ( sort(keys(%{$node->{'moduleUse'}})) ) {
 		my @symbolsExported = &Fortran::Utils::moduleSymbols(lc($module));
 		my @symbolsUsed;
 		# Search through code looking for use of these symbols.
@@ -84,7 +84,7 @@ sub Analyze_UseDuplication {
 		    } else {
 			# Only specified symbols were imported. Check for those which were not needed.
 			my @symbolsNonRequired;
-			foreach my $symbolImported ( keys(%{$node->{'moduleUse'}->{$module}->{'only'}}) ) {
+			foreach my $symbolImported ( sort(keys(%{$node->{'moduleUse'}->{$module}->{'only'}})) ) {
 			    push(@symbolsNonRequired,$symbolImported)
 				unless ( grep {$_ eq $symbolImported} @symbolsUsed );
 			}

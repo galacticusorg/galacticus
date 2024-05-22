@@ -264,9 +264,10 @@ contains
     Compute the window function for the survey.
     !!}
     use :: Display                 , only : displayMessage
-    use :: File_Utilities          , only : Count_Lines_In_File    , Directory_Make     , File_Exists
+    use :: File_Utilities          , only : Count_Lines_In_File, Directory_Make     , File_Exists, File_Lock, &
+         &                                  File_Unlock        , lockDescriptor
     use :: Error                   , only : Error_Report
-    use :: Input_Paths             , only : inputPath              , pathTypeDataDynamic
+    use :: Input_Paths             , only : inputPath          , pathTypeDataDynamic
     use :: ISO_Varying_String      , only : varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : operator(//)
@@ -278,13 +279,18 @@ contains
          &                                                                        i             , randomUnit
     double precision                                                           :: rightAscension, declination
     type            (varying_string               )                            :: message
+    type            (lockDescriptor               )                            :: lock
     integer                                                                    :: status
 
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
        call Directory_Make(inputPath(pathTypeDataDynamic)//"surveyGeometry")
-       call download("https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat",char(inputPath(pathTypeDataDynamic))//"surveyGeometry/lss_random-0.dr72.dat",status=status)
-       if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
+       call File_Lock  (char(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat"),lock,lockIsShared=.false.)
+       if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
+          call download("https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat",char(inputPath(pathTypeDataDynamic))//"surveyGeometry/lss_random-0.dr72.dat",status=status)
+          if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
+       end if
+       call File_Unlock(                     lock                     )
     end if
     randomsCount=Count_Lines_In_File(inputPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
     allocate(self%randomTheta(randomsCount))
