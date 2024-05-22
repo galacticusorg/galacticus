@@ -109,6 +109,7 @@
      double precision                                                                       :: accretionLimit                                    , timeEarliest                    , &
           &                                                                                    mergeProbability                                  , timeNow                         , &
           &                                                                                    redshiftMaximum                                   , toleranceTimeEarliest
+     logical                                                                                :: ignoreNoProgress
      ! Random number sequence variables
      logical                                                                                :: branchIntervalStep
      ! Interval distribution.
@@ -186,7 +187,7 @@ contains
     double precision                                                     :: mergeProbability               , accretionLimit         , &
          &                                                                  redshiftMaximum                , toleranceResolutionSelf, &
          &                                                                  toleranceResolutionParent      , toleranceTimeEarliest
-    logical                                                              :: branchIntervalStep
+    logical                                                              :: branchIntervalStep             , ignoreNoProgress
 
     ! Check and read parameters.
     !![
@@ -232,6 +233,12 @@ contains
       <defaultValue>1.0d-3</defaultValue>
       <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
     </inputParameter>
+    <inputParameter>
+      <name>ignoreNoProgress</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, failure to make progress on a branch will be ignored (and the branch terminated).</description>
+    </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"       source="parameters"/>
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
@@ -247,6 +254,7 @@ contains
          &                                                                                                           branchIntervalStep               , &
          &                                                                                                           toleranceResolutionSelf          , &
          &                                                                                                           toleranceResolutionParent        , &
+         &                                                                                                           ignoreNoProgress                 , &
          &                                                                                                           mergerTreeBranchingProbability_  , &
          &                                                                                                           mergerTreeMassResolution_        , &
          &                                                                                                           cosmologyFunctions_              , &
@@ -266,7 +274,7 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,ignoreNoProgress,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
@@ -276,7 +284,7 @@ contains
     double precision                                     , intent(in   )         :: mergeProbability               , accretionLimit         , &
          &                                                                          timeEarliest                   , toleranceResolutionSelf, &
          &                                                                          toleranceResolutionParent      , toleranceTimeEarliest
-    logical                                              , intent(in   )         :: branchIntervalStep
+    logical                                              , intent(in   )         :: branchIntervalStep             , ignoreNoProgress
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
     class           (mergerTreeMassResolutionClass      ), intent(in   ), target :: mergerTreeMassResolution_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -284,7 +292,7 @@ contains
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
     class           (mergerTreeBuildControllerClass     ), intent(in   ), target :: mergerTreeBuildController_
     !![
-    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, toleranceTimeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, ignoreNoProgress, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
     ! Store maximum redshift.
@@ -538,7 +546,7 @@ contains
              branchDeltaCriticalPrevious=branchDeltaCriticalCurrent
              branchMassPrevious         =branchMassCurrent
           end if
-          if (countNoProgress >= limitNoProgress) then
+          if (countNoProgress > limitNoProgress) then
              message='branch is making no progress'
              if (time < self_%timeEarliest*1.01d0) then
                 write (label,'(e12.6)') self_%toleranceTimeEarliest
@@ -553,10 +561,16 @@ contains
              call Error_Report(message//{introspection:location})
           end if
           ! Process the branch.
-          if     (                                                                             &
-               &   branchMassCurrent <= massResolution                                         &
-               &  .or.                                                                         &
-               &   time              <  self_%timeEarliest*(1.0d0+self_%toleranceTimeEarliest) &
+          if     (                                                                               &
+               &     branchMassCurrent <= massResolution                                         &
+               &  .or.                                                                           &
+               &     time              <  self_%timeEarliest*(1.0d0+self_%toleranceTimeEarliest) &
+               &  .or.                                                                           &
+               &   (                                                                             &
+               &     countNoProgress   == limitNoProgress                                        &
+               &    .and.                                                                        &
+               &     self_%ignoreNoProgress                                                      &
+               &   )                                                                             &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
