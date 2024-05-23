@@ -228,7 +228,7 @@ contains
           
           call NSC%CriticalMassSet(massCriticalNSC)
           ! Generic type - interrupt and create a standard Black Hole if Nuclear Star Cluster mass is greater than the critical mass.
-          if (0.0 <= massCriticalNSC .and. massCriticalNSC <= NSC%massStellar() .and. self%massThreshold < NSC%massStellar()) then
+          if (0.0 <= massCriticalNSC .and. massCriticalNSC <= NSC%massStellar() .and. self%massThreshold <= NSC%massStellar()) then
             call NSC%massSeedSet   ( massFormedSeedNSC)
             interrupt=.true.
             functionInterrupt => BlackHoleStandardCreate
