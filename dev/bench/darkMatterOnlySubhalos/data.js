@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716429236828,
+  "lastUpdate": 1716429244387,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "a1ec083424e1f623e08cd4969cdbe96e7779dbd4",
-          "message": "fix: Split long YAML list across lines for easier `diff`ing",
-          "timestamp": "2023-08-08T15:30:50Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a1ec083424e1f623e08cd4969cdbe96e7779dbd4"
-        },
-        "date": 1691522424741,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5242080709765,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.4439006068673,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25257.8908941139,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8770,6 +8733,45 @@ window.BENCHMARK_DATA = {
             "value": 52.798,
             "unit": "seconds",
             "range": 0.147362138963592
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "4151fd02ec1ebed5cb6883de49ecfe8a671da57e",
+          "message": "feat: Add a `nodePropertyExtractor` that converts luminosities to fluxes\n\nThis is useful, for example, when outputting emission lines and the observable quantities are needed.",
+          "timestamp": "2024-05-22T13:51:59-07:00",
+          "tree_id": "a3710afb61fccec9b8e6158671435fac3530f744",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4151fd02ec1ebed5cb6883de49ecfe8a671da57e"
+        },
+        "date": 1716429243841,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8835223954913,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.65489184273019,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20722.1184964987,
+            "unit": "-logℒ"
           }
         ]
       }
