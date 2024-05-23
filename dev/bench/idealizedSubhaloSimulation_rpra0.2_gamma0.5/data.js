@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716103397630,
+  "lastUpdate": 1716429272131,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
@@ -838,6 +838,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/382632c3338de551059e7bf7dbd623376afb07f3"
         },
         "date": 1716103396993,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 40.9680494100607,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 22.3962454301193,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 20.3906767774734,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "4151fd02ec1ebed5cb6883de49ecfe8a671da57e",
+          "message": "feat: Add a `nodePropertyExtractor` that converts luminosities to fluxes\n\nThis is useful, for example, when outputting emission lines and the observable quantities are needed.",
+          "timestamp": "2024-05-22T13:51:59-07:00",
+          "tree_id": "a3710afb61fccec9b8e6158671435fac3530f744",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4151fd02ec1ebed5cb6883de49ecfe8a671da57e"
+        },
+        "date": 1716429271330,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
