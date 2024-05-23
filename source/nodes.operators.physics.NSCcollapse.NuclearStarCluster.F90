@@ -232,7 +232,7 @@ contains
             call NSC%massSeedSet   ( massFormedSeedNSC)
             interrupt=.true.
             functionInterrupt => BlackHoleStandardCreate
-            call Collapse_Output   (node, radiusNSC, velocityNSC, NSC%massStellar(), massCriticalNSC, ageNSC, massFormedSeedNSC)
+            call Collapse_Output   (node, radiusNSC, velocityNSC, NSC%massStellar(), NSC%massGas(), massCriticalNSC, ageNSC, massFormedSeedNSC)
             call NSC%massStellarset(                                                        NSC%massStellar()-massFormedSeedNSC)
             call NSC%CollapseSet   (                                                                                     .true.)
             return
@@ -264,7 +264,7 @@ contains
     return
   end subroutine BlackHoleStandardCreate
   
-  subroutine Collapse_Output(node, radiusNSC, velocityNSC, massStellarNSC, massCriticalNSC, ageNSC, massFormedSeedNSC)
+  subroutine Collapse_Output(node, radiusNSC, velocityNSC, massStellarNSC, massGasNSC, massCriticalNSC, ageNSC, massFormedSeedNSC)
     !!{
     Outputs properties of collapsing NSCs.
     !!}
@@ -274,9 +274,10 @@ contains
     use :: IO_HDF5         , only : hdf5Object
     implicit none
     type            (treeNode          ), intent(inout) :: node
-    double precision                    , intent(in   ) :: radiusNSC     , velocityNSC      , &
-        &                                                  massStellarNSC, massCriticalNSC  , &
-        &                                                  ageNSC        , massFormedSeedNSC
+    double precision                    , intent(in   ) :: radiusNSC        , velocityNSC, &
+        &                                                  massStellarNSC   , massGasNSC , &
+        &                                                  massCriticalNSC  , ageNSC     , &
+        &                                                  massFormedSeedNSC
     class           (nodeComponentBasic), pointer       :: basic
     type            (hdf5Object        )                :: NSCCollapse
 
@@ -290,6 +291,7 @@ contains
     call    NSCCollapse%writeDataset([radiusNSC                 ],"radius"      ,"radius of the NSC."             ,appendTo=.true.)
     call    NSCCollapse%writeDataset([velocityNSC               ],"velocity"    ,"velocity mass of the NSC."      ,appendTo=.true.)
     call    NSCCollapse%writeDataset([massStellarNSC            ],"massStellar" ,"Stellar mass of the NSC."       ,appendTo=.true.)
+    call    NSCCollapse%writeDataset([massGasNSC                ],"massGas"     ,"Gas mass of the NSC."           ,appendTo=.true.)
     call    NSCCollapse%writeDataset([massCriticalNSC           ],"massCritical","Critical mass of the NSC."      ,appendTo=.true.)
     call    NSCCollapse%writeDataset([ageNSC                    ],"Age"         ,"Age of the NSC."                ,appendTo=.true.)
     call    NSCCollapse%writeDataset([massFormedSeedNSC         ],"Mseed"       ,"Mass of the BH seed formed."    ,appendTo=.true.)
