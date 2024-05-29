@@ -24,24 +24,24 @@
   </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <transferFunctionMethod        value="CAMB"    />
-  <powerSpectrumPrimordialMethod value="powerLaw" >
+  <transferFunction        value="CAMB"    />
+  <powerSpectrumPrimordial value="powerLaw" >
     <index               value="0.967"/>
     <wavenumberReference value="1.000"/>
     <running             value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
   <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.81"/>
   </cosmologicalMassVariance>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>
-  <haloMassFunctionMethod value="shethTormen">
+  <haloMassFunction value="shethTormen">
     <a             value="+0.791"/>
     <p             value="+0.218"/>
     <normalization value="+0.302"/>
-  </haloMassFunctionMethod>
+  </haloMassFunction>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
