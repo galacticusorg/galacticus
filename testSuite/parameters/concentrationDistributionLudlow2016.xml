@@ -19,12 +19,20 @@
     <HubbleConstant  value="70.400000"/>
     <OmegaMatter     value=" 0.272000"/>
     <OmegaDarkEnergy value=" 0.728000"/>
-    <OmegaBaryon     value=" 0.044550"/>
+    <OmegaBaryon     value=" 0.0000000"/>
     <temperatureCMB  value=" 2.725480"/>
   </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <transferFunction        value="CAMB"    />
+  <transferFunction        value="CAMB"     >
+    <cosmologyParameters value="simple">
+      <HubbleConstant  value="70.400000"/>
+      <OmegaMatter     value=" 0.272000"/>
+      <OmegaDarkEnergy value=" 0.728000"/>
+      <OmegaBaryon     value=" 0.044550"/>
+      <temperatureCMB  value=" 2.725480"/>
+    </cosmologyParameters>
+  </transferFunction>
   <powerSpectrumPrimordial value="powerLaw" >
     <index               value="0.967"/>
     <wavenumberReference value="1.000"/>
