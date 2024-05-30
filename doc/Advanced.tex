@@ -321,7 +321,7 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 
 \section{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://www.cs.wisc.edu/condor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
  ./scripts/aux/launch.pl <runFile>
 \end{verbatim}
