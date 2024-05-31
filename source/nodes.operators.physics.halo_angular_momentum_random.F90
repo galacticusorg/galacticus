@@ -21,9 +21,8 @@
   Implements a node operator class that initializes halo angular momenta using spins drawn at random from a distribution.
   !!}
 
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Halo_Spin_Distributions , only : haloSpinDistributionClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
 
   !![
   <nodeOperator name="nodeOperatorHaloAngularMomentumRandom">
@@ -35,7 +34,6 @@
      A node operator class that initializes halo spins to random values drawn from a distribution.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
      double precision                                     :: factorReset
@@ -62,7 +60,6 @@ contains
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandom)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
-    class           (darkMatterProfileDMOClass            ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
     class           (haloSpinDistributionClass            ), pointer       :: haloSpinDistribution_
     double precision                                                       :: factorReset
@@ -76,30 +73,27 @@ contains
     </inputParameter>
     <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=nodeOperatorHaloAngularMomentumRandom(factorReset,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=nodeOperatorHaloAngularMomentumRandom(factorReset,haloSpinDistribution_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="haloSpinDistribution_"/>
     !!]
     return
   end function haloAngularMomentumRandomConstructorParameters
 
-  function haloAngularMomentumRandomConstructorInternal(factorReset,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function haloAngularMomentumRandomConstructorInternal(factorReset,haloSpinDistribution_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily haloAngularMomentumRandom} node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandom)                        :: self
-    class           (darkMatterProfileDMOClass            ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
     class           (haloSpinDistributionClass            ), intent(in   ), target :: haloSpinDistribution_
     double precision                                       , intent(in   )         :: factorReset
     !![
-    <constructorAssign variables="factorReset, *haloSpinDistribution_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="factorReset, *haloSpinDistribution_, *darkMatterHaloScale_"/>
     !!]
 
     return
@@ -113,7 +107,6 @@ contains
     type(nodeOperatorHaloAngularMomentumRandom), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%haloSpinDistribution_"/>
     !!]
@@ -150,7 +143,7 @@ contains
        basicProgenitor => nodeProgenitor                       %basic (                         )
        spinPrevious    =  self           %haloSpinDistribution_%sample(           nodeProgenitor)
        massPrevious    =  basicProgenitor                      %mass  (                         )
-       call spinProgenitor%angularMomentumSet(spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_,self%darkMatterProfileDMO_))
+       call spinProgenitor%angularMomentumSet(spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_))
        do while (nodeProgenitor%isPrimaryProgenitor())
           nodeProgenitor  => nodeProgenitor%parent
           basicProgenitor => nodeProgenitor%basic ()
@@ -159,7 +152,7 @@ contains
              massPrevious=basicProgenitor                      %mass  (              )
           end if
           spinProgenitor => nodeProgenitor%spin(autoCreate=.true.)
-          call spinProgenitor%angularMomentumSet(spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_,self%darkMatterProfileDMO_))
+          call spinProgenitor%angularMomentumSet(spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_))
        end do
     end select
     return

@@ -255,8 +255,8 @@ contains
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Evaluate the density.
     position_         =  positionSpherical_
-    massDistribution_ => node              %massDistribution(                                        componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    density           =  massDistribution_ %density         (position_,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
+    massDistribution_ => node              %massDistribution(galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    density           =  massDistribution_ %density         (position_                                                                                                                                                              )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -283,8 +283,8 @@ contains
     
     call self%defaults(radius=radius,componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
     ! Compute the spherically-averaged density.
-    massDistribution_ => node             %massDistribution       (                                     componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    density           =  massDistribution_%densitySphericalAverage(radius,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
+    massDistribution_ => node             %massDistribution       (galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    density           =  massDistribution_%densitySphericalAverage(radius                                                                                                                                                                 )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -307,12 +307,11 @@ contains
     integer                                       , intent(in   ), optional :: weightIndex
     double precision                              , intent(in   ), optional :: radius
     class           (massDistributionClass       ), pointer                 :: massDistribution_
-    double precision                                                        :: massComponent
 
     call self%defaults(radius,componentType,massType,weightBy,weightIndex)
     ! Compute the contribution from components directly, by mapping a function over all components.
-    massDistribution_ => node             %massDistribution    (                                                                      componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    massEnclosed      =  massDistribution_%massEnclosedBySphere(galacticStructureState_%state%radius_  ,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
+    massDistribution_ => node             %massDistribution    (galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    massEnclosed      =  massDistribution_%massEnclosedBySphere(galacticStructureState_%state%radius_)
     ! Call routines to supply the masses for all components.
     !![
     <objectDestructor name="massDistribution_"/>
@@ -337,8 +336,8 @@ contains
     class           (massDistributionClass       ), pointer                 :: massDistribution_
 
     call self%defaults(componentType=componentType,massType=massType,weightBy=weightBy,weightIndex=weightIndex)
-    massDistribution_           => node             %massDistribution   (                    galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    standardRadiusEnclosingMass =  massDistribution_%radiusEnclosingMass(mass,massFractional,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_                                                                                   )
+    massDistribution_           => node             %massDistribution   (galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    standardRadiusEnclosingMass =  massDistribution_%radiusEnclosingMass(mass,massFractional                                                                                                                                                    )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -361,8 +360,8 @@ contains
     double precision                                                        :: rotationCurveSquared
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
-    massDistribution_    => node             %massDistribution(                                                                                                                          )
-    rotationCurveSquared =  massDistribution_%rotationCurve   (galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)**2
+    massDistribution_    => node             %massDistribution(galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    rotationCurveSquared =  massDistribution_%rotationCurve   (galacticStructureState_%state%radius_)**2
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -388,8 +387,8 @@ contains
     double precision                                                        :: velocityRotation
 
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
-    massDistribution_        => node             %massDistribution     (                                                                                                                          )
-    velocityRotationGradient =  massDistribution_%rotationCurveGradient(galacticStructureState_%state%radius_,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    massDistribution_        => node             %massDistribution     (galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    velocityRotationGradient =  massDistribution_%rotationCurveGradient(galacticStructureState_%state%radius_)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -427,29 +426,32 @@ contains
     if (present(status)) status=structureErrorCodeSuccess
     ! Reset calculations if this is a new node.
     if (node%uniqueID() /= self%uniqueIDPrevious) call self%calculationReset(node,node%uniqueID())
-    ! Get the mass distribution for this calculation.
-    massDistribution_ => node%massDistribution()
     ! Evaluate the potential at the halo virial radius.
     if (.not.self%potentialOffsetComputed) then
        call self%defaults(componentType=componentTypeAll,massType=massTypeAll,radius=self%darkMatterHaloScale_%radiusVirial(node))
+       massDistribution_ => node%massDistribution(galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
        position =[galacticStructureState_%state%radius_,0.0d0,0.0d0]
-       potential=massDistribution_%potential(position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_)
+       potential=massDistribution_%potential(position,status_)
        if (status_ /= structureErrorCodeSuccess) status=status_
        call self%restore()
        ! Compute the potential offset such that the total gravitational potential at the virial radius is -V² where V is the
        ! virial velocity.
        self%potentialOffset        =-potential-self%darkMatterHaloScale_%velocityVirial(node)**2
        self%potentialOffsetComputed=.true.
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     end if
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
-    ! Determine which component type to use.
+   ! Determine which component type to use.
     if (present(componentType)) then
        galacticStructureState_%state%componentType_=componentType
     else
        galacticStructureState_%state%componentType_=componentTypeAll
     end if
+    massDistribution_ => node%massDistribution(galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
     position =[galacticStructureState_%state%radius_,0.0d0,0.0d0]
-    potential=+massDistribution_%potential(position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_,status_) &
+    potential=+massDistribution_%potential(position,status_) &
          &    +self%potentialOffset
     if (status_ /= structureErrorCodeSuccess) status=status_
     !![
@@ -499,8 +501,8 @@ contains
     end select
     ! Compute the surface density.
     position_         =  positionCylindrical_
-    massDistribution_ => node                %massDistribution(                                        componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    surfaceDensity    =  massDistribution_   %surfaceDensity  (position_,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
+    massDistribution_ => node                %massDistribution(galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    surfaceDensity    =  massDistribution_   %surfaceDensity  (position_)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -573,8 +575,8 @@ contains
     call self%defaults(componentType=componentType,massType=massType)
     positionCartesian_ =  positionCartesian
     position           =  positionCartesian
-    massDistribution_  => node             %massDistribution(                                                                                             )
-    acceleration       =  massDistribution_%acceleration    (position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    massDistribution_  => node             %massDistribution(galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    acceleration       =  massDistribution_%acceleration    (position)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -603,8 +605,8 @@ contains
     call self%defaults(componentType=componentType,massType=massType)
     positionCartesian_ =  positionCartesian
     position           =  positionCartesian
-    massDistribution_  => node             %massDistribution(                                                                                             )
-    tidalTensor        =  massDistribution_%tidalTensor     (position,galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    massDistribution_  => node             %massDistribution(galacticStructureState_%state%componentType_,galacticStructureState_%state%massType_)
+    tidalTensor        =  massDistribution_%tidalTensor     (position)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -643,9 +645,9 @@ contains
     position           =  positionCartesian
     velocity           =  velocityCartesian
     ! Evaluate the density.
-    massDistribution_         => node             %massDistribution     (                                                                                            componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    massDistributionPerturber => nodeSatellite    %massDistribution     (                                                                                            componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,position,velocity,galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_                                                                                     )
+    massDistribution_         => node             %massDistribution     (galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    massDistributionPerturber => nodeSatellite    %massDistribution     (componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
+    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,position,velocity)
     !![
     <objectDestructor name="massDistribution_"        />
     <objectDestructor name="massDistributionPerturber"/>

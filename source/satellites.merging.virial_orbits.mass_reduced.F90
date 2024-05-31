@@ -22,11 +22,10 @@
   the primary halo below its ``\gls{dmou}'' value.
   !!}
 
-  use :: Galactic_Structure      , only : galacticStructureClass
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Galactic_Structure     , only : galacticStructureClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
   <virialOrbit name="virialOrbitMassReduced">
@@ -44,7 +43,6 @@
      private
      class(virialOrbitClass          ), pointer :: virialOrbit_           => null()
      class(galacticStructureClass    ), pointer :: galacticStructure_     => null()
-     class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
      class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
      class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
@@ -78,7 +76,6 @@ contains
     class(galacticStructureClass    ), pointer       :: galacticStructure_
     class(cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass  ), pointer       :: cosmologyParameters_
-    class(darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
     class(virialDensityContrastClass), pointer       :: virialDensityContrast_
 
     !![
@@ -86,23 +83,21 @@ contains
     <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=virialOrbitMassReduced(virialOrbit_,galacticStructure_,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_)
+    self=virialOrbitMassReduced(virialOrbit_,galacticStructure_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="virialOrbit_"          />
     <objectDestructor name="galacticStructure_"    />
     <objectDestructor name="cosmologyFunctions_"   />
     <objectDestructor name="cosmologyParameters_"  />
-    <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function massReducedConstructorParameters
 
-  function massReducedConstructorInternal(virialOrbit_,galacticStructure_,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function massReducedConstructorInternal(virialOrbit_,galacticStructure_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily massReduced} virial orbits class.
     !!}
@@ -113,9 +108,8 @@ contains
     class(cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
     class(cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     class(virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
-    class(darkMatterProfileDMOClass ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="*virialOrbit_, *galacticStructure_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*virialOrbit_, *galacticStructure_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_"/>
     !!]
 
     return
@@ -134,7 +128,6 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%virialDensityContrast_"/>
     <objectDestructor name="self%cosmologyParameters_"  />
-    <objectDestructor name="self%darkMatterProfileDMO_" />
     !!]
     return
   end subroutine massReducedDestructor
@@ -176,7 +169,6 @@ contains
          &                                                                    velocityHost                                                                             , &
          &                                             cosmologyParameters_  =self%cosmologyParameters_                                                                , &
          &                                             cosmologyFunctions_   =self%cosmologyFunctions_                                                                 , &
-         &                                             darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                               , &
          &                                             virialDensityContrast_=self%virialDensityContrast_                                                                &
          &                                            )
     !![
@@ -269,7 +261,6 @@ contains
          &                                                                                 velocityHost                                                                             , &
          &                                                          cosmologyParameters_  =self%cosmologyParameters_                                                                , &
          &                                                          cosmologyFunctions_   =self%cosmologyFunctions_                                                                 , &
-         &                                                          darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                               , &
          &                                                          virialDensityContrast_=self%virialDensityContrast_                                                                &
          &                                                        )
     !![
@@ -317,7 +308,6 @@ contains
          &                                                                     velocityHost                                                                             , &
          &                                              cosmologyParameters_  =self%cosmologyParameters_                                                                , &
          &                                              cosmologyFunctions_   =self%cosmologyFunctions_                                                                 , &
-         &                                              darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                               , &
          &                                              virialDensityContrast_=self%virialDensityContrast_                                                                &
          &                                             )
     !![

@@ -238,38 +238,26 @@ contains
     return
   end function massDistributionBurkertConstructorInternal
 
-  double precision function burkertMassTotal(self,componentType,massType)
+  double precision function burkertMassTotal(self)
     !!{
     Return the total mass in an Burkert mass distribution.
     !!}
     implicit none
-    class(massDistributionBurkert     ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    if (self%matches(componentType,massType)) then
-       burkertMassTotal=huge(0.0d0)
-    else
-       burkertMassTotal=0.0d0
-    end if
+    class(massDistributionBurkert), intent(inout) :: self
+ 
+    burkertMassTotal=huge(0.0d0)
     return
   end function burkertMassTotal
 
-  double precision function burkertDensity(self,coordinates,componentType,massType)
+  double precision function burkertDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an Burkert mass distribution.
     !!}
     implicit none
-    class           (massDistributionBurkert     ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionBurkert), intent(inout) :: self
+    class           (coordinate             ), intent(in   ) :: coordinates
+    double precision                                         :: radiusScaleFree
 
-    if (.not.self%matches(componentType,massType)) then
-       burkertDensity=0.0d0
-       return
-    end if    
     ! Compute the density at this position.
     radiusScaleFree=+coordinates%rSpherical          () &
          &          /self       %scaleLength
@@ -279,23 +267,19 @@ contains
     return
   end function burkertDensity
 
-  double precision function burkertDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function burkertDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an Burkert \citep{burkert_structure_1995} mass distribution.
     !!}
     implicit none
-    class           (massDistributionBurkert     ), intent(inout), target   :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionBurkert), intent(inout), target   :: self
+    class           (coordinate             ), intent(in   )           :: coordinates
+    logical                                  , intent(in   ), optional :: logarithmic
+    double precision                                                   :: radiusScaleFree
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    densityGradientRadial=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     radiusScaleFree      =+coordinates%rSpherical()         &
          &                /self       %scaleLength
     densityGradientRadial=-3.0d0                            &
@@ -307,22 +291,19 @@ contains
     return
   end function burkertDensityGradientRadial
 
-  double precision function burkertDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function burkertDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Computes radial moments of the density in an Burkert \citep{burkert_structure_1995} mass distribution.
     !!}
     implicit none
-    class           (massDistributionBurkert     ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radialMomentMinimum, radialMomentMaximum
+    class           (massDistributionBurkert), intent(inout)           :: self
+    double precision                         , intent(in   )           :: moment
+    double precision                         , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    logical                                  , intent(  out), optional :: isInfinite
+    double precision                                                   :: radialMomentMinimum, radialMomentMaximum
 
     densityRadialMoment=0.0d0
     if (present(isInfinite)) isInfinite=.false.
-    if (.not.self%matches(componentType,massType)) return
     if (present(radiusMinimum)) then
        radialMomentMinimum=radialMomentScaleFree(radiusMinimum/self%scaleLength)
     else
@@ -393,21 +374,15 @@ contains
 
   end function burkertDensityRadialMoment
 
-  double precision function burkertMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function burkertMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for burkert mass distributions.
     !!}
     implicit none
-    class           (massDistributionBurkert     ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionBurkert), intent(inout), target :: self
+    double precision                         , intent(in   )         :: radius
+    double precision                                                 :: radiusScaleFree
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     radiusScaleFree=+      radius                              &
          &           /self%scaleLength
     mass           =+self%densityNormalization                 &
@@ -416,26 +391,20 @@ contains
     return
   end function burkertMassEnclosedBySphere
   
-  double precision function burkertRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function burkertRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for burkert mass distributions.
     !!}    
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
     use :: Error           , only : Error_Report
     implicit none
-    class           (massDistributionBurkert     ), intent(inout), target       :: self
-    double precision                              , intent(in   ), optional     :: mass                       , massFractional
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                      , masses
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: massScaleFree              , mass_
-    integer                                                                     :: countRadii
+    class           (massDistributionBurkert), intent(inout), target       :: self
+    double precision                         , intent(in   ), optional     :: mass                       , massFractional
+    double precision                         , allocatable  , dimension(:) :: radii                      , masses
+    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                       :: massScaleFree              , mass_
+    integer                                                                :: countRadii
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     mass_=0.0d0
     if (present(mass)) then
        mass_=mass
@@ -474,20 +443,19 @@ contains
     return
   end function burkertRadiusEnclosingMass
   
-  double precision function burkertRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function burkertRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for burkert mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
-    class           (massDistributionBurkert     ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: density
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                      , densities
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: densityScaleFree
-    integer                                                                     :: countRadii
+    class           (massDistributionBurkert), intent(inout), target       :: self
+    double precision                         , intent(in   )               :: density
+    double precision                         , intent(in   ), optional     :: radiusGuess
+    double precision                         , allocatable  , dimension(:) :: radii                      , densities
+    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                       :: densityScaleFree
+    integer                                                                :: countRadii
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
@@ -509,8 +477,8 @@ contains
        allocate(self%densityScaleFree_            )
        radii                       = Make_Range(self%densityScaleFreeRadiusMinimum,self%densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
        densities                   =-densityEnclosedScaleFree(           radii)
-       self%densityScaleFreeMinimum= densities               (countRadii      )
-       self%densityScaleFreeMaximum= densities               (         1      )
+       self%densityScaleFreeMinimum=-densities               (countRadii      )
+       self%densityScaleFreeMaximum=-densities               (         1      )
        self%densityScaleFree_      = interpolator            (densities ,radii)
     end if
     radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
@@ -562,21 +530,19 @@ contains
     return
   end function densityEnclosedScaleFree
   
-  double precision function burkertRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function burkertRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for burkert mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
     implicit none
-    class           (massDistributionBurkert         ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: angularMomentumSpecific
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                              , parameter                   :: countRadiiPerDecade             =100.0d0
-    double precision                                                            :: angularMomentumSpecificScaleFree
-    integer                                                                     :: countRadii
+    class           (massDistributionBurkert), intent(inout), target       :: self
+    double precision                         , intent(in   )               :: angularMomentumSpecific
+    double precision                         , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
+    double precision                         , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                                                       :: angularMomentumSpecificScaleFree
+    integer                                                                :: countRadii
 
     angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
          &                           /sqrt(                                    &
@@ -625,23 +591,17 @@ contains
     return
   end function angularMomentumSpecificEnclosedScaleFree
 
-  double precision function burkertVelocityRotationCurveMaximum(self,componentType,massType) result(velocity)
+  double precision function burkertVelocityRotationCurveMaximum(self) result(velocity)
     !!{
     Return the peak velocity in the rotation curve for an burkert mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionBurkert     ), intent(inout)           :: self
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType    
-    double precision                              , parameter               :: circularVelocityMaximumScaleFree=1.644297750532498d0 ! The circular velocity (in scale-free units) at the peak of the Burkert rotation curve.
-    !                                                                                                                                 Numerical value found using Mathematica.
+    class           (massDistributionBurkert ), intent(inout) :: self
+    double precision                          , parameter     :: circularVelocityMaximumScaleFree=1.644297750532498d0 ! The circular velocity (in scale-free units) at the peak of the Burkert rotation curve.
+    !                                                                                                                   Numerical value found using Mathematica.
 
-    if (.not.self%matches(componentType,massType)) then
-       velocity=0.0d0
-       return
-    end if
     velocity=+circularVelocityMaximumScaleFree             &
          &   *sqrt(                                        &
          &         +self%densityNormalization              &
@@ -653,27 +613,21 @@ contains
     return
   end function burkertVelocityRotationCurveMaximum
 
-  double precision function burkertRadiusRotationCurveMaximum(self,componentType,massType) result(radius)
+  double precision function burkertRadiusRotationCurveMaximum(self) result(radius)
     !!{
     Return the peak velocity in the rotation curve for an burkert mass distribution.
     !!}
     implicit none
-    class           (massDistributionBurkert     ), intent(inout), target   :: self
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionBurkert), intent(inout), target :: self
     ! The radius (in scale-free units) at the peak of the Burkert rotation curve. Numerical value found using Mathematica.
-    double precision                              , parameter               :: radiusCircularVelocityMaximumScaleFree=3.244625724604264d0
+    double precision                         , parameter             :: radiusCircularVelocityMaximumScaleFree=3.244625724604264d0
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     radius=+radiusCircularVelocityMaximumScaleFree &
          & *self%scaleLength
     return
   end function burkertRadiusRotationCurveMaximum
 
-  double precision function burkertPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function burkertPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an burkert mass distribution.
     !!}
@@ -684,16 +638,10 @@ contains
     implicit none
     class           (massDistributionBurkert          ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                                             :: radiusScaleFree
     
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     radiusScaleFree=+coordinates%rSpherical () &
          &          /self       %scaleLength
     potential=+potentialScaleFree       (radiusScaleFree)    &
@@ -776,7 +724,7 @@ contains
     return
   end function potentialDifferenceScaleFree
   
-  double precision function burkertFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function burkertFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an Burkert mass
     distribution.
@@ -784,14 +732,10 @@ contains
     use :: Exponential_Integrals   , only : Exponential_Integral
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionBurkert     ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter        , wavenumber
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: wavenumberScaleFree, radiusOuterScaleFree
+    class           (massDistributionBurkert), intent(inout) :: self
+    double precision                         , intent(in   ) :: radiusOuter        , wavenumber
+    double precision                                         :: wavenumberScaleFree, radiusOuterScaleFree
 
-    fourierTransform=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     waveNumberScaleFree =+waveNumber *self%scaleLength
     radiusOuterScaleFree=+radiusOuter/self%scaleLength
     fourierTransform    =+dimag(                                                                                                                                                                                                                                                    &
@@ -808,22 +752,16 @@ contains
     return
   end function burkertFourierTransform
   
-  double precision function burkertRadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function burkertRadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an Burkert mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionBurkert     ), intent(inout)               :: self
-    double precision                              , intent(in   )               :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                                                            :: timeScaleFree, timeScale
+    class           (massDistributionBurkert), intent(inout) :: self
+    double precision                         , intent(in   ) :: time
+    double precision                                         :: timeScaleFree, timeScale
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     timeScale    =+1.0d0/sqrt(                                 &
          &                    +gravitationalConstantGalacticus &
          &                    *self%densityNormalization       &
@@ -841,29 +779,23 @@ contains
     return   
   end function burkertRadiusFreefall
   
-  double precision function burkertRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function burkertRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an burkert mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionBurkert     ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: timeScaleFree, timeScale
+    class           (massDistributionBurkert), intent(inout) :: self
+    double precision                         , intent(in   ) :: time
+    double precision                                         :: timeScaleFree, timeScale
 
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-       return
-    end if
     timeScale    =+1.0d0/sqrt(                                 &
-         &              +gravitationalConstantGalacticus &
-         &              *self%densityNormalization       &
-         &             )                                 &
+         &                    +gravitationalConstantGalacticus &
+         &                    *self%densityNormalization       &
+         &                   )                                 &
          &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                  &
+    timeScaleFree=+time                                        &
          &        /timeScale
     if (timeScaleFree <= timeFreefallScaleFreeMinimum) then
        radiusIncreaseRate=0.0d0

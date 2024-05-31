@@ -111,20 +111,23 @@ contains
     class           (massDistributionHeatingImpulsiveOutflow), intent(inout) :: self
     double precision                                         , intent(in   ) :: radius
     class           (massDistributionClass                  ), intent(inout) :: massDistribution_
-    double precision                                                         :: massTotalDisk    , massTotalSpheroid   , &
-         &                                                                      fractionMassDisk , fractionMassSpheroid
+    class           (massDistributionClass                  ), pointer       :: massDistributionDisk, massDistributionSpheroid
+    double precision                                                         :: massTotalDisk       , massTotalSpheroid       , &
+         &                                                                      fractionMassDisk    , fractionMassSpheroid
     
-    massTotalDisk    =massDistribution_%massTotal(componentType=componentTypeDisk    )
-    massTotalSpheroid=massDistribution_%massTotal(componentType=componentTypeSpheroid)
+    massDistributionDisk     => massDistribution_%subset(componentType=componentTypeDisk    )
+    massDistributionSpheroid => massDistribution_%subset(componentType=componentTypeSpheroid)
+    massTotalDisk            =  massDistributionDisk    %massTotal()
+    massTotalSpheroid        =  massDistributionSpheroid%massTotal()
     if (massTotalDisk     > 0.0d0) then
-       fractionMassDisk    =+massDistribution_%massEnclosedBySphere(radius,componentType=componentTypeDisk    ) &
-            &               /                  massTotalDisk
+       fractionMassDisk    =+massDistributionDisk    %massEnclosedBySphere(radius) &
+            &               /                         massTotalDisk
     else
        fractionMassDisk    =+0.0d0
     end if
     if (massTotalSpheroid > 0.0d0) then
-       fractionMassSpheroid=+massDistribution_%massEnclosedBySphere(radius,componentType=componentTypeSpheroid) &
-            &               /                  massTotalSpheroid
+       fractionMassSpheroid=+massDistributionSpheroid%massEnclosedBySphere(radius) &
+            &               /                         massTotalSpheroid
     else
        fractionMassSpheroid=+0.0d0
     end if
@@ -137,6 +140,10 @@ contains
          &           *fractionMassSpheroid                &
          &          )                                     &
          &         /radius
+    !![
+    <objectDestructor name="massDistributionDisk"    />
+    <objectDestructor name="massDistributionSpheroid"/>
+    !!]
     return
   end function impulsiveOutflowSpecificEnergy
 
@@ -152,28 +159,31 @@ contains
     class           (massDistributionHeatingImpulsiveOutflow), intent(inout) :: self
     double precision                                         , intent(in   ) :: radius
     class           (massDistributionClass                  ), intent(inout) :: massDistribution_
-    double precision                                                         :: massTotalDisk      , massTotalSpheroid      , &
-         &                                                                      fractionMassDisk   , fractionMassSpheroid   , &
-         &                                                                      fractionDensityDisk, fractionDensitySpheroid
+    class           (massDistributionClass                  ), pointer       :: massDistributionDisk, massDistributionSpheroid
+    double precision                                                         :: massTotalDisk       , massTotalSpheroid       , &
+         &                                                                      fractionMassDisk    , fractionMassSpheroid    , &
+         &                                                                      fractionDensityDisk , fractionDensitySpheroid
     type            (coordinatespherical                    )                :: coordinates
 
-    coordinates      =[radius,0.0d0,0.0d0]
-    massTotalDisk    =massDistribution_%massTotal(componentType=componentTypeDisk    )
-    massTotalSpheroid=massDistribution_%massTotal(componentType=componentTypeSpheroid)
+    massDistributionDisk     => massDistribution_%subset(componentType=componentTypeDisk    )
+    massDistributionSpheroid => massDistribution_%subset(componentType=componentTypeSpheroid)
+    coordinates              =  [radius,0.0d0,0.0d0]
+    massTotalDisk            =  massDistributionDisk    %massTotal()
+    massTotalSpheroid        =  massDistributionSpheroid%massTotal()
     if (massTotalDisk     > 0.0d0) then
-       fractionMassDisk       =+massDistribution_%massEnclosedBySphere(radius     ,componentType=componentTypeDisk    ) &
-            &                  /                  massTotalDisk
-       fractionDensityDisk    =+massDistribution_%density             (coordinates,componentType=componentTypeDisk    ) &
-            &                  /                  massTotalDisk
+       fractionMassDisk       =+massDistributionDisk    %massEnclosedBySphere(radius     ) &
+            &                  /                         massTotalDisk
+       fractionDensityDisk    =+massDistributionDisk    %density             (coordinates) &
+            &                  /                         massTotalDisk
     else
        fractionMassDisk       =+0.0d0
        fractionDensityDisk    =+0.0d0
     end if
     if (massTotalSpheroid > 0.0d0) then
-       fractionMassSpheroid   =+massDistribution_%massEnclosedBySphere(radius     ,componentType=componentTypeSpheroid) &
-            &                  /                  massTotalSpheroid
-       fractionDensitySpheroid=+massDistribution_%density             (coordinates,componentType=componentTypeSpheroid) &
-            &                  /                  massTotalSpheroid
+       fractionMassSpheroid   =+massDistributionSpheroid%massEnclosedBySphere(radius     ) &
+            &                  /                         massTotalSpheroid
+       fractionDensitySpheroid=+massDistributionSpheroid%density             (coordinates) &
+            &                  /                         massTotalSpheroid
     else
        fractionMassSpheroid   =+0.0d0
        fractionDensitySpheroid=+0.0d0
@@ -198,6 +208,10 @@ contains
          &                    )                                     &
          &                   /radius**2                             &
          &                  )
+    !![
+    <objectDestructor name="massDistributionDisk"    />
+    <objectDestructor name="massDistributionSpheroid"/>
+    !!]
     return
   end function impulsiveOutflowSpecificEnergyGradient
 

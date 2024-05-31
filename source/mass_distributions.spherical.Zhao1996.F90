@@ -310,49 +310,37 @@ contains
     return
   end function massDistributionZhao1996ConstructorInternal
 
-  double precision function zhao1996MassTotal(self,componentType,massType) result(massTotal)
+  double precision function zhao1996MassTotal(self) result(massTotal)
     !!{
     Return the total mass in an Zhao1996 mass distribution.
     !!}
     use :: Gamma_Functions, only : Gamma_Function
     implicit none
-    class(massDistributionZhao1996    ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionZhao1996), intent(inout) :: self
 
-    if (self%matches(componentType,massType)) then
-       if (self%beta <= 3.0d0) then
-          massTotal=+huge(0.0d0)
-       else
-          massTotal=+ 4.0d0                                                              &
-          &         /(3.0d0-self%gamma)                                                  &
-          &         *Gamma_Function((-3.0d0           +self%beta           )/self%alpha) &
-          &         *Gamma_Function((+3.0d0+self%alpha          -self%gamma)/self%alpha) &
-          &         /Gamma_Function((      -self%alpha+self%beta           )/self%alpha) &
-          &         *self%densityNormalization                                           &
-          &         *self%scaleLength         **3
-       end if
+    if (self%beta <= 3.0d0) then
+       massTotal=+huge(0.0d0)
     else
-       massTotal   =+0.0d0
+       massTotal=+ 4.0d0                                                              &
+            &    /(3.0d0-self%gamma)                                                  &
+            &    *Gamma_Function((-3.0d0           +self%beta           )/self%alpha) &
+            &    *Gamma_Function((+3.0d0+self%alpha          -self%gamma)/self%alpha) &
+            &    /Gamma_Function((      -self%alpha+self%beta           )/self%alpha) &
+            &    *self%densityNormalization                                           &
+            &    *self%scaleLength         **3
     end if
     return
   end function zhao1996MassTotal
 
-  double precision function zhao1996Density(self,coordinates,componentType,massType) result(density)
+  double precision function zhao1996Density(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Zhao1996 mass distribution.
     !!}
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionZhao1996), intent(inout) :: self
+    class           (coordinate              ), intent(in   ) :: coordinates
+    double precision                                          :: radiusScaleFree
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if    
     ! Compute the density at this position.
     radiusScaleFree=+coordinates%rSpherical () &
          &          /self       %scaleLength
@@ -398,23 +386,19 @@ contains
     return
   end function zhao1996Density
 
-  double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
     !!}
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout), target   :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionZhao1996), intent(inout), target   :: self
+    class           (coordinate              ), intent(in   )           :: coordinates
+    logical                                   , intent(in   ), optional :: logarithmic
+    double precision                                                    :: radiusScaleFree
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    densityGradientRadial=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     radiusScaleFree      =+coordinates%rSpherical()                  &
          &                /self       %scaleLength
     densityGradientRadial=-(                                         &
@@ -431,23 +415,20 @@ contains
     return
   end function zhao1996DensityGradientRadial
 
-  double precision function zhao1996DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function zhao1996DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Computes radial moments of the density in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
     !!}
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radialMomentMinimum, radialMomentMaximum, &
-         &                                                                     radiusScaleFree
+    class           (massDistributionZhao1996), intent(inout)           :: self
+    double precision                          , intent(in   )           :: moment
+    double precision                          , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    logical                                   , intent(  out), optional :: isInfinite
+    double precision                                                    :: radialMomentMinimum, radialMomentMaximum, &
+         &                                                                 radiusScaleFree
 
     densityRadialMoment=0.0d0
     if (present(isInfinite)) isInfinite=.false.
-    if (.not.self%matches(componentType,massType)) return
     if (present(radiusMinimum)) then
        radiusScaleFree     =+     radiusMinimum &
             &               /self%scaleLength
@@ -502,21 +483,15 @@ contains
 
   end function zhao1996DensityRadialMoment
 
-  double precision function zhao1996MassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function zhao1996MassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for zhao1996 mass distributions.
     !!}
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionZhao1996), intent(inout), target :: self
+    double precision                          , intent(in   )         :: radius
+    double precision                                                  :: radiusScaleFree
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     self_           =>  self
     radiusScaleFree =  +      radius                              &
          &              /self%scaleLength
@@ -526,23 +501,17 @@ contains
     return
   end function zhao1996MassEnclosedBySphere
 
-  double precision function zhao1996VelocityRotationCurveMaximum(self,componentType,massType) result(velocity)
+  double precision function zhao1996VelocityRotationCurveMaximum(self) result(velocity)
     !!{
     Return the peak velocity in the rotation curve for a Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(massDistributionZhao1996    ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType    
+    class(massDistributionZhao1996), intent(inout) :: self
 
-    if (.not.self%matches(componentType,massType)) then
-       velocity=0.0d0
-       return
-    end if
     select case (self%specialCase%ID)
     case (specialCaseGeneral    %ID)
-       velocity=+self%rotationCurve(self%radiusRotationCurveMaximum(componentType,massType))
+       velocity=+self%rotationCurve(self%radiusRotationCurveMaximum())
        return
     case (specialCaseNFW        %ID)
        velocity=+1.6483500453640064578d0
@@ -567,22 +536,16 @@ contains
     return
   end function zhao1996VelocityRotationCurveMaximum
 
-  double precision function zhao1996RadiusRotationCurveMaximum(self,componentType,massType) result(radius)
+  double precision function zhao1996RadiusRotationCurveMaximum(self) result(radius)
     !!{
     Return the peak velocity in the rotation curve for a Zhao1996 mass distribution.
     !!}
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout), target   :: self
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionZhao1996), intent(inout), target :: self
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     select case (self%specialCase%ID)
     case (specialCaseGeneral    %ID)
-       radius=+self%radiusRotationCurveMaximumNumerical(componentType,massType)
+       radius=+self%radiusRotationCurveMaximumNumerical()
        return
     case (specialCaseNFW        %ID)
        radius=+2.1625815870646098349d0
@@ -601,26 +564,20 @@ contains
     return
   end function zhao1996RadiusRotationCurveMaximum
   
-  double precision function zhao1996RadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function zhao1996RadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for zhao1996 mass distributions.
     !!}    
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     use :: Error           , only : Error_Report
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout), target       :: self
-    double precision                              , intent(in   ), optional     :: mass                       , massFractional
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                      , masses
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: massScaleFree              , mass_
-    integer                                                                     :: countRadii
+    class           (massDistributionZhao1996), intent(inout), target       :: self
+    double precision                          , intent(in   ), optional     :: mass                       , massFractional
+    double precision                          , allocatable  , dimension(:) :: radii                      , masses
+    double precision                          , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                        :: massScaleFree              , mass_
+    integer                                                                 :: countRadii
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     mass_=0.0d0
     if (present(mass)) then
        mass_=mass
@@ -660,20 +617,19 @@ contains
     return
   end function zhao1996RadiusEnclosingMass
   
-  double precision function zhao1996RadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function zhao1996RadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for zhao1996 mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: density
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                      , densities
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: densityScaleFree
-    integer                                                                     :: countRadii
+    class           (massDistributionZhao1996), intent(inout), target       :: self
+    double precision                          , intent(in   )               :: density
+    double precision                          , intent(in   ), optional     :: radiusGuess
+    double precision                          , allocatable  , dimension(:) :: radii                      , densities
+    double precision                          , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                        :: densityScaleFree
+    integer                                                                 :: countRadii
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
@@ -696,8 +652,8 @@ contains
        self_                        =>  self
        radii                        =   Make_Range(self%densityScaleFreeRadiusMinimum,self%densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
        densities                    =  -densityEnclosedScaleFree(           radii)
-       self%densityScaleFreeMinimum =   densities               (countRadii      )
-       self%densityScaleFreeMaximum =   densities               (         1      )
+       self%densityScaleFreeMinimum =  -densities               (countRadii      )
+       self%densityScaleFreeMaximum =  -densities               (         1      )
        self%densityScaleFree_       =   interpolator            (densities ,radii)
     end if
     radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
@@ -824,21 +780,19 @@ contains
     return
   end function densityEnclosedScaleFree
   
-  double precision function zhao1996RadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function zhao1996RadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for zhao1996 mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: angularMomentumSpecific
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                              , parameter                   :: countRadiiPerDecade             =100.0d0
-    double precision                                                            :: angularMomentumSpecificScaleFree
-    integer                                                                     :: countRadii
+    class           (massDistributionZhao1996), intent(inout), target       :: self
+    double precision                          , intent(in   )               :: angularMomentumSpecific
+    double precision                          , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
+    double precision                          , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                                                        :: angularMomentumSpecificScaleFree
+    integer                                                                 :: countRadii
 
     angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
          &                           /sqrt(                                    &
@@ -888,7 +842,7 @@ contains
     return
   end function angularMomentumSpecificEnclosedScaleFree
 
-  double precision function zhao1996Potential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function zhao1996Potential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an zhao1996 mass distribution.
     !!}
@@ -899,16 +853,10 @@ contains
     implicit none
     class           (massDistributionZhao1996         ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                                             :: radiusScaleFree
     
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     self_           =>  self
     radiusScaleFree =  +coordinates%rSpherical () &
          &             /self       %scaleLength
@@ -1098,22 +1046,16 @@ contains
     return
   end function potentialDifferenceScaleFree
     
-  double precision function zhao1996RadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function zhao1996RadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: timeScaleFree, timeScale
+    class           (massDistributionZhao1996), intent(inout) :: self
+    double precision                          , intent(in   ) :: time
+    double precision                                          :: timeScaleFree, timeScale
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     timeScale    =+1.0d0/sqrt(                                 &
          &                    +gravitationalConstantGalacticus &
          &                    *self%densityNormalization       &
@@ -1131,23 +1073,17 @@ contains
     return   
   end function zhao1996RadiusFreefall
   
-  double precision function zhao1996RadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function zhao1996RadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an zhao1996 mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: timeScaleFree, timeScale
+    class           (massDistributionZhao1996), intent(inout) :: self
+    double precision                          , intent(in   ) :: time
+    double precision                                          :: timeScaleFree, timeScale
 
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-       return
-    end if
     timeScale    =+1.0d0/sqrt(                                 &
          &                    +gravitationalConstantGalacticus &
          &                    *self%densityNormalization       &
@@ -1250,7 +1186,7 @@ contains
     
   end subroutine zhao1996TimeFreefallTabulate
 
-  double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an Zhao1996 mass
     distribution.
@@ -1258,14 +1194,10 @@ contains
     use :: Exponential_Integrals   , only : Exponential_Integral
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionZhao1996    ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter        , wavenumber
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: wavenumberScaleFree, radiusOuterScaleFree
+    class           (massDistributionZhao1996), intent(inout) :: self
+    double precision                          , intent(in   ) :: radiusOuter        , wavenumber
+    double precision                                          :: wavenumberScaleFree, radiusOuterScaleFree
 
-    fourierTransform=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     waveNumberScaleFree =+waveNumber *self%scaleLength
     radiusOuterScaleFree=+radiusOuter/self%scaleLength
     select case (self%specialCase%ID)
@@ -1274,7 +1206,7 @@ contains
          &  specialCaseGamma0_5NFW%ID, &
          &  specialCaseGamma1_5NFW%ID  &
          & )
-       fourierTransform=+self%fourierTransformNumerical(radiusOuter,wavenumber,componentType,massType)
+       fourierTransform=+self%fourierTransformNumerical(radiusOuter,wavenumber)
        return
     case (specialCaseNFW        %ID)
        fourierTransform=+dimag(                                                                                                  &

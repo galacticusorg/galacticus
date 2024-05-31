@@ -33,17 +33,8 @@
      The NFW \citep{navarro_structure_1996} mass distribution.
      !!}
      private
-     double precision                            :: densityNormalization                         , scaleLength
-     double precision                            :: enclosedMassRadiusPrevious                   , enclosedMassPrevious
-     double precision                            :: densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum
-     double precision                            :: densityScaleFreeMinimum                      , densityScaleFreeMaximum
-     type            (interpolator), allocatable :: densityScaleFree_
-     double precision                            :: angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum
-     double precision                            :: angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum
-     type            (interpolator), allocatable :: angularMomentumSpecificScaleFree_
-     double precision                            :: timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum
-     double precision                            :: timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
-     type            (interpolator), allocatable :: timeFreefallScaleFree_
+     double precision :: densityNormalization      , scaleLength
+     double precision :: enclosedMassRadiusPrevious, enclosedMassPrevious
    contains
      !![
      <methods>
@@ -78,6 +69,26 @@
      module procedure massDistributionNFWConstructorInternal
   end interface massDistributionNFW
 
+  ! Tabulated solutions.
+  double precision                            :: densityScaleFreeRadiusMinimum                =+     2.0d0 , densityScaleFreeRadiusMaximum                =+     0.5d0
+  double precision                            :: densityScaleFreeMinimum                      =+huge(0.0d0), densityScaleFreeMaximum                      =-huge(0.0d0)
+  type            (interpolator), allocatable :: densityScaleFree_
+  double precision                            :: angularMomentumSpecificScaleFreeRadiusMinimum=+     2.0d0 , angularMomentumSpecificScaleFreeRadiusMaximum=+     0.5d0 
+  double precision                            :: angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0), angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
+  type            (interpolator), allocatable :: angularMomentumSpecificScaleFree_
+  double precision                            :: timeFreefallScaleFreeRadiusMinimum           =+     2.0d0 , timeFreefallScaleFreeRadiusMaximum           =+     0.5d0 
+  double precision                            :: timeFreefallScaleFreeMinimum                 =+huge(0.0d0), timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
+  type            (interpolator), allocatable :: timeFreefallScaleFree_
+  !$omp threadprivate(densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum                )
+  !$omp threadprivate(densityScaleFreeMinimum                      , densityScaleFreeMaximum                      )
+  !$omp threadprivate(densityScaleFree_                                                                           )
+  !$omp threadprivate(angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum)
+  !$omp threadprivate(angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum      )
+  !$omp threadprivate(angularMomentumSpecificScaleFree_                                                           )
+  !$omp threadprivate(timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum           )
+  !$omp threadprivate(timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum                 )
+  !$omp threadprivate(timeFreefallScaleFree_                                                                      )
+  
 contains
 
   function massDistributionNFWConstructorParameters(parameters) result(self)
@@ -214,55 +225,31 @@ contains
        self%dimensionless=.false.
     end if
     ! Initialize memoized results.
-    self%enclosedMassPrevious                         =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious                   =-huge(0.0d0)
-    self%densityScaleFreeMinimum                      =+huge(0.0d0)
-    self%densityScaleFreeMaximum                      =-huge(0.0d0)
-    self%densityScaleFreeRadiusMinimum                =+2.0d0
-    self%densityScaleFreeRadiusMaximum                =+0.5d0
-    self%angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeRadiusMinimum=+2.0d0
-    self%angularMomentumSpecificScaleFreeRadiusMaximum=+0.5d0
-    self%timeFreefallScaleFreeMinimum                 =+huge(0.0d0)
-    self%timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
-    self%timeFreefallScaleFreeRadiusMinimum           =+2.0d0
-    self%timeFreefallScaleFreeRadiusMaximum           =+0.5d0
+    self%enclosedMassPrevious      =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious=-huge(0.0d0)
     return
   end function massDistributionNFWConstructorInternal
 
-  double precision function nfwMassTotal(self,componentType,massType)
+  double precision function nfwMassTotal(self)
     !!{
     Return the total mass in an NFW mass distribution.
     !!}
     implicit none
-    class(massDistributionNFW         ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionNFW), intent(inout) :: self
 
-    if (self%matches(componentType,massType)) then
-       nfwMassTotal=huge(0.0d0)
-    else
-       nfwMassTotal=0.0d0
-    end if
+    nfwMassTotal=huge(0.0d0)
     return
   end function nfwMassTotal
 
-  double precision function nfwDensity(self,coordinates,componentType,massType)
+  double precision function nfwDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
     !!}
     implicit none
-    class           (massDistributionNFW         ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionNFW), intent(inout) :: self
+    class           (coordinate         ), intent(in   ) :: coordinates
+    double precision                                     :: radiusScaleFree
 
-    if (.not.self%matches(componentType,massType)) then
-       nfwDensity=0.0d0
-       return
-    end if    
     ! Compute the density at this position.
     radiusScaleFree=+coordinates%rSpherical          () &
          &          /self       %scaleLength
@@ -272,24 +259,21 @@ contains
     return
   end function nfwDensity
 
-  double precision function nfwDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function nfwDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (massDistributionNFW         ), intent(inout), target   :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionNFW), intent(inout), target   :: self
+    class           (coordinate         ), intent(in   )           :: coordinates
+    logical                              , intent(in   ), optional :: logarithmic
+    double precision                                               :: radiusScaleFree
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
     densityGradientRadial=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     radiusScaleFree      =+coordinates%rSpherical()         &
          &                /self       %scaleLength
     if (radiusScaleFree <= 0.0d0) then
@@ -311,22 +295,19 @@ contains
     return
   end function nfwDensityGradientRadial
 
-  double precision function nfwDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function nfwDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Computes radial moments of the density in an NFW \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
-    class           (massDistributionNFW         ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radialMomentMinimum, radialMomentMaximum
+    class           (massDistributionNFW), intent(inout)           :: self
+    double precision                     , intent(in   )           :: moment
+    double precision                     , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    logical                              , intent(  out), optional :: isInfinite
+    double precision                                               :: radialMomentMinimum, radialMomentMaximum
 
     densityRadialMoment=0.0d0
     if (present(isInfinite)) isInfinite=.false.
-    if (.not.self%matches(componentType,massType)) return
     if (present(radiusMinimum)) then
        radialMomentMinimum=radialMomentScaleFree(radiusMinimum/self%scaleLength)
     else
@@ -398,22 +379,16 @@ contains
 
   end function nfwDensityRadialMoment
 
-  double precision function nfwMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function nfwMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionNFW         ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionNFW ), intent(inout), target :: self
+    double precision                      , intent(in   )         :: radius
+    double precision                                              :: radiusScaleFree
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     if (radius /= self%enclosedMassRadiusPrevious) then
        self%enclosedMassRadiusPrevious=+     radius
        radiusScaleFree                =+     radius                                    &
@@ -426,7 +401,7 @@ contains
     return
   end function nfwMassEnclosedBySphere
   
-  double precision function nfwRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function nfwRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for nfw mass distributions.
     !!}    
@@ -434,17 +409,11 @@ contains
     use :: Lambert_Ws              , only : Lambert_W0
     use :: Error                   , only : Error_Report
     implicit none
-    class           (massDistributionNFW         ), intent(inout), target   :: self
-    double precision                              , intent(in   ), optional :: mass                     , massFractional
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                , parameter             :: massScaleFreeSmall=3.0d-4
-    double precision                                                        :: mass_                    , massScaleFree
+    class           (massDistributionNFW ), intent(inout), target   :: self
+    double precision                      , intent(in   ), optional :: mass                     , massFractional
+    double precision                      , parameter               :: massScaleFreeSmall=3.0d-4
+    double precision                                                :: mass_                    , massScaleFree
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     mass_=0.0d0
     if (present(mass)) then
        mass_=mass
@@ -485,47 +454,46 @@ contains
     return
   end function nfwRadiusEnclosingMass
   
-  double precision function nfwRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function nfwRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for nfw mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
-    class           (massDistributionNFW         ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: density
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                      , densities
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: densityScaleFree
-    integer                                                                     :: countRadii
+    class           (massDistributionNFW), intent(inout), target       :: self
+    double precision                     , intent(in   )               :: density
+    double precision                     , intent(in   ), optional     :: radiusGuess
+    double precision                     , allocatable  , dimension(:) :: radii                      , densities
+    double precision                     , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                   :: densityScaleFree
+    integer                                                            :: countRadii
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
-    if     (                                                 &
-         &   densityScaleFree < self%densityScaleFreeMinimum &
-         &  .or.                                             &
-         &   densityScaleFree > self%densityScaleFreeMaximum &
+    if     (                                            &
+         &   densityScaleFree < densityScaleFreeMinimum &
+         &  .or.                                        &
+         &   densityScaleFree > densityScaleFreeMaximum &
          & ) then
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMinimum) < densityScaleFree)
-          self%densityScaleFreeRadiusMinimum=0.5d0*self%densityScaleFreeRadiusMinimum
+       do while (densityEnclosedScaleFree(densityScaleFreeRadiusMinimum) < densityScaleFree)
+          densityScaleFreeRadiusMinimum=0.5d0*densityScaleFreeRadiusMinimum
        end do
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMaximum) > densityScaleFree)
-          self%densityScaleFreeRadiusMaximum=2.0d0*self%densityScaleFreeRadiusMaximum
+       do while (densityEnclosedScaleFree(densityScaleFreeRadiusMaximum) > densityScaleFree)
+          densityScaleFreeRadiusMaximum=2.0d0*densityScaleFreeRadiusMaximum
        end do
-       countRadii=int(log10(self%densityScaleFreeRadiusMaximum/self%densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%densityScaleFree_)) deallocate(self%densityScaleFree_)
-       allocate(     radii            (countRadii))
-       allocate(     densities        (countRadii))
-       allocate(self%densityScaleFree_            )
-       radii                       = Make_Range(self%densityScaleFreeRadiusMinimum,self%densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       densities                   =-densityEnclosedScaleFree(           radii)
-       self%densityScaleFreeMinimum= densities               (countRadii      )
-       self%densityScaleFreeMaximum= densities               (         1      )
-       self%densityScaleFree_      = interpolator            (densities ,radii)
+       countRadii=int(log10(densityScaleFreeRadiusMaximum/densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
+       if (allocated(densityScaleFree_)) deallocate(densityScaleFree_)
+       allocate(radii            (countRadii))
+       allocate(densities        (countRadii))
+       allocate(densityScaleFree_            )
+       radii                  = Make_Range(densityScaleFreeRadiusMinimum,densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
+       densities              =-densityEnclosedScaleFree(           radii)
+       densityScaleFreeMinimum=-densities               (countRadii      )
+       densityScaleFreeMaximum=-densities               (         1      )
+       densityScaleFree_      = interpolator            (densities ,radii)
     end if
-    radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
-         & *self%scaleLength
+    radius=+densityScaleFree_%interpolate(-densityScaleFree) &
+         & *self             %scaleLength
     return    
   end function nfwRadiusEnclosingDensity
 
@@ -568,21 +536,19 @@ contains
     return
   end function densityEnclosedScaleFree  
 
-  double precision function nfwRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function nfwRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
     implicit none
-    class           (massDistributionNFW         ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: angularMomentumSpecific
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                              , parameter                   :: countRadiiPerDecade             =100.0d0
-    double precision                                                            :: angularMomentumSpecificScaleFree
-    integer                                                                     :: countRadii
+    class           (massDistributionNFW), intent(inout), target       :: self
+    double precision                     , intent(in   )               :: angularMomentumSpecific
+    double precision                     , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
+    double precision                     , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                                                   :: angularMomentumSpecificScaleFree
+    integer                                                            :: countRadii
 
     angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
          &                           /sqrt(                                    &
@@ -590,30 +556,30 @@ contains
          &                                 *self%densityNormalization          &
          &                                )                                    &
          &                           /      self%scaleLength               **2
-    if     (                                                                                 &
-         &   angularMomentumSpecificScaleFree < self%angularMomentumSpecificScaleFreeMinimum &
-         &  .or.                                                                             &
-         &   angularMomentumSpecificScaleFree > self%angularMomentumSpecificScaleFreeMaximum &
+    if     (                                                                            &
+         &   angularMomentumSpecificScaleFree < angularMomentumSpecificScaleFreeMinimum &
+         &  .or.                                                                        &
+         &   angularMomentumSpecificScaleFree > angularMomentumSpecificScaleFreeMaximum &
          & ) then
-       do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMinimum) > angularMomentumSpecificScaleFree)
-          self%angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*self%angularMomentumSpecificScaleFreeRadiusMinimum
+       do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMinimum) > angularMomentumSpecificScaleFree)
+          angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*angularMomentumSpecificScaleFreeRadiusMinimum
        end do
-       do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMaximum) < angularMomentumSpecificScaleFree)
-          self%angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*self%angularMomentumSpecificScaleFreeRadiusMaximum
+       do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMaximum) < angularMomentumSpecificScaleFree)
+          angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*angularMomentumSpecificScaleFreeRadiusMaximum
        end do
-       countRadii=int(log10(self%angularMomentumSpecificScaleFreeRadiusMaximum/self%angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%angularMomentumSpecificScaleFree_)) deallocate(self%angularMomentumSpecificScaleFree_)
-       allocate(     radii                            (countRadii))
-       allocate(     angularMomentaSpecific           (countRadii))
-       allocate(self%angularMomentumSpecificScaleFree_            )
-       radii                                       =Make_Range(self%angularMomentumSpecificScaleFreeRadiusMinimum,self%angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       angularMomentaSpecific                      =angularMomentumSpecificEnclosedScaleFree(                       radii)
-       self%angularMomentumSpecificScaleFreeMinimum=angularMomentaSpecific                  (            countRadii      )
-       self%angularMomentumSpecificScaleFreeMaximum=angularMomentaSpecific                  (                     1      )
-       self%angularMomentumSpecificScaleFree_      =interpolator                            (angularMomentaSpecific,radii)
+       countRadii=int(log10(angularMomentumSpecificScaleFreeRadiusMaximum/angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
+       if (allocated(angularMomentumSpecificScaleFree_)) deallocate(angularMomentumSpecificScaleFree_)
+       allocate(radii                            (countRadii))
+       allocate(angularMomentaSpecific           (countRadii))
+       allocate(angularMomentumSpecificScaleFree_            )
+       radii                                  =Make_Range(angularMomentumSpecificScaleFreeRadiusMinimum,angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
+       angularMomentaSpecific                 =angularMomentumSpecificEnclosedScaleFree(                       radii)
+       angularMomentumSpecificScaleFreeMinimum=angularMomentaSpecific                  (            countRadii      )
+       angularMomentumSpecificScaleFreeMaximum=angularMomentaSpecific                  (                     1      )
+       angularMomentumSpecificScaleFree_      =interpolator                            (angularMomentaSpecific,radii)
     end if
-    radius=+self%angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
-         & *self%scaleLength
+    radius=+angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
+         & *self                             %scaleLength
     return    
   end function nfwRadiusFromSpecificAngularMomentum
 
@@ -631,23 +597,17 @@ contains
     return
   end function angularMomentumSpecificEnclosedScaleFree
 
-  double precision function nfwVelocityRotationCurveMaximum(self,componentType,massType) result(velocity)
+  double precision function nfwVelocityRotationCurveMaximum(self) result(velocity)
     !!{
     Return the peak velocity in the rotation curve for an nfw mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionNFW         ), intent(inout)           :: self
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType    
-    double precision                              , parameter               :: circularVelocityMaximumScaleFree=0.4649909628174221d0 ! The circular velocity (in scale-free units) at the peak of the NFW rotation curve.
-    !                                                                                                                                  Numerical value found using Mathematica.
+    class           (massDistributionNFW), intent(inout) :: self
+    double precision                     , parameter     :: circularVelocityMaximumScaleFree=0.4649909628174221d0 ! The circular velocity (in scale-free units) at the peak of the NFW rotation curve.
+    !                                                                                                               Numerical value found using Mathematica.
 
-    if (.not.self%matches(componentType,massType)) then
-       velocity=0.0d0
-       return
-    end if
     velocity=+circularVelocityMaximumScaleFree             &
          &   *sqrt(                                        &
          &         +4.0d0                                  &
@@ -661,27 +621,21 @@ contains
     return
   end function nfwVelocityRotationCurveMaximum
 
-  double precision function nfwRadiusRotationCurveMaximum(self,componentType,massType) result(radius)
+  double precision function nfwRadiusRotationCurveMaximum(self) result(radius)
     !!{
     Return the peak velocity in the rotation curve for an nfw mass distribution.
     !!}
     implicit none
-    class           (massDistributionNFW         ), intent(inout), target   :: self
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionNFW         ), intent(inout), target :: self
     ! The radius (in scale-free units) at the peak of the NFW rotation curve. Numerical value found using Mathematica.
-    double precision                              , parameter               :: radiusCircularVelocityMaximumScaleFree=2.162581587064612d0
+    double precision                              , parameter             :: radiusCircularVelocityMaximumScaleFree=2.162581587064612d0
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     radius=+radiusCircularVelocityMaximumScaleFree &
          & *self%scaleLength
     return
   end function nfwRadiusRotationCurveMaximum
 
-  double precision function nfwPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function nfwPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an nfw mass distribution.
     !!}
@@ -692,16 +646,10 @@ contains
     implicit none
     class           (massDistributionNFW              ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                                             :: radiusScaleFree
     
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     radiusScaleFree=+coordinates%rSpherical () &
          &          /self       %scaleLength
     potential=+potentialScaleFree       (radiusScaleFree)    &
@@ -770,21 +718,17 @@ contains
     return
   end function potentialDifferenceScaleFree
   
-  double precision function nfwFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function nfwFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an NFW mass
     distribution, using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     !!}
     use :: Exponential_Integrals, only : Cosine_Integral, Sine_Integral
     implicit none
-    class           (massDistributionNFW         ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter        , wavenumber
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: wavenumberScaleFree, radiusOuterScaleFree
+    class           (massDistributionNFW ), intent(inout) :: self
+    double precision                      , intent(in   ) :: radiusOuter        , wavenumber
+    double precision                                      :: wavenumberScaleFree, radiusOuterScaleFree
 
-    fourierTransform=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     waveNumberScaleFree =+waveNumber *self%scaleLength
     radiusOuterScaleFree=+radiusOuter/self%scaleLength
     fourierTransform    =+(                                                                                                                                                         &
@@ -796,22 +740,16 @@ contains
     return
   end function nfwFourierTransform
   
-  double precision function nfwRadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function nfwRadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionNFW         ), intent(inout)               :: self
-    double precision                              , intent(in   )               :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                                                            :: timeScaleFree, timeScale
+    class           (massDistributionNFW), intent(inout) :: self
+    double precision                     , intent(in   ) :: time
+    double precision                                     :: timeScaleFree, timeScale
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     timeScale    =+1.0d0/sqrt(                                 &
          &                    +gravitationalConstantGalacticus &
          &                    *self%densityNormalization       &
@@ -820,39 +758,33 @@ contains
     timeScaleFree=+time                                  &
          &        /timeScale
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%interpolate(timeScaleFree) &
-         & *self%scaleLength
+    radius=+timeFreefallScaleFree_%interpolate(timeScaleFree) &
+         & *self                  %scaleLength
     return   
   end function nfwRadiusFreefall
   
-  double precision function nfwRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function nfwRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an nfw mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionNFW         ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: timeScaleFree, timeScale
+    class           (massDistributionNFW), intent(inout) :: self
+    double precision                     , intent(in   ) :: time
+    double precision                                     :: timeScaleFree, timeScale
 
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-       return
-    end if
     timeScale    =+1.0d0/sqrt(                                 &
          &                    +gravitationalConstantGalacticus &
          &                    *self%densityNormalization       &
          &                   )                                 &
          &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                  &
+    timeScaleFree=+time                                        &
          &        /timeScale
     call self%timeFreefallTabulate(timeScaleFree)
-    radiusIncreaseRate=+self%timeFreefallScaleFree_%derivative(timeScaleFree) &
-         &             *self%scaleLength                                      &
-         &             /     timeScale
+    radiusIncreaseRate=+timeFreefallScaleFree_%derivative(timeScaleFree) &
+         &             *self                  %scaleLength               &
+         &             /                       timeScale
     return
   end function nfwRadiusFreefallIncreaseRate
   
@@ -871,30 +803,30 @@ contains
     integer                                                            :: countRadii                 , i
     type            (integrator         )                              :: integrator_
 
-    if     (                                                   &
-         &   timeScaleFree < self%timeFreefallScaleFreeMinimum &
-         &  .or.                                               &
-         &   timeScaleFree > self%timeFreefallScaleFreeMaximum &
+    if     (                                              &
+         &   timeScaleFree < timeFreefallScaleFreeMinimum &
+         &  .or.                                          &
+         &   timeScaleFree > timeFreefallScaleFreeMaximum &
          & ) then
        integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMinimum) > timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMinimum=0.5d0*self%timeFreefallScaleFreeRadiusMinimum
+       do while (timeFreefallScaleFree(timeFreefallScaleFreeRadiusMinimum) > timeScaleFree)
+          timeFreefallScaleFreeRadiusMinimum=0.5d0*timeFreefallScaleFreeRadiusMinimum
        end do
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMaximum) < timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMaximum=2.0d0*self%timeFreefallScaleFreeRadiusMaximum
+       do while (timeFreefallScaleFree(timeFreefallScaleFreeRadiusMaximum) < timeScaleFree)
+          timeFreefallScaleFreeRadiusMaximum=2.0d0*timeFreefallScaleFreeRadiusMaximum
        end do
-       countRadii=int(log10(self%timeFreefallScaleFreeRadiusMaximum/self%timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%timeFreefallScaleFree_)) deallocate(self%timeFreefallScaleFree_)
-       allocate(     radii                 (countRadii))
-       allocate(     timesFreefall         (countRadii))
-       allocate(self%timeFreefallScaleFree_            )
-       radii=Make_Range(self%timeFreefallScaleFreeRadiusMinimum,self%timeFreefallScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
+       countRadii=int(log10(timeFreefallScaleFreeRadiusMaximum/timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
+       if (allocated(timeFreefallScaleFree_)) deallocate(timeFreefallScaleFree_)
+       allocate(radii                 (countRadii))
+       allocate(timesFreefall         (countRadii))
+       allocate(timeFreefallScaleFree_            )
+       radii=Make_Range(timeFreefallScaleFreeRadiusMinimum,timeFreefallScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
        do i=1,countRadii
           timesFreefall(i)=timeFreefallScaleFree(radii(i))
        end do
-       self%timeFreefallScaleFreeMinimum=timesFreefall(            1      )
-       self%timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
-       self%timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
+       timeFreefallScaleFreeMinimum=timesFreefall(            1      )
+       timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
+       timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
     end if
     return
     

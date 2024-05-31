@@ -253,21 +253,15 @@ contains
     return
   end function betaProfileConstructorInternal
 
-  double precision function betaProfileDensity(self,coordinates,componentType,massType)
+  double precision function betaProfileDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
-    class           (massDistributionBetaProfile ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radius
+    class           (massDistributionBetaProfile ), intent(inout) :: self
+    class           (coordinate                  ), intent(in   ) :: coordinates
+    double precision                                              :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       betaProfileDensity=0.0d0
-       return
-    end if
     ! Compute density.
     radius=coordinates%rSpherical()
     if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
@@ -278,7 +272,7 @@ contains
     return
   end function betaProfileDensity
 
-  double precision function betaProfileDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+  double precision function betaProfileDensityGradientRadial(self,coordinates,logarithmic)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
     !!}
@@ -286,15 +280,9 @@ contains
     class           (massDistributionBetaProfile ), intent(inout), target   :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
     logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     double precision                                                        :: radius
     logical                                                                 :: logarithmicActual
 
-    if (.not.self%matches(componentType,massType)) then
-       betaProfileDensityGradientRadial=0.0d0
-       return
-    end if
     ! Set default options.
     logarithmicActual=.false.
     if (present(logarithmic)) logarithmicActual=logarithmic
@@ -326,7 +314,7 @@ contains
     return
   end function betaProfileDensityGradientRadial
 
-  double precision function betaProfileMassEnclosedBySphere(self,radius,componentType,massType)
+  double precision function betaProfileMassEnclosedBySphere(self,radius)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for $\beta$-profile mass distributions. Result computed
     using \href{http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29}{Wolfram Alpha}.
@@ -334,17 +322,11 @@ contains
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionBetaProfile ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                              , parameter               :: radiusTiny      =1.0d-6
-    double precision                                                        :: fractionalRadius       , radius_
+    class           (massDistributionBetaProfile ), intent(inout), target :: self
+    double precision                              , intent(in   )         :: radius
+    double precision                              , parameter             :: radiusTiny      =1.0d-6
+    double precision                                                      :: fractionalRadius       , radius_
 
-    if (.not.self%matches(componentType,massType)) then
-       betaProfileMassEnclosedBySphere=0.0d0
-       return
-    end if
     if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
        radius_=self%outerRadius
     else
@@ -395,7 +377,7 @@ contains
     return
   end function betaProfileMassEnclosedBySphere
 
-  double precision function betaProfilePotential(self,coordinates,componentType,massType,status)
+  double precision function betaProfilePotential(self,coordinates,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
     \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
@@ -409,17 +391,11 @@ contains
     implicit none
     class           (massDistributionBetaProfile      ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                   , parameter               :: fractionalRadiusMinimum=1.0d-3
     double precision                                                             :: fractionalRadius              , radius
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       betaProfilePotential=0.0d0
-       return
-    end if
     ! Compute the potential at this position.
     radius=coordinates%rSpherical()
     if (self%truncateAtOuterRadius .and. radius > self%outerRadius) then
@@ -500,7 +476,7 @@ contains
     return
   end function betaProfilePotential
 
-  double precision function betaProfileDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function betaProfileDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Computes radial moments of the density in a $\beta$-profile mass distribution.
     !!}
@@ -511,17 +487,11 @@ contains
     double precision                              , intent(in   )           :: moment
     double precision                              , intent(in   ), optional :: radiusMinimum          , radiusMaximum
     logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     logical                                                                 :: haveRadiusMinimum      , haveRadiusMaximum
     double precision                                                        :: radiusMinimum_         , radiusMaximum_         , &
          &                                                                     fractionalRadiusMinimum, fractionalRadiusMaximum
     integer                                                                 :: specialCaseMoment
 
-    if (.not.self%matches(componentType,massType)) then
-       betaProfileDensityRadialMoment=0.0d0
-       return
-    end if
     ! Determine effective radii.
     haveRadiusMinimum=present(radiusMinimum)
     haveRadiusMaximum=present(radiusMaximum)
@@ -668,7 +638,7 @@ contains
 
   end function betaProfileDensityRadialMoment
 
-  double precision function betaProfileDensitySquareIntegral(self,radiusMinimum,radiusMaximum,componentType,massType,isInfinite)
+  double precision function betaProfileDensitySquareIntegral(self,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Computes the integral of the square of the density in a $\beta$-profile mass distribution.
     !!}
@@ -678,8 +648,6 @@ contains
     implicit none
     class           (massDistributionBetaProfile ), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: radiusMinimum          , radiusMaximum
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     logical                                       , intent(  out), optional :: isInfinite
     logical                                                                 :: haveRadiusMinimum      , haveRadiusMaximum
     double precision                                                        :: radiusMinimum_         , radiusMaximum_         , &
@@ -687,7 +655,6 @@ contains
 
     if (present(isInfinite)) isInfinite=.false.
     betaProfileDensitySquareIntegral=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     ! Determine effective radii.
     haveRadiusMinimum=present(radiusMinimum)
     haveRadiusMaximum=present(radiusMaximum)

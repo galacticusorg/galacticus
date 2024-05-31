@@ -145,28 +145,26 @@ contains
     return
   end subroutine sphericalFiniteResolutionDestructor
 
-  double precision function sphericalFiniteResolutionDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalFiniteResolutionDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalFiniteResolution), intent(inout)           :: self
     class(coordinate                               ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType             ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType                  ), intent(in   ), optional :: massType
-
-    density=+self%massDistribution_%density(coordinates,componentType,massType) &
-         &  /sqrt(                                                              &
-         &        +1.0d0                                                        &
-         &        +(                                                            &
-         &          +self       %lengthResolution                               &
-         &          /coordinates%rSpherical      ()                             &
-         &         )**2                                                         &
+ 
+    density=+self%massDistribution_%density(coordinates) &
+         &  /sqrt(                                       &
+         &        +1.0d0                                 &
+         &        +(                                     &
+         &          +self       %lengthResolution        &
+         &          /coordinates%rSpherical      ()      &
+         &         )**2                                  &
          &       )
       return
   end function sphericalFiniteResolutionDensity
 
-  double precision function sphericalFiniteResolutionDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalFiniteResolutionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a finiteResolution spherical mass distribution.
     !!}
@@ -174,27 +172,25 @@ contains
     class  (massDistributionSphericalFiniteResolution), intent(inout), target   :: self
     class  (coordinate                               ), intent(in   )           :: coordinates
     logical                                           , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType             ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType                  ), intent(in   ), optional :: massType
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic=.true.,componentType=componentType,massType=massType) &
-         &          +(                                                                                                                          &
-         &            +  self       %lengthResolution                                                                                           &
-         &            /  coordinates%rSpherical      ()                                                                                         &
-         &           )  **2                                                                                                                     &
-         &          /(                                                                                                                          &
-         &            +1.0d0                                                                                                                    &
-         &            +(                                                                                                                        &
-         &              +self       %lengthResolution                                                                                           &
-         &              /coordinates%rSpherical      ()                                                                                         &
-         &             )**2                                                                                                                     &
+    densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic=.true.) &
+         &          +(                                                                            &
+         &            +  self       %lengthResolution                                             &
+         &            /  coordinates%rSpherical      ()                                           &
+         &           )  **2                                                                       &
+         &          /(                                                                            &
+         &            +1.0d0                                                                      &
+         &            +(                                                                          &
+         &              +self       %lengthResolution                                             &
+         &              /coordinates%rSpherical      ()                                           &
+         &             )**2                                                                       &
          &           )
     if (.not.logarithmic_) &
-         densityGradient=+            densityGradient                                     &
-         &               *self       %density        (coordinates,componentType,massType) &
-         &               /coordinates%rSpherical     (                                  )
+         densityGradient=+            densityGradient              &
+         &               *self       %density        (coordinates) &
+         &               /coordinates%rSpherical     (           )
    return
   end function sphericalFiniteResolutionDensityGradientRadial

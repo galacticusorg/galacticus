@@ -300,12 +300,12 @@ contains
 
       ! Get the mass distribution.
       coordinates             =  [radius,0.0d0,0.0d0]
-      massDistribution_       => node                   %massDistribution      (                                                                       )
-      kinematicsDistribution_ => massDistribution_      %kinematicsDistribution(            componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+      massDistribution_       => node                   %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+      kinematicsDistribution_ => massDistribution_      %kinematicsDistribution(                                    )      
       ! Get the density of the ICM.
-      density                 =  massDistribution_      %density               (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+      density                 =  massDistribution_      %density               (coordinates                         )
       ! Get the temperature of the ICM.
-      temperature             =  kinematicsDistribution_%temperature           (coordinates                                                            )
+      temperature             =  kinematicsDistribution_%temperature           (coordinates                         )
       !![
       <objectDestructor name="massDistribution_"      />
       <objectDestructor name="kinematicsDistribution_"/>

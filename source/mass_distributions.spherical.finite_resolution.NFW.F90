@@ -253,21 +253,15 @@ contains
     return
   end function sphericalFiniteResolutionNFWConstructorInternal
 
-  double precision function sphericalFiniteResolutionNFWDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalFiniteResolutionNFWDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout)           :: self
-    class           (coordinate                                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
-    double precision                                                                        :: radiusScaleFree
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
+    class           (coordinate                                  ), intent(in   ) :: coordinates
+    double precision                                                              :: radiusScaleFree
     
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if    
     ! Compute the density at this position.
     radiusScaleFree=+coordinates%rSpherical () &
          &          /self       %radiusScale
@@ -277,7 +271,7 @@ contains
     return
   end function sphericalFiniteResolutionNFWDensity
 
-  double precision function sphericalFiniteResolutionNFWDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalFiniteResolutionNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a finiteResolution spherical mass distribution.
     !!}
@@ -285,30 +279,24 @@ contains
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
     class           (coordinate                                  ), intent(in   )           :: coordinates
     logical                                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
     double precision                                                                        :: radiusScaleFree
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    if (.not.self%matches(componentType,massType)) then
-       densityGradient=0.0d0
-       return
-    end if
     radiusScaleFree=+coordinates%rSpherical () &
          &          /self       %radiusScale
     densityGradient=-3.0d0                                                             &
          &          +2.0d0/(1.0d0+ radiusScaleFree                                   ) &
          &          +1.0d0/(1.0d0+(radiusScaleFree/self%lengthResolutionScaleFree)**2)
     if (.not.logarithmic_) &
-         densityGradient=+            densityGradient                                     &
-         &               *self       %density        (coordinates,componentType,massType) &
-         &               /coordinates%rSpherical     (                                  )
+         densityGradient=+            densityGradient              &
+         &               *self       %density        (coordinates) &
+         &               /coordinates%rSpherical     (           )
    return
   end function sphericalFiniteResolutionNFWDensityGradientRadial
 
-  double precision function sphericalFiniteResolutionNFWMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalFiniteResolutionNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Returns the enclosed mass (in $M_\odot$) at the given {\normalfont \ttfamily radius} (given in units of Mpc). The analytic
     solution (computed using Mathematica) is
@@ -319,16 +307,10 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
-    double precision                                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
-    double precision                                                                        :: radiusScaleFree
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target :: self
+    double precision                                              , intent(in   )         :: radius
+    double precision                                                                      :: radiusScaleFree
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     radiusScaleFree=+     radius                                                                   &
          &          /self%radiusScale
     mass           =+self%densityNormalization                                                     &
@@ -454,7 +436,7 @@ contains
     return
   end function sphericalFiniteResolutionNFWMassEnclosedScaleFree
   
-  double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,status) result(potential)
     !!{
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     \ttfamily radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
@@ -477,17 +459,11 @@ contains
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
     class           (coordinate                                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType           ), intent(  out), optional :: status
     double precision                                              , parameter               :: radiusScaleFreeSmall=1.0d-3
     double precision                                                                        :: radiusScaleFree
     
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     if (coordinates%rSpherical()/= self%potentialRadiusPrevious) then
        self%potentialRadiusPrevious=+coordinates%rSpherical ()
        radiusScaleFree             =+coordinates%rSpherical () &
@@ -571,7 +547,7 @@ contains
     return
   end function sphericalFiniteResolutionNFWPotential
   
-  double precision function sphericalFiniteResolutionNFWRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function sphericalFiniteResolutionNFWRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for finite-resolution NFW distributions.
     !!}    
@@ -579,17 +555,11 @@ contains
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
     double precision                                              , intent(in   ), optional :: mass             , massFractional
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
     integer         (c_size_t                                    ), dimension(0:1)          :: jLengthResolution
     double precision                                              , dimension(0:1)          :: hLengthResolution
     integer                                                                                 :: iLengthResolution
     double precision                                                                        :: mass_            , massScaleFree
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     mass_=0.0d0
     if (present(mass)) then
        mass_=mass
@@ -817,7 +787,7 @@ contains
     return
   end subroutine sphericalFiniteResolutionNFWRestoreMassTable
 
-  double precision function sphericalFiniteResolutionNFWRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function sphericalFiniteResolutionNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for finite-resolution NFW mass distributions.
     !!}
@@ -825,18 +795,13 @@ contains
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
     double precision                                              , intent(in   )           :: density
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
+    double precision                                              , intent(in   ), optional :: radiusGuess
     double precision                                              , parameter               :: epsilonDensity         =1.0d-3
     double precision                                                                        :: densityScaleFreeMaximum       , densityScaleFree
     integer         (c_size_t                                    ), dimension(0:1)          :: jLengthResolution
     double precision                                              , dimension(0:1)          :: hLengthResolution
     integer                                                                                 :: iLengthResolution
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     if (density /= self%radiusEnclosingDensityDensityPrevious) then
        self%radiusEnclosingDensityDensityPrevious=density
        ! Find scale free density, and the maximum such density reached in the profile.
@@ -1076,20 +1041,18 @@ contains
     return
   end subroutine sphericalFiniteResolutionNFWRestoreDensityTable
 
-  double precision function sphericalFiniteResolutionNFWEnergy(self,radiusOuter,massDistributionEmbedding,componentType,massType) result(energy)
+  double precision function sphericalFiniteResolutionNFWEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
     Compute the energy within a given {\normalfont \ttfamily radius} in a finite-resolution NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout)            :: self
-    double precision                                              , intent(in   )            :: radiusOuter
-    class           (massDistributionClass                       ), intent(inout)            :: massDistributionEmbedding
-    type            (enumerationComponentTypeType                ), intent(in   ) , optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ) , optional :: massType
-    integer         (c_size_t                                    ), dimension(0:1)           :: jLengthResolution
-    double precision                                              , dimension(0:1)           :: hLengthResolution
-    integer                                                                                  :: iLengthResolution
+    class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) , target :: self
+    double precision                                              , intent(in   )          :: radiusOuter
+    class           (massDistributionClass                       ), intent(inout) , target :: massDistributionEmbedding
+    integer         (c_size_t                                    ), dimension(0:1)         :: jLengthResolution
+    double precision                                              , dimension(0:1)         :: hLengthResolution
+    integer                                                                                :: iLengthResolution
 
     if (self%energyPrevious > 0.0d0) then
        ! Ensure table is sufficiently extensive.

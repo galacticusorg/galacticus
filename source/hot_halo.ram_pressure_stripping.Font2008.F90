@@ -299,23 +299,25 @@ contains
     use :: Galactic_Structure_Options      , only : componentTypeHotHalo           , massTypeGaseous
     implicit none
     double precision                       , intent(in   ) :: radius
-    class           (massDistributionClass), pointer       :: massDistribution_
+    class           (massDistributionClass), pointer       :: massDistribution_, massDistributionGas
     type            (coordinateSpherical  )                :: coordinates
     double precision                                       :: massEnclosed     , forceBindingGravitational, &
          &                                                    densityHotHalo
 
     ! Get the hot halo mass distribution.
     coordinates              =  [radius,0.0d0,0.0d0]
-    massDistribution_        =>  node_                               %massDistribution(                                                                             )
-    massEnclosed             =  +self_            %galacticStructure_%massEnclosed    (node_,radius     ,componentType=componentTypeAll    ,massType=massTypeAll    )
-    densityHotHalo           =  +massDistribution_                   %density         (      coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
-    forceBindingGravitational=  +self_                               %formFactor                                                                                      &
-         &                      *gravitationalConstantGalacticus                                                                                                      &
-         &                      *massEnclosed                                                                                                                         &
-         &                      *densityHotHalo                                                                                                                       &
+    massDistribution_        =>  node_                                 %massDistribution(componentTypeAll    ,massTypeAll    )
+    massDistributionGas      =>  node_                                 %massDistribution(componentTypeHotHalo,massTypeGaseous)
+    massEnclosed             =  +self_              %galacticStructure_%massEnclosed    (node_,radius     ,componentType=componentTypeAll,massType=massTypeAll)
+    densityHotHalo           =  +massDistributionGas                   %density         (      coordinates                                                    )
+    forceBindingGravitational=  +self_                                 %formFactor                                                                              &
+         &                      *gravitationalConstantGalacticus                                                                                                &
+         &                      *massEnclosed                                                                                                                   &
+         &                      *densityHotHalo                                                                                                                 &
          &                      /radius
     !![
-    <objectDestructor name="massDistribution_"/>
+    <objectDestructor name="massDistribution_"  />
+    <objectDestructor name="massDistributionGas"/>
     !!]          
     if (forceBindingGravitational >= 0.0d0) then
        font2008RadiusSolver=forceBindingGravitational-forceRamPressure

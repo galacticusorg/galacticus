@@ -187,22 +187,16 @@ contains
     return
   end subroutine sphericalTruncatedExponentialDestructor
 
-  double precision function sphericalTruncatedExponentialDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalTruncatedExponentialDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalTruncatedExponential), intent(inout)           :: self
-    class(coordinate                                   ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType                      ), intent(in   ), optional :: massType
+    class(massDistributionSphericalTruncatedExponential), intent(inout) :: self
+    class(coordinate                                   ), intent(in   ) :: coordinates
     
-    if (.not.self%matches(componentType,massType)) then
-       density=+0.0d0
-       return
-    end if
     if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
-       density=+self%massDistribution_%density(coordinates,componentType,massType)
+       density=+self%massDistribution_%density(coordinates)
     else
        density=+self%densityAtTruncation                   &
             &  *(                                          &
@@ -220,7 +214,7 @@ contains
     return
   end function sphericalTruncatedExponentialDensity
 
-  double precision function sphericalTruncatedExponentialDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalTruncatedExponentialDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density gradient at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
@@ -229,19 +223,13 @@ contains
     class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
     class           (coordinate                                   ), intent(in   )           :: coordinates
     logical                                                        , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
     double precision                                                                         :: density
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    if (.not.self%matches(componentType,massType)) then
-       densityGradient=+0.0d0
-       return
-    end if
     if (coordinates%rSpherical() <= self%radiusTruncateMinimum) then
-       densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic,componentType=componentType,massType=massType)
+       densityGradient=+self%massDistribution_%densityGradientRadial(coordinates,logarithmic)
     else
        densityGradient=+self%densityAtTruncation                    &
             &          *(                                           &
@@ -262,11 +250,11 @@ contains
             &            )                                          &
             &           /  coordinates%rSpherical         ()
        if (logarithmic_) then
-          density=self%density(coordinates,componentType,massType)
+          density=self%density(coordinates)
           if (density > 0.0d0) then
-             densityGradient=+            densityGradient                                     &
-                  &          *coordinates%rSpherical     (                                  ) &
-                  &          /self       %density        (coordinates,componentType,massType)
+             densityGradient=+            densityGradient              &
+                  &          *coordinates%rSpherical     (           ) &
+                  &          /self       %density        (coordinates)
           else if (densityGradient /= 0.0d0) then
              call Error_Report('density is zero, but gradient is non-zero - logarithmic gradient is undefined'//{introspection:location})
           end if
@@ -275,24 +263,18 @@ contains
     return
   end function sphericalTruncatedExponentialDensityGradientRadial
 
-  double precision function sphericalTruncatedExponentialMassTotal(self,componentType,massType) result(mass)
+  double precision function sphericalTruncatedExponentialMassTotal(self) result(mass)
     !!{
     Return the total mass in a truncated mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalTruncatedExponential), intent(inout)           :: self
-    type (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType                      ), intent(in   ), optional :: massType
+    class(massDistributionSphericalTruncatedExponential), intent(inout) :: self
 
-    if (self%matches(componentType,massType)) then
-       mass=self%massTotal_
-    else
-       mass=0.0d0
-    end if
+    mass=self%massTotal_
     return
   end function sphericalTruncatedExponentialMassTotal
   
-  double precision function sphericalTruncatedExponentialMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalTruncatedExponentialMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for truncatedExponential mass distributions.
     !!}
@@ -300,15 +282,9 @@ contains
     implicit none
     class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
     double precision                                               , intent(in   )           :: radius
-    type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=+0.0d0
-       return
-    end if
     if (radius <= self%radiusTruncateMinimum) then
-       mass   =+self%massDistribution_%massEnclosedBySphere(radius,componentType,massType)
+       mass   =+self%massDistribution_%massEnclosedBySphere(radius)
     else
        mass   =+self%massAtTruncation                                                                      &
             &  +4.0d0                                                                                      &
@@ -324,21 +300,15 @@ contains
     return
   end function sphericalTruncatedExponentialMassEnclosedBySphere
 
-  double precision function sphericalTruncatedExponentialRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function sphericalTruncatedExponentialRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for truncatedExponential spherical mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalTruncatedExponential), intent(inout), target   :: self
-    double precision                                               , intent(in   ), optional :: mass         , massFractional
-    type            (enumerationComponentTypeType                 ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                      ), intent(in   ), optional :: massType
+    double precision                                               , intent(in   ), optional :: mass , massFractional
     double precision                                                                         :: mass_
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     if (present(mass)) then
        mass_  =+     mass
     else if (present(massFractional)) then
@@ -349,9 +319,9 @@ contains
        call Error_Report('either `mass` or `massFractional` must be provided'//{introspection:location})
     end if
     if (mass_ <= self%massAtTruncation) then
-       radius=self%massDistribution_%radiusEnclosingMass           (mass=mass_,componentType=componentType,massType=massType)
+       radius=self%massDistribution_%radiusEnclosingMass           (mass=mass_)
     else
-       radius=self                  %radiusEnclosingMassNonAnalytic(mass=mass_,componentType=componentType,massType=massType)
+       radius=self                  %radiusEnclosingMassNonAnalytic(mass=mass_)
     end if    
     return
   end function sphericalTruncatedExponentialRadiusEnclosingMass

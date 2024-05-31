@@ -247,38 +247,26 @@ contains
     return
   end function massDistributionEinastoConstructorInternal
 
-  double precision function einastoMassTotal(self,componentType,massType)
+  double precision function einastoMassTotal(self)
     !!{
     Return the total mass in an Einasto mass distribution.
     !!}
     implicit none
-    class(massDistributionEinasto     ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    if (self%matches(componentType,massType)) then
-       einastoMassTotal=self%massTotal_
-    else
-       einastoMassTotal=0.0d0
-    end if
+    class(massDistributionEinasto), intent(inout) :: self
+ 
+    einastoMassTotal=self%massTotal_   
     return
   end function einastoMassTotal
 
-  double precision function einastoDensity(self,coordinates,componentType,massType) result(density)
+  double precision function einastoDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an Einasto mass distribution.
     !!}
     implicit none
-    class           (massDistributionEinasto     ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionEinasto     ), intent(inout) :: self
+    class           (coordinate                  ), intent(in   ) :: coordinates
+    double precision                                              :: radiusScaleFree
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if    
     ! Compute the density at this position.
     radiusScaleFree=+coordinates%rSpherical          () &
          &          /self       %scaleLength
@@ -293,23 +281,19 @@ contains
     return
   end function einastoDensity
 
-  double precision function einastoDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function einastoDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an Einasto \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
-    class           (massDistributionEinasto     ), intent(inout), target   :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionEinasto), intent(inout), target   :: self
+    class           (coordinate             ), intent(in   )           :: coordinates
+    logical                                  , intent(in   ), optional :: logarithmic
+    double precision                                                   :: radiusScaleFree
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    densityGradientRadial=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     radiusScaleFree      =+coordinates%rSpherical()             &
          &                /self       %scaleLength
     if (radiusScaleFree <= 0.0d0) then
@@ -324,22 +308,19 @@ contains
     return
   end function einastoDensityGradientRadial
 
-  double precision function einastoDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function einastoDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Computes radial moments of the density in an Einasto \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
-    class           (massDistributionEinasto     ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radialMomentMinimum, radialMomentMaximum
+    class           (massDistributionEinasto), intent(inout)           :: self
+    double precision                         , intent(in   )           :: moment
+    double precision                         , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    logical                                  , intent(  out), optional :: isInfinite
+    double precision                                                   :: radialMomentMinimum, radialMomentMaximum
 
     densityRadialMoment=0.0d0
     if (present(isInfinite)) isInfinite=.false.
-    if (.not.self%matches(componentType,massType)) return
     if ((.not.present(radiusMinimum) .or. radiusMinimum <= 0.0d0) .and. moment <= -1) then
        if (present(isInfinite)) then
           isInfinite=.true.
@@ -386,21 +367,15 @@ contains
 
   end function einastoDensityRadialMoment
 
-  double precision function einastoMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function einastoMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for einasto mass distributions.
     !!}
     implicit none
-    class           (massDistributionEinasto     ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    class           (massDistributionEinasto), intent(inout), target :: self
+    double precision                         , intent(in   )         :: radius
+    double precision                                                 :: radiusScaleFree
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     if (radius /= self%enclosedMassRadiusPrevious) then
        self%enclosedMassRadiusPrevious=+     radius
        radiusScaleFree                =+     radius                                                        &
@@ -413,27 +388,21 @@ contains
     return
   end function einastoMassEnclosedBySphere
   
-  double precision function einastoRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function einastoRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for einasto mass distributions.
     !!}    
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
     use :: Error           , only : Error_Report
     implicit none
-    class           (massDistributionEinasto     ), intent(inout), target       :: self
-    double precision                              , intent(in   ), optional     :: mass                       , massFractional
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                                                            :: mass_
-    double precision                              , allocatable  , dimension(:) :: radii                      , masses
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: massScaleFree              , mass_
-    integer                                                                     :: countRadii                 , i
+    class           (massDistributionEinasto), intent(inout), target       :: self
+    double precision                         , intent(in   ), optional     :: mass                       , massFractional
+    double precision                                                       :: mass_
+    double precision                         , allocatable  , dimension(:) :: radii                      , masses
+    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                       :: massScaleFree              , mass_
+    integer                                                                :: countRadii                 , i
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     mass_=0.0d0
     if (present(mass)) then
        mass_=                    mass
@@ -474,20 +443,19 @@ contains
     return
   end function einastoRadiusEnclosingMass
   
-  double precision function einastoRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function einastoRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for Einasto mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
-    class           (massDistributionEinasto     ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: density
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                      , densities
-    double precision                              , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                            :: densityScaleFree
-    integer                                                                     :: countRadii                 , i
+    class           (massDistributionEinasto), intent(inout), target       :: self
+    double precision                         , intent(in   )               :: density
+    double precision                         , intent(in   ), optional     :: radiusGuess
+    double precision                         , allocatable  , dimension(:) :: radii                      , densities
+    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                                                       :: densityScaleFree
+    integer                                                                :: countRadii                 , i
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
@@ -511,8 +479,8 @@ contains
        do i=1,countRadii
           densities                (i)=-densityEnclosedScaleFree(radii     (i),self%shapeParameter)
        end do
-       self%densityScaleFreeMinimum   = densities               (countRadii                       )
-       self%densityScaleFreeMaximum   = densities               (         1                       )
+       self%densityScaleFreeMinimum   =-densities               (countRadii                       )
+       self%densityScaleFreeMaximum   =-densities               (         1                       )
        self%densityScaleFree_         = interpolator            (densities    ,radii              )
     end if
     radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
@@ -555,21 +523,19 @@ contains
     return
   end function densityEnclosedScaleFree
   
-  double precision function einastoRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function einastoRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for einasto mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
     implicit none
-    class           (massDistributionEinasto     ), intent(inout), target       :: self
-    double precision                              , intent(in   )               :: angularMomentumSpecific
-    type            (enumerationComponentTypeType), intent(in   ), optional     :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional     :: massType
-    double precision                              , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                              , parameter                   :: countRadiiPerDecade             =100.0d0
-    double precision                                                            :: angularMomentumSpecificScaleFree
-    integer                                                                     :: countRadii                              , i
+    class           (massDistributionEinasto), intent(inout), target       :: self
+    double precision                         , intent(in   )               :: angularMomentumSpecific
+    double precision                         , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
+    double precision                         , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                                                       :: angularMomentumSpecificScaleFree
+    integer                                                                :: countRadii                              , i
 
     angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
          &                           /sqrt(                                    &
@@ -620,7 +586,7 @@ contains
     return
   end function angularMomentumSpecificEnclosedScaleFree
 
-  double precision function einastoPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function einastoPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an einasto mass distribution.
     !!}
@@ -631,16 +597,10 @@ contains
     implicit none
     class           (massDistributionEinasto          ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                                             :: radiusScaleFree
     
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     radiusScaleFree=+coordinates%rSpherical () &
          &          /self       %scaleLength
     potential=+potentialScaleFree       (radiusScaleFree,self%shapeParameter)    &
@@ -700,22 +660,16 @@ contains
     return
   end function potentialDifferenceScaleFree
   
-  double precision function einastoRadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function einastoRadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an Einasto mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionEinasto     ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: timeScaleFree, timeScale
+    class           (massDistributionEinasto), intent(inout) :: self
+    double precision                         , intent(in   ) :: time
+    double precision                                         :: timeScaleFree, timeScale
     
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     timeScale    =+1.0d0                                 &
          &        /sqrt(                                 &
          &              +gravitationalConstantGalacticus &
@@ -734,23 +688,17 @@ contains
     return   
   end function einastoRadiusFreefall
   
-  double precision function einastoRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function einastoRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an einasto mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionEinasto     ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: timeScaleFree, timeScale
+    class           (massDistributionEinasto), intent(inout) :: self
+    double precision                         , intent(in   ) :: time
+    double precision                                         :: timeScaleFree, timeScale
 
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-       return
-    end if
     timeScale    =+1.0d0                                 &
          &        /sqrt(                                 &
          &              +gravitationalConstantGalacticus &

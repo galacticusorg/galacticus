@@ -175,23 +175,17 @@ contains
     return
   end function enzoHydrostaticNormalizationDensity
 
-  double precision function enzoHydrostaticDensity(self,coordinates,componentType,massType) result(density)
+  double precision function enzoHydrostaticDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an Enzo hydrostatic mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class           (massDistributionEnzoHydrostatic), intent(inout)           :: self
-    class           (coordinate                     ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-    type            (coordinateSpherical            )                          :: coordinatesEffective
-    double precision                                                           :: radiusEffective
+    class           (massDistributionEnzoHydrostatic), intent(inout) :: self
+    class           (coordinate                     ), intent(in   ) :: coordinates
+    type            (coordinateSpherical            )                :: coordinatesEffective
+    double precision                                                 :: radiusEffective
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if    
     radiusEffective     = max(coordinates%rSpherical(),self%radiusScale)
     coordinatesEffective= coordinates                   &
          &               *            radiusEffective   &
@@ -203,7 +197,7 @@ contains
     return
   end function enzoHydrostaticDensity
 
-  double precision function enzoHydrostaticDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function enzoHydrostaticDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an EnzoHydrostatic \citep{navarro_structure_1996} mass distribution.
     !!}
@@ -211,14 +205,10 @@ contains
     class  (massDistributionEnzoHydrostatic), intent(inout), target   :: self
     class  (coordinate                     ), intent(in   )           :: coordinates
     logical                                 , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType        ), intent(in   ), optional :: massType
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    densityGradientRadial=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     if (coordinates%rSpherical() > self%radiusScale) then
        densityGradientRadial                       =-self       %kinematicsDistribution_%temperatureGradientLogarithmic(coordinates) &
             &                                       -3.0d0

@@ -204,8 +204,8 @@ sub Tree_Node_Mass_Distribution {
 	description => "Construct and return the mass distribution associated with {\\normalfont \\ttfamily self}.",
 	modules     =>
 	    [
-	     "Mass_Distributions        , only : massDistributionClass       , massDistributionComposite, massDistributionList"   ,
-	     "Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType  , enumerationWeightByType"
+	     "Mass_Distributions        , only : massDistributionClass       , massDistributionComposite, massDistributionList"                                                                                           ,
+	     "Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType  , enumerationWeightByType, componentTypeAll, componentTypeDarkMatterOnly, massTypeAll, massTypeDark, weightByMass"
 	    ],
 	variables   =>
 	    [
@@ -239,6 +239,25 @@ sub Tree_Node_Mass_Distribution {
 		 variables  => [ "weightIndex" ]
 	     },
 	     {
+		 intrinsic  => "type",
+		 type       => "enumerationComponentTypeType",
+		 variables  => [ "componentType_", "componentType__" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationMassTypeType",
+		 variables  => [ "massType_", "massType__" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "enumerationWeightByType",
+		 variables  => [ "weightBy_" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "weightIndex_" ]
+	     },
+	     {
 		 intrinsic  => "class",
 		 type       => "massDistributionClass",
 		 attributes => [ "pointer" ],
@@ -246,45 +265,128 @@ sub Tree_Node_Mass_Distribution {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => [ "i", "iMassDistribution" ]
+		 variables  => [ "i", "iMassDistribution", "iMassDistributionAll", "iMassDistributionConstruct", "iEmpty" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "construct", "isDarkMatterOnly" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 type       => "kind_int8",
+		 variables  => [ "uniqueID", "uniqueIDParent" ]
 	     },
 	     {
 		 intrinsic  => "type",
 		 type       => "massDistributionList",
 		 attributes => [ "pointer" ],
-		 variables  => [ "massDistributionList_", "massDistributionList__", "next_", "next__" ]
+		 variables  => [ "massDistributionList_", "next_" ]
 	     }
 	    ]
     };
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+! Set defaults.
+if (present(componentType)) then
+ componentType_=componentType
+else
+ componentType_=componentTypeAll
+end if
+if (present(massType)) then
+ massType_=massType
+else
+ massType_=massTypeAll
+end if
+if (present(weightBy)) then
+ weightBy_=weightBy
+else
+ weightBy_=weightByMass
+end if
+if (present(weightIndex)) then
+ weightIndex_=weightIndex
+else
+ weightIndex_=-1
+end if
 ! Search for a match to our ID.
-iMassDistribution=0
+iMassDistribution   =0
+iMassDistributionAll=0
+iEmpty              =0
+uniqueID            =self       %uniqueID()
+if (associated(self%parent)) then
+ uniqueIDParent  =self%parent%uniqueID()
+else
+ uniqueIDParent  =-1_kind_int8
+end if
 do i=1,massDistributionsCount
- if (massDistributions__(i)%uniqueID == self%uniqueID()) then
+ if   (                                                        &
+    &   massDistributions__(i)%uniqueID      == uniqueID       &
+    &  .and.                                                   &
+    &   massDistributions__(i)%componentType == componentType_ &
+    &  .and.                                                   &
+    &   massDistributions__(i)%massType      == massType_      &
+    &  .and.                                                   &
+    &   massDistributions__(i)%weightBy      == weightBy_      &
+    &  .and.                                                   &
+    &   massDistributions__(i)%weightIndex   == weightIndex_   &
+    & ) then
   iMassDistribution=i
   exit
+ else if (massDistributions__(i)%uniqueID < 0_kind_int8     .and.                                                   iEmpty     == 0) then
+  iEmpty           =i
+ end if
+ if   (                                                          &
+    &   massDistributions__(i)%uniqueID      == uniqueID         &
+    &  .and.                                                     &
+    &   massDistributions__(i)%componentType == componentTypeAll &
+    &  .and.                                                     &
+    &   massDistributions__(i)%massType      == massTypeAll      &
+    &  .and.                                                     &
+    &   massDistributions__(i)%weightBy      == weightBy_        &
+    &  .and.                                                     &
+    &   massDistributions__(i)%weightIndex   == weightIndex_     &
+    & ) then
+  iMassDistributionAll=i
  end if
 end do
-! If no existing mass distribution matched, free up space for a new one. Avoid replacing the parent of a node as parent/child
-! massDistribution pairs are frequently used (e.g. in orbital evolution calculations).
+! If we found no match, we need to create the distribution.
 if (iMassDistribution == 0) then
- massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
- if (associated(massDistributions__(massDistributionsLast)%massDistribution_)) then
-  if (associated(self%parent) .and. massDistributions__(massDistributionsLast)%uniqueID == self%parent%uniqueID()) then
-   massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
-  end if
+ construct       =.false.
+ isDarkMatterOnly=.false.
+ if      (componentType_       == componentTypeDarkMatterOnly) then
+  isDarkMatterOnly=.true.
+  construct       =.true.
+  componentType__ =componentTypeDarkMatterOnly
+  massType__      =massType_
+ else if (iMassDistributionAll == 0                          ) then
+  construct       =.true.
+  componentType__ =componentTypeAll
+  massType__      =massTypeAll
  end if
- !![
- <objectDestructor name="massDistributions__(massDistributionsLast)%massDistribution_"/>
- !!]
- massDistributions__(massDistributionsLast)%uniqueID=-huge(kind_int8)
- iMassDistribution=massDistributionsLast
-end if
-if (.not.associated(massDistributions__(iMassDistribution)%massDistribution_)) then
- massDistributionList_  => null()
- massDistributionList__ => null()
- next_                  => null()
- next__                 => null()
+ ! If no existing all/all mass distribution matched.....
+ if (construct) then
+  if      (iEmpty     /= 0) then  
+   ! If we have an empty slot, use that.
+   iMassDistributionConstruct=iEmpty
+  else
+   ! Simply use the next slot, unless it is occupied by a parent node massDistribution (unless we have no choice because we have run out of slots).
+   do i=1,massDistributionsCount+1
+    massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
+    if (massDistributions__(massDistributionsLast)%uniqueID == uniqueIDParent) cycle
+    exit
+   end do
+   iMassDistributionConstruct=    massDistributionsLast
+   !![
+   <objectDestructor name="massDistributions__(iMassDistributionConstruct)%massDistribution_"/>
+   !!]
+   massDistributions__(massDistributionsLast)%uniqueID=-huge(kind_int8)
+  end if
+  if (isDarkMatterOnly) then
+   iMassDistribution   =iMassDistributionConstruct
+  else
+   iMassDistributionAll=iMassDistributionConstruct
+  end if
+  if (.not.associated(massDistributions__(iMassDistributionConstruct)%massDistribution_)) then
+   massDistributionList_ => null()
+   next_                 => null()
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -302,56 +404,96 @@ CODE
 	#   </description>
 	# </workaround>
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
- if (allocated(self%component{ucfirst($class->{'name'})})) then
-    do i=1,size(self%component{ucfirst($class->{'name'})})
-      massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution(componentType,massType)
-      if (associated(massDistributionComponent)) then
-        if (massDistributionComponent%matches(componentType,massType)) then
+  if (allocated(self%component{ucfirst($class->{'name'})})) then
+     do i=1,size(self%component{ucfirst($class->{'name'})})
+       massDistributionComponent => self%component{ucfirst($class->{'name'})}(i)%massDistribution(componentType__,massType__,weightBy_,weightIndex_)
+       if (associated(massDistributionComponent)) then
           if (associated(massDistributionList_)) then
-            allocate(next_ %next)
-            allocate(next__%next)
-            next_  => next_ %next
-            next__ => next__%next
+            allocate(next_%next)
+            next_ => next_%next
           else
-            allocate(massDistributionList_ )
-            allocate(massDistributionList__)
-            next_  => massDistributionList_
-            next__ => massDistributionList__
+            allocate(massDistributionList_)
+            next_ => massDistributionList_
           end if
-          next_ %massDistribution_ => massDistributionComponent
-          next__%massDistribution_ => massDistributionComponent
-          next_ %next              => null()
-          next__%next              => null()
-        else
-          !![
-          <objectDestructor name="massDistributionComponent"/>
-          !!]
-        end if
-      end if
-    end do
- end if
+          next_%massDistribution_ => massDistributionComponent
+          next_%next              => null()
+       end if
+     end do
+  end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
- allocate(massDistributionComposite :: massDistributions__(iMassDistribution)%massDistribution_)
- select type (massDistribution__ => massDistributions__(iMassDistribution)%massDistribution_)
- type is (massDistributionComposite)
+   allocate(massDistributionComposite :: massDistributions__(iMassDistributionConstruct)%massDistribution_)
+   select type (massDistribution__ => massDistributions__(iMassDistributionConstruct)%massDistribution_)
+   type is (massDistributionComposite)
+     !![
+     <referenceConstruct isResult="yes" object="massDistribution__" constructor="massDistributionComposite(massDistributionList_)"/>
+     !!]
+   end select
+   massDistributions__(iMassDistributionConstruct)%uniqueID     =self%uniqueID        ()
+   massDistributions__(iMassDistributionConstruct)%componentType=     componentType__
+   massDistributions__(iMassDistributionConstruct)%massType     =     massType__
+   massDistributions__(iMassDistributionConstruct)%weightBy     =     weightBy_
+   massDistributions__(iMassDistributionConstruct)%weightIndex  =     weightIndex_
+   next_ => massDistributionList_
+   do while (associated(next_))
+    !![
+    <objectDestructor name="next_%massDistribution_" nullify="no"/>
+    !!]
+    next_ => next_%next
+   end do
+   nullify(massDistributionList_ )
+  end if
+ end if
+ if (isDarkMatterOnly) then
+  ! We already have the relevant mass distribution constructed in the iMassDistribution slot - nothing more to do here.
+ else if (componentType_ == componentTypeAll .and. massType_ == massTypeAll) then
+  ! The all/all mass distribution was required - we have just created it, so return it.
+  iMassDistribution=iMassDistributionAll
+ else
+  ! Some other mass distribution was required - get it as a subset of the all/all mass distribution.
+  iEmpty=0
+  do i=1,massDistributionsCount
+   if (massDistributions__(i)%uniqueID < 0_kind_int8 .and. iEmpty == 0) iEmpty=i
+  end do
+  if (iEmpty /= 0) then
+   ! If we have an empty slot, use that.
+   iMassDistribution=iEmpty
+  else
+   ! Simply use the next slot, unless it is occupied by a parent node massDistribution (unless we have no choice because we have run out of slots).
+   do i=1,massDistributionsCount+1
+    massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
+    massDistributionsLast=mod(massDistributionsLast,massDistributionsCount)+1
+    ! But never replace the all/all distribution.
+    if   (                                                                              &
+       &   massDistributions__(massDistributionsLast)%uniqueID      == uniqueID         &
+       &  .and.                                                                         &
+       &   massDistributions__(massDistributionsLast)%componentType == componentTypeAll &
+       &  .and.                                                                         &
+       &   massDistributions__(massDistributionsLast)%massType      == massTypeAll      &
+       &  .and.                                                                         &
+       &   massDistributions__(massDistributionsLast)%weightBy      == weightBy_        &
+       &  .and.                                                                         &
+       &   massDistributions__(massDistributionsLast)%weightIndex   == weightIndex_     &
+       & ) cycle
+    if   (                                                                              &
+       &   massDistributions__(massDistributionsLast)%uniqueID      == uniqueIDParent   &
+       & ) cycle
+    exit
+   end do
+   iMassDistribution=massDistributionsLast
    !![
-   <referenceConstruct isResult="yes" object="massDistribution__" constructor="massDistributionComposite(massDistributionList_)"/>
+   <objectDestructor name="massDistributions__(iMassDistribution)%massDistribution_"/>
    !!]
- end select
- massDistributions__(iMassDistribution)%uniqueID =  self                                  %uniqueID         ()
- next_ => massDistributionList__
- do while (associated(next_))
-  !![
-  <objectDestructor name="next_%massDistribution_"/>
-  !!]
-  next__ => next_%next
-  deallocate(next_)
-  next_  => next__
- end do
- nullify(massDistributionList_ )
- nullify(massDistributionList__)
+   massDistributions__(massDistributionsLast)%uniqueID=-huge(kind_int8)
+  end if
+  massDistributions__(iMassDistribution)%massDistribution_ => massDistributions__(iMassDistributionAll)%massDistribution_%subset        (componentType_,massType_)
+  massDistributions__(iMassDistribution)%uniqueID          =  self                                                       %uniqueID      (                        )
+  massDistributions__(iMassDistribution)%componentType     =                                                              componentType_
+  massDistributions__(iMassDistribution)%massType          =                                                              massType_
+  massDistributions__(iMassDistribution)%weightBy          =                                                              weightBy_
+  massDistributions__(iMassDistribution)%weightIndex       =                                                              weightIndex_
+ end if
 end if
 !![
 <referenceAcquire target="massDistribution_" source="massDistributions__(iMassDistribution)%massDistribution_"/>

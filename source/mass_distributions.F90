@@ -58,15 +58,9 @@ module Mass_Distributions
      <description>Get a pointer to the kinematics distribution for this mass distribution.</description>
      <type>class(kinematicsDistributionClass)</type>
      <pass>yes</pass>
-     <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-     <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
      <code>
-       if (self%matches(componentType,massType) .and. associated(self%kinematicsDistribution_)) then
-          massDistributionKinematicsDistribution => self%kinematicsDistribution_
-          call kinematicsDistributionIncrement(self)
-       else
-          massDistributionKinematicsDistribution => null()
-       end if
+      massDistributionKinematicsDistribution => self%kinematicsDistribution_
+      call kinematicsDistributionIncrement(self)
      </code>
    </method>
    <method name="setTypes">
@@ -79,6 +73,20 @@ module Mass_Distributions
        if (present(componentType)) self%componentType=componentType
        if (present(     massType)) self%     massType=     massType
      </code>
+   </method>
+   <method name="subset">
+      <description>Return the subset of the mass distribution matching the given {\normalfont componentType} and {\normalfont \ttfamily massType}.</description>
+      <type>class(massDistributionClass)</type>
+      <pass>yes</pass>
+      <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
+      <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+      <code>
+        if (self%matches(componentType,massType)) then
+           call selfAcquire(self,massDistributionSubset)
+        else
+	   call nullAcquire(     massDistributionSubset)
+        end if
+      </code>
    </method>
    <method name="matches" >
     <description>Return true if this mass distribution matches the specified component and mass type.</description>
@@ -150,50 +158,38 @@ module Mass_Distributions
     <description>Return the total mass of the distribution.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
    </method>
    <method name="acceleration" >
     <description>Return the gravitational acceleration due to the distribution at the given coordinates.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>class(coordinate                  ), intent(in   )           :: coordinates  </argument>
-    <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="tidalTensor" >
     <description>Return the gravitational tidal tensor due to the distribution at the given coordinates.</description>
     <type>type(tensorRank2Dimension3Symmetric)</type>
     <pass>yes</pass>
-    <argument>class(coordinate                  ), intent(in   )           :: coordinates  </argument>
-    <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="density" >
     <description>Return the density of the distribution at the given coordinates.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>class(coordinate                  ), intent(in   )           :: coordinates  </argument>
-    <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="densitySphericalAverage" >
     <description>Return the average density on a spherical shell of the gievn radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: radius       </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   ) :: radius </argument>
    </method>
    <method name="densityGradientRadial" >
     <description>Return the radial gradient of density of the distribution at the given coordinates.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>class  (coordinate                  ), intent(in   )           :: coordinates</argument>
-    <argument>logical                              , intent(in   ), optional :: logarithmic</argument>
-    <argument>type   (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type   (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>class  (coordinate), intent(in   )           :: coordinates</argument>
+    <argument>logical            , intent(in   ), optional :: logarithmic</argument>
    </method>
    <method name="potential" >
     <description>Return the gravitational potential of the distribution at the given coordinates.</description>
@@ -201,8 +197,6 @@ module Mass_Distributions
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates  </argument>
-    <argument>type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType</argument>
-    <argument>type (enumerationMassTypeType          ), intent(in   ), optional :: massType     </argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status       </argument>
    </method>
    <method name="massEnclosedBySphere" >
@@ -210,20 +204,16 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   )           :: radius       </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="radiusEnclosingMass" >
     <description>Return the radius enclosing a specified mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   ), optional :: mass         , massFractional</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                     </argument>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
-    massDistributionRadiusEnclosingMass=self%radiusEnclosingMassNumerical(mass,massFractional,componentType,massType)
+      massDistributionRadiusEnclosingMass=self%radiusEnclosingMassNumerical(mass,massFractional)
     </code>
    </method>
    <method name="radiusEnclosingMassNumerical" >
@@ -231,9 +221,7 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   ), optional :: mass         , massFractional</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                     </argument>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder), save      :: finder
@@ -244,11 +232,11 @@ module Mass_Distributions
       if      (present(mass          )) then
        massTarget=     mass
       else if (present(massFractional)) then
-       massTarget=self%massTotal(componentType,massType)*massFractional
+       massTarget=self%massTotal()*massFractional
       else
        call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
       end if
-      if (massTarget &lt;= 0.0d0 .or. .not.self%matches(componentType,massType)) then
+      if (massTarget &lt;= 0.0d0) then
        massDistributionRadiusEnclosingMassNumerical=0.0d0
        return
       end if
@@ -275,11 +263,10 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   )           :: density      </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   )           :: density    </argument>
+    <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
     <code>
-      massDistributionRadiusEnclosingDensity=self%radiusEnclosingDensityNumerical(density,componentType,massType)
+      massDistributionRadiusEnclosingDensity=self%radiusEnclosingDensityNumerical(density,radiusGuess)
     </code>
    </method>
    <method name="radiusEnclosingDensityNumerical" >
@@ -287,20 +274,16 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   )           :: density      </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   )           :: density    </argument>
+    <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder), save      :: finder
       logical                     , save      :: finderConstructed=.false.
       !$omp threadprivate(finder,finderConstructed)
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+      double precision                        :: radiusGuess_
 
-      if (.not.self%matches(componentType,massType)) then
-       massDistributionRadiusEnclosingDensityNumerical=0.0d0
-       return
-      end if
       if (.not.finderConstructed) then
        finder           =rootFinder(                                                             &amp;
             &amp;                   rootFunction                 =densityEnclosedRoot          , &amp;
@@ -317,7 +300,10 @@ module Mass_Distributions
       end if
       self_                                           =&gt; self
       densityTarget                                   =     density
-      massDistributionRadiusEnclosingDensityNumerical =     finder%find(rootGuess=1.0d0)
+      radiusGuess_                                    =     self%radiusEnclosingDensityPrevious__
+      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      massDistributionRadiusEnclosingDensityNumerical =     finder%find(rootGuess=radiusGuess_)
+      self%radiusEnclosingDensityPrevious__           =     massDistributionRadiusEnclosingDensityNumerical
     </code>
    </method>
    <method name="radiusFromSpecificAngularMomentum" >
@@ -325,11 +311,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   )           :: angularMomentumSpecific</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType          </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType               </argument>
+    <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <code>
-      massDistributionRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(angularMomentumSpecific,componentType,massType)
+      massDistributionRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(angularMomentumSpecific)
     </code>
    </method>
    <method name="radiusFromSpecificAngularMomentumNumerical" >
@@ -337,9 +321,7 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision                              , intent(in   )           :: angularMomentumSpecific</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType          </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType               </argument>
+    <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder), save      :: finder
@@ -347,10 +329,6 @@ module Mass_Distributions
       !$omp threadprivate(finder,finderConstructed)
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
-      if (.not.self%matches(componentType,massType)) then
-       massDistributionRadiusFromSpecificAngularMomentumNumerical=0.0d0
-       return
-      end if
       if (.not.finderConstructed) then
        finder           =rootFinder(                                                             &amp;
             &amp;                   rootFunction                 =specificAngularMomentumRoot  , &amp;
@@ -374,26 +352,20 @@ module Mass_Distributions
     <description>Return the rotation curve at the given radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: radius       </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="rotationCurveGradient" >
     <description>Return the rotation curve gradient at the given radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: radius       </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="velocityRotationCurveMaximum" >
     <description>Return the maximum velocity in the rotation curve.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
     <code>
-      massDistributionVelocityRotationCurveMaximum=self%rotationCurve(self%radiusRotationCurveMaximum(componentType,massType),componentType,massType)
+      massDistributionVelocityRotationCurveMaximum=self%rotationCurve(self%radiusRotationCurveMaximum())
     </code>
    </method>
    <method name="radiusRotationCurveMaximum" >
@@ -401,11 +373,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
     <modules>Root_Finder</modules>
     <code>
-      massDistributionRadiusRotationCurveMaximum=self%radiusRotationCurveMaximumNumerical(componentType,massType)
+      massDistributionRadiusRotationCurveMaximum=self%radiusRotationCurveMaximumNumerical()
     </code>
    </method>
    <method name="radiusRotationCurveMaximumNumerical" >
@@ -413,8 +383,6 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type(enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
     <modules>Root_Finder</modules>
     <code>
       type            (rootFinder), save      :: finder
@@ -422,10 +390,6 @@ module Mass_Distributions
       !$omp threadprivate(finder,finderConstructed)
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
-      if (.not.self%matches(componentType,massType)) then
-       massDistributionRadiusRotationCurveMaximumNumerical=0.0d0
-       return
-      end if
       if (.not.finderConstructed) then
        finder           =rootFinder(                                                             &amp;
             &amp;                   rootFunction                 =rotationCurveMaximumRoot     , &amp;
@@ -448,94 +412,76 @@ module Mass_Distributions
      <description>Return the surface density at the given coordinates.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <argument>class(coordinate                  ), intent(in   )           :: coordinates  </argument>
-     <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-     <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+     <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="surfaceDensityRadialMoment" >
      <description>Return the surface density at the given coordinates.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <argument>double precision                              , intent(in   )           :: moment                      </argument>
-     <argument>double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
-     <argument>logical                                       , intent(  out), optional :: isInfinite                  </argument>
-     <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType               </argument>
-     <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                    </argument>
+     <argument>double precision, intent(in   )           :: moment                      </argument>
+     <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
+     <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="densityRadialMoment" >
     <description>Return the radial moment of the distribution.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: moment                      </argument>
-    <argument>double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
-    <argument>logical                                       , intent(  out), optional :: isInfinite                  </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType               </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                    </argument>
+    <argument>double precision, intent(in   )           :: moment                      </argument>
+    <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
+    <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="densitySquareIntegral" >
     <description>Return the integral over the square of the density of the distribution.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType               </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                    </argument>
-    <argument>logical                                       , intent(  out), optional :: isInfinite                  </argument>
+    <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
+    <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="chandrasekharIntegral" >
     <description>Return the Chandresekhar integral of the distribution.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding, massDistributionPerturber</argument>
-    <argument>class           (coordinate                  ), intent(in   )           :: coordinates              , velocity                 </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType                                       </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                                            </argument>
+    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
+    <argument>class(coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
    </method>
    <method name="radiusFreefall" >
     <description>Return the radius at which the freefall time to the center equals the given {\normalfont \ttfamily time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: time         </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="radiusFreefallIncreaseRate" >
     <description>Return the rate of increase of the freefall radius corresponding to the given {\normalfont \ttfamily time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: time         </argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType     </argument>
+    <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="fourierTransform" >
     <description>Return the spherically-symmetrized Fourier transform of the density profile at the given wavenumber.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: radiusOuter  , wavenumber</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType            </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                 </argument>
+    <argument>double precision, intent(in   ) :: radiusOuter  , wavenumber</argument>
    </method>
    <method name="energy" >
     <description>Return the total energy of the distribution within the given radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                              , intent(in   )           :: radiusOuter              </argument>
-    <argument>class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding</argument>
-    <argument>type            (enumerationComponentTypeType), intent(in   ), optional :: componentType            </argument>
-    <argument>type            (enumerationMassTypeType     ), intent(in   ), optional :: massType                 </argument>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision                       , intent(in   )         :: radiusOuter              </argument>
+    <argument>class           (massDistributionClass), intent(inout), target :: massDistributionEmbedding</argument>
    </method>
    <method name="positionSample" >
     <description>Return a position sampled from the distribution.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>class(randomNumberGeneratorClass  ), intent(inout)           :: randomNumberGenerator_</argument>
-    <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType         </argument>
-    <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType              </argument>
+    <argument>class(randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_</argument>
    </method>
-   <data>class  (kinematicsDistributionClass ), pointer :: kinematicsDistribution_ => null()              </data>
-   <data>logical                                        :: dimensionless                                  </data>
-   <data>type   (enumerationComponentTypeType)          :: componentType           =  componentTypeUnknown</data>
-   <data>type   (enumerationMassTypeType     )          :: massType                =  massTypeUnknown     </data>
-  </functionClass>
+   <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_          => null()              </data>
+   <data>logical                                                 :: dimensionless                                           </data>
+   <data>type            (enumerationComponentTypeType)          :: componentType                    =  componentTypeUnknown</data>
+   <data>type            (enumerationMassTypeType     )          :: massType                         =  massTypeUnknown     </data>
+   <data>double precision                                        :: radiusEnclosingDensityPrevious__ =  1.0d0               </data>
+   </functionClass>
   !!]
 
   !![
@@ -764,6 +710,37 @@ contains
     return
   end subroutine kinematicsDistributionDestructor
   
+  subroutine selfAcquire(self,self_)
+    !!{
+    Acquire a reference to a mass distribution.
+    !!}
+    implicit none
+    class(massDistributionClass), intent(inout), target  :: self
+    class(massDistributionClass), intent(  out), pointer :: self_
+
+    !![
+    <referenceAcquire target="self_" source="self"/>
+    !!]
+    return
+  end subroutine selfAcquire
+
+  subroutine nullAcquire(subset)
+    !!{
+    Construct a null distribution.
+    !!}
+    implicit none
+    class(massDistributionClass), intent(  out), pointer :: subset
+
+    allocate(massDistributionZero :: subset)
+    select type (subset)
+    type is (massDistributionZero)
+       !![
+       <referenceConstruct object="subset" constructor="massDistributionZero()"/>
+       !!]
+    end select
+    return
+  end subroutine nullAcquire
+
   subroutine kinematicsDistributionAcquire(self,kinematicsDistribution_)
     !!{
     Acquire a reference to a kinematics distribution.

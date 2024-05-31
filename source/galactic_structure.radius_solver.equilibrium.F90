@@ -387,8 +387,8 @@ contains
          ! Get current radius of the component.
          radius=radiusGet(node)
          ! Find the enclosed mass in the dark matter halo.
-         massDistribution_   => node             %massDistribution    (                                                                )
-         darkMatterMassFinal =  massDistribution_%massEnclosedBySphere(radius,componentType=componentTypeDarkHalo,massType=massTypeDark)
+         massDistribution_   => node             %massDistribution    (componentTypeDarkHalo,massTypeDark)
+         darkMatterMassFinal =  massDistribution_%massEnclosedBySphere(radius                            )
          !![
 	 <objectDestructor name="massDistribution_"/>
          !!]

@@ -293,24 +293,18 @@ contains
     return
   end subroutine sphericalAdiabaticGnedin2004Destructor
 
-  double precision function sphericalAdiabaticGnedin2004Density(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalAdiabaticGnedin2004Density(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an adiabatically-contracted spherical mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout)           :: self
-    class           (coordinate                                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical                         )                          :: coordinatesInitial
-    double precision                                                                        :: radiusInitial     , radiusInitialDerivative, &
-         &                                                                                     densityInitial
+    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
+    class           (coordinate                                  ), intent(in   ) :: coordinates
+    type            (coordinateSpherical                         )                :: coordinatesInitial
+    double precision                                                              :: radiusInitial     , radiusInitialDerivative, &
+         &                                                                           densityInitial
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if
     radiusInitial     =self                  %radiusInitial(coordinates       %rSpherical())
     coordinatesInitial=[radiusInitial,0.0d0,0.0d0]
     densityInitial    =self%massDistribution_%density      (coordinatesInitial             )
@@ -330,20 +324,14 @@ contains
     return
   end function sphericalAdiabaticGnedin2004Density
 
-  double precision function sphericalAdiabaticGnedin2004MassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalAdiabaticGnedin2004MassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for adiabatically-contracted mass distributions.
     !!}
     implicit none
-    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout), target   :: self
-    double precision                                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout), target :: self
+    double precision                                              , intent(in   )         :: radius
     
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     mass   =+self                  %darkMatterFraction                               &
          &  *self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius))
     return

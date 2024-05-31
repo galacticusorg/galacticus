@@ -153,8 +153,11 @@ contains
     velocityOrbital      =  +Vector_Magnitude(satellite%velocity())
     ! Find the ram pressure force this orbital radius.
     coordinates          =  [radiusOrbital,0.0d0,0.0d0]
-    massDistribution_    =>  nodeHost         %massDistribution(                                                                       )
-    orbitalPositionForce =  +massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)    &
-         &                  *velocityOrbital                                                                                            **2
+    massDistribution_    =>  nodeHost         %massDistribution(componentTypeHotHalo,massTypeGaseous)
+    orbitalPositionForce =  +massDistribution_%density         (coordinates                         )    &
+         &                  *velocityOrbital                                                         **2
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function orbitalPositionForce

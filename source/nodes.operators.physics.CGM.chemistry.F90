@@ -356,22 +356,22 @@ contains
     ! Compute the column length through the halo (in cm).
     massHotHalo=hotHalo%mass()
     if (massHotHalo > massHotHaloTiny) then
-       massDistribution_ =>  node             %massDistribution     (                                                                             )
-       radiusOuter       =  +hotHalo          %outerRadius          (                                                                             )
-       factorBoostColumn =  +massDistribution_%densityRadialMoment  (0.0d0,radiusOuter,componentType=componentTypeHotHalo,massType=massTypeGaseous) &
-            &               *4.0d0                                                                                                                  &
-            &               *Pi                                                                                                                     &
-            &               *radiusOuter  **2                                                                                                       &
-            &               /3.0d0                                                                                                                  &
+       massDistribution_ =>  node             %massDistribution     (componentTypeHotHalo,massTypeGaseous)
+       radiusOuter       =  +hotHalo          %outerRadius          (                                    )
+       factorBoostColumn =  +massDistribution_%densityRadialMoment  (0.0d0,radiusOuter                   ) &
+            &               *4.0d0                                                                         &
+            &               *Pi                                                                            &
+            &               *radiusOuter  **2                                                              &
+            &               /3.0d0                                                                         &
             &               /massHotHalo
-       lengthColumn      =  +radiusOuter                                                                                                            &
-            &               *megaParsec                                                                                                             &
+       lengthColumn      =  +radiusOuter                                                                   &
+            &               *megaParsec                                                                    &
             &               /centi
-       factorClumping    =  +massDistribution_%densitySquareIntegral(      radiusOuter,componentType=componentTypeHotHalo,massType=massTypeGaseous) &
-            &               *4.0d0                                                                                                                  &
-            &               /3.0d0                                                                                                                  &
-            &               *Pi                                                                                                                     &
-            &               *radiusOuter**3                                                                                                         &
+       factorClumping    =  +massDistribution_%densitySquareIntegral(      radiusOuter                   ) &
+            &               *4.0d0                                                                         &
+            &               /3.0d0                                                                         &
+            &               *Pi                                                                            &
+            &               *radiusOuter**3                                                                &
             &               /massHotHalo**2
        !![
        <objectDestructor name="massDistribution_"/>

@@ -201,38 +201,26 @@ contains
     return
   end function massDistributionIsothermalConstructorInternal
 
-  double precision function isothermalMassTotal(self,componentType,massType)
+  double precision function isothermalMassTotal(self)
     !!{
     Return the total mass in an isothermal mass distribution.
     !!}
     implicit none
-    class(massDistributionIsothermal  ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionIsothermal), intent(inout) :: self
 
-    if (self%matches(componentType,massType)) then
-       isothermalMassTotal=huge(0.0d0)
-    else
-       isothermalMassTotal=0.0d0
-    end if
+    isothermalMassTotal=huge(0.0d0)
     return
   end function isothermalMassTotal
 
-  double precision function isothermalDensity(self,coordinates,componentType,massType)
+  double precision function isothermalDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an isothermal mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
-    class(massDistributionIsothermal  ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionIsothermal), intent(inout) :: self
+    class(coordinate                ), intent(in   ) :: coordinates
 
-    if (.not.self%matches(componentType,massType)) then
-       isothermalDensity=0.0d0
-       return
-    end if
     isothermalDensity=+ self       %densityNormalization   &
          &            /(                                   &
          &             +coordinates%rSpherical          () &
@@ -241,23 +229,17 @@ contains
     return
   end function isothermalDensity
 
-  double precision function isothermalDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+  double precision function isothermalDensityGradientRadial(self,coordinates,logarithmic)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an isothermal mass distribution.
     !!}
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout), target   :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radius
-    logical                                                                 :: logarithmicActual
+    class           (massDistributionIsothermal), intent(inout), target   :: self
+    class           (coordinate                ), intent(in   )           :: coordinates
+    logical                                     , intent(in   ), optional :: logarithmic
+    double precision                                                      :: radius
+    logical                                                               :: logarithmicActual
 
-    if (.not.self%matches(componentType,massType)) then
-       isothermalDensityGradientRadial=0.0d0
-       return
-    end if
     ! Set default options.
     logarithmicActual=.false.
     if (present(logarithmic)) logarithmicActual=logarithmic
@@ -275,21 +257,15 @@ contains
     return
   end function isothermalDensityGradientRadial
 
-  double precision function isothermalMassEnclosedBySphere(self,radius,componentType,massType)
+  double precision function isothermalMassEnclosedBySphere(self,radius)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionIsothermal), intent(inout), target :: self
+    double precision                            , intent(in   )         :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       isothermalMassEnclosedBySphere=0.0d0
-       return
-    end if
     isothermalMassEnclosedBySphere=+4.0d0                        &
          &                         *Pi                           &
          &                         *self%densityNormalization    &
@@ -298,23 +274,17 @@ contains
     return
   end function isothermalMassEnclosedBySphere
 
-  double precision function isothermalRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function isothermalRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for isothermal mass distributions.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout), target   :: self
-    double precision                              , intent(in   ), optional :: mass         , massFractional
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: mass_
+    class           (massDistributionIsothermal), intent(inout), target   :: self
+    double precision                            , intent(in   ), optional :: mass , massFractional
+    double precision                                                      :: mass_
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     mass_=0.0d0
     if (present(mass)) then
        mass_=mass
@@ -331,21 +301,16 @@ contains
     return
   end function isothermalRadiusEnclosingMass
   
-  double precision function isothermalRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function isothermalRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: density
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionIsothermal), intent(inout), target   :: self
+    double precision                            , intent(in   )           :: density
+    double precision                            , intent(in   ), optional :: radiusGuess
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     radius=+      self%lengthReference      &
          & *sqrt(                           &
          &       +3.0d0                     &
@@ -355,22 +320,16 @@ contains
     return
   end function isothermalRadiusEnclosingDensity
   
-  double precision function isothermalRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function isothermalRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: angularMomentumSpecific
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionIsothermal), intent(inout), target :: self
+    double precision                            , intent(in   )         :: angularMomentumSpecific
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
     radius=+angularMomentumSpecific         &
          & /sqrt(                           &
          &       +4.0d0                     &
@@ -383,22 +342,19 @@ contains
     return
   end function isothermalRadiusFromSpecificAngularMomentum
   
-  double precision function isothermalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function isothermalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Returns a radial density moment for the Isothermal mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: momentMinimum, momentMaximum
+    class           (massDistributionIsothermal), intent(inout)           :: self
+    double precision                            , intent(in   )           :: moment
+    double precision                            , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                     , intent(  out), optional :: isInfinite
+    double precision                                                      :: momentMinimum, momentMaximum
 
     isothermalDensityRadialMoment=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     if (present(isInfinite)) isInfinite=.false.
     if (present(radiusMinimum)) then
        if (moment == 1.0d0) then
@@ -445,71 +401,55 @@ contains
     return
   end function isothermalDensityRadialMoment
 
-  double precision function isothermalRotationCurve(self,radius,componentType,massType) result(rotationCurve)
+  double precision function isothermalRotationCurve(self,radius) result(rotationCurve)
     !!{
     Return the rotation curve for an isothermal mass distribution.
     !!}
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionIsothermal), intent(inout) :: self
+    double precision                            , intent(in   ) :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       rotationCurve=0.0d0
-       return
-    end if
     rotationCurve=self%velocityRotation
     return
   end function isothermalRotationCurve
 
-  double precision function isothermalRotationCurveGradient(self,radius,componentType,massType) result(rotationCurveGradient)
+  double precision function isothermalRotationCurveGradient(self,radius) result(rotationCurveGradient)
     !!{
     Return the rotation curve gradient (specifically, $\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r$) for an isothermal mass distribution.
     !!}
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, radius, componentType, massType
+    class           (massDistributionIsothermal), intent(inout) :: self
+    double precision                            , intent(in   ) :: radius
+    !$GLC attributes unused :: self, radius
     
     rotationCurveGradient=0.0d0
     return
   end function isothermalRotationCurveGradient
 
-  double precision function isothermalVelocityRotationCurveMaximum(self,componentType,massType) result(velocity)
+  double precision function isothermalVelocityRotationCurveMaximum(self) result(velocity)
     !!{
     Return the peak velocity in the rotation curve for an isothermal mass distribution.
     !!}
     implicit none
-    class(massDistributionIsothermal  ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionIsothermal), intent(inout) :: self
 
-    if (.not.self%matches(componentType,massType)) then
-       velocity=0.0d0
-       return
-    end if
     velocity=self%velocityRotation
     return
   end function isothermalVelocityRotationCurveMaximum
 
-  double precision function isothermalRadiusRotationCurveMaximum(self,componentType,massType) result(radius)
+  double precision function isothermalRadiusRotationCurveMaximum(self) result(radius)
     !!{
     Return the peak velocity in the rotation curve for an isothermal mass distribution.
     !!}
     implicit none
-    class(massDistributionIsothermal  ), intent(inout), target   :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, componentType, massType
+    class(massDistributionIsothermal), intent(inout), target :: self
+    !$GLC attributes unused :: self
 
     radius=1.0d0
     return
   end function isothermalRadiusRotationCurveMaximum
 
-  double precision function isothermalPotential(self,coordinates,componentType,massType,status)
+  double precision function isothermalPotential(self,coordinates,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an isothermal mass distribution.
     !!}
@@ -521,15 +461,9 @@ contains
     implicit none
     class(massDistributionIsothermal       ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       isothermalPotential=0.0d0
-       return
-    end if
     ! Compute the potential at this position.
     if (coordinates%rSpherical() <= 0.0d0) then
        isothermalPotential=0.0d0
@@ -553,20 +487,16 @@ contains
     return
   end function isothermalPotential
 
-  double precision function isothermalFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function isothermalFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an isothermal mass distribution.
     !!}
     use :: Exponential_Integrals, only : Sine_Integral
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter        , wavenumber
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: wavenumberScaleFree
+    class           (massDistributionIsothermal), intent(inout) :: self
+    double precision                            , intent(in   ) :: radiusOuter        , wavenumber
+    double precision                                            :: wavenumberScaleFree
 
-    fourierTransform=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     waveNumberScaleFree=+waveNumber  &
          &              *radiusOuter
     fourierTransform   =+Sine_Integral(waveNumberScaleFree) &
@@ -574,7 +504,7 @@ contains
     return
   end function isothermalFourierTransform
   
-  double precision function isothermalRadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function isothermalRadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in an isothermal mass distribution. For an isothermal
     potential, the freefall radius, $r_\mathrm{ff}(t)$, is:
@@ -585,15 +515,9 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-       return
-    end if
+    class           (massDistributionIsothermal), intent(inout) :: self
+    double precision                            , intent(in   ) :: time
+
     radius=+sqrt(                   &
          &       +2.0d0             &
          &       /Pi                &
@@ -604,7 +528,7 @@ contains
     return
   end function isothermalRadiusFreefall
   
-  double precision function isothermalRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function isothermalRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an isothermal mass
     distribution. For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_\mathrm{ff}(t)$, is:
@@ -615,16 +539,10 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionIsothermal), intent(inout) :: self
+    double precision                            , intent(in   ) :: time
     !$GLC attributes unused :: time
 
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-       return
-    end if
     radiusIncreaseRate=+sqrt(                   &
          &                   +2.0d0             &
          &                   /Pi                &
@@ -681,20 +599,18 @@ contains
     return
   end function isothermalEnergyKinetic
   
-  function isothermalPositionSample(self,randomNumberGenerator_,componentType,massType) result(position)
+  function isothermalPositionSample(self,randomNumberGenerator_) result(position)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                              , dimension(3)            :: position
-    class           (massDistributionIsothermal  ), intent(inout)           :: self
-    class           (randomNumberGeneratorClass  ), intent(inout)           :: randomNumberGenerator_
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                            , dimension(3)  :: position
+    class           (massDistributionIsothermal), intent(inout) :: self
+    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
 
     position=0.0d0
-    if (self%matches(componentType,massType)) call Error_Report('can not sample positions, mass is unbounded'//{introspection:location})   
+    call Error_Report('can not sample positions, mass is unbounded'//{introspection:location})   
     return
   end function isothermalPositionSample
 

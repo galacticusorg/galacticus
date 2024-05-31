@@ -278,15 +278,15 @@ contains
        ! Get the outer radius.
        outerRadius=hotHalo%outerRadius()
        ! Get the mass distribution.
-       massDistribution_       => node             %massDistribution      (                                                           )
-       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+       massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
        ! Get the temperature.
        coordinates             =  [outerRadius,0.0d0,0.0d0]
        temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
        ! Compute density and cooling time at outer radius and zero radius.
-       densityOuter            =  massDistribution_             %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous                  )
+       densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
        coordinates             =  [outerRadius,0.0d0,0.0d0]
-       densityZero             =  massDistribution_             %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous                  )
+       densityZero             =  massDistribution_             %density    (coordinates                                                                              )
        coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
        coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
        !![
@@ -370,15 +370,15 @@ contains
        ! Get the outer radius.
        outerRadius=hotHalo%outerRadius()
        ! Get the mass distribution.
-       massDistribution_       => node             %massDistribution      (                                                           )
-       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+       massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
        ! Get the temperature.
        coordinates             =  [outerRadius,0.0d0,0.0d0]
        temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
        ! Compute density and cooling time at outer radius and zero radius.
-       densityOuter            =  massDistribution_             %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous                  )
+       densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
        coordinates             =  [outerRadius,0.0d0,0.0d0]
-       densityZero             =  massDistribution_             %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous                  )
+       densityZero             =  massDistribution_             %density    (coordinates                                                                              )
        coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
        coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
        !![

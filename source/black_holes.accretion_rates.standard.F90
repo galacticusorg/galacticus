@@ -269,8 +269,8 @@ contains
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
        ! Get halo gas temperature.
-       massDistribution_       => node             %massDistribution      (                                                           )
-       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+       massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                                           )
        coordinates             =  [0.0d0,0.0d0,0.0d0]
        temperatureHotHalo      =  kinematicsDistribution_%temperature(coordinates)
        !![

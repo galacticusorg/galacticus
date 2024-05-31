@@ -28,7 +28,7 @@ module Galacticus_Nodes
   !!}
   use            :: Abundances_Structure               , only : abundances
   use            :: Chemical_Abundances_Structure      , only : chemicalAbundances
-  use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType
+  use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType       , enumerationWeightByType
   use            :: Hashes                             , only : doubleHash                   , genericHash
   use            :: Histories                          , only : history                      , longIntegerHistory
   use            :: IO_HDF5                            , only : hdf5Object
@@ -38,7 +38,7 @@ module Galacticus_Nodes
   use            :: Kind_Numbers                       , only : kind_int8
   use            :: Mass_Distributions                 , only : massDistributionClass
   use            :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
-  use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar, megaParsec
+  use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar             , megaParsec
   use            :: Numerical_Constants_Prefixes       , only : kilo
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorClass
   use            :: Stellar_Luminosities_Structure     , only : stellarLuminosities
@@ -239,11 +239,15 @@ module Galacticus_Nodes
   ! Memoized massDistributions
   type :: massDistributionArray
      private
-     integer(kind_int8            )          :: uniqueID          =  -huge(kind_int8)
-     class  (massDistributionClass), pointer :: massDistribution_ =>  null(         )
+     integer(kind_int8                   )          :: uniqueID          =  -huge(kind_int8)
+     type   (enumerationComponentTypeType)          :: componentType
+     type   (enumerationMassTypeType     )          :: massType
+     type   (enumerationWeightByType     )          :: weightBy
+     integer                                        :: weightIndex
+     class  (massDistributionClass       ), pointer :: massDistribution_ =>  null(         )
   end type massDistributionArray
-  integer                       , parameter                         :: massDistributionsCount=2
-  integer                                                           :: massDistributionsLast =0
+  integer                       , parameter                         :: massDistributionsCount=20
+  integer                                                           :: massDistributionsLast = 0
   type   (massDistributionArray), dimension(massDistributionsCount) :: massDistributions__
   !$omp threadprivate(massDistributions__,massDistributionsLast)
   

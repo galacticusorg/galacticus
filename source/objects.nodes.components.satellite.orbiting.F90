@@ -26,15 +26,14 @@ module Node_Component_Satellite_Orbiting
   !!{
   Implements the orbiting satellite component.
   !!}
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Galactic_Structure      , only : galacticStructureClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits           , only : keplerOrbit
-  use :: Tensors                 , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits           , only : virialOrbit                    , virialOrbitClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Galactic_Structure     , only : galacticStructureClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Kepler_Orbits          , only : keplerOrbit
+  use :: Tensors                , only : tensorRank2Dimension3Symmetric
+  use :: Virial_Orbits          , only : virialOrbit                    , virialOrbitClass
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
@@ -122,14 +121,13 @@ module Node_Component_Satellite_Orbiting
   !!]
 
   ! Objects used by this module.
-  class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_
   class(virialDensityContrastClass), pointer :: virialDensityContrast_
   class(cosmologyParametersClass  ), pointer :: cosmologyParameters_
   class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
   class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
   class(virialOrbitClass          ), pointer :: virialOrbit_
   class(galacticStructureClass    ), pointer :: galacticStructure_
-  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_,galacticStructure_)
+  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_,galacticStructure_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical                                                     , parameter :: acceptUnboundOrbits          =.false.
@@ -239,7 +237,6 @@ contains
        !![
        <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="subParameters"/>
        <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="subParameters"/>
-       <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="subParameters"/>
        <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="subParameters"/>
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="subParameters"/>
@@ -272,7 +269,6 @@ contains
        !![
        <objectDestructor name="cosmologyFunctions_"   />
        <objectDestructor name="cosmologyParameters_"  />
-       <objectDestructor name="darkMatterProfileDMO_" />
        <objectDestructor name="virialDensityContrast_"/>
        <objectDestructor name="darkMatterHaloScale_"  />
        <objectDestructor name="virialOrbit_"          />
@@ -611,7 +607,6 @@ contains
                &                                                                   densityContrastMassBound, &
                &                                            cosmologyParameters_  =cosmologyParameters_    , &
                &                                            cosmologyFunctions_   =cosmologyFunctions_     , &
-               &                                            darkMatterProfileDMO_ =darkMatterProfileDMO_   , &
                &                                            virialDensityContrast_=virialDensityContrast_    &
                &                                           )
           call satellite%boundMassSet(massSatellite)
@@ -640,7 +635,7 @@ contains
 
     call displayMessage('Storing state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ virialOrbit_ darkMatterProfileDMO_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
+    <stateStore variables="darkMatterHaloScale_ virialOrbit_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Satellite_Orbiting_State_Store
@@ -663,7 +658,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ darkMatterProfileDMO_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
+    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
     !!]
     return
   end subroutine Node_Component_Satellite_Orbiting_State_Restore

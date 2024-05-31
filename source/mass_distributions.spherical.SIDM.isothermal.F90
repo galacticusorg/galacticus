@@ -513,24 +513,18 @@ contains
     return
   end subroutine sphericalSIDMIsothermalComputeSolution
 
-  double precision function sphericalSIDMIsothermalDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalSIDMIsothermalDensity(self,coordinates) result(density)
     !!{
     Compute the density at the specified {\normalfont \ttfamily coordinates} for the {\normalfont \ttfamily sphericalSIDMIsothermal}
     mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalSIDMIsothermal), intent(inout)           :: self
-    class           (coordinate                             ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType           ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                ), intent(in   ), optional :: massType
-    integer         (c_size_t                               )                          :: i            , j, &
-         &                                                                                indexRadius
-    double precision                                         , dimension(0:1)          :: factorsRadius
+    class           (massDistributionSphericalSIDMIsothermal), intent(inout)  :: self
+    class           (coordinate                             ), intent(in   )  :: coordinates
+    integer         (c_size_t                               )                 :: i            , j, &
+         &                                                                       indexRadius
+    double precision                                         , dimension(0:1) :: factorsRadius
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        density=self%massDistribution_%density(coordinates)
     else
@@ -550,7 +544,7 @@ contains
     return
   end function sphericalSIDMIsothermalDensity
 
-  double precision function sphericalSIDMIsothermalDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalSIDMIsothermalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a truncated spherical mass distribution.
     !!}
@@ -558,18 +552,12 @@ contains
     class           (massDistributionSphericalSIDMIsothermal), intent(inout) , target   :: self
     class           (coordinate                             ), intent(in   )            :: coordinates
     logical                                                  , intent(in   ) , optional :: logarithmic
-    type            (enumerationComponentTypeType           ), intent(in   ) , optional :: componentType
-    type            (enumerationMassTypeType                ), intent(in   ) , optional :: massType
     integer         (c_size_t                               )                           :: indexRadius
     double precision                                         , dimension(0:1)           :: factorsRadius
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    if (.not.self%matches(componentType,massType)) then
-       densityGradient=0.0d0
-       return
-    end if
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        densityGradient=self%massDistribution_%densityGradientRadial(coordinates,logarithmic=logarithmic)
     else
@@ -588,24 +576,18 @@ contains
     return
   end function sphericalSIDMIsothermalDensityGradientRadial
   
-  double precision function sphericalSIDMIsothermalMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalSIDMIsothermalMassEnclosedBySphere(self,radius) result(mass)
     !!{   
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for the {\normalfont \ttfamily sphericalSIDMIsothermal}
     mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalSIDMIsothermal), intent(inout) , target   :: self
-    double precision                                         , intent(in   )            :: radius
-    type            (enumerationComponentTypeType           ), intent(in   ) , optional :: componentType
-    type            (enumerationMassTypeType                ), intent(in   ) , optional :: massType
-    integer         (c_size_t                               )                           :: i            , j, &
-         &                                                                                 indexRadius
-    double precision                                         , dimension(0:1)           :: factorsRadius
+    class           (massDistributionSphericalSIDMIsothermal), intent(inout) , target :: self
+    double precision                                         , intent(in   )          :: radius
+    integer         (c_size_t                               )                         :: i            , j, &
+         &                                                                               indexRadius
+    double precision                                         , dimension(0:1)         :: factorsRadius
 
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     if (radius > self%radiusInteraction()) then
        mass=self%massDistribution_%massEnclosedBySphere(radius)
     else
@@ -625,25 +607,19 @@ contains
     return
   end function sphericalSIDMIsothermalMassEnclosedBySphere
 
-  double precision function sphericalSIDMIsothermalPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function sphericalSIDMIsothermalPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in an burkert mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
-    class           (massDistributionSphericalSIDMIsothermal), intent(inout), target   :: self
-    class           (coordinate                             ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType           ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                ), intent(in   ), optional :: massType
-    type            (enumerationStructureErrorCodeType      ), intent(  out), optional :: status
-    type            (coordinateSpherical                    )                          :: coordinatesInteraction
+    class(massDistributionSphericalSIDMIsothermal), intent(inout), target   :: self
+    class(coordinate                             ), intent(in   )           :: coordinates
+    type (enumerationStructureErrorCodeType      ), intent(  out), optional :: status
+    type (coordinateSpherical                    )                          :: coordinatesInteraction
     
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential             =+0.0d0
-       return
-    end if
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        potential             =+     self%massDistribution_%potential                (coordinates           )
     else

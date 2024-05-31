@@ -44,6 +44,7 @@ program Test_Mass_Distributions
   class           (massDistributionClass                  )                             , allocatable :: massDistribution_                                                                                               , massDistributionRotated                   , &
        &                                                                                                 massDistributionDisk                                                                                            , massDistributionSpheroid                  , &
        &                                                                                                 massDistributionDMO
+  class           (massDistributionClass                  )                             , pointer     :: massDistributionDisk_                                                                                           , massDistributionSpheroid_ 
   class           (kinematicsDistributionClass            )                             , allocatable :: kinematicsDistribution_
   type            (massDistributionList                   )                             , pointer     :: massDistributions
   integer                                                  , parameter                                :: sersicTableCount             =8
@@ -455,13 +456,19 @@ program Test_Mass_Distributions
      massDistribution_=massDistributionComposite(massDistributions)
   end select
   symmetry_=massDistribution_%symmetry()
-  call Assert("Maximal symmetry [cylindrical]"         ,symmetry_        %ID                                                            ,massDistributionSymmetryCylindrical%ID              )
-  positionCartesian=[1.0d-3,0.0d0,0.0d0]
-  call Assert("Density at (x,y,z)=(1,0,0) kpc"         ,massDistribution_%density(positionCartesian                                    ),1.47756308872d18                      ,relTol=1.0d-6)
-  call Assert("Spheroid density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian,componentType=componentTypeSpheroid),2.04086330446d17                      ,relTol=1.0d-6)
-  call Assert("Disk density at (x,y,z)=(1,0,0) kpc"    ,massDistribution_%density(positionCartesian,componentType=componentTypeDisk    ),1.27347675828d18                      ,relTol=1.0d-6)
+  call Assert("Maximal symmetry [cylindrical]"         ,symmetry_        %ID                                ,massDistributionSymmetryCylindrical%ID              )
+  massDistributionDisk_     => massDistribution_%subset(componentType=componentTypeDisk    )
+  massDistributionSpheroid_ => massDistribution_%subset(componentType=componentTypeSpheroid)
+  positionCartesian         =  [1.0d-3,0.0d0,0.0d0]
+  call Assert("Density at (x,y,z)=(1,0,0) kpc"         ,massDistribution_        %density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
+  call Assert("Spheroid density at (x,y,z)=(1,0,0) kpc",massDistributionSpheroid_%density(positionCartesian),2.04086330446d17                      ,relTol=1.0d-6)
+  call Assert("Disk density at (x,y,z)=(1,0,0) kpc"    ,massDistributionDisk_    %density(positionCartesian),1.27347675828d18                      ,relTol=1.0d-6)
   nullify   (massDistributions)
   deallocate(massDistribution_)
+  !![
+  <objectDestructor name="massDistributionDisk_"    />
+  <objectDestructor name="massDistributionSpheroid_"/>
+  !!]
   call Unit_Tests_End_Group()
   
   ! Composite profile with scaled components.

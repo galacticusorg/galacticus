@@ -182,13 +182,13 @@ contains
     else
        ! Find the density at the cooling radius.  
        coordinates              =  [radiusInfall,0.0d0,0.0d0]
-       massDistribution_        => node                                  %massDistribution  (                                                )
-       densityCooling           =  massDistribution_                     %density           (coordinates,componentTypeHotHalo,massTypeGaseous)
+       massDistribution_        => node                                  %massDistribution  (componentTypeHotHalo,massTypeGaseous)
+       densityCooling           =  massDistribution_                     %density           (coordinates                         )
        !![
        <objectDestructor name="massDistribution_"/>
        !!]       
        ! Find infall radius growth rate.
-       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(node                                            )
+       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(node                                )
        ! Compute the infall rate.
        whiteFrenk1991Rate       =  +4.0d0                     &
             &                      *Pi                        &

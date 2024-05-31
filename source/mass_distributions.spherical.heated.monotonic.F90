@@ -191,25 +191,18 @@ contains
     return
   end function sphericalHeatedMonotonicUseUndecorated
   
-  double precision function sphericalHeatedMonotonicMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalHeatedMonotonicMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     units of Mpc).
     !!}
     implicit none
-    class           (massDistributionSphericalHeatedMonotonic), intent(inout), target   :: self
-    double precision                                          , intent(in   )           :: radius
-    type            (enumerationComponentTypeType            ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                 ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalHeatedMonotonic), intent(inout), target :: self
+    double precision                                          , intent(in   )         :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       ! No match, mass is zero.
-       mass=+0.0d0
-       return
-    end if
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating - use the unheated solution.
-       mass=self%massDistribution_%massEnclosedBySphere(radius,componentType,massType)
+       mass=self%massDistribution_%massEnclosedBySphere(radius)
     else if (radius <= 0.0d0) then
        ! Non-positive radius, mass must be zero.
        mass=0.0d0
@@ -235,26 +228,19 @@ contains
     return
   end function sphericalHeatedMonotonicMassEnclosedBySphere
 
-  double precision function sphericalHeatedMonotonicDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalHeatedMonotonicDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionSphericalHeatedMonotonic), intent(inout)           :: self
-    class           (coordinate                              ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType            ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                 ), intent(in   ), optional :: massType
-    double precision                                                                    :: radius       , radius_
+    class           (massDistributionSphericalHeatedMonotonic), intent(inout) :: self
+    class           (coordinate                              ), intent(in   ) :: coordinates
+    double precision                                                          :: radius     , radius_
     
-    if (.not.self%matches(componentType,massType)) then
-       ! No match, the density is zero.
-       density=+0.0d0
-       return
-    end if
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating, the density is unchanged.
-       density=+self%massDistribution_%density(coordinates,componentType,massType)
+       density=+self%massDistribution_%density(coordinates)
        return
     end if
     radius=coordinates%rSpherical()

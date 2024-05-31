@@ -147,78 +147,60 @@ contains
     return
   end function blackHoleConstructorInternal
 
-  double precision function blackHoleMassTotal(self,componentType,massType)
+  double precision function blackHoleMassTotal(self)
     !!{
     Return the total mass in the black hole.
     !!}
     implicit none
-    class(massDistributionBlackHole   ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    if (self%matches(componentType,massType)) then
-       blackHoleMassTotal=self%mass
-    else
-       blackHoleMassTotal=0.0d0
-    end if
+    class(massDistributionBlackHole), intent(inout) :: self
+ 
+    blackHoleMassTotal=self%mass
     return
   end function blackHoleMassTotal
 
-  double precision function blackHoleDensity(self,coordinates,componentType,massType)
+  double precision function blackHoleDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
-    class(massDistributionBlackHole   ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionBlackHole), intent(inout) :: self
+    class(coordinate               ), intent(in   ) :: coordinates
     
     blackHoleDensity=     0.0d0
-    if (.not.self       %matches          (componentType,massType)        ) return
-    if (     coordinates%rSphericalSquared(                      ) > 0.0d0) return
+    if (coordinates%rSphericalSquared() > 0.0d0) return
     blackHoleDensity=huge(0.0d0)
     return
   end function blackHoleDensity
 
-  double precision function blackHoleDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+  double precision function blackHoleDensityGradientRadial(self,coordinates,logarithmic)
     !!{
     Return the density gradient in the radial direction for a point mass.
     !!}
     implicit none
-    class  (massDistributionBlackHole   ), intent(inout), target   :: self
-    class  (coordinate                  ), intent(in   )           :: coordinates
-    logical                              , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class  (massDistributionBlackHole), intent(inout), target   :: self
+    class  (coordinate               ), intent(in   )           :: coordinates
+    logical                           , intent(in   ), optional :: logarithmic
     !$GLC attributes unused :: logarithmic
     
     blackHoleDensityGradientRadial=      0.0d0
-    if (.not.self       %matches          (componentType,massType)        ) return
-    if (     coordinates%rSphericalSquared(                      ) > 0.0d0) return
+    if (coordinates%rSphericalSquared() > 0.0d0) return
     blackHoleDensityGradientRadial=-huge(0.0d0)
     return
   end function blackHoleDensityGradientRadial
 
-  double precision function blackHoleMassEnclosedBySphere(self,radius,componentType,massType)
+  double precision function blackHoleMassEnclosedBySphere(self,radius)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a black hole.
     !!}
     implicit none
-    class           (massDistributionBlackHole   ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    if (.not.self%matches(componentType,massType)) then
-       blackHoleMassEnclosedBySphere=0.0d0
-       return
-    end if
+    class           (massDistributionBlackHole), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radius
+ 
     blackHoleMassEnclosedBySphere=+self%mass
     return
   end function blackHoleMassEnclosedBySphere
 
-  double precision function blackHoleRotationCurve(self,radius,componentType,massType)
+  double precision function blackHoleRotationCurve(self,radius)
     !!{
     Return the rotation curve for a blackHole mass distribution.
     !!}
@@ -226,12 +208,10 @@ contains
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
-    class           (massDistributionBlackHole   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionBlackHole), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
 
-    if (.not.self%matches(componentType,massType) .or. self%mass <= 0.0d0) then
+    if (self%mass <= 0.0d0) then
        blackHoleRotationCurve=0.0d0
     else if (radius <= self%radiusGravitational) then
        if (self%dimensionless) then
@@ -241,9 +221,9 @@ contains
                &                 *speedLight
        end if
     else
-       blackHoleRotationCurve=+sqrt(                                                          &
-            &                       +self%massEnclosedBySphere(radius,componentType,massType) &
-            &                       /                          radius                         &
+       blackHoleRotationCurve=+sqrt(                                   &
+            &                       +self%massEnclosedBySphere(radius) &
+            &                       /                          radius  &
             &                      )
        ! Make dimensionful if necessary.
        if (.not.self%dimensionless) blackHoleRotationCurve=+sqrt(gravitationalConstantGalacticus) &
@@ -252,24 +232,20 @@ contains
     return
   end function blackHoleRotationCurve
 
-  double precision function blackHoleRotationCurveGradient(self,radius,componentType,massType)
+  double precision function blackHoleRotationCurveGradient(self,radius)
     !!{
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionBlackHole   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    if     (                                                                 &
-         &   .not.self%matches            (componentType,massType)           &
-         &  .or.                                                             &
-         &        self%mass                                        <= 0.0d0  &
-         &  .or.                                                             &
-         &        self%radiusGravitational                         >  radius &
+    class           (massDistributionBlackHole), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
+ 
+    if     (                                         &
+         &        self%mass                <= 0.0d0  &
+         &  .or.                                     &
+         &        self%radiusGravitational >  radius &
          &) then
        blackHoleRotationCurveGradient=+0.0d0
     else
@@ -282,7 +258,7 @@ contains
     return
   end function blackHoleRotationCurveGradient
 
-  double precision function blackHolePotential(self,coordinates,componentType,massType,status)
+  double precision function blackHolePotential(self,coordinates,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} for a point mass.
     !!}
@@ -291,15 +267,9 @@ contains
     implicit none
     class(massDistributionBlackHole        ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType) .or. self%mass <= 0.0d0) then
-       blackHolePotential=0.0d0
-       return
-    end if
     blackHolePotential=-     self       %mass                   &
          &             /max(                                    &
          &                   coordinates%rSpherical         (), &
@@ -311,25 +281,22 @@ contains
     return
   end function blackHolePotential
 
-  double precision function blackHoleDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function blackHoleDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Computes radial moments of the density for a point mass.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (massDistributionBlackHole   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum , radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    
+    class           (massDistributionBlackHole), intent(inout)           :: self
+    double precision                           , intent(in   )           :: moment
+    double precision                           , intent(in   ), optional :: radiusMinimum , radiusMaximum
+    logical                                    , intent(  out), optional :: isInfinite
+     
     blackHoleDensityRadialMoment=0.0d0
     ! Moment is zero if:
-    if    (.not.self%matches(componentType,massType)        ) return ! Mass or component types do not match.
-    if    (     moment                               > 0.0d0) return ! The moment is positive (in which case ∫ δ(r) rᵐ dr = 0).
+    if    (moment        > 0.0d0) return ! The moment is positive (in which case ∫ δ(r) rᵐ dr = 0).
     if (present(radiusMinimum)) then
-       if (     radiusMinimum                        > 0.0d0) return ! The lower limit of the integral does not extend to zero.
+       if (radiusMinimum > 0.0d0) return ! The lower limit of the integral does not extend to zero.
     end if
     if (present(isInfinite)) then
        isInfinite=.true.

@@ -25,8 +25,9 @@ module Node_Component_Dark_Matter_Profile_Scale
   !!{
   Implements a dark matter profile method that provides a scale radius.
   !!}
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles   , only : darkMatterProfileClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles    , only : darkMatterProfileClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
@@ -68,9 +69,10 @@ module Node_Component_Dark_Matter_Profile_Scale
   !!]
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
-  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfile_)
+  class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileClass   ), pointer :: darkMatterProfile_
+  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileDMO_)
   
   ! Procedure pointer to mass distribution function.
   procedure(Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution), pointer :: Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution_
@@ -118,8 +120,9 @@ contains
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
-       <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters_"/>
+       <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
        !!]
      end if
      return
@@ -139,8 +142,9 @@ contains
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        !![
-       <objectDestructor name="darkMatterHaloScale_"/>
-       <objectDestructor name="darkMatterProfile_"  />
+       <objectDestructor name="darkMatterHaloScale_" />
+       <objectDestructor name="darkMatterProfile_"   />
+       <objectDestructor name="darkMatterProfileDMO_"/>
        !!]
     end if
     return
@@ -224,7 +228,7 @@ contains
 
     call displayMessage('Storing state for: componentDarkMatterProfile -> scale',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ darkMatterProfile_"/>
+    <stateStore variables="darkMatterHaloScale_ darkMatterProfile_ darkMatterProfileDMO_"/>
     !!]
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store
@@ -247,7 +251,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDar -> scale',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ darkMatterProfile_"/>
+    <stateRestore variables="darkMatterHaloScale_ darkMatterProfile_ darkMatterProfileDMO_"/>
     !!]
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore
@@ -257,7 +261,8 @@ contains
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScale
-    use :: Galactic_Structure_Options, only : enumerationWeightByType            , enumerationComponentTypeType, enumerationMassTypeType, componentTypeAll, componentTypeDarkHalo, massTypeAll, massTypeDark
+    use :: Galactic_Structure_Options, only : enumerationWeightByType            , enumerationComponentTypeType, enumerationMassTypeType, componentTypeAll, &
+         &                                    componentTypeDarkHalo              , componentTypeDarkMatterOnly , massTypeAll            , massTypeDark
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class  (massDistributionClass              ), pointer                 :: massDistribution_
@@ -271,24 +276,26 @@ contains
     <optionalArgument name="massType"      defaultsTo="massTypeAll"     />
     !!]
 
-    if     (                                           &
-         &   (                                         &
-         &     componentType_ == componentTypeAll      &
-         &    .or.                                     &
-         &     componentType_ == componentTypeDarkHalo &
-         &   )                                         &
-         &  .and.                                      &
-         &   (                                         &
-         &     massType_      == massTypeAll           &
-         &    .or.                                     &
-         &     massType_      == massTypeDark          &
-         &   )                                         &
-         & ) then
-       massDistribution_ => darkMatterProfile_%get(self%hostNode,weightBy,weightIndex)
-    else
-       massDistribution_ => null()
+    massDistribution_ => null()
+    if         (                                              &
+         &       massType_      == massTypeAll                &
+         &      .or.                                          &
+         &       massType_      == massTypeDark               &
+         &     ) then
+       if      (                                              &
+            &    componentType_ == componentTypeAll           &
+            &   .or.                                          &
+            &    componentType_ == componentTypeDarkHalo      &
+            &  ) then
+          massDistribution_ => darkMatterProfile_   %get(self%hostNode,weightBy,weightIndex)
+       else if (                                              &
+            &   componentType_ == componentTypeDarkMatterOnly &
+            &  ) then
+          massDistribution_ => darkMatterProfileDMO_%get(self%hostNode,weightBy,weightIndex)
+          call massDistribution_%setTypes(componentType=componentTypeDarkMatterOnly)
+       end if
     end if
     return
   end function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution
-
+  
 end module Node_Component_Dark_Matter_Profile_Scale

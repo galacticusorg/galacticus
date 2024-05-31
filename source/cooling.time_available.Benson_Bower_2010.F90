@@ -179,8 +179,8 @@ contains
        return
     end if
     ! Get the mass distribution.
-    massDistribution_       => node             %massDistribution      (                                                           )
-    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+    massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                                           )
     ! Compute the mean density and temperature of the hot halo.
     density    =+massNotional             &
          &      *3.0d0                    &

@@ -321,12 +321,12 @@ contains
        ! Get the virial radius.
        radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        ! Get the mass distribution.
-       massDistribution_       => node             %massDistribution      (                                                           )
-       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+       massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
        ! Compute density, temperature and abundances.
        coordinates=[radiusVirial,0.0d0,0.0d0]
-       density    =massDistribution_                   %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous        )
-       temperature=kinematicsDistribution_             %temperature(coordinates                                                                    )
+       density    =massDistribution_                   %density    (coordinates)
+       temperature=kinematicsDistribution_             %temperature(coordinates)
        !![
        <objectDestructor name="massDistribution_"      />
        <objectDestructor name="kinematicsDistribution_"/>

@@ -164,8 +164,8 @@ contains
     <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     !!]
     ! Get the mass distribution.
-    massDistribution_       => node             %massDistribution      (                                                           )
-    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(componentType=componentTypeHotHalo,massType=massTypeGaseous)      
+    massDistribution_       => node             %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                    )
     ! Compute luminosity and temperature.
     integratorTotal =integrator                (integrandLuminosityTotal ,toleranceRelative                           =1.0d-3)
     integratorInBand=integrator                (integrandLuminosityInBand,toleranceRelative                           =1.0d-3)
@@ -248,9 +248,9 @@ contains
       ! Set the coordinates.
       coordinates     =  [radius,0.0d0,0.0d0]
       ! Get the density of the ICM.
-      density         =  massDistribution_      %density    (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+      density         =  massDistribution_      %density    (coordinates)
       ! Get the temperature of the ICM.
-      temperature     =  kinematicsDistribution_%temperature(coordinates                                                            )
+      temperature     =  kinematicsDistribution_%temperature(coordinates)
       ! Get abundances and chemistry of the ICM.
       hotHalo         => node   %hotHalo   ()
       massICM         =  hotHalo%mass      ()

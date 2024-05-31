@@ -127,21 +127,15 @@ contains
     return
   end function massDistributionDiemerKravtsov2014ConstructorInternal
 
-  double precision function diemerKravtsov2014Density(self,coordinates,componentType,massType) result(density)
+  double precision function diemerKravtsov2014Density(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a \cite{diemer_dependence_2014} mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
-    class(massDistributionDiemerKravtsov2014), intent(inout)           :: self
-    class(coordinate                        ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class(massDistributionDiemerKravtsov2014), intent(inout) :: self
+    class(coordinate                        ), intent(in   ) :: coordinates
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if
     density=+self%densityMean                &
          &  *(                               &
          &    +1.0d0                         &
@@ -155,24 +149,18 @@ contains
     return
   end function diemerKravtsov2014Density
 
-  double precision function diemerKravtsov2014DensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function diemerKravtsov2014DensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density gradient at the specified {\normalfont \ttfamily coordinates} in a \cite{diemer_dependence_2014} mass distribution.
     !!}
     implicit none
-    class           (massDistributionDiemerKravtsov2014), intent(inout), target   :: self
-    class           (coordinate                        ), intent(in   )           :: coordinates
-    logical                                             , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class  (massDistributionDiemerKravtsov2014), intent(inout), target   :: self
+    class  (coordinate                        ), intent(in   )           :: coordinates
+    logical                                    , intent(in   ), optional :: logarithmic
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    if (.not.self%matches(componentType,massType)) then
-       densityGradient=0.0d0
-       return
-    end if
     densityGradient=-self%s                          &
          &          /(                               &
          &            +1.0d0                         &

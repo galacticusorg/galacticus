@@ -118,20 +118,14 @@ contains
     return
   end function constantDensityCloudConstructorInternal
 
-  double precision function constantDensityCloudDensity(self,coordinates,componentType,massType)
+  double precision function constantDensityCloudDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
-    class(massDistributionConstantDensityCloud), intent(inout)           :: self
-    class(coordinate                          ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    class(massDistributionConstantDensityCloud), intent(inout) :: self
+    class(coordinate                          ), intent(in   ) :: coordinates
     
-    if (.not.self%matches(componentType,massType)) then
-       constantDensityCloudDensity=0.0d0
-       return
-    end if
     if (coordinates%rSphericalSquared() < self%radiusSquared) then
        constantDensityCloudDensity=self%density_
     else
@@ -140,7 +134,7 @@ contains
     return
   end function constantDensityCloudDensity
 
-  double precision function constantDensityCloudDensityGradientRadial(self,coordinates,logarithmic,componentType,massType)
+  double precision function constantDensityCloudDensityGradientRadial(self,coordinates,logarithmic)
     !!{
     Return the density gradient in the radial direction in a constant density cloud.
     !!}
@@ -148,28 +142,20 @@ contains
     class  (massDistributionConstantDensityCloud), intent(inout), target   :: self
     class  (coordinate                          ), intent(in   )           :: coordinates
     logical                                      , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType             ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, coordinates, logarithmic, componentType, massType
+    !$GLC attributes unused :: self, coordinates, logarithmic
     
     constantDensityCloudDensityGradientRadial=0.0d0
     return
   end function constantDensityCloudDensityGradientRadial
 
-  double precision function constantDensityCloudMassEnclosedBySphere(self,radius,componentType,massType)
+  double precision function constantDensityCloudMassEnclosedBySphere(self,radius)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a constant density cloud.
     !!}
     implicit none
-    class           (massDistributionConstantDensityCloud), intent(inout), target   :: self
-    double precision                                      , intent(in   )           :: radius
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    class           (massDistributionConstantDensityCloud), intent(inout), target :: self
+    double precision                                      , intent(in   )         :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       constantDensityCloudMassEnclosedBySphere=0.0d0
-       return
-    end if
     if (radius > self%radius) then
        constantDensityCloudMassEnclosedBySphere=+self%mass
     else
@@ -182,7 +168,7 @@ contains
     return
   end function constantDensityCloudMassEnclosedBySphere
 
-  double precision function constantDensityCloudPotential(self,coordinates,componentType,massType,status)
+  double precision function constantDensityCloudPotential(self,coordinates,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a constant density cloud.
     !!}
@@ -191,16 +177,10 @@ contains
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout), target   :: self
     class           (coordinate                          ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
     double precision                                                                :: radius
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       constantDensityCloudPotential=0.0d0
-       return
-    end if
     radius=coordinates%rSpherical()
     if (radius > self%radius) then
        constantDensityCloudPotential=-gravitationalConstantGalacticus &
@@ -222,7 +202,7 @@ contains
     return
   end function constantDensityCloudPotential
 
-  double precision function constantDensityCloudDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function constantDensityCloudDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Computes radial moments of the density in a constant density cloud.
     !!}
@@ -233,14 +213,8 @@ contains
     double precision                                      , intent(in   )           :: moment
     double precision                                      , intent(in   ), optional :: radiusMinimum , radiusMaximum
     logical                                               , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     double precision                                                                :: radiusMaximum_
     
-    if (.not.self%matches(componentType,massType)) then
-       constantDensityCloudDensityRadialMoment=0.0d0
-       return
-    end if
     constantDensityCloudDensityRadialMoment=+0.0d0
     if (present(isInfinite)) isInfinite=.false.
     radiusMaximum_=min(radiusMaximum,self%radius)

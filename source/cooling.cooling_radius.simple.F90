@@ -274,12 +274,12 @@ contains
           call self%radiation%timeSet(basic%time())
           ! Get density and temperature  at the cooling radius, plus their gradients.
           coordinates             =  [coolingRadius,0.0d0,0.0d0]
-          massDistribution_       => node                   %massDistribution              (                                                                                          )
-          kinematicsDistribution_ => massDistribution_      %kinematicsDistribution        (            componentType=componentTypeHotHalo,massType=massTypeGaseous                   )
-          density                 =  massDistribution_      %density                       (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous                   )
-          temperature             =  kinematicsDistribution_%temperature                   (coordinates                                                                               )
-          densityLogSlope         =  massDistribution_      %densityGradientRadial         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous,logarithmic=.true.)
-          temperatureLogSlope     =  kinematicsDistribution_%temperatureGradientLogarithmic(coordinates                                                                               )
+          massDistribution_       => node                   %massDistribution              (componentTypeHotHalo,massTypeGaseous)
+          kinematicsDistribution_ => massDistribution_      %kinematicsDistribution        (                                    )
+          density                 =  massDistribution_      %density                       (coordinates                         )
+          temperature             =  kinematicsDistribution_%temperature                   (coordinates                         )
+          densityLogSlope         =  massDistribution_      %densityGradientRadial         (coordinates,logarithmic=.true.      )
+          temperatureLogSlope     =  kinematicsDistribution_%temperatureGradientLogarithmic(coordinates                         )
           !![
 	  <objectDestructor name="massDistribution_"      />
 	  <objectDestructor name="kinematicsDistribution_"/>
@@ -404,17 +404,17 @@ contains
    
     ! Compute density, temperature and abundances.
     coordinates             =   [radius,0.0d0,0.0d0]
-    massDistribution_       =>  node_                  %massDistribution      (                                                                       )
-    kinematicsDistribution_ =>  massDistribution_      %kinematicsDistribution(            componentType=componentTypeHotHalo,massType=massTypeGaseous)    
-    density                 =   massDistribution_      %density               (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+    massDistribution_       =>  node_                  %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+    kinematicsDistribution_ =>  massDistribution_      %kinematicsDistribution(                                    )
+    density                 =   massDistribution_      %density               (coordinates                         )
     if (associated(kinematicsDistribution_)) then
-       temperature          =   kinematicsDistribution_%temperature           (coordinates                                                            )
+       temperature          =   kinematicsDistribution_%temperature           (coordinates                         )
     else
        temperature          =   0.0d0
     end if
     call densityChemicals%scale(density)
     densityChemicals=fractionsChemical_
-    densityChemicals        =   fractionsChemical_                                                                                                      &
+    densityChemicals        =   fractionsChemical_                                                                   &
          &                     *density
     !![
     <objectDestructor name="massDistribution_"      />

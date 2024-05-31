@@ -105,22 +105,20 @@ contains
     return
   end function sphericalSymmetry
 
-  double precision function sphericalDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
     implicit none
-    class  (massDistributionSpherical   ), intent(inout), target   :: self
-    class  (coordinate                  ), intent(in   )           :: coordinates
-    logical                              , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    densityGradient=self%densityGradientRadialNUmerical(coordinates,logarithmic,componentType,massType)
+    class  (massDistributionSpherical), intent(inout), target   :: self
+    class  (coordinate               ), intent(in   )           :: coordinates
+    logical                           , intent(in   ), optional :: logarithmic
+    
+    densityGradient=self%densityGradientRadialNUmerical(coordinates,logarithmic)
     return
   end function sphericalDensityGradientRadial
 
-  double precision function sphericalDensityGradientRadialNumerical(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalDensityGradientRadialNumerical(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution using a numerical calculation.
     !!}
@@ -129,8 +127,6 @@ contains
     class           (massDistributionSpherical   ), intent(inout), target   :: self
     class           (coordinate                  ), intent(in   )           :: coordinates
     logical                                       , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     double precision                              , parameter               :: radiusLogarithmicStep=0.1d0
     type            (differentiator              )                          :: differentiator_
     double precision                                                        :: radius
@@ -138,17 +134,13 @@ contains
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    if (.not.self%matches(componentType,massType)) then
-       densityGradient=0.0d0
-       return
-    end if
     self_           =>  self
     radius          =   coordinates    %rSpherical(                                     )
     differentiator_ =   differentiator            (densityEvaluate                      )
     densityGradient =  +differentiator_%derivative(log(radius)    ,radiusLogarithmicStep)
-    if (.not.logarithmic_)                                                           &
-         & densityGradient=+     densityGradient                                     &
-         &                 *self%density        (coordinates,componentType,massType) &
+    if (.not.logarithmic_)                                    &
+         & densityGradient=+     densityGradient              &
+         &                 *self%density        (coordinates) &
          &                 /     radius
     return
   end function sphericalDensityGradientRadialNumerical
@@ -167,22 +159,20 @@ contains
     return
   end function densityEvaluate
 
-  double precision function sphericalMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     distributions.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radius
 
-    mass=self%massEnclosedBySphereNumerical(radius,componentType,massType)
+    mass=self%massEnclosedBySphereNumerical(radius)
     return
   end function sphericalMassEnclosedBySphere
 
-  double precision function sphericalMassEnclosedBySphereNumerical(self,radius,componentType,massType) result(mass)
+  double precision function sphericalMassEnclosedBySphereNumerical(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     distributions using numerical integration.
@@ -190,16 +180,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
-    class           (massDistributionSpherical   ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (integrator                  )                          :: integrator_
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radius
+    type            (integrator               )                        :: integrator_
 
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     self_       =>  self
     integrator_ =   integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-6)
     mass        =  +4.0d0                              &
@@ -208,21 +192,19 @@ contains
     return
   end function sphericalMassEnclosedBySphereNumerical
 
-  double precision function sphericalDensitySphericalAverage(self,radius,componentType,massType)
+  double precision function sphericalDensitySphericalAverage(self,radius)
     !!{
     Computes the density averaged over a spherical shell.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
+    type            (coordinateSpherical      )                :: position
 
     ! For a spherical mass distribution, the density averaged over a spherical shell, is just the regular density at that radius.
     position                        =[radius,0.0d0,0.0d0]
-    sphericalDensitySphericalAverage=self%density(position,componentType,massType)
+    sphericalDensitySphericalAverage=self%density(position)
     return
   end function sphericalDensitySphericalAverage
 
@@ -241,39 +223,31 @@ contains
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
-  double precision function sphericalRadiusHalfMass(self,componentType,massType)
+  double precision function sphericalRadiusHalfMass(self)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     implicit none
-    class(massDistributionSpherical   ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionSpherical), intent(inout) :: self
 
-    if (.not.self%matches(componentType,massType)) then
-       sphericalRadiusHalfMass=0.0d0
-       return
-    end if
     sphericalRadiusHalfMass=self%radiusEnclosingMass(0.5d0*self%massTotal())
     return
   end function sphericalRadiusHalfMass
 
-  double precision function sphericalPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function sphericalPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSpherical        ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
-    potential=self%potentialNumerical(coordinates,componentType,massType,status)
+    potential=self%potentialNumerical(coordinates,status)
     return
   end function sphericalPotential
 
-  double precision function sphericalPotentialNumerical(self,coordinates,componentType,massType,status) result(potential)
+  double precision function sphericalPotentialNumerical(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -285,8 +259,6 @@ contains
     implicit none
     class           (massDistributionSpherical        ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                   , parameter               :: toleranceRelative  =1.0d-3
     double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
@@ -297,10 +269,6 @@ contains
          &                                                                          radius
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     if (.not.initialized) then
        integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
        initialized=.true.
@@ -325,22 +293,20 @@ contains
     return
   end function sphericalPotentialNumerical
 
-  double precision function sphericalPotentialDifference(self,coordinates1,coordinates2,componentType,massType,status) result(potential)
+  double precision function sphericalPotentialDifference(self,coordinates1,coordinates2,status) result(potential)
     !!{
     Return the potential difference between the two specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSpherical        ), intent(inout), target   :: self
     class(coordinate                       ), intent(in   )           :: coordinates1 , coordinates2
-    type (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type (enumerationStructureErrorCodeType), intent(  out), optional :: status
 
-    potential=self%potentialDifferenceNumerical(coordinates1,coordinates2,componentType,massType,status)
+    potential=self%potentialDifferenceNumerical(coordinates1,coordinates2,status)
     return
   end function sphericalPotentialDifference
 
-  double precision function sphericalPotentialDifferenceNumerical(self,coordinates1,coordinates2,componentType,massType,status) result(potential)
+  double precision function sphericalPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potential)
     !!{
     Return the potential difference between the two specified
     {\normalfont \ttfamily coordinates} in a spherical mass
@@ -354,8 +320,6 @@ contains
     implicit none
     class           (massDistributionSpherical        ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates1               , coordinates2
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                   , parameter               :: toleranceRelative  =1.0d-3
     double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
@@ -364,10 +328,6 @@ contains
     !$omp threadprivate(integrator_,initialized)
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) then
-       potential=0.0d0
-       return
-    end if
     if (.not.initialized) then
        integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
        initialized=.true.
@@ -399,7 +359,7 @@ contains
     return
   end function integrandPotential
 
-  function sphericalAcceleration(self,coordinates,componentType,massType)
+  function sphericalAcceleration(self,coordinates)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
@@ -408,20 +368,14 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                              , dimension(3)            :: sphericalAcceleration
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: coordinatesSpherical
-    type            (coordinateCartesian         )                          :: coordinatesCartesian
-    double precision                                                        :: radius
-    double precision                              , dimension(3)            :: positionCartesian
+    double precision                              , dimension(3)  :: sphericalAcceleration
+    class           (massDistributionSpherical   ), intent(inout) :: self
+    class           (coordinate                  ), intent(in   ) :: coordinates
+    type            (coordinateSpherical         )                :: coordinatesSpherical
+    type            (coordinateCartesian         )                :: coordinatesCartesian
+    double precision                                              :: radius
+    double precision                              , dimension(3)  :: positionCartesian
 
-    if (.not.self%matches(componentType,massType)) then
-       sphericalAcceleration=0.0d0
-       return
-    end if
     ! Get position in spherical and Cartesian coordinate systems.
     coordinatesSpherical=coordinates
     coordinatesCartesian=coordinates
@@ -440,7 +394,7 @@ contains
     return
   end function sphericalAcceleration
 
-  function sphericalTidalTensor(self,coordinates,componentType,massType)
+  function sphericalTidalTensor(self,coordinates)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
@@ -448,25 +402,19 @@ contains
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Tensors                         , only : tensorIdentityR2D3Sym          , tensorNullR2D3Sym   ,assignment(=)      , operator(*)
+    use :: Tensors                         , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
     use :: Vectors                         , only : Vector_Outer_Product
     implicit none
-    type            (tensorRank2Dimension3Symmetric)                          :: sphericalTidalTensor
-    class           (massDistributionSpherical     ), intent(inout)           :: self
-    class           (coordinate                    ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType  ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType       ), intent(in   ), optional :: massType
-    type            (coordinateSpherical           )                          :: coordinatesSpherical
-    type            (coordinateCartesian           )                          :: coordinatesCartesian
-    double precision                                                          :: radius              , massEnclosed, &
-         &                                                                       density
-    double precision                                , dimension(3)            :: positionCartesian
-    type            (tensorRank2Dimension3Symmetric)                          :: positionTensor
+    type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
+    class           (massDistributionSpherical     ), intent(inout) :: self
+    class           (coordinate                    ), intent(in   ) :: coordinates
+    type            (coordinateSpherical           )                :: coordinatesSpherical
+    type            (coordinateCartesian           )                :: coordinatesCartesian
+    double precision                                                :: radius              , massEnclosed, &
+         &                                                             density
+    double precision                                , dimension(3)  :: positionCartesian
+    type            (tensorRank2Dimension3Symmetric)                :: positionTensor
 
-    if (.not.self%matches(componentType,massType)) then
-       sphericalTidalTensor=tensorNullR2D3Sym
-       return
-    end if
     ! Get position in spherical and Cartesian coordinate systems.
     coordinatesSpherical=coordinates
     coordinatesCartesian=coordinates
@@ -487,23 +435,21 @@ contains
     return
   end function sphericalTidalTensor
 
-  double precision function sphericalRotationCurve(self,radius,componentType,massType)
+  double precision function sphericalRotationCurve(self,radius)
     !!{
     Return the rotation curve for a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
+    
     if (radius <= 0.0d0) then
        sphericalRotationCurve=+0.0d0
     else
-       sphericalRotationCurve=+sqrt(                                                          &
-            &                       +self%massEnclosedBySphere(radius,componentType,massType) &
-            &                       /                          radius                         &
+       sphericalRotationCurve=+sqrt(                                   &
+            &                       +self%massEnclosedBySphere(radius) &
+            &                       /                          radius  &
             &                      )
        ! Make dimensionful if necessary.
        if (.not.self%dimensionless) sphericalRotationCurve= &
@@ -513,7 +459,7 @@ contains
     return
   end function sphericalRotationCurve
 
-  double precision function sphericalRotationCurveGradient(self,radius,componentType,massType)
+  double precision function sphericalRotationCurveGradient(self,radius)
     !!{
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
@@ -521,19 +467,17 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
+    type            (coordinateSpherical      )                :: position
 
     position                      =[radius,0.0d0,0.0d0]
-    sphericalRotationCurveGradient=+4.0d0                                                         &
-         &                         *Pi                                                            &
-         &                         *                          radius                              &
-         &                         *self%density             (position,componentType,massType)    &
-         &                         -self%massEnclosedBySphere(radius  ,componentType,massType)    &
-         &                         /                          radius                          **2
+    sphericalRotationCurveGradient=+4.0d0                                  &
+         &                         *Pi                                     &
+         &                         *                          radius       &
+         &                         *self%density             (position)    &
+         &                         -self%massEnclosedBySphere(radius  )    &
+         &                         /                          radius   **2
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) sphericalRotationCurveGradient= &
          &  +gravitationalConstantGalacticus                     &
@@ -541,24 +485,18 @@ contains
     return
   end function sphericalRotationCurveGradient
 
-  function sphericalPositionSample(self,randomNumberGenerator_,componentType,massType)
+  function sphericalPositionSample(self,randomNumberGenerator_)
     !!{
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                              , dimension(3)            :: sphericalPositionSample
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    class           (randomNumberGeneratorClass  ), intent(inout)           :: randomNumberGenerator_
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: mass                   , radius, &
-         &                                                                     theta                  , phi
+    double precision                              , dimension(3)  :: sphericalPositionSample
+    class           (massDistributionSpherical   ), intent(inout) :: self
+    class           (randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_
+    double precision                                              :: mass                   , radius, &
+         &                                                           theta                  , phi
 
-    if (.not.self%matches(componentType,massType)) then
-       sphericalPositionSample=0.0d0
-       return
-    end if
     ! Choose an enclosed mass and find the radius enclosing that mass. Choose angular
     ! coordinates at random and finally convert to Cartesian.
     mass  =+              self                  %massTotal          (    )        &
@@ -575,24 +513,21 @@ contains
     return
   end function sphericalPositionSample
 
-  double precision function sphericalSurfaceDensity(self,coordinates,componentType,massType)
+  double precision function sphericalSurfaceDensity(self,coordinates)
     !!{
     Return the surface density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
     !!}
-    use :: Coordinates, only : coordinate
-    use :: Error      , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
-    class(massDistributionSpherical   ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionSpherical), intent(inout) :: self
+    class(coordinate               ), intent(in   ) :: coordinates
 
     sphericalSurfaceDensity=0.0d0
-    if (self%matches(componentType,massType)) call Error_Report('surface density is not defined for spherically-symmetric distributions'//{introspection:location})
+    call Error_Report('surface density is not defined for spherically-symmetric distributions'//{introspection:location})
     return
   end function sphericalSurfaceDensity
 
-  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
+  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -602,26 +537,23 @@ contains
     use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Error                     , only : Error_Report
     implicit none
-    double precision                              , dimension(3)            :: sphericalChandrasekharIntegral
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding            , massDistributionPerturber
-    class           (coordinate                  ), intent(in   )           :: coordinates                          , velocity
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                              , dimension(3)            :: velocityCartesian_
-    double precision                              , parameter               :: XvMaximum                     =10.0d0
-    type            (coordinateCartesian         )                          :: velocityCartesian
-    double precision                                                        :: radius                               , velocity_                , &
-         &                                                                     density                              , velocityDispersion       , &
-         &                                                                     xV
+    double precision                              , dimension(3)  :: sphericalChandrasekharIntegral
+    class           (massDistributionSpherical   ), intent(inout) :: self
+    class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding            , massDistributionPerturber
+    class           (coordinate                  ), intent(in   ) :: coordinates                          , velocity
+    double precision                              , dimension(3)  :: velocityCartesian_
+    double precision                              , parameter     :: XvMaximum                     =10.0d0
+    type            (coordinateCartesian         )                :: velocityCartesian
+    double precision                                              :: radius                               , velocity_                , &
+         &                                                           density                              , velocityDispersion       , &
+         &                                                           xV
     !$GLC attributes unused :: massDistributionPerturber
     
     sphericalChandrasekharIntegral=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     velocity_=velocity%rSpherical()
     if (velocity_ <= 0.0d0) return
-    radius =coordinates%rSpherical(                                  )
-    density=self       %density   (coordinates,componentType,massType)
+    radius =coordinates%rSpherical(           )
+    density=self       %density   (coordinates)
     if (density  <= 0.0d0) return
     if (.not.associated(self%kinematicsDistribution_)) call Error_Report('a kinematics distribution is needed to compute the Chandrasekhar integral'//{introspection:location})
     if (self%kinematicsDistribution_%isCollisional()) then
@@ -654,35 +586,30 @@ contains
     return
   end function sphericalChandrasekharIntegral
 
-  double precision function sphericalFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function sphericalFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter  , wavenumber
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    fourierTransform=self%fourierTransformNumerical(radiusOuter,wavenumber,componentType,massType)
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter, wavenumber
+ 
+    fourierTransform=self%fourierTransformNumerical(radiusOuter,wavenumber)
     return
   end function sphericalFourierTransform
 
-  double precision function sphericalFourierTransformNumerical(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function sphericalFourierTransformNumerical(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{   
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass
     distribution using a numerical calcualtion.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter  , wavenumber
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (integrator                  )                          :: integrator_
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter, wavenumber
+    type            (integrator               )                :: integrator_
 
     fourierTransform=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     integrator_     = integrator                      (integrandFourierTransform,toleranceRelative=1.0d-3)
     fourierTransform=+integrator_%integrate           (0.0d0                    ,radiusOuter             ) &
          &           /self       %massEnclosedBySphere(                          radiusOuter             )
@@ -716,21 +643,19 @@ contains
     
   end function sphericalFourierTransformNumerical
   
-  double precision function sphericalRadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function sphericalRadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in a spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-
-    radius=self%radiusFreefallNumerical(time,componentType,massType)
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: time
+ 
+    radius=self%radiusFreefallNumerical(time)
     return
   end function sphericalRadiusFreefall
   
-  double precision function sphericalRadiusFreefallNumerical(self,time,componentType,massType) result(radius)
+  double precision function sphericalRadiusFreefallNumerical(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily
     time} in a spherical mass distribution using a numerical
@@ -741,17 +666,14 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
-    class           (massDistributionSpherical   ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                              , parameter               :: toleranceAbsolute  =0.0d0, toleranceRelative=1.0d-3
-    type            (rootFinder                  )                          :: finder
-    type            (coordinateSpherical         )                          :: coordinates
-    double precision                                                        :: timeFreefallMinimum
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: time
+    double precision                           , parameter             :: toleranceAbsolute  =0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder               )                        :: finder
+    type            (coordinateSpherical      )                        :: coordinates
+    double precision                                                   :: timeFreefallMinimum
 
     radius=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     coordinates=[0.0d0,0.0d0,0.0d0]
     if (self%densityGradientRadial(coordinates,logarithmic=.true.) == 0.0d0) then
        ! For mass distributions with a constant density core, the potential in the center is harmonic. This means there is a
@@ -828,39 +750,31 @@ contains
     return
   end function integrandTimeFreefall
 
-  double precision function sphericalRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function sphericalRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
     distribution.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: time
 
-    radiusIncreaseRate=self%radiusFreefallIncreaseRateNumerical(time,componentType,massType)
+    radiusIncreaseRate=self%radiusFreefallIncreaseRateNumerical(time)
     return
   end function sphericalRadiusFreefallIncreaseRate
 
-  double precision function sphericalRadiusFreefallIncreaseRateNumerical(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function sphericalRadiusFreefallIncreaseRateNumerical(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
     distribution using a numerical calculation.
     !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: time
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                              , parameter               :: timeLogarithmicStep=1.0d-2
-    type            (differentiator              )                          :: differentiator_
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: time
+    double precision                           , parameter     :: timeLogarithmicStep=1.0d-2
+    type            (differentiator           )                :: differentiator_
 
-    if (.not.self%matches(componentType,massType)) then
-       radiusIncreaseRate=0.0d0
-       return
-    end if
     differentiator_   = differentiator            (radiusFreefallEvaluate                    )
     radiusIncreaseRate=+differentiator_%derivative(log(time)             ,timeLogarithmicStep) &
          &             /                               time
@@ -878,36 +792,28 @@ contains
     return
   end function radiusFreefallEvaluate
 
-  double precision function sphericalEnergy(self,radiusOuter,massDistributionEmbedding,componentType,massType) result(energy)
+  double precision function sphericalEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
     Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter
-    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radiusOuter
+    class           (massDistributionClass    ), intent(inout), target :: massDistributionEmbedding
 
-    energy=self%energyNumerical(radiusOuter,massDistributionEmbedding,componentType,massType)
+    energy=self%energyNumerical(radiusOuter,massDistributionEmbedding)
     return
   end function sphericalEnergy
 
-  double precision function sphericalEnergyNumerical(self,radiusOuter,massDistributionEmbedding,componentType,massType) result(energy)
+  double precision function sphericalEnergyNumerical(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
     Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution using a numerical calculation.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radiusOuter
-    class           (massDistributionClass       ), intent(inout)           :: massDistributionEmbedding
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radiusOuter
+    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding
 
-    if (.not.self%matches(componentType,massType)) then
-       energy=0.0d0
-       return
-    end if
     energy=+self%energyPotential(radiusOuter                          ) &
          & +self%energyKinetic  (radiusOuter,massDistributionEmbedding)
     return
@@ -1023,40 +929,35 @@ contains
 
   end function sphericalEnergyKineticNumerical
 
-  double precision function sphericalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function sphericalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Returns a radial density moment for a spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionSpherical), intent(inout)           :: self
+    double precision                           , intent(in   )           :: moment
+    double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                    , intent(  out), optional :: isInfinite
 
-    densityRadialMoment=self%densityRadialMomentNumerical(moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+    densityRadialMoment=self%densityRadialMomentNumerical(moment,radiusMinimum,radiusMaximum,isInfinite)
     return
   end function sphericalDensityRadialMoment
 
-  double precision function sphericalDensityRadialMomentNumerical(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function sphericalDensityRadialMomentNumerical(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Returns a radial density moment for a spherical mass distribution using a numerical calculation.
     !!}
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (massDistributionSpherical   ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (integrator                  )                          :: integrator_
-    double precision                                                        :: radiusMinimum_
+    class           (massDistributionSpherical), intent(inout)           :: self
+    double precision                           , intent(in   )           :: moment
+    double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                    , intent(  out), optional :: isInfinite
+    type            (integrator               )                          :: integrator_
+    double precision                                                     :: radiusMinimum_
     
     densityRadialMoment=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     if (.not.present(radiusMaximum)) call Error_Report('a maximum radius must be provided'//{introspection:location})
     if (present(isInfinite)) isInfinite=.false.
     radiusMinimum_=0.0d0

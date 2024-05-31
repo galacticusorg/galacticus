@@ -160,36 +160,32 @@ contains
     return
   end function sphericalAcceleratorUseUndecorated
 
-  double precision function sphericalAcceleratorDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalAcceleratorDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an accelerated mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalAccelerator), intent(inout)           :: self
-    class(coordinate                          ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    class(massDistributionSphericalAccelerator), intent(inout) :: self
+    class(coordinate                          ), intent(in   ) :: coordinates
 
-    density=self%massDistribution_%density(coordinates,componentType,massType)
+    density=self%massDistribution_%density(coordinates)
     return
   end function sphericalAcceleratorDensity
 
-  double precision function sphericalAcceleratorMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalAcceleratorMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for accelerated mass distributions.
     !!}
     use :: Binary_Search_Trees , only : binaryTreeNode
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    class           (massDistributionSphericalAccelerator), intent(inout), target   :: self
-    double precision                                      , intent(in   )           :: radius
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
-    type            (binaryTreeNode                 ), pointer       :: left1            , left2        , &
-         &                                                              right1           , right2
-    double precision                                                 :: massEnclosed1    , massEnclosed2, &
-         &                                                              radiusLogarithmic
-    logical                                                          :: found
+    class           (massDistributionSphericalAccelerator), intent(inout), target :: self
+    double precision                                      , intent(in   )         :: radius
+    type            (binaryTreeNode                      ), pointer               :: left1            , left2        , &
+         &                                                                           right1           , right2
+    double precision                                                              :: massEnclosed1    , massEnclosed2, &
+         &                                                                           radiusLogarithmic
+    logical                                                                       :: found
 
     found            =.false.
     radiusLogarithmic=log(radius)
@@ -218,7 +214,7 @@ contains
        end if
     end if
     if (.not.found) then
-       mass=self%massDistribution_%massEnclosedBySphere(radius,componentType,massType)
+       mass=self%massDistribution_%massEnclosedBySphere(radius)
        call self%treeMassEnclosed%insert(radiusLogarithmic,log(mass))
     end if
     return

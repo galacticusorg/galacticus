@@ -52,14 +52,15 @@ module Galactic_Structure_Options
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
-   <entry label="all"       />
-   <entry label="disk"      />
-   <entry label="spheroid"  />
-   <entry label="hotHalo"   />
-   <entry label="coldHalo"  />
-   <entry label="darkHalo"  />
-   <entry label="blackHole" />
-   <entry label="unknown"   />
+   <entry label="all"           />
+   <entry label="disk"          />
+   <entry label="spheroid"      />
+   <entry label="hotHalo"       />
+   <entry label="coldHalo"      />
+   <entry label="darkHalo"      />
+   <entry label="blackHole"     />
+   <entry label="darkMatterOnly"/>
+   <entry label="unknown"       />
   </enumeration>
   !!]
 

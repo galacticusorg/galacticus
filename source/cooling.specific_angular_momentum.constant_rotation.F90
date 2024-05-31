@@ -246,17 +246,17 @@ contains
        ! Compute the rotation normalization.
        select case (self%sourceNormalizationRotation      %ID)
        case (angularMomentumSourceDarkMatter%ID)
-          massDistribution_     =>  self             %darkMatterProfileDMO_%get                (node                                                                                                                               )
-          normalizationRotation =  +massDistribution_                      %densityRadialMoment(moment=2.0d0,radiusMaximum=self%darkMatterHaloScale_%radiusVirial(node)                                                            ) &
-               &                   /massDistribution_                      %densityRadialMoment(moment=3.0d0,radiusMaximum=self%darkMatterHaloScale_%radiusVirial(node)                                                            )
+          massDistribution_     =>  self             %darkMatterProfileDMO_%get                (node                                                                                         )
+          normalizationRotation =  +massDistribution_                      %densityRadialMoment(moment       =2.0d0               ,radiusMaximum=self%darkMatterHaloScale_%radiusVirial(node)) &
+               &                   /massDistribution_                      %densityRadialMoment(moment       =3.0d0               ,radiusMaximum=self%darkMatterHaloScale_%radiusVirial(node))
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]          
        case (angularMomentumSourceHotGas    %ID)
-          hotHalo               =>  node                                   %hotHalo            (                                                                                                                                   )
-          massDistribution_     =>  node                                   %massDistribution   (                                                                                                                                   )
-          normalizationRotation =  +massDistribution_                      %densityRadialMoment(moment=2.0d0,radiusMaximum=hotHalo                  %outerRadius (    ),componentType=componentTypeHotHalo,massType=massTypeGaseous) &
-               &                   /massDistribution_                      %densityRadialMoment(moment=3.0d0,radiusMaximum=hotHalo                  %outerRadius (    ),componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          hotHalo               =>  node                                   %hotHalo            (                                                                                             )
+          massDistribution_     =>  node                                   %massDistribution   (componentType=componentTypeHotHalo,massType     =massTypeGaseous                             )
+          normalizationRotation =  +massDistribution_                      %densityRadialMoment(moment       =2.0d0               ,radiusMaximum=hotHalo                  %outerRadius (    )) &
+               &                   /massDistribution_                      %densityRadialMoment(moment       =3.0d0               ,radiusMaximum=hotHalo                  %outerRadius (    ))
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]          
@@ -273,10 +273,10 @@ contains
        ! Return the computed value.
        if (self%useInteriorMean) then
           ! Find the specific angular momentum interior to the specified radius.
-          massDistribution_                       =>  node             %massDistribution               (                                                                        )
-          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious                                                                           &
-               &                                     *massDistribution_%densityRadialMoment            (3.0d0,radius,componentType=componentTypeHotHalo,massType=massTypeGaseous) &
-               &                                     /massDistribution_%densityRadialMoment            (2.0d0,radius,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          massDistribution_                       =>  node             %massDistribution               (componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          constantRotationAngularMomentumSpecific =  +self             %angularMomentumSpecificPrevious               &
+               &                                     *massDistribution_%densityRadialMoment            (3.0d0,radius) &
+               &                                     /massDistribution_%densityRadialMoment            (2.0d0,radius)
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]          

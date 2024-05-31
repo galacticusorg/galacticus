@@ -23,8 +23,7 @@
   Implements a node operator class that propagates satellite halos along their orbits.
   !!}
 
-  use :: Galactic_Structure      , only : galacticStructureClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteOrbit">
@@ -36,10 +35,9 @@
      A node operator class that propagates satellite halos along their orbits.
      !!}
      private
-     class  (galacticStructureClass   ), pointer :: galacticStructure_    => null()
-     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     logical                                     :: trackPreInfallOrbit
-     integer                                     :: rateGrowthMassBoundID
+     class  (galacticStructureClass), pointer :: galacticStructure_    => null()
+     logical                                  :: trackPreInfallOrbit
+     integer                                  :: rateGrowthMassBoundID
    contains
      final     ::                          satelliteOrbitDestructor
      procedure :: nodeInitialize        => satelliteOrbitNodeInitialize
@@ -75,7 +73,6 @@ contains
     type   (nodeOperatorSatelliteOrbit)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
     class  (galacticStructureClass    ), pointer       :: galacticStructure_
-    class  (darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
     logical                                            :: trackPreInfallOrbit
 
     !![
@@ -85,19 +82,17 @@ contains
       <description>If true, (approximately) track the orbits of halos prior to infall.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit,galacticStructure_,darkMatterProfileDMO_)
+    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"   />
-    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function satelliteOrbitConstructorParameters
   
-  function satelliteOrbitConstructorInternal(trackPreInfallOrbit,galacticStructure_,darkMatterProfileDMO_) result(self)
+  function satelliteOrbitConstructorInternal(trackPreInfallOrbit,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class.
     !!}
@@ -105,10 +100,9 @@ contains
     implicit none
     type   (nodeOperatorSatelliteOrbit)                        :: self
     class  (galacticStructureClass    ), intent(in   ), target :: galacticStructure_
-    class  (darkMatterProfileDMOClass ), intent(in   ), target :: darkMatterProfileDMO_
     logical                            , intent(in   ),        :: trackPreInfallOrbit
     !![
-    <constructorAssign variables="trackPreInfallOrbit, *galacticStructure_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="trackPreInfallOrbit, *galacticStructure_"/>
     !!]
 
     if (self%trackPreInfallOrbit) then
@@ -128,7 +122,6 @@ contains
     
     !![
     <objectDestructor name="self%galacticStructure_"   />
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     return
   end subroutine satelliteOrbitDestructor
@@ -219,8 +212,9 @@ contains
     ODEs describing a halo orbit.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
+    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly, massTypeDark
     use :: Interface_GSL                   , only : GSL_Success
-    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr  
+    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec, gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr  
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Vectors                         , only : Vector_Magnitude
@@ -266,10 +260,10 @@ contains
        if (associated(nodeHost)) basicProgenitor => nodeHost%basic()
     end do
     if (associated(nodeHost)) then
-       nodeDescendent             => nodeHost                            %parent
-       basicDescendent            => nodeDescendent                      %basic (              )
-       massDistributionHost       => self_         %darkMatterProfileDMO_%get   (nodeHost      )
-       massDistributionDescendent => self_         %darkMatterProfileDMO_%get   (nodeDescendent)
+       nodeDescendent             => nodeHost      %parent
+       basicDescendent            => nodeDescendent%basic           (                                        )
+       massDistributionHost       => nodeHost      %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
+       massDistributionDescendent => nodeDescendent%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
        radius                     =  Vector_Magnitude(position)
        factorInterpolate          =  +(+                time  -basicProgenitor%time()) &
             &                        /(+basicDescendent%time()-basicProgenitor%time())

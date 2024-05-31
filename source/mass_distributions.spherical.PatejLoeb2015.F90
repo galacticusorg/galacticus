@@ -227,18 +227,15 @@ contains
     return
   end function patejLoeb2015CoordinatesDarkMatter
 
-  double precision function patejLoeb2015Density(self,coordinates,componentType,massType) result(density)
+  double precision function patejLoeb2015Density(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a \cite{patej_simple_2015} mass distribution.
     !!}
     implicit none
-    class(massDistributionPatejLoeb2015), intent(inout)           :: self
-    class(coordinate                   ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType      ), intent(in   ), optional :: massType
+    class(massDistributionPatejLoeb2015), intent(inout) :: self
+    class(coordinate                   ), intent(in   ) :: coordinates
 
     density=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     if (self%truncateAtOuterRadius .and. coordinates%rSpherical() > self%radiusOuter) return
     ! Evaluate density using equation 12 of Patej & Loeb (2015).
     density=+self%gamma                                                              &
@@ -251,7 +248,7 @@ contains
     return
   end function patejLoeb2015Density
 
-  double precision function patejLoeb2015DensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function patejLoeb2015DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a \cite{patej_simple_2015} mass distribution.
     !!}
@@ -259,14 +256,11 @@ contains
     class  (massDistributionPatejLoeb2015), intent(inout), target   :: self
     class  (coordinate                   ), intent(in   )           :: coordinates
     logical                               , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType      ), intent(in   ), optional :: massType
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
     densityGradientRadial=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     if (self%truncateAtOuterRadius .and. coordinates%rSpherical() > self%radiusOuter) return
     densityGradientRadial=+3.0d0                                                                                             &
          &                *(self%gamma-1.0d0)                                                                                &
@@ -279,21 +273,15 @@ contains
     return
   end function patejLoeb2015DensityGradientRadial
 
-  double precision function patejLoeb2015MassEnclosedBySphere(self,radius,componentType,massType) result(massEnclosedBySphere)
+  double precision function patejLoeb2015MassEnclosedBySphere(self,radius) result(massEnclosedBySphere)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a \cite{patej_simple_2015} mass distribution.
     !!}
     implicit none
-    class           (massDistributionPatejLoeb2015), intent(inout), target   :: self
-    double precision                               , intent(in   )           :: radius
-    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
-    double precision :: radius_
+    class           (massDistributionPatejLoeb2015), intent(inout), target :: self
+    double precision                               , intent(in   )         :: radius
+    double precision                                                       :: radius_
 
-    if (.not.self%matches(componentType,massType)) then
-       massEnclosedBySphere=0.0d0
-       return
-    end if
     ! Compute the enclosed mass (eqn. 4 of Patej & Loeb 2015).
     radius_=radius
     if (self%truncateAtOuterRadius) radius_=min(radius_,self%radiusOuter)
@@ -302,7 +290,7 @@ contains
     return
   end function patejLoeb2015MassEnclosedBySphere
 
-  double precision function patejLoeb2015Potential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function patejLoeb2015Potential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a \cite{patej_simple_2015} mass distribution. The
     potential is given by
@@ -330,8 +318,6 @@ contains
     implicit none
     class           (massDistributionPatejLoeb2015    ), intent(inout), target   :: self
     class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                                             :: radiusOuter          , radiusDarkMatterInner, &
          &                                                                          radiusDarkMatterOuter, potentialTermInner   , &
@@ -340,7 +326,6 @@ contains
     
     potential=0.0d0
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.self%matches(componentType,massType)) return
     ! Note that we should check that the condition -1/Γ+3+α < 0, where α is the logarithmic slope of the dark matter density
     ! profile as r → ∞, holds to ensure that our assumption that the r=∞ term in the first term in the integration by parts is
     ! zero is a valid assumption. Currently we do not perform this check.
@@ -397,7 +382,7 @@ contains
     return    
   end function patejLoeb2015Potential
 
-  double precision function patejLoeb2015DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function patejLoeb2015DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Computes radial moments of the density in a \cite{patej_simple_2015} mass distribution. For this profile we have:
     \begin{equation}
@@ -418,13 +403,9 @@ contains
     double precision                               , intent(in   )           :: moment
     double precision                               , intent(in   ), optional :: radiusMinimum  , radiusMaximum
     logical                                        , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType      ), intent(in   ), optional :: massType
     double precision                                                         :: radiusMinimum_ , radiusMaximum_, &
          &                                                                      momentEffective
 
-    densityRadialMoment=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     if (present(radiusMinimum)) then
        radiusMinimum_=radiusMinimum
     else

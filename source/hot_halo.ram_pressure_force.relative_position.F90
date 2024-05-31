@@ -151,7 +151,7 @@ contains
     type            (treeNode                               ), pointer       :: nodeHost         , nodeHostPrevious, &
          &                                                                      nodeHostCurrent
     class           (massDistributionClass                  ), pointer       :: massDistribution_
-   type            (coordinateSpherical                    )                :: coordinates
+    type            (coordinateSpherical                    )                :: coordinates
     double precision                                                         :: radiusRelative   , velocityRelative
 
     ! Find the host node. Seek the descendant of the node closest in time to our satellite node. This is necessary as satellites
@@ -186,8 +186,11 @@ contains
     velocityRelative =  +Vector_Magnitude(position%velocity()-positionHost%velocity())
     ! Find the ram pressure force this orbital radius.
     coordinates       =  [radiusRelative,0.0d0,0.0d0]
-    massDistribution_ =>  nodeHost         %massDistribution(                                                                       )
-    force             =  +massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)    &
-         &               *velocityRelative                                                                                           **2
+    massDistribution_ =>  nodeHost         %massDistribution(componentTypeHotHalo,massTypeGaseous)
+    force             =  +massDistribution_%density         (coordinates                         )    &
+         &               *velocityRelative                                                        **2
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function relativePositionForce

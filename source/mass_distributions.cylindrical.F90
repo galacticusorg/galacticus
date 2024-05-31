@@ -45,14 +45,12 @@
 
   abstract interface
 
-     double precision function cylindricalRadiusHalfMass(self,componentType,massType)
+     double precision function cylindricalRadiusHalfMass(self)
        !!{
        Interface for cylindrically symmetric mass distribution half mass radii functions.
        !!}
-       import massDistributionCylindrical, enumerationComponentTypeType, enumerationMassTypeType
-       class(massDistributionCylindrical ), intent(inout)           :: self
-       type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-       type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+       import massDistributionCylindrical
+       class(massDistributionCylindrical), intent(inout) :: self
      end function cylindricalRadiusHalfMass
 
   end interface
@@ -72,7 +70,7 @@ contains
     return
   end function cylindricalSymmetry
 
-  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity,componentType,massType)
+  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -95,40 +93,36 @@ contains
     logical :: warned=.false.
     
 
-    double precision                                   , dimension(3)            :: cylindricalChandrasekharIntegral
-    class           (massDistributionCylindrical      ), intent(inout)           :: self
-    class           (massDistributionClass            ), intent(inout)           :: massDistributionEmbedding                           , massDistributionPerturber
-    class           (coordinate                       ), intent(in   )           :: coordinates                                         , velocity
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    double precision                                   , dimension(3)            :: velocityCartesian_
-    double precision                                   , parameter               :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
+    double precision                                   , dimension(3)  :: cylindricalChandrasekharIntegral
+    class           (massDistributionCylindrical      ), intent(inout) :: self
+    class           (massDistributionClass            ), intent(inout) :: massDistributionEmbedding                           , massDistributionPerturber
+    class           (coordinate                       ), intent(in   ) :: coordinates                                         , velocity
+    double precision                                   , dimension(3)  :: velocityCartesian_
+    double precision                                   , parameter     :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
     ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
-    double precision                                   , parameter               :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
+    double precision                                   , parameter     :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
     ! a stellar disk (Binney & Tremaine, eqn. 6.71).
-    double precision                                   , dimension(3)            :: velocityDisk                                         , velocityRelative                , &
-         &                                                                          positionCartesianMidplane                                 , &
-         &                                                                          positionCylindricalHalfMass                          , positionCartesian
-    type            (massDistributionGaussianEllipsoid), save                    :: velocityDistribution
-    logical                                            , save                    :: velocityDistributionInitialized              =.false.
+    double precision                                   , dimension(3)  :: velocityDisk                                         , velocityRelative                , &
+         &                                                                positionCartesianMidplane                                 , &
+         &                                                                positionCylindricalHalfMass                          , positionCartesian
+    type            (massDistributionGaussianEllipsoid), save          :: velocityDistribution
+    logical                                            , save          :: velocityDistributionInitialized              =.false.
     !$omp threadprivate(velocityDistribution,velocityDistributionInitialized)
-    type            (coordinateCartesian              )                          :: coordinates_                                         , coordinatesMidplane             , &
-         &                                                                          coordinatesMidplaneHalfMass                          , velocityCartesian
-    double precision                                                             :: velocityDispersionRadial                             , velocityDispersionAzimuthal     , &
-         &                                                                          velocityDispersionVertical                           , velocityCircular                , &
-         &                                                                          velocityCircularHalfMassRadius                       , velocityCircularSquaredGradient , &
-         &                                                                          velocityCircularSquaredGradientHalfMassRadius        , density                         , &
-         &                                                                          densityMidPlane                                      , densitySurface                  , &
-         &                                                                          heightScale                                          , radiusMidplane                  , &
-         &                                                                          frequencyCircular                                    , frequencyEpicyclic              , &
-         &                                                                          frequencyCircularHalfMassRadius                      , frequencyEpicyclicHalfMassRadius, &
-         &                                                                          densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
-         &                                                                          velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
-         &                                                                          factorSuppressionExtendedMass                        , extentPerturber
-    type            (matrix                           )                          :: rotation
+    type            (coordinateCartesian              )                :: coordinates_                                         , coordinatesMidplane             , &
+         &                                                                coordinatesMidplaneHalfMass                          , velocityCartesian
+    double precision                                                   :: velocityDispersionRadial                             , velocityDispersionAzimuthal     , &
+         &                                                                velocityDispersionVertical                           , velocityCircular                , &
+         &                                                                velocityCircularHalfMassRadius                       , velocityCircularSquaredGradient , &
+         &                                                                velocityCircularSquaredGradientHalfMassRadius        , density                         , &
+         &                                                                densityMidPlane                                      , densitySurface                  , &
+         &                                                                heightScale                                          , radiusMidplane                  , &
+         &                                                                frequencyCircular                                    , frequencyEpicyclic              , &
+         &                                                                frequencyCircularHalfMassRadius                      , frequencyEpicyclicHalfMassRadius, &
+         &                                                                densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
+         &                                                                velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
+         &                                                                factorSuppressionExtendedMass                        , extentPerturber
+    type            (matrix                           )                :: rotation
 
-    cylindricalChandrasekharIntegral=0.0d0
-    if (.not.self%matches(componentType,massType)) return
     coordinates_                                  =   coordinates
     positionCartesian                             =   coordinates_
     positionCartesianMidplane                     =  [     positionCartesian(1),positionCartesian(2),0.0d0]
@@ -136,10 +130,10 @@ contains
     coordinatesMidplane                           =   positionCartesianMidplane
     coordinatesMidplaneHalfMass                   =   positionCylindricalHalfMass
     radiusMidplane                                =   coordinatesMidplane%rSpherical()
-    velocityCircular                              =   massDistributionEmbedding%rotationCurve        (     radiusMidplane  ,componentType,massType)
-    velocityCircularSquaredGradient               =   massDistributionEmbedding%rotationCurveGradient(     radiusMidplane  ,componentType,massType)
-    velocityCircularHalfMassRadius                =   massDistributionEmbedding%rotationCurve        (self%radiusHalfMass(),componentType,massType)
-    velocityCircularSquaredGradientHalfMassRadius =   massDistributionEmbedding%rotationCurveGradient(self%radiusHalfMass(),componentType,massType)
+    velocityCircular                              =   massDistributionEmbedding%rotationCurve        (     radiusMidplane  )
+    velocityCircularSquaredGradient               =   massDistributionEmbedding%rotationCurveGradient(     radiusMidplane  )
+    velocityCircularHalfMassRadius                =   massDistributionEmbedding%rotationCurve        (self%radiusHalfMass())
+    velocityCircularSquaredGradientHalfMassRadius =   massDistributionEmbedding%rotationCurveGradient(self%radiusHalfMass())
     velocityDisk                                  = +[positionCartesianMidplane(2),-positionCartesianMidplane(1),0.0d0] &
          &                                          /radiusMidplane                                                     &
          &                                          *velocityCircular
@@ -149,10 +143,10 @@ contains
     frequencyEpicyclic              =sqrt(velocityCircularSquaredGradient              /     radiusMidplane  +2.0d0*frequencyCircular              **2)
     frequencyEpicyclicHalfMassRadius=sqrt(velocityCircularSquaredGradientHalfMassRadius/self%radiusHalfMass()+2.0d0*frequencyCircularHalfMassRadius**2)
     ! Get disk structural properties.
-    density                     =+self%density       (coordinates                ,componentType,massType)
-    densityMidPlane             =+self%density       (coordinatesMidplane        ,componentType,massType)
-    densitySurface              =+self%surfaceDensity(coordinatesMidplane        ,componentType,massType)
-    densitySurfaceRadiusHalfMass=+self%surfaceDensity(coordinatesMidplaneHalfMass,componentType,massType)
+    density                     =+self%density       (coordinates                )
+    densityMidPlane             =+self%density       (coordinatesMidplane        )
+    densitySurface              =+self%surfaceDensity(coordinatesMidplane        )
+    densitySurfaceRadiusHalfMass=+self%surfaceDensity(coordinatesMidplaneHalfMass)
     if (density <= 0.0d0) return
     heightScale                 =+0.5d0           &
          &                       *densitySurface  &
@@ -203,10 +197,8 @@ contains
     ! the disk.
 
     !! WORKAROUND - this is disabled until we have all components implementing massDistributions (as we need to include the dark matter here)
-    ! extentPerturber=massDistributionPerturber%radiusEnclosingMass(                                 &
-    !      &                                                        massFractional=0.5d0           , &
-    !      &                                                        componentType =componentTypeAll, &
-    !      &                                                        massType      =massTypeAll       &
+    ! extentPerturber=massDistributionPerturber%radiusEnclosingMass(                     &
+    !      &                                                        massFractional=0.5d0 &
     !      &                                                       )    
     extentPerturber=1.0d-2
     if (.not.warned) then
@@ -230,20 +222,18 @@ contains
   end function cylindricalChandrasekharIntegral
 
   
-  double precision function cylindricalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function cylindricalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Computes radial moments of the density in cylindrical mass distributions.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (massDistributionCylindrical ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class           (massDistributionCylindrical), intent(inout)           :: self
+    double precision                             , intent(in   )           :: moment
+    double precision                             , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    logical                                      , intent(  out), optional :: isInfinite
 
     cylindricalDensityRadialMoment=0.0d0
-    if (self%matches(componentType,massType)) call Error_Report('radial density moments are not defined in cylindrical mass distributions'//{introspection:location})
+    call Error_Report('radial density moments are not defined in cylindrical mass distributions'//{introspection:location})
     return
   end function cylindricalDensityRadialMoment

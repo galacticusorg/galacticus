@@ -94,39 +94,35 @@ contains
     return
   end function sphericalDecoratorUseUndecorated
 
-  double precision function sphericalDecoratorMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalDecoratorMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for decorator mass distributions.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout), target   :: self
-    double precision                                    , intent(in   )           :: radius
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalDecorator), intent(inout), target :: self
+    double precision                                    , intent(in   )         :: radius
 
-    mass=self%massEnclosedBySphereNonAnalytic(radius,componentType,massType)
+    mass=self%massEnclosedBySphereNonAnalytic(radius)
     return
   end function sphericalDecoratorMassEnclosedBySphere
   
-  double precision function sphericalDecoratorMassEnclosedBySphereNonAnalytic(self,radius,componentType,massType) result(mass)
+  double precision function sphericalDecoratorMassEnclosedBySphereNonAnalytic(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for decorator mass distributions.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout), target   :: self
-    double precision                                    , intent(in   )           :: radius
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-
+    class           (massDistributionSphericalDecorator), intent(inout), target :: self
+    double precision                                    , intent(in   )         :: radius
+ 
     if (self%useUndecorated()) then
-       mass=self%massDistribution_%massEnclosedBySphere         (radius,componentType,massType)
+       mass=self%massDistribution_%massEnclosedBySphere         (radius)
     else
-       mass=self                  %massEnclosedBySphereNumerical(radius,componentType,massType)
+       mass=self                  %massEnclosedBySphereNumerical(radius)
     end if
     return
   end function sphericalDecoratorMassEnclosedBySphereNonAnalytic
   
-  double precision function sphericalDecoratorDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalDecoratorDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
     !!}
@@ -134,14 +130,12 @@ contains
     class  (massDistributionSphericalDecorator), intent(inout), target   :: self
     class  (coordinate                        ), intent(in   )           :: coordinates
     logical                                    , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType           ), intent(in   ), optional :: massType
 
-    densityGradient=self%densityGradientRadialNonAnalytic(coordinates,logarithmic,componentType,massType)
+    densityGradient=self%densityGradientRadialNonAnalytic(coordinates,logarithmic)
     return
   end function sphericalDecoratorDensityGradientRadial
   
-  double precision function sphericalDecoratorDensityGradientRadialNonAnalytic(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalDecoratorDensityGradientRadialNonAnalytic(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
     !!}
@@ -149,114 +143,102 @@ contains
     class  (massDistributionSphericalDecorator), intent(inout), target   :: self
     class  (coordinate                        ), intent(in   )           :: coordinates
     logical                                    , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType           ), intent(in   ), optional :: massType
 
     if (self%useUndecorated()) then
-       densityGradient=self%massDistribution_%densityGradientRadial         (coordinates,logarithmic,componentType,massType)
+       densityGradient=self%massDistribution_%densityGradientRadial         (coordinates,logarithmic)
     else
-       densityGradient=self                  %densityGradientRadialNumerical(coordinates,logarithmic,componentType,massType)
+       densityGradient=self                  %densityGradientRadialNumerical(coordinates,logarithmic)
     end if 
     return
   end function sphericalDecoratorDensityGradientRadialNonAnalytic
   
-  double precision function sphericalDecoratorRadiusEnclosingDensity(self,density,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for decorator spherical mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target   :: self
     double precision                                    , intent(in   )           :: density
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    double precision                                    , intent(in   ), optional :: radiusGuess
 
-    radius=self%radiusEnclosingDensityNonAnalytic(density,componentType,massType)
+    radius=self%radiusEnclosingDensityNonAnalytic(density,radiusGuess)
     return
   end function sphericalDecoratorRadiusEnclosingDensity
   
-  double precision function sphericalDecoratorRadiusEnclosingDensityNonAnalytic(self,density,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusEnclosingDensityNonAnalytic(self,density,radiusGuess) result(radius)
     !!{
     Computes the radius enclosing a given mean density for decorator spherical mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target   :: self
     double precision                                    , intent(in   )           :: density
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-
+    double precision                                    , intent(in   ), optional :: radiusGuess
+ 
     if (self%useUndecorated()) then
-       radius=self%massDistribution_%radiusEnclosingDensity         (density,componentType,massType)
+       radius=self%massDistribution_%radiusEnclosingDensity         (density,radiusGuess)
     else
-       radius=self                  %radiusEnclosingDensityNumerical(density,componentType,massType)
+       radius=self                  %radiusEnclosingDensityNumerical(density,radiusGuess)
     end if
     return
   end function sphericalDecoratorRadiusEnclosingDensityNonAnalytic
   
-  double precision function sphericalDecoratorRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target   :: self
-    double precision                                    , intent(in   ), optional :: mass         , massFractional
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    double precision                                    , intent(in   ), optional :: mass, massFractional
 
-    radius=self%radiusEnclosingMassNonAnalytic(mass,massFractional,componentType,massType)
+    radius=self%radiusEnclosingMassNonAnalytic(mass,massFractional)
     return
   end function sphericalDecoratorRadiusEnclosingMass
 
-  double precision function sphericalDecoratorRadiusEnclosingMassNonAnalytic(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusEnclosingMassNonAnalytic(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target   :: self
-    double precision                                    , intent(in   ), optional :: mass         , massFractional
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    double precision                                    , intent(in   ), optional :: mass, massFractional
 
     if (self%useUndecorated()) then
-       radius=self%massDistribution_%radiusEnclosingMass         (mass,massFractional,componentType,massType)
+       radius=self%massDistribution_%radiusEnclosingMass         (mass,massFractional)
     else
-       radius=self                  %radiusEnclosingMassNumerical(mass,massFractional,componentType,massType)
+       radius=self                  %radiusEnclosingMassNumerical(mass,massFractional)
     end if
     return
   end function sphericalDecoratorRadiusEnclosingMassNonAnalytic
 
-  double precision function sphericalDecoratorRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for decorator spherical mass distributions.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout), target   :: self
-    double precision                                    , intent(in   )           :: angularMomentumSpecific
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-
-    radius=self%radiusFromSpecificAngularMomentumNonAnalytic(angularMomentumSpecific,componentType,massType)
+    class           (massDistributionSphericalDecorator), intent(inout), target :: self
+    double precision                                    , intent(in   )         :: angularMomentumSpecific
+    
+    radius=self%radiusFromSpecificAngularMomentumNonAnalytic(angularMomentumSpecific)
     return
   end function sphericalDecoratorRadiusFromSpecificAngularMomentum
   
-  double precision function sphericalDecoratorRadiusFromSpecificAngularMomentumNonAnalytic(self,angularMomentumSpecific,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusFromSpecificAngularMomentumNonAnalytic(self,angularMomentumSpecific) result(radius)
     !!{
     Computes the radius corresponding to a given specific angular momentum for decorator spherical mass distributions.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout), target   :: self
-    double precision                                    , intent(in   )           :: angularMomentumSpecific
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalDecorator), intent(inout), target :: self
+    double precision                                    , intent(in   )         :: angularMomentumSpecific
 
     if (self%useUndecorated()) then
-       radius=self%massDistribution_%radiusFromSpecificAngularMomentum         (angularMomentumSpecific,componentType,massType)
+       radius=self%massDistribution_%radiusFromSpecificAngularMomentum         (angularMomentumSpecific)
     else
-       radius=self                  %radiusFromSpecificAngularMomentumNumerical(angularMomentumSpecific,componentType,massType)
+       radius=self                  %radiusFromSpecificAngularMomentumNumerical(angularMomentumSpecific)
     end if
     return
   end function sphericalDecoratorRadiusFromSpecificAngularMomentumNonAnalytic
   
-  double precision function sphericalDecoratorDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function sphericalDecoratorDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Returns a radial density moment for the decorator spherical mass distribution.
     !!}
@@ -265,14 +247,12 @@ contains
     double precision                                    , intent(in   )           :: moment
     double precision                                    , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                             , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-
-    densityRadialMoment=self%densityRadialMomentNonAnalytic(moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+ 
+    densityRadialMoment=self%densityRadialMomentNonAnalytic(moment,radiusMinimum,radiusMaximum,isInfinite)
     return
   end function sphericalDecoratorDensityRadialMoment
 
-  double precision function sphericalDecoratorDensityRadialMomentNonAnalytic(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType) result(densityRadialMoment)
+  double precision function sphericalDecoratorDensityRadialMomentNonAnalytic(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
     !!{
     Returns a radial density moment for the decorator spherical mass distribution.
     !!}
@@ -281,145 +261,127 @@ contains
     double precision                                    , intent(in   )           :: moment
     double precision                                    , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                             , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
 
     if (self%useUndecorated()) then
-       densityRadialMoment=self%massDistribution_%densityRadialMoment         (moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+       densityRadialMoment=self%massDistribution_%densityRadialMoment         (moment,radiusMinimum,radiusMaximum,isInfinite)
     else
-       densityRadialMoment=self                  %densityRadialMomentNumerical(moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+       densityRadialMoment=self                  %densityRadialMomentNumerical(moment,radiusMinimum,radiusMaximum,isInfinite)
     end if
     return
   end function sphericalDecoratorDensityRadialMomentNonAnalytic
 
-  double precision function sphericalDecoratorPotential(self,coordinates,componentType,massType,status) result(potential)
+  double precision function sphericalDecoratorPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecorator  ), intent(inout), target   :: self
     class(coordinate                          ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType             ), intent(in   ), optional :: massType
     type (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
 
-    potential=self%potentialNonAnalytic(coordinates,componentType,massType,status)
+    potential=self%potentialNonAnalytic(coordinates,status)
     return
   end function sphericalDecoratorPotential
 
-  double precision function sphericalDecoratorPotentialNonAnalytic(self,coordinates,componentType,massType,status) result(potential)
+  double precision function sphericalDecoratorPotentialNonAnalytic(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalDecorator  ), intent(inout), target   :: self
-    class(coordinate                          ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType             ), intent(in   ), optional :: massType
-    type (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
+    class(massDistributionSphericalDecorator), intent(inout), target   :: self
+    class(coordinate                        ), intent(in   )           :: coordinates
+    type (enumerationStructureErrorCodeType ), intent(  out), optional :: status
 
     if (self%useUndecorated()) then
-       potential=self%massDistribution_%potential         (coordinates,componentType,massType,status)
+       potential=self%massDistribution_%potential         (coordinates,status)
     else
-       potential=self                  %potentialNumerical(coordinates,componentType,massType,status)
+       potential=self                  %potentialNumerical(coordinates,status)
     end if
     return
   end function sphericalDecoratorPotentialNonAnalytic
 
-  double precision function sphericalDecoratorFourierTransform(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function sphericalDecoratorFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a decorator spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: radiusOuter  , wavenumber
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: radiusOuter, wavenumber
     
-    fourierTransform=self%fourierTransformNonAnalytic(radiusOuter,wavenumber,componentType,massType)
+    fourierTransform=self%fourierTransformNonAnalytic(radiusOuter,wavenumber)
     return
   end function sphericalDecoratorFourierTransform
   
-  double precision function sphericalDecoratorFourierTransformNonAnalytic(self,radiusOuter,wavenumber,componentType,massType) result(fourierTransform)
+  double precision function sphericalDecoratorFourierTransformNonAnalytic(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a decorator spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: radiusOuter  , wavenumber
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: radiusOuter, wavenumber
     
     if (self%useUndecorated()) then
-       fourierTransform=self%massDistribution_%fourierTransform         (radiusOuter,wavenumber,componentType,massType)
+       fourierTransform=self%massDistribution_%fourierTransform         (radiusOuter,wavenumber)
     else
-       fourierTransform=self                  %fourierTransformNumerical(radiusOuter,wavenumber,componentType,massType)
+       fourierTransform=self                  %fourierTransformNumerical(radiusOuter,wavenumber)
     end if
     return
   end function sphericalDecoratorFourierTransformNonAnalytic
   
-  double precision function sphericalDecoratorRadiusFreefall(self,time,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusFreefall(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: time
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-
-    radius=self%radiusFreefallNonAnalytic(time,componentType,massType)
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: time
+ 
+    radius=self%radiusFreefallNonAnalytic(time)
     return
   end function sphericalDecoratorRadiusFreefall
   
-  double precision function sphericalDecoratorRadiusFreefallNonAnalytic(self,time,componentType,massType) result(radius)
+  double precision function sphericalDecoratorRadiusFreefallNonAnalytic(self,time) result(radius)
     !!{
     Compute the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: time
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: time
 
     if (self%useUndecorated()) then
-       radius=self%massDistribution_%radiusFreefall         (time,componentType,massType)
+       radius=self%massDistribution_%radiusFreefall         (time)
     else
-       radius=self                  %radiusFreefallNumerical(time,componentType,massType)
+       radius=self                  %radiusFreefallNumerical(time)
     end if
     return
   end function sphericalDecoratorRadiusFreefallNonAnalytic
   
-  double precision function sphericalDecoratorRadiusFreefallIncreaseRate(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function sphericalDecoratorRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass
     distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: time
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-
-    radiusIncreaseRate=self%radiusFreefallIncreaseRateNonAnalytic(time,componentType,massType)
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: time
+ 
+    radiusIncreaseRate=self%radiusFreefallIncreaseRateNonAnalytic(time)
     return
   end function sphericalDecoratorRadiusFreefallIncreaseRate
 
-  double precision function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic(self,time,componentType,massType) result(radiusIncreaseRate)
+  double precision function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic(self,time) result(radiusIncreaseRate)
     !!{
     Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass
     distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalDecorator), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: time
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalDecorator), intent(inout) :: self
+    double precision                                    , intent(in   ) :: time
 
     if (self%useUndecorated()) then
-       radiusIncreaseRate=self%massDistribution_%radiusFreefallIncreaseRate         (time,componentType,massType)
+       radiusIncreaseRate=self%massDistribution_%radiusFreefallIncreaseRate         (time)
     else
-       radiusIncreaseRate=self                  %radiusFreefallIncreaseRateNumerical(time,componentType,massType)
+       radiusIncreaseRate=self                  %radiusFreefallIncreaseRateNumerical(time)
     end if
     return
   end function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic

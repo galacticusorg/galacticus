@@ -193,7 +193,7 @@ contains
     return
   end function sphericalHeatedUseUndecorated
   
-  double precision function sphericalHeatedDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalHeatedDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
@@ -201,19 +201,13 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSphericalHeated), intent(inout)           :: self
-    class           (coordinate                     ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
-    type            (coordinateSpherical            )                          :: coordinatesInitial
-    double precision                                                           :: radius            , radiusInitial, &
-         &                                                                        densityInitial    , massEnclosed , &
-         &                                                                        jacobian
+    class           (massDistributionSphericalHeated), intent(inout) :: self
+    class           (coordinate                     ), intent(in   ) :: coordinates
+    type            (coordinateSpherical            )                :: coordinatesInitial
+    double precision                                                 :: radius            , radiusInitial, &
+         &                                                              densityInitial    , massEnclosed , &
+         &                                                              jacobian
     
-    if (.not.self%matches(componentType,massType)) then
-       density=+0.0d0
-       return
-    end if
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating, the density is unchanged.
        density=+self%massDistribution_%density(coordinates)
@@ -265,21 +259,15 @@ contains
     return
   end function sphericalHeatedDensity
 
-  double precision function sphericalHeatedMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalHeatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a heated mass distributions.
     !!}
     implicit none
-    class           (massDistributionSphericalHeated), intent(inout), target   :: self
-    double precision                                 , intent(in   )           :: radius
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalHeated), intent(inout), target :: self
+    double precision                                 , intent(in   )         :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-    else
-       mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius))
-    end if
+    mass=self%massDistribution_%massEnclosedBySphere(self%radiusInitial(radius))
     return
   end function sphericalHeatedMassEnclosedBySphere
   
@@ -413,7 +401,7 @@ contains
     return
   end function sphericalHeatedNoShellCrossingIsValid
 
-  double precision function sphericalHeatedRadiusEnclosingMass(self,mass,massFractional,componentType,massType) result(radius)
+  double precision function sphericalHeatedRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
@@ -421,28 +409,22 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionSphericalHeated), intent(inout), target   :: self
-    double precision                                 , intent(in   ), optional :: mass         , massFractional
-    type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
+    double precision                                 , intent(in   ), optional :: mass          , massFractional
     double precision                                                           :: radiusInitial
     double precision                                                           :: energySpecific
 
-    if (.not.self%matches(componentType,massType)) then
-       radius=0.0d0
-    else
-       radiusInitial =self%massDistribution_       %radiusEnclosingMass(mass         ,     massFractional   )
-       energySpecific=self%massDistributionHeating_%specificEnergy     (radiusInitial,self%massDistribution_)
-       if (radiusInitial <= 0.0d0) then
-          radius=+radiusLarge
-       else       
-          radius=+1.0d0                                                       &
-               & /(                                                           &
-               &   +1.0d0/radiusInitial                                       &
-               &   -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
-               &  )
-          ! If the radius found is negative, which means the initial shell has expanded to infinity, return the largest radius.
-          if (radius < 0.0d0) radius=radiusLarge
-       end if
+    radiusInitial =self%massDistribution_       %radiusEnclosingMass(mass         ,     massFractional   )
+    energySpecific=self%massDistributionHeating_%specificEnergy     (radiusInitial,self%massDistribution_)
+    if (radiusInitial <= 0.0d0) then
+       radius=+radiusLarge
+    else       
+       radius=+1.0d0                                                       &
+            & /(                                                           &
+            &   +1.0d0/radiusInitial                                       &
+            &   -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
+            &  )
+       ! If the radius found is negative, which means the initial shell has expanded to infinity, return the largest radius.
+       if (radius < 0.0d0) radius=radiusLarge
     end if
     return
   end function sphericalHeatedRadiusEnclosingMass

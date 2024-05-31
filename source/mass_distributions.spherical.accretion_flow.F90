@@ -190,26 +190,24 @@ contains
     return
   end subroutine sphericalAccretionFlowTransitionFunction
 
-  double precision function sphericalAccretionFlowDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalAccretionFlowDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalAccretionFlow), intent(inout)           :: self
-    class           (coordinate                            ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType          ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType               ), intent(in   ), optional :: massType
-    double precision                                                                  :: multiplier
+    class           (massDistributionSphericalAccretionFlow), intent(inout) :: self
+    class           (coordinate                            ), intent(in   ) :: coordinates
+    double precision                                                        :: multiplier
 
     call self%transitionFunction(radius=coordinates%rSpherical(),multiplier=multiplier)
-    density=+self%massDistribution_             %density(coordinates,componentType,massType) &
-         &  *       multiplier                                                               &
-         &  +self%massDistributionAccretionFlow_%density(coordinates,componentType,massType) &
+    density=+self%massDistribution_             %density(coordinates) &
+         &  *       multiplier                                        &
+         &  +self%massDistributionAccretionFlow_%density(coordinates) &
          &  *(1.0d0-multiplier)
     return
   end function sphericalAccretionFlowDensity
 
-  double precision function sphericalAccretionFlowDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalAccretionFlowDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a accretionFlow spherical mass distribution.
     !!}
@@ -217,25 +215,23 @@ contains
     class           (massDistributionSphericalAccretionFlow), intent(inout), target   :: self
     class           (coordinate                            ), intent(in   )           :: coordinates
     logical                                                 , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType          ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType               ), intent(in   ), optional :: massType
-    double precision                                                                  :: multiplier   , multiplierGradient
+    double precision                                                                  :: multiplier , multiplierGradient
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
     call self%transitionFunction(radius=coordinates%rSpherical(),multiplier=multiplier,multiplierGradient=multiplierGradient)
-    densityGradient=+  self%massDistribution_             %densityGradientRadial(coordinates,logarithmic=.false.,componentType=componentType,massType=massType) &
-         &          *       multiplier                                                                                                                          &
-         &          +  self%massDistributionAccretionFlow_%densityGradientRadial(coordinates,logarithmic=.false.,componentType=componentType,massType=massType) &
-         &          *(1.0d0-multiplier        )                                                                                                                 &
-         &          +(                                                                                                                                          &
-         &            +self%massDistribution_             %density              (coordinates                    ,componentType=componentType,massType=massType) &
-         &            -self%massDistributionAccretionFlow_%density              (coordinates                    ,componentType=componentType,massType=massType) &
-         &           )                                                                                                                                          &
+    densityGradient=+  self%massDistribution_             %densityGradientRadial(coordinates,logarithmic=.false.) &
+         &          *       multiplier                                                                            &
+         &          +  self%massDistributionAccretionFlow_%densityGradientRadial(coordinates,logarithmic=.false.) &
+         &          *(1.0d0-multiplier        )                                                                   &
+         &          +(                                                                                            &
+         &            +self%massDistribution_             %density              (coordinates                    ) &
+         &            -self%massDistributionAccretionFlow_%density              (coordinates                    ) &
+         &           )                                                                                            &
          &          +       multiplierGradient
-    if (logarithmic_) densityGradient=+            densityGradient                                     &
-         &                            *coordinates%rSpherical     (                                  ) &
-         &                            /self       %density        (coordinates,componentType,massType)
+    if (logarithmic_) densityGradient=+            densityGradient              &
+         &                            *coordinates%rSpherical     (           ) &
+         &                            /self       %density        (coordinates)
     return
   end function sphericalAccretionFlowDensityGradientRadial

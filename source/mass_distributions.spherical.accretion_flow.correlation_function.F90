@@ -150,20 +150,14 @@ contains
     return
   end subroutine correlationFunctionDestructor
 
-  double precision function correlationFunctionDensity(self,coordinates,componentType,massType) result(density)
+  double precision function correlationFunctionDensity(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
-    class(massDistributionCorrelationFunction), intent(inout)           :: self
-    class(coordinate                         ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType       ), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType            ), intent(in   ), optional :: massType
-    
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if
+    class(massDistributionCorrelationFunction), intent(inout) :: self
+    class(coordinate                         ), intent(in   ) :: coordinates
+
     density=+(                                                                          &
          &    +1.0d0                                                                    &
          &    +self%correlationFunction_%interpolate         (coordinates%rSpherical()) &
@@ -172,7 +166,7 @@ contains
     return
   end function correlationFunctionDensity
 
-  double precision function correlationFunctionDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function correlationFunctionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
@@ -180,16 +174,10 @@ contains
     class  (massDistributionCorrelationFunction), intent(inout), target   :: self
     class  (coordinate                         ), intent(in   )           :: coordinates
     logical                                     , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType       ), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType            ), intent(in   ), optional :: massType
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
     
-    if (.not.self%matches(componentType,massType)) then
-       densityGradientRadial=0.0d0
-       return
-    end if
     densityGradientRadial=+self%correlationFunction_%derivative          (coordinates%rSpherical()) &
          &                *self%cosmologyFunctions_ %matterDensityEpochal(self       %time        )
     return

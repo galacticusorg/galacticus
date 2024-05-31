@@ -1058,11 +1058,11 @@ contains
     double precision                                                       :: massOuter        , massVirial  , &
          &                                                                    radiusOuter     , radiusVirial
 
-    massDistribution_ => node                %massDistribution    (                                                                        )
-    radiusOuter       =  hotHalo             %outerRadius         (                                                                        )
-    radiusVirial      =  darkMatterHaloScale_%radiusVirial        (node                                                                    )
-    massOuter         =  massDistribution_   %massEnclosedBySphere(radiusOuter ,componentType=componentTypeHotHalo,massType=massTypeGaseous)
-    massVirial        =  massDistribution_   %massEnclosedBySphere(radiusVirial,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+    massDistribution_ => node                %massDistribution    (componentTypeHotHalo,massTypeGaseous)
+    radiusOuter       =  hotHalo             %outerRadius         (                                    )
+    radiusVirial      =  darkMatterHaloScale_%radiusVirial        (node                                )
+    massOuter         =  massDistribution_   %massEnclosedBySphere(radiusOuter                         )
+    massVirial        =  massDistribution_   %massEnclosedBySphere(radiusVirial                        )
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -1323,8 +1323,8 @@ contains
                   &   outerRadius             > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%radiusVirial(node) &
                   & ) then
                 coordinates          =  [outerRadius,0.0d0,0.0d0]
-                massDistribution_    => node             %massDistribution(                                                                       )
-                densityAtOuterRadius =  massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+                massDistribution_    => node             %massDistribution(componentTypeHotHalo,massTypeGaseous)
+                densityAtOuterRadius =  massDistribution_%density         (coordinates                         )
                 !![
 		<objectDestructor name="massDistribution_"/>
                 !!]
@@ -1431,9 +1431,9 @@ contains
        radiusVirial=darkMatterHaloScale_%radiusVirial(node)
        if (outerRadius < radiusVirial) then
           coordinates          =  [outerRadius,0.0d0,0.0d0]
-          basic                => node             %basic           (                                                                       )
-          massDistribution_    => node             %massDistribution(                                                                       )
-          densityAtOuterRadius =  massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
+          basic                => node             %basic           (                                    )
+          massDistribution_    => node             %massDistribution(componentTypeHotHalo,massTypeGaseous)
+          densityAtOuterRadius =  massDistribution_%density         (coordinates                         )
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]

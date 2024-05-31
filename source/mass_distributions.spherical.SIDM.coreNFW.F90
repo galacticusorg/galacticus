@@ -179,23 +179,17 @@ contains
     return
   end function sphericalSIDMCoreNFWRadiusCore
 
-  double precision function sphericalSIDMCoreNFWDensity(self,coordinates,componentType,massType) result(density)
+  double precision function sphericalSIDMCoreNFWDensity(self,coordinates) result(density)
     !!{
     Compute the density at the specified {\normalfont \ttfamily coordinates} for the {\normalfont \ttfamily sidmCoreNFW}
     mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalSIDMCoreNFW), intent(inout)           :: self
-    class           (coordinate                          ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
-    double precision                                      , parameter               :: radiusFractionalLarge=10.0d0
-    double precision                                                                :: radiusFractional            , radiusCore
+    class           (massDistributionSphericalSIDMCoreNFW), intent(inout) :: self
+    class           (coordinate                          ), intent(in   ) :: coordinates
+    double precision                                      , parameter     :: radiusFractionalLarge=10.0d0
+    double precision                                                      :: radiusFractional            , radiusCore
 
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if
     radiusCore      =+self       %radiusCore()
     radiusFractional=+coordinates%rSpherical() &
          &            /           radiusCore
@@ -233,7 +227,7 @@ contains
     return
   end function sphericalSIDMCoreNFWDensity
 
-  double precision function sphericalSIDMCoreNFWDensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradient)
+  double precision function sphericalSIDMCoreNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a truncated spherical mass distribution.
     !!}
@@ -241,19 +235,13 @@ contains
     class           (massDistributionSphericalSIDMCoreNFW), intent(inout), target   :: self
     class           (coordinate                          ), intent(in   )           :: coordinates
     logical                                               , intent(in   ), optional :: logarithmic
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
-    double precision                                                                :: radiusCore   , massEnclosedNFW   , &
-         &                                                                             densityNFW   , densityLogSlopeNFW, &
+    double precision                                                                :: radiusCore , massEnclosedNFW   , &
+         &                                                                             densityNFW , densityLogSlopeNFW, &
          &                                                                             radius
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    if (.not.self%matches(componentType,massType)) then
-       densityGradient=0.0d0
-       return
-    end if
     radius            =+coordinates           %rSpherical     (                                           )
     radiusCore        =+self                  %radiusCore     (                                           )
     massEnclosedNFW   =+self%massDistribution_%massEnclosedBySphere   (coordinates%rSpherical()                   )
@@ -319,21 +307,15 @@ contains
     return
   end function sphericalSIDMCoreNFWDensityGradientRadial
   
-  double precision function sphericalSIDMCoreNFWMassEnclosedBySphere(self,radius,componentType,massType) result(mass)
+  double precision function sphericalSIDMCoreNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{   
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for the {\normalfont \ttfamily sidmCoreNFW}
     mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalSIDMCoreNFW), intent(inout), target   :: self
-    double precision                                      , intent(in   )           :: radius
-    type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
+    class           (massDistributionSphericalSIDMCoreNFW), intent(inout), target :: self
+    double precision                                      , intent(in   )         :: radius
 
-    if (.not.self%matches(componentType,massType)) then
-       mass=0.0d0
-       return
-    end if
     mass   =+self%massDistribution_%massEnclosedBySphere(radius) &
          &  *tanh(                                               &
          &        +     radius                                   &

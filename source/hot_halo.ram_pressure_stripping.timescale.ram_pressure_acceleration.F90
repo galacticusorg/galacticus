@@ -145,12 +145,12 @@ contains
          &                                                                                 forceRamPressure                    , surfaceDensityOuter
 
     ! Evaluate surface density and ram pressure force.
-    massDistribution_   =>  node                                      %massDistribution(                                                                       )
-    hotHalo             =>  node                                      %hotHalo         (                                                                       )
-    radiusOuter         =   hotHalo                                   %outerRadius     (                                                                       )
+    massDistribution_   =>  node                                      %massDistribution(componentTypeHotHalo,massTypeGaseous)
+    hotHalo             =>  node                                      %hotHalo         (                                    )
+    radiusOuter         =   hotHalo                                   %outerRadius     (                                    )
     coordinates         =  [radiusOuter,0.0d0,0.0d0]
-    densityOuter        =   massDistribution_                         %density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)
-    forceRamPressure    =   self             %hotHaloRamPressureForce_%force           (node                                                                   )
+    densityOuter        =   massDistribution_                         %density         (coordinates                         )
+    forceRamPressure    =   self             %hotHaloRamPressureForce_%force           (node                                )
     surfaceDensityOuter =  +radiusOuter  &
          &                 *densityOuter
     !![

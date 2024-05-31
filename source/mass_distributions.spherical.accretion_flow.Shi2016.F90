@@ -201,20 +201,14 @@ contains
     return
   end subroutine shi2016Destructor
 
-  double precision function shi2016Density(self,coordinates,componentType,massType) result(density)
+  double precision function shi2016Density(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
-    class(massDistributionShi2016     ), intent(inout)           :: self
-    class(coordinate                  ), intent(in   )           :: coordinates
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionShi2016), intent(inout) :: self
+    class(coordinate             ), intent(in   ) :: coordinates
     
-    if (.not.self%matches(componentType,massType)) then
-       density=0.0d0
-       return
-    end if
     if      (coordinates%rSpherical() > self%radiusMaximumPhysical) then
        ! Beyond the maximum radius for the flow just return the mean matter density.
        density=self%cosmologyFunctions_       %matterDensityEpochal(self       %time        )
@@ -227,24 +221,18 @@ contains
     return
   end function shi2016Density
 
-  double precision function shi2016DensityGradientRadial(self,coordinates,logarithmic,componentType,massType) result(densityGradientRadial)
+  double precision function shi2016DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
-    class  (massDistributionShi2016     ), intent(inout), target   :: self
-    class  (coordinate                  ), intent(in   )           :: coordinates
-    logical                              , intent(in   ), optional :: logarithmic
-    type   (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class  (massDistributionShi2016), intent(inout), target   :: self
+    class  (coordinate             ), intent(in   )           :: coordinates
+    logical                         , intent(in   ), optional :: logarithmic
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
     
-    if (.not.self%matches(componentType,massType)) then
-       densityGradientRadial=0.0d0
-       return
-    end if
     if      (coordinates%rSpherical() > self%radiusMaximumPhysical) then
        ! Beyond the maximum radius for the flow just return the mean matter density.
        densityGradientRadial=0.0d0

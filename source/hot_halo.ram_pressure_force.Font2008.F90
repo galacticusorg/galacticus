@@ -135,9 +135,9 @@ contains
     call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%galacticStructure_)
     ! Find the ram pressure force at pericenter.
     coordinates       =  [radiusOrbital,0.0d0,0.0d0]
-    massDistribution_ =>  nodeHost         %massDistribution(                                                                       )
-    font2008Force     =  +massDistribution_%density         (coordinates,componentType=componentTypeHotHalo,massType=massTypeGaseous)    &
-         &               *velocityOrbital                                                                                            **2
+    massDistribution_ =>  nodeHost         %massDistribution(componentTypeHotHalo,massTypeGaseous)
+    font2008Force     =  +massDistribution_%density         (coordinates                         )    &
+         &               *velocityOrbital                                                         **2
     !![
     <objectDestructor name="massDistribution_"/>
     !!]          
