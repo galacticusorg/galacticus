@@ -175,7 +175,8 @@ contains
     largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
     compressive ones.)
     !!}
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, massTypeDark
+    use :: Coordinates                     , only : assignment(=)            , coordinateCartesian
+    use :: Galactic_Structure_Options      , only : massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
     use :: Linear_Algebra                  , only : assignment(=)            , matrix                         , vector
     use :: Mass_Distributions              , only : massDistributionClass
@@ -199,10 +200,11 @@ contains
     double precision                                                               :: massSatellite                          , frequencyAngular                , &
          &                                                                            radius                                 , tidalFieldRadial                , &
          &                                                                            radiusGuess                            , densityTidal                    , &
-         &                                                                            tidalPull
+         &                                                                            tidalPull                              , tidalTensorEigenValueMaximum
     type            (tensorRank2Dimension3Symmetric       )                        :: tidalTensor
     type            (matrix                               )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
     type            (vector                               )                        :: tidalTensorEigenValues
+    type            (coordinateCartesian                  )                        :: coordinates
 
     ! Find the host node.
     if (node%isOnMainBranch().or.(.not.self%applyPreInfall.and..not.node%isSatellite())) then
@@ -249,17 +251,33 @@ contains
     !
     ! -2GM(r)r⁻³ - 4πGρ(r)
     if (associated(nodeHost)) then
-       tidalTensor                     = self%galacticStructure_%tidalTensor(nodeHost,position)
-       tidalTensorComponents           = tidalTensor
-       tidalTensorMatrix               = tidalTensorComponents
-       call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
-       tidalTensorEigenValueComponents = tidalTensorEigenValues
-       tidalFieldRadial                =-maxval(tidalTensorEigenValueComponents) &
-            &                           *(                                       &
-            &                             +kilo                                  &
-            &                             *gigaYear                              &
-            &                             /megaParsec                            &
-            &                            )**2
+       massDistribution_ => nodeHost%massDistribution()
+       if (massDistribution_%isSphericallySymmetric()) then
+          ! For spherically-symmetric mass distributions we can avoid the expense of solving for the eigenvalues. We simply
+          ! evaluate the tidal tensor at [r,0,0] (since the distribution is spherically-symmetric we can evaluate at any
+          ! position on the sphere), and take the 0,0 element of the tensor which will be the largest (and only) positive
+          ! eigenvector.
+          coordinates                    =[radius,0.0d0,0.0d0]
+          tidalTensor                    =massDistribution_%tidalTensor(coordinates)
+          tidalTensorEigenValueMaximum   =tidalTensor%element(0,0)
+       else
+          coordinates                    =position
+          tidalTensor                    =massDistribution_%tidalTensor(coordinates)
+          tidalTensorComponents          =tidalTensor
+          tidalTensorMatrix              =tidalTensorComponents
+          call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
+          tidalTensorEigenValueComponents=tidalTensorEigenValues
+          tidalTensorEigenValueMaximum   =maxval(tidalTensorEigenValueComponents)
+       end if       
+       tidalFieldRadial=-tidalTensorEigenValueMaximum &
+            &           *(                            &
+            &             +kilo                       &
+            &             *gigaYear                   &
+            &             /megaParsec                 &
+            &            )**2
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     else
        tidalFieldRadial                =+0.0d0
     end if
