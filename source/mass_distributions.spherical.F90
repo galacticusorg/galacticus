@@ -51,6 +51,7 @@
      </methods>
      !!]
      procedure :: symmetry                            => sphericalSymmetry
+     procedure :: isSphericallySymmetric              => sphericalIsSphericallySymmetric
      procedure :: densityGradientRadial               => sphericalDensityGradientRadial
      procedure :: densityGradientRadialNumerical      => sphericalDensityGradientRadialNumerical
      procedure :: massEnclosedBySphere                => sphericalMassEnclosedBySphere
@@ -104,6 +105,17 @@ contains
     sphericalSymmetry=massDistributionSymmetrySpherical
     return
   end function sphericalSymmetry
+
+  logical function sphericalIsSphericallySymmetric(self) result(isSphericallySymmetric)
+    !!{
+    Return true if the distribution is spherically symmetric.
+    !!}
+    implicit none
+    class(massDistributionSpherical), intent(inout) :: self
+
+    isSphericallySymmetric=.true.
+    return
+  end function sphericalIsSphericallySymmetric
 
   double precision function sphericalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{

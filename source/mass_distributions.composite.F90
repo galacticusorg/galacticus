@@ -52,6 +52,7 @@
      procedure :: subset                  => compositeSubset
      procedure :: matches                 => compositeMatches
      procedure :: symmetry                => compositeSymmetry
+     procedure :: isSphericallySymmetric  => compositeIsSphericallySymmetric
      procedure :: isDimensionless         => compositeIsDimensionless
      procedure :: massTotal               => compositeMassTotal
      procedure :: acceleration            => compositeAcceleration
@@ -244,6 +245,17 @@ contains
     symmetry=self%symmetry_
     return
   end function compositeSymmetry
+
+  logical function compositeIsSphericallySymmetric(self) result(isSphericallySymmetric)
+    !!{
+    Return true if the distribution is spherically symmetric.
+    !!}
+    implicit none
+    class(massDistributionComposite), intent(inout) :: self
+
+    isSphericallySymmetric=self%symmetry_ == massDistributionSymmetrySpherical
+    return
+  end function compositeIsSphericallySymmetric
 
   logical function compositeIsDimensionless(self)
     !!{

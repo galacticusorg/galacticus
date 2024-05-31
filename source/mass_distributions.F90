@@ -146,6 +146,14 @@ module Mass_Distributions
       massDistributionSymmetry=massDistributionSymmetryNone
     </code>
    </method>
+   <method name="isSphericallySymmetric" >
+    <description>Return true if the distribution is spherically symmetric.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     massDistributionIsSphericallySymmetric=.false.
+    </code>
+   </method>
    <method name="isDimensionless" >
     <description>Return true if the distribution is dimensionless.</description>
     <type>logical</type>
