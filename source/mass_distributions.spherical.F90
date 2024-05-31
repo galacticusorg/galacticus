@@ -613,7 +613,7 @@ contains
   double precision function sphericalFourierTransformNumerical(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{   
     Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass
-    distribution using a numerical calcualtion.
+    distribution using a numerical calculation.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
