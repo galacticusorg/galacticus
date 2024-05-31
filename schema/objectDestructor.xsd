@@ -3,7 +3,8 @@
   <!-- Schema used to validate objectDestructor directives -->
 
   <xs:element name="objectDestructor" type="xs:string">
-    <xs:attribute name="name" use="required"/>
+    <xs:attribute name="name"    use="required"/>
+    <xs:attribute name="nullify"               />
   </xs:element>
   
 </xs:schema>
