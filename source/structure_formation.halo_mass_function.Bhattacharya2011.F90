@@ -187,17 +187,18 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout), target   :: self
-    double precision                                  , intent(in   )           :: time                           , mass
+    double precision                                  , intent(in   )           :: time                                    , mass
     type            (treeNode                        ), intent(inout), optional :: node
-    double precision                                                            :: alpha                          , nu          , &
-         &                                                                         nuPrime                        , rootVariance, &
+    double precision                                  , parameter               :: rootVarianceTiny               =1.0d-100
+    double precision                                                            :: alpha                                   , nu          , &
+         &                                                                         nuPrime                                 , rootVariance, &
          &                                                                         rootVarianceLogarithmicGradient
 
     ! Set a default value.
     bhattacharya2011Differential=0.0d0
     ! Determine the mass variance. If zero, return zero mass function.
     call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    if (rootVariance <=    0.0d0) return
+    if (rootVariance <= rootVarianceTiny) return
     ! Compute the mass function.
     nu                     =+(                                                                &
          &                    +self%criticalOverdensity_%value(time=time,mass=mass,node=node) &
