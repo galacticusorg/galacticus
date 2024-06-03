@@ -152,14 +152,17 @@
 
   ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same variance is requested multiple times.
   type :: cachedVariance
-     type            (varying_string                  )                            :: fileName
-     double precision ::sigma8Value, sigmaNormalization, massMinimum, massMaximum, timeMinimum, timeMaximum, timeMinimumLogarithmic, timeLogarithmicDeltaInverse
-   double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
-    double precision                                       , dimension(:,:), allocatable :: rootVarianceTmp, rootVarianceUniqueTmp
-    integer                                                , dimension(:  ), allocatable :: uniqueSizeTmp
-    integer                                                , dimension(:,:), allocatable :: indexTmp
+     type            (varying_string)                              :: fileName
+     double precision                                              :: sigma8Value           , sigmaNormalization         , &
+          &                                                           massMinimum           , massMaximum                , &
+          &                                                           timeMinimum           , timeMaximum                , &
+          &                                                           timeMinimumLogarithmic, timeLogarithmicDeltaInverse
+     double precision                , dimension(:  ), allocatable :: massTmp               , timesTmp
+     double precision                , dimension(:,:), allocatable :: rootVarianceTmp       , rootVarianceUniqueTmp
+     integer                         , dimension(:  ), allocatable :: uniqueSizeTmp
+     integer                         , dimension(:,:), allocatable :: indexTmp
   end type cachedVariance
-
+  
   integer                , parameter            :: sizeCache      =25
   integer                                       :: countCache     = 0, lastCache=0
   type   (cachedVariance), dimension(sizeCache) :: cachedVariances
@@ -626,12 +629,20 @@ contains
             &       +self%rootVarianceTable(j)%interpolate(mass) &
             &       *interpolant
     end do
-    if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
-       rootVarianceLogarithmicGradient=+rootVarianceGradient    &
-            &                          /rootVariance        **2
+    if (rootVariance /= 0.0d0) then
+       if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
+          rootVarianceLogarithmicGradient=+rootVarianceGradient    &
+               &                          /rootVariance        **2
+       else
+          rootVarianceLogarithmicGradient=+rootVarianceGradient    &
+               &                          /rootVariance
+       end if
     else
-       rootVarianceLogarithmicGradient=+rootVarianceGradient    &
-            &                          /rootVariance
+       if (rootVarianceGradient == 0.0d0) then
+          rootVarianceLogarithmicGradient=0.0d0
+       else
+          call Error_Report('dσ/dM ≠ 0 but σ = 0 - can not compute dlogσ/dlogM'//{introspection:location})
+       end if
     end if
     ! Scale by the linear growth factor if growth is not mass-dependent.
     if (.not.self%growthIsMassDependent_) rootVariance=+rootVariance                   &
@@ -1287,7 +1298,7 @@ contains
       ! elsewhere.
       varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
            &            *(                                                                                 &
-           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass,time  ) &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass,time__) &
            &              *                                               wavenumber                       &
            &             )**2
       return
@@ -1307,7 +1318,7 @@ contains
       wavenumber                  =+exp(wavenumberLogarithmic)
       varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
            &                       *(                                                                                 &
-           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass,time  ) &
+           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass,time__) &
            &                         *                                               wavenumber                       &
            &                        )**2                                                                              &
            &                       *                                                 wavenumber
@@ -1325,7 +1336,7 @@ contains
       ! elsewhere.
       varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
            &                  *(                                                                                 &
-           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass,time  ) &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass,time__) &
            &                    *                                               wavenumber                       &
            &                   )**2
       return
@@ -1344,7 +1355,7 @@ contains
       wavenumber                        =+exp(wavenumberLogarithmic)
       varianceIntegrandTopHatLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ,time__) &
            &                             *(                                                                                 &
-           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass,time  ) &
+           &                               +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass,time__) &
            &                               *                                               wavenumber                       &
            &                              )**2                                                                              &
            &                             *                                                 wavenumber
