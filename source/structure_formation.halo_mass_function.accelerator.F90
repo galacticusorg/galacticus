@@ -65,7 +65,7 @@ Implements a dark matter halo mass function class which accelerates another mass
 
   ! The number of points per octave of halo mass at which to tabulate the halo mass function.
   double precision, parameter :: countPointsPerOctave=10.0d0
-
+  
 contains
 
   function acceleratorConstructorParameters(parameters) result(self)
@@ -190,6 +190,7 @@ contains
          &                                                                                  massFunctionIntegrated                                     , massFraction
     double precision                             , parameter                             :: massRatio             =exp(log(2.0d0)/countPointsPerOctave)
     double precision                             , parameter                             :: massFunctionTiny      =1.0d-100
+    double precision                             , parameter                             :: massFunctionHuge      =1.0d+100
     double precision                                                                     :: massMinimum                                                , massMaximum , &
          &                                                                                  slope
     integer         (c_size_t                   )                                        :: countMasses                                                , iMinimum    , &
@@ -238,7 +239,7 @@ contains
        ! Skip cases for which we have a pre-existing solution.
        if (i >= iMinimum .and. i <= iMaximum) cycle
        ! Evaluate the mass function.
-       massFunction(i)=max(self%haloMassFunction_%differential(time,mass(i),node),massFunctionTiny)
+       massFunction(i)=min(max(self%haloMassFunction_%differential(time,mass(i),node),massFunctionTiny),massFunctionHuge)
     end do
     ! Compute the integrated mass function.
     massFraction          (countMasses)=massFunctionTiny
