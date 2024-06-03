@@ -436,10 +436,12 @@ contains
 
     ! Check that we have sufficient chains for differential evolution.
     if (.not.self%ignoreChainNumberAdvice) then
-       if      (mpiSelf%count() <   size(self%modelParametersActive_)) then
-          call Error_Report('the number of chains should at least equal the number of active parameters, otherwise it may not be possible to sample the full posterior distribution'    //{introspection:location})
-       else if (mpiSelf%count() < 2*size(self%modelParametersActive_)) then
-          call Warn        ('the number of chains should be at least twice the number of active parameters, otherwise it may not be efficient to sample the full posterior distribution'//{introspection:location})
+       if      (mpiSelf%count() <    size(self%modelParametersActive_)) then
+          call Error_Report('the number of chains should at least equal the number of active parameters, otherwise it may not be possible to sample the full posterior distribution'               //{introspection:location})
+       else if (mpiSelf%count() <  2*size(self%modelParametersActive_)) then
+          call Warn        ('the number of chains should be at least twice the number of active parameters, otherwise it may not be efficient to sample the full posterior distribution'           //{introspection:location})
+       else if (mpiSelf%count() < 10*size(self%modelParametersActive_)) then
+          call Warn        ('for non-unimodal/otherwise complicated posteriors, Ter Braak (2006) recommends using a number of chains 10 to 20 times the dimension of the posterior parameter space'//{introspection:location})
        end if
     end if
     ! Check that the random number generator is independent across MPI processes.
