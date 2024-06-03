@@ -803,6 +803,22 @@ sub parameterMappings {
     return @mappings;
 }
 
+sub parameterPriorRanges {
+    # Return a list of active parameter prior ranges.
+    my $config = shift();
+    my @priorRanges;
+    # Extract parameters from config file.
+    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'});
+    # Extract prior ranges.
+    foreach my $parameter ( @parameters ) {
+	if ( $parameter->{'value'} eq "active" ) {
+	    my @priorRange = ($parameter->{'distributionFunction1DPrior'}->{'limitLower'}->{'value'}, $parameter->{'distributionFunction1DPrior'}->{'limitUpper'}->{'value'});
+	    push(@priorRanges,\@priorRange);
+	}
+    }
+    return @priorRanges;
+}
+
 sub step {
     # Heaviside step function, required for some derived parameter evaluations.
     my $x = shift();
