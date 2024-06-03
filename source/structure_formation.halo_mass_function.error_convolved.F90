@@ -38,9 +38,10 @@ with a mass-dependent error.
      A halo mass function class convolves another halo mass function with a mass dependent error.
      !!}
      private
-     double precision                                   :: errorFractionalMaximum          , toleranceRelative
-     class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic  => null()
-     class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_    => null()
+     logical                                            :: tolerateIntegrationFailure
+     double precision                                   :: errorFractionalMaximum              , toleranceRelative
+     class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic      => null()
+     class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_        => null()
    contains
      final     ::                 errorConvolvedDestructor
      procedure :: differential => errorConvolvedDifferential
@@ -73,7 +74,8 @@ contains
     class           (haloMassFunctionClass         ), pointer       :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
     class           (nbodyHaloMassErrorClass       ), pointer       :: nbodyHaloMassError_
-    double precision                                                :: errorFractionalMaximum, toleranceRelative
+    double precision                                                :: errorFractionalMaximum    , toleranceRelative
+    logical                                                         :: tolerateIntegrationFailure
 
     ! Check and read parameters.
     !![
@@ -88,11 +90,17 @@ contains
       <defaultValue>1.0d-6</defaultValue>
       <description>Maximum allowed fractional error in halo mass.</description>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateIntegrationFailure</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, tolerate failures in integration.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"   source="parameters"/>
     <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
     !!]
-    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative)
+    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative,tolerateIntegrationFailure)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -102,7 +110,7 @@ contains
     return
   end function errorConvolvedConstructorParameters
 
-  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative) result(self)
+  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative,tolerateIntegrationFailure) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
     !!}
@@ -112,8 +120,9 @@ contains
     class           (cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class           (nbodyHaloMassErrorClass       ), target, intent(in   ) :: nbodyHaloMassError_
     double precision                                        , intent(in   ) :: errorFractionalMaximum, toleranceRelative
+    logical                                                 , intent(in   ) :: tolerateIntegrationFailure
     !![
-    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nbodyHaloMassError_, errorFractionalMaximum, toleranceRelative"/>
+    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nbodyHaloMassError_, errorFractionalMaximum, toleranceRelative, tolerateIntegrationFailure"/>
     !!]
 
     return
@@ -140,6 +149,7 @@ contains
     !!}
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
     use :: Numerical_Integration, only : integrator
+    use :: Error                , only : Error_Report
     implicit none
     class           (haloMassFunctionErrorConvolved), intent(inout), target   :: self
     double precision                                , intent(in   )           :: time                    , mass
@@ -149,6 +159,7 @@ contains
     class           (nodeComponentBasic            ), pointer                 :: basic
     double precision                                                          :: massLow                 , massHigh
     type            (integrator                    )                          :: integrator_             , integratorNormalization_
+    integer                                                                   :: status                  , statusNormalization
 
      ! Create a work node.
     nodeWork => treeNode      (                 )
@@ -180,12 +191,16 @@ contains
          &                                                                    )
     errorConvolvedDifferential          =  +integrator_             %integrate(                                               &
          &                                                                     massLow                                      , &
-         &                                                                     massHigh                                       &
+         &                                                                     massHigh                                     , &
+         &                                                                     status                                         &
          &                                                                    )                                               &
          &                                 /integratorNormalization_%integrate(                                               &
          &                                                                     massLow                                      , &
-         &                                                                     massHigh                                       &
+         &                                                                     massHigh                                     , &
+         &                                                                     statusNormalization                            &
          &                                                                    )
+    if ((status /= errorStatusSuccess .or. statusNormalization /= errorStatusSuccess) .and. .not.self%tolerateIntegrationFailure) &
+         & call Error_Report('integration failed'//{introspection:location})
     ! Clean up our work node.
     call nodeWork%destroy()
     deallocate(nodeWork)
