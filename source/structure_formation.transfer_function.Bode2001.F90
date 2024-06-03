@@ -305,19 +305,23 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
+    double precision                                          :: wavenumberDimensionless
 
     bode2001Value=+self%transferFunctionCDM%value(wavenumber)
-    if (self%scaleCutOff > 0.0d0)                    &
-         & bode2001Value=+bode2001Value              &
-         &               /(                          &
-         &                  1.0d0                    &
-         &                 +                         &
-         &                  (                        &
-         &                   +self%epsilon           &
-         &                   *wavenumber             &
-         &                   *self%scaleCutOff       &
-         &                  )**(2.0d0   *self%nu)    &
-         &                )  **(self%eta/self%nu)
+    if (self%scaleCutOff > 0.0d0) then
+       wavenumberDimensionless=+     wavenumber  &
+            &                  *self%scaleCutOff &
+            &                  *self%epsilon
+       if (exponent(wavenumberDimensionless)*2.0d0*self%eta < maxExponent(0.0d0)) then
+          bode2001Value=+bode2001Value                                 &
+               &        /(                                             &
+               &          +1.0d0                                       &
+               &          +wavenumberDimensionless**(2.0d0   *self%nu) &
+               &         )                        **(self%eta/self%nu)
+       else
+          bode2001Value=+0.0d0
+       end if
+    end if
     return
   end function bode2001Value
 
@@ -328,24 +332,29 @@ contains
     implicit none
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
+    double precision                                          :: wavenumberDimensionless
 
     bode2001LogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)
-    if (self%scaleCutOff > 0.0d0)                                       &
-         & bode2001LogarithmicDerivative=+bode2001LogarithmicDerivative &
-         &                               +2.0d0                         &
-         &                               *self%eta                      &
-         &                               *(                             &
-         &                                 +1.0d0                       &
-         &                                 /(                           &
-         &                                   +1.0d0                     &
-         &                                   +(                         &
-         &                                     +self%epsilon            &
-         &                                     *wavenumber              &
-         &                                     *self%scaleCutOff        &
-         &                                    )**(2.0d0*self%nu)        &
-         &                                  )                           &
-         &                                 -1.0d0                       &
-         &                                )
+    if (self%scaleCutOff > 0.0d0) then
+       wavenumberDimensionless=+     wavenumber  &
+            &                  *self%scaleCutOff &
+            &                  *self%epsilon
+       if (exponent(wavenumberDimensionless)*2.0d0*self%eta < maxExponent(0.0d0)) then          
+          bode2001LogarithmicDerivative=+bode2001LogarithmicDerivative                &
+               &                        +2.0d0                                        &
+               &                        *self%eta                                     &
+               &                        *(                                            &
+               &                          +1.0d0                                      &
+               &                          /(                                          &
+               &                            +1.0d0                                    &
+               &                            +wavenumberDimensionless**(2.0d0*self%nu) &
+               &                           )                                          &
+               &                          -1.0d0                                      &
+               &                         )
+       else
+          bode2001LogarithmicDerivative=+0.0d0
+       end if
+    end if
     return
   end function bode2001LogarithmicDerivative
 
