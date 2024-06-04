@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716429244387,
+  "lastUpdate": 1717476336077,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "0b289fc3dc9e5087db1763272d0ebca2f14b097d",
-          "message": "fix: Add default for parameter",
-          "timestamp": "2023-08-09T17:54:31Z",
-          "tree_id": "3bbb529955d104986c83a309df39e9924f0097d2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0b289fc3dc9e5087db1763272d0ebca2f14b097d"
-        },
-        "date": 1691615742182,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.059,
-            "unit": "seconds",
-            "range": 0.43857143089808
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20722.1184964987,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c658b260c3e293568db98bbbd90644f6cb1c74c5",
+          "message": "Merge pull request #616 from galacticusorg/fixCoolingRateDiscontinuous\n\nCatch cases where the cooling rate is discontinuous",
+          "timestamp": "2024-06-03T23:45:02Z",
+          "tree_id": "45e6b4783b3b3f038132d6cf4660485b7ad4f5ef",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5"
+        },
+        "date": 1717476334538,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.554,
+            "unit": "seconds",
+            "range": 0.0878999431166507
           }
         ]
       }
