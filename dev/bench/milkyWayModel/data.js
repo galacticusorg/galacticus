@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716429248034,
+  "lastUpdate": 1717476339880,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5b2eae9907a38e091f3228cf60551515d2280cfa",
-          "message": "fix: Improve formatting of error message",
-          "timestamp": "2023-08-03T16:59:23-07:00",
-          "tree_id": "927595231056b72ecab922d996b75d34c175bb00",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5b2eae9907a38e091f3228cf60551515d2280cfa"
-        },
-        "date": 1691118282223,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 175.838,
-            "unit": "seconds",
-            "range": 0.261315135421407
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0615436062753,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c658b260c3e293568db98bbbd90644f6cb1c74c5",
+          "message": "Merge pull request #616 from galacticusorg/fixCoolingRateDiscontinuous\n\nCatch cases where the cooling rate is discontinuous",
+          "timestamp": "2024-06-03T23:45:02Z",
+          "tree_id": "45e6b4783b3b3f038132d6cf4660485b7ad4f5ef",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5"
+        },
+        "date": 1717476339161,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 414.992,
+            "unit": "seconds",
+            "range": 0.355090974261752
           }
         ]
       }
