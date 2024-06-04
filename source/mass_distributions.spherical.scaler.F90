@@ -38,8 +38,11 @@
      !!{
      A mass distribution class for scaling spherical mass distributions.
      !!}
-     class           (massDistributionSpherical), pointer :: massDistribution_   => null()
-     double precision                                     :: factorScalingLength          , factorScalingMass
+     class           (massDistributionSpherical     ), pointer      :: massDistribution_           => null()
+     double precision                                               :: factorScalingLength                  , factorScalingMass
+     ! Memoized results.
+     double precision                                , dimension(3) :: positionTidalTensorPrevious
+     type            (tensorRank2Dimension3Symmetric)               :: tidalTensorPrevious
    contains
      final     ::                                      sphericalScalerDestructor
      procedure :: massTotal                         => sphericalScalerMassTotal
@@ -127,9 +130,10 @@ contains
     <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_"/>
     !!]
  
-    self%componentType=self%massDistribution_%componentType
-    self%     massType=self%massDistribution_%     massType
-    self%dimensionless=.false.
+    self%componentType              =self%massDistribution_%componentType
+    self%     massType              =self%massDistribution_%     massType
+    self%dimensionless              =.false.
+    self%positionTidalTensorPrevious=-huge(0.0d0)
     return
   end function sphericalScalerConstructorInternal
 
@@ -369,26 +373,33 @@ contains
     return
   end function sphericalScalerRotationCurveGradient
 
-  function sphericalScalerTidalTensor(self,coordinates)
+  function sphericalScalerTidalTensor(self,coordinates) result(tidalTensor)
     !!{
     Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : coordinateCartesian            , assignment(=)
     implicit none
-    type (tensorRank2Dimension3Symmetric )                :: sphericalScalerTidalTensor
+    type (tensorRank2Dimension3Symmetric )                :: tidalTensor
     class(massDistributionSphericalScaler), intent(inout) :: self
     class(coordinate                     ), intent(in   ) :: coordinates
     class(coordinate                     ), allocatable   :: coordinatesScaled
+    type (coordinateCartesian            )                :: position
 
-    call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerTidalTensor=+self%massDistribution_%tidalTensor           (                  &
-         &                                                                    coordinatesScaled &
-         &                                                                   )                  &
-         &                     *self                  %factorScalingMass                        &
-         &                     /self                  %factorScalingLength**3
-    if (self%massDistribution_%isDimensionless())                      &
-         & sphericalScalerTidalTensor=+sphericalScalerTidalTensor      &
-         &                            *gravitationalConstantGalacticus
+    position=coordinates
+    if (any(position%position /= self%positionTidalTensorPrevious)) then
+       call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
+       self%tidalTensorPrevious=+self%massDistribution_%tidalTensor           (                  &
+            &                                                                  coordinatesScaled &
+            &                                                                 )                  &
+            &                   *self                  %factorScalingMass                        &
+            &                   /self                  %factorScalingLength**3
+       if (self%massDistribution_%isDimensionless())                    &
+            & self%tidalTensorPrevious=+self%tidalTensorPrevious        &
+            &                          *gravitationalConstantGalacticus
+       self%positionTidalTensorPrevious=position%position
+    end if
+    tidalTensor=self%tidalTensorPrevious
     return
   end function sphericalScalerTidalTensor
   
