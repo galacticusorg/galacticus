@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageAbove" : 46.875,
+      "target" : 0.006,
+      "percentageBelow" : 53.125
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
+      "percentageAbove" : 35.7142857142857,
       "target" : 0.85,
-      "percentageBelow" : 53.3333333333333,
-      "percentageAbove" : 46.6666666666667
+      "percentageBelow" : 64.2857142857143
    },
    "commit" : {
-      "timestamp" : "Wed, 22 May 2024 13:51:59 -0700",
-      "message" : "feat: Add a `nodePropertyExtractor` that converts luminosities to fluxes",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/4151fd02ec1ebed5cb6883de49ecfe8a671da57e",
-      "id" : "4151fd02ec1ebed5cb6883de49ecfe8a671da57e",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5",
+      "timestamp" : "Mon, 3 Jun 2024 23:45:02 +0000",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
-      }
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      },
+      "message" : "Merge pull request #616 from galacticusorg/fixCoolingRateDiscontinuous",
+      "id" : "c658b260c3e293568db98bbbd90644f6cb1c74c5"
    },
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 43.75,
-      "percentageAbove" : 56.25
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
