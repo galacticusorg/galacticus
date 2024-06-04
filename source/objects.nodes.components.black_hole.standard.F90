@@ -752,6 +752,13 @@ contains
                 ! Indicate that ODE evolution should continue after this state change.
                 if (status == GSL_Success) status=GSL_Continue
              end if
+             if (blackHole%mass() < 0.0d0) then
+                ! Note that "status" is not set to failure as this change in state of the black hole should not change any
+                ! calculation of differential evolution rates as the mass was in an unphysical regime anyway
+                call blackHole%massSet(blackHole%massSeed())
+                ! Indicate that ODE evolution should continue after this state change.
+                if (status == GSL_Success) status=GSL_Continue
+             end if
           end do
        end if
     end if
