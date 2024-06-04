@@ -23,8 +23,6 @@
   Implements a node operator class that propagates satellite halos along their orbits.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <nodeOperator name="nodeOperatorSatelliteOrbit">
    <description>A node operator class that propagates satellite halos along their orbits.</description>
@@ -35,11 +33,9 @@
      A node operator class that propagates satellite halos along their orbits.
      !!}
      private
-     class  (galacticStructureClass), pointer :: galacticStructure_    => null()
-     logical                                  :: trackPreInfallOrbit
-     integer                                  :: rateGrowthMassBoundID
+     logical :: trackPreInfallOrbit
+     integer :: rateGrowthMassBoundID
    contains
-     final     ::                          satelliteOrbitDestructor
      procedure :: nodeInitialize        => satelliteOrbitNodeInitialize
      procedure :: nodePromote           => satelliteOrbitNodePromote
      procedure :: nodesMerge            => satelliteOrbitNodeMerge
@@ -72,7 +68,6 @@ contains
     implicit none
     type   (nodeOperatorSatelliteOrbit)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
-    class  (galacticStructureClass    ), pointer       :: galacticStructure_
     logical                                            :: trackPreInfallOrbit
 
     !![
@@ -82,27 +77,24 @@ contains
       <description>If true, (approximately) track the orbits of halos prior to infall.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit,galacticStructure_)
+    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function satelliteOrbitConstructorParameters
   
-  function satelliteOrbitConstructorInternal(trackPreInfallOrbit,galacticStructure_) result(self)
+  function satelliteOrbitConstructorInternal(trackPreInfallOrbit) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodeOperatorSatelliteOrbit)                        :: self
-    class  (galacticStructureClass    ), intent(in   ), target :: galacticStructure_
-    logical                            , intent(in   ),        :: trackPreInfallOrbit
+    type   (nodeOperatorSatelliteOrbit)                :: self
+    logical                            , intent(in   ) :: trackPreInfallOrbit
     !![
-    <constructorAssign variables="trackPreInfallOrbit, *galacticStructure_"/>
+    <constructorAssign variables="trackPreInfallOrbit"/>
     !!]
 
     if (self%trackPreInfallOrbit) then
@@ -112,19 +104,6 @@ contains
     end if
     return
   end function satelliteOrbitConstructorInternal
-  
-  subroutine satelliteOrbitDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily satelliteOrbit} node operator class.
-    !!}
-    implicit none
-    type(nodeOperatorSatelliteOrbit), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"   />
-    !!]
-    return
-  end subroutine satelliteOrbitDestructor
   
   subroutine satelliteOrbitNodeInitialize(self,node)
     !!{
@@ -359,18 +338,22 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Coordinates                     , only : coordinateCartesian   , assignment(=)
     implicit none
     class           (nodeOperatorSatelliteOrbit), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     logical                                     , intent(inout)          :: interrupt
     procedure       (interruptTask             ), intent(inout), pointer :: functionInterrupt
     integer                                     , intent(in   )          :: propertyType
-    type            (treeNode                  ), pointer                :: nodeHost
+    type            (treeNode                  )               , pointer :: nodeHost
     class           (nodeComponentSatellite    )               , pointer :: satellite
+    class           (massDistributionClass     )               , pointer :: massDistribution_, massDistributionHost_
     double precision                            , dimension(3)           :: position         , velocity             , &
          &                                                                  acceleration
     double precision                                                     :: massEnclosedHost , massEnclosedSatellite, &
          &                                                                  radius           , massRatio
+    type            (coordinateCartesian       )                         :: coordinates
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
     
     ! Ignore the main branch, and non-satellites unless we are tracking pre-infall orbits.
@@ -401,15 +384,22 @@ contains
     ! so the velocity remains constant between kicks).
     if (.not.node%isSatellite()) return
     if (radius <= 0.0d0) return ! If radius is non-positive, assume no acceleration.
-    massEnclosedSatellite=max(                                                                  &
-         &                                                     0.0d0                          , &
-         &                    min(                                                              &
-         &                        self     %galacticStructure_%massEnclosed(node    ,radius  ), &
-         &                        satellite                   %boundMass   (                 )  &
-         &                       )                                                              &
-         &                   )
-    massEnclosedHost     =        self     %galacticStructure_%massEnclosed(nodeHost,radius  )
-    acceleration         =        self     %galacticStructure_%acceleration(nodeHost,position)
+    coordinates           =  position
+    massDistribution_     => node    %massDistribution()
+    massDistributionHost_ => nodeHost%massDistribution()
+    massEnclosedSatellite =  max(                                                             &
+         &                                                 0.0d0                            , &
+         &                       min(                                                         &
+         &                           massDistribution_    %massEnclosedBySphere(radius     ), &
+         &                           satellite            %boundMass           (           )  &
+         &                          )                                                         &
+         &                      )
+    massEnclosedHost      =          massDistributionHost_%massEnclosedBySphere(radius     )
+    acceleration          =          massDistributionHost_%acceleration        (coordinates)
+    !![
+    <objectDestructor name="massDistribution_"    />
+    <objectDestructor name="massDistributionHost_"/>
+    !!]
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
     ! satellite and host orbiting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).

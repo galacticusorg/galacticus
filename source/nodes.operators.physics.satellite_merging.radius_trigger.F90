@@ -22,7 +22,6 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
@@ -35,7 +34,6 @@
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (galacticStructureClass  ), pointer :: galacticStructure_   => null()
      double precision                                    :: radiusVirialFraction
    contains
      !![
@@ -67,7 +65,6 @@ contains
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    class           (galacticStructureClass                   ), pointer       :: galacticStructure_
     double precision                                                           :: radiusVirialFraction
 
     !![
@@ -78,18 +75,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,darkMatterHaloScale_,galacticStructure_)
+    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function satelliteMergingRadiusTriggerConstructorParameters
 
-  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,darkMatterHaloScale_,galacticStructure_) result(self)
+  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
     !!}
@@ -97,9 +92,8 @@ contains
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
     double precision                                           , intent(in   )         :: radiusVirialFraction
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
-    class           (galacticStructureClass                   ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="radiusVirialFraction, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusVirialFraction, *darkMatterHaloScale_"/>
     !!]
     
     return
@@ -114,7 +108,6 @@ contains
     
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine satelliteMergingRadiusTriggerDestructor
@@ -176,45 +169,54 @@ contains
     Compute the merging radius for a node.
     !!}
     use :: Galacticus_Nodes          , only : treeNode
-    use :: Galactic_Structure_Options, only : massTypeGalactic, radiusLarge
+    use :: Galactic_Structure_Options, only : massTypeGalactic     , radiusLarge
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (nodeOperatorSatelliteMergingRadiusTrigger), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
     type            (treeNode                                 ), pointer       :: nodeHost
+    class           (massDistributionClass                    ), pointer       :: massDistribution_    , massDistributionHost_
     double precision                                                           :: radiusHalfMassCentral, radiusHalfMassSatellite
 
     ! Find the host node.
     nodeHost => node%mergesWith()
+    ! Get mass distributions.
+    massDistribution_     => node    %massDistribution(massType=massTypeGalactic)
+    massDistributionHost_ => nodeHost%massDistribution(massType=massTypeGalactic)
     ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic component
     ! (found by setting the radius to "radiusLarge") is non-zero as we do not want to attempt to find the half-mass radius
     ! of the galactic component, if no galactic component exists. To correctly handle the case that numerical errors lead
     ! to a zero-size galactic component (the enclosed mass within zero radius is non-zero and equals to the total mass of
     ! this component), we do a further check that the enclosed mass within zero radius is smaller than half of the total
     ! mass in the galactic component.
-    if     (                                                                                                       &
-         &             self%galacticStructure_%massEnclosed(nodeHost,massType=massTypeGalactic,radius=radiusLarge) &
-         &   >                                                                                                     &
-         &   max(                                                                                                  &
-         &       0.0d0,                                                                                            &
-         &       2.0d0*self%galacticStructure_%massEnclosed(nodeHost,massType=massTypeGalactic,radius=0.0d0      ) &
-         &      )                                                                                                  &
+    if     (                                                                                    &
+         &             massDistributionHost_%massTotal()                                        &
+         &   >                                                                                  &
+         &   max(                                                                               &
+         &       0.0d0,                                                                         &
+         &       2.0d0*massDistributionHost_%massEnclosedBySphere(radius=0.0d0)                 &
+         &      )                                                                               &
          & ) then
-       radiusHalfMassCentral  =self%galacticStructure_%radiusEnclosingMass(nodeHost,massFractional=0.5d0,massType=massTypeGalactic)
+       radiusHalfMassCentral  =massDistributionHost_%radiusEnclosingMass(massFractional=0.5d0)
     else
        radiusHalfMassCentral  =0.0d0
     end if
-    if     (                                                                                                       &
-         &             self%galacticStructure_%massEnclosed(node    ,massType=massTypeGalactic,radius=radiusLarge) &
-         &   >                                                                                                     &
-         &   max(                                                                                                  &
-         &       0.0d0,                                                                                            &
-         &       2.0d0*self%galacticStructure_%massEnclosed(node    ,massType=massTypeGalactic,radius=0.0d0      ) &
-         &      )                                                                                                  &
+    if     (                                                                                    &
+         &             massDistribution_    %massTotal()                                        &
+         &   >                                                                                  &
+         &   max(                                                                               &
+         &       0.0d0,                                                                         &
+         &       2.0d0*massDistribution_    %massEnclosedBySphere(radius=0.0d0)                 &
+         &      )                                                                               &
          & ) then
-       radiusHalfMassSatellite=self%galacticStructure_%radiusEnclosingMass(node    ,massFractional=0.5d0,massType=massTypeGalactic)
+       radiusHalfMassSatellite=massDistribution_    %radiusEnclosingMass(massFractional=0.5d0)
     else
        radiusHalfMassSatellite=0.0d0
-    end if    
+    end if
+    !![
+    <objectDestructor name="massDistribution_"    />
+    <objectDestructor name="massDistributionHost_"/>
+    !!]
     satelliteMergingRadiusTriggerRadiusMerge=max(                                                              &
          &                                       +                          radiusHalfMassSatellite            &
          &                                       +                          radiusHalfMassCentral            , &
