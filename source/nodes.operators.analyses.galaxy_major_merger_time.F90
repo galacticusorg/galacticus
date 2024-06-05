@@ -109,7 +109,7 @@ contains
     type (dependencyRegEx                  ), dimension(1)  :: dependenciesSatelliteMerger 
 
     dependenciesSatelliteMerger(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-    call satelliteMergerEvent%attach(self,satelliteMerger ,openMPThreadBindingAtLevel,label='galaxyMajorMergerTime',dependencies=dependenciesSatelliteMerger)
+    call satelliteMergerEvent%attach(self,satelliteMerger,openMPThreadBindingAtLevel,label='galaxyMajorMergerTime',dependencies=dependenciesSatelliteMerger)
     return
   end subroutine galaxyMajorMergerTimeAutoHook
   
@@ -121,7 +121,7 @@ contains
     implicit none
     type(nodeOperatorGalaxyMajorMergerTime), intent(inout) :: self
 
-    if (satelliteMergerEvent%isAttached(self,satelliteMerger )) call satelliteMergerEvent%detach(self,satelliteMerger )
+    if (satelliteMergerEvent%isAttached(self,satelliteMerger)) call satelliteMergerEvent%detach(self,satelliteMerger)
     !![
     <objectDestructor name="self%mergerMassMovements_"/>
     !!]
