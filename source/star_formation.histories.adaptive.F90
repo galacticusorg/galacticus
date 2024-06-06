@@ -202,7 +202,8 @@ contains
     use :: HDF5_Access               , only : hdf5Access
     use :: IO_HDF5                   , only : hdf5Object
     use :: Input_Paths               , only : inputPath       , pathTypeDataDynamic
-    use :: File_Utilities            , only : File_Exists     , File_Lock           , File_Unlock, lockDescriptor
+    use :: File_Utilities            , only : File_Exists     , File_Lock           , File_Unlock, lockDescriptor, &
+         &                                    Directory_Make
     implicit none
     type            (starFormationHistoryAdaptive)                                        :: self
     double precision                              , intent(in   ), dimension(:), optional :: metallicityBoundaries
@@ -279,6 +280,7 @@ contains
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     else
+       call Directory_Make(inputPath(pathTypeDataDynamic)//"/starFormation")
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        do iOutput=1,self%outputTimes_%count()
           ! Our start time is either the minimum timestep size (for the first output), or the end time of the timesteps of the
