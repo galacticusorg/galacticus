@@ -548,38 +548,42 @@ contains
     double precision                     , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
     double precision                     , parameter                   :: countRadiiPerDecade             =100.0d0
     double precision                                                   :: angularMomentumSpecificScaleFree
-    integer                                                            :: countRadii
+    integer                                                            :: countRadii,i
 
-    angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
-         &                           /sqrt(                                    &
-         &                                 +gravitationalConstantGalacticus    &
-         &                                 *self%densityNormalization          &
-         &                                )                                    &
-         &                           /      self%scaleLength               **2
-    if     (                                                                            &
-         &   angularMomentumSpecificScaleFree < angularMomentumSpecificScaleFreeMinimum &
-         &  .or.                                                                        &
-         &   angularMomentumSpecificScaleFree > angularMomentumSpecificScaleFreeMaximum &
-         & ) then
-       do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMinimum) > angularMomentumSpecificScaleFree)
-          angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*angularMomentumSpecificScaleFreeRadiusMinimum
-       end do
-       do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMaximum) < angularMomentumSpecificScaleFree)
-          angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*angularMomentumSpecificScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(angularMomentumSpecificScaleFreeRadiusMaximum/angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(angularMomentumSpecificScaleFree_)) deallocate(angularMomentumSpecificScaleFree_)
-       allocate(radii                            (countRadii))
-       allocate(angularMomentaSpecific           (countRadii))
-       allocate(angularMomentumSpecificScaleFree_            )
-       radii                                  =Make_Range(angularMomentumSpecificScaleFreeRadiusMinimum,angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       angularMomentaSpecific                 =angularMomentumSpecificEnclosedScaleFree(                       radii)
-       angularMomentumSpecificScaleFreeMinimum=angularMomentaSpecific                  (            countRadii      )
-       angularMomentumSpecificScaleFreeMaximum=angularMomentaSpecific                  (                     1      )
-       angularMomentumSpecificScaleFree_      =interpolator                            (angularMomentaSpecific,radii)
+    if (angularMomentumSpecific > 0.0d0) then
+       angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
+            &                           /sqrt(                                    &
+            &                                 +gravitationalConstantGalacticus    &
+            &                                 *self%densityNormalization          &
+            &                                )                                    &
+            &                           /      self%scaleLength               **2
+       if     (                                                                            &
+            &   angularMomentumSpecificScaleFree < angularMomentumSpecificScaleFreeMinimum &
+            &  .or.                                                                        &
+            &   angularMomentumSpecificScaleFree > angularMomentumSpecificScaleFreeMaximum &
+            & ) then
+          do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMinimum) > angularMomentumSpecificScaleFree)
+             angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*angularMomentumSpecificScaleFreeRadiusMinimum
+          end do
+          do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMaximum) < angularMomentumSpecificScaleFree)
+             angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*angularMomentumSpecificScaleFreeRadiusMaximum
+          end do
+          countRadii=int(log10(angularMomentumSpecificScaleFreeRadiusMaximum/angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
+          if (allocated(angularMomentumSpecificScaleFree_)) deallocate(angularMomentumSpecificScaleFree_)
+          allocate(radii                            (countRadii))
+          allocate(angularMomentaSpecific           (countRadii))
+          allocate(angularMomentumSpecificScaleFree_            )
+          radii                                  =Make_Range(angularMomentumSpecificScaleFreeRadiusMinimum,angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
+          angularMomentaSpecific                 =angularMomentumSpecificEnclosedScaleFree(     radii)
+          angularMomentumSpecificScaleFreeMinimum=angularMomentaSpecific                  (         1)
+          angularMomentumSpecificScaleFreeMaximum=angularMomentaSpecific                  (countRadii)
+          angularMomentumSpecificScaleFree_      =interpolator                            (angularMomentaSpecific,radii)
+       end if
+       radius=+angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
+            & *self                             %scaleLength
+    else
+       radius=+0.0d0
     end if
-    radius=+angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
-         & *self                             %scaleLength
     return    
   end function nfwRadiusFromSpecificAngularMomentum
 
