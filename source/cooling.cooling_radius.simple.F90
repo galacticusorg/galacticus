@@ -418,14 +418,12 @@ contains
     else
        temperature          =   0.0d0
     end if
-    call densityChemicals%scale(density)
-    densityChemicals=fractionsChemical_
-    densityChemicals        =   fractionsChemical_                                                                   &
-         &                     *density
     !![
     <objectDestructor name="massDistribution_"      />
     <objectDestructor name="kinematicsDistribution_"/>
     !!]          
+    densityChemicals=fractionsChemical_
+    call densityChemicals%scale(density)
     ! Compute the cooling time at the specified radius.
     coolingTime=self_%coolingTime_%time(node_,temperature,density,abundancesGas_,densityChemicals,self_%radiation)
     ! Return the difference between cooling time and time available.
