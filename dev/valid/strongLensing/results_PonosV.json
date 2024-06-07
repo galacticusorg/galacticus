@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageAbove" : 46.875,
-      "target" : 0.006,
-      "percentageBelow" : 53.125
-   },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "percentageAbove" : 35.7142857142857,
-      "target" : 0.85,
-      "percentageBelow" : 64.2857142857143
-   },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5",
-      "timestamp" : "Mon, 3 Jun 2024 23:45:02 +0000",
       "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
       },
-      "message" : "Merge pull request #616 from galacticusorg/fixCoolingRateDiscontinuous",
-      "id" : "c658b260c3e293568db98bbbd90644f6cb1c74c5"
+      "message" : "Merge pull request #620 from galacticusorg/featSFHAdaptiveOpt",
+      "id" : "3702136add1ae90beaf0f5d9951bbe04ada4a893",
+      "timestamp" : "Thu, 6 Jun 2024 20:34:55 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/3702136add1ae90beaf0f5d9951bbe04ada4a893"
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "slope" : {
+      "target" : 0.85,
+      "percentageBelow" : 64.2857142857143,
+      "percentageAbove" : 35.7142857142857
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 53.125,
+      "percentageAbove" : 46.875
+   }
 }
