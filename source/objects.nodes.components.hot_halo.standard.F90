@@ -2276,15 +2276,11 @@ use :: iso_varying_string, only : char
     integer                              , intent(in   ), optional :: weightIndex
     !$GLC attributes unused :: weightIndex
 
-write (0,*) "MATCH IT"
     if (massDistributionMatches_(componentTypeHotHalo,massTypeGaseous,componentType,massType)) then
        massDistribution_ => hotHaloMassDistribution_%get(self%hostNode,weightBy,weightIndex)
-write (0,*) "GOT IT"
        if (associated(massDistribution_)) then
           kinematicsDistribution_ => hotHaloTemperatureProfile_%get(self%hostNode)
-write (0,*) "GOT KINE ",associated(kinematicsDistribution_)
           call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-write (0,*) "SET IT",associated(kinematicsDistribution_),char(kinematicsDistribution_%objectType())
           !![
           <objectDestructor name="kinematicsDistribution_"/>
           !!]
