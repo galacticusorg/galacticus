@@ -44,12 +44,14 @@
    contains
      !![
      <methods>
-       <method method="initialize" description="Initialize the mass distribution after construction."/>
+       <method method="initialize" description="Initialize the mass distribution after construction."  />
+       <method method="describe"   description="Display a description of a composite mass distibution."/>
      </methods>
      !!]
      final     ::                            compositeDestructor
      procedure :: initialize              => compositeInitialize
      procedure :: subset                  => compositeSubset
+     procedure :: describe                => compositeDescribe
      procedure :: matches                 => compositeMatches
      procedure :: symmetry                => compositeSymmetry
      procedure :: isSphericallySymmetric  => compositeIsSphericallySymmetric
@@ -299,6 +301,32 @@ contains
     return
   end function compositeMatches
 
+  subroutine compositeDescribe(self)
+    !!{
+    Display a description of a composite mass distribution.
+    !!}
+    use :: Display, only : displayMessage, displayIndent, displayUnindent
+    implicit none
+    class(massDistributionComposite), intent(inout) :: self
+    type (massDistributionList     ), pointer       :: massDistribution_
+    
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          select type (massDistribution__ => massDistribution_ %massDistribution_)
+          class is (massDistributionComposite)
+             call displayIndent (massDistribution_%massDistribution_%objectType())
+             call massDistribution__%describe()
+             call displayUnindent("")
+          class default
+             call displayMessage(massDistribution_%massDistribution_%objectType())
+          end select
+          massDistribution_ => massDistribution_%next
+       end do
+    end if
+    return
+  end subroutine compositeDescribe
+  
   function compositeSubset(self,componentType,massType) result(subset)
     !!{
     Return the subset of the composite distribution that matches.
