@@ -58,25 +58,37 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(massDistributionZero)                :: self
-    type(inputParameters     ), intent(inout) :: parameters
+    type   (massDistributionZero)                :: self
+    type   (inputParameters     ), intent(inout) :: parameters
+    logical                                      :: dimensionless
 
-    self=massDistributionZero()
+    !![
+    <inputParameter>
+     <name>dimensionless</name>
+     <defaultValue>.true.</defaultValue>
+     <description>If true the null profile is considered to be dimensionless.</description>
+     <source>parameters</source>
+    </inputParameter>
+    !!]
+    self=massDistributionZero(dimensionless)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function zeroConstructorParameters
   
-  function zeroConstructorInternal() result(self)
+  function zeroConstructorInternal(dimensionless) result(self)
     !!{
     Constructor for {\normalfont \ttfamily zero} mass distribution class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeUnknown, massTypeUnknown
     implicit none
-    type(massDistributionZero) :: self
-
-    self%dimensionless=.true.
+    type   (massDistributionZero)                :: self
+    logical                      , intent(in   ) :: dimensionless
+    !![
+    <constructorAssign variables="dimensionless"/>
+    !!]
+    
     self%componentType=componentTypeUnknown
     self%massType     =massTypeUnknown
     return

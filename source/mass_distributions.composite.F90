@@ -350,7 +350,7 @@ contains
        select type (subset)
        type is (massDistributionZero)
           !![
-          <referenceConstruct object="subset" constructor="massDistributionZero()"/>
+          <referenceConstruct object="subset" constructor="massDistributionZero(dimensionless=.false.)"/>
 	  !!]
        end select
     end if
