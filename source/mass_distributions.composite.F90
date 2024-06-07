@@ -308,8 +308,9 @@ contains
     class(massDistributionComposite   ), intent(inout)           :: self
     type (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type (massDistributionList        ), pointer                 :: massDistribution_, subsetHead, &
-         &                                                          subsetNext
+    class(massDistributionClass       ), pointer                 :: massDistribution___
+    type (massDistributionList        ), pointer                 :: subsetHead         , subsetNext, &
+         &                                                          massDistribution_
     !![
     <optionalArgument name="componentType" defaultsTo="componentTypeAll"/>
     <optionalArgument name="massType"      defaultsTo="massTypeAll"     />
@@ -320,19 +321,37 @@ contains
        subsetHead        => null()
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          if (massDistribution_ %massDistribution_%matches(componentType,massType)) then
-             if (associated(subsetHead)) then
-                allocate(subsetNext%next)
-                subsetNext => subsetNext%next
-             else
-                allocate(subsetHead     )
-                subsetNext => subsetHead
+          select type (massDistribution__ => massDistribution_ %massDistribution_)
+          class is (massDistributionComposite)
+             massDistribution___ => massDistribution__%subset(componentType_,massType_)
+             if (associated(massDistribution___)) then
+                if (associated(subsetHead)) then
+                   allocate(subsetNext%next)
+                   subsetNext => subsetNext%next
+                else
+                   allocate(subsetHead     )
+                   subsetNext => subsetHead
+                end if
+                subsetNext%massDistribution_ => massDistribution___
+                !![
+                <referenceCountIncremeant owner="subsetNext" object="massDistribution___"/>
+                !!]
              end if
-             subsetNext%massDistribution_ => massDistribution_%massDistribution_            
-             !![
-             <referenceCountIncremeant owner="subsetNext" object="massDistribution_"/>
-             !!]
-          end if
+          class default
+             if (massDistribution__%matches(componentType,massType)) then
+                if (associated(subsetHead)) then
+                   allocate(subsetNext%next)
+                   subsetNext => subsetNext%next
+                else
+                   allocate(subsetHead     )
+                   subsetNext => subsetHead
+                end if
+                subsetNext%massDistribution_ => massDistribution__
+                !![
+                <referenceCountIncremeant owner="subsetNext" object="massDistribution__"/>
+                !!]
+             end if
+          end select
           massDistribution_ => massDistribution_%next
        end do
        if (associated(subsetHead)) then
