@@ -268,20 +268,21 @@ contains
     use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_       , kinematicDistribution_
     use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar            , massTypeGaseous
     implicit none
-    type            (inputParameters            ), intent(inout) :: parameters
-    type            (dependencyRegEx            ), dimension(2)  :: dependencies
-    logical                                                      :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
-    double precision                                             :: massDistributionSpheroidDensityMomentum2   , massDistributionSpheroidDensityMomentum3, &
-         &                                                          ratioAngularMomentumScaleRadiusDefault
-    type            (inputParameters            )                :: subParameters
+    type            (inputParameters), intent(inout) :: parameters
+    type            (dependencyRegEx), dimension(3)  :: dependencies
+    logical                                          :: densityMoment2IsInfinite                , densityMoment3IsInfinite
+    double precision                                 :: massDistributionSpheroidDensityMomentum2, massDistributionSpheroidDensityMomentum3, &
+         &                                              ratioAngularMomentumScaleRadiusDefault
+    type            (inputParameters)                :: subParameters
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
+       dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
+       dependencies(3)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
        call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
        call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          ) 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
