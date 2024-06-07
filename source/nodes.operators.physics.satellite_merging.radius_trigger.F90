@@ -169,7 +169,7 @@ contains
     Compute the merging radius for a node.
     !!}
     use :: Galacticus_Nodes          , only : treeNode
-    use :: Galactic_Structure_Options, only : massTypeGalactic     , radiusLarge
+    use :: Galactic_Structure_Options, only : massTypeGalactic
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (nodeOperatorSatelliteMergingRadiusTrigger), intent(inout) :: self
@@ -183,12 +183,11 @@ contains
     ! Get mass distributions.
     massDistribution_     => node    %massDistribution(massType=massTypeGalactic)
     massDistributionHost_ => nodeHost%massDistribution(massType=massTypeGalactic)
-    ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic component
-    ! (found by setting the radius to "radiusLarge") is non-zero as we do not want to attempt to find the half-mass radius
-    ! of the galactic component, if no galactic component exists. To correctly handle the case that numerical errors lead
-    ! to a zero-size galactic component (the enclosed mass within zero radius is non-zero and equals to the total mass of
-    ! this component), we do a further check that the enclosed mass within zero radius is smaller than half of the total
-    ! mass in the galactic component.
+    ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic component is
+    ! non-zero as we do not want to attempt to find the half-mass radius of the galactic component, if no galactic component
+    ! exists. To correctly handle the case that numerical errors lead to a zero-size galactic component (the enclosed mass
+    ! within zero radius is non-zero and equals to the total mass of this component), we do a further check that the enclosed
+    ! mass within zero radius is smaller than half of the total mass in the galactic component.
     if     (                                                                                    &
          &             massDistributionHost_%massTotal()                                        &
          &   >                                                                                  &
