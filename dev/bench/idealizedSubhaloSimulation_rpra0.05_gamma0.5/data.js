@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717476358325,
+  "lastUpdate": 1717724412021,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -916,6 +916,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5"
         },
         "date": 1717476357795,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3702136add1ae90beaf0f5d9951bbe04ada4a893",
+          "message": "Merge pull request #620 from galacticusorg/featSFHAdaptiveOpt\n\nStore `starFormationHistoryAdaptive` timesteps and mappings to file",
+          "timestamp": "2024-06-06T20:34:55Z",
+          "tree_id": "aae75663842e6c7e3f7f8ca0d732677e76d73abd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3702136add1ae90beaf0f5d9951bbe04ada4a893"
+        },
+        "date": 1717724410885,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
