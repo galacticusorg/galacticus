@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717476347320,
+  "lastUpdate": 1717724387216,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "a1ec083424e1f623e08cd4969cdbe96e7779dbd4",
-          "message": "fix: Split long YAML list across lines for easier `diff`ing",
-          "timestamp": "2023-08-08T15:30:50Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a1ec083424e1f623e08cd4969cdbe96e7779dbd4"
-        },
-        "date": 1691522419028,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 265.236,
-            "unit": "seconds",
-            "range": 0.575427145692556
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10684,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9017535431126,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3702136add1ae90beaf0f5d9951bbe04ada4a893",
+          "message": "Merge pull request #620 from galacticusorg/featSFHAdaptiveOpt\n\nStore `starFormationHistoryAdaptive` timesteps and mappings to file",
+          "timestamp": "2024-06-06T20:34:55Z",
+          "tree_id": "aae75663842e6c7e3f7f8ca0d732677e76d73abd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3702136add1ae90beaf0f5d9951bbe04ada4a893"
+        },
+        "date": 1717724386350,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 430.815,
+            "unit": "seconds",
+            "range": 1.11163325786774
           }
         ]
       }
