@@ -50,9 +50,9 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType
   !!{
   Return the mass distribution for the standard black hole component.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass           , weightByLuminosity, &
+  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity, &
        &                                    enumerationWeightByType  , enumerationComponentTypeType, enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass
+  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass       , massDistributionMatches_
   implicit none
   class  (massDistributionClass         ), pointer                 :: massDistribution_
   class  (nodeComponentBlackHoleStandard), intent(inout)           :: self
@@ -65,17 +65,21 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType
   !!]
   !$GLC attributes unused :: weightIndex, componentType, massType
 
-  if (weightBy_ /= weightByMass) then
+  if     (                                                                                           &	
+       &   massDistributionMatches_(componentTypeBlackHole,massTypeBlackHole,componentType,massType) &
+       &  .and.                                                                                      &
+       &   weightBy_ == weightByMass                                                                 &
+       & ) then
+         ! Create a black hole mass distribution.
+     allocate(massDistributionBlackHole :: massDistribution_)
+     select type (massDistribution_)
+     type is (massDistributionBlackHole)
+        !![
+        <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=max(0.0d0,self%mass()),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
+        !!]
+     end select
+  else
      massDistribution_ => null()
-     return
   end if
-  ! Create a black hole mass distribution.
-  allocate(massDistributionBlackHole :: massDistribution_)
-  select type (massDistribution_)
-  type is (massDistributionBlackHole)
-     !![
-     <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=max(0.0d0,self%mass()),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
-     !!]
-  end select
   return
 end function Node_Component_Black_Hole_Standard_Mass_Distribution

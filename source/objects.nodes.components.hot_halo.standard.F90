@@ -2262,8 +2262,10 @@ contains
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard
-    use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType
-    use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionClass
+    use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType , massTypeGaseous, &
+         &                                    componentTypeHotHalo
+    use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionClass , massDistributionMatches_
+use :: iso_varying_string, only : char
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistribution_
     class  (kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
@@ -2272,15 +2274,23 @@ contains
     type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
     type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
     integer                              , intent(in   ), optional :: weightIndex
-    !$GLC attributes unused :: weightIndex, componentType, massType
-    
-    massDistribution_          => hotHaloMassDistribution_  %get(self%hostNode,weightBy,weightIndex)
-    if (associated(massDistribution_)) then
-       kinematicsDistribution_ => hotHaloTemperatureProfile_%get(self%hostNode                     )
-       call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-       !![
-       <objectDestructor name="kinematicsDistribution_"/>
-       !!]
+    !$GLC attributes unused :: weightIndex
+
+write (0,*) "MATCH IT"
+    if (massDistributionMatches_(componentTypeHotHalo,massTypeGaseous,componentType,massType)) then
+       massDistribution_ => hotHaloMassDistribution_%get(self%hostNode,weightBy,weightIndex)
+write (0,*) "GOT IT"
+       if (associated(massDistribution_)) then
+          kinematicsDistribution_ => hotHaloTemperatureProfile_%get(self%hostNode)
+write (0,*) "GOT KINE ",associated(kinematicsDistribution_)
+          call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+write (0,*) "SET IT",associated(kinematicsDistribution_),char(kinematicsDistribution_%objectType())
+          !![
+          <objectDestructor name="kinematicsDistribution_"/>
+          !!]
+        end if
+    else
+       massDistribution_ => null()
     end if
     return
   end function Node_Component_Hot_Halo_Standard_Mass_Distribution

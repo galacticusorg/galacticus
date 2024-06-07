@@ -905,8 +905,10 @@ contains
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard, nodeComponentHotHaloColdMode
-    use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType
-    use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionLocal , massDistributionComposite, massDistributionList
+    use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType  , componentTypeColdHalo, &
+         &                                    massTypeGaseous
+    use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionLocal , massDistributionComposite, massDistributionList , &
+         &                                    massDistributionMatches_
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistributionHotMode   , massDistributionColdMode, &
          &                                                            massDistribution_
@@ -918,13 +920,16 @@ contains
     type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
     type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
     integer                              , intent(in   ), optional :: weightIndex
-    !$GLC attributes unused :: weightIndex, componentType, massType
 
     select type (self)
     class is (nodeComponentHotHaloColdMode)
-       massDistributionColdMode => hotHaloColdModeMassDistribution_                             %get             (self%hostNode         ,weightBy,weightIndex)
-       massDistributionHotMode  => self                            %nodeComponentHotHaloStandard%massDistribution(componentType,massType,weightBy,weightIndex)
-       if (associated(massDistribution_)) then
+       if (massDistributionMatches_(componentTypeColdHalo,massTypeGaseous,componentType,massType)) then
+          massDistributionColdMode => hotHaloColdModeMassDistribution_                             %get             (self%hostNode         ,weightBy,weightIndex)
+       else
+          massDistributionColdMode => null()
+       end if
+       massDistributionHotMode     => self                            %nodeComponentHotHaloStandard%massDistribution(componentType,massType,weightBy,weightIndex)
+       if (associated(massDistributionColdMode)) then
           allocate(kinematicsDistribution_)
           !![
 	  <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>

@@ -26,7 +26,7 @@ function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentTy
   Return the mass distribution for the very simple size disk component.
   !!}
   use :: Mass_Distributions                       , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
-       &                                                   massDistributionCylindrical
+       &                                                   massDistributionCylindrical, massDistributionMatches_
   use :: Node_Component_Disk_Very_Simple_Size_Data, only : massDistributionStellar_   , massDistributionGas_
   use :: Galactic_Structure_Options               , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous             , enumerationWeightByType, &
        &                                                   weightByMass               , weightByLuminosity               , enumerationComponentTypeType, enumerationMassTypeType
@@ -44,11 +44,14 @@ function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentTy
   !$omp threadprivate(luminosities)
   double precision                                                             :: massStellar               , massGas            , &
        &                                                                          radiusScale
-  !$GLC attributes unused :: componentType, massType
+  logical                                                                      :: includeGas                , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
 
+  ! Determine which components of the disk to include.
+  includeGas  =massDistributionMatches_(componentTypeDisk,massTypeGaseous,componentType,massType) .and.  weightBy_ == weightByMass
+  includeStars=massDistributionMatches_(componentTypeDisk,massTypeStellar,componentType,massType) .and. (weightBy_ == weightByMass .or. weightBy_ == weightByLuminosity)  
   ! Get properties of the mass distribution and ensure they are physical.
   if      (weightBy_ == weightByMass      ) then
      massStellar       =  max (0.0d0,self        %massStellar        (           ))
@@ -61,42 +64,55 @@ function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentTy
      massDistribution_ => null()
      return
   end if
+  ! Determine which components to build.
   radiusScale=self%radius()
-  if (radiusScale <= 0.0d0) then
-     ! Disk has non-positive size. Set an arbitrary, positive size, but also set masses to zero. This results in an empty mass
-     ! distribution.
-     radiusScale=1.0d0
-     massStellar=0.0d0
-     massGas    =0.0d0
+  if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
+     ! Disk has non-positive size, or no components matched. Return a null distribution.
+     massDistribution_ => null()
+  else
+     ! Build the individual distributions.
+     if (includeStars) then
+        allocate(massDistributionStellar)
+        select type (massDistributionStellar_)
+        class is (massDistributionCylindrical)
+           !![
+           <referenceConstruct object="massDistributionStellar" constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_  )"/>
+           !!]
+        end select
+     end if
+     if (includeGas  ) then
+        allocate(massDistributionGas  )
+        select type (massDistributionGas_    )
+        class is (massDistributionCylindrical)
+           !![
+           <referenceConstruct object="massDistributionGas"     constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
+           !!]
+        end select
+     end if
+     ! Combine the distributions as necessary.
+     if      (includeStars .and. includeGas) then
+        ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any disk system, and then composite those.
+        allocate(massDistributionTotal          )
+        allocate(massDistributionComponents     )
+        allocate(massDistributionComponents%next)
+        massDistributionComponents     %massDistribution_ => massDistributionStellar
+        massDistributionComponents%next%massDistribution_ => massDistributionGas
+        !![
+        <referenceConstruct object="massDistributionTotal" constructor="massDistributionComposite(massDistributionComponents)"/>
+        <objectDestructor name="massDistributionStellar"/>
+        <objectDestructor name="massDistributionGas"    />
+        !!]
+        nullify(massDistributionComponents)
+        ! Return a pointer to the disk mass distribution.
+        massDistribution_ => massDistributionTotal
+     else if (includeStars                 ) then
+        ! Return just the stellar component.
+        massDistribution_ => massDistributionStellar_
+     else if (                   includeGas) then
+        ! Return just the gas component.
+        massDistribution_ => massDistributionGas_
+     end if
   end if
-  ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any disk system, and then composite those.
-  allocate(massDistributionStellar        )
-  allocate(massDistributionGas            )
-  allocate(massDistributionTotal          )
-  allocate(massDistributionComponents     )
-  allocate(massDistributionComponents%next)
-  massDistributionComponents     %massDistribution_ => massDistributionStellar
-  massDistributionComponents%next%massDistribution_ => massDistributionGas
-  select type (massDistributionStellar_)
-  class is (massDistributionCylindrical)
-     !![
-     <referenceConstruct object="massDistributionStellar" constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_  )"/>
-     !!]
-  end select
-  select type (massDistributionGas_    )
-  class is (massDistributionCylindrical)
-     !![
-     <referenceConstruct object="massDistributionGas"     constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
-     !!]
-  end select
-  !![
-  <referenceConstruct    object="massDistributionTotal"   constructor="massDistributionComposite        (                                                                                massDistributionComponents)"/>
-  <objectDestructor name="massDistributionStellar"/>
-  <objectDestructor name="massDistributionGas"    />
-  !!]
-  nullify(massDistributionComponents)
-  ! Return a pointer to the disk mass distribution.
-  massDistribution_ => massDistributionTotal
   return
 end function Node_Component_Disk_Very_Simple_Size_Mass_Distribution
 
