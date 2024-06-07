@@ -548,7 +548,7 @@ contains
     double precision                     , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
     double precision                     , parameter                   :: countRadiiPerDecade             =100.0d0
     double precision                                                   :: angularMomentumSpecificScaleFree
-    integer                                                            :: countRadii,i
+    integer                                                            :: countRadii
 
     if (angularMomentumSpecific > 0.0d0) then
        angularMomentumSpecificScaleFree=+angularMomentumSpecific                  &
