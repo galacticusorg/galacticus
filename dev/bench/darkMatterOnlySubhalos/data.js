@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717724392229,
+  "lastUpdate": 1717818568954,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "03f1be418ea2846f56cee7c299f4ae208dc6c216",
-          "message": "fix(style): Correct a typo in a comment",
-          "timestamp": "2023-08-10T23:33:15Z",
-          "tree_id": "fda400cd223a48cfd05abfdb04f4c298cdbaf9e7",
-          "url": "https://github.com/galacticusorg/galacticus/commit/03f1be418ea2846f56cee7c299f4ae208dc6c216"
-        },
-        "date": 1691722079220,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 56.001,
-            "unit": "seconds",
-            "range": 0.275824038111244
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20492.6167663015,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6e058980a73ae5a178e65e90e19b57a387d0c762",
+          "message": "fix: Add a missing variable to `deepCopyFinalize` directive",
+          "timestamp": "2024-06-07T15:37:56-07:00",
+          "tree_id": "6373b36fa486e187ad02ae78a9506ac43a254992",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6e058980a73ae5a178e65e90e19b57a387d0c762"
+        },
+        "date": 1717818567453,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.483,
+            "unit": "seconds",
+            "range": 0.0731580480884933
           }
         ]
       }
