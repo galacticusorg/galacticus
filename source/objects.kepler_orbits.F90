@@ -45,9 +45,9 @@ module Kepler_Orbits
    <entry label="massHost"            description="The mass of the host body."                             />
    <entry label="specificReducedMass" description="The specific reduced mass of the orbiting body."        />
    <entry label="radius"              description="The initial radius of the orbit."                       />
-   <entry label="theta"               description="The initial polar angle, θ, of the orbit."              />
-   <entry label="phi"                 description="The initial azimuthal angle, φ, of the orbit."          />
-   <entry label="epsilon"             description="The initial rotation angle, ε, of the orbital velocity."/>
+   <entry label="theta"               description="The initial polar angle, theta, of the orbit."              />
+   <entry label="phi"                 description="The initial azimuthal angle, phi, of the orbit."          />
+   <entry label="epsilon"             description="The initial rotation angle, epsilon, of the orbital velocity."/>
    <entry label="radiusPericenter"    description="The orbital pericenter radius."                         />
    <entry label="radiusApocenter"     description="The orbital apocenter radius."                          />
    <entry label="velocityRadial"      description="The initial radial velocity of the orbit."              />
