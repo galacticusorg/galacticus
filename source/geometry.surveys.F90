@@ -49,7 +49,7 @@ module Geometry_Surveys
     <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) would be included in the survey.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity</argument>
+    <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
     <argument>integer         , intent(in   ), optional :: field</argument>
     <code>
      !$GLC attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
@@ -60,7 +60,7 @@ module Geometry_Surveys
     <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) could be detected.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity</argument>
+    <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
     <argument>integer         , intent(in   ), optional :: field</argument>
    </method>
    <method name="solidAngle" >

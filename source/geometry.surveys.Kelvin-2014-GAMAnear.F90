@@ -88,13 +88,13 @@ contains
     return
   end function kelvin2014GAMAnearConstructorInternal
 
-  double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is included in the survey.
     !!}
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                           , intent(in   ), optional :: field
     !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
@@ -102,14 +102,14 @@ contains
     return
   end function kelvin2014GAMAnearDistanceMinimum
 
-  double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
+    double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity, starFormationRate
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
     !$GLC attributes unused :: magnitudeAbsolute, luminosity

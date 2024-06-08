@@ -97,13 +97,13 @@ contains
     return
   end subroutine gunawardhana2013SDSSDestructor
 
-  double precision function gunawardhana2013SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function gunawardhana2013SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     !$GLC attributes unused :: field, mass, luminosity, magnitudeAbsolute
 
@@ -118,7 +118,7 @@ contains
     return
   end function gunawardhana2013SDSSDistanceMinimum
 
-  double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -130,7 +130,7 @@ contains
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                           , magnitudeAbsolute        , &
-         &                                                                           luminosity
+         &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                    , parameter               :: fluxLimiting           =1.0d-18 ! W m⁻².
     double precision                                                              :: distanceMaximumRedshift        , distanceMaximumLuminosity, &

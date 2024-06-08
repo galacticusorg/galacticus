@@ -201,13 +201,13 @@ contains
     return
   end function muzzin2013ULTRAVISTAFieldCount
 
-  double precision function muzzin2013ULTRAVISTADistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function muzzin2013ULTRAVISTADistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is included.
     !!}
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
@@ -215,14 +215,14 @@ contains
     return
   end function muzzin2013ULTRAVISTADistanceMinimum
 
-  double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
+    double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: redshift, logarithmicMass
     !$GLC attributes unused :: field, magnitudeAbsolute, luminosity

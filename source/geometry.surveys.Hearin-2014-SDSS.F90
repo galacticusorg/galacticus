@@ -119,13 +119,13 @@ contains
     return
   end subroutine hearin2014SDSSDestructor
 
-  double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
     !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
@@ -133,13 +133,13 @@ contains
     return
   end function hearin2014SDSSDistanceMinimum
 
-  double precision function hearin2014SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function hearin2014SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
     !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 

@@ -44,6 +44,7 @@ module Output_Analyses_Options
    <description>Property quantities.</description>
    <entry label="unknown"   />
    <entry label="mass"      />
+   <entry label="starFormationRate"/>
    <entry label="luminosity"/>
   </enumeration>
   !!]

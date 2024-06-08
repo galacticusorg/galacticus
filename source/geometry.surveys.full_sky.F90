@@ -154,13 +154,13 @@ contains
     return
   end subroutine fullSkyDestructor
 
-  double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
-    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                , intent(in   ), optional :: field
     !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
@@ -168,13 +168,13 @@ contains
     return
   end function fullSkyDistanceMinimum
 
-  double precision function fullSkyDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function fullSkyDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
-    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                , intent(in   ), optional :: field
     !$GLC attributes unused :: mass, magnitudeAbsolute, field, luminosity
 

@@ -175,13 +175,13 @@ contains
     return
   end subroutine caputi2011UKIDSSUDSDestructor
 
-  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is included.
     !!}
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
     !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
@@ -189,7 +189,7 @@ contains
     return
   end function caputi2011UKIDSSUDSDistanceMinimum
 
-  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -197,7 +197,7 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
     double precision                                                             :: redshift, logarithmicMass
     !$GLC attributes unused :: magnitudeAbsolute, luminosity

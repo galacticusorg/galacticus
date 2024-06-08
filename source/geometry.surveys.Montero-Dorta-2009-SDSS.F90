@@ -142,14 +142,14 @@ contains
     return
   end subroutine monteroDorta2009SDSSDestructor
 
-  double precision function monteroDorta2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function monteroDorta2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     !$GLC attributes unused :: field, mass, luminosity
 
@@ -166,7 +166,7 @@ contains
     return
   end function monteroDorta2009SDSSDistanceMinimum
 
-  double precision function monteroDorta2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function monteroDorta2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -174,7 +174,7 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity
+    double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: distanceMaximumRedshift, distanceMaximumMagnitude
     !$GLC attributes unused :: field, mass, luminosity

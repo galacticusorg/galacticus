@@ -103,13 +103,13 @@ contains
     return
   end function localGroupDESFieldCount
 
-  double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryLocalGroupDES), intent(inout)           :: self
-    double precision                             , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                             , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
     integer                                      , intent(in   ), optional :: field
     !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
 
