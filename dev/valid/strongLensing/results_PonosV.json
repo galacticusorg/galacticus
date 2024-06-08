@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      },
-      "message" : "Merge pull request #620 from galacticusorg/featSFHAdaptiveOpt",
-      "id" : "3702136add1ae90beaf0f5d9951bbe04ada4a893",
-      "timestamp" : "Thu, 6 Jun 2024 20:34:55 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/3702136add1ae90beaf0f5d9951bbe04ada4a893"
-   },
-   "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 64.2857142857143,
-      "percentageAbove" : 35.7142857142857
+   "surfaceDensity" : {
+      "percentageAbove" : 56.25,
+      "percentageBelow" : 43.75,
+      "target" : 0.006
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 53.125,
-      "percentageAbove" : 46.875
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageAbove" : 46.6666666666667,
+      "target" : 0.85,
+      "percentageBelow" : 53.3333333333333
+   },
+   "commit" : {
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/6e058980a73ae5a178e65e90e19b57a387d0c762",
+      "id" : "6e058980a73ae5a178e65e90e19b57a387d0c762",
+      "timestamp" : "Fri, 7 Jun 2024 15:37:56 -0700",
+      "message" : "fix: Add a missing variable to `deepCopyFinalize` directive"
    }
 }
