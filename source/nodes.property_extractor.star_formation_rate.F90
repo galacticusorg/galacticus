@@ -144,7 +144,7 @@ contains
     Destructor for the ``starFormationRate'' property extractor class.
     !!}
     implicit none
-    type   (nodePropertyExtractorStarFormationRate), intent(inout) :: self
+    type(nodePropertyExtractorStarFormationRate), intent(inout) :: self
   
     !![
     <objectDestructor name="self%starFormationRateDisks_"    />

@@ -60,12 +60,6 @@
       The abundances of H, H$^+$, and e$^-$ are then fixed according to this fraction, and reaction rates for them are set to
       zero.
     </description>
-    <deepCopy>
-      <functionClass variables="radiation_"/>
-    </deepCopy>
-    <stateStorable>
-      <functionClass variables="radiation_"/>
-    </stateStorable>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMChemistry

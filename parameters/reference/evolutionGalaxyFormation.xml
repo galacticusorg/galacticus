@@ -260,11 +260,15 @@
     <reuseODEStepSize     value="false"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolveTimestep value="multi">
-    <!-- Standard time-stepping rules -->
+    <!-- Standard time-stepping rule -->
     <mergerTreeEvolveTimestep value="simple">
       <timeStepAbsolute value="1.000"/>
       <timeStepRelative value="0.100"/>
     </mergerTreeEvolveTimestep>
+    <!-- Limit timesteps based on star formation history times - ensures accurate recording of star formation history.
+	 (Will have no effect if star formation history is not being recorded.) -->
+    <mergerTreeEvolveTimestep value="starFormationHistory"/>
+    <!-- Limit timesteps based on satellite evolution -->
     <mergerTreeEvolveTimestep value="satellite">
       <timeOffsetMaximumAbsolute value="0.010"/>
       <timeOffsetMaximumRelative value="0.001"/>
@@ -273,7 +277,7 @@
       <!-- This timestep rule is required to ensure that subhalos are removed when they meet the destruction criteria. -->
     </mergerTreeEvolveTimestep>
     <mergerTreeEvolveTimestep value="hostTidalMassLoss">
-      <!-- This timestep criterion makes sure that subsubahlos do not evolve too far ahead of their host subhalos when
+      <!-- This timestep criterion makes sure that subsubhalos do not evolve too far ahead of their host subhalos when
            the host density and mass change rapidly due to tidal effects. It also limits the evolution time of subhalos
            to the time at which the hosts first becomes subhalos. -->
       <timeStepRelative        value="0.1"/>
