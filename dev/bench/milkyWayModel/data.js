@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717724397134,
+  "lastUpdate": 1717818573015,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "0b289fc3dc9e5087db1763272d0ebca2f14b097d",
-          "message": "fix: Add default for parameter",
-          "timestamp": "2023-08-09T17:54:31Z",
-          "tree_id": "3bbb529955d104986c83a309df39e9924f0097d2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0b289fc3dc9e5087db1763272d0ebca2f14b097d"
-        },
-        "date": 1691615747939,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 149.551,
-            "unit": "seconds",
-            "range": 0.182375711102372
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.8754309957387,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "6e058980a73ae5a178e65e90e19b57a387d0c762",
+          "message": "fix: Add a missing variable to `deepCopyFinalize` directive",
+          "timestamp": "2024-06-07T15:37:56-07:00",
+          "tree_id": "6373b36fa486e187ad02ae78a9506ac43a254992",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6e058980a73ae5a178e65e90e19b57a387d0c762"
+        },
+        "date": 1717818572232,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 464.263,
+            "unit": "seconds",
+            "range": 0.212367841244935
           }
         ]
       }
