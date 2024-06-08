@@ -23,6 +23,7 @@
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Galactic_Structure     , only : galacticStructureClass
+  use :: Kepler_Orbits          , only : keplerOrbitCount
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
@@ -34,9 +35,11 @@
      A node operator class that triggers merging of satellites based on their orbital radius.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (galacticStructureClass  ), pointer :: galacticStructure_   => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                            => null()
+     class           (galacticStructureClass  ), pointer :: galacticStructure_                              => null()
      double precision                                    :: radiusVirialFraction
+     logical                                             :: recordMergedSubhaloProperties
+     integer                                             :: mergedSubhaloIDs             (keplerOrbitCount)
    contains
      !![
      <methods>
@@ -55,6 +58,10 @@
      module procedure satelliteMergingRadiusTriggerConstructorParameters
      module procedure satelliteMergingRadiusTriggerConstructorInternal
   end interface nodeOperatorSatelliteMergingRadiusTrigger
+
+  ! Sub-module-scope pointer to self used in callback function.
+  class(nodeOperatorSatelliteMergingRadiusTrigger), pointer :: self_
+  !$omp threadprivate(self)
   
 contains
 
@@ -69,6 +76,7 @@ contains
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
     class           (galacticStructureClass                   ), pointer       :: galacticStructure_
     double precision                                                           :: radiusVirialFraction
+    logical                                                                    :: recordMergedSubhaloProperties
 
     !![
     <inputParameter>
@@ -77,10 +85,16 @@ contains
       <description>The fraction of the virial radius below which satellites are merged.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>recordMergedSubhaloProperties</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, record the orbital properties of subhalo that merge.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,darkMatterHaloScale_,galacticStructure_)
+    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,recordMergedSubhaloProperties,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -89,19 +103,31 @@ contains
     return
   end function satelliteMergingRadiusTriggerConstructorParameters
 
-  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,darkMatterHaloScale_,galacticStructure_) result(self)
+  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,recordMergedSubhaloProperties,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
     !!}
+    use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
+         &                       keplerOrbitRadiusPericenter
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
     double precision                                           , intent(in   )         :: radiusVirialFraction
+    logical                                                    , intent(in   )         :: recordMergedSubhaloProperties
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     class           (galacticStructureClass                   ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="radiusVirialFraction, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusVirialFraction, recordMergedSubhaloProperties, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
     
+    if (recordMergedSubhaloProperties) then
+       !![
+       <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"      id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"    id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloMassHost"         id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloRadius"           id="self%mergedSubhaloIDs(keplerOrbitRadius          %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloRadiusPericenter" id="self%mergedSubhaloIDs(keplerOrbitRadiusPericenter%ID)" rank="1" isCreator="yes"/>
+       !!]
+    end if
     return
   end function satelliteMergingRadiusTriggerConstructorInternal
   
@@ -111,7 +137,7 @@ contains
     !!}
     implicit none
     type(nodeOperatorSatelliteMergingRadiusTrigger), intent(inout) :: self
-    
+
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%galacticStructure_"  />
@@ -149,6 +175,7 @@ contains
        ! Merging criterion met - trigger an interrupt.
        interrupt         =  .true.
        functionInterrupt => mergerTrigger
+       self_             => self
     end if
     return
   end subroutine satelliteMergingRadiusTriggerDifferentialEvolution
@@ -157,17 +184,60 @@ contains
     !!{
     Trigger a merger of the satellite by setting the time until merging to zero.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSatellite     , nodeComponentBasic    , treeNode
+    use :: Kepler_Orbits   , only : keplerOrbit                , keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
+         &                          keplerOrbitRadiusPericenter, keplerOrbitRadius
     implicit none
-    type            (treeNode              ), intent(inout), target   :: node
-    double precision                        , intent(in   ), optional :: timeEnd
-    class           (nodeComponentBasic    )               , pointer  :: basic
-    class           (nodeComponentSatellite)               , pointer  :: satellite
+    type            (treeNode              ), intent(inout), target      :: node
+    double precision                        , intent(in   ), optional    :: timeEnd
+    type            (treeNode              )               , pointer     :: nodeHost
+    class           (nodeComponentBasic    )               , pointer     :: basic          , basicHost
+    class           (nodeComponentSatellite)               , pointer     :: satellite
+    double precision                        , dimension(:) , allocatable :: propertyCurrent, propertyNew
+    double precision                                                     :: property
+    type            (keplerOrbit           )                             :: orbit
+    integer                                                              :: i              , ID
     !$GLC attributes unused :: timeEnd
 
+    ! Set the time of merging to the current time.
     basic     => node%basic    ()
     satellite => node%satellite()
     call satellite%timeOfMergingSet(basic%time())
+    ! Record properties of the merging subhalo if necessary.
+    if (self_%recordMergedSubhaloProperties) then
+       ! Find the node to merge with.
+       nodeHost  => node    %mergesWith()
+       basicHost => nodeHost%basic     ()
+       ! Get the virial orbit of the halo about to merge.
+       orbit=satellite%virialOrbit()
+       ! Append the orbit data.
+       do i=1,5
+          select case (i)
+          case (1)
+             ID      =keplerOrbitTimeInitial     %ID
+             property=basic%timeLastIsolated()
+          case (2)
+             ID      =keplerOrbitMassSatellite   %ID
+             property=orbit%massSatellite   ()
+          case (3)
+             ID      =keplerOrbitMassHost        %ID
+             property=orbit%massHost        ()
+          case (4)
+             ID      =keplerOrbitRadius          %ID
+             property=orbit%radius          ()
+          case (5)
+             ID      =keplerOrbitRadiusPericenter%ID
+             property=orbit%radiusPericenter()
+          end select
+          propertyCurrent=basicHost%floatRank1MetaPropertyGet(self_%mergedSubhaloIDs(ID))
+          allocate(propertyNew(size(propertyCurrent)+1_c_size_t))
+          propertyNew(1_c_size_t:size(propertyCurrent))=propertyCurrent(:)
+          propertyNew(size(propertyNew))=property
+          call basicHost%floatRank1MetaPropertySet(self_%mergedSubhaloIDs(ID),propertyNew)
+          deallocate(propertyCurrent)
+          deallocate(propertyNew    )
+       end do
+    end if
     return
   end subroutine mergerTrigger
 
