@@ -51,22 +51,26 @@ my %includeLibraries = (
     );
 # Parse the Makefile to find preprocessor macros that are set.
 my @preprocessorDirectives;
-my @conditionsStack;
-open(my $makefile,"Makefile");
-while ( my $line = <$makefile> ) {
-    # Build a stack of true/false values indicating whether the current line is active or not based on pre-processor arguments.
-    push(@conditionsStack,exists($ENV{$1}))
-	if ( $line =~ m/^ifdef ([A-Z]+)/ );
-    push(@conditionsStack,1)
-	if ( $line =~ m/^ifeq /          );
-    pop (@conditionsStack  )
-	if ( $line =~ m/^endif/          );
-    # If this line sets compiler flags, and no false entries exist in the preprocessor conditions stack, extract all preprocessor
-    # directives from the line.
-    push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$line))
-	if ( ! grep {! $_} @conditionsStack && $line =~ m/^\s*FCFLAGS\s*\+??=/ );
+my @makefiles = ( "Makefile", glob($ENV{'BUILDPATH'}."/Makefile*") );
+foreach my $makefileName ( @makefiles ) { 
+    my @conditionsStack = ( 1 );;
+    open(my $makefile,$makefileName);
+    while ( my $line = <$makefile> ) {
+	# Build a stack of true/false values indicating whether the current line is active or not based on pre-processor arguments.
+	push(@conditionsStack,exists($ENV{$1}))
+	    if ( $line =~ m/^ifdef ([A-Z]+)/ );
+	push(@conditionsStack,1)
+	    if ( $line =~ m/^ifeq /          );
+	pop (@conditionsStack  )
+	    if ( $line =~ m/^endif/          );
+	# If this line sets compiler flags, and no false entries exist in the preprocessor conditions stack, extract all preprocessor
+	# directives from the line.    
+	push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$line))
+		if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ && ! grep {! $_} @conditionsStack );
+    }
+    close($makefile);
 }
-close($makefile);
+
 # Extract any preprocessor directives specified via the GALACTICUS_FCFLAGS environment variable.
 push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$ENV{"GALACTICUS_FCFLAGS"}))
     if ( exists($ENV{"GALACTICUS_FCFLAGS"}) );
@@ -76,6 +80,7 @@ while ( my $line = <$compilerDefs> ) {
     my @columns = split(" ",$line);
     push(@preprocessorDirectives,$columns[1]);
 }
+
 # Initialize structure to hold record of directives from each source file.
 my $usesPerFile;
 my $havePerFile = -e $workDirectoryName."Makefile_Use_Dependencies.blob";
@@ -266,15 +271,15 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		pop (@preprocessorConditionalsStack                                    )
 		    if ( $line =~ m/^\#endif\s*$/                   );
 		$preprocessorConditionalsStack[-1]->{'state'} = 1-$preprocessorConditionalsStack[-1]->{'state'}
-		if ( $line =~ m/^\#else\s*$/                    );
+		    if ( $line =~ m/^\#else\s*$/                    );
 		# Determine whether or not the current code will be conditionally compiled.
 		$conditionallyCompile = 1;
 		foreach my $preprocessorConditional ( @preprocessorConditionalsStack ) {
 		    my $conditionalActive = 
 			(grep {$_ eq $preprocessorConditional->{'name'}} @preprocessorDirectives)
 			?
-			$preprocessorConditional->{'state'} 
-		    : 
+			  $preprocessorConditional->{'state'} 
+		        : 
 			1-$preprocessorConditional->{'state'};
 		    $conditionallyCompile = 0	
 			if ( $conditionalActive == 0 );
