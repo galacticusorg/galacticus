@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717818580820,
+  "lastUpdate": 1717891333252,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "a375dcde2702f204d63d2ed2c58fdf7cea779ec0",
-          "message": "feat: Add functionality to the `mergerTreeOperatorRegrid` class\n\nAdds an option to prevent removal of nodes at  ungridded times (i.e. new nodes are inserted at the grid times, but no nodes are removed). Also refactors the code to allow a single grid time when ungridded nodes are not to be removed.",
-          "timestamp": "2023-08-09T23:26:36Z",
-          "tree_id": "3bc6c70419311c62580075b4a266277eae16c01c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a375dcde2702f204d63d2ed2c58fdf7cea779ec0"
-        },
-        "date": 1691635995179,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 212.132,
-            "unit": "seconds",
-            "range": 0.605443308659505
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0045489719986,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fc98facd1513465b2925b8e36246e7152c33f85c",
+          "message": "Merge pull request #622 from galacticusorg/featMergedSubhaloProperties\n\nAdd functionality to record (and output) the orbital properties of merged subhalos",
+          "timestamp": "2024-06-08T19:03:10Z",
+          "tree_id": "cca1bc9592549df715ef175bf476b2169b5170c7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fc98facd1513465b2925b8e36246e7152c33f85c"
+        },
+        "date": 1717891332471,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 350.871,
+            "unit": "seconds",
+            "range": 0.275501179673662
           }
         ]
       }
