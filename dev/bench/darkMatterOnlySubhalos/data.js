@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717818576927,
+  "lastUpdate": 1717891329604,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7f9ef8648b3d04c59a53383d47dd1b7c07703fdf",
-          "message": "fix: Ensure count of node labels is correct if none exist",
-          "timestamp": "2023-08-10T22:16:51-07:00",
-          "tree_id": "a43aadcef4d33ab8eeee927946b7965737eba2a9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7f9ef8648b3d04c59a53383d47dd1b7c07703fdf"
-        },
-        "date": 1691741626742,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.84,
-            "unit": "seconds",
-            "range": 0.0235796522461937
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20681.1447966228,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fc98facd1513465b2925b8e36246e7152c33f85c",
+          "message": "Merge pull request #622 from galacticusorg/featMergedSubhaloProperties\n\nAdd functionality to record (and output) the orbital properties of merged subhalos",
+          "timestamp": "2024-06-08T19:03:10Z",
+          "tree_id": "cca1bc9592549df715ef175bf476b2169b5170c7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fc98facd1513465b2925b8e36246e7152c33f85c"
+        },
+        "date": 1717891327879,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.844,
+            "unit": "seconds",
+            "range": 0.0436394317094211
           }
         ]
       }
