@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageAbove" : 56.25,
-      "percentageBelow" : 43.75,
+      "percentageBelow" : 53.125,
+      "percentageAbove" : 46.875,
       "target" : 0.006
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "percentageAbove" : 46.6666666666667,
-      "target" : 0.85,
-      "percentageBelow" : 53.3333333333333
-   },
    "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/fc98facd1513465b2925b8e36246e7152c33f85c",
+      "message" : "Merge pull request #622 from galacticusorg/featMergedSubhaloProperties",
+      "timestamp" : "Sat, 8 Jun 2024 19:03:10 +0000",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
+         "email" : "abensonca@gmail.com"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/6e058980a73ae5a178e65e90e19b57a387d0c762",
-      "id" : "6e058980a73ae5a178e65e90e19b57a387d0c762",
-      "timestamp" : "Fri, 7 Jun 2024 15:37:56 -0700",
-      "message" : "fix: Add a missing variable to `deepCopyFinalize` directive"
-   }
+      "id" : "fc98facd1513465b2925b8e36246e7152c33f85c"
+   },
+   "slope" : {
+      "target" : 0.85,
+      "percentageAbove" : 35.7142857142857,
+      "percentageBelow" : 64.2857142857143
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
