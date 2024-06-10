@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718052796276,
+  "lastUpdate": 1718052803770,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ea48a439dc6908397670624edf80cac0e0f2c486",
-          "message": "feat: Add the `rate()` method to the `mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` class",
-          "timestamp": "2023-08-14T20:55:05Z",
-          "tree_id": "d13bcaa10158865edd50e753fddabd74c9438e16",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ea48a439dc6908397670624edf80cac0e0f2c486"
-        },
-        "date": 1692069749444,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5502038320892,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.3324829191724,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25139.2189837662,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8733,45 @@ window.BENCHMARK_DATA = {
             "value": 52.083,
             "unit": "seconds",
             "range": 0.0751005991982545
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ae9ddd16decd3d03a25d12d10e5dd825de933cd8",
+          "message": "fix: Correct storage/retrieval of reduced emission line luminosity data to/from file\n\nThe reduced emission line luminosity tables are stored to file, but this wasn't being done correctly. This could have resulted in:\n   1. The wrong lines being used if the order (or number) of lines in the lineNames parameter was changed;\n   2. These files failing to update if the Cloudy table was updated.\nThis is now corrected for both of these issues.\n\nAdditionally, the name of the Cloudy table file is now specified in the parameter file. This allows using different Cloudy tables (e.g. for different SSPs).",
+          "timestamp": "2024-06-10T08:49:48-07:00",
+          "tree_id": "fafdcffa3b5e6dca84fe0618ebda603ca4c57fb3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ae9ddd16decd3d03a25d12d10e5dd825de933cd8"
+        },
+        "date": 1718052803088,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.7265081843387,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.59627237081164,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20391.9532745315,
+            "unit": "-logℒ"
           }
         ]
       }
