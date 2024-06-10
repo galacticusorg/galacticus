@@ -57,6 +57,7 @@ module Kepler_Orbits
    <entry label="eccentricity"        description="The orbital eccentricity."                              />
    <entry label="semiMajorAxis"       description="The semi-major axis of the orbit."                      />
    <entry label="timeInitial"         description="The time at which the orbit was initialized."           />
+   <entry label="timeCurrent"         description="The current time for the orbit."                        />
   </enumeration>
   !!]
 

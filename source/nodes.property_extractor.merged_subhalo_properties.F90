@@ -71,11 +71,12 @@ contains
     Internal constructor for the ``mergedSubhaloProperties'' output extractor property extractor class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
-         &                       keplerOrbitRadiusPericenter
+         &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
     implicit none
     type(nodePropertyExtractorMergedSubhaloProperties) :: self
     
     !![
+    <addMetaProperty component="basic" name="mergedSubhaloTimeCurrent"      id="self%mergedSubhaloIDs(keplerOrbitTimeCurrent     %ID)" rank="1" isCreator="no"/>
     <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"      id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="no"/>
     <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"    id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="no"/>
     <addMetaProperty component="basic" name="mergedSubhaloMassHost"         id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="no"/>
@@ -92,7 +93,7 @@ contains
     implicit none
     class(nodePropertyExtractorMergedSubhaloProperties), intent(inout) :: self
 
-    mergedSubhaloPropertiesElementCount=5
+    mergedSubhaloPropertiesElementCount=6
     return
   end function mergedSubhaloPropertiesElementCount
 
@@ -102,7 +103,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     use :: Kepler_Orbits   , only : keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadiusPericenter, &
-         &                          keplerOrbitRadius
+         &                          keplerOrbitRadius     , keplerOrbitTimeCurrent
     implicit none
     double precision                                              , dimension(:,:), allocatable :: propertiesOrbitalMergedSubhalos
     class           (nodePropertyExtractorMergedSubhaloProperties), intent(inout)               :: self
@@ -115,21 +116,23 @@ contains
     !$GLC attributes initialized :: timesLastIsolated
 
     basic => node%basic()
-    do i=1,5
+    do i=1,6
        select case (i)
        case (1)
           ID=keplerOrbitTimeInitial     %ID
        case (2)
-          ID=keplerOrbitMassSatellite   %ID
+          ID=keplerOrbitTimeCurrent     %ID
        case (3)
-          ID=keplerOrbitMassHost        %ID
+          ID=keplerOrbitMassSatellite   %ID
        case (4)
-          ID=keplerOrbitRadius          %ID
+          ID=keplerOrbitMassHost        %ID
        case (5)
+          ID=keplerOrbitRadius          %ID
+       case (6)
           ID=keplerOrbitRadiusPericenter%ID
        end select
        property=basic%floatRank1MetaPropertyGet(self%mergedSubhaloIDs(ID))
-       if (.not.allocated(propertiesOrbitalMergedSubhalos)) allocate(propertiesOrbitalMergedSubhalos(size(property),5))
+       if (.not.allocated(propertiesOrbitalMergedSubhalos)) allocate(propertiesOrbitalMergedSubhalos(size(property),6))
        propertiesOrbitalMergedSubhalos(:,i)=property
        deallocate(property)
     end do
@@ -141,7 +144,7 @@ contains
     Return the names of the {\normalfont \ttfamily mergedSubhaloProperties} properties.
     !!}
     use :: Kepler_Orbits  , only : enumerationKeplerOrbitDecode, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
-         &                         keplerOrbitRadiusPericenter ,  keplerOrbitRadius
+         &                         keplerOrbitRadiusPericenter ,  keplerOrbitRadius    , keplerOrbitTimeCurrent
     use :: String_Handling, only : String_Upper_Case_First
     implicit none
     class  (nodePropertyExtractorMergedSubhaloProperties), intent(inout)                             :: self
@@ -149,18 +152,20 @@ contains
     integer                                                                                          :: i    , ID
     !$GLC attributes unused :: self
 
-    allocate(names(5))
-    do i=1,5
+    allocate(names(6))
+    do i=1,6
         select case (i)
        case (1)
           ID=keplerOrbitTimeInitial     %ID
        case (2)
-          ID=keplerOrbitMassSatellite   %ID
+          ID=keplerOrbitTimeCurrent     %ID
        case (3)
-          ID=keplerOrbitMassHost        %ID
+          ID=keplerOrbitMassSatellite   %ID
        case (4)
-          ID=keplerOrbitRadius          %ID
+          ID=keplerOrbitMassHost        %ID
        case (5)
+          ID=keplerOrbitRadius          %ID
+       case (6)
           ID=keplerOrbitRadiusPericenter%ID
        end select
        names(i)=var_str('mergedSubhalo')//String_Upper_Case_First(char(enumerationKeplerOrbitDecode(ID,includePrefix=.false.)))
@@ -173,25 +178,27 @@ contains
     Return the descriptions of the {\normalfont \ttfamily mergedSubhaloProperties} properties.
     !!}
     use :: Kepler_Orbits, only : enumerationKeplerOrbitDescription, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
-         &                       keplerOrbitRadiusPericenter      , keplerOrbitRadius
+         &                       keplerOrbitRadiusPericenter      , keplerOrbitRadius     , keplerOrbitTimeCurrent
     implicit none
     class  (nodePropertyExtractorMergedSubhaloProperties), intent(inout)                             :: self
     type   (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
     integer                                                                                          :: i           , ID
     !$GLC attributes unused :: self
 
-    allocate(descriptions(5))
-    do i=1,5
+    allocate(descriptions(6))
+    do i=1,6
         select case (i)
        case (1)
           ID=keplerOrbitTimeInitial     %ID
        case (2)
-          ID=keplerOrbitMassSatellite   %ID
+          ID=keplerOrbitTimeCurrent     %ID
        case (3)
-          ID=keplerOrbitMassHost        %ID
+          ID=keplerOrbitMassSatellite   %ID
        case (4)
-          ID=keplerOrbitRadius          %ID
+          ID=keplerOrbitMassHost        %ID
        case (5)
+          ID=keplerOrbitRadius          %ID
+       case (6)
           ID=keplerOrbitRadiusPericenter%ID
        end select
        descriptions(i)=var_str('Merged subhalos: ')//enumerationKeplerOrbitDescription(ID)
@@ -209,7 +216,7 @@ contains
     class           (nodePropertyExtractorMergedSubhaloProperties), intent(inout)              :: self
     !$GLC attributes unused :: self
 
-    allocate(unitsInSI(5))
+    allocate(unitsInSI(6))
     unitsInSI=[gigaYear,massSolar,massSolar,megaParsec,megaParsec]
     return
   end function mergedSubhaloPropertiesUnitsInSI

@@ -108,7 +108,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
-         &                       keplerOrbitRadiusPericenter
+         &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
     double precision                                           , intent(in   )         :: radiusVirialFraction
@@ -121,6 +121,7 @@ contains
     
     if (recordMergedSubhaloProperties) then
        !![
+       <addMetaProperty component="basic" name="mergedSubhaloTimeCurrent"      id="self%mergedSubhaloIDs(keplerOrbitTimeCurrent     %ID)" rank="1" isCreator="yes"/>
        <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"      id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="yes"/>
        <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"    id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="yes"/>
        <addMetaProperty component="basic" name="mergedSubhaloMassHost"         id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="yes"/>
@@ -186,7 +187,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite     , nodeComponentBasic    , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit                , keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
-         &                          keplerOrbitRadiusPericenter, keplerOrbitRadius
+         &                          keplerOrbitRadiusPericenter, keplerOrbitRadius     , keplerOrbitTimeCurrent
     implicit none
     type            (treeNode              ), intent(inout), target      :: node
     double precision                        , intent(in   ), optional    :: timeEnd
@@ -217,15 +218,18 @@ contains
              ID      =keplerOrbitTimeInitial     %ID
              property=basic%timeLastIsolated()
           case (2)
+             ID      =keplerOrbitTimeCurrent     %ID
+             property=basic%time            ()
+          case (3)
              ID      =keplerOrbitMassSatellite   %ID
              property=orbit%massSatellite   ()
-          case (3)
+          case (4)
              ID      =keplerOrbitMassHost        %ID
              property=orbit%massHost        ()
-          case (4)
+          case (5)
              ID      =keplerOrbitRadius          %ID
              property=orbit%radius          ()
-          case (5)
+          case (6)
              ID      =keplerOrbitRadiusPericenter%ID
              property=orbit%radiusPericenter()
           end select
