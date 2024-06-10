@@ -16,20 +16,22 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!+    Contributions to this file made by Andrew Benson, Sachi Weerasooriya
-!!{
-Contains a module which implements an output analysis class for the \cite{Robotham2011} star formation rate function.
-!!}
+
+!+    Contributions to this file made by Sachi Weerasooriya
+
+  !!{
+  Implements an output analysis class for the \cite{robotham_galaxy_2011} star formation rate function.
+  !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisFunctionStarFormationRateRobotham2011">
-   <description>A \cite{Robotham2011} star formation rate function output analysis class.</description>
+  <outputAnalysis name="outputAnalysisStarFormationRateFunctionRobotham2011">
+   <description>A \cite{robotham_galaxy_2011} star formation rate function output analysis class.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormationRateFunction) :: outputAnalysisStarFormationRateFunctionRobotham2011
      !!{
-     A \cite{Robotham2011} stellar mass function output analysis class.
+     A \cite{robotham_galaxy_2011} stellar mass function output analysis class.
      !!}
      private
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
@@ -88,28 +90,28 @@ contains
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.126d0</defaultValue>
-      <description>The minimum random error for \cite{Robotham2011} star formation rates.</description>
+      <description>The minimum random error for \cite{robotham_galaxy_2011} star formation rates.</description>
     </inputParameter>
     <inputParameter>
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.126d0</defaultValue>
-      <description>The minimum random error for \cite{Robotham2011} star formation rates.</description>
+      <description>The minimum random error for \cite{robotham_galaxy_2011} star formation rates.</description>
     </inputParameter>
     <inputParameter>
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.126d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for \cite{Robotham2011} star formation rates.</description>
+      <description>The coefficients of the random error polynomial for \cite{robotham_galaxy_2011} star formation rates.</description>
     </inputParameter>
     <inputParameter>
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for \cite{Robotham2011} star formation rates.</description>
+      <description>The coefficients of the systematic error polynomial for \cite{robotham_galaxy_2011} star formation rates.</description>
     </inputParameter>
     <inputParameter>
       <name>sizeSourceLensing</name>
