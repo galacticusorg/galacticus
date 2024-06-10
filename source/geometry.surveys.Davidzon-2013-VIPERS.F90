@@ -197,9 +197,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                  , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                         luminosity, starFormationRate
     integer                                           , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     davidzon2013VIPERSDistanceMinimum=self%binDistanceMinimum
     return
@@ -212,10 +213,11 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                         luminosity     , starFormationRate
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)

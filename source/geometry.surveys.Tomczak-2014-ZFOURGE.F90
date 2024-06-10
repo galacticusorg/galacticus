@@ -207,9 +207,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                  , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                         luminosity, starFormationRate
     integer                                           , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     tomczak2014ZFOURGEDistanceMinimum=self%binDistanceMinimum
     return
@@ -223,10 +224,11 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                  , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                         luminosity, starFormationRate
     integer                                           , intent(in   ), optional :: field
-    double precision                                                            :: redshift, logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
+    double precision                                                            :: redshift  , logarithmicMass
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})

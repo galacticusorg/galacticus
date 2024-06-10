@@ -27,7 +27,7 @@ Contains a module which implements an output analysis class for the \cite{Roboth
    <description>A \cite{Robotham2011} star formation rate function output analysis class.</description>
   </outputAnalysis>
   !!]
-  type, extends(outputAnalysisStarFormationRateFunction) :: outputAnalysisFunctionStarFormationRateRobotham2011
+  type, extends(outputAnalysisStarFormationRateFunction) :: outputAnalysisStarFormationRateFunctionRobotham2011
      !!{
      A \cite{Robotham2011} stellar mass function output analysis class.
      !!}
@@ -37,50 +37,50 @@ Contains a module which implements an output analysis class for the \cite{Roboth
      double precision                                                       :: randomErrorMinimum                        , randomErrorMaximum                  , &
           &                                                                    sizeSourceLensing
    contains
-     final :: FunctionStarFormationRateRobotham2011Destructor
-  end type outputAnalysisFunctionStarFormationRateRobotham2011
+     final :: starFormationRateFunctionRobotham2011Destructor
+  end type outputAnalysisStarFormationRateFunctionRobotham2011
 
-  interface outputAnalysisFunctionStarFormationRateRobotham2011
+  interface outputAnalysisStarFormationRateFunctionRobotham2011
      !!{
-     Constructors for the ``FunctionStarFormationRateRobotham2011'' output analysis class.
+     Constructors for the ``StarFormationRateFunctionRobotham2011'' output analysis class.
      !!}
-     module procedure FunctionStarFormationRateRobotham2011ConstructorParameters
-     module procedure FunctionStarFormationRateRobotham2011ConstructorInternal
-  end interface outputAnalysisFunctionStarFormationRateRobotham2011
+     module procedure starFormationRateFunctionRobotham2011ConstructorParameters
+     module procedure starFormationRateFunctionRobotham2011ConstructorInternal
+  end interface outputAnalysisStarFormationRateFunctionRobotham2011
 
 contains
 
-  function FunctionStarFormationRateRobotham2011ConstructorParameters(parameters) result (self)
+  function starFormationRateFunctionRobotham2011ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``FunctionStarFormationRateRobotham2011'' output analysis class which takes a parameter set as input.
+    Constructor for the ``StarFormationRateFunctionRobotham2011'' output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters  , only : inputParameter        , inputParameters
     use :: Galactic_Structure, only : galacticStructureClass
     implicit none
-    type            (outputAnalysisFunctionStarFormationRateRobotham2011)                              :: self
-    type            (inputParameters                                  ), intent(inout)               :: parameters
-    class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
-    class           (outputTimesClass                                 ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                           ), pointer                     :: galacticStructure_
-    class           (starFormationRateDisksClass                      ),pointer                      :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                  ),pointer                      :: starFormationRateSpheroids_
-    class           (gravitationalLensingClass                        ), pointer                     :: gravitationalLensing_
-    double precision                                                   , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
-    integer                                                                                          :: covarianceBinomialBinsPerDecade
-    double precision                                                                                 :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
-         &                                                                                              randomErrorMinimum               , randomErrorMaximum                  , &
+    type            (outputAnalysisStarFormationRateFunctionRobotham2011)                              :: self
+    type            (inputParameters                                    ), intent(inout)               :: parameters
+    class           (cosmologyFunctionsClass                            ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                   ), pointer                     :: outputTimes_
+    class           (galacticStructureClass                             ), pointer                     :: galacticStructure_
+    class           (starFormationRateDisksClass                        ),pointer                      :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                    ),pointer                      :: starFormationRateSpheroids_
+    class           (gravitationalLensingClass                          ), pointer                     :: gravitationalLensing_
+    double precision                                                     , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
+    integer                                                                                            :: covarianceBinomialBinsPerDecade
+    double precision                                                                                   :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
+         &                                                                                                randomErrorMinimum               , randomErrorMaximum                  , &
          &                                                                                              sizeSourceLensing
 
     ! Check and read parameters.
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient')) then
        allocate(    randomErrorPolynomialCoefficient(parameters%count(    'randomErrorPolynomialCoefficient')))
     else
-       allocate(    randomErrorPolynomialCoefficient(1                                                   ))
+       allocate(    randomErrorPolynomialCoefficient(1                                                       ))
     end if
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
-       allocate(systematicErrorPolynomialCoefficient(1                                                   ))
+       allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !![
     <inputParameter>
@@ -123,46 +123,46 @@ contains
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing \cite{Robotham2011} star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>The number of bins per decade of halo mass to use when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
     </inputParameter>
     <inputParameter>
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing \cite{Robotham2011} star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>The minimum halo mass to consider when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
     </inputParameter>
     <inputParameter>
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing \cite{Robotham2011} star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>The maximum halo mass to consider when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
-    <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
-    <objectBuilder class="starFormationRateDisks" name="starFormationRateDisks_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
+    <objectBuilder class="gravitationalLensing"       name="gravitationalLensing_"       source="parameters"/>
+    <objectBuilder class="galacticStructure"          name="galacticStructure_"          source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisFunctionStarFormationRateRobotham2011(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisStarFormationRateFunctionRobotham2011(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"  />
-    <objectDestructor name="outputTimes_"         />
-    <objectDestructor name="gravitationalLensing_"/>
-    <objectDestructor name="galacticStructure_"   />
-    <objectDestructor name="starFormationRateDisks_"/>
+    <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="outputTimes_"               />
+    <objectDestructor name="gravitationalLensing_"      />
+    <objectDestructor name="galacticStructure_"         />
+    <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
     !!]
     return
-  end function FunctionStarFormationRateRobotham2011ConstructorParameters
+  end function starFormationRateFunctionRobotham2011ConstructorParameters
 
-  function FunctionStarFormationRateRobotham2011ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function starFormationRateFunctionRobotham2011ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
-    Constructor for the ``FunctionStarFormationRateRobotham2011'' output analysis class for internal use.
+    Constructor for the ``StarFormationRateFunctionRobotham2011'' output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -173,20 +173,20 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     implicit none
-    type            (outputAnalysisFunctionStarFormationRateRobotham2011  )                              :: self
+    type            (outputAnalysisStarFormationRateFunctionRobotham2011)                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     class           (galacticStructureClass                             ), intent(in   ), target       :: galacticStructure_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
-    double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
+    double precision                                                     , intent(in   )               :: randomErrorMinimum                                          , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
-    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
+    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                            , systematicErrorPolynomialCoefficient
     integer                                                              , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum
-    type            (galacticFilterStellarMass             )               , pointer      :: galacticFilter_
-    type            (surveyGeometryFullSky                       )               , pointer      :: surveyGeometry_
+    double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                           , covarianceBinomialMassHaloMaximum
+    type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilter_
+    type            (surveyGeometryFullSky                              )               , pointer      :: surveyGeometry_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPlynml_
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng      )               , pointer      :: outputAnalysisDistributionOperatorGrvtnlLnsng_
@@ -195,10 +195,10 @@ contains
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
-    double precision                                                                                   :: redshiftMinimum                                       , redshiftMaximum
     !![
     <constructorAssign variables="randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, sizeSourceLensing, *gravitationalLensing_, *starFormationRateDisks_,*starFormationRateSpheroids_"/>
     !!]
+
     ! Build a filter which select galaxies with stellar mass greater than 10^5.25.
     allocate(galacticFilter_)
     !![
@@ -210,12 +210,12 @@ contains
     !![
     <referenceConstruct object="cosmologyParametersData">
      <constructor>
-      cosmologyParametersSimple(                            &amp;
-        &amp;                   OmegaMatter    = 0.25000d0, &amp;
-        &amp;                   OmegaDarkEnergy= 0.75000d0, &amp;
+      cosmologyParametersSimple(                             &amp;
+        &amp;                   OmegaMatter    =  0.25000d0, &amp;
+        &amp;                   OmegaDarkEnergy=  0.75000d0, &amp;
         &amp;                   HubbleConstant =100.00000d0, &amp;
-        &amp;                   temperatureCMB = 2.72548d0, &amp;
-        &amp;                   OmegaBaryon    = 0.04550d0  &amp;
+        &amp;                   temperatureCMB =  2.72548d0, &amp;
+        &amp;                   OmegaBaryon    =  0.04550d0  &amp;
         &amp;                  )
      </constructor>
     </referenceConstruct>
@@ -266,11 +266,11 @@ contains
     </referenceConstruct>
     !!]
     ! Construct sequence distribution operator.
-    allocate(distributionOperatorSequence                )
-    allocate(distributionOperatorSequence           %next)
+    allocate(distributionOperatorSequence            )
+    allocate(distributionOperatorSequence       %next)
     allocate(outputAnalysisDistributionOperator_     )
-    distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPlynml_
-    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    distributionOperatorSequence     %operator_   => outputAnalysisDistributionOperatorRandomErrorPlynml_
+    distributionOperatorSequence%next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
      <constructor>
@@ -281,25 +281,25 @@ contains
     </referenceConstruct>
     !!]
     ! Build the object.
-    self%outputAnalysisStarFormationRateFunction=                                                                                                                      &
-         & outputAnalysisStarFormationRateFunction(                                                                                                                    &
-         &                                   var_str('Robotham2011'                                                  )                                         , &
-         &                                   var_str('Star formation rate function for the Robotham et al. 2011')      , &
-         &                                   char(inputPath(pathTypeDataStatic)//'/observations/starFormationRateFunctions/Star_Formation_Rate_Function_Robotham2011.hdf5'), &
-         &                                   galacticFilter_                                                                                                   , &
-         &                                   surveyGeometry_                                                                                                   , &
-         &                                   cosmologyFunctions_                                                                                               , &
-         &                                   cosmologyFunctionsData                                                                                            , &
-         &                                   outputAnalysisPropertyOperator_                                                                                   , &
-         &                                   outputAnalysisDistributionOperator_                                                                               , &
-         &                                   outputTimes_                                                                                                      , &
-         &                                   galacticStructure_                                                                                                , &
-         &                                   starFormationRateDisks_                                                                                           , &
-         &                                   starFormationRateSpheroids_                                                                                       , &
-         &                                   covarianceBinomialBinsPerDecade                                                                                   , &
-         &                                   covarianceBinomialMassHaloMinimum                                                                                 , &
-         &                                   covarianceBinomialMassHaloMaximum                                                                                   &
-         &                                  )
+    self%outputAnalysisStarFormationRateFunction=                                                                                                                                  &
+         & outputAnalysisStarFormationRateFunction(                                                                                                                                &
+         &                                         var_str('Robotham2011'                                                                                                       ), &
+         &                                         var_str('Star formation rate function for the Robotham et al. 2011'                                                          ), &
+         &                                         char(inputPath(pathTypeDataStatic)//'/observations/starFormationRateFunctions/Star_Formation_Rate_Function_Robotham2011.hdf5'), &
+         &                                         galacticFilter_                                                                                                               , &
+         &                                         surveyGeometry_                                                                                                               , &
+         &                                         cosmologyFunctions_                                                                                                           , &
+         &                                         cosmologyFunctionsData                                                                                                        , &
+         &                                         outputAnalysisPropertyOperator_                                                                                               , &
+         &                                         outputAnalysisDistributionOperator_                                                                                           , &
+         &                                         outputTimes_                                                                                                                  , &
+         &                                         galacticStructure_                                                                                                            , &
+         &                                         starFormationRateDisks_                                                                                                       , &
+         &                                         starFormationRateSpheroids_                                                                                                   , &
+         &                                         covarianceBinomialBinsPerDecade                                                                                               , &
+         &                                         covarianceBinomialMassHaloMinimum                                                                                             , &
+         &                                         covarianceBinomialMassHaloMaximum                                                                                               &
+         &                                        )
     ! Clean up.
     !![
     <objectDestructor name="surveyGeometry_"                                     />
@@ -313,18 +313,18 @@ contains
     !!]
     nullify(distributionOperatorSequence)
     return
-  end function FunctionStarFormationRateRobotham2011ConstructorInternal
+  end function starFormationRateFunctionRobotham2011ConstructorInternal
 
-  subroutine FunctionStarFormationRateRobotham2011Destructor(self)
+  subroutine starFormationRateFunctionRobotham2011Destructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily FunctionStarFormationRateRobotham2011} output analysis class.
+    Destructor for the {\normalfont \ttfamily starFormationRateFunctionRobotham2011} output analysis class.
     !!}
     implicit none
-    type(outputAnalysisFunctionStarFormationRateRobotham2011), intent(inout) :: self
+    type(outputAnalysisStarFormationRateFunctionRobotham2011), intent(inout) :: self
 
     !![
     <objectDestructor name="self%galacticStructure_"   />
     <objectDestructor name="self%gravitationalLensing_"/>
     !!]
     return
-  end subroutine FunctionStarFormationRateRobotham2011Destructor
+  end subroutine starFormationRateFunctionRobotham2011Destructor

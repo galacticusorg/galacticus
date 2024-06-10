@@ -128,10 +128,11 @@ contains
     !!}
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
-    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                       luminosity     , starFormationRate
     integer                                         , intent(in   ), optional :: field
-    double precision                                                          :: logarithmicMass
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
+    double precision                                                          :: logarithmicMass,
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)

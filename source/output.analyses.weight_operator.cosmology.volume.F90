@@ -125,8 +125,8 @@ contains
     !!}
     use            :: Error                  , only : Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity, outputAnalysisPropertyQuantityStarFormationRate,outputAnalysisPropertyQuantityMass, outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, &
-          &                                           outputAnalysisPropertyTypeMagnitude
+    use            :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity, outputAnalysisPropertyQuantityStarFormationRate,outputAnalysisPropertyQuantityMass, outputAnalysisPropertyTypeLinear, &
+          &                                           outputAnalysisPropertyTypeMagnitude     , outputAnalysisPropertyTypeLog10
     implicit none
     class           (outputAnalysisWeightOperatorCsmlgyVolume     ), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node

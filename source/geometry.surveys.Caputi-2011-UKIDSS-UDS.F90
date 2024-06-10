@@ -181,9 +181,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
     return
@@ -197,10 +198,11 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    double precision                                                             :: redshift, logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
+    double precision                                                             :: redshift  , logarithmicMass
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})

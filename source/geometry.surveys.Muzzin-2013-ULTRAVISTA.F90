@@ -207,9 +207,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                    , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     muzzin2013ULTRAVISTADistanceMinimum=self%binDistanceMinimum
     return
@@ -222,10 +223,11 @@ contains
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                    , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
-    double precision                                                              :: redshift, logarithmicMass
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
+    double precision                                                              :: redshift  , logarithmicMass
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)

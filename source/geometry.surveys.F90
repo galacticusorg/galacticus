@@ -50,7 +50,7 @@ module Geometry_Surveys
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
-    <argument>integer         , intent(in   ), optional :: field</argument>
+    <argument>integer         , intent(in   ), optional :: field                                                  </argument>
     <code>
      !$GLC attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
      surveyGeometryDistanceMinimum=0.0d0
@@ -61,7 +61,7 @@ module Geometry_Surveys
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
-    <argument>integer         , intent(in   ), optional :: field</argument>
+    <argument>integer         , intent(in   ), optional :: field                                                  </argument>
    </method>
    <method name="solidAngle" >
     <description>Return the solid angle (in steradians) of the survey.</description>

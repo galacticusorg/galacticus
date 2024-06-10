@@ -160,9 +160,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
-    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                       , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                              luminosity, starFormationRate
     integer                                , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     fullSkyDistanceMinimum=self%limitDistanceMinimum
     return
@@ -174,9 +175,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
-    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                       , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                              luminosity, starFormationRate
     integer                                , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, magnitudeAbsolute, field, luminosity
+    !$GLC attributes unused :: mass, magnitudeAbsolute, field, luminosity, starFormationRate
 
     fullSkyDistanceMaximum=self%limitDistanceMaximum
     return

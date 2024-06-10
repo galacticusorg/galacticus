@@ -165,10 +165,11 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                     luminosity     , starFormationRate
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})

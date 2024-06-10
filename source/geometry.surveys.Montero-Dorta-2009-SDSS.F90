@@ -149,9 +149,10 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                    , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, mass, luminosity
+    !$GLC attributes unused :: field, mass, luminosity, starFormationRate
 
     ! Validate input.
     if (.not.present(magnitudeAbsolute)) call Error_Report('absolute magnitude must be supplied '//{introspection:location})
@@ -174,10 +175,11 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity, starFormationRate
+    double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , &
+         &                                                                           luminosity             , starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: distanceMaximumRedshift, distanceMaximumMagnitude
-    !$GLC attributes unused :: field, mass, luminosity
+    !$GLC attributes unused :: field, mass, luminosity, starFormationRate
 
     ! Validate input.
     if (.not.present(magnitudeAbsolute)) call Error_Report('absolute magnitude must be supplied '//{introspection:location})

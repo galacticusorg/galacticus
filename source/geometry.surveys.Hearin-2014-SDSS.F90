@@ -30,9 +30,9 @@ Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: distanceMinimumLimit, distanceMaximumLimit   , &
-          &                                                massPrevious        , distanceMaximumPrevious
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
+     double precision                                   :: distanceMinimumLimit          , distanceMaximumLimit   , &
+          &                                                massPrevious                  , distanceMaximumPrevious
    contains
      final     ::                      hearin2014SDSSDestructor
      procedure :: distanceMinimum   => hearin2014SDSSDistanceMinimum
@@ -125,9 +125,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     hearin2014SDSSDistanceMinimum=self%distanceMinimumLimit
     return
@@ -139,9 +140,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
 
     if (mass /= self%massPrevious)                                                                                 &
          & self%distanceMaximumPrevious=min(                                                                       &

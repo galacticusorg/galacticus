@@ -103,9 +103,10 @@ contains
     !!}
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate
+    double precision                                    , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, mass, luminosity, magnitudeAbsolute
+    !$GLC attributes unused :: field, mass, luminosity, magnitudeAbsolute, starFormationRate
 
     ! Compute limiting distances. This is due only to the redshift limit.
     gunawardhana2013SDSSDistanceMinimum=self   %cosmologyFunctions_%distanceComoving           (          &
@@ -130,12 +131,12 @@ contains
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                           , magnitudeAbsolute        , &
-         &                                                                           luminosity, starFormationRate
+         &                                                                           luminosity                     , starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                    , parameter               :: fluxLimiting           =1.0d-18 ! W m⁻².
     double precision                                                              :: distanceMaximumRedshift        , distanceMaximumLuminosity, &
          &                                                                           distanceLuminosity
-    !$GLC attributes unused :: field, mass, magnitudeAbsolute
+    !$GLC attributes unused :: field, mass, magnitudeAbsolute, starFormationRate
 
     ! Validate input.
     if (.not.present(luminosity)) call Error_Report('luminosity must be supplied '//{introspection:location})
