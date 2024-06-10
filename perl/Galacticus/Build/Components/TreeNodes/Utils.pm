@@ -204,8 +204,8 @@ sub Tree_Node_Mass_Distribution {
 	description => "Construct and return the mass distribution associated with {\\normalfont \\ttfamily self}.",
 	modules     =>
 	    [
-	     "Mass_Distributions        , only : massDistributionClass       , massDistributionComposite, massDistributionList"                                                                                           ,
-	     "Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType  , enumerationWeightByType, componentTypeAll, componentTypeDarkMatterOnly, massTypeAll, massTypeDark, weightByMass"
+	     "Mass_Distributions        , only : massDistributionClass       , massDistributionComposite, massDistributionList   , massDistributionZero, kinematicsDistributionClass, kinematicsDistributionIsothermal"                             ,
+	     "Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType  , enumerationWeightByType, componentTypeAll    , componentTypeDarkMatterOnly, massTypeAll                      , massTypeDark, weightByMass"
 	    ],
 	variables   =>
 	    [
@@ -281,6 +281,12 @@ sub Tree_Node_Mass_Distribution {
 		 type       => "massDistributionList",
 		 attributes => [ "pointer" ],
 		 variables  => [ "massDistributionList_", "next_" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "kinematicsDistributionClass",
+		 attributes => [ "pointer" ],
+		 variables  => [ "kinematicsDistribution_" ]
 	     }
 	    ]
     };
@@ -348,8 +354,8 @@ do i=1,massDistributionsCount
  end if
 end do
 ! If we found no match, we need to create the distribution.
+construct=.false.
 if (iMassDistribution == 0) then
- construct       =.false.
  isDarkMatterOnly=.false.
  if      (componentType_       == componentTypeDarkMatterOnly) then
   isDarkMatterOnly=.true.
@@ -392,17 +398,6 @@ CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
 	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
-	# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-	#   <description>
-	#    In the following, we build two, identical lists of mass distributions. This is necessary as the first is passed to the
-	#    massDistributionComposite() constructor and retained. But, we need to call objectDestructor on each of the mass
-	#    distributions in our list to release them. If we did that by iterating over the list passed to
-	#    massDistributionComposite() we would nullify its pointers, leaving it unable to find the mass distributions. Therefore,
-	#    we make a second list, iterate over it calling objectDestructor on each massDistribution, and then destroy that list.
-	#
-	#    With correct resource management in assignment, copy, and finalization, this should be handled automatically.
-	#   </description>
-	# </workaround>
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (allocated(self%component{ucfirst($class->{'name'})})) then
      do i=1,size(self%component{ucfirst($class->{'name'})})
@@ -493,11 +488,47 @@ CODE
   massDistributions__(iMassDistribution)%massType          =                                                              massType_
   massDistributions__(iMassDistribution)%weightBy          =                                                              weightBy_
   massDistributions__(iMassDistribution)%weightIndex       =                                                              weightIndex_
+  if (.not.associated(massDistributions__(iMassDistribution)%massDistribution_)) then
+   allocate(massDistributionZero :: massDistributions__(iMassDistribution)%massDistribution_)
+   select type (massDistributions___ => massDistributions__(iMassDistribution)%massDistribution_)
+   type is (massDistributionZero)
+    !![
+    <referenceConstruct object="massDistributions___" constructor="massDistributionZero(dimensionless=.false.)"/>
+    !!]
+    allocate(kinematicsDistributionIsothermal :: kinematicsDistribution_)
+    select type (kinematicsDistribution_)
+    type is (kinematicsDistributionIsothermal)
+     !![
+     <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionIsothermal(velocityDispersion_=0.0d0)"/>
+     !!]
+    end select
+    call massDistributions___%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+   end select
+  end if
  end if
 end if
 !![
 <referenceAcquire target="massDistribution_" source="massDistributions__(iMassDistribution)%massDistribution_"/>
 !!]
+if (construct) then
+CODE
+    # Iterate over all component classes
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (allocated(self%component{ucfirst($class->{'name'})})) then
+     do i=1,size(self%component{ucfirst($class->{'name'})})
+       call self%component{ucfirst($class->{'name'})}(i)%massDistributionInit()
+     end do
+  end if
+CODE
+    }
+$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end if
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

@@ -45,6 +45,7 @@
      !![
      <methods>
        <method method="initialize" description="Initialize the mass distribution after construction."  />
+       <method method="subset"     description="Return a subset of a composite mass distribution."     />
        <method method="describe"   description="Display a description of a composite mass distibution."/>
      </methods>
      !!]
@@ -391,15 +392,6 @@ contains
              !!]
           end select
        end if
-    end if
-    if (.not.associated(subset)) then
-       allocate(massDistributionZero :: subset)
-       select type (subset)
-       type is (massDistributionZero)
-          !![
-          <referenceConstruct object="subset" constructor="massDistributionZero(dimensionless=.false.)"/>
-	  !!]
-       end select
     end if
     return
   end function compositeSubset
