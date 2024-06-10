@@ -1305,7 +1305,7 @@ module Galacticus_Nodes
 
   function Node_Component_Mass_Distribution_Null(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
     !!{
-    A null implementation of the mass distrbution factory for a component. Always returns null.
+    A null implementation of the mass distribution factory for a component. Always returns null.
     !!}
     use :: Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType
     implicit none
