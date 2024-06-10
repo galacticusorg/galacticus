@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717891340777,
+  "lastUpdate": 1718052800109,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "03f1be418ea2846f56cee7c299f4ae208dc6c216",
-          "message": "fix(style): Correct a typo in a comment",
-          "timestamp": "2023-08-10T23:33:15Z",
-          "tree_id": "fda400cd223a48cfd05abfdb04f4c298cdbaf9e7",
-          "url": "https://github.com/galacticusorg/galacticus/commit/03f1be418ea2846f56cee7c299f4ae208dc6c216"
-        },
-        "date": 1691722084532,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 192.464,
-            "unit": "seconds",
-            "range": 0.426851730697404
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9836068961057,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ae9ddd16decd3d03a25d12d10e5dd825de933cd8",
+          "message": "fix: Correct storage/retrieval of reduced emission line luminosity data to/from file\n\nThe reduced emission line luminosity tables are stored to file, but this wasn't being done correctly. This could have resulted in:\n   1. The wrong lines being used if the order (or number) of lines in the lineNames parameter was changed;\n   2. These files failing to update if the Cloudy table was updated.\nThis is now corrected for both of these issues.\n\nAdditionally, the name of the Cloudy table file is now specified in the parameter file. This allows using different Cloudy tables (e.g. for different SSPs).",
+          "timestamp": "2024-06-10T08:49:48-07:00",
+          "tree_id": "fafdcffa3b5e6dca84fe0618ebda603ca4c57fb3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ae9ddd16decd3d03a25d12d10e5dd825de933cd8"
+        },
+        "date": 1718052799322,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 364.931,
+            "unit": "seconds",
+            "range": 0.174450279451185
           }
         ]
       }
