@@ -299,23 +299,27 @@ module Mass_Distributions
       !$omp threadprivate(finder,finderConstructed)
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
-      if (.not.finderConstructed) then
-       finder           =rootFinder(                                                             &amp;
-            &amp;                   rootFunction                 =specificAngularMomentumRoot  , &amp;
-            &amp;                   toleranceAbsolute            =toleranceAbsolute            , &amp;
-            &amp;                   toleranceRelative            =toleranceRelative            , &amp;
-            &amp;                   solverType                   =GSL_Root_fSolver_Brent       , &amp;
-            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
-            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
-            &amp;                   rangeExpandType              =rangeExpandMultiplicative    , &amp;
-            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-            &amp;                  )
-       finderConstructed=.true.
+      if (angularMomentumSpecific &lt;= 0.0d0) then
+         massDistributionRadiusFromSpecificAngularMomentumNumerical=+0.0d0
+      else         
+         if (.not.finderConstructed) then
+            finder           =rootFinder(                                                             &amp;
+                 &amp;                   rootFunction                 =specificAngularMomentumRoot  , &amp;
+                 &amp;                   toleranceAbsolute            =toleranceAbsolute            , &amp;
+                 &amp;                   toleranceRelative            =toleranceRelative            , &amp;
+                 &amp;                   solverType                   =GSL_Root_fSolver_Brent       , &amp;
+                 &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
+                 &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
+                 &amp;                   rangeExpandType              =rangeExpandMultiplicative    , &amp;
+                 &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+                 &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+                 &amp;                  )
+            finderConstructed=.true.
+         end if
+         self_                                                      =&gt; self
+         angularMomentumSpecificTarget                              =     angularMomentumSpecific
+         massDistributionRadiusFromSpecificAngularMomentumNumerical =     finder%find(rootGuess=1.0d0)
       end if
-      self_                                                      =&gt; self
-      angularMomentumSpecificTarget                              =     angularMomentumSpecific
-      massDistributionRadiusFromSpecificAngularMomentumNumerical =     finder%find(rootGuess=1.0d0)
     </code>
    </method>
    <method name="rotationCurve" >
