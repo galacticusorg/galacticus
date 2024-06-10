@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717891351831,
+  "lastUpdate": 1718052817777,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -1033,6 +1033,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/fc98facd1513465b2925b8e36246e7152c33f85c"
         },
         "date": 1717891351118,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ae9ddd16decd3d03a25d12d10e5dd825de933cd8",
+          "message": "fix: Correct storage/retrieval of reduced emission line luminosity data to/from file\n\nThe reduced emission line luminosity tables are stored to file, but this wasn't being done correctly. This could have resulted in:\n   1. The wrong lines being used if the order (or number) of lines in the lineNames parameter was changed;\n   2. These files failing to update if the Cloudy table was updated.\nThis is now corrected for both of these issues.\n\nAdditionally, the name of the Cloudy table file is now specified in the parameter file. This allows using different Cloudy tables (e.g. for different SSPs).",
+          "timestamp": "2024-06-10T08:49:48-07:00",
+          "tree_id": "fafdcffa3b5e6dca84fe0618ebda603ca4c57fb3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ae9ddd16decd3d03a25d12d10e5dd825de933cd8"
+        },
+        "date": 1718052817108,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
