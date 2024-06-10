@@ -166,6 +166,14 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "massDistributionInit"                                                                                 ,
+	     function    => "Node_Component_Mass_Distribution_Initialize_Null"                                                     ,
+	     description => "Initialize the mass distribution for this component."                                                 ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
 	     description => "Compute the density."                                                                                 ,

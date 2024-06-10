@@ -45,6 +45,16 @@ module Dark_Matter_Profiles
     <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
     <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
    </method>
+   <method name="initialize" >
+    <description>Initialize the mass distribution of the dark matter profile after establishing the full mass distribution of a node.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type (treeNode             ), intent(inout), target :: node             </argument>
+    <argument>class(massDistributionClass), intent(inout)         :: massDistribution_</argument>
+    <code>
+     ! Do nothing by default.
+    </code>
+   </method>
   </functionClass>
   !!]
 

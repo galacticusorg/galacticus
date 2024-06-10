@@ -91,8 +91,9 @@
           &                                                              radiusFractionalPivot           , toleranceRelative, &
           &                                                              darkMatterFraction
    contains    
-     final     ::        adiabaticGnedin2004Destructor
-     procedure :: get => adiabaticGnedin2004Get
+     final     ::               adiabaticGnedin2004Destructor
+     procedure :: get        => adiabaticGnedin2004Get
+     procedure :: initialize => adiabaticGnedin2004Initialize
   end type darkMatterProfileAdiabaticGnedin2004
 
   interface darkMatterProfileAdiabaticGnedin2004
@@ -215,9 +216,7 @@ contains
     !!{
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic         , radiusLarge, &
-         &                                    weightByMass
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic         , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical
     implicit none
     class           (massDistributionClass               ), pointer                 :: massDistribution_
@@ -226,12 +225,9 @@ contains
     type            (treeNode                            ), intent(inout), target   :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
     integer                                               , intent(in   ), optional :: weightIndex
-    class           (massDistributionClass               ), pointer                 :: massDistributionDecorated      , massDistributionBaryonic, &
-         &                                                                             massDistributionBaryonicSubhalo
-    type            (treeNode                            ), pointer                 :: nodeCurrent                    , nodeHost
-    class           (nodeComponentBasic                  ), pointer                 :: basic
-    double precision                                                                :: massBaryonicSelfTotal          , massBaryonicTotal       , &
-         &                                                                             darkMatterDistributedFraction  , initialMassFraction
+    class           (massDistributionClass               ), pointer                 :: massDistributionDecorated    , massDistributionBaryonic
+    double precision                                                                :: massBaryonicSelfTotal        , massBaryonicTotal       , &
+         &                                                                             darkMatterDistributedFraction, initialMassFraction
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -240,45 +236,12 @@ contains
     massDistribution_ => null()
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
-    ! Compute the initial baryonic contribution from this halo, and any satellites.
-    massBaryonicTotal        =  0.0d0
-    massBaryonicSelfTotal    =  0.0d0
-    nodeCurrent              => node
-    nodeHost                 => node
-    massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
-    do while (associated(nodeCurrent))
-       massDistributionBaryonicSubhalo =>  nodeCurrent                    %massDistribution    (massType=massTypeBaryonic)
-       massBaryonicTotal               =  +massBaryonicTotal                                                               &
-            &                             +massDistributionBaryonicSubhalo%massEnclosedBySphere(radius  =radiusLarge     )
-       !![
-       <objectDestructor name="massDistributionBaryonicSubhalo"/>
-       !!]
-       if (associated(nodeCurrent,nodeHost)) then
-          massBaryonicSelfTotal=massBaryonicTotal
-          do while (associated(nodeCurrent%firstSatellite))
-             nodeCurrent => nodeCurrent%firstSatellite
-          end do
-          if (associated(nodeCurrent,nodeHost)) nodeCurrent => null()
-       else
-          if (associated(nodeCurrent%sibling)) then
-             nodeCurrent => nodeCurrent%sibling
-             do while (associated(nodeCurrent%firstSatellite))
-                nodeCurrent => nodeCurrent%firstSatellite
-             end do
-          else
-             nodeCurrent => nodeCurrent%parent
-             if (associated(nodeCurrent,node)) nodeCurrent => null()
-          end if
-       end if
-    end do
-    ! Limit masses to physical values.
-    massBaryonicSelfTotal=max(massBaryonicSelfTotal,0.0d0)
-    massBaryonicTotal    =max(massBaryonicTotal    ,0.0d0)
-    ! Compute the fraction of matter assumed to be distributed like the dark matter.
-    basic                         => node%basic()
-    darkMatterDistributedFraction =  min(self%darkMatterFraction+(massBaryonicTotal-massBaryonicSelfTotal)/basic%mass(),1.0d0)
-    ! Compute the initial mass fraction.
-    initialMassFraction           =  min(self%darkMatterFraction+ massBaryonicTotal                       /basic%mass(),1.0d0)
+    ! Set the baryonic component to zero - we will compute this later during initialization.
+    massDistributionBaryonic      => null()
+    massBaryonicTotal             =  0.0d0
+    massBaryonicSelfTotal         =  0.0d0
+    darkMatterDistributedFraction =  0.0d0
+    initialMassFraction           =  0.0d0
     ! Create the mass distribution.
     allocate(massDistributionSphericalAdiabaticGnedin2004 :: massDistribution_)
     select type(massDistribution_)
@@ -328,3 +291,70 @@ contains
     !!]
     return
   end function adiabaticGnedin2004Get
+
+  subroutine adiabaticGnedin2004Initialize(self,node,massDistribution_)
+    !!{
+    Initialize the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : massTypeBaryonic                            , radiusLarge
+    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004
+    use :: Error                     , only : Error_Report
+    implicit none
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    class           (massDistributionClass               ), intent(inout)         :: massDistribution_
+    class           (massDistributionClass               ), pointer               :: massDistributionBaryonic     , massDistributionBaryonicSubhalo
+    type            (treeNode                            ), pointer               :: nodeCurrent                  , nodeHost
+    class           (nodeComponentBasic                  ), pointer               :: basic
+    double precision                                                              :: massBaryonicSelfTotal        , massBaryonicTotal              , &
+         &                                                                           darkMatterDistributedFraction, initialMassFraction
+
+    select type (massDistribution_)
+    type is (massDistributionSphericalAdiabaticGnedin2004)
+       ! Compute the initial baryonic contribution from this halo, and any satellites.
+       massBaryonicTotal        =  0.0d0
+       massBaryonicSelfTotal    =  0.0d0
+       massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
+       nodeCurrent              => node
+       nodeHost                 => node
+       do while (associated(nodeCurrent))
+          massDistributionBaryonicSubhalo =>  nodeCurrent                    %massDistribution    (massType=massTypeBaryonic)
+          massBaryonicTotal               =  +massBaryonicTotal                                                               &
+               &                             +massDistributionBaryonicSubhalo%massEnclosedBySphere(radius  =radiusLarge     )
+          !![
+          <objectDestructor name="massDistributionBaryonicSubhalo"/>
+          !!]
+          if (associated(nodeCurrent,nodeHost)) then
+             massBaryonicSelfTotal=massBaryonicTotal
+             do while (associated(nodeCurrent%firstSatellite))
+                nodeCurrent => nodeCurrent%firstSatellite
+             end do
+             if (associated(nodeCurrent,nodeHost)) nodeCurrent => null()
+          else
+             if (associated(nodeCurrent%sibling)) then
+                nodeCurrent => nodeCurrent%sibling
+                do while (associated(nodeCurrent%firstSatellite))
+                   nodeCurrent => nodeCurrent%firstSatellite
+                end do
+             else
+                nodeCurrent => nodeCurrent%parent
+                if (associated(nodeCurrent,node)) nodeCurrent => null()
+             end if
+          end if
+       end do
+       ! Limit masses to physical values.
+       massBaryonicSelfTotal=max(massBaryonicSelfTotal,0.0d0)
+       massBaryonicTotal    =max(massBaryonicTotal    ,0.0d0)
+       ! Compute the fraction of matter assumed to be distributed like the dark matter.
+       basic                         => node%basic()
+       darkMatterDistributedFraction =  min(self%darkMatterFraction+(massBaryonicTotal-massBaryonicSelfTotal)/basic%mass(),1.0d0)
+       ! Compute the initial mass fraction.
+       initialMassFraction           =  min(self%darkMatterFraction+ massBaryonicTotal                       /basic%mass(),1.0d0)
+       ! Set the baryonic component in the mass distribution.
+       call massDistribution_%setBaryonicComponent(massDistributionBaryonic,darkMatterDistributedFraction,initialMassFraction)
+    class default
+       call Error_Report("unexpected class"//{introspection:location})
+    end select
+    return
+  end subroutine adiabaticGnedin2004Initialize

@@ -1305,7 +1305,7 @@ module Galacticus_Nodes
 
   function Node_Component_Mass_Distribution_Null(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
     !!{
-    A null implementation of the enclosed mass in a component. Always returns zero.
+    A null implementation of the mass distrbution factory for a component. Always returns null.
     !!}
     use :: Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType
     implicit none
@@ -1320,6 +1320,17 @@ module Galacticus_Nodes
     massDistribution_ => null()
     return
   end function Node_Component_Mass_Distribution_Null
+
+  subroutine Node_Component_Mass_Distribution_Initialize_Null(self)
+    !!{
+    A null implementation of the mass distribution initialization function for a component. Does nothing.
+    !!}
+    implicit none
+    class(nodeComponent), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    return
+  end subroutine Node_Component_Mass_Distribution_Initialize_Null
 
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{

@@ -107,6 +107,7 @@
    contains
      !![
      <methods>
+       <method description="Set baryonic components in the mass distribution."                        method="setBaryonicComponent"       />
        <method description="Compute factors needed for solving adiabatic contraction."                method="computeFactors"             />
        <method description="Compute the orbit-averaged radius for dark matter."                       method="radiusOrbitalMean"          />
        <method description="Compute the derivative of the orbit-averaged radius for dark matter."     method="radiusOrbitalMeanDerivative"/>
@@ -115,6 +116,7 @@
      </methods>
      !!]
      final     ::                                sphericalAdiabaticGnedin2004Destructor
+     procedure :: setBaryonicComponent        => sphericalAdiabaticGnedin2004SetBaryonicComponent
      procedure :: density                     => sphericalAdiabaticGnedin2004Density
      procedure :: massEnclosedBySphere        => sphericalAdiabaticGnedin2004MassEnclosedBySphere
      procedure :: radiusInitial               => sphericalAdiabaticGnedin2004RadiusInitial
@@ -293,6 +295,21 @@ contains
     return
   end subroutine sphericalAdiabaticGnedin2004Destructor
 
+  subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent(self,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
+    !!{
+    Set the baryonic component properties in an adiabatically-contracted spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout)         :: self
+    class           (massDistributionClass                       ), intent(in   ), target :: massDistributionBaryonic
+    double precision                                              , intent(in   )         :: darkMatterDistributedFraction, massFractionInitial
+  
+    self%massDistributionBaryonic      => massDistributionBaryonic
+    self%darkMatterDistributedFraction =  darkMatterDistributedFraction
+    self%massFractionInitial           =  massFractionInitial
+    return
+  end subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent
+  
   double precision function sphericalAdiabaticGnedin2004Density(self,coordinates) result(density)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in an adiabatically-contracted spherical mass distribution.
