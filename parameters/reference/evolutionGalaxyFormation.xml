@@ -39,10 +39,13 @@
   <componentSpin              value="vector" />
   
   <!-- Intergalactic background radiation -->
-  <radiationFieldIntergalacticBackground value="intergalacticBackgroundFile">
-    <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+  <radiationFieldIntergalacticBackground value="summation">
+    <radiationField value="cosmicMicrowaveBackground"/>
+    <radiationField value="intergalacticBackgroundFile">
+      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
+    </radiationField>
   </radiationFieldIntergalacticBackground>
-
+  
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
   <intergalacticMediumFilteringMass value="gnedin2000"/>
