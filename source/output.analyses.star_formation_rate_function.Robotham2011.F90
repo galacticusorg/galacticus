@@ -64,14 +64,14 @@ contains
     class           (cosmologyFunctionsClass                            ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                   ), pointer                     :: outputTimes_
     class           (galacticStructureClass                             ), pointer                     :: galacticStructure_
-    class           (starFormationRateDisksClass                        ),pointer                      :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                    ),pointer                      :: starFormationRateSpheroids_
+    class           (starFormationRateDisksClass                        ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                    ), pointer                     :: starFormationRateSpheroids_
     class           (gravitationalLensingClass                          ), pointer                     :: gravitationalLensing_
     double precision                                                     , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                            :: covarianceBinomialBinsPerDecade
     double precision                                                                                   :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
          &                                                                                                randomErrorMinimum               , randomErrorMaximum                  , &
-         &                                                                                              sizeSourceLensing
+         &                                                                                                sizeSourceLensing
 
     ! Check and read parameters.
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient')) then

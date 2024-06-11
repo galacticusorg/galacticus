@@ -294,7 +294,7 @@ contains
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !![
-    <constructorAssign variables="starFormationRates, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *galacticStructure_,*starFormationRateDisks_,*starFormationRateSpheroids_"/>
+    <constructorAssign variables="starFormationRates, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *galacticStructure_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
 
     ! Compute weights that apply to each output redshift.
