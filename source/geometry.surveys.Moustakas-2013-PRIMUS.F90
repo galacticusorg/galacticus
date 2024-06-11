@@ -202,21 +202,22 @@ contains
     return
   end function moustakas2013PRIMUSFieldCount
 
-  double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is included.
     !!}
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
     return
   end function moustakas2013PRIMUSDistanceMinimum
 
-  double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -224,10 +225,11 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    double precision                                                             :: redshift, logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
+    double precision                                                             :: redshift  , logarithmicMass
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})

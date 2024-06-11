@@ -122,16 +122,17 @@ contains
     return
   end function bernardi2013SDSSFieldCount
 
-  double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
-    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
+    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                       luminosity     , starFormationRate
     integer                                         , intent(in   ), optional :: field
-    double precision                                                          :: logarithmicMass
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
+    double precision                                                          :: logarithmicMass,
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)

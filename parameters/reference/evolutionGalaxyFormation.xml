@@ -45,7 +45,7 @@
       <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_FG20.hdf5"/>
     </radiationField>
   </radiationFieldIntergalacticBackground>
-
+  
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
   <intergalacticMediumFilteringMass value="gnedin2000"/>

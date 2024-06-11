@@ -245,7 +245,7 @@ contains
     end do
     ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity interval spanned by the table. Also,
     ! find the mean ionizing luminosity of HII regions in this luminosity interval.
-    rateHydrogenIonizingPhotonsMinimum =+ionizingFluxHydrogen(                        1 )/sqrt(deltaIonizingFluxHydrogen) 
+    rateHydrogenIonizingPhotonsMinimum =+ionizingFluxHydrogen(                         1)/sqrt(deltaIonizingFluxHydrogen) 
     rateHydrogenIonizingPhotonsMaximum =+ionizingFluxHydrogen(size(ionizingFluxHydrogen))*sqrt(deltaIonizingFluxHydrogen)
     self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                &
          &                              /self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
