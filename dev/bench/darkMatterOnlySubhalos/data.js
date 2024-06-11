@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718052803770,
+  "lastUpdate": 1718073593739,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "2081039481ead7c61f9b56dc67890ecf32755e16",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2023-08-16T00:18:01Z",
-          "tree_id": "3df04dc9fbd5ead8203330071042a65f7523f28a",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2081039481ead7c61f9b56dc67890ecf32755e16"
-        },
-        "date": 1692156157734,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.824,
-            "unit": "seconds",
-            "range": 0.0953645636492067
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20391.9532745315,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "4ad361755c0d321c89156b0980bb54b295e88eeb",
+          "message": "feat: Include time of merging in data recorded for merged subhalos",
+          "timestamp": "2024-06-10T14:35:05-07:00",
+          "tree_id": "9a19ec4a657d7f202f5e8f5a5f66542a9db21f2b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4ad361755c0d321c89156b0980bb54b295e88eeb"
+        },
+        "date": 1718073592019,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.704,
+            "unit": "seconds",
+            "range": 0.0620193518195032
           }
         ]
       }
