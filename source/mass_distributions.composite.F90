@@ -744,7 +744,7 @@ contains
     return
   end function compositeEnergy
   
-  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity)
+  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -752,6 +752,7 @@ contains
     double precision                              , dimension(3)  :: compositeChandrasekharIntegral
     class           (massDistributionComposite   ), intent(inout) :: self
     class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
+    double precision                              , intent(in   ) :: massPerturber
     class           (coordinate                  ), intent(in   ) :: coordinates                   , velocity
     type            (massDistributionList        ), pointer       :: massDistribution_
 
@@ -759,8 +760,8 @@ contains
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                &
-               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,coordinates,velocity)
+          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                              &
+               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity)
           massDistribution_              =>  massDistribution_%next
        end do
     end if

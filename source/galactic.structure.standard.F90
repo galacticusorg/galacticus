@@ -614,7 +614,7 @@ contains
     return
   end function standardTidalTensor
 
-  function standardChandrasekharIntegral(self,node,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType) result(chandrasekharIntegral)
+  function standardChandrasekharIntegral(self,node,nodeSatellite,positionCartesian,velocityCartesian,massPerturber,componentType,massType) result(chandrasekharIntegral)
     !!{
     Compute the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction model:
     \begin{equation}
@@ -633,6 +633,7 @@ contains
     class           (galacticStructureStandard     ), intent(inout)               :: self
     type            (treeNode                      ), intent(inout), target       :: node                       , nodeSatellite
     double precision                                , intent(in   ), dimension(3) :: positionCartesian          , velocityCartesian
+    double precision                                , intent(in   )               :: massPerturber
     type            (enumerationComponentTypeType  ), intent(in   ), optional     :: componentType
     type            (enumerationMassTypeType       ), intent(in   ), optional     :: massType
     integer                                         , parameter                   :: chandrasekharIntegralSize=3
@@ -647,7 +648,7 @@ contains
     ! Evaluate the density.
     massDistribution_         => node             %massDistribution     (galacticStructureState_%state%componentType_  ,galacticStructureState_%state%massType_,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
     massDistributionPerturber => nodeSatellite    %massDistribution     (componentTypeAll,                              massTypeAll,galacticStructureState_%state%weightBy_,galacticStructureState_%state%weightIndex_)
-    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,position,velocity)
+    chandrasekharIntegral     =  massDistribution_%chandrasekharIntegral(massDistribution_,massDistributionPerturber,massPerturber,position,velocity)
     !![
     <objectDestructor name="massDistribution_"        />
     <objectDestructor name="massDistributionPerturber"/>

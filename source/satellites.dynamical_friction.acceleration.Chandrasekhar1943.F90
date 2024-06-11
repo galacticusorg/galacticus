@@ -167,14 +167,14 @@ contains
     massSatellite                 =   satellite                   %boundMass            (                          )
     position                      =   satellite                   %position             (                          )
     velocity                      =   satellite                   %velocity             (                          )
-    chandrasekhar1943Acceleration =  +4.0d0                                                                          &
-            &                        *Pi                                                                             &
-            &                        *self%galacticStructure_%chandrasekharIntegral(nodeHost,node,position,velocity) &
-            &                        *self                   %coulombLogarithm     (         node                  ) &
-            &                        *gravitationalConstantGalacticus**2                                             &
-            &                        *massSatellite                                                                  &
-            &                        *kilo                                                                           &
-            &                        *gigaYear                                                                       &
+    chandrasekhar1943Acceleration =  +4.0d0                                                                                        &
+            &                        *Pi                                                                                           &
+            &                        *self%galacticStructure_%chandrasekharIntegral(nodeHost,node,position,velocity,massSatellite) &
+            &                        *self                   %coulombLogarithm     (         node                                ) &
+            &                        *gravitationalConstantGalacticus**2                                                           &
+            &                        *massSatellite                                                                                &
+            &                        *kilo                                                                                         &
+            &                        *gigaYear                                                                                     &
             &                        /megaParsec
     return
   end function chandrasekhar1943Acceleration

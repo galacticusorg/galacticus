@@ -415,8 +415,9 @@ module Mass_Distributions
     <description>Return the Chandresekhar integral of the distribution.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
-    <argument>class(massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
-    <argument>class(coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
+    <argument>double precision                       , intent(in   ) :: massPerturber                                       </argument>
+    <argument>class           (coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
    </method>
    <method name="radiusFreefall" >
     <description>Return the radius at which the freefall time to the center equals the given {\normalfont \ttfamily time}.</description>

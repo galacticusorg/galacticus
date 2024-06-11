@@ -158,6 +158,7 @@ module Galactic_Structure
     <pass>yes</pass>
     <argument>type            (treeNode                       ), intent(inout), target       :: node             , nodeSatellite    </argument>
     <argument>double precision                                 , intent(in   ), dimension(3) :: positionCartesian, velocityCartesian</argument>
+    <argument>double precision                                 , intent(in   )               :: massPerturber                       </argument>
     <argument>type            (enumerationComponentTypeType   ), intent(in   ), optional     :: componentType                       </argument>
     <argument>type            (enumerationMassTypeType        ), intent(in   ), optional     :: massType                            </argument>
    </method>   

@@ -539,7 +539,7 @@ contains
     return
   end function sphericalSurfaceDensity
 
-  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity)
+  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -552,6 +552,7 @@ contains
     double precision                              , dimension(3)  :: sphericalChandrasekharIntegral
     class           (massDistributionSpherical   ), intent(inout) :: self
     class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding            , massDistributionPerturber
+    double precision                              , intent(in   ) :: massPerturber
     class           (coordinate                  ), intent(in   ) :: coordinates                          , velocity
     double precision                              , dimension(3)  :: velocityCartesian_
     double precision                              , parameter     :: XvMaximum                     =10.0d0
@@ -559,7 +560,7 @@ contains
     double precision                                              :: radius                               , velocity_                , &
          &                                                           density                              , velocityDispersion       , &
          &                                                           xV
-    !$GLC attributes unused :: massDistributionPerturber
+    !$GLC attributes unused :: massDistributionPerturber, massPerturber
     
     sphericalChandrasekharIntegral=0.0d0
     velocity_=velocity%rSpherical()

@@ -70,7 +70,7 @@ contains
     return
   end function cylindricalSymmetry
 
-  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,coordinates,velocity)
+  function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
     !!{
     Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
@@ -79,23 +79,11 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Linear_Algebra                  , only : vector                         , matrix             , assignment(=)
-
-
-    !! WORKAROUND
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-
-
-
     implicit none
-
-
-    !! WORKAROUND
-    logical :: warned=.false.
-    
-
     double precision                                   , dimension(3)  :: cylindricalChandrasekharIntegral
     class           (massDistributionCylindrical      ), intent(inout) :: self
     class           (massDistributionClass            ), intent(inout) :: massDistributionEmbedding                           , massDistributionPerturber
+    double precision                                   , intent(in   ) :: massPerturber
     class           (coordinate                       ), intent(in   ) :: coordinates                                         , velocity
     double precision                                   , dimension(3)  :: velocityCartesian_
     double precision                                   , parameter     :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
@@ -120,7 +108,7 @@ contains
          &                                                                frequencyCircularHalfMassRadius                      , frequencyEpicyclicHalfMassRadius, &
          &                                                                densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
          &                                                                velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
-         &                                                                factorSuppressionExtendedMass                        , extentPerturber
+         &                                                                factorSuppressionExtendedMass
     type            (matrix                           )                :: rotation
 
     coordinates_                                  =   coordinates
@@ -195,24 +183,7 @@ contains
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
     ! simply avoid extremely large accelerations for subhalo close to the disk plane when that subhalo is much more extended than
     ! the disk.
-
-    !! WORKAROUND - this is disabled until we have all components implementing massDistributions (as we need to include the dark matter here)
-    ! extentPerturber=massDistributionPerturber%radiusEnclosingMass(                     &
-    !      &                                                        massFractional=0.5d0 &
-    !      &                                                       )    
-    extentPerturber=1.0d-2
-    if (.not.warned) then
-       write (0,*) displayRed()//displayBold()//'WORKAROUND - can not compute extent of perturber for Chandrasekhar integral'//displayReset()
-       call sleep(10)
-       warned=.true.
-    end if
-    
-    if (extentPerturber > heightScale) then
-       factorSuppressionExtendedMass=+heightScale     &
-            &                        /extentPerturber
-    else
-       factorSuppressionExtendedMass=+1.0d0
-    end if
+    factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(heightScale)/massPerturber)
     ! Evaluate the integral.
     cylindricalChandrasekharIntegral=+density                                                     &
          &                           *velocityDistribution         %acceleration(coordinates_)    &
