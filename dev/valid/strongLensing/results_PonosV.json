@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 46.6666666666667,
-      "percentageBelow" : 53.3333333333333
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "surfaceDensity" : {
-      "percentageAbove" : 56.25,
       "percentageBelow" : 43.75,
+      "percentageAbove" : 56.25,
       "target" : 0.006
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "id" : "ae9ddd16decd3d03a25d12d10e5dd825de933cd8",
+      "id" : "4ad361755c0d321c89156b0980bb54b295e88eeb",
+      "message" : "feat: Include time of merging in data recorded for merged subhalos",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/4ad361755c0d321c89156b0980bb54b295e88eeb",
+      "timestamp" : "Mon, 10 Jun 2024 14:35:05 -0700",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "message" : "fix: Correct storage/retrieval of reduced emission line luminosity data to/from file",
-      "timestamp" : "Mon, 10 Jun 2024 08:49:48 -0700",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/ae9ddd16decd3d03a25d12d10e5dd825de933cd8"
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
+      }
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "slope" : {
+      "percentageBelow" : 53.3333333333333,
+      "percentageAbove" : 46.6666666666667,
+      "target" : 0.85
+   }
 }
