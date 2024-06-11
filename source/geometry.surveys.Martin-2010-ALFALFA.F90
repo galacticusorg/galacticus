@@ -141,14 +141,15 @@ contains
     return
   end subroutine martin2010ALFALFADestructor
 
-  double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
-    double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute, luminosity
+    double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute                        , &
+         &                                                                        luminosity                                            , starFormationRate
     integer                                          , intent(in   ), optional :: field
     ! The signal-to-noise limit used by Martin et al. (2010).
     double precision                                 , parameter               :: signalToNoise                    = 6.5d0
@@ -162,7 +163,7 @@ contains
     double precision                                 , parameter               :: massNormalization               =2.356d5
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
-    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})

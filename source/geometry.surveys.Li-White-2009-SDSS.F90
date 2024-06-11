@@ -178,21 +178,22 @@ contains
     return
   end subroutine liWhite2009SDSSDestructor
 
-  double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                               , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                      luminosity, starFormationRate
     integer                                        , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
     return
   end function liWhite2009SDSSDistanceMinimum
 
-  double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -200,10 +201,11 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
+    double precision                               , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                      luminosity, starFormationRate
     integer                                        , intent(in   ), optional :: field
     double precision                                                         :: redshift, logarithmicMass
-    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
