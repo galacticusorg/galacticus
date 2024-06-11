@@ -38,8 +38,8 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                            => null()
      class           (galacticStructureClass  ), pointer :: galacticStructure_                              => null()
      double precision                                    :: radiusVirialFraction
-     logical                                             :: recordMergedSubhaloProperties
-     integer                                             :: mergedSubhaloIDs             (keplerOrbitCount)
+     logical                                             :: recordMergedSubhaloProperties                            , recordFirstLevelOnly
+     integer                                             :: mergedSubhaloIDs             (keplerOrbitCount)          , nodeHierarchyLevelMaximumID
    contains
      !![
      <methods>
@@ -76,7 +76,7 @@ contains
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
     class           (galacticStructureClass                   ), pointer       :: galacticStructure_
     double precision                                                           :: radiusVirialFraction
-    logical                                                                    :: recordMergedSubhaloProperties
+    logical                                                                    :: recordMergedSubhaloProperties, recordFirstLevelOnly
 
     !![
     <inputParameter>
@@ -91,10 +91,16 @@ contains
       <description>If true, record the orbital properties of subhalo that merge.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>recordFirstLevelOnly</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, record only mergers with first-level subhalos relative to the host.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,recordMergedSubhaloProperties,darkMatterHaloScale_,galacticStructure_)
+    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -103,7 +109,7 @@ contains
     return
   end function satelliteMergingRadiusTriggerConstructorParameters
 
-  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,recordMergedSubhaloProperties,darkMatterHaloScale_,galacticStructure_) result(self)
+  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
     !!}
@@ -112,21 +118,22 @@ contains
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
     double precision                                           , intent(in   )         :: radiusVirialFraction
-    logical                                                    , intent(in   )         :: recordMergedSubhaloProperties
+    logical                                                    , intent(in   )         :: recordMergedSubhaloProperties, recordFirstLevelOnly
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     class           (galacticStructureClass                   ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="radiusVirialFraction, recordMergedSubhaloProperties, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusVirialFraction, recordMergedSubhaloProperties, recordFirstLevelOnly, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
     
     if (recordMergedSubhaloProperties) then
        !![
-       <addMetaProperty component="basic" name="mergedSubhaloTimeCurrent"      id="self%mergedSubhaloIDs(keplerOrbitTimeCurrent     %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"      id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"    id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloMassHost"         id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloRadius"           id="self%mergedSubhaloIDs(keplerOrbitRadius          %ID)" rank="1" isCreator="yes"/>
-       <addMetaProperty component="basic" name="mergedSubhaloRadiusPericenter" id="self%mergedSubhaloIDs(keplerOrbitRadiusPericenter%ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloTimeCurrent"                          id="self%mergedSubhaloIDs(keplerOrbitTimeCurrent     %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloTimeInitial"                          id="self%mergedSubhaloIDs(keplerOrbitTimeInitial     %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloMassSatellite"                        id="self%mergedSubhaloIDs(keplerOrbitMassSatellite   %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloMassHost"                             id="self%mergedSubhaloIDs(keplerOrbitMassHost        %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloRadius"                               id="self%mergedSubhaloIDs(keplerOrbitRadius          %ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="mergedSubhaloRadiusPericenter"                     id="self%mergedSubhaloIDs(keplerOrbitRadiusPericenter%ID)" rank="1" isCreator="yes"/>
+       <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum"          type="integer" id="self%nodeHierarchyLevelMaximumID"                               isCreator="no" />
        !!]
     end if
     return
@@ -209,38 +216,47 @@ contains
        ! Find the node to merge with.
        nodeHost  => node    %mergesWith()
        basicHost => nodeHost%basic     ()
-       ! Get the virial orbit of the halo about to merge.
-       orbit=satellite%virialOrbit()
-       ! Append the orbit data.
-       do i=1,5
-          select case (i)
-          case (1)
-             ID      =keplerOrbitTimeInitial     %ID
-             property=basic%timeLastIsolated()
-          case (2)
-             ID      =keplerOrbitTimeCurrent     %ID
-             property=basic%time            ()
-          case (3)
-             ID      =keplerOrbitMassSatellite   %ID
-             property=orbit%massSatellite   ()
-          case (4)
-             ID      =keplerOrbitMassHost        %ID
-             property=orbit%massHost        ()
-          case (5)
-             ID      =keplerOrbitRadius          %ID
-             property=orbit%radius          ()
-          case (6)
-             ID      =keplerOrbitRadiusPericenter%ID
-             property=orbit%radiusPericenter()
-          end select
-          propertyCurrent=basicHost%floatRank1MetaPropertyGet(self_%mergedSubhaloIDs(ID))
-          allocate(propertyNew(size(propertyCurrent)+1_c_size_t))
-          propertyNew(1_c_size_t:size(propertyCurrent))=propertyCurrent(:)
-          propertyNew(size(propertyNew))=property
-          call basicHost%floatRank1MetaPropertySet(self_%mergedSubhaloIDs(ID),propertyNew)
-          deallocate(propertyCurrent)
-          deallocate(propertyNew    )
-       end do
+       ! Only record if we are recording mergers from all levels of the hierarchy, or if this is a first level subhalo relative to the host.
+       if     (                                                                             &
+            &   .not.self_%recordFirstLevelOnly                                             &
+            &  .or.                                                                         &
+            &    basic    %integerRank0MetaPropertyGet(self_%nodeHierarchyLevelMaximumID)   &
+            &   ==                                                                          &
+            &    basicHost%integerRank0MetaPropertyGet(self_%nodeHierarchyLevelMaximumID)+1 &
+            & ) then
+          ! Get the virial orbit of the halo about to merge.
+          orbit=satellite%virialOrbit()
+          ! Append the orbit data.
+          do i=1,6
+             select case (i)
+             case (1)
+                ID      =keplerOrbitTimeInitial     %ID
+                property=basic%timeLastIsolated()
+             case (2)
+                ID      =keplerOrbitTimeCurrent     %ID
+                property=basic%time            ()
+             case (3)
+                ID      =keplerOrbitMassSatellite   %ID
+                property=orbit%massSatellite   ()
+             case (4)
+                ID      =keplerOrbitMassHost        %ID
+                property=orbit%massHost        ()
+             case (5)
+                ID      =keplerOrbitRadius          %ID
+                property=orbit%radius          ()
+             case (6)
+                ID      =keplerOrbitRadiusPericenter%ID
+                property=orbit%radiusPericenter()
+             end select
+             propertyCurrent=basicHost%floatRank1MetaPropertyGet(self_%mergedSubhaloIDs(ID))
+             allocate(propertyNew(size(propertyCurrent)+1_c_size_t))
+             propertyNew(1_c_size_t:size(propertyCurrent))=propertyCurrent(:)
+             propertyNew(size(propertyNew))=property
+             call basicHost%floatRank1MetaPropertySet(self_%mergedSubhaloIDs(ID),propertyNew)
+             deallocate(propertyCurrent)
+             deallocate(propertyNew    )
+          end do
+       end if
     end if
     return
   end subroutine mergerTrigger
