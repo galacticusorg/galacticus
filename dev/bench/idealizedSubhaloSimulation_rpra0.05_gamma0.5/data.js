@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718073617061,
+  "lastUpdate": 1718159532881,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -1111,6 +1111,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/4ad361755c0d321c89156b0980bb54b295e88eeb"
         },
         "date": 1718073616286,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "56d90f3a6cb4d70076de74229d29aa55319d6420",
+          "message": "feat: Allow recording of only (relative) first level merged satellite orbits",
+          "timestamp": "2024-06-11T13:25:47-07:00",
+          "tree_id": "af1072bc27a20347e53265fd0dbc5ac44fe517ab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/56d90f3a6cb4d70076de74229d29aa55319d6420"
+        },
+        "date": 1718159531815,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
