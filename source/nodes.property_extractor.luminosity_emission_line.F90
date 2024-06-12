@@ -27,7 +27,7 @@
   use :: Star_Formation_Histories       , only : starFormationHistoryClass
   use :: HII_Region_Luminosity_Functions, only : hiiRegionLuminosityFunctionClass
   use :: Star_Formation_Histories       , only : starFormationHistoryClass
-  
+  use :: hii_Region_Density_Distributions,only : hiiRegionDensityDistributionClass  
   type:: emissionLineLuminosityTemplate
      !!{
      Type used to store luminosity templates for emission lines.
@@ -54,6 +54,7 @@
      class           (starFormationHistoryClass       ), pointer                       :: starFormationHistory_                => null()
      class           (outputTimesClass                ), pointer                       :: outputTimes_                         => null()
      class           (hiiRegionLuminosityFunctionClass), pointer                       :: hiiRegionLuminosityFunction_         => null()
+     class           (hiiRegionDensityDistributionClass), pointer                      :: hiiRegionDensityDistribution_         => null()
      type            (enumerationComponentTypeType    )                                :: component
      integer                                                                           :: countWavelengths                             , countLines
      type            (varying_string                  ), allocatable, dimension(:    ) :: lineNames                                    , names_                      , &
@@ -61,12 +62,12 @@
      double precision                                  , allocatable, dimension(:    ) :: metallicityBoundaries                        , metallicities               , &
           &                                                                               ages
      double precision                                  , allocatable, dimension(:,:,:) :: luminositiesReduced
-     double precision                                  , allocatable, dimension(:,:  ) :: ionizingLuminosityHydrogenNormalized
+     double precision                                  , allocatable, dimension(:,:  ) :: IonizingFluxHydrogenNormalized
      type            (emissionLineLuminosityTemplate  ), allocatable, dimension(:    ) :: templates
      double precision                                                                  :: metallicityPopulationMinimum                 , metallicityPopulationMaximum, &
           &                                                                               agePopulationMaximum                         , resolution                  , &
           &                                                                               factorWavelength                             , toleranceRelative           , &
-          &                                                                               ionizingLuminosityHydrogenMean
+          &                                                                               IonizingFluxHydrogenMean
      logical                                                                           :: useLuminosityTemplates
      type            (varying_string                  )                                :: cloudyTableFileName
    contains
@@ -112,6 +113,7 @@ contains
     class           (starFormationHistoryClass                  ), pointer                     :: starFormationHistory_
     class           (outputTimesClass                           ), pointer                     :: outputTimes_
     class           (hiiRegionLuminosityFunctionClass           ), pointer                     :: hiiRegionLuminosityFunction_
+    class           (hiiRegionDensityDistributionClass          ), pointer                     :: hiiRegionDensityDistribution_
     type            (varying_string                             ), allocatable  , dimension(:) :: lineNames
     type            (varying_string                             )                              :: component                   , cloudyTableFileName
     double precision                                                                           :: toleranceRelative
@@ -120,7 +122,7 @@ contains
     !![
     <inputParameter>
       <name>cloudyTableFileName</name>
-      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5')</defaultValue>
+      <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier_nH.hdf5')</defaultValue>
       <source>parameters</source>
       <description>The file of emission line luminosities to use.</description>
     </inputParameter>
@@ -143,18 +145,20 @@ contains
     <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
     <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
     <objectBuilder class="hiiRegionLuminosityFunction" name="hiiRegionLuminosityFunction_" source="parameters"/>
+    <objectBuilder class="hiiRegionDensityDistribution" name="hiiRegionDensityDistribution_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_)
+    self=nodePropertyExtractorLuminosityEmissionLine(cloudyTableFileName,enumerationComponentTypeEncode(char(component),includesPrefix=.false.),lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationHistory_"       />
     <objectDestructor name="outputTimes_"                />
     <objectDestructor name="hiiRegionLuminosityFunction_"/>
+    <objectDestructor name="hiiRegionDensityDistribution_"/>
     !!]
     return
   end function emissionLineLuminosityConstructorParameters
 
-  function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_) result(self)
+  function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionDensityDistribution_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
     !!}
@@ -175,17 +179,19 @@ contains
     class           (starFormationHistoryClass                  ), intent(in   ), target             :: starFormationHistory_
     class           (outputTimesClass                           ), intent(in   ), target             :: outputTimes_
     class           (hiiRegionLuminosityFunctionClass           ), intent(in   ), target             :: hiiRegionLuminosityFunction_
+    class           (hiiRegionDensityDistributionClass         ), intent(in   ), target             :: hiiRegionDensityDistribution_
     double precision                                             , intent(in   )                     :: toleranceRelative    
     double precision                                             ,                                   :: deltaIonizingFluxHydrogen         , rateHydrogenIonizingPhotonsMinimum, &
-         &                                                                                              rateHydrogenIonizingPhotonsMaximum 
-    double precision                                             , allocatable  , dimension(:      ) :: ionizingFluxHydrogen
-    double precision                                             , allocatable  , dimension(:,:,:,:) :: luminosities
+         &                                                                                              rateHydrogenIonizingPhotonsMaximum,            &
+         &                                                                                              densityHydrogenMinimum, densityHydrogenMaximum,&
+         &                                                                                              deltaDensityHydrogen 
+    double precision                                             , allocatable  , dimension(:      ) :: ionizingFluxHydrogen, densityHydrogen
+    double precision                                             , allocatable  , dimension(:,:,:,:,:) :: luminosities
     type            (hdf5Object                                 )                                    :: emissionLinesFile                 , lines
-    integer                                                                                          :: i
+    integer                                                                                          :: i, k
     !![
-    <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_,*hiiRegionLuminosityFunction_"/>
+    <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_,*hiiRegionLuminosityFunction_,*hiiRegionDensityDistribution_"/>
     !!]
-    
     if     (                                                                                                    &
          &   component /= componentTypeDisk                                                                     &
          &  .and.                                                                                               &
@@ -203,7 +209,8 @@ contains
     call emissionLinesFile%readDataset('metallicity'                         ,self%metallicities                       )
     call emissionLinesFile%readDataset('age'                                 ,self%ages                                )
     call emissionLinesFile%readDataset('ionizingLuminosityHydrogen'          ,     ionizingFluxHydrogen                )
-    call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized',self%ionizingLuminosityHydrogenNormalized)
+    call emissionLinesFile%readDataset('ionizingLuminosityHydrogenNormalized',self%IonizingFluxHydrogenNormalized      )
+    call emissionLinesFile%readDataset('densityHydrogen'                     ,densityHydrogen                          )
     self%metallicityPopulationMinimum=minval(self%metallicities)
     self%metallicityPopulationMaximum=maxval(self%metallicities)
     self%agePopulationMaximum        =maxval(self%ages         )
@@ -212,7 +219,8 @@ contains
          &   (                                 &
          &    size(self%ages                ), &
          &    size(self%metallicities       ), &
-         &    size(     ionizingFluxHydrogen), &
+         &    size(ionizingFluxHydrogen     ), &
+         &    size(densityHydrogen          ), &
          &    size(     lineNames           )  &
          &   )                                 &
          &  )
@@ -226,7 +234,7 @@ contains
          &  )
     self%luminositiesReduced=0.0d0
     do i=1,size(lineNames)
-       call lines%readDatasetStatic(char(lineNames(i)),luminosities(:,:,:,i))      
+       call lines%readDatasetStatic(char(lineNames(i)),luminosities(:,:,:,:,i))      
     end do
     call lines            %close()
     call emissionLinesFile%close()
@@ -235,21 +243,29 @@ contains
     ! luminosities.
     deltaIonizingFluxHydrogen=+ionizingFluxHydrogen(2) &
          &                    /ionizingFluxHydrogen(1)
+    deltaDensityHydrogen=densityHydrogen(2) &
+         &                   /densityHydrogen(1)
     do i=1,size(ionizingFluxHydrogen)
-       rateHydrogenIonizingPhotonsMinimum=ionizingFluxHydrogen(i)/sqrt(deltaIonizingFluxHydrogen) 
+       rateHydrogenIonizingPhotonsMinimum=ionizingFluxHydrogen(i)/sqrt(deltaIonizingFluxHydrogen)
        rateHydrogenIonizingPhotonsMaximum=ionizingFluxHydrogen(i)*sqrt(deltaIonizingFluxHydrogen)
-       ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
-       self%luminositiesReduced=+self%luminositiesReduced                                                                                                                &
-            &                   +self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &  
-            &                   *                                  luminosities                  (:,:,i,:)
+       do k=1,size(densityHydrogen)
+          densityHydrogenMinimum=densityHydrogen(k)/sqrt(deltaDensityHydrogen)
+          densityHydrogenMaximum=densityHydrogen(k)*sqrt(deltaDensityHydrogen)
+          ! Accumulate the luminosity weighted by the cumulative fraction of HII regions in this luminosity interval.
+          self%luminositiesReduced=+self%luminositiesReduced                                                                                                                &
+               &                   +self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
+               &      *self%hiiRegionDensityDistribution_%cumulativeDensityDistribution(densityHydrogenMinimum, densityHydrogenMaximum)                                     &
+               &                   *luminosities(:,:,i,k,:)
+       end do
     end do
+
     ! Normalize reduced luminosities to the total fraction of HII regions in the luminosity interval spanned by the table. Also,
     ! find the mean ionizing luminosity of HII regions in this luminosity interval.
-    rateHydrogenIonizingPhotonsMinimum =+ionizingFluxHydrogen(                         1)/sqrt(deltaIonizingFluxHydrogen) 
+    rateHydrogenIonizingPhotonsMinimum =+ionizingFluxHydrogen(                        1 )/sqrt(deltaIonizingFluxHydrogen) 
     rateHydrogenIonizingPhotonsMaximum =+ionizingFluxHydrogen(size(ionizingFluxHydrogen))*sqrt(deltaIonizingFluxHydrogen)
     self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                &
          &                              /self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
-    self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_%cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    self%IonizingFluxHydrogenMean=+self%hiiRegionLuminosityFunction_%cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
     ! Construct property names and descriptions.
     allocate(self%names_       (size(lineNames)))
     allocate(self%descriptions_(size(lineNames)))
@@ -642,8 +658,8 @@ contains
          do iMetallicity=0,1
            integrand=+integrand                                                                                                              &
                  &   +self%luminositiesReduced                 (interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity),iLine) &
-                 &   *self%ionizingLuminosityHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity)      ) &
-                 &   /self%ionizingLuminosityHydrogenMean                                                                                    &
+                 &   *self%IonizingFluxHydrogenNormalized(interpolateIndexTime(iTime),interpolateIndexMetallicity(iMetallicity)      ) &
+                 &   /self%IonizingFluxHydrogenMean                                                                                    &
                  &   *     interpolateFactorTime                                    (iTime)                                                  &
                  &   *     interpolateFactorMetallicity                                                                (iMetallicity)
          end do

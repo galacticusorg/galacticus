@@ -37,12 +37,12 @@ module HII_Region_Density_Distributions
    <description>
     Class providing models for the distribution of HII region hydrogen density.
    </description>
-   <default>deltaFunction</default>
-   <method name="cumulativeDensityFunction" >
+   <default>logNormal</default>
+   <method name="cumulativeDensityDistribution">
     <description>Return the cumulative distribution of HII region hydrogen density between a minimum and maximum $n_\mathrm{H}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: densityHydrogenMinimum, densityHydrogenMaximum</argument>
+    <argument>double precision, intent(in   ) :: densityHydrogenMin, densityHydrogenMax</argument>
    </method>
   </functionClass>
   !!]
