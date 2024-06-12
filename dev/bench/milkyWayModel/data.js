@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718073605251,
+  "lastUpdate": 1718159508150,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ea48a439dc6908397670624edf80cac0e0f2c486",
-          "message": "feat: Add the `rate()` method to the `mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` class",
-          "timestamp": "2023-08-14T20:55:05Z",
-          "tree_id": "d13bcaa10158865edd50e753fddabd74c9438e16",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ea48a439dc6908397670624edf80cac0e0f2c486"
-        },
-        "date": 1692069745202,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 192.3,
-            "unit": "seconds",
-            "range": 0.905170702132917
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0467456539366,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "56d90f3a6cb4d70076de74229d29aa55319d6420",
+          "message": "feat: Allow recording of only (relative) first level merged satellite orbits",
+          "timestamp": "2024-06-11T13:25:47-07:00",
+          "tree_id": "af1072bc27a20347e53265fd0dbc5ac44fe517ab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/56d90f3a6cb4d70076de74229d29aa55319d6420"
+        },
+        "date": 1718159507275,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 411.478,
+            "unit": "seconds",
+            "range": 0.55044127752535
           }
         ]
       }
