@@ -110,10 +110,10 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
         massDistribution_ => massDistributionTotal
      else if (includeStars                 ) then
         ! Return just the stellar component.
-        massDistribution_ => massDistributionStellar_
+        massDistribution_ => massDistributionStellar
      else if (                   includeGas) then
         ! Return just the gas component.
-        massDistribution_ => massDistributionGas_
+        massDistribution_ => massDistributionGas
      end if
   end if
   return
