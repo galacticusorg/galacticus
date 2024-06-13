@@ -119,6 +119,9 @@ contains
        darkMatterProfileRadiusInteractionSIDMExtract=0.0d0
     end select
     return
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
   end function darkMatterProfileRadiusInteractionSIDMExtract
 
   function darkMatterProfileRadiusInteractionSIDMName(self)
