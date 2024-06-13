@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Sachi Weerasooriya
 
   !!{
-  Implementation of a class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
+  Implements of a class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
   !!}
   
   !![
@@ -36,12 +36,12 @@
   !!]
   type, extends(hiiRegionDensityDistributionClass) :: hiiRegionDensityDistributionDeltaFunction
      !!{
-     Implementation of a density distribution to a delta function
+     A class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
      !!}
      private
      double precision :: densityHydrogen
    contains
-     procedure :: cumulativeDensityFunction => deltaFunctionCumulativeDensityFunction
+     procedure :: cumulativeDensityDistribution => deltaFunctionCumulativeDensityDistribution
   end type hiiRegionDensityDistributionDeltaFunction
 
   interface hiiRegionDensityDistributionDeltaFunction
@@ -94,7 +94,7 @@ contains
     return
   end function deltaFunctionConstructorInternal
 
-  double precision function deltaFunctionCumulativeDensityFunction(self,densityHydrogenMinimum,densityHydrogenMaximum) result(distributionFunction)
+  double precision function deltaFunctionCumulativeDensityDistribution(self,densityHydrogenMinimum,densityHydrogenMaximum) result(distributionFunction)
     !!{
     Compute the cumulative distribution function of the hydrogen density in HII regions. A delta-function distribution is assumed.
     !!}
@@ -107,10 +107,10 @@ contains
          &  .and.                                           &
          &   self%densityHydrogen <= densityHydrogenMaximum &
          & ) then
-       distributionFunction=1.0d0
+       distributionFunction=+1.0d0
     else
-       distributionFunction=0.0d0
+       distributionFunction=+0.0d0
     end if    
     return
-  end function deltaFunctionCumulativeDensityFunction
+  end function deltaFunctionCumulativeDensityDistribution
 

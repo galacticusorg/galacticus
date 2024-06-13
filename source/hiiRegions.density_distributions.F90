@@ -42,7 +42,7 @@ module HII_Region_Density_Distributions
     <description>Return the cumulative distribution of HII region hydrogen density between a minimum and maximum $n_\mathrm{H}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: densityHydrogenMin, densityHydrogenMax</argument>
+    <argument>double precision, intent(in   ) :: densityHydrogenMinimum, densityHydrogenMaximum</argument>
    </method>
   </functionClass>
   !!]
