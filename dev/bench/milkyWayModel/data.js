@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718159518071,
+  "lastUpdate": 1718318121117,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "2081039481ead7c61f9b56dc67890ecf32755e16",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2023-08-16T00:18:01Z",
-          "tree_id": "3df04dc9fbd5ead8203330071042a65f7523f28a",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2081039481ead7c61f9b56dc67890ecf32755e16"
-        },
-        "date": 1692156163571,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 193.282,
-            "unit": "seconds",
-            "range": 0.0795210663877842
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9226300554549,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1549918dad1ef0fa23d15cb49e152059c518559d",
+          "message": "Merge pull request #626 from galacticusorg/featJHLFAnalysis\n\nAdd an `outputAnalysis` class to compute high-z H and J-band luminosity functions",
+          "timestamp": "2024-06-13T15:36:26Z",
+          "tree_id": "98180f3e3a40e91a2134b1221370e6f76995f38f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1549918dad1ef0fa23d15cb49e152059c518559d"
+        },
+        "date": 1718318120340,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 511.806,
+            "unit": "seconds",
+            "range": 0.830164080164718
           }
         ]
       }
