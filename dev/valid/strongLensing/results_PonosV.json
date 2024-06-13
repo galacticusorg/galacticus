@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 46.875,
+      "percentageBelow" : 53.125
+   },
    "commit" : {
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
+         "email" : "abensonca@gmail.com"
       },
-      "message" : "feat: Allow recording of only (relative) first level merged satellite orbits",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/56d90f3a6cb4d70076de74229d29aa55319d6420",
-      "id" : "56d90f3a6cb4d70076de74229d29aa55319d6420",
-      "timestamp" : "Tue, 11 Jun 2024 13:25:47 -0700"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/1549918dad1ef0fa23d15cb49e152059c518559d",
+      "message" : "Merge pull request #626 from galacticusorg/featJHLFAnalysis",
+      "timestamp" : "Thu, 13 Jun 2024 15:36:26 +0000",
+      "id" : "1549918dad1ef0fa23d15cb49e152059c518559d"
    },
-   "surfaceDensity" : {
-      "percentageAbove" : 56.25,
-      "target" : 0.006,
-      "percentageBelow" : 43.75
-   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
-      "percentageAbove" : 37.5,
-      "percentageBelow" : 62.5,
-      "target" : 0.85
+      "target" : 0.85,
+      "percentageAbove" : 35.7142857142857,
+      "percentageBelow" : 64.2857142857143
    }
 }
