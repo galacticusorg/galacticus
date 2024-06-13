@@ -135,7 +135,10 @@ contains
     densityMidPlane             =+self%density       (coordinatesMidplane        )
     densitySurface              =+self%surfaceDensity(coordinatesMidplane        )
     densitySurfaceRadiusHalfMass=+self%surfaceDensity(coordinatesMidplaneHalfMass)
-    if (density <= 0.0d0) return
+    if (density <= 0.0d0) then
+       cylindricalChandrasekharIntegral=0.0d0
+       return
+    end if
     heightScale                 =+0.5d0           &
          &                       *densitySurface  &
          &                       /densityMidPlane
@@ -192,7 +195,6 @@ contains
     return
   end function cylindricalChandrasekharIntegral
 
-  
   double precision function cylindricalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Computes radial moments of the density in cylindrical mass distributions.
