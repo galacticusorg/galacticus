@@ -2265,7 +2265,6 @@ contains
     use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType , massTypeGaseous, &
          &                                    componentTypeHotHalo
     use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionClass , massDistributionMatches_
-use :: iso_varying_string, only : char
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistribution_
     class  (kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
