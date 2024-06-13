@@ -367,6 +367,11 @@ contains
          &                                                                           iMod
     double precision                                                              :: radiusUpperBound, massEnclosed
 
+    ! Handle non-positive radii.
+    if (radius <= 0.0d0) then
+       sphericalAdiabaticGnedin2004RadiusInitial=0.0d0
+       return
+    end if
     ! Check for a previously computed solution.
     if (self%radiusPreviousIndexMaximum > 0 .and. any(self%radiusPrevious(1:self%radiusPreviousIndexMaximum) == radius)) then
        sphericalAdiabaticGnedin2004RadiusInitial=0.0d0
