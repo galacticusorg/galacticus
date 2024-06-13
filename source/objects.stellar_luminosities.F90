@@ -1160,6 +1160,9 @@ contains
        write (label,'(f7.4)') redshiftBand
        message=message//' : '//label
     end if
+    if (present(postprocessChain)) then
+       message=message//' : '//postprocessChain
+    end if
     message=message//']'
     do i=1,luminosityCount
        message=message//char(10)//i//" of "//luminosityCount

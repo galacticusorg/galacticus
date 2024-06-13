@@ -112,15 +112,16 @@ contains
     return
   end function localGroupClassicalFieldCount
 
-  double precision function localGroupClassicalDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function localGroupClassicalDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryLocalGroupClassical), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! For galaxies above the mass threshold, assume they can be detected out to the maximum specified distance. Galaxies below the
     ! threshold are never detected.

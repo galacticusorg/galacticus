@@ -36,22 +36,28 @@ module Kepler_Orbits
   <enumeration>
    <name>keplerOrbit</name>
    <description>Properties of Kepler orbit objects.</description>
+   <indexing>1</indexing>
+   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
-   <entry label="masses"             />
-   <entry label="massHost"           />
-   <entry label="specificReducedMass"/>
-   <entry label="radius"             />
-   <entry label="theta"              />
-   <entry label="phi"                />
-   <entry label="epsilon"            />
-   <entry label="radiusPericenter"   />
-   <entry label="radiusApocenter"    />
-   <entry label="velocityRadial"     />
-   <entry label="velocityTangential" />
-   <entry label="energy"             />
-   <entry label="angularMomentum"    />
-   <entry label="eccentricity"       />
-   <entry label="semiMajorAxis"      />
+   <decodeFunction>yes</decodeFunction>
+   <entry label="masses"              description="The masses of the orbiting bodies."                     />
+   <entry label="massSatellite"       description="The mass of the satellite body."                        />
+   <entry label="massHost"            description="The mass of the host body."                             />
+   <entry label="specificReducedMass" description="The specific reduced mass of the orbiting body."        />
+   <entry label="radius"              description="The initial radius of the orbit."                       />
+   <entry label="theta"               description="The initial polar angle, theta, of the orbit."              />
+   <entry label="phi"                 description="The initial azimuthal angle, phi, of the orbit."          />
+   <entry label="epsilon"             description="The initial rotation angle, epsilon, of the orbital velocity."/>
+   <entry label="radiusPericenter"    description="The orbital pericenter radius."                         />
+   <entry label="radiusApocenter"     description="The orbital apocenter radius."                          />
+   <entry label="velocityRadial"      description="The initial radial velocity of the orbit."              />
+   <entry label="velocityTangential"  description="The initial tangential velocity of the orbit."          />
+   <entry label="energy"              description="The orbital energy."                                    />
+   <entry label="angularMomentum"     description="The orbital angular momentum"                           />
+   <entry label="eccentricity"        description="The orbital eccentricity."                              />
+   <entry label="semiMajorAxis"       description="The semi-major axis of the orbit."                      />
+   <entry label="timeInitial"         description="The time at which the orbit was initialized."           />
+   <entry label="timeCurrent"         description="The current time for the orbit."                        />
   </enumeration>
   !!]
 
@@ -71,7 +77,7 @@ module Kepler_Orbits
      private
      double precision :: massHostValue        , specificReducedMassValue
      double precision :: radiusApocenterValue , radiusPericenterValue   , &
-          &              radiusValue
+          &              radiusValue          , massSatelliteValue
      double precision :: velocityRadialValue  , velocityTangentialValue
      double precision :: thetaValue           , phiValue                , &
           &              epsilonValue
@@ -117,6 +123,7 @@ module Kepler_Orbits
        <method description="Sets the angular momentum of an orbit." method="angularMomentumSet" />
        <method description="Sets the semi-major axis of an orbit." method="semiMajorAxisSet" />
        <method description="Returns the host mass of an orbit." method="massHost" />
+       <method description="Returns the satellite mass of an orbit." method="massSatellite" />
        <method description="Returns the velocity scale of an orbit." method="velocityScale" />
        <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
        <method description="Returns the radius of an orbit." method="radius" />
@@ -162,6 +169,7 @@ module Kepler_Orbits
      procedure :: semiMajorAxisSet      => Kepler_Orbits_Semi_Major_Axis_Set
      procedure :: specificReducedMass   => Kepler_Orbits_Specific_Reduced_Mass
      procedure :: massHost              => Kepler_Orbits_Host_Mass
+     procedure :: massSatellite         => Kepler_Orbits_Satellite_Mass
      procedure :: velocityScale         => Kepler_Orbits_Velocity_Scale
      procedure :: radius                => Kepler_Orbits_Radius
      procedure :: theta                 => Kepler_Orbits_Theta
@@ -187,7 +195,7 @@ module Kepler_Orbits
   end interface keplerOrbit
 
   ! A null orbit.
-  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
+  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
 
 contains
 
@@ -432,6 +440,7 @@ contains
     ! Set the mass factor and flag that is set.
     orbit%specificReducedMassValue=1.0d0/(1.0d0+massSatellite/massHost)
     orbit%massHostValue           =massHost
+    orbit%massSatelliteValue      =massSatellite
     orbit%massesIsSet             =.true.
     return
   end subroutine Kepler_Orbits_Masses_Set
@@ -655,6 +664,19 @@ contains
     Kepler_Orbits_Specific_Reduced_Mass=orbit%specificReducedMassValue
     return
   end function Kepler_Orbits_Specific_Reduced_Mass
+
+  double precision function Kepler_Orbits_Satellite_Mass(orbit)
+    !!{
+    Return the mass for this orbit.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(keplerOrbit), intent(inout) :: orbit
+
+    if (.not.orbit%massesIsSet) call Error_Report('satellite mass has not been set for this orbit'//{introspection:location})
+    Kepler_Orbits_Satellite_Mass=orbit%massSatelliteValue
+    return
+  end function Kepler_Orbits_Satellite_Mass
 
   double precision function Kepler_Orbits_Host_Mass(orbit)
     !!{

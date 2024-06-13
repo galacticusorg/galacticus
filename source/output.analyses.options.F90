@@ -42,9 +42,10 @@ module Output_Analyses_Options
   <enumeration>
    <name>outputAnalysisPropertyQuantity</name>
    <description>Property quantities.</description>
-   <entry label="unknown"   />
-   <entry label="mass"      />
-   <entry label="luminosity"/>
+   <entry label="unknown"          />
+   <entry label="mass"             />
+   <entry label="starFormationRate"/>
+   <entry label="luminosity"       />
   </enumeration>
   !!]
 
