@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718318116623,
+  "lastUpdate": 1718318126188,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c71a0f05613948ac93ffbf2d36742543f5dba130",
-          "message": "Merge pull request #449 from galacticusorg/projectedHalos\n\nImplement projected mass profile calculations",
-          "timestamp": "2023-08-17T02:17:29Z",
-          "tree_id": "b0c21707056ee797cf7cd8b0c916bc2d3675cac9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c71a0f05613948ac93ffbf2d36742543f5dba130"
-        },
-        "date": 1692249712773,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5486581678349,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.4253490900446,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 25236.854696677,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8733,45 @@ window.BENCHMARK_DATA = {
             "value": 52.04,
             "unit": "seconds",
             "range": 0.0844985206972684
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1549918dad1ef0fa23d15cb49e152059c518559d",
+          "message": "Merge pull request #626 from galacticusorg/featJHLFAnalysis\n\nAdd an `outputAnalysis` class to compute high-z H and J-band luminosity functions",
+          "timestamp": "2024-06-13T15:36:26Z",
+          "tree_id": "98180f3e3a40e91a2134b1221370e6f76995f38f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1549918dad1ef0fa23d15cb49e152059c518559d"
+        },
+        "date": 1718318125065,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.857941800056,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 10.5667531553512,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20571.3672481369,
+            "unit": "-logℒ"
           }
         ]
       }
