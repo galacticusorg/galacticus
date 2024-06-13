@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Sachi Weerasooriya
 
   !!{
-  Implements of a class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
+  Implements a class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
   !!}
   
   !![
