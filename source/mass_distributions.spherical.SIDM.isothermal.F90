@@ -212,8 +212,8 @@ contains
     type(massDistributionSphericalSIDMIsothermal), intent(inout) :: self
     
     !![
-    <objectDestcutor name="self%massDistribution_"  />
-    <objectDestcutor name="self%darkMatterParticle_"/>
+    <objectDestructor name="self%massDistribution_"  />
+    <objectDestructor name="self%darkMatterParticle_"/>
     !!]
     return
   end subroutine sphericalSIDMIsothermalDestructor

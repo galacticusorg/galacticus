@@ -153,8 +153,8 @@ contains
     type(massDistributionSphericalAccretionFlow), intent(inout) :: self
     
     !![
-    <objectDestcutor name="self%massDistribution_"             />
-    <objectDestcutor name="self%massDistributionAccretionFlow_"/>
+    <objectDestructor name="self%massDistribution_"             />
+    <objectDestructor name="self%massDistributionAccretionFlow_"/>
     !!]
     return
   end subroutine sphericalAccretionFlowDestructor

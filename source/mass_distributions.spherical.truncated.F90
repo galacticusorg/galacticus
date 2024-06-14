@@ -156,7 +156,7 @@ contains
     type(massDistributionSphericalTruncated), intent(inout) :: self
     
     !![
-    <objectDestcutor name="self%massDistribution_"/>
+    <objectDestructor name="self%massDistribution_"/>
     !!]
     return
   end subroutine sphericalTruncatedDestructor

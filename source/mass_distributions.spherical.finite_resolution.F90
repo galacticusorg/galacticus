@@ -140,7 +140,7 @@ contains
     type(massDistributionSphericalFiniteResolution), intent(inout) :: self
     
     !![
-    <objectDestcutor name="self%massDistribution_"/>
+    <objectDestructor name="self%massDistribution_"/>
     !!]
     return
   end subroutine sphericalFiniteResolutionDestructor

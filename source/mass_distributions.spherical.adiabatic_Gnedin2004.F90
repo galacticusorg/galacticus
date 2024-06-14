@@ -289,8 +289,8 @@ contains
     type(massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
     
     !![
-    <objectDestcutor name="self%massDistribution_"       />
-    <objectDestcutor name="self%massDistributionBaryonic"/>
+    <objectDestructor name="self%massDistribution_"       />
+    <objectDestructor name="self%massDistributionBaryonic"/>
     !!]
     return
   end subroutine sphericalAdiabaticGnedin2004Destructor
@@ -307,6 +307,9 @@ contains
     self%massDistributionBaryonic      => massDistributionBaryonic
     self%darkMatterDistributedFraction =  darkMatterDistributedFraction
     self%massFractionInitial           =  massFractionInitial
+    !![
+    <referenceCountIncrement owner="self" object="massDistributionBaryonic"/>
+    !!]
     return
   end subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent
   
