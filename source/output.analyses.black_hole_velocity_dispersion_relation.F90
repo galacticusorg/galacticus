@@ -89,21 +89,21 @@ contains
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
-      <defaultValue>[0.09d0]</defaultValue>
+      <defaultValue>[0.0d0]</defaultValue>
       <description>The coefficients of the random error polynomial.</description>
     </inputParameter>
     <inputParameter>
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
-      <defaultValue>0.09d0</defaultValue>
+      <defaultValue>0.01d0</defaultValue>
       <description>The minimum random error for velocity dispersions.</description>
     </inputParameter>
     <inputParameter>
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
-      <defaultValue>0.09d0</defaultValue>
+      <defaultValue>0.01d0</defaultValue>
       <description>The minimum random error for velocity dispersions.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -232,7 +232,7 @@ contains
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilter_                                       )
     !![
-    <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterSpheroidStellarMass              (massThreshold=1.0d8                                                       )"/>
+    <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterSpheroidStellarMass              (massThreshold=1.0d4                                                       )"/>
     !!]
      ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
