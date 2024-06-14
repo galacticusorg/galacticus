@@ -123,6 +123,7 @@ module Kepler_Orbits
        <method description="Sets the angular momentum of an orbit." method="angularMomentumSet" />
        <method description="Sets the semi-major axis of an orbit." method="semiMajorAxisSet" />
        <method description="Returns the host mass of an orbit." method="massHost" />
+       <method description="Returns the satellite mass of an orbit." method="massSatellite" />
        <method description="Returns the velocity scale of an orbit." method="velocityScale" />
        <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
        <method description="Returns the radius of an orbit." method="radius" />
