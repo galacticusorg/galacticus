@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718318126188,
+  "lastUpdate": 1718344155122,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "2e4d4ad34084440a26bcdfadc33601a4f16e53d7",
-          "message": "fix: Remove OpenMP locks from `accretionDisksADAF` class\n\nThis are obsolete (and have been for a long time) as the tabulated solutions are now stored in each object of this class (and so are not shared).",
-          "timestamp": "2023-08-21T15:29:58-07:00",
-          "tree_id": "437fdaefcaddcf9efc219bb970f048b1e95bab2e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2e4d4ad34084440a26bcdfadc33601a4f16e53d7"
-        },
-        "date": 1692668813853,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 57.123,
-            "unit": "seconds",
-            "range": 0.0704137770608578
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20571.3672481369,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f5121c76074bc6d3a3dd7e9a8116d97be82b2dde",
+          "message": "Merge pull request #627 from sachiwee/Galacticus_nHrange\n\nAdd summation over HII region n_H densities",
+          "timestamp": "2024-06-14T00:49:15Z",
+          "tree_id": "4bbec27f43958266fc12d4f04858d65126567ff0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f5121c76074bc6d3a3dd7e9a8116d97be82b2dde"
+        },
+        "date": 1718344153137,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.627,
+            "unit": "seconds",
+            "range": 0.0494782780607401
           }
         ]
       }
