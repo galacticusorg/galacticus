@@ -190,7 +190,7 @@ contains
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     integer         (c_size_t                                           )                                :: iBin                                                      , binCount
     !![
-    <constructurAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_, *galacticStructure_"/>
     !!]
     
     ! Construct the target data.
