@@ -234,6 +234,7 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
+    type            (varying_string                                        )               , dimension(1)   :: radiusSpecifier
     !![
     <constructorAssign variables="*outputTimes_, *galacticStructure_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
@@ -320,25 +321,26 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                                                                          )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                               )"/>
     !!]
     ! Create a velocity dispersion weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
+    radiusSpecifier(1)=var_str('stellarMassFraction{0.5}:all:galactic:lineOfSight:1.0')
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorVelocityDispersion        ([var_str('stellarMassFraction{0.5}:all:galactic:lineOfSight:1.0')],.false.,.false.,toleranceRelative,darkMatterHaloScale_,galacticStructure_)"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorVelocityDispersion        (radiusSpecifier,.false.,.false.,toleranceRelative,darkMatterHaloScale_,galacticStructure_        )"/>
     !!]
     allocate(outputAnalysisWeightPropertyScalarizer_               )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyScalarizer_"                 constructor="nodePropertyExtractorScalarizer               (1,1,outputAnalysisWeightPropertyExtractor_                                                                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyScalarizer_"                 constructor="nodePropertyExtractorScalarizer               (1,1,outputAnalysisWeightPropertyExtractor_                                                        )"/>
     !!]
     ! Build a size weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(velocityDispersionErrorPolynomialZeroPoint,velocityDispersionSystematicErrorPolynomialCoefficient                                           )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(velocityDispersionErrorPolynomialZeroPoint,velocityDispersionSystematicErrorPolynomialCoefficient )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                                            )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                  )"/>
     !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
@@ -346,16 +348,16 @@ contains
     weightPropertyOperators_%next%operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                                                                   )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                         )"/>
     !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"                   constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                                           )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"                   constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                 )"/>
     !!]
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"       constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint              ,systematicErrorPolynomialCoefficient                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"       constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint              ,systematicErrorPolynomialCoefficient                                )"/>
     !!]
     allocate(operators_     )
     allocate(operators_%next)
@@ -363,7 +365,7 @@ contains
     operators_%next%operator_ => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_"                        constructor="outputAnalysisPropertyOperatorSequence         (operators_                                                                                                                                 )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                        constructor="outputAnalysisPropertyOperatorSequence         (operators_                                                                                       )"/>
     !!]
     allocate(outputAnalysisPropertyUnoperator_               )
     !![
@@ -516,6 +518,7 @@ contains
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
     <objectDestructor name="galacticFilterHighPass_"                               />
+    <objectDestructor name="galacticFilterSurveyGeometry_"                         />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]
