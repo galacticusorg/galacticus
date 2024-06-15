@@ -19,9 +19,9 @@ sub Process_Allocate {
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
-	if ( $node->{'type'} eq "allocate" && ! $node->{'processed'} ) {
+	if ( $node->{'type'} eq "allocate" && ! $node->{'directive'}->{'processed'} ) {
 	    # Record that node is processed.
-	    $node->{'processed'} = 1;
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Get the declaration and determine rank of the shape variable.
 	    my $rank;
 	    if ( exists($node->{'directive'}->{'rank'}) ) {
