@@ -362,9 +362,9 @@ contains
                    subsetNext => subsetHead
                 end if
                 subsetNext%massDistribution_ => massDistribution___
-                !![
-                <referenceCountIncremeant owner="subsetNext" object="massDistribution___"/>
-                !!]
+                ! !![
+                ! <referenceCountIncrement owner="subsetNext" object="massDistribution_"/>
+                ! !!]
              end if
           class default
              if (massDistribution__%matches(componentType,massType)) then
@@ -376,9 +376,9 @@ contains
                    subsetNext => subsetHead
                 end if
                 subsetNext%massDistribution_ => massDistribution__
-                !![
-                <referenceCountIncremeant owner="subsetNext" object="massDistribution__"/>
-                !!]
+                ! !![
+                ! <referenceCountIncrement owner="subsetNext" object="massDistribution_"/>
+                ! !!]
              end if
           end select
           massDistribution_ => massDistribution_%next

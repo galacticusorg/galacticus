@@ -286,8 +286,7 @@ contains
     !!]
     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
     !![
-    <objectDestructor name="kinematicsDistribution_" />
-    <objectDestructor name="massDistributionBaryonic"/>
+    <objectDestructor name="kinematicsDistribution_"/>
     !!]
     return
   end function adiabaticGnedin2004Get
@@ -353,6 +352,9 @@ contains
        initialMassFraction           =  min(self%darkMatterFraction+ massBaryonicTotal                       /basic%mass(),1.0d0)
        ! Set the baryonic component in the mass distribution.
        call massDistribution_%setBaryonicComponent(massDistributionBaryonic,darkMatterDistributedFraction,initialMassFraction)
+       !![
+       <objectDestructor name="massDistributionBaryonic"/>
+       !!]
     class default
        call Error_Report("unexpected class"//{introspection:location})
     end select
