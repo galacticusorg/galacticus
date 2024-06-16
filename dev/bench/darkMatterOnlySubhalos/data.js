@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718344163411,
+  "lastUpdate": 1718504164879,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6ab982fafd44fd21a6631ae92238191f4ff50985",
-          "message": "fix: Correct variable attributes",
-          "timestamp": "2023-08-22T13:39:43-07:00",
-          "tree_id": "2ad7dad4ffc88565fb13151fd06ab6462ab25040",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6ab982fafd44fd21a6631ae92238191f4ff50985"
-        },
-        "date": 1692757985923,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 58.14,
-            "unit": "seconds",
-            "range": 0.16244999230544
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20675.296504755,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e7969c8452986182203920741d8474b769d5ebe",
+          "message": "Merge pull request #629 from galacticusorg/fixDestructors\n\nAdd missing destructors",
+          "timestamp": "2024-06-15T21:19:06Z",
+          "tree_id": "864b28e54b2cec8efecfdef90f6577bbca788554",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e7969c8452986182203920741d8474b769d5ebe"
+        },
+        "date": 1718504162650,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.368,
+            "unit": "seconds",
+            "range": 0.0527029410934475
           }
         ]
       }
