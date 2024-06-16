@@ -2122,10 +2122,6 @@ CODE
 			    # Any module use statements must be placed in the parent module.
 			    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$classNode);
 			} elsif (
-			    $classNode->{'type'} eq $directive->{'name'}
-			    ){
-			    $classNode->{'directive'}->{'processed'} = 1;
-			} elsif (
 			    $classNode->{'type'} eq "type"
 			    ||
 			    $classNode->{'type'} eq "interface"
