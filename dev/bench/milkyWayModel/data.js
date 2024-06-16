@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718344167240,
+  "lastUpdate": 1718504169756,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c71a0f05613948ac93ffbf2d36742543f5dba130",
-          "message": "Merge pull request #449 from galacticusorg/projectedHalos\n\nImplement projected mass profile calculations",
-          "timestamp": "2023-08-17T02:17:29Z",
-          "tree_id": "b0c21707056ee797cf7cd8b0c916bc2d3675cac9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c71a0f05613948ac93ffbf2d36742543f5dba130"
-        },
-        "date": 1692249708879,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 174.75,
-            "unit": "seconds",
-            "range": 0.17840403583069
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9101607593046,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e7969c8452986182203920741d8474b769d5ebe",
+          "message": "Merge pull request #629 from galacticusorg/fixDestructors\n\nAdd missing destructors",
+          "timestamp": "2024-06-15T21:19:06Z",
+          "tree_id": "864b28e54b2cec8efecfdef90f6577bbca788554",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5e7969c8452986182203920741d8474b769d5ebe"
+        },
+        "date": 1718504168700,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 386.949,
+            "unit": "seconds",
+            "range": 0.23181220847245
           }
         ]
       }
