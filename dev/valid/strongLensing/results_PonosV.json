@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
       "target" : 0.85,
-      "percentageBelow" : 66.6666666666667,
-      "percentageAbove" : 33.3333333333333
+      "percentageBelow" : 57.1428571428571,
+      "percentageAbove" : 42.8571428571429
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875,
+      "target" : 0.006
    },
    "commit" : {
-      "message" : "Merge pull request #627 from sachiwee/Galacticus_nHrange",
+      "timestamp" : "Sat, 15 Jun 2024 21:19:06 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/5e7969c8452986182203920741d8474b769d5ebe",
+      "message" : "Merge pull request #629 from galacticusorg/fixDestructors",
       "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
       },
-      "timestamp" : "Fri, 14 Jun 2024 00:49:15 +0000",
-      "id" : "f5121c76074bc6d3a3dd7e9a8116d97be82b2dde",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/f5121c76074bc6d3a3dd7e9a8116d97be82b2dde"
-   },
-   "surfaceDensity" : {
-      "percentageAbove" : 50,
-      "target" : 0.006,
-      "percentageBelow" : 50
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+      "id" : "5e7969c8452986182203920741d8474b769d5ebe"
+   }
 }
