@@ -17,30 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by Sachi Weerasooriya
+  
   !!{
-  Contains a module which implements a black hole-VelocityDispersion mass relation analysis class.
+  Implements a black hole-velocity dispersion mass relation analysis class using the data from \cite{mcconnell_revisiting_2013}.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale    , darkMatterHaloScaleClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Galactic_Structure     , only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   !![
   <outputAnalysis name="outputAnalysisBlackHoleVelocityDispersionRelation">
-   <description>A black hole-VelocityDispersion mass relation output analysis class.</description>
+   <description>A black hole-velocity dispersion mass relation output analysis class using the data from \cite{mcconnell_revisiting_2013}.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleVelocityDispersionRelation
      !!{
-     A black hole-VelocityDispersion mass relation output analysis class.
+     A black hole-velocity dispersion mass relation output analysis class using the data from \cite{mcconnell_revisiting_2013}.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     class           (galacticStructureClass ), pointer                     :: galacticStructure_                   => null()
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_                  => null()
-     double precision                         , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
-     double precision                                                       :: randomErrorMinimum                            , randomErrorMaximum
-     double precision                                                       :: toleranceRelative=1.0d-3
-     logical                                                                :: includeRadii, integrationFailureIsFatal
-     type            (varying_string         ), dimension(1)                :: radiusSpecifiers  
+     class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_                        => null()
+     class           (galacticStructureClass  ), pointer                     :: galacticStructure_                          => null()
+     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_                         => null()
+     double precision                          , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient                 , randomErrorPolynomialCoefficient
+     double precision                                                        :: randomErrorMinimum                                   , randomErrorMaximum
+     double precision                                                        :: toleranceRelative                   =1.0d-3
+     logical                                                                 :: includeRadii                                         , integrationFailureIsFatal
   contains
      final :: blackHoleVelocityDispersionRelationDestructor
   end type outputAnalysisBlackHoleVelocityDispersionRelation
@@ -59,22 +61,19 @@ contains
     !!{
     Constructor for the ``blackHoleVelocityDispersionRelation'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter    , inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type            (outputAnalysisBlackHoleVelocityDispersionRelation)                              :: self
-    type            (inputParameters                     ), intent(inout)               :: parameters
-    type            (varying_string                      ), dimension(1)                :: radiusSpecifiers
-    double precision                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
-    class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
-    class           (outputTimesClass                    ), pointer                     :: outputTimes_
-    class           (galacticStructureClass              ), pointer                     :: galacticStructure_
-    class           (darkMatterHaloScaleClass            ), pointer                     :: darkMatterHaloScale_
-    double precision                                                                    :: randomErrorMinimum                  , randomErrorMaximum
-    double precision                       , parameter                     :: toleranceRelative=1.0d-3
-    logical                                                                :: includeRadii, integrationFailureIsFatal
-    radiusSpecifiers(1)='spheroidHalfMassRadius:all:stellar:lineOfSight:1.0'
-    ! Check and read parameters.
+    type            (inputParameters                                  ), intent(inout)               :: parameters
+    double precision                                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient       , randomErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                 ), pointer                     :: outputTimes_
+    class           (galacticStructureClass                           ), pointer                     :: galacticStructure_
+    class           (darkMatterHaloScaleClass                         ), pointer                     :: darkMatterHaloScale_
+    double precision                                                                                 :: randomErrorMinimum                         , randomErrorMaximum
+    double precision                                                   , parameter                   :: toleranceRelative                   =1.0d-3
+    logical                                                                                          :: includeRadii                               , integrationFailureIsFatal
+
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
@@ -106,35 +105,35 @@ contains
       <defaultValue>0.01d0</defaultValue>
       <description>The minimum random error for velocity dispersions.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,radiusSpecifiers=radiusSpecifiers,includeRadii=.false.,integrationFailureIsFatal=.false.,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_,galacticStructure_=galacticStructure_)
+    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,integrationFailureIsFatal=.false.,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_,galacticStructure_=galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
-    <objectDestructor name="outputTimes_"       />
-    <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="galacticStructure_" />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function blackHoleVelocityDispersionRelationConstructorParameters
 
-  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result (self)
+  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result (self)
     !!{
     Constructor for the ``blackHoleVelocityDispersionRelation'' output analysis class for internal use.
     !!}
-    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
     use :: Galactic_Filters                      , only : galacticFilterSpheroidStellarMass
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
     use :: IO_HDF5                               , only : hdf5Object
-    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorVelocityDispersion, nodePropertyExtractorScalarizer
+    use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorVelocityDispersion        , nodePropertyExtractorScalarizer
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Constants_Prefixes          , only : kilo
@@ -144,18 +143,19 @@ contains
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
-    use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale    , darkMatterHaloScaleClass
     implicit none
-    type            (outputAnalysisBlackHoleVelocityDispersionRelation               )                                :: self
-    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
+    type            (outputAnalysisBlackHoleVelocityDispersionRelation  )                                :: self
+    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                , &
+         &                                                                                                  toleranceRelative
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (galacticStructureClass                             ), intent(inout), target         :: galacticStructure_
-    class           (darkMatterHaloScaleClass                           ), intent(in   ), target       :: darkMatterHaloScale_
+    class           (darkMatterHaloScaleClass                           ), intent(in   ), target         :: darkMatterHaloScale_
+    logical                                                              , intent(in   )                 :: integrationFailureIsFatal
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
-    double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
-    double precision                                                     , allocatable  , dimension(:  ) :: velocities                                                  , functionValueTarget                     , &
+    double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum          =1.0d16
+    double precision                                                     , allocatable  , dimension(:  ) :: velocities                                              , functionValueTarget                               , &
          &                                                                                                  functionErrorTarget
     double precision                                                     , allocatable  , dimension(:,:) :: outputWeight                                            , functionCovarianceTarget
     type            (galacticFilterSpheroidStellarMass                  ), pointer                       :: galacticFilter_
@@ -174,25 +174,24 @@ contains
     type            (propertyOperatorList                               ), pointer                       :: propertyOperators_                                      , weightPropertyOperators_
     type            (nodePropertyExtractorScalarizer     )               , pointer                       :: nodePropertyExtractor_
     double precision                                                     , parameter                     :: errorPolynomialZeroPoint                        =11.3d0
-    double precision                                                     , intent(in   )                 :: toleranceRelative
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     logical                                                              , parameter                     :: likelihoodNormalize                             =.false.
-    logical                                                                , intent(in   )               :: includeRadii        , integrationFailureIsFatal
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
-    
+    logical :: includeRadii
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
-    type            (varying_string                                     ), intent(in   ),dimension(1)    :: radiusSpecifiers
+    type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,*darkMatterHaloScale_*galacticStructure_"/>
-    !!]    
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, integrationFailureIsFatal, toleranceRelative, *darkMatterHaloScale_, *galacticStructure_"/>
+    !!]
+    
     !$ call hdf5Access%set()
-    call dataFile%openFile     (char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnelMa2013.hdf5'),readOnly=.true.             )
-    call dataFile%readDataset  ('velocityDispersionBinned'                                                                                           ,         velocities             )
-    call dataFile%readAttribute('label'                                                                                                     ,         targetLabel        )
-    call dataFile%readDataset  ('massBlackHoleMean'                                                                                         ,         functionValueTarget)
-    call dataFile%readDataset  ('massBlackHoleMeanError'                                                                                    ,         functionErrorTarget)
-    call dataFile%close        (                                                                                                                                         )
+    call dataFile%openFile     (char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.             )
+    call dataFile%readDataset  ('velocityDispersionBinned'                                                                                           ,          velocities         )
+    call dataFile%readAttribute('label'                                                                                                              ,          targetLabel        )
+    call dataFile%readDataset  ('massBlackHoleMean'                                                                                                  ,          functionValueTarget)
+    call dataFile%readDataset  ('massBlackHoleMeanError'                                                                                             ,          functionErrorTarget)
+    call dataFile%close        (                                                                                                                                                   )
     !$ call hdf5Access%unset()
     allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))
     functionCovarianceTarget=0.0d0
@@ -213,9 +212,9 @@ contains
     <referenceConstruct object="cosmologyParametersData">
      <constructor>
       cosmologyParametersSimple     (                            &amp;
-        &amp;                        OmegaMatter    = 0.30000d0, &amp;
-        &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
-        &amp;                        HubbleConstant =70.50000d0, &amp;
+        &amp;                        OmegaMatter    = 0.27400d0, &amp;
+        &amp;                        OmegaDarkEnergy= 0.72600d0, &amp;
+        &amp;                        HubbleConstant =70.00000d0, &amp;
         &amp;                        temperatureCMB = 2.72548d0, &amp;
         &amp;                        OmegaBaryon    = 0.00000d0  &amp;
         &amp;                       )
@@ -279,38 +278,40 @@ contains
     ! Build weight property operators.
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"       constructor="outputAnalysisPropertyOperatorLog10            (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"       constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorMinMax_           )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorMinMax_"      constructor="outputAnalysisPropertyOperatorMinMax           (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                       )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorMinMax_"      constructor="outputAnalysisPropertyOperatorMinMax           (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                                                             )"/>
     !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
-    weightPropertyOperators_         %operator_      => outputAnalysisWeightPropertyOperatorMinMax_
-    weightPropertyOperators_%next    %operator_      => outputAnalysisWeightPropertyOperatorLog10_
+    weightPropertyOperators_         %operator_ => outputAnalysisWeightPropertyOperatorMinMax_
+    weightPropertyOperators_%next    %operator_ => outputAnalysisWeightPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"            constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"            constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                                        )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                                                )"/>
     !!]
     ! Create a velocity dispersion property extractor.
-    allocate(nodePropertyExtractorVelocityDispersion_                      )
+    allocate(nodePropertyExtractorVelocityDispersion_              )
+    radiusSpecifiers(1)='spheroidHalfMassRadius:all:stellar:lineOfSight:1.0'
+    includeRadii=.false.
     !![
-    <referenceConstruct object="nodePropertyExtractorVelocityDispersion_"                           constructor="nodePropertyExtractorVelocityDispersion      (radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_                                                        )"/>
+    <referenceConstruct object="nodePropertyExtractorVelocityDispersion_"         constructor="nodePropertyExtractorVelocityDispersion       (radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_)"/>
     !!]
-    allocate(nodePropertyExtractor_)
+    allocate(nodePropertyExtractor_                                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"               constructor="nodePropertyExtractorScalarizer(1,1,nodePropertyExtractorVelocitydispersion_                                                                  )"/>   
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorScalarizer(1,1,nodePropertyExtractorVelocitydispersion_                                                                                    )"/>
     !!]
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                                                                )"/>
     !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
@@ -341,7 +342,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                , &
          &                                                         covarianceBinomialMassHaloMaximum                                , &
          &                                                         likelihoodNormalize                                              , &
-         &                                                         var_str('$\sigma_{\star,\mathrm{spheroid}}$ [km/s]'                ), &
+         &                                                         var_str('$\sigma_{\star,\mathrm{spheroid}}$ [km/s]'             ), &
          &                                                         var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
          &                                                         .true.                                                           , &
          &                                                         .false.                                                          , &
@@ -380,8 +381,9 @@ contains
     type(outputAnalysisBlackHoleVelocityDispersionRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_" />
-    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%galacticStructure_"  />
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine blackHoleVelocityDispersionRelationDestructor
