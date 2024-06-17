@@ -425,6 +425,7 @@ contains
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
     <objectDestructor name="galacticFilterStellarMass_"                            />
+    <objectDestructor name="galacticFilterSurveyGeometry_"                         />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]
