@@ -49,7 +49,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
   
-  ! Determine which components of the disk to include.
+  ! Determine which components of the spheroid to include.
   includeGas  =massDistributionMatches_(componentTypeSpheroid,massTypeGaseous,componentType,massType) .and.  weightBy_ == weightByMass
   includeStars=massDistributionMatches_(componentTypeSpheroid,massTypeStellar,componentType,massType) .and. (weightBy_ == weightByMass .or. weightBy_ == weightByLuminosity)  
   ! Get properties of the mass distribution and ensure they are physical.
