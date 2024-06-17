@@ -14,7 +14,7 @@ sub Process_NonProcessed {
     # Get the tree.
     my $tree = shift();
     # Non-processed directives that we simply mark as processed to avoid warnings.
-    my @nonProcessedDirectives = ( "methods", "workaround", "include", "functionGlobal", "component", "radiusSolverPlausibility", "interTreePositionInsert", "expiry", "scoping", "functionClassType" );
+    my @nonProcessedDirectives = ( "methods", "workaround", "include", "functionGlobal", "component", "radiusSolverPlausibility", "interTreePositionInsert", "expiry", "scoping" );
     # Walk the tree, looking for our directive.
     my $node  = $tree;
     my $depth = 0;
