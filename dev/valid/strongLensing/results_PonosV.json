@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 57.1428571428571,
-      "percentageAbove" : 42.8571428571429
-   },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875,
-      "target" : 0.006
-   },
    "commit" : {
-      "timestamp" : "Sat, 15 Jun 2024 21:19:06 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/5e7969c8452986182203920741d8474b769d5ebe",
-      "message" : "Merge pull request #629 from galacticusorg/fixDestructors",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/60df16059ddc0d88fb44e723b27466fed2bd1131",
+      "timestamp" : "Mon, 17 Jun 2024 00:27:56 +0000",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "id" : "5e7969c8452986182203920741d8474b769d5ebe"
-   }
+      "id" : "60df16059ddc0d88fb44e723b27466fed2bd1131",
+      "message" : "Merge pull request #630 from galacticusorg/featDirectiveCheck"
+   },
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 43.75,
+      "percentageAbove" : 56.25
+   },
+   "slope" : {
+      "percentageAbove" : 46.6666666666667,
+      "percentageBelow" : 53.3333333333333,
+      "target" : 0.85
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
