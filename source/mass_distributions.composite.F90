@@ -338,7 +338,8 @@ contains
     type (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type (enumerationMassTypeType     ), intent(in   ), optional :: massType
     class(massDistributionClass       ), pointer                 :: massDistribution___
-    type (massDistributionList        ), pointer                 :: subsetHead         , subsetNext, &
+    type (massDistributionList        ), pointer                 :: subsetHead         , subsetNext    , &
+         &                                                          compositesHead     , compositesNext, &
          &                                                          massDistribution_
     !![
     <optionalArgument name="componentType" defaultsTo="componentTypeAll"/>
@@ -346,8 +347,10 @@ contains
     !!]
 
     subset => null()
+    
     if (associated(self%massDistributions)) then
        subsetHead        => null()
+       compositesHead    => null()
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
           select type (massDistribution__ => massDistribution_ %massDistribution_)
@@ -362,9 +365,14 @@ contains
                    subsetNext => subsetHead
                 end if
                 subsetNext%massDistribution_ => massDistribution___
-                ! !![
-                ! <referenceCountIncrement owner="subsetNext" object="massDistribution_"/>
-                ! !!]
+                if (associated(compositesHead)) then
+                   allocate(compositesNext%next)
+                   compositesNext => compositesNext%next
+                else
+                   allocate(compositesHead     )
+                   compositesNext => compositesHead
+                end if
+                compositesNext%massDistribution_ => massDistribution___
              end if
           class default
              if (massDistribution__%matches(componentType,massType)) then
@@ -376,9 +384,6 @@ contains
                    subsetNext => subsetHead
                 end if
                 subsetNext%massDistribution_ => massDistribution__
-                ! !![
-                ! <referenceCountIncrement owner="subsetNext" object="massDistribution_"/>
-                ! !!]
              end if
           end select
           massDistribution_ => massDistribution_%next
@@ -392,6 +397,14 @@ contains
              !!]
           end select
        end if
+       do while (associated(compositesHead))
+          compositesNext => compositesHead%next
+          !![
+	  <objectDestructor name="compositesHead%massDistribution_" nullify="no"/>
+	  !!]
+          deallocate(compositesHead)
+          compositesHead => compositesNext
+       end do
     end if
     return
   end function compositeSubset
