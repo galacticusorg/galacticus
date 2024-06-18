@@ -97,7 +97,6 @@
      ! Stored solutions for reuse.
      integer                                                                                    :: radiusPreviousIndex               , radiusPreviousIndexMaximum
      double precision                       , dimension(sphericalAdiabaticGnedin2004StoreCount) :: radiusPrevious                    , radiusInitialPrevious
-     type            (fastExponentiator    )                                                    :: radiusExponentiator
      ! Quantities used in solving the initial radius root function.
      double precision                                                                           :: baryonicFinalTerm                 , baryonicFinalTermDerivative, &
           &                                                                                        darkMatterDistributedFraction     , massFractionInitial        , &
@@ -135,10 +134,15 @@
   end interface massDistributionSphericalAdiabaticGnedin2004
     
   ! Module-scope quantities used in solving the initial radius root function.
-  double precision                                              , parameter :: toleranceAbsolute=0.0d0
-  class           (massDistributionSphericalAdiabaticGnedin2004), pointer   :: self_
+  double precision                                              , parameter   :: toleranceAbsolute  =0.0d0
+  class           (massDistributionSphericalAdiabaticGnedin2004), pointer     :: self_
   !$omp threadprivate(self_)
 
+  ! Module-scope shared fast exponentiator.
+  type            (fastExponentiator                           ), allocatable :: radiusExponentiator
+  double precision                                                            :: omegaPrevious      =-huge(0.0d0)
+  !$omp threadprivate(radiusExponentiator,omegaPrevious)
+  
 contains
 
   function sphericalAdiabaticGnedin2004ConstructorParameters(parameters) result(self)
@@ -263,8 +267,6 @@ contains
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
-    ! Construct the object.
-    self%radiusExponentiator=fastExponentiator(1.0d-3,1.0d0,omega,1.0d4,.false.)
     ! Evaluate the original total mass.
     self%massTotal_=self%massDistribution_%massEnclosedBySphere(radiusVirial)
     ! Construct a root finder.
@@ -608,14 +610,20 @@ contains
     class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
     double precision                                              , intent(in   ) :: radius
 
-    sphericalAdiabaticGnedin2004RadiusOrbitalMean=+self%A                                                            &
-         &                                        *self%radiusFractionalPivot                                        &
-         &                                        *self%radiusVirial                                                 &
-         &                                        *self%radiusExponentiator%exponentiate(                            &
-         &                                                                               +     radius                &
-         &                                                                               /self%radiusFractionalPivot &
-         &                                                                               /self%radiusVirial          &
-         &                                                                              )
+    if (self%omega /= omegaPrevious) then
+       if (allocated(radiusExponentiator)) deallocate(radiusExponentiator)
+       allocate(radiusExponentiator)
+       radiusExponentiator=fastExponentiator(1.0d-3,1.0d0,self%omega,1.0d4,.false.)
+       omegaPrevious      =                               self%omega
+    end if
+    sphericalAdiabaticGnedin2004RadiusOrbitalMean=+self               %A                                                 &
+         &                                        *self               %radiusFractionalPivot                             &
+         &                                        *self               %radiusVirial                                      &
+         &                                        *radiusExponentiator%exponentiate         (                            &
+         &                                                                                   +     radius                &
+         &                                                                                   /self%radiusFractionalPivot &
+         &                                                                                   /self%radiusVirial          &
+         &                                                                                  )
     return
   end function sphericalAdiabaticGnedin2004RadiusOrbitalMean
 
