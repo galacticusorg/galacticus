@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718682275878,
+  "lastUpdate": 1718751567286,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c28a88f038736a156970f43dd0eb41037ff9f80d",
-          "message": "fix: Add highlighted \"WARNING\" on mismatched cosmological parameters",
-          "timestamp": "2023-08-24T15:17:02Z",
-          "tree_id": "3e47956d4d064e5b4a07ed5ca59a1313553fb19e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c28a88f038736a156970f43dd0eb41037ff9f80d"
-        },
-        "date": 1692912114025,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 56.9,
-            "unit": "seconds",
-            "range": 0.0939467934527016
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20638.7641722599,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "e537fec3c4ddaad1f0e6751af4ddb6c26da4b858",
+          "message": "fix: Capitalize character in variable name",
+          "timestamp": "2024-06-18T10:34:30-07:00",
+          "tree_id": "6adcaf1388b26ed5841942391297d6b66cc0c494",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e537fec3c4ddaad1f0e6751af4ddb6c26da4b858"
+        },
+        "date": 1718751565366,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.922,
+            "unit": "seconds",
+            "range": 0.114724016665939
           }
         ]
       }
