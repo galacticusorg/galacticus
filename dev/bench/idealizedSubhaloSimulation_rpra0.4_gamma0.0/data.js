@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718682319180,
+  "lastUpdate": 1718751611518,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
@@ -1345,6 +1345,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/7bf1d7b675aafd209d24545cb43cf4d877b912c7"
         },
         "date": 1718682318003,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 26.8526923426831,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 12.8565298045395,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 11.5356195289584,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "e537fec3c4ddaad1f0e6751af4ddb6c26da4b858",
+          "message": "fix: Capitalize character in variable name",
+          "timestamp": "2024-06-18T10:34:30-07:00",
+          "tree_id": "6adcaf1388b26ed5841942391297d6b66cc0c494",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e537fec3c4ddaad1f0e6751af4ddb6c26da4b858"
+        },
+        "date": 1718751610596,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
