@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718602280300,
+  "lastUpdate": 1718682266121,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "3d09e973a1c5355740ebeccc1e20eb5b71517979",
-          "message": "Merge pull request #451 from galacticusorg/singleStep\n\nAdd a `mergerTreeBuildContoller` class that takes just a single step in the tree",
-          "timestamp": "2023-08-24T05:25:38Z",
-          "tree_id": "ccc351bea3a2dd0c65b1479f4de1ea85c2748c4d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3d09e973a1c5355740ebeccc1e20eb5b71517979"
-        },
-        "date": 1692865890561,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 48.217,
-            "unit": "seconds",
-            "range": 0.0253791252804254
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8772,6 +8742,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20517.0572583586,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7bf1d7b675aafd209d24545cb43cf4d877b912c7",
+          "message": "Merge pull request #628 from sachiwee/Galacticus_Msigma\n\nOutput analyses class for black hole mass- velocity dispersion relation",
+          "timestamp": "2024-06-17T22:44:04Z",
+          "tree_id": "89d5cafae9e3ee828ce5550823dc48bf4048198b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7bf1d7b675aafd209d24545cb43cf4d877b912c7"
+        },
+        "date": 1718682263833,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.689,
+            "unit": "seconds",
+            "range": 0.0647834855498536
           }
         ]
       }
