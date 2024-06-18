@@ -47,6 +47,7 @@ use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
 use Galacticus::Build::SourceTree::Process::Dependencies;
 use Galacticus::Build::SourceTree::Process::ClassDocumentation;
+use Galacticus::Build::SourceTree::Process::NonProcessed;
 use Galacticus::Build::SourceTree::Analyze::UseDuplication;
 use Encode;
 
@@ -192,6 +193,11 @@ sub ProcessTree {
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
 	foreach ( @processorsOrdered );
+    # Get a list of all defined postprocessors.
+    my @postprocessors = sort(keys(%Galacticus::Build::SourceTree::Hooks::postprocessHooks));
+    # Run all post-processing.
+    &{$Galacticus::Build::SourceTree::Hooks::postprocessHooks{$_}}($tree,\%options)
+	foreach ( @postprocessors );
     return $tree;
 }
 

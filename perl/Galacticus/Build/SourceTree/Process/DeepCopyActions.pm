@@ -28,6 +28,7 @@ sub Process_DeepCopyActions {
     while ( $node ) {
 	# Capture deepCopyActions directives.
 	if ( $node->{'type'} eq "deepCopyActions" ) {
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Extract the directive.
 	    push(@directiveNodes,$node);	    
 	    # Get state storables database if we do not have it.

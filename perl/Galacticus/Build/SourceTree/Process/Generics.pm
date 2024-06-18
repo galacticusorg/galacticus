@@ -23,6 +23,7 @@ sub Process_Generics {
     my $depth = 0;    
     while ( $node ) {
 	if ( $node->{'type'} eq "generic" ) {
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Build regExs.
 	    my $genericRegEx   = qr/\{$node->{'directive'}->{'identifier'}¦.*\}/;
 	    # Iterate over all sibling nodes.

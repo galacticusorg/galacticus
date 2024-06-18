@@ -103,15 +103,16 @@ contains
     return
   end function localGroupDESFieldCount
 
-  double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryLocalGroupDES), intent(inout)           :: self
-    double precision                             , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                             , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                    luminosity, starFormationRate
     integer                                      , intent(in   ), optional :: field
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Find the limiting distance for this mass completeness limits. The following functional form should be considered to be
     ! approximate at best. It was derived by fitting a polynomial in stellar mass (assuming a mass-to-light ratio of 1 in Solar

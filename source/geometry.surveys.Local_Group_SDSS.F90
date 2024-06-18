@@ -83,15 +83,16 @@ contains
     return
   end function localGroupSDSSConstructorInternal
 
-  double precision function localGroupSDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function localGroupSDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryLocalGroupSDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
 
     ! Find the limiting distance for this mass completeness limits. We adopt the model of Kim, Peter & Hargis (2018,
     ! Phys. Rev. Lett. 121, 211302; https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.211302), assuming a

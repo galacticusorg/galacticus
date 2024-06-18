@@ -158,17 +158,18 @@ contains
     return
   end function baldry2012GAMAFieldCount
 
-  double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                     luminosity     , starFormationRate
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})

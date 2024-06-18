@@ -46,6 +46,7 @@ Contains a module which implements a star formation rate property extractor clas
    contains
      final     ::                starFormationRateDestructor
      procedure :: extract     => starFormationRateExtract
+     procedure :: quantity    => starFormationRateQuantity
      procedure :: name        => starFormationRateName
      procedure :: description => starFormationRateDescription
      procedure :: unitsInSI   => starFormationRateUnitsInSI
@@ -144,7 +145,7 @@ contains
     Destructor for the ``starFormationRate'' property extractor class.
     !!}
     implicit none
-    type   (nodePropertyExtractorStarFormationRate), intent(inout) :: self
+    type(nodePropertyExtractorStarFormationRate), intent(inout) :: self
   
     !![
     <objectDestructor name="self%starFormationRateDisks_"    />
@@ -169,6 +170,19 @@ contains
     return
   end function starFormationRateExtract
 
+  function starFormationRateQuantity(self)
+    !!{
+    Return the class of the stellar luminosity property.
+    !!}
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityStarFormationRate
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType)                :: starFormationRateQuantity
+    class(nodePropertyExtractorStarFormationRate       ), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    starFormationRateQuantity=outputAnalysisPropertyQuantityStarFormationRate
+    return
+  end function starFormationRateQuantity
 
   function starFormationRateName(self)
     !!{

@@ -497,6 +497,7 @@ contains
     <objectDestructor name="galacticFilterHostMassRange_"                    />
     <objectDestructor name="galacticFilterCentrals_"                         />
     <objectDestructor name="galacticFilterSatellites_"                       />
+    <objectDestructor name="galacticFilterSurveyGeometry_"                   />
     <objectDestructor name="outputAnalysisDistributionNormalizerSatellites_" />
     <objectDestructor name="outputAnalysisDistributionNormalizerCentrals_"   />
     <objectDestructor name="surveyGeometryClassical_"                        />
