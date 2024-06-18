@@ -254,6 +254,7 @@ contains
        staticOptions=""
        if (static_) staticOptions=" -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
        command=         'cd '//manglePath//'src; ./configure; '
+       command=command//'sed -E -i~ s/"if \[ \"\\\$ARCH\" = \"x86_64\" \]"/"if \[ \"\$ARCH\" = \"x86_64\" \] \|\| \[ \"\$ARCH\" = \"aarch64\" \]"/ configure; '
        command=command//'sed -E -i~ s/"^F77[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"F77 = '//                 compiler       (languageFortran)                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^CC[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"CC = '  //                 compiler       (languageC      )                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^FFLAGS[[:space:]]*:=(.*)"/"FFLAGS:=\1 '           //stringSubstitute(compilerOptions(languageFortran),"/","\/")//staticOptions//'"/ Makefile; '
