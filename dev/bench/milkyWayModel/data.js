@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718602283992,
+  "lastUpdate": 1718682271000,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "6ab982fafd44fd21a6631ae92238191f4ff50985",
-          "message": "fix: Correct variable attributes",
-          "timestamp": "2023-08-22T13:39:43-07:00",
-          "tree_id": "2ad7dad4ffc88565fb13151fd06ab6462ab25040",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6ab982fafd44fd21a6631ae92238191f4ff50985"
-        },
-        "date": 1692757991521,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 237.43,
-            "unit": "seconds",
-            "range": 0.255968748092625
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9389489503366,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7bf1d7b675aafd209d24545cb43cf4d877b912c7",
+          "message": "Merge pull request #628 from sachiwee/Galacticus_Msigma\n\nOutput analyses class for black hole mass- velocity dispersion relation",
+          "timestamp": "2024-06-17T22:44:04Z",
+          "tree_id": "89d5cafae9e3ee828ce5550823dc48bf4048198b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7bf1d7b675aafd209d24545cb43cf4d877b912c7"
+        },
+        "date": 1718682269888,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 352.058,
+            "unit": "seconds",
+            "range": 0.246112982177257
           }
         ]
       }
