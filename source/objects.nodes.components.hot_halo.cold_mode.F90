@@ -95,6 +95,7 @@ module Node_Component_Hot_Halo_Cold_Mode
        <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
+     <binding method="massBaryonic" function="Node_Component_Hot_Halo_Cole_Mode_Mass_Baryonic" bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.hot_halo.cold_mode.bound_functions.inc</functions>
   </component>

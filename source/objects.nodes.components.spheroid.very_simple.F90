@@ -110,6 +110,9 @@ module Node_Component_Spheroid_Very_Simple
       <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
     </property>
    </properties>
+   <bindings>
+    <binding method="massBaryonic" function="Node_Component_Spheroid_Very_Simple_Mass_Baryonic" bindsTo="component"/>
+   </bindings>
    <functions>objects.nodes.components.spheroid.very_simple.bound_functions.inc</functions>
   </component>
   !!]

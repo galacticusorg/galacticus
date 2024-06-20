@@ -245,6 +245,7 @@ module Node_Component_Hot_Halo_Standard
        <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
+     <binding method="massBaryonic" function="Node_Component_Hot_Halo_Standard_Mass_Baryonic" bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.hot_halo.standard.bound_functions.inc</functions>
   </component>

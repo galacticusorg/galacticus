@@ -46,6 +46,17 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 
+double precision function Node_Component_Black_Hole_Standard_Mass_Baryonic(self) result(massBaryonic)
+  !!{
+  Return the baryonic mass for the standard black hole component.
+  !!}
+  implicit none
+  class(nodeComponentBlackHoleStandard), intent(inout) :: self
+
+  massBaryonic=max(0.0d0,self%mass())
+  return
+end function Node_Component_Black_Hole_Standard_Mass_Baryonic
+
 function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the standard black hole component.

@@ -21,7 +21,8 @@ use Galacticus::Build::Components::DataTypes;
 	     [
 	      \&Tree_Node_Copy             ,
 	      \&Tree_Node_Move             ,
-	      \&Tree_Node_Mass_Distribution
+	      \&Tree_Node_Mass_Distribution,
+	      \&Tree_Node_Mass_Baryonic
 	     ]
      }
     );
@@ -537,6 +538,54 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "massDistribution"
+	}
+	);
+}
+
+sub Tree_Node_Mass_Baryonic {
+    # Generate a function to return the total baryonic mass associated with a node.
+    my $build    = shift();
+    my $function =
+    {
+	type        => "double precision",
+	name        => "treeNodeMassBaryonic",
+	description => "Return the total baryonic mass associated with {\\normalfont \\ttfamily self}.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    ]
+    };
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+treeNodeMassBaryonic=0.0d0
+CODE
+    # Iterate over all component classes
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	next
+	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (allocated(self%component{ucfirst($class->{'name'})})) then
+     do i=1,size(self%component{ucfirst($class->{'name'})})
+       treeNodeMassbaryonic=treeNodeMassBaryonic+self%component{ucfirst($class->{'name'})}(i)%massBaryonic()
+     end do
+  end if
+CODE
+    }
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "massBaryonic"
 	}
 	);
 }

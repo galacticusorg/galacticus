@@ -174,6 +174,14 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "massBaryonic"                                                                                         ,
+	     function    => "Node_Component_Mass_Baryonic_Null"                                                                    ,
+	     description => "Return the total baryonic mass for this component."                                                   ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
 	     description => "Compute the density."                                                                                 ,

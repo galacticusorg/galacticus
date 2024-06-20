@@ -140,8 +140,9 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes"             function="Node_Component_Disk_Standard_Attach_Pipes"      bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
-    <binding method="massDistribution"        function="Node_Component_Disk_Standard_Mass_Distribution" bindsTo="component"                                                                                           />
+    <binding method="attachPipes"      function="Node_Component_Disk_Standard_Attach_Pipes"      bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
+    <binding method="massDistribution" function="Node_Component_Disk_Standard_Mass_Distribution" bindsTo="component"                                                                                           />
+    <binding method="massBaryonic"     function="Node_Component_Disk_Standard_Mass_Baryonic"     bindsTo="component"                                                                                           />
    </bindings>
    <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   </component>

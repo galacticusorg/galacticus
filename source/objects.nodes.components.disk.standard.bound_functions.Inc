@@ -138,6 +138,18 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   return
 end function Node_Component_Disk_Standard_Mass_Distribution
 
+double precision function Node_Component_Disk_Standard_Mass_Baryonic(self) result(massBaryonic)
+  !!{
+  Return the baryonic mass for the standard disk component.
+  !!}
+  implicit none
+  class(nodeComponentDiskStandard), intent(inout) :: self
+
+  massBaryonic=+max(0.0d0,self%massStellar()) &
+       &       +max(0.0d0,self%massGas    ())
+  return
+end function Node_Component_Disk_Standard_Mass_Baryonic
+
 double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
   !!{
   Return the half-mass radius of the standard disk.

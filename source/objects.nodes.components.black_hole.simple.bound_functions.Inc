@@ -21,6 +21,17 @@
 Contains custom functions for the simple black hole component.
 !!}
 
+double precision function Node_Component_Black_Hole_Simple_Mass_Baryonic(self) result(massBaryonic)
+  !!{
+  Return the baryonic mass for the simple black hole component.
+  !!}
+  implicit none
+  class(nodeComponentBlackHoleSimple), intent(inout) :: self
+
+  massBaryonic=max(0.0d0,self%mass())
+  return
+end function Node_Component_Black_Hole_Simple_Mass_Baryonic
+
 function Node_Component_Black_Hole_Simple_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
   Return the mass distribution for the simple black hole component.

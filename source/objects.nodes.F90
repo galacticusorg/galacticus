@@ -1332,6 +1332,18 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Mass_Distribution_Initialize_Null
 
+  double precision function Node_Component_Mass_Baryonic_Null(self)
+    !!{
+    A null implementation of the total baryonic mass distribution. Always returns zero.
+    !!}
+    implicit none
+    class(nodeComponent), intent(inout):: self
+    !$GLC attributes unused :: self
+
+    Node_Component_Mass_Baryonic_Null=0.0d0
+    return
+  end function Node_Component_Mass_Baryonic_Null
+
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
     A null implementation of the density in a component. Always returns zero.

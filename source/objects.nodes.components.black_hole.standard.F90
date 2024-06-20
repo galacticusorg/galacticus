@@ -105,6 +105,7 @@ module Node_Component_Black_Hole_Standard
    </properties>
    <bindings>
     <binding method="massDistribution" function="Node_Component_Black_Hole_Standard_Mass_Distribution" bindsTo="component"/>
+    <binding method="massBaryonic"     function="Node_Component_Black_Hole_Standard_Mass_Baryonic"     bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   </component>

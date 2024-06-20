@@ -18,28 +18,16 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains custom functions for the very simple spheroid component.
+Contains custom functions for the very simple hot halo component.
 !!}
 
-double precision function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius(self)
+double precision function Node_Component_Hot_Halo_Very_Simple_Mass_Baryonic(self) result(massBaryonic)
   !!{
-  Return the half-mass radius of the very simple spheroid.
+  Return the baryonic mass for the very simple hot halo component.
   !!}
   implicit none
-  class(nodeComponentSpheroidVerySimple), intent(inout) :: self
+  class(nodeComponentHotHaloVerySimple), intent(inout) :: self
 
-  Node_Component_Spheroid_Very_Simple_Half_Mass_Radius=self%radius()
+  massBaryonic=+max(0.0d0,self%mass())
   return
-end function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius
-
-double precision function Node_Component_Spheroid_Very_Simple_Mass_Baryonic(self) result(massBaryonic)
-  !!{
-  Return the baryonic mass for the very simple spheroid component.
-  !!}
-  implicit none
-  class(nodeComponentSpheroidVerySimple), intent(inout) :: self
-
-  massBaryonic=+max(0.0d0,self%massStellar()) &
-       &       +max(0.0d0,self%massGas    ())
-  return
-end function Node_Component_Spheroid_Very_Simple_Mass_Baryonic
+end function Node_Component_Hot_Halo_Very_Simple_Mass_Baryonic
