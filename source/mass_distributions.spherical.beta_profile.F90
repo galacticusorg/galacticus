@@ -193,7 +193,7 @@ contains
             &   present(densityNormalization)      &
             &  ) then
           self%densityNormalization=densityNormalization
-       else if (&
+       else if (                                   &
             &   present(mass                ).and. &
             &   present(outerRadius         )      &
             &  ) then
@@ -332,7 +332,7 @@ contains
     else
        radius_=radius
     end if
-    fractionalRadius=radius/self%coreRadius
+    fractionalRadius=radius_/self%coreRadius
     if (self%betaIsTwoThirds) then
        ! Solution for special case of β=2/3.
        if (fractionalRadius < radiusTiny) then
@@ -367,7 +367,7 @@ contains
             & /3.0d0                                       &
             & *Pi                                          &
             & *self%densityNormalization                   &
-            & *radius**3                                   &
+            & *radius_**3                                  &
             & *Hypergeometric_2F1(                         &
             &                     [1.5d0,1.5d0*self%beta], &
             &                     [2.5d0                ], &
