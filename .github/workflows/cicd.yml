@@ -395,7 +395,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/SPECTRA \
             dynamic/fsps-${fspsVersion}/OUTPUTS \
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion/bin/harmonize
+            dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
         uses: actions/upload-artifact@v4
         with:
