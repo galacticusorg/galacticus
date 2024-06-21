@@ -329,7 +329,7 @@ module Mass_Distributions
     <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="rotationCurveGradient" >
-    <description>Return the rotation curve gradient at the given radius.</description>
+    <description>Return the rotation curve gradient, $\mathrm{d}V^2/\mathrm{d}r$, at the given radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: radius</argument>
