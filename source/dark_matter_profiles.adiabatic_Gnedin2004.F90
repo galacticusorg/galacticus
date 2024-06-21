@@ -86,14 +86,22 @@
      class           (cosmologyParametersClass            ), pointer  :: cosmologyParameters_   => null()
      class           (darkMatterProfileDMOClass           ), pointer  :: darkMatterProfileDMO_  => null()
      class           (darkMatterHaloScaleClass            ), pointer  :: darkMatterHaloScale_   => null()
+     integer         (kind_int8                           )           :: lastUniqueID
      type            (enumerationNonAnalyticSolversType   )           :: nonAnalyticSolver
-     double precision                                                 :: A                               , omega            , &
-          &                                                              radiusFractionalPivot           , toleranceRelative, &
-          &                                                              darkMatterFraction
+     double precision                                                 :: A                               , omega               , &
+          &                                                              radiusFractionalPivot           , toleranceRelative   , &
+          &                                                              darkMatterFraction              , massBaryonicSubhalos
    contains    
-     final     ::               adiabaticGnedin2004Destructor
-     procedure :: get        => adiabaticGnedin2004Get
-     procedure :: initialize => adiabaticGnedin2004Initialize
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset"/>
+     </methods>
+     !!]
+     final     ::                     adiabaticGnedin2004Destructor
+     procedure :: autoHook         => adiabaticGnedin2004AutoHook
+     procedure :: calculationReset => adiabaticGnedin2004CalculationReset
+     procedure :: get              => adiabaticGnedin2004Get
+     procedure :: initialize       => adiabaticGnedin2004Initialize
   end type darkMatterProfileAdiabaticGnedin2004
 
   interface darkMatterProfileAdiabaticGnedin2004
@@ -106,12 +114,12 @@
 
 contains
 
- function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
+  function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
-   use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
-   use :: Input_Parameters  , only : inputParameters
+    use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
+    use :: Input_Parameters  , only : inputParameters
     implicit none
     type            (darkMatterProfileAdiabaticGnedin2004)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
@@ -194,8 +202,23 @@ contains
     self%darkMatterFraction=+1.0d0                                   &
          &                  -self%cosmologyParameters_%OmegaBaryon() &
          &                  /self%cosmologyParameters_%OmegaMatter()
+    ! Initialize memoization state.
+    self%lastUniqueID        =-1_kind_int8
+    self%massBaryonicSubhalos=-huge(0.0d0)
     return
   end function adiabaticGnedin2004ConstructorInternal
+
+  subroutine adiabaticGnedin2004AutoHook(self)
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    
+    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileAdiabaticGnedin2004')
+    return
+  end subroutine adiabaticGnedin2004AutoHook
 
   subroutine adiabaticGnedin2004Destructor(self)
     !!{
@@ -211,6 +234,24 @@ contains
     !!]
     return
   end subroutine adiabaticGnedin2004Destructor
+
+  subroutine adiabaticGnedin2004CalculationReset(self,node,uniqueID)
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
+    use :: Kind_Numbers, only : kind_int8
+    implicit none
+    class  (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    type   (treeNode                            ), intent(inout) :: node
+    integer(kind_int8                           ), intent(in   ) :: uniqueID
+    !$GLC attributes unused :: node
+
+    if (uniqueID /= self%lastUniqueID) then
+       self%lastUniqueID        =uniqueID
+       self%massBaryonicSubhalos=-huge(0.0d0)
+    end if
+    return
+  end subroutine adiabaticGnedin2004CalculationReset
 
   function adiabaticGnedin2004Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
@@ -296,41 +337,36 @@ contains
     Initialize the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
-    use :: Galactic_Structure_Options, only : massTypeBaryonic                            , radiusLarge
+    use :: Galactic_Structure_Options, only : massTypeBaryonic
     use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004
     use :: Error                     , only : Error_Report
     implicit none
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
     class           (massDistributionClass               ), intent(inout)         :: massDistribution_
-    class           (massDistributionClass               ), pointer               :: massDistributionBaryonic     , massDistributionBaryonicSubhalo
-    type            (treeNode                            ), pointer               :: nodeCurrent                  , nodeHost
+    class           (massDistributionClass               ), pointer               :: massDistributionBaryonic
+    type            (treeNode                            ), pointer               :: nodeCurrent
     class           (nodeComponentBasic                  ), pointer               :: basic
-    double precision                                                              :: massBaryonicSelfTotal        , massBaryonicTotal              , &
-         &                                                                           darkMatterDistributedFraction, initialMassFraction
-
+    double precision                                                              :: massBaryonicSelf             , massBaryonicTotal  , &
+         &                                                                           darkMatterDistributedFraction, initialMassFraction, &
+         &                                                                           massBaryonicSubhalos
+    
     select type (massDistribution_)
     type is (massDistributionSphericalAdiabaticGnedin2004)
        ! Compute the initial baryonic contribution from this halo, and any satellites.
-       massBaryonicTotal        =  0.0d0
-       massBaryonicSelfTotal    =  0.0d0
        massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
-       nodeCurrent              => node
-       nodeHost                 => node
-       do while (associated(nodeCurrent))
-          massDistributionBaryonicSubhalo =>  nodeCurrent                    %massDistribution    (massType=massTypeBaryonic)
-          massBaryonicTotal               =  +massBaryonicTotal                                                               &
-               &                             +massDistributionBaryonicSubhalo%massEnclosedBySphere(radius  =radiusLarge     )
-          !![
-          <objectDestructor name="massDistributionBaryonicSubhalo"/>
-          !!]
-          if (associated(nodeCurrent,nodeHost)) then
-             massBaryonicSelfTotal=massBaryonicTotal
-             do while (associated(nodeCurrent%firstSatellite))
-                nodeCurrent => nodeCurrent%firstSatellite
-             end do
-             if (associated(nodeCurrent,nodeHost)) nodeCurrent => null()
-          else
+       massBaryonicSelf         =  node%massBaryonic    (                         )
+       ! Recompute baryonic mass in subhalos if necessary.
+       if (self%massBaryonicSubhalos < 0.0d0 .or. node%uniqueID() /= self%lastUniqueID) then
+          massBaryonicSubhalos =  0.0d0
+          nodeCurrent          => node
+          do while (associated(nodeCurrent%firstSatellite))
+             nodeCurrent => nodeCurrent%firstSatellite
+          end do
+          if (associated(nodeCurrent,node)) nodeCurrent => null()
+          do while (associated(nodeCurrent))
+             massBaryonicSubhalos=+massBaryonicSubhalos                &
+                  &               +nodeCurrent          %massBaryonic()
              if (associated(nodeCurrent%sibling)) then
                 nodeCurrent => nodeCurrent%sibling
                 do while (associated(nodeCurrent%firstSatellite))
@@ -340,16 +376,19 @@ contains
                 nodeCurrent => nodeCurrent%parent
                 if (associated(nodeCurrent,node)) nodeCurrent => null()
              end if
-          end if
-       end do
-       ! Limit masses to physical values.
-       massBaryonicSelfTotal=max(massBaryonicSelfTotal,0.0d0)
-       massBaryonicTotal    =max(massBaryonicTotal    ,0.0d0)
+          end do
+       end if
+       ! Compute the total baryonic mass.
+       massBaryonicTotal=+massBaryonicSubhalos &
+            &            +massBaryonicSelf
+              ! Limit masses to physical values.
+       massBaryonicSelf =max(massBaryonicSelf ,0.0d0)
+       massBaryonicTotal=max(massBaryonicTotal,0.0d0)
        ! Compute the fraction of matter assumed to be distributed like the dark matter.
        basic                         => node%basic()
-       darkMatterDistributedFraction =  min(self%darkMatterFraction+(massBaryonicTotal-massBaryonicSelfTotal)/basic%mass(),1.0d0)
+       darkMatterDistributedFraction =  min(self%darkMatterFraction+(massBaryonicTotal-massBaryonicSelf)/basic%mass(),1.0d0)
        ! Compute the initial mass fraction.
-       initialMassFraction           =  min(self%darkMatterFraction+ massBaryonicTotal                       /basic%mass(),1.0d0)
+       initialMassFraction           =  min(self%darkMatterFraction+ massBaryonicTotal                  /basic%mass(),1.0d0)
        ! Set the baryonic component in the mass distribution.
        call massDistribution_%setBaryonicComponent(massDistributionBaryonic,darkMatterDistributedFraction,initialMassFraction)
        !![
