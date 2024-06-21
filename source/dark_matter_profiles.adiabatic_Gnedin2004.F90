@@ -348,8 +348,7 @@ contains
     type            (treeNode                            ), pointer               :: nodeCurrent
     class           (nodeComponentBasic                  ), pointer               :: basic
     double precision                                                              :: massBaryonicSelf             , massBaryonicTotal  , &
-         &                                                                           darkMatterDistributedFraction, initialMassFraction, &
-         &                                                                           massBaryonicSubhalos
+         &                                                                           darkMatterDistributedFraction, initialMassFraction
     
     select type (massDistribution_)
     type is (massDistributionSphericalAdiabaticGnedin2004)
@@ -358,15 +357,15 @@ contains
        massBaryonicSelf         =  node%massBaryonic    (                         )
        ! Recompute baryonic mass in subhalos if necessary.
        if (self%massBaryonicSubhalos < 0.0d0 .or. node%uniqueID() /= self%lastUniqueID) then
-          massBaryonicSubhalos =  0.0d0
-          nodeCurrent          => node
+          self       %massBaryonicSubhalos =  0.0d0
+          nodeCurrent                      => node
           do while (associated(nodeCurrent%firstSatellite))
              nodeCurrent => nodeCurrent%firstSatellite
           end do
           if (associated(nodeCurrent,node)) nodeCurrent => null()
           do while (associated(nodeCurrent))
-             massBaryonicSubhalos=+massBaryonicSubhalos                &
-                  &               +nodeCurrent          %massBaryonic()
+             self%massBaryonicSubhalos=+self      %massBaryonicSubhalos   &
+                  &                   +nodeCurrent%massBaryonic        ()
              if (associated(nodeCurrent%sibling)) then
                 nodeCurrent => nodeCurrent%sibling
                 do while (associated(nodeCurrent%firstSatellite))
@@ -379,9 +378,9 @@ contains
           end do
        end if
        ! Compute the total baryonic mass.
-       massBaryonicTotal=+massBaryonicSubhalos &
-            &            +massBaryonicSelf
-              ! Limit masses to physical values.
+       massBaryonicTotal=+self%massBaryonicSubhalos &
+            &            +     massBaryonicSelf
+       ! Limit masses to physical values.
        massBaryonicSelf =max(massBaryonicSelf ,0.0d0)
        massBaryonicTotal=max(massBaryonicTotal,0.0d0)
        ! Compute the fraction of matter assumed to be distributed like the dark matter.
