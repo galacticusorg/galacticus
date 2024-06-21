@@ -806,7 +806,7 @@ contains
     return
   end subroutine progenitorMassFunctionFinalizeAnalysis
 
-  subroutine progenitorMassFunctionFinalize(self)
+  subroutine progenitorMassFunctionFinalize(self,groupName)
     !!{
     Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
     !!}
@@ -814,20 +814,30 @@ contains
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
-    type (hdf5Object                          )                :: analysesGroup, analysisGroup
+    class(outputAnalysisProgenitorMassFunction), intent(inout)           :: self
+    type (varying_string                      ), intent(in   ), optional :: groupName
+    type (hdf5Object                          )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                          )               , pointer  :: inGroup
+    type (hdf5Object                          )                          :: analysisGroup
 
-    call self                               %finalizeAnalysis()
-    call self%outputAnalysisVolumeFunction1D%finalize        ()
+    call self                               %finalizeAnalysis(         )
+    call self%outputAnalysisVolumeFunction1D%finalize        (groupName)
     ! Add attributes giving the range of mass ratios considered. Also re-write the log-likelihood attribute here as it will have
     ! been written as part of the "outputAnalysisVolumeFunction1D" parent class, but we need to do our own calculation.    
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                         )
+    analysesGroup =  outputFile   %openGroup('analyses'     )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName))
+       inGroup    => subGroup
+    end if
     analysisGroup=analysesGroup%openGroup(char(self%label),char(self%comment))
     call analysisGroup%writeAttribute(self%logLikelihood             (),'logLikelihood'             )
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum  ,'massRatioLikelihoodMinimum')
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum  ,'massRatioLikelihoodMaximum')
     call analysisGroup%close         (                                                              )
+    if (present(groupName)) &
+         & call subGroup%close       (                                                              )
     call analysesGroup%close         (                                                              )
     !$ call hdf5Access%unset()
     return

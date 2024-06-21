@@ -598,7 +598,7 @@ contains
     return
   end subroutine localGroupStellarMassFunctionFinalizeAnalysis
 
-  subroutine localGroupStellarMassFunctionFinalize(self)
+  subroutine localGroupStellarMassFunctionFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis finalization.
     !!}
@@ -607,15 +607,22 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
-    class(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
-    type (hdf5Object                                 )                :: analysesGroup, analysisGroup, &
-         &                                                               dataset
+    class(outputAnalysisLocalGroupStellarMassFunction), intent(inout)           :: self
+    type (varying_string                             ), intent(in   ), optional :: groupName
+    type (hdf5Object                                 )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                                 )               , pointer  :: inGroup
+    type (hdf5Object                                 )                          :: analysisGroup, dataset
 
     ! Finalize analysis.
     call self%finalizeAnalysis()
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                                                            )
-    analysisGroup=analysesGroup%openGroup('localGroupStellarMassFunction','Analysis of stellar mass functions of Local Group satellite galaxies')
+    analysesGroup =  outputFile   %openGroup('analyses'                         )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName)                    )
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('localGroupStellarMassFunction','Analysis of stellar mass functions of Local Group satellite galaxies')
     call analysisGroup%writeAttribute('Local Group stellar mass function','description'                                                                                  )
     call analysisGroup%writeAttribute('function1D'                       ,'type'                                                                                         )
     call analysisGroup%writeAttribute('$M_\star\,[\mathrm{M}_\odot]$'    ,'xAxisLabel'                                                                                   )
@@ -636,6 +643,8 @@ contains
     call analysisGroup%writeDataset  (self%massFunctionTarget            ,'massFunctionTarget'    ,'Satellite number per bin [observed]'                                 )
     call analysisGroup%writeAttribute(self%logLikelihood     ()          ,'logLikelihood'                                                                                )
     call analysisGroup%close         (                                                                                                                                   )
+    if (present(groupName)) &
+         & call subGroup%close       (                                                                                                                                   )
     call analysesGroup%close         (                                                                                                                                   )
     !$ call hdf5Access%unset()
     return

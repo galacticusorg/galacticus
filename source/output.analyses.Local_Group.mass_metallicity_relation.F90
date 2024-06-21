@@ -544,14 +544,15 @@ contains
     return
   end subroutine localGroupMassMetallicityRelationReduce
 
-  subroutine localGroupMassMetallicityRelationFinalize(self)
+  subroutine localGroupMassMetallicityRelationFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis finalization.
     !!}
     implicit none
-    class(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self
+    class(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout)           :: self
+    type (varying_string                                 ), intent(in   ), optional :: groupName
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     return
   end subroutine localGroupMassMetallicityRelationFinalize
 
