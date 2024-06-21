@@ -337,7 +337,7 @@ do i=1,massDistributionsCount
     & ) then
   iMassDistribution=i
   exit
- else if (massDistributions__(i)%uniqueID < 0_kind_int8     .and.                                                   iEmpty     == 0) then
+ else if (massDistributions__(i)%uniqueID < 0_kind_int8 .and. iEmpty == 0) then
   iEmpty           =i
  end if
  if   (                                                          &
