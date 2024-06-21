@@ -56,6 +56,7 @@ module Output_Analyses
     <description>Finalize the analysis.</description>
     <type>void</type>
     <pass>yes</pass>
+    <argument>type(varying_string), intent(in   ), optional :: groupName</argument>
    </method>
    <method name="reduce" >
     <description>Reduce the object onto another object of the class.</description>
