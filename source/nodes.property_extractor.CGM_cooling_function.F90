@@ -22,11 +22,75 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
+  use :: Galactic_Structure                  , only : galacticStructureClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
   use :: Cooling_Functions                   , only : coolingFunctionClass
-   class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
+  use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction">
+   <description>A property extractor class for the CGM cooling function at a set of radii.</description>
+   <deepCopy>
+    <functionClass variables="radiation"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="radiation"/>
+   </stateStorable>
+  </nodePropertyExtractor>
+  !!]
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorCGMCoolingFunction
+     !!{
+     A property extractor class for the CGM cooling function at a set of radii.
+     !!}
+     private
+     class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_           => null()
+     class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_          => null()
+     class  (galacticStructureClass                 ), pointer                   :: galacticStructure_            => null()
+     class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_              => null()
+     type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation                     => null()
+     integer                                                                     :: radiiCount                             , elementCount_       , &
+          &                                                                         abundancesCount                        , chemicalsCount      , &
+          &                                                                         indexRadii                             , indexDensity
+     logical                                                                     :: includeRadii                           , includeDensity
+     type   (varying_string                         ), allocatable, dimension(:) :: radiusSpecifiers
+     type   (radiusSpecifier                        ), allocatable, dimension(:) :: radii
+     logical                                                                     :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
+          &                                                                         spheroidIsNeeded                       , virialRadiusIsNeeded
+     type   (varying_string                         )                            :: label
+   contains
+     final     ::                       cgmCoolingFunctionDestructor
+     procedure :: columnDescriptions => cgmCoolingFunctionColumnDescriptions
+     procedure :: size               => cgmCoolingFunctionSize
+     procedure :: elementCount       => cgmCoolingFunctionElementCount
+     procedure :: extract            => cgmCoolingFunctionExtract
+     procedure :: names              => cgmCoolingFunctionNames
+     procedure :: descriptions       => cgmCoolingFunctionDescriptions
+     procedure :: unitsInSI          => cgmCoolingFunctionUnitsInSI
+  end type nodePropertyExtractorCGMCoolingFunction
+
+  interface nodePropertyExtractorCGMCoolingFunction
+     !!{
+     Constructors for the ``cgmCoolingFunction'' output analysis class.
+     !!}
+     module procedure cgmCoolingFunctionConstructorParameters
+     module procedure cgmCoolingFunctionConstructorInternal
+  end interface nodePropertyExtractorCGMCoolingFunction
+
+contains
+
+  function cgmCoolingFunctionConstructorParameters(parameters) result(self)
+    !!{
+    Constructor for the {\normalfont \ttfamily cgmCoolingFunction} property extractor class which takes a parameter set as input.
+    !!}
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    implicit none
+    type   (nodePropertyExtractorCGMCoolingFunction)                              :: self
+    type   (inputParameters                        ), intent(inout)               :: parameters
+    type   (varying_string                         ), allocatable  , dimension(:) :: radiusSpecifiers
+    class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
+    class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
+    class  (coolingFunctionClass                   ), pointer                     :: coolingFunction_
     class  (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
-    logical                                                                       :: includeRadii              , includeDensity
+    logical                                                                       :: includeRadii        , includeDensity
     type   (varying_string                         )                              :: label
     
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
