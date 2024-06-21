@@ -36,11 +36,6 @@
      class           (darkMatterProfileDMOClass), pointer      :: darkMatterProfileDMO_ => null()
      double precision                                          :: toleranceRelative              , factorRadiusMaximum
    contains
-     !![
-     <methods>
-       <method description="Reset memoized calculations." method="calculationReset" />
-     </methods>
-     !!]
      final     ::        acceleratorDestructor
      procedure :: get => acceleratorGet
   end type darkMatterProfileDMOAccelerator

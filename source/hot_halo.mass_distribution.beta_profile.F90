@@ -48,11 +48,6 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
      type            (massDistributionBetaProfile           )          :: distribution
      class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !![
-     <methods>
-       <method description="Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}." method="initialize" />
-     </methods>
-     !!]
      final     ::        betaProfileDestructor
      procedure :: get => betaProfileGet
   end type hotHaloMassDistributionBetaProfile

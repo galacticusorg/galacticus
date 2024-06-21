@@ -46,7 +46,7 @@
    contains
      !![
      <methods>
-       <method method="truncationFraction" description="Compute the truncation fraction (and related quantities) from the radius"/>
+       <method method="truncationFunction" description="Compute the truncation fraction (and related quantities) from the radius."/>
      </methods>
      !!]
      final     ::                           sphericalTruncatedDestructor

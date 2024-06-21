@@ -49,7 +49,7 @@
    contains
      !![
      <methods>
-       <method description="Return the normalization of the density profile." method="densityNormalization" />
+       <method description="Return the normalization of the density profile." method="normalizationDensity" />
      </methods>
      !!]
      procedure :: normalizationDensity  => enzoHydrostaticNormalizationDensity

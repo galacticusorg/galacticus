@@ -51,8 +51,8 @@
    contains
      !![
      <methods>
-       <method method="timeFreefallTabulate"         description="Tabulate the freefall time as a function of radius in a scale-free Einasto mass distribution."/>
-       <method method="timeFreefallScaleFreeMinimum" description="Compute the minimum freefall time in a scale-free Einasto mass distribution."                 />
+       <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free Einasto mass distribution."/>
+       <method method="timeFreefallMinimum"  description="Compute the minimum freefall time in a scale-free Einasto mass distribution."                 />
      </methods>
      !!]
      procedure :: massTotal                         => einastoMassTotal

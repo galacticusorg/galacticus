@@ -83,18 +83,17 @@
    contains
      !![
      <methods>
-       <method method="velocityDispersionRadialTabulate" description="Tabulate the enclosed mass as a function of radius and core radius."                               />
-       <method method="radiusEnclosingDensityTabulate"   description="Tabulate the radius enclosing a given density as a function of density and core radius."           />
-       <method method="radiusEnclosingMassTabulate"      description="Tabulate the radius enclosing a given mass as a function of density and core radius."              />
-       <method method="energyTabulate"                   description="Tabulate the energy as a function of concentration and core radius."                               />
-       <method method="densityScaleFree"                 description="The density of the profile in units where the mass and scale length are both 1."                   />
-       <method method="massEnclosedScaleFree"            description="The mass enclosed of the profile in units where the mass and scale length are both 1."             />
-       <method method="storeDensityTable"                description="Store the tabulated radius-enclosing-density to file."                                             />
-       <method method="restoreDensityTable"              description="Attempt to restore the tabulated radius-enclosing-density from file, returning true if successful."/>
-       <method method="storeMassTable"                   description="Store the tabulated radius-enclosing-mass to file."                                                />
-       <method method="restoreMassTable"                 description="Attempt to restore the tabulated radius-enclosing-mass from file, returning true if successful."   />
-       <method method="storeEnergyTable"                 description="Store the tabulated energy to file."                                                               />
-       <method method="restoreEnergyTable"               description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
+       <method method="radiusEnclosingDensityTabulate" description="Tabulate the radius enclosing a given density as a function of density and core radius."           />
+       <method method="radiusEnclosingMassTabulate"    description="Tabulate the radius enclosing a given mass as a function of density and core radius."              />
+       <method method="energyTabulate"                 description="Tabulate the energy as a function of concentration and core radius."                               />
+       <method method="densityScaleFree"               description="The density of the profile in units where the mass and scale length are both 1."                   />
+       <method method="massEnclosedScaleFree"          description="The mass enclosed of the profile in units where the mass and scale length are both 1."             />
+       <method method="storeDensityTable"              description="Store the tabulated radius-enclosing-density to file."                                             />
+       <method method="restoreDensityTable"            description="Attempt to restore the tabulated radius-enclosing-density from file, returning true if successful."/>
+       <method method="storeMassTable"                 description="Store the tabulated radius-enclosing-mass to file."                                                />
+       <method method="restoreMassTable"               description="Attempt to restore the tabulated radius-enclosing-mass from file, returning true if successful."   />
+       <method method="storeEnergyTable"               description="Store the tabulated energy to file."                                                               />
+       <method method="restoreEnergyTable"             description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
      </methods>
      !!]
      procedure :: density                        => sphericalFiniteResolutionNFWDensity

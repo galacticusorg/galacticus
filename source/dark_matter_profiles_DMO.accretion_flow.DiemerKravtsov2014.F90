@@ -48,11 +48,6 @@
           &                                                      bz                                 , sz , &
           &                                                      bnu                                , snu     
    contains
-     !![
-     <methods>
-       <method description="Reset memoized calculations." method="calculationReset"/>
-     </methods>
-     !!]
      final     ::        accretionFlowDiemerKravtsov2014Destructor
      procedure :: get => accretionFlowDiemerKravtsov2014Get
   end type darkMatterProfileDMOAccretionFlowDiemerKravtsov2014

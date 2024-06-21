@@ -43,6 +43,13 @@
      double precision                                      :: alpha                         , beta, &
           &                                                   gamma
    contains   
+     !![
+     <methods>
+       <method method="exponents"     description="Compute the exponents for the density profile."   />
+       <method method="scaleRadius"   description="Compute the scale radius for the density profile."/>
+       <method method="normalization" description="Compute the normalization of the density profile."/>
+     </methods>
+     !!]
      final     ::                  zhao1996Destructor
      procedure :: get           => zhao1996Get
      procedure :: exponents     => zhao1996Exponents
