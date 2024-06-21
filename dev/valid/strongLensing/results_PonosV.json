@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "slope" : {
-      "percentageAbove" : 42.8571428571429,
-      "target" : 0.85,
-      "percentageBelow" : 57.1428571428571
-   },
    "surfaceDensity" : {
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875,
+      "percentageBelow" : 53.125,
+      "percentageAbove" : 46.875,
       "target" : 0.006
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "message" : "fix: Capitalize character in variable name",
-      "id" : "e537fec3c4ddaad1f0e6751af4ddb6c26da4b858",
+      "timestamp" : "Thu, 20 Jun 2024 21:55:34 +0000",
+      "message" : "Merge pull request #631 from galacticusorg/featMangleBuild",
       "author" : {
-         "email" : "abenson@obs.carnegiescience.edu",
-         "name" : "Andrew Benson"
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
       },
-      "timestamp" : "Tue, 18 Jun 2024 10:34:30 -0700",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/e537fec3c4ddaad1f0e6751af4ddb6c26da4b858"
-   }
+      "id" : "1810d5ac1875bab4ac736138444740d87cacb640",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/1810d5ac1875bab4ac736138444740d87cacb640"
+   },
+   "slope" : {
+      "percentageBelow" : 64.2857142857143,
+      "percentageAbove" : 35.7142857142857,
+      "target" : 0.85
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
