@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718751579512,
+  "lastUpdate": 1718938357412,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "3d09e973a1c5355740ebeccc1e20eb5b71517979",
-          "message": "Merge pull request #451 from galacticusorg/singleStep\n\nAdd a `mergerTreeBuildContoller` class that takes just a single step in the tree",
-          "timestamp": "2023-08-24T05:25:38Z",
-          "tree_id": "ccc351bea3a2dd0c65b1479f4de1ea85c2748c4d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3d09e973a1c5355740ebeccc1e20eb5b71517979"
-        },
-        "date": 1692865896540,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 233.743,
-            "unit": "seconds",
-            "range": 0.251097789713961
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0403954614097,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1810d5ac1875bab4ac736138444740d87cacb640",
+          "message": "Merge pull request #631 from galacticusorg/featMangleBuild\n\nBuild `mangle` from our forked repo",
+          "timestamp": "2024-06-20T21:55:34Z",
+          "tree_id": "0336638c63013b0aa0f29473866c26b0819a62f5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1810d5ac1875bab4ac736138444740d87cacb640"
+        },
+        "date": 1718938356478,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 351.355,
+            "unit": "seconds",
+            "range": 0.402932376461544
           }
         ]
       }
