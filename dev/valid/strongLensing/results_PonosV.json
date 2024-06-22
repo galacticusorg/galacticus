@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageBelow" : 53.125,
-      "percentageAbove" : 46.875,
-      "target" : 0.006
-   },
-   "commit" : {
-      "timestamp" : "Thu, 20 Jun 2024 21:55:34 +0000",
-      "message" : "Merge pull request #631 from galacticusorg/featMangleBuild",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      },
-      "id" : "1810d5ac1875bab4ac736138444740d87cacb640",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/1810d5ac1875bab4ac736138444740d87cacb640"
-   },
    "slope" : {
-      "percentageBelow" : 64.2857142857143,
-      "percentageAbove" : 35.7142857142857,
+      "percentageBelow" : 53.3333333333333,
+      "percentageAbove" : 46.6666666666667,
       "target" : 0.85
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "commit" : {
+      "timestamp" : "Fri, 21 Jun 2024 23:31:36 +0000",
+      "author" : {
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
+      },
+      "id" : "b2f192fe7c52895bfbc29a3964bce8206506a74d",
+      "message" : "Merge pull request #632 from galacticusorg/optimization",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/b2f192fe7c52895bfbc29a3964bce8206506a74d"
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageAbove" : 56.25,
+      "percentageBelow" : 43.75,
+      "target" : 0.006
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
