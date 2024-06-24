@@ -34,8 +34,9 @@
      class           (darkMatterProfileClass), pointer      :: darkMatterProfile_ => null()
      double precision                                       :: toleranceRelative           , factorRadiusMaximum
    contains
-     final     ::        acceleratorDestructor
-     procedure :: get => acceleratorGet
+     final     ::               acceleratorDestructor
+     procedure :: get        => acceleratorGet
+     procedure :: initialize => acceleratorInitialize
   end type darkMatterProfileAccelerator
 
   interface darkMatterProfileAccelerator
@@ -45,6 +46,10 @@
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
   end interface darkMatterProfileAccelerator
+
+  ! Sub-module-scope pointer to the decorated mass distribution used during initialization.
+  class(massDistributionClass), pointer :: acceleratorMassDistributionDecorated
+  !$omp threadprivate(acceleratorMassDistributionDecorated)
 
 contains
 
@@ -124,7 +129,6 @@ contains
     type            (treeNode                           ), intent(inout), target   :: node
     type            (enumerationWeightByType            ), intent(in   ), optional :: weightBy
     integer                                              , intent(in   ), optional :: weightIndex
-    class           (massDistributionClass              ), pointer                 :: massDistributionDecorated
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -137,19 +141,19 @@ contains
     allocate(massDistributionSphericalAccelerator :: massDistribution_)
     select type(massDistribution_)
     type is (massDistributionSphericalAccelerator)
-       massDistributionDecorated => self%darkMatterProfile_%get(node,weightBy,weightIndex)
-       select type (massDistributionDecorated)
+       acceleratorMassDistributionDecorated => self%darkMatterProfile_%get(node,weightBy,weightIndex)
+       select type (acceleratorMassDistributionDecorated)
        class is (massDistributionSpherical)
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalAccelerator(                                                      &amp;
-	      &amp;                                toleranceRelative  =self%toleranceRelative          , &amp;
-	      &amp;                                factorRadiusMaximum=self%factorRadiusMaximum        , &amp;
-	      &amp;                                massDistribution_  =     massDistributionDecorated  , &amp;
-              &amp;                                nonAnalyticSolver  =     nonAnalyticSolversNumerical, &amp;
-              &amp;                                componentType      =     componentTypeDarkHalo      , &amp;
-              &amp;                                massType           =     massTypeDark                 &amp;
+              massDistributionSphericalAccelerator(                                                               &amp;
+	      &amp;                                toleranceRelative  =self%toleranceRelative                   , &amp;
+	      &amp;                                factorRadiusMaximum=self%factorRadiusMaximum                 , &amp;
+	      &amp;                                massDistribution_  =     acceleratorMassDistributionDecorated, &amp;
+              &amp;                                nonAnalyticSolver  =     nonAnalyticSolversNumerical         , &amp;
+              &amp;                                componentType      =     componentTypeDarkHalo               , &amp;
+              &amp;                                massType           =     massTypeDark                          &amp;
               &amp;                               )
 	    </constructor>
 	  </referenceConstruct>
@@ -173,3 +177,19 @@ contains
     !!]
     return
   end function acceleratorGet
+
+  subroutine acceleratorInitialize(self,node,massDistribution_)
+    !!{
+    Initialize the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class(darkMatterProfileAccelerator), intent(inout)         :: self
+    type (treeNode                    ), intent(inout), target :: node
+    class(massDistributionClass       ), intent(inout)         :: massDistribution_
+
+    call self%darkMatterProfile_%initialize(node,acceleratorMassDistributionDecorated)
+    !![
+    <objectDestructor name="acceleratorMassDistributionDecorated"/>
+    !!]
+   return
+ end subroutine acceleratorInitialize

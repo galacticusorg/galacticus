@@ -60,10 +60,12 @@
    contains
      !![
      <methods>
-       <method method="computeSolution" description="Compute a solution for the isothermal core of a SIDM halo."/>
+       <method method="setBaryonicComponent" description="Set baryonic components in the mass distribution."         />
+       <method method="computeSolution"      description="Compute a solution for the isothermal core of a SIDM halo."/>
      </methods>
      !!]
      final     ::                          sphericalSIDMIsothermalBaryonsDestructor
+     procedure :: setBaryonicComponent  => sphericalSIDMIsothermalBaryonsSetBaryonicComponent
      procedure :: computeSolution       => sphericalSIDMIsothermalBaryonsComputeSolution
      procedure :: density               => sphericalSIDMIsothermalBaryonsDensity
      procedure :: densityGradientRadial => sphericalSIDMIsothermalBaryonsDensityGradientRadial
@@ -163,7 +165,6 @@ contains
     class default
        call Error_Report('this class expects a self-interacting dark matter particle'//{introspection:location})
     end select
-    call self%computeSolution()
     return
   end function sphericalSIDMIsothermalBaryonsConstructorInternal
 
@@ -181,6 +182,22 @@ contains
     !!]
     return
   end subroutine sphericalSIDMIsothermalBaryonsDestructor
+
+  subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent(self,massDistributionBaryonic)
+    !!{
+    Set the baryonic component properties in an adiabatically-contracted spherical mass distribution.
+    !!}
+    implicit none
+    class(massDistributionSphericalSIDMIsothermalBaryons), intent(inout)         :: self
+    class(massDistributionClass                         ), intent(in   ), target :: massDistributionBaryonic
+  
+    self%massDistributionBaryonic => massDistributionBaryonic
+    !![
+    <referenceCountIncrement owner="self" object="massDistributionBaryonic"/>
+    !!]
+    call self%computeSolution()
+    return
+  end subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent
 
   subroutine sphericalSIDMIsothermalBaryonsComputeSolution(self)
     !!{
