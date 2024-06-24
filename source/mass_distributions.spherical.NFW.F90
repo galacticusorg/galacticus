@@ -671,12 +671,12 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
-    double precision, parameter     :: radiusSmall=1.0d-10
+    double precision, parameter     :: radiusSmall=1.0d-6
     double precision                :: radiusTerm
     
     if (radius < radiusSmall) then
        ! Use a series solution for very small radii.
-       radiusTerm=1.0d0-0.5d0*radius
+       radiusTerm=+1.0d0-radius/2.0d0+radius**2/3.0d0
     else
        ! Use the full expression for larger radii.
        radiusTerm=log(1.0d0+radius)/radius
@@ -694,10 +694,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Comparison    , only : Values_Agree
     implicit none
-    double precision, intent(in   ) :: radius1                             , radius2
-    double precision, parameter     :: radiusSmall                 =1.0d-10
-    double precision, parameter     :: toleranceRelative           =1.0d-03
-    double precision                :: potentialGradientLogarithmic        , radiusDifferenceLogarithmic
+    double precision, intent(in   ) :: radius1                            , radius2
+    double precision, parameter     :: radiusSmall                 =1.0d-6
+    double precision, parameter     :: toleranceRelative           =1.0d-3
+    double precision                :: potentialGradientLogarithmic       , radiusDifferenceLogarithmic
     
     if (Values_Agree(radius1,radius2,relTol=toleranceRelative)) then
        if (radius1 < radiusSmall) then
@@ -753,17 +753,22 @@ contains
     class           (massDistributionNFW), intent(inout) :: self
     double precision                     , intent(in   ) :: time
     double precision                                     :: timeScaleFree, timeScale
-    
-    timeScale    =+1.0d0/sqrt(                                 &
-         &                    +gravitationalConstantGalacticus &
-         &                    *self%densityNormalization       &
-         &                   )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                  &
-         &        /timeScale
-    call self%timeFreefallTabulate(timeScaleFree)
-    radius=+timeFreefallScaleFree_%interpolate(timeScaleFree) &
-         & *self                  %scaleLength
+
+    if (time > 0.0d0) then
+       timeScale    =+1.0d0/sqrt(                                 &
+            &                    +gravitationalConstantGalacticus &
+            &                    *self%densityNormalization       &
+            &                   )                                 &
+            &        *Mpc_per_km_per_s_To_Gyr
+       timeScaleFree=+time                                  &
+            &        /timeScale
+       call self%timeFreefallTabulate(timeScaleFree)
+       radius=+timeFreefallScaleFree_%interpolate(timeScaleFree) &
+            & *self                  %scaleLength
+    else
+       ! For non-positive freefall times, return a zero freefall radius.
+       radius=+0.0d0
+    end if
     return   
   end function nfwRadiusFreefall
   
@@ -778,17 +783,22 @@ contains
     double precision                     , intent(in   ) :: time
     double precision                                     :: timeScaleFree, timeScale
 
-    timeScale    =+1.0d0/sqrt(                                 &
-         &                    +gravitationalConstantGalacticus &
-         &                    *self%densityNormalization       &
-         &                   )                                 &
-         &        *Mpc_per_km_per_s_To_Gyr
-    timeScaleFree=+time                                        &
-         &        /timeScale
-    call self%timeFreefallTabulate(timeScaleFree)
-    radiusIncreaseRate=+timeFreefallScaleFree_%derivative(timeScaleFree) &
-         &             *self                  %scaleLength               &
-         &             /                       timeScale
+    if (time > 0.0d0) then
+       timeScale    =+1.0d0/sqrt(                                 &
+            &                    +gravitationalConstantGalacticus &
+            &                    *self%densityNormalization       &
+            &                   )                                 &
+            &        *Mpc_per_km_per_s_To_Gyr
+       timeScaleFree=+time                                        &
+            &        /timeScale
+       call self%timeFreefallTabulate(timeScaleFree)
+       radiusIncreaseRate=+timeFreefallScaleFree_%derivative(timeScaleFree) &
+            &             *self                  %scaleLength               &
+            &             /                       timeScale
+    else
+       ! For non-positive freefall times, return the limiting value for small radii.
+       radiusIncreaseRate=+0.0d0
+    end if
     return
   end function nfwRadiusFreefallIncreaseRate
   
@@ -812,7 +822,7 @@ contains
          &  .or.                                          &
          &   timeScaleFree > timeFreefallScaleFreeMaximum &
          & ) then
-       integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
+       integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-3)
        do while (timeFreefallScaleFree(timeFreefallScaleFreeRadiusMinimum) > timeScaleFree)
           timeFreefallScaleFreeRadiusMinimum=0.5d0*timeFreefallScaleFreeRadiusMinimum
        end do
@@ -840,11 +850,19 @@ contains
       !!{
       Evaluate the freefall time from a given radius in a scale-free NFW mass distribution.
       !!}
+      use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: radius
+      double precision, parameter     :: radiusSmall=4.0d-6
 
-      radiusStart          =                            radius
-      timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
+      if (radius > radiusSmall) then
+         radiusStart          =                            radius
+         timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
+      else
+         ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
+         ! first order terms.
+         timeFreefallScaleFree=2.0d0*sqrt(radius/4.0d0/Pi)
+      end if
       return
     end function timeFreefallScaleFree
     
