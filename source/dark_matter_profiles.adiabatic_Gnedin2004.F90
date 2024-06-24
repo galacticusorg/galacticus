@@ -224,6 +224,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
@@ -232,6 +233,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
+    if (calculationResetEvent%isAttached(self,adiabaticGnedin2004CalculationReset)) call calculationResetEvent%detach(self,adiabaticGnedin2004CalculationReset)
     return
   end subroutine adiabaticGnedin2004Destructor
 
@@ -394,7 +396,7 @@ contains
        <objectDestructor name="massDistributionBaryonic"/>
        !!]
     class default
-       call Error_Report("unexpected class"//{introspection:location})
+       call Error_Report("unexpected class - expected 'massDistributionSphericalAdiabaticGnedin2004' but found '"//char(massDistribution_%objectType())//"'"//{introspection:location})
     end select
     return
   end subroutine adiabaticGnedin2004Initialize
