@@ -44,21 +44,22 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                      , darkMatterParticleCDM
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOHeated                                       , darkMatterProfileDMOHeatedMonotonic, darkMatterProfileDMOIsothermal, darkMatterProfileHeatingTidal, &
+  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOHeated                                       , darkMatterProfileDMOHeatedMonotonic, darkMatterProfileDMOIsothermal          , darkMatterProfileHeatingTidal      , &
        &                                          darkMatterProfileDMOClass
   use :: Display                         , only : displayVerbositySet                                              , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
-  use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                       , nodeClassHierarchyInitialize       , nodeComponentBasic             , nodeComponentSatellite      , &
+  use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                       , nodeClassHierarchyInitialize       , nodeComponentBasic                      , nodeComponentSatellite             , &
        &                                          treeNode
   use :: ISO_Varying_String              , only : varying_string
   use :: Input_Parameters                , only : inputParameters
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Math        , only : Pi
-  use :: Mass_Distributions              , only : massDistributionSphericalHeated                                  , massDistributionClass              , massDistributionSpherical      , massDistributionHeatingTidal, &
-       &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated       , massDistributionSphericalHeatedMonotonic, kinematicsDistributionCollisionless, kinematicsDistributionClass, &
-       &                                          nonAnalyticSolversFallThroughDMO => nonAnalyticSolversFallThrough                                                                                                    , &
+  use :: Mass_Distributions              , only : massDistributionSphericalHeated                                  , massDistributionClass              , massDistributionSpherical               , massDistributionHeatingClass       , &
+       &                                          nonAnalyticSolversNumerical                                      , kinematicsDistributionHeated       , massDistributionSphericalHeatedMonotonic, kinematicsDistributionCollisionless, &
+       &                                          kinematicsDistributionClass                                                                                                                                                          , &
+       &                                          nonAnalyticSolversFallThroughDMO => nonAnalyticSolversFallThrough                                                                                                                    , &
        &                                          nonAnalyticSolversNumericalDMO   => nonAnalyticSolversNumerical
-  use :: Unit_Tests                      , only : Assert                                                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group           , Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert                                                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                    , Unit_Tests_Finish
   implicit none
   double precision                                                                , parameter    :: time                                        =13.8d+00
   double precision                                                                , parameter    :: massVirial                                  = 1.0d+10
@@ -88,7 +89,7 @@ program Test_Dark_Matter_Profiles_Heated
   type            (darkMatterParticleSelfInteractingDarkMatter                   )               :: darkMatterParticleSelfInteractingDarkMatter_
   class           (massDistributionSpherical                                     ), pointer      :: massDistributionSphericalHeated_
   class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistributionHeated_
-  type            (massDistributionHeatingTidal                                  )               :: massDistributionHeatingTidal_
+  class           (massDistributionHeatingClass                                  ), pointer      :: massDistributionHeatingTidal_
   class           (massDistributionClass                                         ), pointer      :: massDistributionIsothermal_
   type            (coordinateSpherical                                           )               :: coordinates                                                     , coordinatesHeated    , &
        &                                                                                            coordinatesInitial
@@ -175,7 +176,7 @@ program Test_Dark_Matter_Profiles_Heated
   call satellite%tidalHeatingNormalizedSet(heatingSpecific)
   ! Get the associated mass distribution.
   massDistributionIsothermal_   => darkMatterProfileDMOIsothermal_%get(node                                                                                                          )
-  massDistributionHeatingTidal_ =  massDistributionHeatingTidal       (heatingSpecific,coefficientSecondOrder,coefficientSecondOrder,coefficientSecondOrder,correlationVelocityRadius)
+  massDistributionHeatingTidal_ => darkMatterProfileHeatingTidal_ %get(node)
   ! Compute the characteristic radius for heating.
   radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   radiusHeated=sqrt(gravitationalConstantGalacticus*massVirial/2.0d0/heatingSpecific/radiusVirial)
