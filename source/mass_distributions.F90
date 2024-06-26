@@ -169,6 +169,17 @@ module Mass_Distributions
     <argument>class(coordinate                       ), intent(in   )           :: coordinates  </argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status       </argument>
    </method>
+   <method name="potentialDifference" >
+    <description>Return the difference in that gravitational potential of the distribution between the given coordinates.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
+    <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
+    <code>
+      massDistributionPotentialDifference=massDistributionPotentialDifferenceNumerical(self,coordinates1,coordinates2,status)
+    </code>
+   </method>
    <method name="massEnclosedBySphere" >
     <description>Return the mass enclosed in the distribution by a sphere of given radius.</description>
     <type>double precision</type>
@@ -451,6 +462,47 @@ module Mass_Distributions
     <pass>yes</pass>
     <argument>class(randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_</argument>
    </method>
+   <method name="solverSet" >
+    <description>Set a sub-module scope pointers on a stack to allow recursive calls to functions.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   ), dimension(3) :: position1, position2, vectorUnit</argument>
+    <argument>double precision, intent(in   )               :: separation                      </argument>
+    <code>
+      integer                                        :: i
+      type   (massSolver), allocatable, dimension(:) :: solvers_
+      if (allocated(massSolvers)) then
+         if (massSolversCount == size(massSolvers)) then
+            call move_alloc(massSolvers,solvers_)
+            allocate(massSolvers(size(solvers_)+massSolversIncrement))
+            massSolvers(1:size(solvers_))=solvers_
+            do i=1,size(solvers_)
+               nullify(solvers_(i)%self)
+            end do
+            deallocate(solvers_)
+         end if
+      else
+         allocate(massSolvers(massSolversIncrement))
+      end if
+      massSolversCount=massSolversCount+1
+      massSolvers(massSolversCount)%self       => self
+      massSolvers(massSolversCount)%separation =  separation
+      massSolvers(massSolversCount)%position1  =  position1
+      massSolvers(massSolversCount)%position2  =  position2
+      massSolvers(massSolversCount)%vectorUnit =  vectorUnit
+    </code>
+   </method>
+   <method name="solverUnset" >
+    <description>Unset a sub-module scope pointers on the stack.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      massSolvers(massSolversCount)%self => null()
+      massSolversCount=massSolversCount-1
+    </code>
+   </method>
    <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_          => null()              </data>
    <data>logical                                                 :: dimensionless                                           </data>
    <data>type            (enumerationComponentTypeType)          :: componentType                    =  componentTypeUnknown</data>
@@ -559,7 +611,7 @@ module Mass_Distributions
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>class(massDistributionClass), intent(in   ), target :: massDistributionEmbedding</argument>
+    <argument>class           (massDistributionClass), intent(in   ), target :: massDistributionEmbedding</argument>
     <code>
       integer                                              :: i
       type   (kinematicsSolver), allocatable, dimension(:) :: solvers_
@@ -669,6 +721,18 @@ module Mass_Distributions
   integer                  , parameter                 :: solversIncrement=10
   integer                                              :: solversCount    = 0
   !$omp threadprivate(solvers,solversCount)
+  
+  ! Module-scope pointers used in integrand functions.
+  type :: massSolver
+     class           (massDistributionClass), pointer      :: self       => null()
+     double precision                       , dimension(3) :: position1           , position2, &
+          &                                                   vectorUnit
+     double precision                                      :: separation
+  end type massSolver
+  type   (massSolver), allocatable, dimension(:) :: massSolvers
+  integer            , parameter                 :: massSolversIncrement=10
+  integer                                        :: massSolversCount    = 0
+  !$omp threadprivate(massSolvers,massSolversCount)
   
 contains
   
@@ -835,6 +899,81 @@ contains
     return
   end function rotationCurveMaximumRoot
 
+  double precision function massDistributionPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potentialDifference)
+    !!{
+    Numerically calculate the potential difference between the provided coordinates.
+    !!}
+    use :: Coordinates               , only : coordinateCartesian      , assignment(=)
+    use :: Vectors                   , only : Vector_Magnitude
+    use :: Numerical_Integration     , only : integrator
+    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess, structureErrorCodeIntegration
+    use :: Error                     , only : Error_Report             , errorStatusSuccess
+    implicit none
+    class           (massDistributionClass            ), intent(inout), target   :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates1         , coordinates2
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type            (coordinateCartesian              )                          :: coordinates1_        , coordinates2_
+    double precision                                   , dimension(3)            :: position1            , position2    , &
+         &                                                                          vectorUnit
+    double precision                                                             :: separation
+    type            (integrator                       ), save                    :: integrator_
+    logical                                            , save                    :: initialized  =.false.
+    integer                                                                      :: status_
+    
+    if (present(status)) status=structureErrorCodeSuccess
+    coordinates1_=coordinates1
+    coordinates2_=coordinates2
+    position1    =coordinates1_
+    position2    =coordinates2_
+    separation   =Vector_Magnitude(position1-position2)
+    if (separation == 0.0d0) then
+       potentialDifference=0.0d0
+    else
+       vectorUnit   =+(            &
+            &          +position1  &
+            &          -position2  &
+            &         )            &
+            &        /  separation
+       ! Initialize integrator if necessary.
+       if (.not.initialized) then
+          integrator_=integrator(potentialDifferenceIntegrand,toleranceRelative=1.0d-3)
+          initialized=.true.
+       end if
+       call self%solverSet  (position1,position2,vectorUnit,separation)
+       potentialDifference=integrator_%integrate(0.0d0,separation,status=status_)
+       call self%solverUnset(                                         )
+       if (status_ /= errorStatusSuccess) then
+          if (present(status)) then
+             status=structureErrorCodeIntegration
+          else
+             call Error_Report("integration of potential difference failed"//{introspection:location})
+          end if
+       end if
+    end if
+    return
+  end function massDistributionPotentialDifferenceNumerical
+
+  double precision function potentialDifferenceIntegrand(distance)
+    !!{
+    Integrand used in computing potential differences.
+    !!}
+    use :: Coordinates                     , only : coordinateCartesian    , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+    implicit none
+    double precision                     , intent(in   ) :: distance
+    double precision                     , dimension(3)  :: position   , acceleration
+    type            (coordinateCartesian)                :: coordinates
+    
+    position                    =+massSolvers(massSolversCount)    %position2                &
+         &                       +massSolvers(massSolversCount)    %vectorUnit               &
+         &                       *                                  distance
+    coordinates                 =                                   position
+    acceleration                =massSolvers(massSolversCount)%self%acceleration(coordinates)
+    potentialDifferenceIntegrand=-Dot_Product(acceleration,massSolvers(massSolversCount)%vectorUnit) &
+         &                       *Mpc_per_km_per_s_To_Gyr
+    return
+  end function potentialDifferenceIntegrand
+  
   subroutine jeansEquationSolver(self,radius,massDistributionEmbedding)
     !!{
     Solve the Jeans equation numerically to find the 1D velocity dispersion.
