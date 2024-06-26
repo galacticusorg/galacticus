@@ -251,8 +251,10 @@ contains
          &                                              rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
          &                                              rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                                             )
-    self_                                =>  self
-    modeTarget                           =  +fraction
+    self_                                =>  self 
+    modeTarget                           =  +                         fraction        &
+         &                                  *self                    %value   (0.0d0) &
+         &                                  /self%transferFunctionCDM%value   (0.0d0)
     wavenumber                           =   finder%find(rootGuess=1.0d-2*self%wavenumberJeans)
     matterDensity                        =  +self%cosmologyParameters_%OmegaMatter    () &
          &                                  *self%cosmologyParameters_%densityCritical()
@@ -274,9 +276,10 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
-  
-    modeSolver=+self_%value     (wavenumber) &
-         &     -      modeTarget
+    
+    modeSolver=+self_                    %value     (wavenumber) &
+         &     /self_%transferFunctionCDM%value     (wavenumber) &
+         &     -                           modeTarget
     return
   end function modeSolver
 
