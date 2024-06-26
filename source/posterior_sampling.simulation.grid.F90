@@ -326,6 +326,7 @@ contains
     real                                              , intent(inout)               :: timeEvaluate
     double precision                                  , parameter                   :: temperature                =1.0d0
     double precision                                  , allocatable  , dimension(:) :: stateVector
+    type            (varying_string                  ), allocatable  , dimension(:) :: parameterNames
     double precision                                                                :: logPrior
     type            (posteriorSampleConvergenceAlways)                              :: posteriorSampleConvergence_
     type            (hdf5Object                      )                              :: analysesGroup                    , subGroup
@@ -353,20 +354,23 @@ contains
     ! Store results to file also.
     if (self%outputLikelihoods) then
        stateVector=posteriorSampleState_%get()
+       allocate(parameterNames(size(stateVector)))
        do i=1,size(stateVector)
-          stateVector(i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
+          stateVector   (i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
+          parameterNames(i)=self%modelParametersActive_(i)%modelParameter_%name (              )
        end do
        !$ call hdf5Access%set()
        groupName    =var_str("step")//posteriorSampleState_%count()//":chain"//posteriorSampleState_%chainIndex()
        analysesGroup=outputFile   %openGroup(    'analyses' )
        subGroup     =analysesGroup%openGroup(char(groupName))
        ! Write metadata describing this analysis.
-       call      subGroup%writeAttribute(logPrior     ,'logPrior'                                               )
-       call      subGroup%writeAttribute(logLikelihood,'logLikelihood'                                          )
-       call      subGroup%writeAttribute(logPosterior ,'logPosterior'                                           )
-       call      subGroup%writeDataset  (stateVector  ,"simulationState","The state vector for this likelihood.")
-       call      subGroup%close         (                                                                       )
-       call analysesGroup%close         (                                                                       )
+       call      subGroup%writeAttribute(logPrior     ,'logPrior'                                                )
+       call      subGroup%writeAttribute(logLikelihood ,'logLikelihood'                                          )
+       call      subGroup%writeAttribute(logPosterior  ,'logPosterior'                                           )
+       call      subGroup%writeDataset  (stateVector   ,"simulationState","The state vector for this likelihood.")
+       call      subGroup%writeDataset  (parameterNames,"parameterNames" ,"The names of the model parameters."   )
+       call      subGroup%close         (                                                                        )
+       call analysesGroup%close         (                                                                        )
        !$ call hdf5Access%unset()
     end if
     return
