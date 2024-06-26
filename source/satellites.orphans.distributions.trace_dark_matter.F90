@@ -134,14 +134,21 @@ contains
     type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: fraction
     type            (treeNode                                  ), pointer       :: nodeHost
-    !$GLC attributes unused :: self
+    double precision                                                            :: massEnclosed
 
     nodeHost                        => node%parent
-    traceDarkMatterInverseCMFRadial =  self%galacticStructure_%radiusEnclosingMass(                                 &
-         &                                                                         nodeHost                       , &
-         &                                                                         massFractional=fraction        , &
-         &                                                                         componentType =componentTypeAll, &
-         &                                                                         massType      =massTypeDark      &
+    massEnclosed                    =  self%galacticStructure_%massEnclosed       (                                      &
+         &                                                                                                    nodeHost , &
+         &                                                                         radius       = self%extent(nodeHost), &
+         &                                                                         componentType= componentTypeAll     , &
+         &                                                                         massType     = massTypeDark           &
+         &                                                                        )
+    traceDarkMatterInverseCMFRadial =  self%galacticStructure_%radiusEnclosingMass(                                      &
+         &                                                                                                   nodeHost  , &
+         &                                                                         mass         =+fraction               &
+         &                                                                                       *massEnclosed         , &
+         &                                                                         componentType= componentTypeAll     , &
+         &                                                                         massType     = massTypeDark           &
          &                                                                        )
     return
   end function traceDarkMatterInverseCMFRadial
