@@ -87,8 +87,9 @@ module Galactic_Structure_Options
   <enumeration>
    <name>structureErrorCode</name>
    <description>Error codes for galactic structure functions.</description>
-   <entry label="success"  description="Successful completion."/>
-   <entry label="infinite" description="Result is ±∞."         />
+   <entry label="success"     description="Successful completion."/>
+   <entry label="infinite"    description="Result is ±∞."         />
+   <entry label="integration" description="Integration failed."   />
   </enumeration>
   !!]
 
