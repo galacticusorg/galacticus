@@ -21,7 +21,7 @@
   Implements a model of ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
@@ -41,7 +41,7 @@
      Implementation of a hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::          font2008Destructor
      procedure :: force => font2008Force
@@ -65,28 +65,28 @@ contains
     implicit none
     type (hotHaloRamPressureForceFont2008)                :: self
     type (inputParameters                ), intent(inout) :: parameters
-    class(galacticStructureClass         ), pointer       :: galacticStructure_
+    class(darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
 
     !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=hotHaloRamPressureForceFont2008(galacticStructure_)
+    self=hotHaloRamPressureForceFont2008(darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function font2008ConstructorParameters
 
-  function font2008ConstructorInternal(galacticStructure_) result(self)
+  function font2008ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
     !!}
     implicit none
     type (hotHaloRamPressureForceFont2008)                        :: self
-    class(galacticStructureClass         ), intent(in   ), target :: galacticStructure_
+    class(darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="*galacticStructure_"/>
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
 
     return
@@ -100,7 +100,7 @@ contains
     type(hotHaloRamPressureForceFont2008), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine font2008Destructor
@@ -132,7 +132,7 @@ contains
     ! Get the orbit for this node.
     orbit     =  satellite%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.
-    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%galacticStructure_)
+    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%darkMatterHaloScale_)
     ! Find the ram pressure force at pericenter.
     coordinates       =  [radiusOrbital,0.0d0,0.0d0]
     massDistribution_ =>  nodeHost         %massDistribution(componentTypeHotHalo,massTypeGaseous)

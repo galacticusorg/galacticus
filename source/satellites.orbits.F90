@@ -39,8 +39,8 @@ module Satellite_Orbits
   ! Node used in root finding calculations.
   type            (treeNode                 ), pointer           :: activeNode
   class           (darkMatterProfileDMOClass), pointer           :: darkMatterProfileDMO__
-  class           (galacticStructureClass   ), pointer           :: galacticStructure__
-  !$omp threadprivate(activeNode,darkMatterProfileDMO__,galacticStructure__)
+  double precision                                               :: radiusVirial__
+  !$omp threadprivate(activeNode,darkMatterProfileDMO__,radiusVirial__)
 
   ! Enumeration used to indicate type of extremum.
   integer                                    , parameter, public :: extremumPericenter            =-1
@@ -66,7 +66,7 @@ module Satellite_Orbits
 
 contains
 
-  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,errorCode)
+  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
     !!{
     Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
     !!}
@@ -79,17 +79,15 @@ contains
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass), intent(inout), target   :: darkMatterProfileDMO_
-    class           (galacticStructureClass   ), intent(inout), target   :: galacticStructure_
     double precision                           , parameter               :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder               )                          :: finder
     type            (keplerOrbit              )                          :: orbitCurrent
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
-    orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,galacticStructure_)
+    orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,darkMatterHaloScale_)
     ! Assign the active node.
     activeNode             => nodeHost
     darkMatterProfileDMO__ => darkMatterProfileDMO_
-    galacticStructure__    => galacticStructure_
     ! Store the orbital energy.
     orbitalEnergyInternal=orbit%energy()
     ! Test for conditions that an equivalent circular orbit exists.
@@ -103,16 +101,17 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       finder=rootFinder(                                                                &
-            &            rootFunction                 =Equivalent_Circular_Orbit_Solver, &
-            &            toleranceAbsolute            =toleranceAbsolute               , &
-            &            toleranceRelative            =toleranceRelative               , &
-            &            rangeExpandUpward            =2.0d0                           , &
-            &            rangeExpandDownward          =0.5d0                           , &
-            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
-            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
-            &            rangeExpandType              =rangeExpandMultiplicative         &
-            &           )
+       radiusVirial__=darkMatterHaloScale_%radiusVirial(nodeHost)
+       finder        =rootFinder(                                                                &
+            &                    rootFunction                 =Equivalent_Circular_Orbit_Solver, &
+            &                    toleranceAbsolute            =toleranceAbsolute               , &
+            &                    toleranceRelative            =toleranceRelative               , &
+            &                    rangeExpandUpward            =2.0d0                           , &
+            &                    rangeExpandDownward          =0.5d0                           , &
+            &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
+            &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
+            &                    rangeExpandType              =rangeExpandMultiplicative         &
+            &                   )
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%radiusVirial(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
@@ -134,7 +133,7 @@ contains
     type            (enumerationStructureErrorCodeType)                :: status
 
     ! Get potential.
-    potential=galacticStructure__%potential(activeNode,radius,status=status)
+    potential=Satellite_Orbit_Potential(activeNode,radius,radiusVirial__,status)
     select case (status%ID)
     case (structureErrorCodeSuccess %ID)
        massDistribution_ => darkMatterProfileDMO__%get(activeNode)
@@ -153,11 +152,12 @@ contains
     return
   end function Equivalent_Circular_Orbit_Solver
 
-  subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity,galacticStructure_)
+  subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity,darkMatterHaloScale_)
     !!{
     Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
     !!}
     use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType, radiusLarge
+    use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
     use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , treeNode
     use :: Kepler_Orbits               , only : keplerOrbit
@@ -169,7 +169,7 @@ contains
     type            (keplerOrbit                      ), intent(inout)         :: orbit
     integer                                            , intent(in   )         :: extremumType
     double precision                                   , intent(  out)         :: radius                   , velocity
-    class           (galacticStructureClass           ), intent(inout), target :: galacticStructure_
+    class           (darkMatterHaloScaleClass         ), intent(inout)         :: darkMatterHaloScale_
     class           (nodeComponentBasic               ), pointer               :: basicHost
     double precision                                   , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
     type            (rootFinder                       ), save                  :: finder
@@ -180,7 +180,7 @@ contains
     double precision                                                           :: potential                , energyKinetic
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
-    orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,galacticStructure_)
+    orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,darkMatterHaloScale_)
     ! Extract the orbital energy and angular momentum.
     orbitalEnergyInternal         =orbitCurrent%energy         ()
     orbitalAngularMomentumInternal=orbitCurrent%angularMomentum()
@@ -203,7 +203,7 @@ contains
          & ) then
        ! Set a pointer to the host node.
        activeNode                    => nodeHost
-       galacticStructure__           => galacticStructure_
+       radiusVirial__                =  darkMatterHaloScale_%radiusVirial(nodeHost)
        ! Record previous orbital properties.
        lastUniqueID                  =nodeHost %uniqueID()
        timePrevious                  =basicHost%time    ()
@@ -258,7 +258,7 @@ contains
           velocity=orbitalAngularMomentumInternal/radius
        else
           ! Orbit is radial - use energy to find velocity.
-          potential=galacticStructure_%potential(activeNode,radius,status=status)
+          potential=Satellite_Orbit_Potential(activeNode,radius,darkMatterHaloScale_%radiusVirial(activeNode),status)
           select case (status%ID)
           case (structureErrorCodeSuccess %ID)
              energyKinetic=max(orbitalEnergyInternal-potential,0.0d0)
@@ -305,12 +305,12 @@ contains
     double precision, intent(in   ) :: radius
     double precision                :: potential
 
-    potential=galacticStructure__%potential(activeNode,radius)
+    potential=Satellite_Orbit_Potential(activeNode,radius,radiusVirial__)
     Extremum_Solver=potential+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Extremum_Solver
 
-  function Satellite_Orbit_Convert_To_Current_Potential(orbit,currentHost,galacticStructure_) result(orbitCurrent)
+  function Satellite_Orbit_Convert_To_Current_Potential(orbit,currentHost,darkMatterHaloScale_) result(orbitCurrent)
     !!{
     Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
     halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
@@ -321,26 +321,54 @@ contains
     where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
     current halo.
     !!}
+    use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (keplerOrbit           )                        :: orbitCurrent
-    type            (keplerOrbit           ), intent(inout)         :: orbit
-    type            (treeNode              ), intent(inout)         :: currentHost
-    class           (galacticStructureClass), intent(inout), target :: galacticStructure_
-    double precision                                                :: potentialHost         , radiusVirialOriginal, &
-         &                                                             velocityVirialOriginal
+    type            (keplerOrbit             )                :: orbitCurrent
+    type            (keplerOrbit             ), intent(inout) :: orbit
+    type            (treeNode                ), intent(inout) :: currentHost
+    class           (darkMatterHaloScaleClass), intent(inout) :: darkMatterHaloScale_
+    double precision                                          :: potentialHost         , radiusVirialOriginal, &
+         &                                                       velocityVirialOriginal, radiusVirial
 
     ! Compute the properties of the initial orbit, and the current potential.
-    radiusVirialOriginal  =gravitationalConstantGalacticus*orbit%massHost()/orbit%velocityScale()**2
-    velocityVirialOriginal=                                                 orbit%velocityScale()
-    potentialHost         =galacticStructure_%potential(currentHost,radiusVirialOriginal)
+    radiusVirialOriginal   =gravitationalConstantGalacticus*orbit%massHost()/orbit%velocityScale()**2
+    velocityVirialOriginal =                                                 orbit%velocityScale()    
+    radiusVirial           =darkMatterHaloScale_%radiusVirial    (currentHost)
+    potentialHost          =Satellite_Orbit_Potential(currentHost,radiusVirialOriginal,radiusVirial)
     ! Create a new orbit with an adjusted energy.
     orbitCurrent=orbit
     call orbitCurrent%energySet(orbit%energy()+velocityVirialOriginal**2+potentialHost)
     return
   end function Satellite_Orbit_Convert_To_Current_Potential
 
+  double precision function Satellite_Orbit_Potential(node,radius,radiusVirial,status) result(potential)
+    !!{
+    Evaluate the gravitational potential under the convention that the potential at the virial radius is always
+    $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for {\normalfont \ttfamily keplerOrbit} objects.
+    !!}
+    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Coordinates               , only : coordinateCartesian              , assignment(=)
+    implicit none
+    type            (treeNode                         ), intent(inout)           :: node
+    double precision                                   , intent(in   )           :: radius           , radiusVirial
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    class           (massDistributionClass            )               , pointer  :: massDistribution_
+    type            (coordinateCartesian              )                          :: coordinates      , coordinatesVirial
+    
+    coordinates       =  [radius,0.0d0,0.0d0]
+    coordinatesVirial =  [radiusVirial,0.0d0,0.0d0]
+    massDistribution_ =>  node             %massDistribution   (                                    )
+    potential         =  +massDistribution_%potentialDifference(coordinates,coordinatesVirial,status)    &
+         &               -massDistribution_%rotationCurve      (                 radiusVirial       )**2
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
+    return
+  end function Satellite_Orbit_Potential
+  
   subroutine Satellite_Orbit_Reset(node)
     !!{
     Reset the satellite orbit calculations.

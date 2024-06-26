@@ -30,7 +30,6 @@ program Test_Orbits
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOIsothermal
-  use :: Galactic_Structure        , only : galacticStructureStandard
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
@@ -50,7 +49,6 @@ program Test_Orbits
   double precision                                                                , parameter    :: massHost                =1.0d12, massSatellite               =0.00d0, &
        &                                                                                            velocityFractionalRadial=0.9d00, velocityFractionalTangential=0.75d0
   type            (darkMatterProfileDMOIsothermal                                ), pointer      :: darkMatterProfileDMO_
-  type            (galacticStructureStandard                                     ), pointer      :: galacticStructure_
   type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_
@@ -76,7 +74,6 @@ program Test_Orbits
   allocate(virialDensityContrast_)
   allocate(darkMatterHaloScale_  )
   allocate(darkMatterProfileDMO_ )
-  allocate(galacticStructure_    )
   !![
   <referenceConstruct object="cosmologyParameters_"  >
    <constructor>
@@ -120,20 +117,12 @@ program Test_Orbits
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="galacticStructure_"     >
-   <constructor>
-    galacticStructureStandard                                     (                                               &amp;
-     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
-     &amp;                                                         darkMatterHaloScale_  =darkMatterHaloScale_    &amp;
-     &amp;                                                        )
-   </constructor>
-  </referenceConstruct>
   !!]
   ! Create a node.
   node              => treeNode                  (                 )
   ! Create components.
   basic             => node    %basic            (autoCreate=.true.)
-  darkMatterProfile => node    %darkmatterProfile(autoCreate=.true.)
+  darkMatterProfile => node    %darkMatterProfile(autoCreate=.true.)
   ! Set node properties.
   call basic%timeSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%massSet(massHost                           )
@@ -152,16 +141,16 @@ program Test_Orbits
   call orbit%reset                (keep=[keplerOrbitMasses,keplerOrbitRadius]                            )
   call orbit%velocityRadialSet    (darkMatterHaloScale_%velocityVirial(node)*velocityFractionalRadial    )
   call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)*velocityFractionalTangential)
-  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumPericenter,radiusPericenter,velocityPericenter,galacticStructure_)
-  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumApocenter ,radiusApocenter ,velocityApocenter ,galacticStructure_)
+  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumPericenter,radiusPericenter,velocityPericenter,darkMatterHaloScale_)
+  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumApocenter ,radiusApocenter ,velocityApocenter ,darkMatterHaloScale_)
   call Assert('non-circular orbit, pericenter radius',radiusPericenter,0.428095d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Assert('non-circular orbit,  apocenter radius',radiusApocenter ,1.825500d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   ! Circular orbit.
   call orbit%reset                (keep=[keplerOrbitMasses,keplerOrbitRadius]                            )
   call orbit%velocityRadialSet    (                     0.0d0                                            )
   call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)                             )
-  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumPericenter,radiusPericenter,velocityPericenter,galacticStructure_)
-  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumApocenter ,radiusApocenter ,velocityApocenter ,galacticStructure_)
+  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumPericenter,radiusPericenter,velocityPericenter,darkMatterHaloScale_)
+  call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumApocenter ,radiusApocenter ,velocityApocenter ,darkMatterHaloScale_)
   call Assert('    circular orbit, pericenter radius',radiusPericenter,1.000000d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Assert('    circular orbit,  apocenter radius',radiusApocenter ,1.000000d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   ! End unit tests.
@@ -178,6 +167,5 @@ program Test_Orbits
   <objectDestructor name="virialDensityContrast_"/>
   <objectDestructor name="darkMatterHaloScale_"  />
   <objectDestructor name="darkMatterProfileDMO_" />
-  <objectDestructor name="galacticStructure_"    />
   !!]
 end program Test_Orbits

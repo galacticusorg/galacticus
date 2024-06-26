@@ -21,7 +21,7 @@
 Contains a module which implements a property extractor class for the orbital adiabatic ratio of disks.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorAdiabaticRatioOrbitalDisk">
@@ -41,7 +41,7 @@ Contains a module which implements a property extractor class for the orbital ad
      A property extractor class for the orbital adiabatic ratio of disks.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                adiabaticRatioOrbitalDiskDestructor
      procedure :: extract     => adiabaticRatioOrbitalDiskExtract
@@ -68,28 +68,28 @@ contains
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                :: self
     type (inputParameters                               ), intent(inout) :: parameters
-    class(galacticStructureClass                        ), pointer       :: galacticStructure_
+    class(darkMatterHaloScaleClass                      ), pointer       :: darkMatterHaloScale_
 
     !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorAdiabaticRatioOrbitalDisk(galacticStructure_)
+    self=nodePropertyExtractorAdiabaticRatioOrbitalDisk(darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function adiabaticRatioOrbitalDiskConstructorParameters
 
-  function adiabaticRatioOrbitalDiskConstructorInternal(galacticStructure_) result(self)
+  function adiabaticRatioOrbitalDiskConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily adiabaticRatioOrbital} node operator class.
     !!}
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
-    class(galacticStructureClass                        ), intent(in   ), target :: galacticStructure_
+    class(darkMatterHaloScaleClass                      ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="*galacticStructure_"/>
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
 
     return
@@ -103,7 +103,7 @@ contains
     type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine adiabaticRatioOrbitalDiskDestructor
@@ -133,7 +133,7 @@ contains
     disk      => node     %disk       ()
     satellite => node     %satellite  ()
     orbit     =  satellite%virialOrbit()
-    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusPericenter,velocityPericenter,self%galacticStructure_)
+    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusPericenter,velocityPericenter,self%darkMatterHaloScale_)
     if (disk%radius() > 0.0d0)                                    &
          & adiabaticRatioOrbitalDiskExtract=+(                    &
          &                                    +  radiusPericenter &
