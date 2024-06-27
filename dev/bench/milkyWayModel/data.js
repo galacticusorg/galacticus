@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719455215290,
+  "lastUpdate": 1719523731284,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "03df2130a7ba1dc0e7fec6f3af0a5a0e62d0eb54",
-          "message": "feat: Add support for reading/writing of HDF5 3D ragged arrays",
-          "timestamp": "2023-08-25T15:08:25-07:00",
-          "tree_id": "dcfddf102aa3e28040cca905b62f75ea22ceb702",
-          "url": "https://github.com/galacticusorg/galacticus/commit/03df2130a7ba1dc0e7fec6f3af0a5a0e62d0eb54"
-        },
-        "date": 1693017639119,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 204.975,
-            "unit": "seconds",
-            "range": 0.236255158669681
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.907530110586,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "39b91b24321271c9d81c4feda76b0e72b1958425",
+          "message": "fix: Avoid evaluatng CDM transfer function at $k=0$ when solving for fractional mode masses\n\nThis could cause a floating point exception for some CDM transfer functions.",
+          "timestamp": "2024-06-27T09:26:56-07:00",
+          "tree_id": "fa9a7b94301eb4627e3997e984dd2d4a7cd18a89",
+          "url": "https://github.com/galacticusorg/galacticus/commit/39b91b24321271c9d81c4feda76b0e72b1958425"
+        },
+        "date": 1719523730523,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 353.141,
+            "unit": "seconds",
+            "range": 0.769501721891909
           }
         ]
       }
