@@ -35,16 +35,17 @@ program Test_Decaying_Dark_Matter
   use :: Events_Hooks        , only : eventsHooksInitialize
   use :: Decaying_Dark_Matter, only : decayingDarkMatterFractionRetained, decayingDarkMatterEnergyRetained, decayingDarkMatterFractionRetainedDerivatives, decayingDarkMatterEnergyRetainedDerivatives
   implicit none
-  type            (hdf5Object)                            :: file
-  double precision            , dimension(:), allocatable :: fractionRetainedTarget                      , fractionRetainedTargetUncertainty             , &
-       &                                                     energyRetainedTarget                        , energyRetainedTargetUncertainty               , &
-       &                                                     fractionRetained                            , energyRetained                                , &
-       &                                                     energyDerivativeVelocityKick                , fractionDerivativeVelocityKick                , &
-       &                                                     energyDerivativeVelocityKickFiniteDifference, fractionDerivativeVelocityKickFiniteDifference, &
-       &                                                     velocityKicks
-  double precision                                        :: velocityDispersion                          , velocityEscape                                , &
-       &                                                     fractionDerivativeVelocityEscapeScaleFree   , energyDerivativeVelocityEscapeScaleFree
-  integer                                                 :: i
+  type            (hdf5Object)                              :: file
+  double precision            , dimension(:  ), allocatable :: velocityKicks                                 , velocityEscapes
+  double precision            , dimension(:,:), allocatable :: fractionRetainedTarget                        , fractionRetainedTargetUncertainty               , &
+       &                                                       energyRetainedTarget                          , energyRetainedTargetUncertainty                 , &
+       &                                                       fractionRetained                              , energyRetained                                  , &
+       &                                                       energyDerivativeVelocityKick                  , fractionDerivativeVelocityKick                  , &
+       &                                                       energyDerivativeVelocityEscape                , fractionDerivativeVelocityEscape                , &
+       &                                                       energyDerivativeVelocityKickFiniteDifference  , fractionDerivativeVelocityKickFiniteDifference  , &
+       &                                                       energyDerivativeVelocityEscapeFiniteDifference, fractionDerivativeVelocityEscapeFiniteDifference
+  double precision                                          :: velocityDispersion
+  integer                                                   :: i                                             , j
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -57,40 +58,57 @@ program Test_Decaying_Dark_Matter
   !$ call hdf5Access%set()
   call file%openFile(char(inputPath(pathTypeExec)//"testSuite/data/decayingDarkMatterRetention.hdf5"),readOnly=.true.)
   call file%readDataset  ('velocityKick'               ,velocityKicks                    )
+  call file%readDataset  ('velocityEscape'             ,velocityEscapes                  )
   call file%readDataset  ('fractionRetained'           ,fractionRetainedTarget           )
   call file%readDataset  ('fractionRetainedUncertainty',fractionRetainedTargetUncertainty)
   call file%readDataset  ('energyRetained'             ,energyRetainedTarget             )
   call file%readDataset  ('energyRetainedUncertainty'  ,energyRetainedTargetUncertainty  )
   call file%readAttribute('velocityDispersion'         ,velocityDispersion               )
-  call file%readAttribute('velocityEscape'             ,velocityEscape                   )
   call file%close        (                                                               )
   !$ call hdf5Access%unset()
-  allocate(energyRetained                                (size(velocityKicks)))
-  allocate(fractionRetained                              (size(velocityKicks)))
-  allocate(energyDerivativeVelocityKick                  (size(velocityKicks)))
-  allocate(energyDerivativeVelocityKickFiniteDifference  (size(velocityKicks)))
-  allocate(fractionDerivativeVelocityKick                (size(velocityKicks)))
-  allocate(fractionDerivativeVelocityKickFiniteDifference(size(velocityKicks)))
+  allocate(energyRetained                                  (size(velocityKicks),size(velocityEscapes)))
+  allocate(fractionRetained                                (size(velocityKicks),size(velocityEscapes)))
+  allocate(energyDerivativeVelocityKick                    (size(velocityKicks),size(velocityEscapes)))
+  allocate(energyDerivativeVelocityKickFiniteDifference    (size(velocityKicks),size(velocityEscapes)))
+  allocate(fractionDerivativeVelocityKick                  (size(velocityKicks),size(velocityEscapes)))
+  allocate(fractionDerivativeVelocityKickFiniteDifference  (size(velocityKicks),size(velocityEscapes)))
+  allocate(energyDerivativeVelocityEscape                  (size(velocityKicks),size(velocityEscapes)))
+  allocate(energyDerivativeVelocityEscapeFiniteDifference  (size(velocityKicks),size(velocityEscapes)))
+  allocate(fractionDerivativeVelocityEscape                (size(velocityKicks),size(velocityEscapes)))
+  allocate(fractionDerivativeVelocityEscapeFiniteDifference(size(velocityKicks),size(velocityEscapes)))
   do i=1,size(velocityKicks)
-     fractionRetained(i)=decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,velocityKicks(i))
-     energyRetained  (i)=decayingDarkMatterEnergyRetained  (velocityDispersion,velocityEscape,velocityKicks(i))
-     call decayingDarkMatterFractionRetainedDerivatives(velocityDispersion,velocityEscape,velocityKicks(i),fractionDerivativeVelocityEscapeScaleFree,fractionDerivativeVelocityKick(i))
-     call decayingDarkMatterEnergyRetainedDerivatives  (velocityDispersion,velocityEscape,velocityKicks(i),energyDerivativeVelocityEscapeScaleFree  ,energyDerivativeVelocityKick  (i))
-     if (i == 1) then
-        fractionDerivativeVelocityKickFiniteDifference(i)=fractionDerivativeVelocityKick(i)
-        energyDerivativeVelocityKickFiniteDifference  (i)=energyDerivativeVelocityKick  (i)
-     else
-        fractionDerivativeVelocityKickFiniteDifference(i)=(fractionRetained(i)-fractionRetained(i-1))/(velocityKicks(i)-velocityKicks(i-1))*velocityDispersion
-        energyDerivativeVelocityKickFiniteDifference  (i)=(energyRetained  (i)-energyRetained  (i-1))/(velocityKicks(i)-velocityKicks(i-1))*velocityDispersion
-     end if
+     do j=1,size(velocityEscapes)
+        fractionRetained(i,j)=decayingDarkMatterFractionRetained(velocityDispersion,velocityEscapes(j),velocityKicks(i))
+        energyRetained  (i,j)=decayingDarkMatterEnergyRetained  (velocityDispersion,velocityEscapes(j),velocityKicks(i))
+        call decayingDarkMatterFractionRetainedDerivatives(velocityDispersion,velocityEscapes(j),velocityKicks(i),fractionDerivativeVelocityEscape(i,j),fractionDerivativeVelocityKick(i,j))
+        call decayingDarkMatterEnergyRetainedDerivatives  (velocityDispersion,velocityEscapes(j),velocityKicks(i),energyDerivativeVelocityEscape  (i,j),energyDerivativeVelocityKick  (i,j))
+        if (i == 1) then
+           fractionDerivativeVelocityKickFiniteDifference  (i,j)=fractionDerivativeVelocityKick  (i,j)
+           energyDerivativeVelocityKickFiniteDifference    (i,j)=energyDerivativeVelocityKick    (i,j)
+        else
+           fractionDerivativeVelocityKickFiniteDifference  (i,j)=(fractionRetained(i,j)-fractionRetained(i-1,j))/(velocityKicks  (i)-velocityKicks  (i-1))*velocityDispersion
+           energyDerivativeVelocityKickFiniteDifference    (i,j)=(energyRetained  (i,j)-energyRetained  (i-1,j))/(velocityKicks  (i)-velocityKicks  (i-1))*velocityDispersion
+        end if
+        if (j == 1) then
+           fractionDerivativeVelocityEscapeFiniteDifference(i,j)=fractionDerivativeVelocityEscape(i,j)
+           energyDerivativeVelocityEscapeFiniteDifference  (i,j)=energyDerivativeVelocityEscape  (i,j)
+        else
+           fractionDerivativeVelocityEscapeFiniteDifference(i,j)=(fractionRetained(i,j)-fractionRetained(i,j-1))/(velocityEscapes(j)-velocityEscapes(j-1))*velocityDispersion
+           energyDerivativeVelocityEscapeFiniteDifference  (i,j)=(energyRetained  (i,j)-energyRetained  (i,j-1))/(velocityEscapes(j)-velocityEscapes(j-1))*velocityDispersion
+        end if
+     end do
   end do
-  energyRetained                              =+energyRetained                              /(0.5d0*velocityKicks**2)
-  energyDerivativeVelocityKick                =+energyDerivativeVelocityKick                /(0.5d0*velocityKicks**2)
-  energyDerivativeVelocityKickFiniteDifference=+energyDerivativeVelocityKickFiniteDifference/(0.5d0*velocityKicks**2)
+  do j=1,size(velocityEscapes)
+     energyRetained                              (:,j)=+energyRetained                              (:,j)/(0.5d0*velocityKicks**2)
+     energyDerivativeVelocityKick                (:,j)=+energyDerivativeVelocityKick                (:,j)/(0.5d0*velocityKicks**2)
+     energyDerivativeVelocityKickFiniteDifference(:,j)=+energyDerivativeVelocityKickFiniteDifference(:,j)/(0.5d0*velocityKicks**2)
+  end do
   call Assert('fraction; f     ',abs(fractionRetained-fractionRetainedTarget),max(1.0d-5,5.0d0*fractionRetainedTargetUncertainty),compareLessThanOrEqual)
   call Assert('  energy; ε     ',abs(energyRetained  -energyRetainedTarget  ),max(1.0d-5,5.0d0*energyRetainedTargetUncertainty  ),compareLessThanOrEqual)
-  call Assert('          ∂f/∂vₖ',fractionDerivativeVelocityKick,fractionDerivativeVelocityKickFiniteDifference,relTol=1.5d-1,absTol=1.0d-3)
-  call Assert('          ∂f/∂vₑ',energyDerivativeVelocityKick  ,energyDerivativeVelocityKickFiniteDifference  ,relTol=4.0d-1,absTol=2.0d-2)
+  call Assert('          ∂f/∂vₖ',fractionDerivativeVelocityKick  ,fractionDerivativeVelocityKickFiniteDifference  ,relTol=1.5d-1,absTol=2.0d-3)
+  call Assert('          ∂ε/∂vₖ',energyDerivativeVelocityKick    ,energyDerivativeVelocityKickFiniteDifference    ,relTol=4.0d-1,absTol=2.0d-2)
+  call Assert('          ∂f/∂vₑ',fractionDerivativeVelocityEscape,fractionDerivativeVelocityEscapeFiniteDifference,relTol=1.5d-1,absTol=1.0d-3)
+  call Assert('          ∂ε/∂vₑ',energyDerivativeVelocityEscape  ,energyDerivativeVelocityEscapeFiniteDifference  ,relTol=5.0d-1,absTol=5.0d-2)
   deallocate(fractionRetainedTarget                        )
   deallocate(fractionRetainedTargetUncertainty             )
   deallocate(energyRetainedTarget                          )
@@ -100,8 +118,7 @@ program Test_Decaying_Dark_Matter
   deallocate(fractionDerivativeVelocityKick                )
   deallocate(fractionDerivativeVelocityKickFiniteDifference)
   call Unit_Tests_End_Group()
-  ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish    ()
+  call Unit_Tests_Finish   ()
 
 end program Test_Decaying_Dark_Matter
