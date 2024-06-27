@@ -49,6 +49,13 @@ contains
     double precision                                                                            :: massNode                           , massWork, &
          &                                                                                         timeWork
     
+    ! Validate the formation mass fraction.
+    if     (                                                                                            &
+         &   formationMassFraction <= 0.0d0                                                             &
+         &  .or.                                                                                        &
+         &   formationMassFraction >  1.0d0                                                             &
+         & ) call Error_Report('`formationMassFraction` ∈ [0,1) is required'//{introspection:location}) 
+    ! Get the mass of the starting node.
     basic    => node %basic()
     massNode =  basic%mass ()
     if (present(nodeFormation)) then
