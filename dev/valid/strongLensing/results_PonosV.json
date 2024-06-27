@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "slope" : {
-      "percentageBelow" : 53.3333333333333,
-      "percentageAbove" : 46.6666666666667,
-      "target" : 0.85
-   },
    "commit" : {
-      "timestamp" : "Fri, 21 Jun 2024 23:31:36 +0000",
       "author" : {
-         "email" : "abensonca@gmail.com",
+         "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "id" : "b2f192fe7c52895bfbc29a3964bce8206506a74d",
-      "message" : "Merge pull request #632 from galacticusorg/optimization",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/b2f192fe7c52895bfbc29a3964bce8206506a74d"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/61fb717b4259bc703919d1ea5eee5d215aeddf2a",
+      "message" : "fix: Correct numerical calculations of mode masses for transfer functions",
+      "timestamp" : "Wed, 26 Jun 2024 14:27:13 -0700",
+      "id" : "61fb717b4259bc703919d1ea5eee5d215aeddf2a"
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageAbove" : 35.7142857142857,
+      "percentageBelow" : 64.2857142857143,
+      "target" : 0.85
+   },
    "surfaceDensity" : {
-      "percentageAbove" : 56.25,
-      "percentageBelow" : 43.75,
-      "target" : 0.006
+      "target" : 0.006,
+      "percentageBelow" : 53.125,
+      "percentageAbove" : 46.875
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
