@@ -37,6 +37,7 @@ contains
     formationMassFraction} of the current mass.
     !!}
     use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
+    use :: Error                                    , only : Error_Report
     use :: Galacticus_Nodes                         , only : nodeComponentBasic                     , treeNode
     implicit none
     type            (treeNode                               ), intent(inout), target            :: node
