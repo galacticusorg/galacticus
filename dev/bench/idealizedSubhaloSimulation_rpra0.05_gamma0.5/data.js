@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719523749345,
+  "lastUpdate": 1719554859872,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -1540,6 +1540,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/39b91b24321271c9d81c4feda76b0e72b1958425"
         },
         "date": 1719523748637,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "60f3b27a06c7091c3e425f93b31e49f04df7080b",
+          "message": "feat: Add a filter for impacts on a stellar stream",
+          "timestamp": "2024-06-27T18:05:55-07:00",
+          "tree_id": "99f2142a066dbd07089eca0e27f74279be191517",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60f3b27a06c7091c3e425f93b31e49f04df7080b"
+        },
+        "date": 1719554858793,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
