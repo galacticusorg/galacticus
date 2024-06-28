@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719523738610,
+  "lastUpdate": 1719554828246,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "0eb84762c6daca60c08640e1bc1b1bb211ec131a",
-          "message": "feat: Add node and tree indices to debug log output",
-          "timestamp": "2023-08-28T23:54:08Z",
-          "tree_id": "5ea548ab11fae8562973877cb37b4c3572e70c40",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0eb84762c6daca60c08640e1bc1b1bb211ec131a"
-        },
-        "date": 1693286086238,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 234.963,
-            "unit": "seconds",
-            "range": 0.306806290677302
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9101607593046,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "60f3b27a06c7091c3e425f93b31e49f04df7080b",
+          "message": "feat: Add a filter for impacts on a stellar stream",
+          "timestamp": "2024-06-27T18:05:55-07:00",
+          "tree_id": "99f2142a066dbd07089eca0e27f74279be191517",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60f3b27a06c7091c3e425f93b31e49f04df7080b"
+        },
+        "date": 1719554827117,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 369.858,
+            "unit": "seconds",
+            "range": 0.691571832857302
           }
         ]
       }
