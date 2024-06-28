@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719554823436,
+  "lastUpdate": 1719554833103,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "db8121c69e6a0867d6a5d7d9bfa79f41efb001ab",
-          "message": "fix: Use the deploy app to allow comments on PRs from external collaborators",
-          "timestamp": "2023-09-01T18:11:16Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/db8121c69e6a0867d6a5d7d9bfa79f41efb001ab"
-        },
-        "date": 1693605241625,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.6681754904595,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.6634741243711,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23666.4950168135,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8774,6 +8737,45 @@ window.BENCHMARK_DATA = {
             "value": 51.672,
             "unit": "seconds",
             "range": 0.0386729879884255
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "60f3b27a06c7091c3e425f93b31e49f04df7080b",
+          "message": "feat: Add a filter for impacts on a stellar stream",
+          "timestamp": "2024-06-27T18:05:55-07:00",
+          "tree_id": "99f2142a066dbd07089eca0e27f74279be191517",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60f3b27a06c7091c3e425f93b31e49f04df7080b"
+        },
+        "date": 1719554831999,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8746896313658,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.592532167748,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20598.3558316096,
+            "unit": "-logℒ"
           }
         ]
       }
