@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719554837915,
+  "lastUpdate": 1720466117384,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "ca41d8f3a9ec90d7b02161cec967e118949cd44f",
-          "message": "Merge pull request #456 from galacticusorg/completionStatus\n\nAllow clean exit on task failure",
-          "timestamp": "2023-08-31T14:30:38Z",
-          "tree_id": "fc45d38eb8ef468fe8fca2d80e259965f51d3f8b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ca41d8f3a9ec90d7b02161cec967e118949cd44f"
-        },
-        "date": 1693514173266,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 282.166,
-            "unit": "seconds",
-            "range": 3.90820424236017
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9324790393107,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "33d5179b52eb29167c7c4b0f4cfc804c9216288c",
+          "message": "fix: Fix behavior of grid sampler\n\n* Ensure that the number of grid points is a multiple of the number of MPI processes - this is necessary to ensure that each MPI process is called to evaluate the posterior the same number of times, allowing coordination.\n\n* Set the step count in each `poateriorSampleState` object to ensure that results are output to an appropriately-named group.",
+          "timestamp": "2024-07-08T13:52:37Z",
+          "tree_id": "29c8aab117c6e052bedf4986be19176201c56687",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33d5179b52eb29167c7c4b0f4cfc804c9216288c"
+        },
+        "date": 1720466116647,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 354.855,
+            "unit": "seconds",
+            "range": 0.25443761514157
           }
         ]
       }
