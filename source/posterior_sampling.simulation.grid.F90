@@ -284,8 +284,10 @@ contains
     end if
     ! Get list of states to sample.
     call self%posteriorSamples_%samples(stateSamples,self%modelParametersActive_)
+    if (mod(size(stateSamples),mpiSelf%count()) /= 0) call Error_Report('MPI count must be a divisor of number of grid points'//{introspection:location})
     ! Iterate over the states.
     do j=1,size(stateSamples)
+       call stateSamples(j)%countSet(int(j))
        if (mod(j,mpiSelf%count()) /= mpiSelf%rank()) cycle
        ! Evaluate the posterior in the initial state.
        call self%posterior(stateSamples(j),logPosterior,logLikelihood,timeEvaluate)
@@ -364,7 +366,7 @@ contains
        analysesGroup=outputFile   %openGroup(    'analyses' )
        subGroup     =analysesGroup%openGroup(char(groupName))
        ! Write metadata describing this analysis.
-       call      subGroup%writeAttribute(logPrior     ,'logPrior'                                                )
+       call      subGroup%writeAttribute(logPrior      ,'logPrior'                                               )
        call      subGroup%writeAttribute(logLikelihood ,'logLikelihood'                                          )
        call      subGroup%writeAttribute(logPosterior  ,'logPosterior'                                           )
        call      subGroup%writeDataset  (stateVector   ,"simulationState","The state vector for this likelihood.")
