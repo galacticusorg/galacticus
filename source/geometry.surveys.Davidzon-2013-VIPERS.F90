@@ -217,24 +217,32 @@ contains
          &                                                                         luminosity     , starFormationRate
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
+    !$GLC attributes unused :: field
 
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
-    logarithmicMass=log10(mass)
-    select case (self%redshiftBin)
-    case (0)
-       davidzon2013VIPERSDistanceMaximum=3.20663737335189d0+logarithmicMass*(0.0124101908903665d0)
-    case (1)
-       davidzon2013VIPERSDistanceMaximum=3.14840402683405d0+logarithmicMass*(0.0268494389098537d0)
-    case (2)
-       davidzon2013VIPERSDistanceMaximum=3.20688538211015d0+logarithmicMass*(0.0273132827274515d0)
-    case default
-       davidzon2013VIPERSDistanceMaximum=0.0d0
-       call Error_Report('invalid redshift bin'//{introspection:location})
-    end select
-    ! Limit the maximum distance.
-    davidzon2013VIPERSDistanceMaximum=min(10.0d0**davidzon2013VIPERSDistanceMaximum,self%binDistanceMaximum)
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       select case (self%redshiftBin)
+       case (0)
+          davidzon2013VIPERSDistanceMaximum=3.20663737335189d0+logarithmicMass*(0.0124101908903665d0)
+       case (1)
+          davidzon2013VIPERSDistanceMaximum=3.14840402683405d0+logarithmicMass*(0.0268494389098537d0)
+       case (2)
+          davidzon2013VIPERSDistanceMaximum=3.20688538211015d0+logarithmicMass*(0.0273132827274515d0)
+       case default
+          davidzon2013VIPERSDistanceMaximum=0.0d0
+          call Error_Report('invalid redshift bin'//{introspection:location})
+       end select
+       ! Limit the maximum distance.
+       davidzon2013VIPERSDistanceMaximum=min(10.0d0**davidzon2013VIPERSDistanceMaximum,self%binDistanceMaximum)
+    else
+        davidzon2013VIPERSDistanceMaximum=                                             self%binDistanceMaximum
+    end if
     return
   end function davidzon2013VIPERSDistanceMaximum
 

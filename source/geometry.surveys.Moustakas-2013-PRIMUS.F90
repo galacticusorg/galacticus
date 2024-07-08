@@ -229,51 +229,58 @@ contains
          &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
     double precision                                                             :: redshift  , logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
     ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
-    logarithmicMass=log10(mass)
-    select case (field)
-    case (1) ! COSMOS
-       redshift=                  +3.51240871481968000d0  &
-            &   +logarithmicMass*(-0.94131511297034200d0  &
-            &   +logarithmicMass*(+0.06507208866075860d0) &
-            &                                           )
-    case (2) ! XMM-SXDS
-       redshift=                  +2.46068289817352000d0  &
-            &   +logarithmicMass*(-0.72960045705258400d0  &
-            &   +logarithmicMass*(+0.05422457500058130d0) &
-            &                                           )
-    case (3) ! XMM-CFHTLS
-       redshift=                  -3.60001396783385000d0  &
-            &   +logarithmicMass*(+0.50007933123305700d0  &
-            &   +logarithmicMass*(-0.00781044013508246d0) &
-            &                                           )
-    case (4) ! CDFS
-       redshift=                  +5.86929723910240000d0  &
-            &   +logarithmicMass*(-1.52816338306828000d0  &
-            &   +logarithmicMass*(+0.09815249638377170d0) &
-            &                                           )
-    case (5) ! ELAIS-S1
-       redshift=                  +6.87489619768651000d0  &
-            &   +logarithmicMass*(-1.65556365363183000d0  &
-            &   +logarithmicMass*(+0.10030052053225000d0) &
-            &                                           )
-    case default
-       redshift=0.0d0
-       call Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
-    end select
-    ! Convert from redshift to comoving distance.
-    moustakas2013PRIMUSDistanceMaximum                                                                                             &
-         &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
-         &                                                  output  =distanceTypeComoving                                        , &
-         &                                                  redshift=max(min(redshift,self%redshiftMaximum),self%redshiftMinimum)  &
-         &                                                 )
-    ! Limit the maximum distance.
-    moustakas2013PRIMUSDistanceMaximum=min(moustakas2013PRIMUSDistanceMaximum,self%binDistanceMaximum)
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       select case (field)
+       case (1) ! COSMOS
+          redshift=                  +3.51240871481968000d0  &
+               &   +logarithmicMass*(-0.94131511297034200d0  &
+               &   +logarithmicMass*(+0.06507208866075860d0) &
+               &                                           )
+       case (2) ! XMM-SXDS
+          redshift=                  +2.46068289817352000d0  &
+               &   +logarithmicMass*(-0.72960045705258400d0  &
+               &   +logarithmicMass*(+0.05422457500058130d0) &
+               &                                           )
+       case (3) ! XMM-CFHTLS
+          redshift=                  -3.60001396783385000d0  &
+               &   +logarithmicMass*(+0.50007933123305700d0  &
+               &   +logarithmicMass*(-0.00781044013508246d0) &
+               &                                           )
+       case (4) ! CDFS
+          redshift=                  +5.86929723910240000d0  &
+               &   +logarithmicMass*(-1.52816338306828000d0  &
+               &   +logarithmicMass*(+0.09815249638377170d0) &
+               &                                           )
+       case (5) ! ELAIS-S1
+          redshift=                  +6.87489619768651000d0  &
+               &   +logarithmicMass*(-1.65556365363183000d0  &
+               &   +logarithmicMass*(+0.10030052053225000d0) &
+               &                                           )
+       case default
+          redshift=0.0d0
+          call Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
+       end select
+       ! Convert from redshift to comoving distance.
+       moustakas2013PRIMUSDistanceMaximum                                                                                             &
+            &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
+            &                                                  output  =distanceTypeComoving                                        , &
+            &                                                  redshift=max(min(redshift,self%redshiftMaximum),self%redshiftMinimum)  &
+            &                                                 )
+       ! Limit the maximum distance.
+       moustakas2013PRIMUSDistanceMaximum=min(moustakas2013PRIMUSDistanceMaximum,self%binDistanceMaximum)
+    else
+       moustakas2013PRIMUSDistanceMaximum=                                       self%binDistanceMaximum
+    end if
     return
   end function moustakas2013PRIMUSDistanceMaximum
 

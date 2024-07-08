@@ -143,13 +143,20 @@ contains
     double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
          &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
-
-    if (mass /= self%massPrevious)                                                                                 &
-         & self%distanceMaximumPrevious=min(                                                                       &
-         &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field=field), &
-         &                                  self%distanceMaximumLimit                                              &
-         &                                 )
-    hearin2014SDSSDistanceMaximum=self%distanceMaximumPrevious
+    !$GLC attributes unused :: field
+        ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
+    if (present(mass)) then
+       if (mass /= self%massPrevious)                                                                                 &
+            & self%distanceMaximumPrevious=min(                                                                       &
+            &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field=field), &
+            &                                  self%distanceMaximumLimit                                              &
+            &                                 )
+       hearin2014SDSSDistanceMaximum=self%distanceMaximumPrevious
+    else
+       hearin2014SDSSDistanceMaximum=self%distanceMaximumLimit
+    end if
     return
   end function hearin2014SDSSDistanceMaximum

@@ -227,28 +227,36 @@ contains
          &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: redshift  , logarithmicMass
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity, starFormationRate
+    !$GLC attributes unused :: fieldK magnitudeAbsolute, luminosity, starFormationRate
 
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
-    logarithmicMass=log10(mass)
-    redshift=-6076.22869161192d0+logarithmicMass*(3231.43806947672d0+logarithmicMass*(-686.81594922437d0+logarithmicMass*(72.9147764759627d0+logarithmicMass*(-3.86638121388152d0+logarithmicMass*(0.0819398410572916d0)))))
-    if (logarithmicMass < 11.24d0) then
-       redshift=min(4.0d0,redshift/(1.0d0-exp((logarithmicMass-11.24d0)/0.02d0)))
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       redshift=-6076.22869161192d0+logarithmicMass*(3231.43806947672d0+logarithmicMass*(-686.81594922437d0+logarithmicMass*(72.9147764759627d0+logarithmicMass*(-3.86638121388152d0+logarithmicMass*(0.0819398410572916d0)))))
+       if (logarithmicMass < 11.24d0) then
+          redshift=min(4.0d0,redshift/(1.0d0-exp((logarithmicMass-11.24d0)/0.02d0)))
+       else
+          redshift=    4.0d0
+       end if
+       if (redshift < 0.0d0) then
+          muzzin2013ULTRAVISTADistanceMaximum=0.0d0
+       else
+          ! Convert from redshift to comoving distance.
+          muzzin2013ULTRAVISTADistanceMaximum                                                    &
+               &=self%cosmologyFunctions_%distanceComovingConvert(                               &
+               &                                                  output  =distanceTypeComoving, &
+               &                                                  redshift=redshift              &
+               &                                                 )
+          ! Limit the maximum distance.
+          muzzin2013ULTRAVISTADistanceMaximum=min(muzzin2013ULTRAVISTADistanceMaximum,self%binDistanceMaximum)
+       end if
     else
-       redshift=    4.0d0
-    end if
-    if (redshift < 0.0d0) then
-       muzzin2013ULTRAVISTADistanceMaximum=0.0d0
-    else
-       ! Convert from redshift to comoving distance.
-       muzzin2013ULTRAVISTADistanceMaximum                                                    &
-            &=self%cosmologyFunctions_%distanceComovingConvert(                               &
-            &                                                  output  =distanceTypeComoving, &
-            &                                                  redshift=redshift              &
-            &                                                 )
-       ! Limit the maximum distance.
-       muzzin2013ULTRAVISTADistanceMaximum=min(muzzin2013ULTRAVISTADistanceMaximum,self%binDistanceMaximum)
+       muzzin2013ULTRAVISTADistanceMaximum   =                                        self%binDistanceMaximum
     end if
     return
   end function muzzin2013ULTRAVISTADistanceMaximum
