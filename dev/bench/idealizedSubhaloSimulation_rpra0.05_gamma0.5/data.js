@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719554859872,
+  "lastUpdate": 1720466145804,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -1579,6 +1579,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/60f3b27a06c7091c3e425f93b31e49f04df7080b"
         },
         "date": 1719554858793,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "33d5179b52eb29167c7c4b0f4cfc804c9216288c",
+          "message": "fix: Fix behavior of grid sampler\n\n* Ensure that the number of grid points is a multiple of the number of MPI processes - this is necessary to ensure that each MPI process is called to evaluate the posterior the same number of times, allowing coordination.\n\n* Set the step count in each `poateriorSampleState` object to ensure that results are output to an appropriately-named group.",
+          "timestamp": "2024-07-08T13:52:37Z",
+          "tree_id": "29c8aab117c6e052bedf4986be19176201c56687",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33d5179b52eb29167c7c4b0f4cfc804c9216288c"
+        },
+        "date": 1720466145143,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
