@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719554833103,
+  "lastUpdate": 1720466113689,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "94ded2ded9c80fed323bfe76c2075977081ab394",
-          "message": "Merge pull request #453 from galacticusorg/optimization\n\nBaryonic physics optimizations",
-          "timestamp": "2023-09-05T14:41:44Z",
-          "tree_id": "61e3a167309c1df2e1a176e2ec762919862e6ec0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/94ded2ded9c80fed323bfe76c2075977081ab394"
-        },
-        "date": 1693997320837,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 69.019,
-            "unit": "seconds",
-            "range": 0.188140638885034
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20598.3558316096,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "33d5179b52eb29167c7c4b0f4cfc804c9216288c",
+          "message": "fix: Fix behavior of grid sampler\n\n* Ensure that the number of grid points is a multiple of the number of MPI processes - this is necessary to ensure that each MPI process is called to evaluate the posterior the same number of times, allowing coordination.\n\n* Set the step count in each `poateriorSampleState` object to ensure that results are output to an appropriately-named group.",
+          "timestamp": "2024-07-08T13:52:37Z",
+          "tree_id": "29c8aab117c6e052bedf4986be19176201c56687",
+          "url": "https://github.com/galacticusorg/galacticus/commit/33d5179b52eb29167c7c4b0f4cfc804c9216288c"
+        },
+        "date": 1720466112021,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.019,
+            "unit": "seconds",
+            "range": 0.0769733720188054
           }
         ]
       }
