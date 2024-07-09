@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720466130771,
+  "lastUpdate": 1720556300697,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "92dfec05a324db5178bccd47285f1b4899ea4cbd",
-          "message": "Merge pull request #464 from galacticusorg/sigmaTruncatedPower\n\nMake integration of $\\sigma(M)$ more robust for models with truncated power spectra",
-          "timestamp": "2023-09-08T01:57:11Z",
-          "tree_id": "ca3022418aa99d027443e8d34a61e8ab6c5ce4c1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/92dfec05a324db5178bccd47285f1b4899ea4cbd"
-        },
-        "date": 1694161687349,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 57.439,
-            "unit": "seconds",
-            "range": 0.0974109850068084
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20675.296504755,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e974094460a97b468f46fdaf79770b1f1fc51e0d",
+          "message": "Merge pull request #637 from galacticusorg/featSingleEpochError\n\nProvide a more helpful error message when single epoch output is not allowed",
+          "timestamp": "2024-07-09T15:16:37Z",
+          "tree_id": "ebba49aa8dcf854cba2baad3d37b18e4da7435f4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e974094460a97b468f46fdaf79770b1f1fc51e0d"
+        },
+        "date": 1720556298150,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.195,
+            "unit": "seconds",
+            "range": 0.209280911695159
           }
         ]
       }
