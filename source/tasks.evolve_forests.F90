@@ -69,6 +69,9 @@
      integer         (kind_int8                  )          :: timeIntervalCheckpoint
      type            (varying_string             )          :: fileNameCheckpoint
      type            (timer                      )          :: timer_
+     ! Output time display format.
+     integer                                                :: outputTimePrecision
+     character       (len=9                      )          :: outputTimeFormat
    contains
      !![
      <methods>
@@ -223,7 +226,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     !!}
-    use :: Error, only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Error        , only : Error_Report
     implicit none
     type            (taskEvolveForests          )                        :: self
     logical                                      , intent(in   )         :: evolveForestsInParallel, suspendToRAM
@@ -240,6 +244,8 @@ contains
     class           (mergerTreeInitializorClass ), intent(in   ), target :: mergerTreeInitializor_
     class           (randomNumberGeneratorClass ), intent(in   ), target :: randomNumberGenerator_
     type            (inputParameters            ), intent(in   ), target :: parameters
+    integer         (c_size_t                   )                        :: i
+    double precision                                                     :: timeStepMinimum
     !![
     <constructorAssign variables="evolveForestsInParallel, walltimeMaximum, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_"/>
     !!]
@@ -249,6 +255,15 @@ contains
     self%timer_      = timer()
     ! Validate.
     if (evolveForestsInParallel .and. timeIntervalCheckpoint > 0_kind_int8) call Error_Report('Checkpointing is not possible when evolving forests in parallel'//{introspection:location})
+    ! Find the minimum step in output times and compute the precision for outputting times such that all are distinct.
+    timeStepMinimum=huge(0.0d0)
+    if (self%outputTimes_%count() > 1) then
+       do i=2,self%outputTimes_%count()
+          timeStepMinimum=min(self%outputTimes_%time(i)-self%outputTimes_%time(i-1),timeStepMinimum)
+       end do
+    end if
+    self%outputTimePrecision=max(2,-floor(log10(timeStepMinimum)))
+    write (self%outputTimeFormat,'(a2,i2.2,a1,i2.2,a1)') "(f",self%outputTimePrecision+2+floor(log10(self%outputTimes_%time(self%outputTimes_%count()))),".",self%outputTimePrecision,")"
     return 
   end function evolveForestsConstructorInternal
 
@@ -397,42 +412,42 @@ contains
     </include>
     !!]
     implicit none
-    class           (taskEvolveForests            ), intent(inout), target           :: self
-    integer                                        , intent(  out), optional         :: status
-    type            (mergerTree                   ), pointer                  , save :: tree
-    logical                                                                   , save :: finished                                  , treeIsNew
-    integer         (c_size_t                     )                           , save :: iOutput
-    double precision                                                          , save :: evolveToTime                              , treeTimeEarliest            , &
-         &                                                                              universalEvolveToTime                     , treeTimeLatest              , &
-         &                                                                              outputTimeNext
-    type            (varying_string               )                           , save :: message
-    character       (len=20                       )                           , save :: label
+    class           (taskEvolveForests       ), intent(inout), target           :: self
+    integer                                   , intent(  out), optional         :: status
+    type            (mergerTree              ), pointer                  , save :: tree
+    logical                                                              , save :: finished             , treeIsNew
+    integer         (c_size_t                )                           , save :: iOutput
+    double precision                                                     , save :: evolveToTime         , treeTimeEarliest       , &
+         &                                                                         universalEvolveToTime, treeTimeLatest         , &
+         &                                                                         outputTimeNext
+    type            (varying_string          )                           , save :: message
+    character       (len=20                  )                           , save :: label
     !$omp threadprivate(tree,finished,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,treeTimeLatest,outputTimeNext)
-    logical                                                                   , save :: treeIsFinished                            , evolutionIsEventLimited     , &
-         &                                                                              success                                   , removeTree                  , &
-         &                                                                              suspendTree                               , treesDidEvolve              , &
-         &                                                                              treeDidEvolve                             , treesCouldEvolve            , &
-         &                                                                              deadlockReport
-    type            (mergerTree                   ), pointer                  , save :: currentTree                               , previousTree                , &
-         &                                                                              nextTree
-    type            (mergerTreeWalkerAllNodes     )                           , save :: treeWalkerAll
+    logical                                                              , save :: treeIsFinished       , evolutionIsEventLimited, &
+         &                                                                         success              , removeTree             , &
+         &                                                                         suspendTree          , treesDidEvolve         , &
+         &                                                                         treeDidEvolve        , treesCouldEvolve       , &
+         &                                                                         deadlockReport
+    type            (mergerTree              ), pointer                  , save :: currentTree          , previousTree           , &
+         &                                                                         nextTree
+    type            (mergerTreeWalkerAllNodes)                           , save :: treeWalkerAll
     !$omp threadprivate(currentTree,previousTree,treeWalkerAll)
-    type            (treeNode                     ), pointer                  , save :: satelliteNode
-    class           (nodeComponentBasic           ), pointer                  , save :: basicNodeBase
+    type            (treeNode                ), pointer                  , save :: satelliteNode
+    class           (nodeComponentBasic      ), pointer                  , save :: basicNodeBase
     !$omp threadprivate(satelliteNode,basicNodeBase,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
-    type            (universeEvent                ), pointer                  , save :: event_
+    type            (universeEvent           ), pointer                  , save :: event_
     !$omp threadprivate(event_)
-    type            (treeNode                     ), pointer                  , save :: node
-    class           (nodeComponentBasic           ), pointer                  , save :: basic
-    logical                                                                   , save :: treesFinished
-    integer         (c_size_t                     )                           , save :: treeNumber
-    type            (inputParameters              ), allocatable              , save :: parameters
-    integer         (c_size_t                     )                                  :: treeCount
-    integer         (omp_lock_kind                )                                  :: initializationLock
-    integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
+    type            (treeNode                ), pointer                  , save :: node
+    class           (nodeComponentBasic      ), pointer                  , save :: basic
+    logical                                                              , save :: treesFinished
+    integer         (c_size_t                )                           , save :: treeNumber
+    type            (inputParameters         ), allocatable              , save :: parameters
+    integer         (c_size_t                )                                  :: treeCount
+    integer         (omp_lock_kind           )                                  :: initializationLock
+    integer         (kind_int8               )                                  :: systemClockRate      , systemClockMaximum
     !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters)
-    logical                                                                          :: checkpointRestored                        , checkpointing              , &
-         &                                                                              universeUpdated
+    logical                                                                     :: checkpointRestored   , checkpointing         , &
+         &                                                                         universeUpdated
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -707,7 +722,7 @@ contains
                 ! Report on memory utilization.
                 call reportMemoryUsage()
                 ! Tree reached an output time, so output it. We can then continue evolving.
-                write (label,'(f7.2)') evolveToTime
+                write (label,self%outputTimeFormat) evolveToTime
                 message="Output tree data at t="//trim(label)//" Gyr"
                 call displayMessage(message)
                 call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
