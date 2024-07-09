@@ -50,8 +50,8 @@
        Interface for cumulative number of Type Ia SNe.
        !!}
        import supernovaeTypeIaMassIndependentDTD
-       class           (supernovaeTypeIaMassIndependentDTD), intent(inout) :: self
-       double precision                                    , intent(in   ) :: age , metallicity
+       class           (supernovaeTypeIaMassIndependentDTD), intent(inout), target :: self
+       double precision                                    , intent(in   )         :: age , metallicity
      end function numberCumulativeTemplate
   end interface
 
