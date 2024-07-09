@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "commit" : {
-      "id" : "33d5179b52eb29167c7c4b0f4cfc804c9216288c",
-      "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "message" : "fix: Fix behavior of grid sampler",
-      "timestamp" : "Mon, 8 Jul 2024 13:52:37 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/33d5179b52eb29167c7c4b0f4cfc804c9216288c"
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageBelow" : 43.75,
+      "percentageAbove" : 46.875,
       "target" : 0.006,
-      "percentageAbove" : 56.25
+      "percentageBelow" : 53.125
    },
    "slope" : {
-      "percentageBelow" : 53.3333333333333,
+      "percentageAbove" : 35.7142857142857,
       "target" : 0.85,
-      "percentageAbove" : 46.6666666666667
+      "percentageBelow" : 64.2857142857143
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "commit" : {
+      "message" : "Merge pull request #637 from galacticusorg/featSingleEpochError",
+      "id" : "e974094460a97b468f46fdaf79770b1f1fc51e0d",
+      "timestamp" : "Tue, 9 Jul 2024 15:16:37 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/e974094460a97b468f46fdaf79770b1f1fc51e0d",
+      "author" : {
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
+      }
    }
 }
