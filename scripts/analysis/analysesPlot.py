@@ -55,18 +55,20 @@ for analysis in analyses:
     analysis.update({'isBest': {'global': False}})
     for analysisName in analysisNames.keys():
         analysis['isBest'].update({analysisName: False})
-    if "logLikelihood" in analysis['group'].attrs.keys():
-        logLikelihood = analysis['group'].attrs['logLikelihood']
-        if logLikelihood > logLikelihoodBest['global']:
-            logLikelihoodBest['global'] = logLikelihood
-            analysisBest['global'] = analysis
+    logLikelihoodGlobal = 0.0
     for analysisName in analysisNames.keys():
         groupAnalysis = analysis['group'][analysisName]
         if "logLikelihood" in groupAnalysis.attrs.keys():
             logLikelihood = groupAnalysis.attrs['logLikelihood']
+            logLikelihoodGlobal += logLikelihood
             if logLikelihood > logLikelihoodBest[analysisName]:
                 logLikelihoodBest[analysisName] = logLikelihood
                 analysisBest[analysisName] = analysis
+    if "logLikelihood" in analysis['group'].attrs.keys():
+        logLikelihoodGlobal = analysis['group'].attrs['logLikelihood']
+    if logLikelihoodGlobal > logLikelihoodBest['global']:
+        logLikelihoodBest['global'] = logLikelihoodGlobal
+        analysisBest['global'] = analysis
 analysisBest['global']['isBest'].update({'global': True})
 for analysisName in analysisNames.keys():
     analysisBest[analysisName]['isBest'].update({analysisName: True})
@@ -153,6 +155,19 @@ for analysisName in analysisNames.keys():
                                     yMinimum -= 0.05*yRange
                                     yMaximum += 0.05*yRange
                                 axes.set_ylim([yMinimum,yMaximum])
+                            # Set a suitable x-axis range.
+                            x        = datasets['xDataset']['data']
+                            xMinimum = np.min(x)
+                            xMaximum = np.max(x)
+                            if groupAnalysis.attrs['yAxisIsLog'] == 1:
+                                xRange    = xMaximum/xMinimum
+                                xMinimum /= np.power(xRange,0.05)
+                                xMaximum *= np.power(xRange,0.05)
+                            else:
+                                xRange    = xMaximum-xMinimum
+                                xMinimum -= 0.05*xRange
+                                xMaximum += 0.05*xRange
+                            axes.set_xlim([xMinimum,xMaximum])
                     # Extract error bar information.
                     if 'data' in datasets['yErrorLower']:
                         errors = np.concatenate((datasets['yErrorLower']['data'], datasets['yErrorUpper']['data']), axis=1)
