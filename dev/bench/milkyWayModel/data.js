@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720466134280,
+  "lastUpdate": 1720556305457,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "db8121c69e6a0867d6a5d7d9bfa79f41efb001ab",
-          "message": "fix: Use the deploy app to allow comments on PRs from external collaborators",
-          "timestamp": "2023-09-01T18:11:16Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/db8121c69e6a0867d6a5d7d9bfa79f41efb001ab"
-        },
-        "date": 1693605236751,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 195.442,
-            "unit": "seconds",
-            "range": 0.692867664131626
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10688,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0266378445598,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e974094460a97b468f46fdaf79770b1f1fc51e0d",
+          "message": "Merge pull request #637 from galacticusorg/featSingleEpochError\n\nProvide a more helpful error message when single epoch output is not allowed",
+          "timestamp": "2024-07-09T15:16:37Z",
+          "tree_id": "ebba49aa8dcf854cba2baad3d37b18e4da7435f4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e974094460a97b468f46fdaf79770b1f1fc51e0d"
+        },
+        "date": 1720556304440,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 355.19,
+            "unit": "seconds",
+            "range": 0.572356532243198
           }
         ]
       }
