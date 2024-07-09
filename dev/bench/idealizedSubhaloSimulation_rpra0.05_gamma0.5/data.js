@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720466145804,
+  "lastUpdate": 1720556329950,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -1618,6 +1618,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/33d5179b52eb29167c7c4b0f4cfc804c9216288c"
         },
         "date": 1720466145143,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 21.5812642916508,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 7.89676175266811,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 9.84983054159055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e974094460a97b468f46fdaf79770b1f1fc51e0d",
+          "message": "Merge pull request #637 from galacticusorg/featSingleEpochError\n\nProvide a more helpful error message when single epoch output is not allowed",
+          "timestamp": "2024-07-09T15:16:37Z",
+          "tree_id": "ebba49aa8dcf854cba2baad3d37b18e4da7435f4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e974094460a97b468f46fdaf79770b1f1fc51e0d"
+        },
+        "date": 1720556328790,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
