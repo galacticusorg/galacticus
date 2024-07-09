@@ -36,10 +36,11 @@ contains
     Compute output weights corresponding to the cosmological volumes associated with the given survey.
     !!}
     use            :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use            :: Display            , only : displayGreen           , displayReset
     use            :: Error              , only : Error_Report
     use            :: Geometry_Surveys   , only : surveyGeometryClass
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use            :: ISO_Varying_String , only : operator(//)           , varying_string
+    use            :: ISO_Varying_String , only : operator(//)           , varying_string, assignment(=)
     use            :: Output_Times       , only : outputTimesClass
     implicit none
     double precision                         , dimension(:) , allocatable :: outputWeight
@@ -75,7 +76,7 @@ contains
           do iField=1,surveyGeometry_%fieldCount()
              ! Test whether the output epoch lies within the range of comoving distances for this field.
              time            =cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(outputTimes_%redshift(1_c_size_t)                                                         ))
-             timeMinimum=     cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
+             timeMinimum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
              timeMaximum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMinimum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
              timeMinimumFound=min(timeMinimumFound,timeMinimum)
              timeMaximumFound=max(timeMaximumFound,timeMaximum)
@@ -93,7 +94,26 @@ contains
              call Error_Report(message//{introspection:location})
           end if
        else
-          call Error_Report('single epoch output not permitted'//{introspection:location})
+          timeMinimumFound=+huge(0.0d0)
+          timeMaximumFound=-huge(0.0d0)
+          do iField=1,surveyGeometry_%fieldCount()
+             ! Test whether the output epoch lies within the range of comoving distances for this field.
+             timeMinimum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(field=iField))
+             timeMaximum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(field=iField))
+             timeMinimumFound=min(timeMinimumFound,timeMinimum)
+             timeMaximumFound=max(timeMaximumFound,timeMaximum)
+          end do
+          write (redshiftLow ,'(f12.6)') cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(timeMaximumFound))
+          write (redshiftHigh,'(f12.6)') cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(timeMinimumFound))
+          message='single epoch output not permitted'                                                                                     //char(10)// &
+               &  displayGreen()//'HELP:'//displayReset()//' this output analysis requires at least two outputs in the redshift interval '          // &
+               &  trim(adjustl(redshiftLow))                                                                                                        // &
+               &  ' to '                                                                                                                            // &
+               &  trim(adjustl(redshiftHigh))                                                                                                       // & 
+               &  ' but fewer than two outputs exists in this range'                                                                      //char(10)// &
+               &  '      add at least two outputs in this interval'                                                                       //char(10)// &
+               &  '      this is required so that evolution over the redshift interval can be accounted for'
+          call Error_Report(message//{introspection:location})
        end if
     else
        timeMinimumFound=+huge(0.0d0)

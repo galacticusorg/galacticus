@@ -132,11 +132,19 @@ contains
          &                                                                       luminosity     , starFormationRate
     integer                                         , intent(in   ), optional :: field
     double precision                                                          :: logarithmicMass,
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
+    !$GLC attributes unused :: self, field
 
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
-    logarithmicMass=min(log10(mass),12.5d0)
+    if (present(mass)) then
+       logarithmicMass=min(log10(mass),12.5d0)
+    else
+       logarithmicMass=                12.5d0
+    end if
     bernardi2013SDSSDistanceMaximum                                                         &
          &                         =10.0d0**(                                               &
          &                                                         +1282.1065495948200000d0 &

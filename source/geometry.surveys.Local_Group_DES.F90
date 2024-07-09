@@ -112,15 +112,23 @@ contains
     double precision                             , intent(in   ), optional :: mass      , magnitudeAbsolute, &
          &                                                                    luminosity, starFormationRate
     integer                                      , intent(in   ), optional :: field
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
+    !$GLC attributes unused :: field
 
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass completeness limits. The following functional form should be considered to be
     ! approximate at best. It was derived by fitting a polynomial in stellar mass (assuming a mass-to-light ratio of 1 in Solar
     ! units in the V band) to the detection efficiencies reported by Drlica-Wagner et al. (2015, ApJ, 813, 109;
     ! https://ui.adsabs.harvard.edu/abs/2015ApJ...813..109D) - with galaxies where the efficiency was 1 excluded (since by
     ! necessity the efficiency is truncated at 1), and then solving for distance as a function of mass for the point at which the
     ! detection efficiency is 90%.
-    localGroupDESDistanceMaximum=min(11.3d-3*(mass/100.0d0)**0.48d0,self%distanceMaximumSurvey)
+    if (present(mass)) then
+       localGroupDESDistanceMaximum=min(11.3d-3*(mass/100.0d0)**0.48d0,self%distanceMaximumSurvey)
+    else
+       localGroupDESDistanceMaximum=                                   self%distanceMaximumSurvey
+    end if
     return
   end function localGroupDESDistanceMaximum
 
