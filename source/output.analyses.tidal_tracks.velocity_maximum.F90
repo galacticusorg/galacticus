@@ -237,7 +237,7 @@ contains
     return
   end subroutine tidalTracksVelocityMaximumReduce
 
-  subroutine tidalTracksVelocityMaximumFinalize(self)
+  subroutine tidalTracksVelocityMaximumFinalize(self,groupName)
     !!{
     Output results of the maximum velocity tidal track output analysis.
     !!}
@@ -249,8 +249,10 @@ contains
     use :: IO_HDF5      , only : hdf5Object
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)              :: self
-    type            (hdf5Object                              )                             :: analysesGroup                 , analysisGroup           , &
-         &                                                                                    dataset
+    type            (varying_string                          ), intent(in   ), optional    :: groupName
+    type            (hdf5Object                              )               , target      :: analysesGroup                 , subGroup
+    type            (hdf5Object                              )               , pointer     :: inGroup
+    type            (hdf5Object                              )                             :: analysisGroup                 , dataset
 #ifdef USEMPI
     integer                                                                                :: offset
     integer                                                   , dimension(:) , allocatable :: countPointsOnTrack
@@ -295,8 +297,13 @@ contains
     self%countPointsOnTrack=        sum(     countPointsOnTrack)
 #endif
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                                                                     )
-    analysisGroup=analysesGroup%openGroup('tidalTrackVelocityMaximum','Analysis of the peak rotation curve velocity vs. bound mass fraction tidal track.')
+    analysesGroup =  outputFile   %openGroup('analyses'     )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName))
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('tidalTrackVelocityMaximum','Analysis of the peak rotation curve velocity vs. bound mass fraction tidal track.')
     ! Write metadata describing this analysis.
     call analysisGroup%writeAttribute('Subhalo peak rotation curve velocity vs. bound mass fraction tidal track.','description'                          )
     call analysisGroup%writeAttribute("function1D"                                                               ,'type'                                 )
@@ -322,6 +329,8 @@ contains
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
     call dataset      %close         (                                                                                                                                        )
     call analysisGroup%close         (                                                                                                                                        )
+    if (present(groupName)) &
+         & call subGroup%close       (                                                                                                                                        )
     call analysesGroup%close         (                                                                                                                                        )
     !$ call hdf5Access%unset()
     return

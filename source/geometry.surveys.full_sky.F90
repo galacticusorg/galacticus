@@ -154,29 +154,31 @@ contains
     return
   end subroutine fullSkyDestructor
 
-  double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
-    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                       , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                              luminosity, starFormationRate
     integer                                , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     fullSkyDistanceMinimum=self%limitDistanceMinimum
     return
   end function fullSkyDistanceMinimum
 
-  double precision function fullSkyDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function fullSkyDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
-    double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                       , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                              luminosity, starFormationRate
     integer                                , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, magnitudeAbsolute, field, luminosity
+    !$GLC attributes unused :: mass, magnitudeAbsolute, field, luminosity, starFormationRate
 
     fullSkyDistanceMaximum=self%limitDistanceMaximum
     return
@@ -224,9 +226,10 @@ contains
     !!{
     Compute the window function for the survey.
     !!}
+#ifdef FFTW3AVAIL
     use            :: FFTW3        , only : fftw_plan_dft_3d  , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
          &                                  fftw_destroy_plan
-#ifdef FFTW3UNAVAIL
+#else
     use            :: Error        , only : Error_Report
 #endif
     use, intrinsic :: ISO_C_Binding, only : c_ptr             , c_double_complex

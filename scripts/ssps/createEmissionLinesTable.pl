@@ -20,12 +20,16 @@ use Data::Dumper;
 our $lineData;
 
 # Get arguments.
+die("Usage: createEmissionLinesTable.pl <SSPFileName> <outputFileName> [options...]")
+    unless ( scalar(@ARGV) > 2 );
+my $stellarPopulationsFileName = $ARGV[0];
+my $outputFileName             = $ARGV[1];
+# Parse options.
 my %options =
     (
      workspace => "cloudyTable/",
      reprocess => "no"
     );
-# Parse options.
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Parse config options.
@@ -254,8 +258,17 @@ foreach my $elementName ( keys(%{$atomicData->{'element'}}) ) {
 }
 
 # Get an SSP model.
+## Download data if necessary.
+if ( $stellarPopulationsFileName =~ m/^http/ ) {
+    (my $fileName = $stellarPopulationsFileName) =~ s/.*\/([^\?]+).*/$1/;
+    unless ( -e $options{'workspace'}.$fileName ) {
+	system("cd ".$options{'workspace'}."; wget ".$stellarPopulationsFileName." -O ".$fileName);
+	die("Failed to download stellar populations file")
+	    unless ( $? == 0 );
+    }
+    $stellarPopulationsFileName = $options{'workspace'}.$fileName;
+}
 ## Read data from file.
-my $stellarPopulationsFileName  = "SSP_Spectra_BC2003_highResolution_imfChabrier.hdf5";
 my $stellarPopulations          = new PDL::IO::HDF5($stellarPopulationsFileName);
 my $ages                        = $stellarPopulations->dataset('ages'         )->get();
 my $logMetallicities            = $stellarPopulations->dataset('metallicities')->get();
@@ -366,7 +379,7 @@ my %lineList =
 if ( $options{'reprocess'} eq "yes" ) {
     # Reprocess output files. This can be useful if some previous processing of Cloudy output files failed (we often have tens of
     # thousands of these so some intermittment failures can occur).
-    my $tableFile         = new PDL::IO::HDF5("cloudyTable.hdf5");
+    my $tableFile         = new PDL::IO::HDF5($options{'workspace'}.$outputFileName);
     my $lineGroup         = $tableFile->group('lines');
     $lineData->{'status'} = $lineGroup->dataset('status')->get();
     foreach my $lineIdentifier ( keys(%lineList) ) {
@@ -435,12 +448,12 @@ if ( $options{'reprocess'} eq "yes" ) {
 	    $spectra->(:,($iAge),($iMetallicity)) /= $normalizer;	
 	    # Get abundances for this metallicity.
 	    ## Compute metallicity relative to Solar.
-	    my $metallicity        = pdl 10.0**$logMetallicities->(($iMetallicity));
+	    my $metallicity                                    = 10.0**$logMetallicities->(($iMetallicity));
 	    ## Specify a dust-to-metals ratio. The following corresponds to the dust-to-metals ratio for the reference model of
 	    # Gutkin, Charlot & Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). It differs slightly
-	    # from their stated value, but agrees with out internal calculation of this value from their data.
-	    my $dustToMetals       = pdl 0.401;
-	    my %abundances         = &adjustAbundances(\%abundancesReference,$metallicity,$dustToMetals);
+	    # from their stated value, but agrees with our internal calculation of this value from their data.
+	    my $dustToMetals                                   = pdl 0.401;
+	    (my $dustToMetalsBoostLogarithmic, my %abundances) = &adjustAbundances(\%abundancesReference,$metallicity,$dustToMetals);
 	    # Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around
 	    # this, we translate our numerical age and metallicity indices into ASCII characters, by mapping digits (0→A, 1→B,
 	    # etc.).
@@ -495,7 +508,7 @@ if ( $options{'reprocess'} eq "yes" ) {
 		    }
 		    # Specify Cloudy's default ISM grains, but with abundance reduced in proportion to the metallicity to retain a fixed
 		    # dust-to-metals ratio.
-		    $cloudyScript .= "grains _ISM ".$logMetallicities->(($iMetallicity))." _log\n";
+		    $cloudyScript .= "grains Orion ".$dustToMetalsBoostLogarithmic." _log\n";
 		    # Deplete metals into grains using our custom depletions file. Note that these depletions differ from those assumed by
 		    # the "grains _ISM" model above. This seems to be at the ~10% level, so we do not worry too much about this.
 		    $cloudyScript .= "metals deplete \"".$depletionFileName."\"\n";
@@ -568,7 +581,7 @@ if ( $options{'reprocess'} eq "yes" ) {
 &validateResults($ages,$logMetallicities,$logHydrogenLuminosities,$logHydrogenDensities,$ionizingLuminosityPerMass,$lineData);
 
 # Write the line data to file.
-my $tableFile = new PDL::IO::HDF5(">cloudyTable.hdf5");
+my $tableFile = new PDL::IO::HDF5(">".$options{'workspace'}.$outputFileName);
 # Write parameter grid points and attributes.
 $tableFile->dataset('age'                                 )->    set(               $ages                                                           );
 $tableFile->dataset('age'                                 )->attrSet(description => "Age of the stellar population."                                );
@@ -655,9 +668,14 @@ sub linesParse {
 		my @columns        = split(/\t/,$line);
 		$badFile = 1
 		    unless ( scalar(@columns) == 5 );
+		# Extract line properties. Use the "intrinsic" line luminosities. From the Cloudy documentation:
+		#
+		#  | This is the spectrum produced within the cloud and does not include effects of dust that lies outside the
+		#  | line-forming region. These intensities do not include the reddening effects of any grains or other opacity
+		#  | sources that lie outside the line-forming region.
 		my $lineEnergy     = $columns[0];
 		my $lineLabel      = $columns[1];
-		my $lineLuminosity = $columns[3];
+		my $lineLuminosity = $columns[2];
 		if ( exists($lineList{$lineLabel}) ) {
 		    my $lineName = $lineList{$lineLabel};
 		    $lineLuminosity =~ s/^\s+//;
@@ -774,8 +792,16 @@ sub adjustAbundances {
 	my $undepletedFraction = 1.0-$depletionFraction;
 	$abundances{$element}->{'undepletedFraction'} = $undepletedFraction;
     }
+    # Compute the correction to the grain abundances (relative to Cloudy's default Orion grains) required to get our desired dust-to-metals ratio.
+    my $dustToGasRatioCloudy         = pdl 5.396e-03; # This is the dust-to-gas ratio for Cloudy's default Orion grains.
+    my $abundancesByMassFinal        = pdl map {$abundances{$_}->{'atomicMass'}*10.0**$abundances{$_}->{'logAbundanceByNumber'}} @elements;
+    my $metallicityFinal             = +$abundancesByMassFinal->($isMetal)->sum()
+	                               /$abundancesByMassFinal            ->sum();
+    my $dustToMetalsRatioCloudy      = +$dustToGasRatioCloudy
+	                               /$metallicityFinal;
+    my $dustToMetalsBoostLogarithmic = log10($dustToMetalsRatio/$dustToMetalsRatioCloudy);
     # Return the modified set of abundances.
-    return %abundances;
+    return ($dustToMetalsBoostLogarithmic,%abundances);
 }
 
 sub adjustAbundanceNitrogen {

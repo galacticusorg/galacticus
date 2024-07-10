@@ -30,9 +30,9 @@ Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: distanceMinimumLimit, distanceMaximumLimit   , &
-          &                                                massPrevious        , distanceMaximumPrevious
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
+     double precision                                   :: distanceMinimumLimit          , distanceMaximumLimit   , &
+          &                                                massPrevious                  , distanceMaximumPrevious
    contains
      final     ::                      hearin2014SDSSDestructor
      procedure :: distanceMinimum   => hearin2014SDSSDistanceMinimum
@@ -119,35 +119,44 @@ contains
     return
   end subroutine hearin2014SDSSDestructor
 
-  double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     hearin2014SDSSDistanceMinimum=self%distanceMinimumLimit
     return
   end function hearin2014SDSSDistanceMinimum
 
-  double precision function hearin2014SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function hearin2014SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
-
-    if (mass /= self%massPrevious)                                                                                 &
-         & self%distanceMaximumPrevious=min(                                                                       &
-         &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field=field), &
-         &                                  self%distanceMaximumLimit                                              &
-         &                                 )
-    hearin2014SDSSDistanceMaximum=self%distanceMaximumPrevious
+    !$GLC attributes unused :: field
+        ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
+    if (present(mass)) then
+       if (mass /= self%massPrevious)                                                                                 &
+            & self%distanceMaximumPrevious=min(                                                                       &
+            &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field=field), &
+            &                                  self%distanceMaximumLimit                                              &
+            &                                 )
+       hearin2014SDSSDistanceMaximum=self%distanceMaximumPrevious
+    else
+       hearin2014SDSSDistanceMaximum=self%distanceMaximumLimit
+    end if
     return
   end function hearin2014SDSSDistanceMaximum

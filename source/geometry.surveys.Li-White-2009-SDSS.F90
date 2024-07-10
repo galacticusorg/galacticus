@@ -178,21 +178,22 @@ contains
     return
   end subroutine liWhite2009SDSSDestructor
 
-  double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                               , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                      luminosity, starFormationRate
     integer                                        , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
     return
   end function liWhite2009SDSSDistanceMinimum
 
-  double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -200,45 +201,53 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
+    double precision                               , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                      luminosity, starFormationRate
     integer                                        , intent(in   ), optional :: field
     double precision                                                         :: redshift, logarithmicMass
-    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.pl for details.)
-    logarithmicMass=log10(mass)
-    redshift=                                   &
-         & max(                                 &
-         &     -5.9502006195004d0               &
-         &     +logarithmicMass                 &
-         &     *(                               &
-         &       +2.63793788603951d0            &
-         &       +logarithmicMass               &
-         &       *(                             &
-         &         -0.421075858899237d0         &
-         &         +logarithmicMass             &
-         &         *(                           &
-         &           +0.0285198776926787d0      &
-         &           +logarithmicMass           &
-         &           *(                         &
-         &             -0.000678327494720407d0  &
-         &            )                         &
-         &          )                           &
-         &        )                             &
-         &      )                             , &
-         &     +0.0d0                           &
-         &    )
-    ! Convert from redshift to comoving distance.
-    liWhite2009SDSSDistanceMaximum=min(                                                                                &
-         &                             self%limitDistanceMaximum                                                     , &
-         &                             self%cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                              output  =distanceTypeComoving, &
-         &                                                                              redshift=redshift              &
-         &                                                                             )                               &
-         &                            )
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       redshift=                                   &
+            & max(                                 &
+            &     -5.9502006195004d0               &
+            &     +logarithmicMass                 &
+            &     *(                               &
+            &       +2.63793788603951d0            &
+            &       +logarithmicMass               &
+            &       *(                             &
+            &         -0.421075858899237d0         &
+            &         +logarithmicMass             &
+            &         *(                           &
+            &           +0.0285198776926787d0      &
+            &           +logarithmicMass           &
+            &           *(                         &
+            &             -0.000678327494720407d0  &
+            &            )                         &
+            &          )                           &
+            &        )                             &
+            &      )                             , &
+            &     +0.0d0                           &
+            &    )
+       ! Convert from redshift to comoving distance.
+       liWhite2009SDSSDistanceMaximum=min(                                                                                &
+            &                             self%limitDistanceMaximum                                                     , &
+            &                             self%cosmologyFunctions_%distanceComovingConvert(                               &
+            &                                                                              output  =distanceTypeComoving, &
+            &                                                                              redshift=redshift              &
+            &                                                                             )                               &
+            &                            )
+    else
+       liWhite2009SDSSDistanceMaximum=    self%limitDistanceMaximum
+    end if
     return
   end function liWhite2009SDSSDistanceMaximum
 

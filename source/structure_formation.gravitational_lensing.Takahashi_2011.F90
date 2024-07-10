@@ -357,15 +357,15 @@ contains
     use :: Table_Labels         , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
-    double precision                                   , intent(in   )               :: redshift                                 , scaleSource
-    double precision                                   , parameter                   :: redshiftZero                          =   0.0d0
-    double precision                                   , parameter                   :: convergenceParametersToleranceAbsolute=   0.0d0
+    double precision                                   , intent(in   )               :: redshift                                        , scaleSource
+    double precision                                   , parameter                   :: redshiftZero                          =   0.0d+0
+    double precision                                   , parameter                   :: convergenceParametersToleranceAbsolute=   0.0d+0
     double precision                                   , parameter                   :: convergenceParametersToleranceRelative=   1.0d-6
-    double precision                                   , parameter                   :: convergenceMaximumFactor              =  10.0d0
+    double precision                                   , parameter                   :: convergenceMaximumFactor              =   1.0d+1
     double precision                                   , parameter                   :: omegaKappaMinimum                     =   1.0d-2
-    double precision                                   , parameter                   :: omegaKappaMaximum                     =   1.0d0
-    double precision                                   , parameter                   :: magnificationMinimum                  =   0.0d0
-    double precision                                   , parameter                   :: magnificationMaximum                  =1000.0d0
+    double precision                                   , parameter                   :: omegaKappaMaximum                     =   1.0d+0
+    double precision                                   , parameter                   :: magnificationMinimum                  =   1.0d-3
+    double precision                                   , parameter                   :: magnificationMaximum                  =   1.0d+3
     integer                                            , parameter                   :: omegaKappaCount                       =1000
     integer                                            , parameter                   :: cdfMagnificationCount                 =1000
     double precision                                   , allocatable  , dimension(:) :: tableOmegaKappa                           , tableAKappa                   , &
@@ -383,6 +383,7 @@ contains
          &                                                                              cdfPrevious                               , cdf
     type            (hdf5Object                       )                              :: parametersFile
     type            (lockDescriptor                   )                              :: fileLock
+    type            (varying_string                   )                              :: fileName
 
     ! Construct tabulation of convergence distribution function parameters if necessary.
     if (.not.self%tableInitialized) then
@@ -391,11 +392,12 @@ contains
           ! Determine the parameters, A_κ and ω_κ, of the convergence distribution (eq. 8
           ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
           ! Check if a precomputed file exists.
-          call File_Lock(char(inputPath(pathTypeDataDynamic))//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5",fileLock,lockIsShared=.true.)
-          if (File_Exists(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
+          fileName=inputPath(pathTypeDataDynamic)//"largeScaleStructure/"//self%objectType()//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//".hdf5"
+          call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+          if (File_Exists(fileName)) then
              ! Read the results from file.
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
+             call parametersFile%openFile(char(fileName),readOnly=.true.)
              call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
              call parametersFile%readDataset(             "NKappa",tableNKappa             )
              call parametersFile%readDataset(             "AKappa",tableAKappa             )
@@ -404,7 +406,7 @@ contains
              !$ call hdf5Access%unset()
           else
              call File_Unlock(fileLock)
-             call File_Lock(char(inputPath(pathTypeDataDynamic))//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5",fileLock,lockIsShared=.false.)
+             call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
              ! Create a root-finder to solve the parameters.
              finder=rootFinder(&
                   &            rootFunction                 =convergencePdfParameterSolver         , &
@@ -459,7 +461,7 @@ contains
              ! Store the results to file.
              call Directory_Make(inputPath(pathTypeDataDynamic)//'largeScaleStructure')
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(inputPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
+             call parametersFile%openFile(char(fileName))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
              call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )

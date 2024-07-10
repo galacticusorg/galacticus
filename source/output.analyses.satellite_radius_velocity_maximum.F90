@@ -235,7 +235,7 @@ contains
     return
   end subroutine satelliteRadiusVelocityMaximumReduce
 
-  subroutine satelliteRadiusVelocityMaximumFinalize(self)
+  subroutine satelliteRadiusVelocityMaximumFinalize(self,groupName)
     !!{
     Output results of the maximum velocity tidal track output analysis.
     !!}
@@ -247,9 +247,11 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
-    class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
-    type (hdf5Object                                  )                :: analysesGroup, analysisGroup, &
-         &                                                                dataset
+    class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout)           :: self
+    type (varying_string                              ), intent(in   ), optional :: groupName
+    type (hdf5Object                                  )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                                  )               , pointer  :: inGroup
+    type (hdf5Object                                  )                          :: analysisGroup, dataset
 
 #ifdef USEMPI
     ! If running under MPI, accumulate tracks across all processes.
@@ -257,8 +259,13 @@ contains
     self%logLikelihood_               =mpiSelf%sum(self%logLikelihood_               )
 #endif
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                                                             )
-    analysisGroup=analysesGroup%openGroup('satelliteRadiusVelocityMaximum','Analysis of the satellite maximum circular velocity radius vs. time.')
+    analysesGroup =  outputFile   %openGroup('analyses'                         )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName)                    )
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('satelliteRadiusVelocityMaximum','Analysis of the satellite maximum circular velocity radius vs. time.')
     ! Write metadata describing this analysis.
     call analysisGroup%writeAttribute('Satellite maximum circular velocity radius fraction vs. time.','description'                              )
     call analysisGroup%writeAttribute("function1D"                                                   ,'type'                                     )
@@ -284,6 +291,8 @@ contains
     call dataset      %writeAttribute(1.0d0                                   ,'unitsInSI'                                                                                                   )
     call dataset      %close         (                                                                                                                                                       )
     call analysisGroup%close         (                                                                                                                                                       )
+    if (present(groupName)) &
+         & call subGroup%close       (                                                                                                                                                       )
     call analysesGroup%close         (                                                                                                                                                       )
     !$ call hdf5Access%unset()
     return

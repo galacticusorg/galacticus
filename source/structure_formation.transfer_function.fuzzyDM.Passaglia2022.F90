@@ -38,6 +38,7 @@
      double precision                                   :: m22                          , time, &
           &                                                A                            , B   , &
           &                                                wavenumberJeans
+     logical                                            :: solvingForMode
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      class           (transferFunctionClass  ), pointer :: transferFunctionCDM => null()
@@ -135,6 +136,8 @@ contains
     self%A                 =+2.22d0*     self%m22**(1.0d0/25.0d0-1.0d0/1000.0d0*log(self%m22))  ! Equation 46 of Passaglia & Hu (2022, PRD, 105, 123529; https://ui.adsabs.harvard.edu/abs/2022PhRvD.105l3529P).
     self%B                 =+0.16d0/     self%m22**(1.0d0/20.0d0                             )  ! Equation 46 of Passaglia & Hu (2022, PRD, 105, 123529; https://ui.adsabs.harvard.edu/abs/2022PhRvD.105l3529P).
     self%wavenumberJeans   =+9.00d0*sqrt(self%m22                                             ) ! Equation 45 of Passaglia & Hu (2022, PRD, 105, 123529; https://ui.adsabs.harvard.edu/abs/2022PhRvD.105l3529P).
+    ! Initialize mode solving state.
+    self%solvingForMode    =.false.
     return
   end function fuzzyDMPassaglia2022ConstructorInternal
 
@@ -167,15 +170,20 @@ contains
     x                        =+self%A               &
          &                    *     wavenumber      &
          &                    /self%wavenumberJeans
-    fuzzyDMPassaglia2022Value=+self%transferFunctionCDM%value(wavenumber) &
-         &                    *sin(                                       &
-         &                            x**       n                         &
-         &                        )                                       &
-         &                    /       x**       n                         &
-         &                    /   (                                       &
-         &                         +1.0d0                                 &
-         &                         +self%B                                &
-         &                         *     x**(6.0d0-n)                     &
+    if (self%solvingForMode) then
+       fuzzyDMPassaglia2022Value=+1.0d0
+    else
+       fuzzyDMPassaglia2022Value=+self%transferFunctionCDM%value(wavenumber)
+    end if
+    fuzzyDMPassaglia2022Value=+fuzzyDMPassaglia2022Value &
+         &                    *sin(                      &
+         &                            x**       n        &
+         &                        )                      &
+         &                    /       x**       n        &
+         &                    /   (                      &
+         &                         +1.0d0                &
+         &                         +self%B               &
+         &                         *     x**(6.0d0-n)    &
          &                        )
     return
   end function fuzzyDMPassaglia2022Value
@@ -251,9 +259,11 @@ contains
          &                                              rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
          &                                              rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                                             )
-    self_                                =>  self
+    self_                                =>  self 
     modeTarget                           =  +fraction
+    self%solvingForMode                  =   .true.
     wavenumber                           =   finder%find(rootGuess=1.0d-2*self%wavenumberJeans)
+    self%solvingForMode                  =   .false.
     matterDensity                        =  +self%cosmologyParameters_%OmegaMatter    () &
          &                                  *self%cosmologyParameters_%densityCritical()
     fuzzyDMPassaglia2022FractionModeMass =  +4.0d0         &
@@ -274,7 +284,7 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
-  
+    
     modeSolver=+self_%value     (wavenumber) &
          &     -      modeTarget
     return

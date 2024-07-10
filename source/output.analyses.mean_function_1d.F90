@@ -702,7 +702,7 @@ contains
     return
   end subroutine meanFunction1DFinalizeAnalysis
 
-  subroutine meanFunction1DFinalize(self)
+  subroutine meanFunction1DFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.
     !!}
@@ -710,16 +710,23 @@ contains
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    class(outputAnalysisMeanFunction1D), intent(inout) :: self
-    type (hdf5Object                  )                :: analysesGroup, analysisGroup, &
-         &                                                dataset
+    class(outputAnalysisMeanFunction1D), intent(inout)           :: self
+    type (varying_string              ), intent(in   ), optional :: groupName
+    type (hdf5Object                  )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                  )               , pointer  :: inGroup
+    type (hdf5Object                  )                          :: analysisGroup, dataset
 
     ! Finalize the analysis.
     call self%finalizeAnalysis()
     ! Output the resulting mean function.
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                         )
-    analysisGroup=analysesGroup%openGroup(char(self%label),char(self%comment))
+    analysesGroup =  outputFile   %openGroup('analyses'     )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName))
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup(char(self%label),char(self%comment))
     ! Write metadata describing this analysis.
     call    analysisGroup%writeAttribute(     char(self%   comment   )                    ,'description'                                                                                                   )
     call    analysisGroup%writeAttribute("function1D"                                     ,'type'                                                                                                          )
@@ -761,6 +768,8 @@ contains
        call dataset      %close         (                                                                                                                                                                  )
     end if
     call    analysisGroup%close         (                                                                                                                                                                  )
+    if (present(groupName)) &
+         & call subGroup %close         (                                                                                                                                                                  )
     call    analysesGroup%close         (                                                                                                                                                                  )
     !$ call hdf5Access%unset()
     return

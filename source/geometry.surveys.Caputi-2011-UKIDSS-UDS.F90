@@ -175,21 +175,22 @@ contains
     return
   end subroutine caputi2011UKIDSSUDSDestructor
 
-  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is included.
     !!}
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity, starFormationRate
 
     caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
     return
   end function caputi2011UKIDSSUDSDistanceMinimum
 
-  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -197,26 +198,34 @@ contains
     use :: Error                      , only : Error_Report
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                          luminosity, starFormationRate
     integer                                            , intent(in   ), optional :: field
-    double precision                                                             :: redshift, logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
+    double precision                                                             :: redshift  , logarithmicMass
 
     ! Validate field.
     if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
-    logarithmicMass=log10(mass)
-    redshift=-56.247426278132d0+logarithmicMass*(5.88091022342758d0)
-    ! Convert from redshift to comoving distance.
-    caputi2011UKIDSSUDSDistanceMaximum                                                                                             &
-         &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
-         &                                                  output  =distanceTypeComoving                                        , &
-         &                                                  redshift=min(max(redshift,self%redshiftMinimum),self%redshiftMaximum)  &
-         &                                                 )
-    ! Limit the maximum distance.
-    caputi2011UKIDSSUDSDistanceMaximum=min(caputi2011UKIDSSUDSDistanceMaximum,self%binDistanceMaximum)
-    return
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       redshift=-56.247426278132d0+logarithmicMass*(5.88091022342758d0)
+       ! Convert from redshift to comoving distance.
+       caputi2011UKIDSSUDSDistanceMaximum                                                                                             &
+            &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
+            &                                                  output  =distanceTypeComoving                                        , &
+            &                                                  redshift=min(max(redshift,self%redshiftMinimum),self%redshiftMaximum)  &
+            &                                                 )
+       ! Limit the maximum distance.
+       caputi2011UKIDSSUDSDistanceMaximum=min(caputi2011UKIDSSUDSDistanceMaximum,self%binDistanceMaximum)
+    else
+       caputi2011UKIDSSUDSDistanceMaximum=                                       self%binDistanceMaximum
+    end if
+       return
   end function caputi2011UKIDSSUDSDistanceMaximum
 
   double precision function caputi2011UKIDSSUDSVolumeMaximum(self,mass,field)

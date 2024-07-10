@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a normal 1D distribution function.
+  Implementation of a log-normal 1D distribution function.
   !!}
 
   !![
@@ -28,9 +28,15 @@
   !!]
   type, extends(distributionFunction1DNormal) :: distributionFunction1DLogNormal
      !!{
-     Implementation of a normal 1D distribution function.
+     Implementation of a log-normal 1D distribution function:
+     \begin{equation}
+       p(x) = \frac{1}{x \sigma \sqrt{2\pi}} \exp\left( - \frac{[\log x - \log x_0]^2}{2\sigma^2} \right).
+     \end{equation}
+     The parameters of this distribution can be specified either directly via $x_0$ and $\sigma$, or indirectly via the mean and
+     variance $\exp(\log x_0 + \sigma^2/2)$ and $[\exp(\sigma^2)-1] \exp(2\log x_0 + \sigma^2)$.     
      !!}
      private
+     double precision :: x0, sigma
    contains
      procedure :: density    => logNormalDensity
      procedure :: cumulative => logNormalCumulative
@@ -54,25 +60,50 @@ contains
     Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
     set.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DLogNormal)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (randomNumberGeneratorClass     ), pointer       :: randomNumberGenerator_
     double precision                                                 :: mean                  , variance  , &
+         &                                                              x0                    , sigma     , &
          &                                                              limitLower            , limitUpper
 
+    if (parameters%isPresent('mean')) then
+       if (.not.parameters%isPresent('variance')) call Error_Report('must specify both [mean] and [variance], or [x0] and [sigma]'//{introspection:location})
+       if (parameters%isPresent('x0').or.parameters%isPresent('sigma')) call Error_Report('must specify either [mean] and [variance], or [x0] and [sigma], not both'//{introspection:location})
+       !![
+       <inputParameter>
+	 <name>mean</name>
+	 <description>The mean of the log-normal distribution (\emph{ignoring} any imposed upper and lower limits).</description>
+	 <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+	 <name>variance</name>
+	 <description>The variance of the log-normal distribution (\emph{ignoring} any imposed upper and lower limits).</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    else if (parameters%isPresent('x0')) then
+       if (.not.parameters%isPresent('sigma')) call Error_Report('must specify both [mean] and [variance], or [x0] and [sigma]'//{introspection:location})
+       if (parameters%isPresent('mean').or.parameters%isPresent('variance')) call Error_Report('must specify either [mean] and [variance], or [x0] and [sigma], not both'//{introspection:location})
+       !![
+       <inputParameter>
+	 <name>x0</name>
+	 <description>The parameter $x_0$ of the log-normal distribution.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+	 <name>sigma</name>
+	 <description>The parameter $\sigma$ of the log-normal distribution.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    else
+       call Error_Report('must specify both [mean] and [variance], or [x0] and [sigma]'//{introspection:location})
+    end if
     !![
-    <inputParameter>
-      <name>mean</name>
-      <description>The mean of the log-normal distribution.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>variance</name>
-      <description>The variance of the log-normal distribution.</description>
-      <source>parameters</source>
-    </inputParameter>
     <inputParameter>
       <name>limitLower</name>
       <description>The lower limit of the normal distribution.</description>
@@ -84,37 +115,57 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    !!]
-    self=distributionFunction1DLogNormal(mean,variance,limitLower,limitUpper,randomNumberGenerator_)
-    !![
+    <conditionalCall>
+      <call>
+	self=distributionFunction1DLogNormal(limitLower=limitLower,limitUpper=limitUpper,randomNumberGenerator_=randomNumberGenerator_{conditions})
+      </call>
+      <argument name="mean"     value="mean"     parameterPresent="parameters"/>
+      <argument name="variance" value="variance" parameterPresent="parameters"/>
+      <argument name="x0"       value="x0"       parameterPresent="parameters"/>
+      <argument name="sigma"    value="sigma"    parameterPresent="parameters"/>
+    </conditionalCall>
     <objectDestructor name="randomNumberGenerator_"/>
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function logNormalConstructorParameters
 
-  function logNormalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
+  function logNormalConstructorInternal(mean,variance,x0,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{
     Constructor for ``normal'' 1D distribution function class.
     !!}
+    use :: Error, only : Error_Report
+    implicit none
     type            (distributionFunction1DLogNormal)                                  :: self
-    double precision                                 , intent(in   )                   :: mean                  , variance
+    double precision                                 , intent(in   ), optional         :: mean                  , variance      , &
+         &                                                                                x0                    , sigma         , &
+         &                                                                                limitLower            , limitUpper
     class           (randomNumberGeneratorClass     ), intent(in   ), optional, target :: randomNumberGenerator_
-    double precision                                 , intent(in   ), optional         :: limitLower            , limitUpper
     double precision                                                                   :: meanNormal            , varianceNormal
 
-    varianceNormal=+log(               &
-         &              +(             &
-         &                +variance    &
-         &                /mean    **2 &
-         &               )             &
-         &              +1.0d0         &
-         &             )
-    meanNormal    =+log(               &
-         &              +mean          &
-         &             )               &
-         &         -    varianceNormal &
-         &         /2.0d0
+    if (present(mean)) then
+       if (.not.present(variance)) call Error_Report('must specify both `mean` and `variance`, or `x0` and `sigma`'//{introspection:location})
+       if (present(x0).or.present(sigma)) call Error_Report('must specify either `mean` and `variance`, or `x0` and `sigma`, not both'//{introspection:location})
+       varianceNormal=+log(               &
+            &              +(             &
+            &                +variance    &
+            &                /mean    **2 &
+            &               )             &
+            &              +1.0d0         &
+            &             )
+       meanNormal    =+log(               &
+            &              +mean          &
+            &             )               &
+            &         -    varianceNormal &
+            &         /2.0d0
+    else if (present(x0)) then
+       if (.not.present(sigma)) call Error_Report('must specify both `mean` and `variance`, or `x0` and `sigma`'//{introspection:location})
+       if (present(mean).or.present(variance)) call Error_Report('must specify either `mean` and `variance`, or `x0` and `sigma`, not both'//{introspection:location})
+       varianceNormal=sigma**2
+       meanNormal    =log(x0)
+    else
+       call Error_Report('must specify both `mean` and `variance`, or `x0` and `sigma]'//{introspection:location})
+    end if
     if (present(limitLower)) then
        if (present(limitUpper)) then
           self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal,limitLower=log(limitLower),limitUpper=log(limitUpper),randomNumberGenerator_=randomNumberGenerator_)

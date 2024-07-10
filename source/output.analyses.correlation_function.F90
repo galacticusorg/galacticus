@@ -868,7 +868,7 @@ contains
     return
   end subroutine correlationFunctionReduce
 
-  subroutine correlationFunctionFinalize(self)
+  subroutine correlationFunctionFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily correlationFunction} output analysis finalization.
     !!}
@@ -877,16 +877,23 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
-    class(outputAnalysisCorrelationFunction), intent(inout) :: self
-    type (hdf5Object                       )                :: analysesGroup, analysisGroup, &
-         &                                                     dataset
+    class(outputAnalysisCorrelationFunction), intent(inout)           :: self
+    type (varying_string                   ), intent(in   ), optional :: groupName
+    type (hdf5Object                       )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                       )               , pointer  :: inGroup
+    type (hdf5Object                       )                          :: analysisGroup, dataset
 
     ! Finalize analysis.
     call correlationFunctionFinalizeAnalysis(self)
     ! Output the correlation function.
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                )
-    analysisGroup=analysesGroup%openGroup('correlationFunction'//char(self%label),char(self%comment))
+    analysesGroup =  outputFile   %openGroup('analyses'     )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName))
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('correlationFunction'//char(self%label),char(self%comment))
     ! Write metadata describing this analysis.
     call    analysisGroup%writeAttribute(char(self%comment)                                  ,'description'                                                                                          )
     call    analysisGroup%writeAttribute("function1DSequence"                                ,'type'                                                                                                 )
@@ -926,6 +933,8 @@ contains
        call dataset      %close         (                                                                                                                                                            )
     end if
     call    analysisGroup%close         (                                                                                                                                                            )
+    if (present(groupName)) &
+         & call subGroup %close         (                                                                                                                                                            )
     call    analysesGroup%close         (                                                                                                                                                            )
     !$ call hdf5Access%unset()
     return
