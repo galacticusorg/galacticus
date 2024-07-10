@@ -26,10 +26,12 @@
     </powerSpectrumPrimordial>
   </powerSpectrumPrimordial>
   <powerSpectrumWindowFunction value="ETHOSExtended">
-    <cW0   value="=[haloMassFunctionParameters::cW0]"  />
-    <cW1   value="=[haloMassFunctionParameters::cW1]"  />
-    <beta0 value="=[haloMassFunctionParameters::beta0]"/>
-    <beta1 value="=[haloMassFunctionParameters::beta1]"/>
+    <cW0                         value="=[haloMassFunctionParameters::cW0]"                        />
+    <cW1                         value="=[haloMassFunctionParameters::cW1]"                        />
+    <beta0                       value="=[haloMassFunctionParameters::beta0]"                      />
+    <beta1                       value="=[haloMassFunctionParameters::beta1]"                      />
+    <wavenumberScaledMinimum     value="=[haloMassFunctionParameters::wavenumberScaledMinimum]"    />
+    <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters::powerSpectrumSmoothingWidth]"/>
   </powerSpectrumWindowFunction>
   <cosmologicalMassVariance value="filteredPower">
     <!-- Normalize to a reference power spectrum at small scales because the actual power spectrum we used excludes modes which do
@@ -50,10 +52,12 @@
       </powerSpectrumPrimordial>
       <powerSpectrumPrimordialTransferred value="simple" />
       <powerSpectrumWindowFunction value="ETHOSExtended">
-	<cW0   value="=[haloMassFunctionParameters::cW0]"  />
-	<cW1   value="=[haloMassFunctionParameters::cW1]"  />
-	<beta0 value="=[haloMassFunctionParameters::beta0]"/>
-	<beta1 value="=[haloMassFunctionParameters::beta1]"/>
+	<cW0                         value="=[haloMassFunctionParameters::cW0]"                        />
+	<cW1                         value="=[haloMassFunctionParameters::cW1]"                        />
+	<beta0                       value="=[haloMassFunctionParameters::beta0]"                      />
+	<beta1                       value="=[haloMassFunctionParameters::beta1]"                      />
+	<wavenumberScaledMinimum     value="=[haloMassFunctionParameters::wavenumberScaledMinimum]"    />
+	<powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters::powerSpectrumSmoothingWidth]"/>
       </powerSpectrumWindowFunction>
       <cosmologicalMassVariance value="filteredPower">
 	<!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->

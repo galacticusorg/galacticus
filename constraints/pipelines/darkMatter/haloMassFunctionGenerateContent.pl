@@ -110,6 +110,7 @@ foreach $content::entry ( &iterate($simulations,\%options) ) {
 
                          haloMassFunctionParameters::cW0                              haloMassFunctionParameters::beta0
                          haloMassFunctionParameters::cW1                              haloMassFunctionParameters::beta1
+                         haloMassFunctionParameters::wavenumberScaledMinimum          haloMassFunctionParameters::powerSpectrumSmoothingWidth
 
 			 haloMassFunctionParameters::normalizationPseudoHalos         haloMassFunctionParameters::exponentMassParticlePseudoHalos
 			 haloMassFunctionParameters::exponentMassPseudoHalos          haloMassFunctionParameters::exponentRedshiftPseudoHalos
@@ -246,6 +247,7 @@ my $configInitializer = fill_in_string(<<'CODE', PACKAGE => 'content');
     <sampleOutliers         value="false"                                   />
     <logFlushCount          value="     1"                                  />
     <appendLogs             value="false"                                   />
+    <loadBalance            value="false"                                   />
 CODE
 my $configResumer = fill_in_string(<<'CODE', PACKAGE => 'content');
   </posteriorSampleLikelihood>
@@ -306,8 +308,8 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
       <name value="haloMassFunctionParameters::a"/>
       <label value="a" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
-	<limitLower value="0.03"/>
-	<limitUpper value="3.00"/>
+	<limitLower value=" 0.03"/>
+	<limitUpper value="10.00"/>
       </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity"/>
       <distributionFunction1DPerturber value="cauchy">
@@ -371,8 +373,8 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
       <name value="haloMassFunctionParameters::normalization"/>
       <label value="A" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
-	<limitLower value="0.00"/>
-	<limitUpper value="1.00"/>
+	<limitLower value=" 0.00"/>
+	<limitUpper value="10.00"/>
       </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity"/>
       <distributionFunction1DPerturber value="cauchy">
@@ -416,8 +418,8 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
         <scale value="1.0e-4" />
       </distributionFunction1DPerturber>
       <distributionFunction1DPrior value="uniform">
-        <limitLower value="-3.00" />
-        <limitUpper value="+3.00" />
+        <limitLower value="-6.00" />
+        <limitUpper value="+6.00" />
       </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity" />
     </modelParameter>
@@ -470,7 +472,7 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
         <scale value="1.0e-4" />
       </distributionFunction1DPerturber>
       <distributionFunction1DPrior value="uniform">
-        <limitLower value="1.00" />
+        <limitLower value="0.50" />
         <limitUpper value="6.00" />
       </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity" />
@@ -518,6 +520,34 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
       <operatorUnaryMapper value="logarithm" />
       <slow value="true" />
     </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::wavenumberScaledMinimum" />
+      <label value="x_\mathrm\{min\}" ignoreWarnings="true"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="uniform">
+        <limitLower value="0.0" />
+        <limitUpper value="5.0" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity" />
+      <slow value="true" />
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="haloMassFunctionParameters::powerSpectrumSmoothingWidth" />
+      <label value="\log k_\mathrm\{width\}" ignoreWarnings="true"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0" />
+        <scale value="1.0e-4" />
+      </distributionFunction1DPerturber>
+      <distributionFunction1DPrior value="logUniform">
+        <limitLower value="0.01" />
+        <limitUpper value="10.0" />
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="logarithm" />
+      <slow value="true" />
+    </modelParameter>
 
     <modelParameter value="active">
       <name value="varianceFractionalModelDiscrepancy"/>
@@ -561,6 +591,8 @@ my $parametersOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
     <beta0                            value="+3.51"/>
     <cW1                              value="+0.74"/>
     <beta1                            value="+4.83"/>
+    <wavenumberScaledMinimum          value="+0.00"/>
+    <powerSpectrumSmoothingWidth      value="+1.00"/>
 CODE
 my $parametersCloser;
 

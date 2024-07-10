@@ -52,6 +52,7 @@
 	  <multiplier       value="=[isolationBias]"        />
 	  <exponentRedshift value="=[isolationBiasExponent]"/>
 	  <haloMassFunction value="errorConvolved">
+	    <tolerateIntegrationFailure value="true"/>
 	    <errorFractionalMaximum value="1.0e+0"/>
 	    <toleranceRelative      value="1.0e-4"/>
 	    <haloMassFunction value="bhattacharya2011">
