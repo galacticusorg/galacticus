@@ -42,19 +42,21 @@
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     double precision                                    :: cW_                            , beta_
+     double precision                                    :: cW_                           , beta_
    contains
      !![
      <methods>
-       <method method="cW"   description="Compute the parameter $c_\mathrm{W}$ in the ETHOS window function."/>
-       <method method="beta" description="Compute the parameter $\beta$ in the ETHOS window function."       />
+       <method method="cW"                      description="Compute the parameter $c_\mathrm{W}$ in the ETHOS window function."  />
+       <method method="beta"                    description="Compute the parameter $\beta$ in the ETHOS window function."         />
+       <method method="wavenumberScaledMinimum" description="Compute the parameter $x_\mathrm{min}$ in the ETHOS window function."/>
      </methods>
      !!]
-     final     ::                      ETHOSDestructor
-     procedure :: value             => ETHOSValue
-     procedure :: wavenumberMaximum => ETHOSWavenumberMaximum
-     procedure :: cW                => ETHOSCW
-     procedure :: beta              => ETHOSBeta
+     final     ::                            ETHOSDestructor
+     procedure :: value                   => ETHOSValue
+     procedure :: wavenumberMaximum       => ETHOSWavenumberMaximum
+     procedure :: cW                      => ETHOSCW
+     procedure :: beta                    => ETHOSBeta
+     procedure :: wavenumberScaledMinimum => ETHOSWavenumberScaledMinimum
   end type powerSpectrumWindowFunctionETHOS
 
   interface powerSpectrumWindowFunctionETHOS
@@ -108,7 +110,7 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (powerSpectrumWindowFunctionETHOS)                        :: self
-    double precision                                          , intent(in   ) :: cW_                  , beta_
+    double precision                                          , intent(in   ) :: cW_                 , beta_
     class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     !![
     <constructorAssign variables="cW_, beta_, *cosmologyParameters_"/>
@@ -137,10 +139,11 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                  , intent(in   ) :: smoothingMass, wavenumber      , &
+    double precision                                  , intent(in   ) :: smoothingMass          , wavenumber      , &
          &                                                               time
-    double precision                                                  :: radius       , wavenumberScaled, &
-         &                                                               cW           , beta
+    double precision                                                  :: radius                 , wavenumberScaled, &
+         &                                                               cW                     , beta            , &
+         &                                                               wavenumberScaledMinimum
     
     radius =+(                                             &
          &    +3.0d0                                       &
@@ -156,17 +159,22 @@ contains
        cW  =self%cW  (wavenumber,time)
        beta=self%beta(wavenumber,time)
        if (cW > 0.0d0 .and. exponent(wavenumber)+exponent(radius)-exponent(cw) < maxExponent(0.0d0)) then
-          wavenumberScaled=+wavenumber &
-               &           *radius     &
-               &           /cW
-          if (beta*exponent(wavenumberScaled) < maxExponent(0.0d0)) then
-             ETHOSValue=+1.0d0                    &
-                  &     /(                        &
-                  &       +1.0d0                  &
-                  &       +wavenumberScaled**beta &
-                  &      )
+          wavenumberScaled       =+wavenumber &
+               &                  *radius     &
+               &                  /cW
+          wavenumberScaledMinimum=+self%wavenumberScaledMinimum(wavenumber,time)
+          if (wavenumberScaled <= wavenumberScaledMinimum) then
+             ETHOSValue=1.0d0
           else
-             ETHOSvalue=0.0d0
+             if (beta*exponent(wavenumberScaled) < maxExponent(0.0d0)) then
+                ETHOSValue=+1.0d0                                              &
+                     &     /(                                                  &
+                     &       +1.0d0                                            &
+                     &       +(wavenumberScaled-wavenumberScaledMinimum)**beta &
+                     &      )
+             else
+                ETHOSvalue=0.0d0
+             end if
           end if
        else
           ETHOSvalue=0.0d0
@@ -214,5 +222,18 @@ contains
     beta=self%beta_
     return
   end function ETHOSBeta
+  
+  double precision function ETHOSWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
+    !!{
+    Compute the $\beta$ parameter for the ETHOS window function.
+    !!}
+    implicit none
+    class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
+    double precision                                  , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: self, wavenumber, time
+
+    wavenumberScaledMinimum=0.0d0
+    return
+  end function ETHOSWavenumberScaledMinimum
   
 

@@ -22,13 +22,17 @@
   !!}
   
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
+  use :: Numerical_Interpolation             , only : interpolator
 
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOSExtended">
    <description>
      A generalization of the ETHOS window function for filtering of power spectra from \cite{bohr_halo_2021}. The window function
-     has the same functional form as in \cite{bohr_halo_2021}, but the parameters $c_\mathrm{W}$ and $\beta$ are now scale
-     dependent following     
+     has the same functional form
+     \begin{equation}
+      W(kR) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } \frac{kR}{c_\mathrm{W}} &lt; x_\mathrm{min} \\ \frac{1}{1+ \left(\frac{kR}{c_\mathrm{W}} - x_\mathrm{min}\right)^\beta} &amp; \hbox{otherwise,} \end{array} \right.
+     \end{equation}
+     but the parameters $c_\mathrm{W}$ and $\beta$ are now scale dependent following     
      \begin{equation}
      x = x_0 x_1^{n-n_0}
      \end{equation}     
@@ -42,13 +46,24 @@
      A generalization of the ETHOS power spectrum window function class.
      !!}
      private
-     class           (powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_ => null()
-     double precision                                                   :: cW0                                          , beta0, &
-          &                                                                cW1                                          , beta1
+     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_ => null()
+     double precision                                                       :: cW0                                          , beta0                      , &
+          &                                                                    cW1                                          , beta1                      , &
+          &                                                                    wavenumberScaledMinimum_                     , powerSpectrumSmoothingWidth, &
+          &                                                                    wavenumberMinimum_                           , wavenumberMaximum_         , &
+          &                                                                    timePrevious
+     type            (interpolator                           ), allocatable :: powerSpectrumSmoothed
    contains
-     final     ::         ETHOSExtendedDestructor
-     procedure :: cW   => ETHOSExtendedCW
-     procedure :: beta => ETHOSExtendedBeta
+     !![
+     <methods>
+       <method method="powerSpectrumSlopeSmoothed" description="Compute the slope of the smoothed power spectrum."/>
+     </methods>
+     !!]
+     final     ::                               ETHOSExtendedDestructor
+     procedure :: cW                         => ETHOSExtendedCW
+     procedure :: beta                       => ETHOSExtendedBeta
+     procedure :: wavenumberScaledMinimum    => ETHOSExtendedWavenumberScaledMinimum
+     procedure :: powerSpectrumSlopeSmoothed => ETHOSExtendedPowerSpectrumSlopeSmoothed
   end type powerSpectrumWindowFunctionETHOSExtended
 
   interface powerSpectrumWindowFunctionETHOSExtended
@@ -66,6 +81,11 @@
   double precision, parameter :: parameterValueMaximum         =huge(0.0d0)/1.0d30
   double precision, parameter :: exponentPowerMaximum          =1.0d2
 
+  ! Submodule-scope variables used in integration.
+  class(powerSpectrumWindowFunctionETHOSExtended), pointer :: self_
+  double precision :: time_, logWavenumbers_
+  !$omp threadprivate(self_,time_,logWavenumbers_)
+  
 contains
 
   function ETHOSExtendedConstructorParameters(parameters) result(self)
@@ -78,8 +98,9 @@ contains
     type            (inputParameters                         ), intent(inout) :: parameters
     class           (powerSpectrumPrimordialTransferredClass ), pointer       :: powerSpectrumPrimordialTransferred_
     class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
-    double precision                                                          :: cW0                                , beta0, &
-         &                                                                       cW1                                , beta1
+    double precision                                                          :: cW0                                , beta0                      , &
+         &                                                                       cW1                                , beta1                      , &
+         &                                                                       wavenumberScaledMinimum            , powerSpectrumSmoothingWidth
 
     !![
     <inputParameter>
@@ -106,10 +127,22 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The parameter $\beta_1$ in the generalized ETHOS power spectrum window function.</description>
     </inputParameter>
+    <inputParameter>
+      <name>wavenumberScaledMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The parameter $x_\mathrm{min}$ in the generalized ETHOS power spectrum window function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>powerSpectrumSmoothingWidth</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The width (in natural logarithm of wavenumber) over which to smooth the power spectrum when estimating the power spectrum slope.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     !!]
-    self=powerSpectrumWindowFunctionETHOSExtended(cW0,cW1,beta0,beta1,cosmologyParameters_,powerSpectrumPrimordialTransferred_)
+    self=powerSpectrumWindowFunctionETHOSExtended(cW0,cW1,beta0,beta1,wavenumberScaledMinimum,powerSpectrumSmoothingWidth,cosmologyParameters_,powerSpectrumPrimordialTransferred_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"               />
@@ -118,21 +151,25 @@ contains
     return
   end function ETHOSExtendedConstructorParameters
 
-  function ETHOSExtendedConstructorInternal(cW0,cW1,beta0,beta1,cosmologyParameters_,powerSpectrumPrimordialTransferred_) result(self)
+  function ETHOSExtendedConstructorInternal(cW0,cW1,beta0,beta1,wavenumberScaledMinimum_,powerSpectrumSmoothingWidth,cosmologyParameters_,powerSpectrumPrimordialTransferred_) result(self)
     !!{
     Internal constructor for the ETHOS power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (powerSpectrumWindowFunctionETHOSExtended)                        :: self
-    double precision                                          , intent(in   )         :: cW0                                , beta0, &
-         &                                                                               cW1                                , beta1
+    double precision                                          , intent(in   )         :: cW0                                , beta0                      , &
+         &                                                                               cW1                                , beta1                      , &
+         &                                                                               wavenumberScaledMinimum_           , powerSpectrumSmoothingWidth
     class           (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass ), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     !![
-    <constructorAssign variables="cW0, cW1, beta0, beta1, *cosmologyParameters_, *powerSpectrumPrimordialTransferred_"/>
+    <constructorAssign variables="cW0, cW1, beta0, beta1, wavenumberScaledMinimum_, powerSpectrumSmoothingWidth, *cosmologyParameters_, *powerSpectrumPrimordialTransferred_"/>
     !!]
 
+    self%timePrevious      =-huge(0.0d0)
+    self%wavenumberMinimum_=+huge(0.0d0)
+    self%wavenumberMaximum_=-huge(0.0d0)
     return
   end function ETHOSExtendedConstructorInternal
 
@@ -141,7 +178,7 @@ contains
     Destructor for the {\normalfont \ttfamily ETHOS} window function class.
     !!}
     implicit none
-    type   (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
+    type(powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
 
     !![
     <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
@@ -158,12 +195,12 @@ contains
     double precision                                          , intent(in   ) :: wavenumber   , time
     double precision                                                          :: exponentPower
 
-    exponentPower=min(                                                                                                                     &
-         &            max(                                                                                                                 &
-         &                +self%powerSpectrumPrimordialTransferred_%logarithmicDerivative(wavenumber,time)-logarithmicDerivativeReference, &
-         &                -exponentPowerMaximum                                                                                            &
-         &               )                                                                                                               , &
-         &                +exponentPowerMaximum                                                                                            &
+    exponentPower=min(                                                                                      &
+         &            max(                                                                                  &
+         &                +self%powerSpectrumSlopeSmoothed(wavenumber,time)-logarithmicDerivativeReference, &
+         &                -exponentPowerMaximum                                                             &
+         &               )                                                                                , &
+         &                +exponentPowerMaximum                                                             &
          &           )
     if (exponent(self%cW0)+exponent(self%cW1)*exponentPower < exponent(parameterValueMaximum)) then
        cW     =+self%cW0                &
@@ -183,12 +220,12 @@ contains
     double precision                                          , intent(in   ) :: wavenumber   , time
     double precision                                                          :: exponentPower
 
-    exponentPower=min(                                                                                                                     &
-         &            max(                                                                                                                 &
-         &                +self%powerSpectrumPrimordialTransferred_%logarithmicDerivative(wavenumber,time)-logarithmicDerivativeReference, &
-         &                -exponentPowerMaximum                                                                                            &
-         &               )                                                                                                               , &
-         &                +exponentPowerMaximum                                                                                            &
+    exponentPower=min(                                                                                      &
+         &            max(                                                                                  &
+         &                +self%powerSpectrumSlopeSmoothed(wavenumber,time)-logarithmicDerivativeReference, &
+         &                -exponentPowerMaximum                                                             &
+         &               )                                                                                , &
+         &                +exponentPowerMaximum                                                             &
          &           )
     if (exponent(self%beta0)+exponent(self%beta1)*exponentPower < maxExponent(parameterValueMaximum)) then
        beta   =+self%beta0                &
@@ -199,4 +236,94 @@ contains
     return
   end function ETHOSExtendedBeta
   
+  double precision function ETHOSExtendedWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
+    !!{
+    Compute the $\beta$ parameter for the extended ETHOS window function.
+    !!}
+    implicit none
+    class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
+    double precision                                          , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: wavenumber, time
 
+    wavenumberScaledMinimum=self%wavenumberScaledMinimum_
+    return
+  end function ETHOSExtendedWavenumberScaledMinimum
+  
+  double precision function ETHOSExtendedPowerSpectrumSlopeSmoothed(self,wavenumber,time) result(slope)
+    !!{
+    Compute the logarithmic derivate of the power spectrum after smoothing.
+    !!}
+    use :: Numerical_Ranges     , only : Make_Range  , rangeTypeLinear
+    use :: Numerical_Integration, only : integrator
+    implicit none
+    class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout), target      :: self
+    double precision                                          , intent(in   )              :: wavenumber                , time
+    double precision                                          , parameter                  :: countPerInterval       =10
+    double precision                                          , dimension(:) , allocatable :: logWavenumbers            , logPowerSpectra
+    integer                                                                                :: countPoints               , i
+    double precision                                                                       :: logWavenumberLimitLower   , logWavenumberLimitUpper
+    type            (integrator                              )                             :: integrator_
+    logical                                                                                :: remakeTable
+
+    if (.not.allocated(self%powerSpectrumSmoothed) .or. time /= self%timePrevious) then
+       remakeTable=.true.
+    else
+       remakeTable= wavenumber < self%wavenumberMinimum_ &
+            &      .or.                                  &
+            &       wavenumber > self%wavenumberMaximum_
+    end if
+    if (remakeTable) then
+       self%wavenumberMinimum_ =  min(self%wavenumberMinimum_,wavenumber/2.0d0)
+       self%wavenumberMaximum_ =  max(self%wavenumberMaximum_,wavenumber*2.0d0)
+       countPoints             =  int(log(self%wavenumberMaximum_/self%wavenumberMinimum_)/self%powerSpectrumSmoothingWidth*countPerInterval)+1
+       allocate(logWavenumbers (countPoints))
+       allocate(logPowerSpectra(countPoints))
+       logWavenumbers          =  Make_Range(log(self%wavenumberMinimum_),log(self%wavenumberMaximum_),countPoints,rangeTypeLinear)
+       integrator_             =  integrator(integrandSmoothing,toleranceRelative=1.0d-3)
+       self_                   => self
+       time_                   =  time
+       do i=1,countPoints
+          logWavenumbers_           =logWavenumbers(i)
+          logWavenumberLimitLower   =logWavenumbers(i)-10.0d0*self%powerSpectrumSmoothingWidth
+          logWavenumberLimitUpper   =logWavenumbers(i)+10.0d0*self%powerSpectrumSmoothingWidth
+          logPowerSpectra        (i)=integrator_%integrate(logWavenumberLimitLower,logWavenumberLimitUpper)
+          if (logPowerSpectra(i) > 0.0d0) then
+             logPowerSpectra(i)=log(logPowerSpectra(i  ))
+          else
+             logPowerSpectra(i)=    logPowerSpectra(i-1)
+          end if
+       end do
+       if (allocated(self%powerSpectrumSmoothed)) deallocate(self%powerSpectrumSmoothed)
+       allocate(self%powerSpectrumSmoothed)
+       self%powerSpectrumSmoothed=interpolator(logWavenumbers,logPowerSpectra)
+       self%timePrevious         =time
+    end if
+    slope=self%powerSpectrumSmoothed%derivative(log(wavenumber))
+    return
+  end function ETHOSExtendedPowerSpectrumSlopeSmoothed
+  
+  double precision function integrandSmoothing(logWavenumber)
+    !!{
+    Integrand function used in smoothing the power spectrum.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: logWavenumber
+    
+    integrandSmoothing=+self_%powerSpectrumPrimordialTransferred_%power(exp(logWavenumber),time_) &
+         &             *exp(                                                                      &
+         &                  -0.5d0                                                                &
+         &                  *(                                                                    &
+         &                    +(                                                                  &
+         &                      +logWavenumber                                                    &
+         &                      -logWavenumbers_                                                  &
+         &                     )                                                                  &
+         &                    /self_%powerSpectrumSmoothingWidth                                  &
+         &                   )**2                                                                 &
+         &                 )                                                                      &
+         &             /sqrt(2.0d0*Pi)                                                            &
+         &             /       self_%powerSpectrumSmoothingWidth
+    return
+  end function integrandSmoothing
+
+  
