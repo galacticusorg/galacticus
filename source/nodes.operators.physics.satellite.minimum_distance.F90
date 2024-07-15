@@ -243,7 +243,7 @@ contains
 
   double precision function satelliteMinimumDistanceDistanceRelative(self,node) result(distance)
     !!{
-    Copute the current distance to the relevant host halo.
+    Compute the current distance to the relevant host halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     use :: Vectors         , only : Vector_Magnitude
