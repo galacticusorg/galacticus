@@ -157,10 +157,10 @@ contains
     type (treeNode                            ), pointer       :: nodeIsolated
     class(nodeComponentSatellite              ), pointer       :: satellite
 
-    satellite => node%satellite()
+    satellite    => node%satellite     ()
     nodeIsolated => node%isolatedParent()
-    call satellite%floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self%distanceRelative(node))
-    call satellite%longIntegerRank0MetaPropertySet(self%isolatedHostID,nodeIsolated%uniqueID())
+    call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self        %distanceRelative(node))
+    call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID        (    ))
     return
   end subroutine satelliteMinimumDistanceNodesMerge
 
@@ -172,17 +172,26 @@ contains
     implicit none
     class(nodeOperatorSatelliteMinimumDistance), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
+    type (treeNode                            ), pointer       :: nodeIsolated
     class(nodeComponentSatellite              ), pointer       :: satellite
 
     if (.not.node%isSatellite()) return
-    satellite => node%satellite()
-    call satellite%floatRank0MetaPropertySet(                                                                          &
-         &                                                                           self%satelliteDistanceMinimumID , &
-         &                                   min(                                                                      &
-         &                                       satellite%floatRank0MetaPropertyGet(self%satelliteDistanceMinimumID), &
-         &                                       self     %distanceRelative         (node                           )  &
-         &                                   )                                                                         &
-         &                                  )  
+    satellite    => node%satellite     ()
+    nodeIsolated => node%isolatedParent()
+    if (satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) == 0_kind_int8) then
+       ! This node has not been seen before - so simply set the minimum distance to the current distance.
+       call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self        %distanceRelative(node))
+       call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID        (    ))
+    else
+       ! The node has been seen before, so set the minimum distance to the smaller of the current and prior minimum.
+       call satellite%floatRank0MetaPropertySet(                                                                          &
+            &                                                                           self%satelliteDistanceMinimumID , &
+            &                                   min(                                                                      &
+            &                                       satellite%floatRank0MetaPropertyGet(self%satelliteDistanceMinimumID), &
+            &                                       self     %distanceRelative         (node                           )  &
+            &                                   )                                                                         &
+            &                                  )
+    end if
     return
   end subroutine satelliteMinimumDistanceDifferentialEvolutionPost
 
