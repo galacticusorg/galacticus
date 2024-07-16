@@ -53,6 +53,8 @@
      final     ::                          sphericalAccretionFlowDestructor
      procedure :: density               => sphericalAccretionFlowDensity
      procedure :: densityGradientRadial => sphericalAccretionFlowDensityGradientRadial
+     procedure :: energyPotential       => sphericalAccretionFlowEnergyPotential
+     procedure :: energyKinetic         => sphericalAccretionFlowEnergyKinetic
      procedure :: transitionFunction    => sphericalAccretionFlowTransitionFunction
   end type massDistributionSphericalAccretionFlow
 
@@ -235,3 +237,33 @@ contains
          &                            /self       %density        (coordinates)
     return
   end function sphericalAccretionFlowDensityGradientRadial
+
+  double precision function sphericalAccretionFlowEnergyPotential(self,radiusOuter) result(energy)
+    !!{
+    Compute the potential energy within a given {\normalfont \ttfamily radius} in a spherical accretion flow mass
+    distribution. Note that this is defined to be the potential energy of the \emph{virialized} component of the mass
+    distribution---the accretion flow itself is excluded.
+    !!}
+    implicit none
+    class           (massDistributionSphericalAccretionFlow), intent(inout) :: self
+    double precision                                        , intent(in   ) :: radiusOuter
+
+    energy=self%massDistribution_%energyPotential(radiusOuter)
+    return
+  end function sphericalAccretionFlowEnergyPotential
+
+  double precision function sphericalAccretionFlowEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
+    !!{
+    Compute the kinetic energy within a given {\normalfont \ttfamily radius} in a spherical accretion flow mass distribution. Note
+    that this is defined to be the potential energy of the \emph{virialized} component of the mass distribution---the accretion
+    flow itself is excluded.
+    !!}
+    implicit none
+    class           (massDistributionSphericalAccretionFlow), intent(inout) :: self
+    double precision                                        , intent(in   ) :: radiusOuter
+    class           (massDistributionClass                 ), intent(inout) :: massDistributionEmbedding
+
+    energy=self%massDistribution_%energyKinetic(radiusOuter,massDistributionEmbedding)
+    return
+  end function sphericalAccretionFlowEnergyKinetic
+  
