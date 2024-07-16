@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721125150868,
+  "lastUpdate": 1721167726081,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -1711,6 +1711,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": 5.00086399252571,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "52590f82ab5e8201fe98718079f4351c1e48e7ca",
+          "message": "Merge pull request #647 from galacticusorg/fixDynamicalTimeScale\n\nChange the definition of dynamical timescale to follow that in Binney & Tremaine, \"Galactic Dynamics\".",
+          "timestamp": "2024-07-16T17:09:01Z",
+          "tree_id": "da1027927ebdc4610b4ce848c8e160e2dbbace13",
+          "url": "https://github.com/galacticusorg/galacticus/commit/52590f82ab5e8201fe98718079f4351c1e48e7ca"
+        },
+        "date": 1721167725699,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 13.9314532875195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 6.55374493681816,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 5.00086311282378,
             "unit": "-logℒ"
           }
         ]
