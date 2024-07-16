@@ -50,7 +50,7 @@
     If {\normalfont \ttfamily [useDynamicalTimeScale]} is set to true, $T_\mathrm{loss}$ is taken to be the dynamical time scale
     computed at the tidal radius
     \begin{equation}
-    T_\mathrm{dyn} = \sqrt{\frac{3\pi r_\mathrm{tidal}^3}{16 G M_\mathrm{sat}(r_\mathrm{tidal})}}.
+    T_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 G \overline{\rho}_\mathrm{sat}(r_\mathrm{tidal})}} = 2 \pi \sqrt{\frac{r_\mathrm{tidal}^3}{16 G M_\mathrm{sat}(r_\mathrm{tidal})}}.
     \end{equation}
    </description>
   </satelliteTidalStripping>
@@ -197,11 +197,11 @@ contains
     massEnclosedTidalRadius=max(0.0d0,self%galacticStructure_            %massEnclosed(node,radiusTidal))
     ! Check whether to use the dynamical time scale or the orbital time scale for mass loss rate.
     if (self%useDynamicalTimeScale .and. massEnclosedTidalRadius > 0.0d0) then
-       timeScaleMassLoss=+sqrt(                                 &
-            &                  + 3.0d0                          &
+       timeScaleMassLoss=+2.0d0                                 &
+            &            *Pi                                    &
+            &            *sqrt(                                 &
+            &                  +radiusTidal**3                  &
             &                  /16.0d0                          &
-            &                  *Pi                              &
-            &                  *radiusTidal**3                  &
             &                  /gravitationalConstantGalacticus &
             &                  /massEnclosedTidalRadius         &
             &                 )                                 &
