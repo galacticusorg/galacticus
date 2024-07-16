@@ -50,6 +50,7 @@
      procedure :: surfaceDensity                    => cylindricalScalerSurfaceDensity
      procedure :: radiusHalfMass                    => cylindricalScalerRadiusHalfMass
      procedure :: massEnclosedBySphere              => cylindricalScalerMassEnclosedBySphere
+     procedure :: potentialIsAnalytic               => cylindricalScalerPotentialIsAnalytic
      procedure :: potential                         => cylindricalScalerPotential
      procedure :: rotationCurve                     => cylindricalScalerRotationCurve
      procedure :: rotationCurveGradient             => cylindricalScalerRotationCurveGradient
@@ -310,6 +311,17 @@ contains
          &                                        *gravitationalConstantGalacticus
     return
   end function cylindricalScalerRotationCurveGradient
+
+  logical function cylindricalScalerPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return if the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionCylindricalScaler), intent(inout) :: self
+
+    isAnalytic=self%massDistribution_%potentialIsAnalytic()
+    return
+  end function cylindricalScalerPotentialIsAnalytic
 
   double precision function cylindricalScalerPotential(self,coordinates,status)
     !!{

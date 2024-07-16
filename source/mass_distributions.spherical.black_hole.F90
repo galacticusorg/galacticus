@@ -39,6 +39,7 @@
      procedure :: massEnclosedBySphere  => blackHoleMassEnclosedBySphere
      procedure :: rotationCurve         => blackHoleRotationCurve
      procedure :: rotationCurveGradient => blackHoleRotationCurveGradient
+     procedure :: potentialIsAnalytic   => blackHolePotentialIsAnalytic
      procedure :: potential             => blackHolePotential
   end type massDistributionBlackHole
 
@@ -257,6 +258,17 @@ contains
     end if
     return
   end function blackHoleRotationCurveGradient
+
+  logical function blackHolePotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionBlackHole), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function blackHolePotentialIsAnalytic
 
   double precision function blackHolePotential(self,coordinates,status)
     !!{

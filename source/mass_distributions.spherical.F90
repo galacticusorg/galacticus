@@ -35,7 +35,6 @@
      !![
      <methods>
        <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"                     />
-       <method description="Compute the potential difference between two radii numerically."         method="potentialDifferenceNumerical"       />
        <method description="Compute the potential energy of mass distribution."                      method="energyPotential"                    />
        <method description="Compute the kinetic energy of the mass distribution."                    method="energyKinetic"                      />
        <method description="Compute (numerically) the potential energy of mass distribution."        method="energyPotentialNumerical"           />
@@ -74,7 +73,6 @@
      procedure :: energyPotentialNumerical            => sphericalEnergyPotentialNumerical
      procedure :: energyKineticNumerical              => sphericalEnergyKineticNumerical
      procedure :: densitySphericalAverage             => sphericalDensitySphericalAverage
-     procedure :: potentialDifference                 => sphericalPotentialDifference
      procedure :: potentialDifferenceNumerical        => sphericalPotentialDifferenceNumerical
      procedure :: surfaceDensity                      => sphericalSurfaceDensity
      procedure :: chandrasekharIntegral               => sphericalChandrasekharIntegral
@@ -221,7 +219,7 @@ contains
     return
   end function sphericalDensitySphericalAverage
 
-  double precision function sphericalMassEnclosedBySphereIntegrand(radius)
+  double precision function sphericalMassEnclosedBySphereIntegrand(radius) result(integrand)
     !!{
     Enclosed mass integrand for spherical mass distributions.
     !!}
@@ -230,9 +228,13 @@ contains
     double precision                     , intent(in   ) :: radius
     type            (coordinateSpherical)                :: position
 
-    position                              =[radius,0.0d0,0.0d0]
-    sphericalMassEnclosedBySphereIntegrand=+radius                 **2 &
-         &                                 *self_%density(position)
+    if (radius > 0.0d0) then
+       position =[radius,0.0d0,0.0d0]
+       integrand=+radius**2               &
+            &    *self_%density(position)
+    else
+      integrand=+0.0d0 
+    end if
     return
   end function sphericalMassEnclosedBySphereIntegrand
 
@@ -306,19 +308,6 @@ contains
     return
   end function sphericalPotentialNumerical
 
-  double precision function sphericalPotentialDifference(self,coordinates1,coordinates2,status) result(potential)
-    !!{
-    Return the potential difference between the two specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
-    !!}
-    implicit none
-    class(massDistributionSpherical        ), intent(inout), target   :: self
-    class(coordinate                       ), intent(in   )           :: coordinates1 , coordinates2
-    type (enumerationStructureErrorCodeType), intent(  out), optional :: status
-
-    potential=self%potentialDifferenceNumerical(coordinates1,coordinates2,status)
-    return
-  end function sphericalPotentialDifference
-
   double precision function sphericalPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potential)
     !!{
     Return the potential difference between the two specified
@@ -347,8 +336,8 @@ contains
     end if
     self_     => self
     potential =  integrator_%integrate(                           &
-         &                             coordinates2%rSpherical(), &
-         &                             coordinates1%rSpherical()  &
+         &                             coordinates1%rSpherical(), &
+         &                             coordinates2%rSpherical()  &
          &                            )
     ! Convert to dimensionful units.    
     if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
@@ -372,7 +361,7 @@ contains
     return
   end function integrandPotential
 
-  function sphericalAcceleration(self,coordinates)
+  function sphericalAcceleration(self,coordinates) result(acceleration)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     distributions.
@@ -381,7 +370,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                              , dimension(3)  :: sphericalAcceleration
+    double precision                              , dimension(3)  :: acceleration
     class           (massDistributionSpherical   ), intent(inout) :: self
     class           (coordinate                  ), intent(in   ) :: coordinates
     type            (coordinateSpherical         )                :: coordinatesSpherical
@@ -393,17 +382,21 @@ contains
     coordinatesSpherical=coordinates
     coordinatesCartesian=coordinates
     ! Compute the density at this position.
-    positionCartesian    = coordinatesCartesian
-    radius               =+coordinatesSpherical%r                   (                 )
-    sphericalAcceleration=-self                %massEnclosedBySphere(radius           )    &
-         &                *                                          positionCartesian     &
-         &                /                                          radius            **3
-    if (.not.self%isDimensionless())                              &
-         & sphericalAcceleration=+sphericalAcceleration           &
-         &                       *kilo                            &
-         &                       *gigaYear                        &
-         &                       /megaParsec                      &
-         &                       *gravitationalConstantGalacticus
+    positionCartesian=coordinatesCartesian
+    radius           =coordinatesSpherical%r()
+    if (radius > 0.0d0) then
+       acceleration=-self%massEnclosedBySphere(radius           )    &
+            &       *                          positionCartesian     &
+            &       /                          radius            **3
+       if (.not.self%isDimensionless())                     &
+            & acceleration=+acceleration                    &
+            &              *kilo                            &
+            &              *gigaYear                        &
+            &              /megaParsec                      &
+            &              *gravitationalConstantGalacticus
+    else
+       acceleration=0.0d0
+    end if
     return
   end function sphericalAcceleration
 
@@ -456,7 +449,7 @@ contains
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
     double precision                           , intent(in   ) :: radius
-    
+
     if (radius <= 0.0d0) then
        sphericalRotationCurve=+0.0d0
     else
@@ -729,7 +722,7 @@ contains
     implicit none
     double precision            , intent(in   ) :: radiusFreefall
     type            (integrator)                :: integrator_
-
+    
     radiusFreefall_   =+radiusFreefall
     integrator_       = integrator              (integrandTimeFreefall,toleranceRelative=1.0d-3)
     rootRadiusFreefall=+integrator_   %integrate(0.0d0                ,radiusFreefall          ) &
@@ -750,7 +743,7 @@ contains
 
     coordinates        =[radius         ,0.0d0,0.0d0]
     coordinatesFreefall=[radiusFreefall_,0.0d0,0.0d0]
-    potentialDifference=+self_%potentialDifference(coordinatesFreefall,coordinates)
+    potentialDifference=+self_%potentialDifference(coordinates,coordinatesFreefall)
     if (potentialDifference < 0.0d0) then
        integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
             &                /sqrt(                     &

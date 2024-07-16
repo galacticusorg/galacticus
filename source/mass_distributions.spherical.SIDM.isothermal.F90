@@ -97,6 +97,7 @@
      procedure :: densityGradientRadial  => sphericalSIDMIsothermalDensityGradientRadial
      procedure :: massEnclosedBySphere   => sphericalSIDMIsothermalMassEnclosedBySphere
      procedure :: potential              => sphericalSIDMIsothermalPotential
+     procedure :: potentialIsAnalytic    => sphericalSIDMIsothermalPotentialIsAnalytic
   end type massDistributionSphericalSIDMIsothermal
 
   interface massDistributionSphericalSIDMIsothermal
@@ -606,6 +607,17 @@ contains
     end if
     return
   end function sphericalSIDMIsothermalMassEnclosedBySphere
+
+  logical function sphericalSIDMIsothermalPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSphericalSIDMIsothermal), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function sphericalSIDMIsothermalPotentialIsAnalytic
 
   double precision function sphericalSIDMIsothermalPotential(self,coordinates,status) result(potential)
     !!{

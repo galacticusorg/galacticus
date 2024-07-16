@@ -62,6 +62,7 @@
      procedure :: densitySphericalAverage           => sphericalScalerDensitySphericalAverage
      procedure :: rotationCurve                     => sphericalScalerRotationCurve
      procedure :: rotationCurveGradient             => sphericalScalerRotationCurveGradient
+     procedure :: potentialIsAnalytic               => sphericalScalerPotentialIsAnalytic
      procedure :: potential                         => sphericalScalerPotential
      procedure :: radiusHalfMass                    => sphericalScalerRadiusHalfMass
      procedure :: tidalTensor                       => sphericalScalerTidalTensor
@@ -222,6 +223,17 @@ contains
          &                              *self                  %factorScalingMass
     return
   end function sphericalScalerMassEnclosedBySphere
+
+  logical function sphericalScalerPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout) :: self
+
+    isAnalytic=self%massDistribution_%potentialIsAnalytic()
+    return
+  end function sphericalScalerPotentialIsAnalytic
 
   double precision function sphericalScalerPotential(self,coordinates,status)
     !!{

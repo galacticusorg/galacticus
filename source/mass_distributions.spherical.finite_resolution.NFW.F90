@@ -99,6 +99,7 @@
      procedure :: density                        => sphericalFiniteResolutionNFWDensity
      procedure :: densityGradientRadial          => sphericalFiniteResolutionNFWDensityGradientRadial
      procedure :: massEnclosedBySphere           => sphericalFiniteResolutionNFWMassEnclosedBySphere
+     procedure :: potentialIsAnalytic            => sphericalFiniteResolutionNFWPotentialIsAnalytic
      procedure :: potential                      => sphericalFiniteResolutionNFWPotential
      procedure :: radiusEnclosingMass            => sphericalFiniteResolutionNFWRadiusEnclosingMass
      procedure :: radiusEnclosingDensity         => sphericalFiniteResolutionNFWRadiusEnclosingDensity
@@ -435,6 +436,17 @@ contains
     return
   end function sphericalFiniteResolutionNFWMassEnclosedScaleFree
   
+  logical function sphericalFiniteResolutionNFWPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function sphericalFiniteResolutionNFWPotentialIsAnalytic
+
   double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,status) result(potential)
     !!{
     Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont

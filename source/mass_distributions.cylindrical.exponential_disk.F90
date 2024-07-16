@@ -78,6 +78,7 @@
      procedure :: densitySphericalAverage           => exponentialDiskDensitySphericalAverage
      procedure :: surfaceDensity                    => exponentialDiskSurfaceDensity
      procedure :: massEnclosedBySphere              => exponentialDiskMassEnclosedBySphere
+     procedure :: potentialIsAnalytic               => exponentialDiskPotentialIsAnalytic
      procedure :: potential                         => exponentialDiskPotential
      procedure :: rotationCurve                     => exponentialDiskRotationCurve
      procedure :: rotationCurveGradient             => exponentialDiskRotationCurveGradient
@@ -533,6 +534,17 @@ contains
          &  *exponentialDiskRotationCurveGradient
     return
   end function exponentialDiskRotationCurveGradient
+
+  logical function exponentialDiskPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function exponentialDiskPotentialIsAnalytic
 
   double precision function exponentialDiskPotential(self,coordinates,status)
     !!{

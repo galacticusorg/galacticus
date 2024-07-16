@@ -40,6 +40,7 @@
      procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
      procedure :: densitySquareIntegral => betaProfileDensitySquareIntegral
      procedure :: massEnclosedBySphere  => betaProfileMassEnclosedBySphere
+     procedure :: potentialIsAnalytic   => betaProfilePotentialIsAnalytic
      procedure :: potential             => betaProfilePotential
      procedure :: descriptor            => betaProfileDescriptor
   end type massDistributionBetaProfile
@@ -376,6 +377,17 @@ contains
     end if
     return
   end function betaProfileMassEnclosedBySphere
+
+  logical function betaProfilePotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionBetaProfile), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function betaProfilePotentialIsAnalytic
 
   double precision function betaProfilePotential(self,coordinates,status)
     !!{

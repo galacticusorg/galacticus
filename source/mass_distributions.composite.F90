@@ -66,7 +66,9 @@
      procedure :: densityRadialMoment     => compositeDensityRadialMoment
      procedure :: densitySphericalAverage => compositeDensitySphericalAverage
      procedure :: densitySquareIntegral   => compositeDensitySquareIntegral
+     procedure :: potentialIsAnalytic     => compositePotentialIsAnalytic
      procedure :: potential               => compositePotential
+     procedure :: potentialDifference     => compositePotentialDifference
      procedure :: energy                  => compositeEnergy
      procedure :: massEnclosedBySphere    => compositeMassEnclosedBySphere
      procedure :: radiusEnclosingMass     => compositeRadiusEnclosingMass
@@ -632,7 +634,7 @@ contains
     class           (massDistributionComposite), intent(inout) :: self
     double precision                           , intent(in   ) :: radius
     type            (massDistributionList     ), pointer       :: massDistribution_
-
+    
     compositeRotationCurve=0.0d0
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
@@ -711,6 +713,17 @@ contains
     return
   end function compositeTidalTensor
   
+  logical function compositePotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Specify whether the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionComposite), intent(inout) :: self
+
+    isAnalytic=.false.
+    return
+  end function compositePotentialIsAnalytic
+
   double precision function compositePotential(self,coordinates,status)
     !!{
     Return the gravitational potential for a composite mass distribution.
@@ -735,6 +748,31 @@ contains
     end if
     return
   end function compositePotential
+
+  double precision function compositePotentialDifference(self,coordinates1,coordinates2,status) result(potential)
+    !!{
+    Return the gravitational potential for a composite mass distribution.
+    !!}
+    use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
+    implicit none
+    class(massDistributionComposite        ), intent(inout), target   :: self
+    class(coordinate                       ), intent(in   )           :: coordinates1     , coordinates2
+    type (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type (massDistributionList             ), pointer                 :: massDistribution_
+
+    if (present(status)) status=structureErrorCodeSuccess
+    potential=0.0d0
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          potential=+potential                                                                                 &
+               &    +massDistribution_%massDistribution_%potentialDifference(coordinates1,coordinates2,status)
+          if (present(status).and.status /= structureErrorCodeSuccess) return
+          massDistribution_ => massDistribution_%next
+       end do
+    end if
+    return
+  end function compositePotentialDifference
 
   double precision function compositeEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{

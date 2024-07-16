@@ -63,6 +63,7 @@
      procedure :: fourierTransform                             => sphericalDecoratorFourierTransform
      procedure :: radiusFreefall                               => sphericalDecoratorRadiusFreefall
      procedure :: radiusFreefallIncreaseRate                   => sphericalDecoratorRadiusFreefallIncreaseRate 
+     procedure :: potentialIsAnalytic                          => sphericalDecoratorPotentialIsAnalytic
      procedure :: potential                                    => sphericalDecoratorPotential
      procedure :: energyPotential                              => sphericalDecoratorEnergyPotential
      procedure :: energyKinetic                                => sphericalDecoratorEnergyKinetic
@@ -270,14 +271,25 @@ contains
     return
   end function sphericalDecoratorDensityRadialMomentNonAnalytic
 
+  logical function sphericalDecoratorPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return if the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSphericalDecorator), intent(inout) :: self
+
+    isAnalytic=self%useUndecorated() .and. self%massDistribution_%potentialIsAnalytic()
+    return
+  end function sphericalDecoratorPotentialIsAnalytic
+
   double precision function sphericalDecoratorPotential(self,coordinates,status) result(potential)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalDecorator  ), intent(inout), target   :: self
-    class(coordinate                          ), intent(in   )           :: coordinates
-    type (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
+    class(massDistributionSphericalDecorator), intent(inout), target   :: self
+    class(coordinate                        ), intent(in   )           :: coordinates
+    type (enumerationStructureErrorCodeType ), intent(  out), optional :: status
 
     potential=self%potentialNonAnalytic(coordinates,status)
     return

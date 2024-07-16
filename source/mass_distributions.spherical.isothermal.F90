@@ -56,6 +56,7 @@
      procedure :: radiusFreefallIncreaseRate        => isothermalRadiusFreefallIncreaseRate 
      procedure :: energyPotential                   => isothermalEnergyPotential
      procedure :: energyKinetic                     => isothermalEnergyKinetic
+     procedure :: potentialIsAnalytic               => isothermalPotentialIsAnalytic
      procedure :: potential                         => isothermalPotential
      procedure :: positionSample                    => isothermalPositionSample
      procedure :: descriptor                        => isothermalDescriptor
@@ -448,6 +449,17 @@ contains
     radius=1.0d0
     return
   end function isothermalRadiusRotationCurveMaximum
+
+  logical function isothermalPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionIsothermal), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function isothermalPotentialIsAnalytic
 
   double precision function isothermalPotential(self,coordinates,status)
     !!{

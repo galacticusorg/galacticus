@@ -55,6 +55,7 @@
      procedure :: radiusFreefall                    => nfwRadiusFreefall
      procedure :: radiusFreefallIncreaseRate        => nfwRadiusFreefallIncreaseRate
      procedure :: timeFreefallTabulate              => nfwTimeFreefallTabulate
+     procedure :: potentialIsAnalytic               => nfwPotentialIsAnalytic
      procedure :: potential                         => nfwPotential
      procedure :: energyPotential                   => nfwEnergyPotential
      procedure :: energyKinetic                     => nfwEnergyKinetic
@@ -638,6 +639,17 @@ contains
          & *self%scaleLength
     return
   end function nfwRadiusRotationCurveMaximum
+
+  logical function nfwPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionNFW), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function nfwPotentialIsAnalytic
 
   double precision function nfwPotential(self,coordinates,status) result(potential)
     !!{

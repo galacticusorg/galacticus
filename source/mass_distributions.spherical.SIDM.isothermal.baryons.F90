@@ -70,6 +70,7 @@
      procedure :: density               => sphericalSIDMIsothermalBaryonsDensity
      procedure :: densityGradientRadial => sphericalSIDMIsothermalBaryonsDensityGradientRadial
      procedure :: massEnclosedBySphere  => sphericalSIDMIsothermalBaryonsMassEnclosedBySphere
+     procedure :: potentialIsAnalytic   => sphericalSIDMIsothermalBaryonsPotentialIsAnalytic
      procedure :: potential             => sphericalSIDMIsothermalBaryonsPotential
   end type massDistributionSphericalSIDMIsothermalBaryons
 
@@ -410,6 +411,17 @@ contains
     end if
     return
   end function sphericalSIDMIsothermalBaryonsMassEnclosedBySphere
+
+  logical function sphericalSIDMIsothermalBaryonsPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return if the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
+
+    isAnalytic=self%massDistribution_%potentialIsAnalytic()
+    return
+  end function sphericalSIDMIsothermalBaryonsPotentialIsAnalytic
 
   double precision function sphericalSIDMIsothermalBaryonsPotential(self,coordinates,status) result(potential)
     !!{

@@ -93,6 +93,7 @@
      procedure :: radiusFreefall                    => zhao1996RadiusFreefall
      procedure :: radiusFreefallIncreaseRate        => zhao1996RadiusFreefallIncreaseRate
      procedure :: timeFreefallTabulate              => zhao1996TimeFreefallTabulate
+     procedure :: potentialIsAnalytic               => zhao1996PotentialIsAnalytic
      procedure :: potential                         => zhao1996Potential
      procedure :: fourierTransform                  => zhao1996FourierTransform
      procedure :: energyPotential                   => zhao1996EnergyPotential
@@ -845,6 +846,17 @@ contains
          &                       )
     return
   end function angularMomentumSpecificEnclosedScaleFree
+
+  logical function zhao1996PotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionZhao1996), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function zhao1996PotentialIsAnalytic
 
   double precision function zhao1996Potential(self,coordinates,status) result(potential)
     !!{

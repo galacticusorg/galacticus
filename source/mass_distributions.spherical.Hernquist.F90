@@ -39,6 +39,7 @@
      procedure :: densityGradientRadial => hernquistDensityGradientRadial
      procedure :: densityRadialMoment   => hernquistDensityRadialMoment
      procedure :: massEnclosedBySphere  => hernquistMassEnclosedBySphere
+     procedure :: potentialIsAnalytic   => hernquistPotentialIsAnalytic
      procedure :: potential             => hernquistPotential
      procedure :: radiusHalfMass        => hernquistRadiusHalfMass
   end type massDistributionHernquist
@@ -294,6 +295,17 @@ contains
     end if
     return
   end function hernquistMassEnclosedBySphere
+
+  logical function hernquistPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionHernquist), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function hernquistPotentialIsAnalytic
 
   double precision function hernquistPotential(self,coordinates,status)
     !!{

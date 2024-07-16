@@ -37,7 +37,8 @@
      procedure :: densityGradientRadial => constantDensityCloudDensityGradientRadial
      procedure :: densityRadialMoment   => constantDensityCloudDensityRadialMoment
      procedure :: massEnclosedBySphere  => constantDensityCloudMassEnclosedBySphere
-     procedure :: potential             => constantDensityCloudPotential
+     procedure :: potentialIsAnalytic   => constantDensityCloudPotentialIsAnalytic
+    procedure :: potential              => constantDensityCloudPotential
   end type massDistributionConstantDensityCloud
 
   interface massDistributionConstantDensityCloud
@@ -167,6 +168,17 @@ contains
     end if
     return
   end function constantDensityCloudMassEnclosedBySphere
+
+  logical function constantDensityCloudPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionConstantDensityCloud), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function constantDensityCloudPotentialIsAnalytic
 
   double precision function constantDensityCloudPotential(self,coordinates,status)
     !!{

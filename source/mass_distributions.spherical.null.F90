@@ -38,6 +38,7 @@
      procedure :: massEnclosedBySphere  => zeroMassEnclosedBySphere
      procedure :: rotationCurve         => zeroRotationCurve
      procedure :: rotationCurveGradient => zeroRotationCurveGradient
+     procedure :: potentialIsAnalytic   => zeroPotentialIsAnalytic
      procedure :: potential             => zeroPotential
   end type massDistributionZero
 
@@ -171,6 +172,17 @@ contains
     zeroRotationCurveGradient=0.0d0
     return
   end function zeroRotationCurveGradient
+
+  logical function zeroPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionZero), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function zeroPotentialIsAnalytic
 
   double precision function zeroPotential(self,coordinates,status)
     !!{

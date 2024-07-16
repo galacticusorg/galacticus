@@ -67,6 +67,7 @@
      procedure :: radiusFreefallIncreaseRate        => einastoRadiusFreefallIncreaseRate
      procedure :: timeFreefallTabulate              => einastoTimeFreefallTabulate
      procedure :: timeFreefallMinimum               => einastoTimeFreefallMinimum
+     procedure :: potentialIsAnalytic               => einastoPotentialIsAnalytic
      procedure :: potential                         => einastoPotential
      procedure :: descriptor                        => einastoDescriptor
   end type massDistributionEinasto
@@ -589,6 +590,17 @@ contains
          &                       )
     return
   end function angularMomentumSpecificEnclosedScaleFree
+
+  logical function einastoPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionEinasto), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function einastoPotentialIsAnalytic
 
   double precision function einastoPotential(self,coordinates,status) result(potential)
     !!{

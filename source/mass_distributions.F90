@@ -169,6 +169,14 @@ module Mass_Distributions
     <argument>class(coordinate                       ), intent(in   )           :: coordinates  </argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status       </argument>
    </method>
+   <method name="potentialIsAnalytic" >
+     <description>Return true if the gravitational potential for this distribution has an analytic form.</description>
+     <type>logical</type>
+     <pass>yes</pass>
+     <code>
+       massDistributionPotentialIsAnalytic=.false.
+     </code>
+   </method>
    <method name="potentialDifference" >
     <description>Return the difference in that gravitational potential of the distribution between the given coordinates.</description>
     <type>double precision</type>
@@ -176,8 +184,36 @@ module Mass_Distributions
     <selfTarget>yes</selfTarget>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
+    <modules>Galactic_Structure_Options</modules>
     <code>
-      massDistributionPotentialDifference=massDistributionPotentialDifferenceNumerical(self,coordinates1,coordinates2,status)
+      double precision :: potential1, potential2
+
+      massDistributionPotentialDifference=0.0d0
+      if (self%potentialIsAnalytic()) then
+         potential1=self%potential(coordinates1,status)
+         if (present(status)) then
+            if (status /= structureErrorCodeSuccess) return
+         end if
+         potential2=self%potential(coordinates2,status)
+         if (present(status)) then
+            if (status /= structureErrorCodeSuccess) return
+         end if
+         massDistributionPotentialDifference=potential1-potential2
+      else
+         massDistributionPotentialDifference=self%potentialDifferenceNumerical(coordinates1,coordinates2,status)
+      end if
+    </code>
+   </method>
+   <method name="potentialDifferenceNumerical" >
+    <description>Return the difference in that gravitational potential of the distribution between the given coordinates using a numerical calculation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
+    <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
+    <modules>Galactic_Structure_Options</modules>
+    <code>
+      massDistributionPotentialDifferenceNumerical=massDistributionPotentialDifferenceNumerical_(self,coordinates1,coordinates2,status)
     </code>
    </method>
    <method name="massEnclosedBySphere" >
@@ -899,7 +935,7 @@ contains
     return
   end function rotationCurveMaximumRoot
 
-  double precision function massDistributionPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potentialDifference)
+  double precision function massDistributionPotentialDifferenceNumerical_(self,coordinates1,coordinates2,status) result(potentialDifference)
     !!{
     Numerically calculate the potential difference between the provided coordinates.
     !!}
@@ -951,7 +987,7 @@ contains
        end if
     end if
     return
-  end function massDistributionPotentialDifferenceNumerical
+  end function massDistributionPotentialDifferenceNumerical_
 
   double precision function potentialDifferenceIntegrand(distance)
     !!{

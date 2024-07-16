@@ -52,6 +52,7 @@
      procedure :: surfaceDensityRadialMoment => miyamotoNagaiSurfaceDensityRadialMoment
      procedure :: massEnclosedBySphere       => miyamotoNagaiMassEnclosedBySphere
      procedure :: massEnclosedTabulate       => miyamotoNagaiMassEnclosedTabulate
+     procedure :: potentialIsAnalytic        => miyamotoNagaiPotentialIsAnalytic
      procedure :: potential                  => miyamotoNagaiPotential
      procedure :: rotationCurve              => miyamotoNagaiRotationCurve
      procedure :: rotationCurveGradient      => miyamotoNagaiRotationCurveGradient
@@ -611,6 +612,17 @@ contains
          &                                    *miyamotoNagaiRotationCurveGradient
     return
   end function miyamotoNagaiRotationCurveGradient
+
+  logical function miyamotoNagaiPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionMiyamotoNagai), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function miyamotoNagaiPotentialIsAnalytic
 
   double precision function miyamotoNagaiPotential(self,coordinates,status)
     !!{

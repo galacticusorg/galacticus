@@ -59,6 +59,7 @@
      procedure :: densityRadialMoment     => sersicDensityRadialMoment
      procedure :: massEnclosedBySphere    => sersicMassEnclosedBySphere
      procedure :: massTotal               => sersicMassTotal
+     procedure :: potentialIsAnalytic     => sersicPotentialIsAnalytic
      procedure :: potential               => sersicPotential
      procedure :: radiusHalfMass          => sersicRadiusHalfMass
      procedure :: radiusHalfMassProjected => sersicRadiusHalfMassProjected
@@ -317,6 +318,17 @@ contains
     end if
     return
   end function sersicMassEnclosedBySphere
+
+  logical function sersicPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSersic), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function sersicPotentialIsAnalytic
 
   double precision function sersicPotential(self,coordinates,status)
     !!{

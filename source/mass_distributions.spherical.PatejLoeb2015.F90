@@ -47,6 +47,7 @@
      procedure :: densityGradientRadial => patejLoeb2015DensityGradientRadial
      procedure :: densityRadialMoment   => patejLoeb2015DensityRadialMoment
      procedure :: massEnclosedBySphere  => patejLoeb2015MassEnclosedBySphere
+     procedure :: potentialIsAnalytic   => patejLoeb2015PotentialIsAnalytic
      procedure :: potential             => patejLoeb2015Potential
      procedure :: radiusDarkMatter      => patejLoeb2015RadiusDarkMatter
      procedure :: coordinatesDarkMatter => patejLoeb2015CoordinatesDarkMatter
@@ -289,6 +290,17 @@ contains
          &               *self%massDistribution_%massEnclosedBySphere(self%radiusDarkMatter(radius_))
     return
   end function patejLoeb2015MassEnclosedBySphere
+
+  logical function patejLoeb2015PotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionPatejLoeb2015), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function patejLoeb2015PotentialIsAnalytic
 
   double precision function patejLoeb2015Potential(self,coordinates,status) result(potential)
     !!{

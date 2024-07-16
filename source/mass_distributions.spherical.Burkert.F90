@@ -91,6 +91,7 @@
      procedure :: radiusFreefall                    => burkertRadiusFreefall
      procedure :: radiusFreefallIncreaseRate        => burkertRadiusFreefallIncreaseRate
      procedure :: timeFreefallTabulate              => burkertTimeFreefallTabulate
+     procedure :: potentialIsAnalytic               => burkertPotentialIsAnalytic
      procedure :: potential                         => burkertPotential
      procedure :: energyPotential                   => burkertEnergyPotential
      procedure :: descriptor                        => burkertDescriptor
@@ -630,6 +631,17 @@ contains
          & *self%scaleLength
     return
   end function burkertRadiusRotationCurveMaximum
+
+  logical function burkertPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionBurkert), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function burkertPotentialIsAnalytic
 
   double precision function burkertPotential(self,coordinates,status) result(potential)
     !!{

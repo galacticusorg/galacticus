@@ -599,7 +599,7 @@ program Test_Mass_Distributions
         densitySlopeIsothermal                              (i)=massDistribution_%densityGradientRadial                     (position,logarithmic=.true.               )
         densitySlopeIsothermalNumerical                     (i)=massDistribution_%densityGradientRadialNumerical            (position,logarithmic=.true.               )
         potentialIsothermal                                 (i)=massDistribution_%potential                                 (position                                  )
-        potentialIsothermalDifferenceNumerical              (i)=massDistribution_%potentialDifferenceNumerical              (positionReference,position                )  
+        potentialIsothermalDifferenceNumerical              (i)=massDistribution_%potentialDifferenceNumerical              (position,positionReference                )
         densityMomentIsothermal                             (i)=massDistribution_%densityRadialMoment                       (-dble(i-1),300.0d-3/8.0d0,300.0d-3/1.0d0  )
         fourierTransformIsothermal                          (i)=massDistribution_%fourierTransform                          (300.0d-3,1.0d0/radius                     )
         fourierTransformIsothermalNumerical                 (i)=massDistribution_%fourierTransformNumerical                 (300.0d-3,1.0d0/radius                     )
