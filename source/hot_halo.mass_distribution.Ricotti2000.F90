@@ -192,9 +192,9 @@ contains
     hotHalo           =>  node                        %hotHalo          (    )
     darkMatterProfile =>  node                        %darkMatterProfile(    )
     radiusOuter       =   hotHalo                     %outerRadius      (    )
-    ! If outer radius is non-positive return a null profile.
-    if (radiusOuter <= 0.0d0) return
     mass              =   hotHalo                     %mass             (    )
+    ! If outer radius is non-positive return a null profile.
+    if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
     radiusScale       =           darkMatterProfile   %scale            (    )
     radiusVirial      =   self   %darkMatterHaloScale_%radiusVirial     (node)
     concentration     =  +radiusVirial              &
