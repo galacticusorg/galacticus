@@ -21,7 +21,20 @@
 
   !![
   <outputTimes name="outputTimesList">
-   <description>An output times class which simply reads a list of output times from a parameter.</description>
+    <description>      
+      An output times class which simply reads a list of output times specified via parameters. Times can be given as a
+      (space-separated) list of actual cosmic times (in Gyr) via the {\normalfont \ttfamily [times]} parameter, or as a
+      (space-separated) list of redshifts via the {\normalfont \ttfamily [redshifts]} parameter, or by a combination of the
+      two. The {\normalfont \ttfamily [times]} parameter allows negative values which are interpretted as lookback times. For
+      example, in a cosmological model where the universe is currently 13.8~Gyr old the following:
+      \begin{verbatim}
+      &lt;outputTimes value="list"&gt;
+	&lt;redshifts value=" 0.0"/&gt;
+	&lt;times     value="-1.0"/&gt;
+      &lt;/outtputTimes&gt;
+      \end{verbatim}
+      will result in output at 12.8 and 13.8~Gyr.
+    </description>
   </outputTimes>
   !!]
   type, extends(outputTimesClass) :: outputTimesList
@@ -55,53 +68,65 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
     !!}
-    use :: Array_Utilities  , only : Array_Reverse
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Sorting          , only : sort
+    use :: Error            , only : Error_Report
     implicit none
     type            (outputTimesList        )                            :: self
     type            (inputParameters        ), intent(inout)             :: parameters
     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-    double precision                         , allocatable, dimension(:) :: times
-    integer         (c_size_t               )                            :: outputCount        , i
+    double precision                         , allocatable, dimension(:) :: times              , redshifts    , &
+         &                                                                  timesFromRedshifts , timesCombined
+    integer         (c_size_t               )                            :: i
+    logical :: haveTimes, haveRedshifts
 
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    if      (parameters%isPresent('times'    )) then
-       outputCount=parameters%count('times'    )
-    else if (parameters%isPresent('redshifts')) then
-       outputCount=parameters%count('redshifts')
-    else
-       outputCount=1_c_size_t
-    end if
-    allocate(times(outputCount))
-    if (parameters%isPresent('times')) then
-       !![
-       <inputParameter>
-         <name>times</name>
-         <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
-         <source>parameters</source>
-       </inputParameter>
-       !!]
-       call sort(times)
-    else
+    haveTimes    =parameters%isPresent('times'    )
+    haveRedshifts=parameters%isPresent('redshifts')
+    if (haveRedshifts.or..not.(haveRedshifts.or.haveTimes)) then
+       allocate(redshifts         (max(1,parameters%count('redshifts',zeroIfNotPresent=.true.))))
+       allocate(timesFromRedshifts(size(redshifts)                                             ))
        !![
        <inputParameter>
          <name>redshifts</name>
          <defaultValue>[0.0d0]</defaultValue>
-         <variable>times</variable>
          <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
-       call sort(times)
-       times=Array_Reverse(times)
-       do i=1,outputCount
-          times(i)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(times(i)))
+       ! Convert redshifts to times.
+       do i=1,size(redshifts)
+          timesFromRedshifts(i)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshifts(i)))
        end do
+    else
+       allocate(timesFromRedshifts(0))
     end if
-    self=outputTimesList(times,cosmologyFunctions_)
+    if (haveTimes) then
+       allocate(times(parameters%count('times')))
+       !![
+       <inputParameter>
+         <name>times</name>
+         <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order. Negative times are interpretted as look-back times.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
+       ! Convert any look-back times to actual times.
+       do i=1,size(times)
+          if (times(i) < 0.0d0) then
+             times(i)=cosmologyFunctions_%cosmicTime(1.0d0)+times(i)
+             if (times(i) < 0.0d0) call Error_Report('look-back time exceeds the age of the universe'//{introspection:location})
+          end if
+       end do
+    else
+       allocate(times(0))
+    end if
+    allocate(timesCombined(size(times)+size(timesFromRedshifts)))
+    if (size(times             ) > 0) timesCombined(1            :size(times)                         )=times
+    if (size(timesFromRedshifts) > 0) timesCombined(1+size(times):size(times)+size(timesFromRedshifts))=timesFromRedshifts
+    call sort(timesCombined)
+    self=outputTimesList(timesCombined,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
