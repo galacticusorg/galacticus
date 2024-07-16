@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721125127759,
+  "lastUpdate": 1721167697095,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "219789d07e9fd373d3150fb691d04a9659f34f9f",
-          "message": "Merge pull request #465 from galacticusorg/fspsArm64\n\nFix build of FSPS on Apple M1/M2 chips",
-          "timestamp": "2023-09-09T02:39:08Z",
-          "tree_id": "230759199a9f1f1d41b627a1320054d4ce3bc165",
-          "url": "https://github.com/galacticusorg/galacticus/commit/219789d07e9fd373d3150fb691d04a9659f34f9f"
-        },
-        "date": 1694252790043,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.725,
-            "unit": "seconds",
-            "range": 0.0163248277172503
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20598.3558316096,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "52590f82ab5e8201fe98718079f4351c1e48e7ca",
+          "message": "Merge pull request #647 from galacticusorg/fixDynamicalTimeScale\n\nChange the definition of dynamical timescale to follow that in Binney & Tremaine, \"Galactic Dynamics\".",
+          "timestamp": "2024-07-16T17:09:01Z",
+          "tree_id": "da1027927ebdc4610b4ce848c8e160e2dbbace13",
+          "url": "https://github.com/galacticusorg/galacticus/commit/52590f82ab5e8201fe98718079f4351c1e48e7ca"
+        },
+        "date": 1721167695579,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.436,
+            "unit": "seconds",
+            "range": 0.109719642726697
           }
         ]
       }
