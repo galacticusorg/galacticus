@@ -3,8 +3,7 @@
 package Galacticus::Launch::Local;
 use strict;
 use warnings;
-use threads;
-use Cwd;
+use Config;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Sys::CPU;
@@ -12,6 +11,17 @@ use Clone qw(clone);
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PostProcess;
 use System::Redirect;
+
+our $useThreads;
+BEGIN {
+    if ($Config{usethreads}) {
+        # We have threads
+        $useThreads = 1;
+	require threads;
+    } else {
+	$useThreads = 0;
+    }
+}
 
 # Insert hooks for our functions.
 %Galacticus::Launch::Hooks::moduleHooks = 
@@ -58,23 +68,27 @@ sub Launch {
     my $launchScript =   shift() ;
     my %options      = %{shift()}
         if ( scalar(@_) > 0 );
-    # Determine number of threads to use.
-    my $threadCount = $launchScript->{'local'}->{'threadCount'};
-    $threadCount = $options{'threadMaximum'}
+    if ( $useThreads ) {
+	# Determine number of threads to use.
+	my $threadCount = $launchScript->{'local'}->{'threadCount'};
+	$threadCount = $options{'threadMaximum'}
         if ( exists($options{'threadMaximum'}) );
-    # Launch model threads.
-    my @threads;
-    for(my $iThread=0;$iThread<$threadCount;++$iThread) {
-	print " -> launching thread ".$iThread." of ".$launchScript->{'local'}->{'threadCount'}."\n"
+	# Launch model threads.
+	my @threads;
+	for(my $iThread=0;$iThread<$threadCount;++$iThread) {
+	    print " -> launching thread ".$iThread." of ".$launchScript->{'local'}->{'threadCount'}."\n"
 		if ( $launchScript->{'verbosity'} > 0 );
- 	push(
-	    @threads,
-	    threads->create(\&Launch_Models, $iThread, $threadCount, \@jobs, $launchScript, \%options)
-	    );
-   }
-    # Wait for threads to finish.
-    foreach my $thread ( @threads ) {
- 	my @returnData = $thread->join();
+	    push(
+		@threads,
+		threads->create(\&Launch_Models, $iThread, $threadCount, \@jobs, $launchScript, \%options)
+		);
+	}
+	# Wait for threads to finish.
+	foreach my $thread ( @threads ) {
+	    my @returnData = $thread->join();
+	}
+    } else {
+	&Launch_Models(0,1,\@jobs,$launchScript,\%options);
     }
 }
 

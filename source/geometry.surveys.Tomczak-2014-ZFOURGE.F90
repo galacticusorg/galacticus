@@ -228,30 +228,37 @@ contains
          &                                                                         luminosity, starFormationRate
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: redshift  , logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.pl for details.)
-    logarithmicMass=log10(mass)
-    select case (field)
-    case (1)
-       redshift=-114.659703302477d0+logarithmicMass*(45.9008293873578d0+logarithmicMass*(-6.16172903321726d0+logarithmicMass*(0.278223082977791d0)))
-    case (2)
-       redshift=-58.4827675323933d0+logarithmicMass*(20.2501133330335d0+logarithmicMass*(-2.35628286307041d0+logarithmicMass*(0.0927047000361006d0)))
-    case default
-       redshift=0.0d0
-       call Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
-    end select
-    ! Convert from redshift to comoving distance.
-    tomczak2014ZFOURGEDistanceMaximum                                                                                              &
-         &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
-         &                                                  output  =distanceTypeComoving                                        , &
-         &                                                  redshift=min(max(redshift,self%redshiftMinimum),self%redshiftMaximum)  &
-         &                                                 )
-    ! Limit the maximum distance.
-    tomczak2014ZFOURGEDistanceMaximum=min(tomczak2014ZFOURGEDistanceMaximum,self%binDistanceMaximum)
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       select case (field)
+       case (1)
+          redshift=-114.659703302477d0+logarithmicMass*(45.9008293873578d0+logarithmicMass*(-6.16172903321726d0+logarithmicMass*(0.278223082977791d0)))
+       case (2)
+          redshift=-58.4827675323933d0+logarithmicMass*(20.2501133330335d0+logarithmicMass*(-2.35628286307041d0+logarithmicMass*(0.0927047000361006d0)))
+       case default
+          redshift=0.0d0
+          call Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
+       end select
+       ! Convert from redshift to comoving distance.
+       tomczak2014ZFOURGEDistanceMaximum                                                                                              &
+            &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
+            &                                                  output  =distanceTypeComoving                                        , &
+            &                                                  redshift=min(max(redshift,self%redshiftMinimum),self%redshiftMaximum)  &
+            &                                                 )
+       ! Limit the maximum distance.
+       tomczak2014ZFOURGEDistanceMaximum=min(tomczak2014ZFOURGEDistanceMaximum,self%binDistanceMaximum)
+    else
+       tomczak2014ZFOURGEDistanceMaximum=self%binDistanceMaximum
+    end if
     return
   end function tomczak2014ZFOURGEDistanceMaximum
 

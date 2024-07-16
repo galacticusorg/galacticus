@@ -178,6 +178,14 @@ sub Build_Tree_Node_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
+	     name        => "isolatedParent"                                                                                                  ,
+	     function    => "Tree_Node_Get_Isolated_Parent"                                                                                   ,
+	     description => "Return a pointer to the isolated parent node of this node."                                                      ,
+	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
 	     name        => "lastSatellite"                                                                                                   ,
 	     function    => "Tree_Node_Get_Last_Satellite"                                                                                    ,
 	     description => "Return a pointer to the last satellite in the list of satellites beloning to this node."                         ,

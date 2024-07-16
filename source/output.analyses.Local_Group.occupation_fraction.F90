@@ -484,7 +484,7 @@ contains
     return
   end subroutine localGroupOccupationFractionReduce
 
-  subroutine localGroupOccupationFractionFinalize(self)
+  subroutine localGroupOccupationFractionFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupOccupationFraction} output analysis finalization.
     !!}
@@ -492,16 +492,26 @@ contains
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    class(outputAnalysisLocalGroupOccupationFraction), intent(inout) :: self
-    type (hdf5Object                                )                :: analysesGroup, analysisGroup
+    class(outputAnalysisLocalGroupOccupationFraction), intent(inout)           :: self
+    type (varying_string                            ), intent(in   ), optional :: groupName
+    type (hdf5Object                                )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                                )               , pointer  :: inGroup
+    type (hdf5Object                                )                          :: analysisGroup
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     ! Overwrite log-likelihood with our own calculation.
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                                            )
-    analysisGroup=analysesGroup%openGroup('localGroupOccupationFraction','Subhalo occupation fraction of Local Group satellites')
+    analysesGroup =  outputFile   %openGroup('analyses'                         )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName)                    )
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('localGroupOccupationFraction','Subhalo occupation fraction of Local Group satellites')
     call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
     call analysisGroup%close         (                                    )
+    if (present(groupName)) &
+         & call subGroup%close       (                                    )
     call analysesGroup%close         (                                    )
     !$ call hdf5Access%unset()
     return

@@ -37,6 +37,7 @@ contains
     formationMassFraction} of the current mass.
     !!}
     use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
+    use :: Error                                    , only : Error_Report
     use :: Galacticus_Nodes                         , only : nodeComponentBasic                     , treeNode
     implicit none
     type            (treeNode                               ), intent(inout), target            :: node
@@ -49,6 +50,13 @@ contains
     double precision                                                                            :: massNode                           , massWork, &
          &                                                                                         timeWork
     
+    ! Validate the formation mass fraction.
+    if     (                                                                                            &
+         &   formationMassFraction <= 0.0d0                                                             &
+         &  .or.                                                                                        &
+         &   formationMassFraction >  1.0d0                                                             &
+         & ) call Error_Report('`formationMassFraction` ∈ [0,1) is required'//{introspection:location}) 
+    ! Get the mass of the starting node.
     basic    => node %basic()
     massNode =  basic%mass ()
     if (present(nodeFormation)) then

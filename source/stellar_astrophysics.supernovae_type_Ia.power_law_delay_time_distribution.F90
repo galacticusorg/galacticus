@@ -111,8 +111,8 @@ contains
     Compute the cumulative number of Type Ia SNe assuming a power-law delay time distribution.
     !!}
     implicit none
-    class           (supernovaeTypeIaPowerLawDTD), intent(inout) :: self
-    double precision                             , intent(in   ) :: age , metallicity
+    class           (supernovaeTypeIaPowerLawDTD), intent(inout), target :: self
+    double precision                             , intent(in   )         :: age , metallicity
     !$GLC attributes unused :: metallicity
     
     if (age > self%timeMinimum) then

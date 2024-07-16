@@ -114,17 +114,24 @@ contains
          &                                                                         luminosity     , starFormationRate
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity, starFormationRate
 
     ! Validate field.
     if (present(field).and.(field < 1 .or. field > 3)) call Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Compute the limiting distance. For the GAMAnear sample, all fields are limited to r=19.4
-    logarithmicMass=log10(mass)
-    kelvin2014GAMAnearDistanceMaximum                      &
-         & =10.0d0**(                                      &
-         &           -0.521147071716417d0                  &
-         &           +0.318557607893107d0*logarithmicMass  &
-         &          )
-    kelvin2014GAMAnearDistanceMaximum=min(kelvin2014GAMAnearDistanceMaximum,self%distanceMaximumSurvey)
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       kelvin2014GAMAnearDistanceMaximum                      &
+            & =10.0d0**(                                      &
+            &           -0.521147071716417d0                  &
+            &           +0.318557607893107d0*logarithmicMass  &
+            &          )
+       kelvin2014GAMAnearDistanceMaximum=min(kelvin2014GAMAnearDistanceMaximum,self%distanceMaximumSurvey)
+    else
+       kelvin2014GAMAnearDistanceMaximum=                                      self%distanceMaximumSurvey
+    end if
     return
   end function kelvin2014GAMAnearDistanceMaximum

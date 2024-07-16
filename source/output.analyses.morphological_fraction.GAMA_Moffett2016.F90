@@ -477,7 +477,7 @@ contains
     return
   end function morphologicalFractionGAMAMoffett2016LogLikelihood
 
-  subroutine morphologicalFractionGAMAMoffett2016Finalize(self)
+  subroutine morphologicalFractionGAMAMoffett2016Finalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
     !!}
@@ -485,9 +485,10 @@ contains
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
-    type (hdf5Object                                        )                :: analysesGroup, analysisGroup, &
-         &                                                                      dataset
+    class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout)           :: self
+    type (varying_string                                    ), intent(in   ), optional :: groupName
+    type (hdf5Object                                        )                          :: analysesGroup, analysisGroup, &
+         &                                                                                dataset
 
     ! Finalize the analysis.
     call self%finalizeAnalysis()
