@@ -15,6 +15,13 @@
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
   </pbs>
+  <slurm>
+    <mpiLaunch>no</mpiLaunch>
+    <ompThreads>24</ompThreads>
+    <maxJobsInQueue>40</maxJobsInQueue>
+    <postSubmitSleepDuration>1</postSubmitSleepDuration>
+    <jobWaitSleepDuration>10</jobWaitSleepDuration>
+  </slurm>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
@@ -106,12 +113,9 @@
   	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
       </nodeOperator>
     </darkMatterProfileDMO>
-    <darkMatterProfileDMO value="accretionFlow">
+    <darkMatterProfileDMO value="accretionFlowDiemerKravtsov2014">
       <toleranceRelativePotential value="1.0e-4"/>
       <darkMatterProfileDMO value="NFW"/>
-      <accretionFlows value="diemerKravtsov2014" parameterLevel="top">
-  	<darkMatterProfileDMO value="NFW"/>
-      </accretionFlows>
     </darkMatterProfileDMO>
   </parameters>
   <parameters>
@@ -1591,7 +1595,7 @@
     </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <hotHaloMassDistribution value="null"/>
@@ -1646,7 +1650,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1703,7 +1707,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1749,7 +1753,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1798,7 +1802,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1846,7 +1850,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1894,7 +1898,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1942,7 +1946,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1995,7 +1999,7 @@
     </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -2043,7 +2047,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -2107,7 +2111,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -2167,7 +2171,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -2232,7 +2236,7 @@
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="null"/>
+    <componentDarkMatterProfile value="scaleFree"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
