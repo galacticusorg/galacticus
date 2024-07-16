@@ -153,7 +153,7 @@ contains
     velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
     radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
