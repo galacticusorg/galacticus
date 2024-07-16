@@ -36,7 +36,14 @@ module Decaying_Dark_Matter
   double precision              , dimension(:,:), allocatable :: energyRetained                             , fractionRetained
   type            (interpolator)                , allocatable :: interpolatorVelocityEscape                 , interpolatorVelocityKick
   !$omp threadprivate(velocityEscapeScaleFreeMinimum,velocityEscapeScaleFreeMaximum,velocityKickScaleFreeMinimum,velocityKickScaleFreeMaximum,velocitiesEscapeScaleFree,velocitiesKickScaleFree,energyRetained,fractionRetained,interpolatorVelocityEscape,interpolatorVelocityKick)
-  
+
+  ! Scale free velocity above which the velocity dispersion is negligible and we assume deterministci behavior.
+  double precision                              , parameter   :: velocityScaleFreeLarge        =+100.0d0
+
+  ! Minimum scale free escape velocity for which we can find a self-consistent velocity distribution function. Smaller valeus only
+  ! occur at extreme distances outside of halos, so should not matter.
+  double precision                              , parameter   :: velocityEscapeScaleFreeLimit  =+  2.3d0
+
 contains
 
   double precision function decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,velocityKick) result(fraction)
@@ -57,8 +64,21 @@ contains
        fraction=0.0d0
     else
        ! Compute the scale free velocities, using the velocity dispersion as our reference velocity.
-       velocityEscapeScaleFree=velocityEscape/velocityDispersion
-       velocityKickScaleFree  =velocityKick  /velocityDispersion
+       velocityEscapeScaleFree=max(velocityEscape/velocityDispersion,velocityEscapeScaleFreeLimit)
+       velocityKickScaleFree  =    velocityKick  /velocityDispersion
+       ! Check for deterministic limit.
+       if     (                                                  &
+            &   velocityEscapeScaleFree > velocityScaleFreeLarge &
+            &  .and.                                             &
+            &   velocityKickScaleFree   > velocityScaleFreeLarge &
+            & ) then
+          if  (velocityKickScaleFree > velocityEscapeScaleFree) then
+             fraction=0.0d0
+          else
+             fraction=1.0d0
+          end if
+          return
+       end if
        ! Ensure the tabulated solutions cover a sufficient range.
        call decayingDarkMatterRetainedTabulate(velocityEscapeScaleFree,velocityKickScaleFree)
        ! Interpolate in the tabulated solutions.
@@ -97,8 +117,21 @@ contains
        energy=0.0d0
     else
        ! Compute the scale free velocities, using the velocity dispersion as our reference velocity.
-       velocityEscapeScaleFree=velocityEscape/velocityDispersion
-       velocityKickScaleFree  =velocityKick  /velocityDispersion
+       velocityEscapeScaleFree=max(velocityEscape/velocityDispersion,velocityEscapeScaleFreeLimit)
+       velocityKickScaleFree  =    velocityKick  /velocityDispersion
+       ! Check for deterministic limit.
+       if     (                                                  &
+            &   velocityEscapeScaleFree > velocityScaleFreeLarge &
+            &  .and.                                             &
+            &   velocityKickScaleFree   > velocityScaleFreeLarge &
+            & ) then
+          if  (velocityKickScaleFree > velocityEscapeScaleFree) then
+             energy=+0.0d0
+          else
+             energy=+0.5d0*velocityKick**2
+          end if
+          return
+       end if
        ! Ensure the tabulated solutions cover a sufficient range.
        call decayingDarkMatterRetainedTabulate(velocityEscapeScaleFree,velocityKickScaleFree)
        ! Interpolate in the tabulated solutions.
@@ -142,8 +175,18 @@ contains
        fractionDerivativeVelocityKickScaleFree  =0.0d0
     else
        ! Compute the scale free velocities, using the velocity dispersion as our reference velocity.
-       velocityEscapeScaleFree=velocityEscape/velocityDispersion
-       velocityKickScaleFree  =velocityKick  /velocityDispersion
+       velocityEscapeScaleFree=max(velocityEscape/velocityDispersion,velocityEscapeScaleFreeLimit)
+       velocityKickScaleFree  =    velocityKick  /velocityDispersion
+       ! Check for deterministic limit.
+       if     (                                                  &
+            &   velocityEscapeScaleFree > velocityScaleFreeLarge &
+            &  .and.                                             &
+            &   velocityKickScaleFree   > velocityScaleFreeLarge &
+            & ) then
+          fractionDerivativeVelocityEscapeScaleFree=0.0d0
+          fractionDerivativeVelocityKickScaleFree  =0.0d0
+          return
+       end if
        ! Ensure the tabulated solutions cover a sufficient range.
        call decayingDarkMatterRetainedTabulate(velocityEscapeScaleFree,velocityKickScaleFree)
        ! Interpolate in the tabulated solutions.
@@ -152,14 +195,14 @@ contains
        iVelocityEscape(1)=iVelocityEscape(0)+1
        iVelocityKick  (1)=iVelocityKick  (0)+1
        fractionDerivativeVelocityEscapeScaleFree=0.0d0
-       do jVelocityKick =0,1
+       do jVelocityKick=0,1
           fractionDerivativeVelocityEscapeScaleFree=+fractionDerivativeVelocityEscapeScaleFree                                                                                                                                         &
                &                                    +(fractionRetained         (iVelocityEscape(1             ),iVelocityKick(jVelocityKick))-fractionRetained         (iVelocityEscape(             0),iVelocityKick(jVelocityKick))) &
                &                                    /(velocitiesEscapeScaleFree(iVelocityEscape(1             )                             )-velocitiesEscapeScaleFree(iVelocityEscape(             0)                             )) &
                &                                    *                                                           hVelocityKick(jVelocityKick)
        end do
        fractionDerivativeVelocityKickScaleFree  =0.0d0
-       do jVelocityEscape =0,1
+       do jVelocityEscape=0,1
           fractionDerivativeVelocityKickScaleFree  =+fractionDerivativeVelocityKickScaleFree                                                                                                                                           &
                &                                    +(fractionRetained         (iVelocityEscape(jVelocityEscape),iVelocityKick(           1))-fractionRetained         (iVelocityEscape(jVelocityEscape),iVelocityKick(           0))) &
                &                                    /(velocitiesKickScaleFree  (                                 iVelocityKick(           1))-velocitiesKickScaleFree  (                                 iVelocityKick(           0))) &
@@ -189,8 +232,18 @@ contains
        energyDerivativeVelocityKickScaleFree  =0.0d0
     else
        ! Compute the scale free velocities, using the velocity dispersion as our reference velocity.
-       velocityEscapeScaleFree=velocityEscape/velocityDispersion
-       velocityKickScaleFree  =velocityKick  /velocityDispersion
+       velocityEscapeScaleFree=max(velocityEscape/velocityDispersion,velocityEscapeScaleFreeLimit)
+       velocityKickScaleFree  =    velocityKick  /velocityDispersion
+       ! Check for deterministic limit.
+       if     (                                                  &
+            &   velocityEscapeScaleFree > velocityScaleFreeLarge &
+            &  .and.                                             &
+            &   velocityKickScaleFree   > velocityScaleFreeLarge &
+            & ) then
+          energyDerivativeVelocityEscapeScaleFree=0.0d0
+          energyDerivativeVelocityKickScaleFree  =0.0d0
+          return
+       end if
        ! Ensure the tabulated solutions cover a sufficient range.
        call decayingDarkMatterRetainedTabulate(velocityEscapeScaleFree,velocityKickScaleFree)
        ! Interpolate in the tabulated solutions.
@@ -270,7 +323,6 @@ contains
     double precision            , intent(in   )               :: velocityEscapeScaleFree              , velocityKickScaleFree
     double precision            , parameter                   :: toleranceAbsolute           =  0.0d+0, toleranceRelative         =  1.0d-6
     double precision            , parameter                   :: countVelocityEscapePerDecade=300.0d+0, countVelocityKickPerDecade=300.0d+0
-    double precision            , parameter                   :: velocityEscapeScaleFreeLimit=  2.3d+0
     double precision            , dimension(:  ), allocatable :: velocitiesEscapeScaleFree_           , velocitiesKickScaleFree_
     double precision            , dimension(:,:), allocatable :: energyRetained_                      , fractionRetained_
     double precision            , save                        :: velocityWidthScaleFree               , normalization                      , &
@@ -294,7 +346,7 @@ contains
       character(len=8         ) :: labelMinimum, labelMaximum
       type     (hdf5Object    ) :: file
       type     (lockDescriptor) :: fileLock
-      
+
       ! Get a lock on the file.
       fileName=inputPath(pathTypeDataDynamic)//'darkMatter/decayingDarkMatterRetention.hdf5'
       call Directory_Make(char(File_Path(char(fileName)))                              )
@@ -321,10 +373,10 @@ contains
          ! Find suitable ranges of escape velocity and kick velocity over which to tabulate. For the escape velocity we limit the
          ! minimum value to a fixed multiple of the velocity dispersion. Below this it becomes difficult to find a velocity width
          ! for the truncated Maxwell-Boltzmann distribution.
-         velocityEscapeScaleFreeMinimum=min(velocityEscapeScaleFreeMinimum,min(max(velocityEscapeScaleFreeLimit,0.5d0*velocityEscapeScaleFree),velocityEscapeScaleFree))
-         velocityEscapeScaleFreeMaximum=max(velocityEscapeScaleFreeMinimum,                                     2.0d0*velocityEscapeScaleFree                          )
-         velocityKickScaleFreeMinimum  =min(velocityKickScaleFreeMinimum  ,                                     0.5d0*velocityKickScaleFree                            )
-         velocityKickScaleFreeMaximum  =max(velocityKickScaleFreeMinimum  ,                                     2.0d0*velocityKickScaleFree                            )
+         velocityEscapeScaleFreeMinimum=min(velocityEscapeScaleFreeMinimum,max(velocityEscapeScaleFreeLimit,0.5d0*velocityEscapeScaleFree))
+         velocityEscapeScaleFreeMaximum=max(velocityEscapeScaleFreeMinimum,                                 2.0d0*velocityEscapeScaleFree )
+         velocityKickScaleFreeMinimum  =min(velocityKickScaleFreeMinimum  ,                                 0.5d0*velocityKickScaleFree   )
+         velocityKickScaleFreeMaximum  =max(velocityKickScaleFreeMinimum  ,                                 2.0d0*velocityKickScaleFree   )
          call displayIndent     ('Tabulating decaying dark matter retained fractions',verbosity=verbosityLevelStandard)
          write (labelMinimum,'(f8.2)') velocityEscapeScaleFreeMinimum
          write (labelMaximum,'(f8.2)') velocityEscapeScaleFreeMaximum
@@ -408,6 +460,10 @@ contains
          end do
          !$omp end do
          ! Transfer solutions to module-scope.
+         if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)
+         if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
+         if (allocated(energyRetained           )) deallocate(energyRetained           )
+         if (allocated(fractionRetained         )) deallocate(fractionRetained         )
          velocitiesEscapeScaleFree=velocitiesEscapeScaleFree_
          velocitiesKickScaleFree  =velocitiesKickScaleFree_
          energyRetained           =energyRetained_
