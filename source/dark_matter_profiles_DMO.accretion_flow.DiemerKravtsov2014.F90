@@ -229,12 +229,15 @@ contains
           ! Find the radius enclosing 200 times the mean density.
           densityMean       =  self                       %cosmologyFunctions_  %matterDensityEpochal  (         time       )
           radius200Mean     =  massDistributionVirialized_                      %radiusEnclosingDensity(+200.0d0*densityMean)
+          ! Construct the accretion flow mass distribution. Note that we do not include the background density of the universe
+          ! here, as (being uniform) it should have no effect on halo dynamics.
           !![
           <referenceConstruct object="massDistributionAccretionFlow_">
             <constructor>
               massDistributionDiemerKravtsov2014(                                     &amp;
                &amp;                             densityMean   =densityMean         , &amp;
                &amp;                             radius200Mean=radius200Mean        , &amp;
+               &amp;                             includeMean  =.false.              , &amp;
                &amp;                             b            =b                    , &amp;
                &amp;                             s            =s                    , &amp;
                &amp;                             componentType=componentTypeDarkHalo, &amp;

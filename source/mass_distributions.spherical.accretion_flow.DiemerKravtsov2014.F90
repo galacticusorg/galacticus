@@ -38,6 +38,7 @@
      private
      double precision :: radius200Mean, densityMean, &
           &              b            , s
+     logical          :: includeMean
    contains
      procedure :: density               => diemerKravtsov2014Density
      procedure :: densityGradientRadial => diemerKravtsov2014DensityGradientRadial
@@ -65,6 +66,7 @@ contains
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: radius200Mean, densityMean, &
          &                                                                 b            , s
+    logical                                                             :: includeMean
     type            (varying_string                    )                :: componentType
     type            (varying_string                    )                :: massType
 
@@ -78,6 +80,12 @@ contains
       <name>radius200Mean</name>
       <description>The radius enclosing a density of 200 times the mean density of the universe in the \cite{diemer_dependence_2014} accretion flow mass distribution.</description>
       <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeMean</name>
+      <description>If true, include the mean density of the universe in the profile, otherwise, subtract off that mean density.</description>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
     </inputParameter>
     <inputParameter>
       <name>b</name>
@@ -102,14 +110,14 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=massDistributionDiemerKravtsov2014(densityMean,radius200Mean,b,s,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.))
+    self=massDistributionDiemerKravtsov2014(densityMean,radius200Mean,includeMean,b,s,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.))
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function massDistributionDiemerKravtsov2014ConstructorParameters
 
-  function massDistributionDiemerKravtsov2014ConstructorInternal(densityMean,radius200Mean,b,s,componentType,massType) result(self)
+  function massDistributionDiemerKravtsov2014ConstructorInternal(densityMean,radius200Mean,includeMean,b,s,componentType,massType) result(self)
     !!{
     Internal constructor for ``diemerKravtsov2014'' mass distribution class.
     !!}
@@ -117,10 +125,11 @@ contains
     type            (massDistributionDiemerKravtsov2014)                          :: self
     double precision                                    , intent(in   )           :: densityMean  , radius200Mean, &
          &                                                                           b            , s
+    logical                                             , intent(in   )           :: includeMean
     type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="densityMean, radius200Mean, b, s, componentType, massType"/>
+    <constructorAssign variables="densityMean, radius200Mean, includeMean, b, s, componentType, massType"/>
     !!]
 
     self%dimensionless=.false.
@@ -136,16 +145,16 @@ contains
     class(massDistributionDiemerKravtsov2014), intent(inout) :: self
     class(coordinate                        ), intent(in   ) :: coordinates
 
-    density=+self%densityMean                &
-         &  *(                               &
-         &    +1.0d0                         &
-         &    +self%b                        &
-         &    /(                             &
-         &      +coordinates%rSpherical   () &
-         &      /5.0d0                       &
-         &      /self       %radius200Mean   &
-         &     )**self%s                     &
-         &   )
+    density=+self%densityMean              &
+         &  *self%b                        &
+         &  /(                             &
+         &    +coordinates%rSpherical   () &
+         &    /5.0d0                       &
+         &    /self       %radius200Mean   &
+         &   )**self%s
+    if (self%includeMean)            &
+         & density=+     density     &
+         &         +self%densityMean
     return
   end function diemerKravtsov2014Density
 
