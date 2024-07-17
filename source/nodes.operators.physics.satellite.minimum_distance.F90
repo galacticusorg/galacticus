@@ -206,15 +206,21 @@ contains
     type (treeNode              ), intent(inout), target  :: node
     type (treeNode              )               , pointer :: nodeIsolated
     class(nodeComponentSatellite)               , pointer :: satellite
-    
+
     select type (self)
     class is (nodeOperatorSatelliteMinimumDistance)
        satellite    => node%satellite     ()
        nodeIsolated => node%isolatedParent()
-       if     (                                                                                                                                              &
-            &    self%relativeTo == relativeToImmediateHost                                                                                                  &
-            &  .or.                                                                                                                                          &
-            &   (self%relativeTo == relativeToIsolatedHost  .and. satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= nodeIsolated%uniqueID()) &
+       ! Only apply if this node has already been operated on. This avoids opererating in cases where the node should be filtered
+       ! out.
+       if     (                                                                                                                                                &
+            &                                                       satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= 0_c_size_t               &
+            &  .and.                                                                                                                                           &
+            &   (                                                                                                                                              &
+            &      self%relativeTo == relativeToImmediateHost                                                                                                  &
+            &    .or.                                                                                                                                          &
+            &     (self%relativeTo == relativeToIsolatedHost  .and. satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= nodeIsolated%uniqueID()) &
+            &   )&
             & ) then
           call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self        %distanceRelative(node))
           call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID        (    ))
@@ -242,11 +248,15 @@ contains
     class is (nodeOperatorSatelliteMinimumDistance)
        satellite    => node%satellite     ()
        nodeIsolated => node%isolatedParent()
-       call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,-1.0d0                 )
-       call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID())
+       ! Only apply if this node has already been operated on. This avoids opererating in cases where the node should be filtered
+       ! out.
+       if (satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= 0_c_size_t) then
+          call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,-1.0d0                 )
+          call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID())
+       end if
     class default
        call Error_Report('incorrect class'//{introspection:location})
-    end select
+    end select    
     return
   end subroutine nodeSubhaloPromotion
 
