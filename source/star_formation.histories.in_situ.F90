@@ -141,6 +141,7 @@ contains
     !!{
     Set the rate the star formation history for {\normalfont \ttfamily node}.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -149,17 +150,23 @@ contains
     double precision                            , intent(in   ) :: rateStarFormation
     type            (history                   )                :: history_
 
-    allocate(history_%time(size(historyStarFormation%data,dim=1)                                        ))
-    allocate(history_%data(size(historyStarFormation%data,dim=1),size(historyStarFormation%data,dim=2)/2))
-    history_%rangeType=historyStarFormation%rangeType
-    history_%time     =historyStarFormation%time
-    history_%data=historyStarFormation%data(:,1:size(historyStarFormation%data,dim=2)/2)
-    call self%starFormationHistory_%rate(node,history_,abundancesFuel,rateStarFormation)
-    historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)=history_%data
-    historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )=history_%data
+    ! Check if history exists.
+    if (historyStarFormation%exists()) then
+       allocate(history_%time(size(historyStarFormation%data,dim=1)                                        ))
+       allocate(history_%data(size(historyStarFormation%data,dim=1),size(historyStarFormation%data,dim=2)/2))
+       history_%rangeType=historyStarFormation%rangeType
+       history_%time     =historyStarFormation%time
+       history_%data=historyStarFormation%data(:,1:size(historyStarFormation%data,dim=2)/2)
+       call self%starFormationHistory_%rate(node,history_,abundancesFuel,rateStarFormation)
+       historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)=history_%data
+       historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )=history_%data
+    else
+       ! No history exists - this is acceptable only if the star formation rate is zero.
+       if (rateStarFormation > 0.0d0) call Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
+    end if
     return
   end subroutine inSituRate
-
+  
   subroutine inSituUpdate(self,node,indexOutput,historyStarFormation)
     !!{
     Update the star formation history after outputting.
