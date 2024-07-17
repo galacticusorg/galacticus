@@ -37,11 +37,6 @@ Implements a star formation histories class which records \emph{in situ} star fo
      private
      class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
    contains
-     !![
-     <methods>
-       <method description="Make the star formation history." method="make" />
-     </methods>
-     !!]
      final     ::                          inSituDestructor
      procedure :: create                => inSituCreate
      procedure :: rate                  => inSituRate
