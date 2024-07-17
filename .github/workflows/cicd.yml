@@ -1062,6 +1062,7 @@ jobs:
                 test-satellite-distance-minimum.pl,
                 test-treeFilterLabels.pl,
                 test-output.pl,
+                test-output-times.pl,
                 test-output-tree-contiguousity.pl,
                 test-outputSelector.pl,
                 test-parameter-validation.pl,
