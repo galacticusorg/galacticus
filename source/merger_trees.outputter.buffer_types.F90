@@ -27,7 +27,7 @@ module Merger_Tree_Outputter_Buffer_Types
   !!}
   use :: Kind_Numbers      , only : kind_int8
   use :: Hashes            , only : doubleHash    , rank1DoubleHash
-  use :: IO_HDF5           , only : hdf5VarDouble , hdf5VarDouble2D
+  use :: IO_HDF5           , only : hdf5VarDouble , hdf5VarDouble2D, hdf5VarInteger8
   use :: ISO_Varying_String, only : varying_string
   public
 
@@ -45,6 +45,7 @@ module Merger_Tree_Outputter_Buffer_Types
      double precision                                                            :: unitsInSI
      integer         (kind_int8                   ), allocatable, dimension(:  ) :: scalar
      integer         (kind_int8                   ), allocatable, dimension(:,:) :: rank1
+     type            (hdf5VarInteger8             ), allocatable, dimension(:  ) :: rank1VarLen
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
   end type outputPropertyInteger
   
