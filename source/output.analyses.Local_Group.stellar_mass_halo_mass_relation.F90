@@ -456,8 +456,8 @@ contains
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
-    type   (treeNode                                       ), intent(inout) :: node
-    integer(c_size_t                                       ), intent(in   ) :: iOutput
+    type   (treeNode                                           ), intent(inout) :: node
+    integer(c_size_t                                           ), intent(in   ) :: iOutput
 
     call self%outputAnalysis_%analyze(node,iOutput)
     return
@@ -470,7 +470,7 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
-    class(outputAnalysisClass                            ), intent(inout) :: reduced
+    class(outputAnalysisClass                                ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisLocalGroupStellarMassHaloMassRelation)
@@ -481,14 +481,15 @@ contains
     return
   end subroutine localGroupStellarMassHaloMassRelationReduce
 
-  subroutine localGroupStellarMassHaloMassRelationFinalize(self)
+  subroutine localGroupStellarMassHaloMassRelationFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis finalization.
     !!}
     implicit none
-    class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
+    class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout)           :: self
+    type (varying_string                                     ), intent(in   ), optional :: groupName
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     return
   end subroutine localGroupStellarMassHaloMassRelationFinalize
 

@@ -92,12 +92,20 @@ contains
     double precision                              , intent(in   ), optional :: mass      , magnitudeAbsolute, &
          &                                                                     luminosity, starFormationRate
     integer                                       , intent(in   ), optional :: field
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity, starFormationRate
+    !$GLC attributes unused :: field
 
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass completeness limits. We adopt the model of Kim, Peter & Hargis (2018,
     ! Phys. Rev. Lett. 121, 211302; https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.211302), assuming a
     ! luminosity-to-mass ratio of 1 in Solar units. (Their model is in turn based on the results of Walsh, Willman & Jerjen, 2008,
     ! AJ, 137, 1; https://iopscience.iop.org/article/10.1088/0004-6256/137/1/450/meta.)
-    localGroupSDSSDistanceMaximum=min(15.7d-3*(mass/100.0d0)**0.51d0,self%distanceMaximumSurvey)
+    if (present(mass)) then
+       localGroupSDSSDistanceMaximum=min(15.7d-3*(mass/100.0d0)**0.51d0,self%distanceMaximumSurvey)
+    else
+       localGroupSDSSDistanceMaximum=                                   self%distanceMaximumSurvey
+    end if
     return
   end function localGroupSDSSDistanceMaximum

@@ -630,6 +630,21 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Is_Satellite
 
+  function Tree_Node_Get_Isolated_Parent(self) result (isolatedNode)
+    !!{
+    Returns a pointer to the isolated parent node of {\normalfont \ttfamily self}.
+    !!}
+    implicit none
+    class(treeNode), intent(in   ), target  :: self
+    type (treeNode)               , pointer :: isolatedNode
+
+    isolatedNode => self
+    do while (isolatedNode%isSatellite())
+       isolatedNode => isolatedNode%parent
+    end do
+    return
+  end function Tree_Node_Get_Isolated_Parent
+
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
     !!{
     Returns a pointer to the final satellite node associated with {\normalfont \ttfamily self}.

@@ -179,10 +179,12 @@ contains
          &                                                                           luminosity             , starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: distanceMaximumRedshift, distanceMaximumMagnitude
-    !$GLC attributes unused :: field, mass, luminosity, starFormationRate
+    !$GLC attributes unused :: field
 
-    ! Validate input.
-    if (.not.present(magnitudeAbsolute)) call Error_Report('absolute magnitude must be supplied '//{introspection:location})
+    ! Validate arguments.
+    if (present(mass             )) call Error_Report(             '`mass` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Compute limiting distances. Note that for the magnitudes we have:
     !  m = M₀.₁ + D(z) - 2.5log₁₀(1+z) - K
     ! where D(z)=25+5log(Dₗ) is the regular distance modulus, Dₗ(z)=(1+z)Dᵪ(z) is the luminosity distance, Dᵪ(z) is the comoving
@@ -191,18 +193,22 @@ contains
     !  D(z) - 2.5log₁₀(1+z) = 25 + 5 log₁₀[Dᵪ(z)] + 2.5log₁₀(1+z) = 25 + 5 log₁₀[Dᵪ(z) √(1+z)] = m - M₀.₁
     ! This is converted to a comoving distance by calling the relevant cosmological conversion function, with the input difference
     ! of magnitudes explicitly noted to contain the -2.5log₁₀(1+z) K-correction factor.
-    distanceMaximumRedshift =self   %cosmologyFunctions_%distanceComoving           (                                                          &
-         &                    self  %cosmologyFunctions_%cosmicTime                  (                                                         &
-         &                     self %cosmologyFunctions_%expansionFactorFromRedshift  (                                                        &
-         &                                                                                                     +self%redshiftMaximum           &
-         &                                                                            )                                                        &
-         &                                                                           )                                                         &
-         &                                                                          )
-    distanceMaximumMagnitude=self   %cosmologyFunctions_%distanceComovingConvert    (                                                          &
-         &                                                                           output                   =      distanceTypeComoving    , &
-         &                                                                           distanceModulusKCorrected=+self%magnitudeApparentMaximum  &
-         &                                                                                                     -     magnitudeAbsolute         &
-         &                                                                          )
+    distanceMaximumRedshift    =self   %cosmologyFunctions_%distanceComoving           (                                                          &
+         &                       self  %cosmologyFunctions_%cosmicTime                  (                                                         &
+         &                        self %cosmologyFunctions_%expansionFactorFromRedshift  (                                                        &
+         &                                                                                                        +self%redshiftMaximum           &
+         &                                                                               )                                                        &
+         &                                                                              )                                                         &
+         &                                                                             )
+    if (present(magnitudeAbsolute)) then
+       distanceMaximumMagnitude=self   %cosmologyFunctions_%distanceComovingConvert    (                                                          &
+            &                                                                           output                   =      distanceTypeComoving    , &
+            &                                                                           distanceModulusKCorrected=+self%magnitudeApparentMaximum  &
+            &                                                                                                     -     magnitudeAbsolute         &
+            &                                                                          )
+    else
+       distanceMaximumMagnitude=huge(0.0d0)
+    end if
     ! Take the smaller of the two distances.
     monteroDorta2009SDSSDistanceMaximum=min(                          &
          &                                  distanceMaximumRedshift , &

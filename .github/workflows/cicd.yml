@@ -299,7 +299,7 @@ jobs:
         with:
           images: galacticusorg/galacticus
       - name: Build and push Docker image 
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
@@ -372,12 +372,14 @@ jobs:
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           # Check that executables were statically linked
           ! ldd dynamic/CAMB-${cambVersion}/fortran/camb
           ! ldd dynamic/AxionCAMB/camb
           ! ldd dynamic/class_public-${classVersion}/class
           ! ldd dynamic/RecFast/recfast.exe
           ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
+          ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-${cambVersion}/fortran/camb \
             dynamic/AxionCAMB/camb \
@@ -392,7 +394,8 @@ jobs:
             dynamic/fsps-${fspsVersion}/nebular \
             dynamic/fsps-${fspsVersion}/SPECTRA \
             dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES
+            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+            dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
         uses: actions/upload-artifact@v4
         with:
@@ -532,6 +535,7 @@ jobs:
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
@@ -549,6 +553,8 @@ jobs:
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOS.zip \
             dynamic/CAMB-${cambVersion}/fortran/camb \
@@ -564,7 +570,8 @@ jobs:
             dynamic/fsps-${fspsVersion}/nebular \
             dynamic/fsps-${fspsVersion}/SPECTRA \
             dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES
+            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+            dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
         with:
@@ -605,6 +612,7 @@ jobs:
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
@@ -622,6 +630,8 @@ jobs:
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOSM1.zip \
             dynamic/CAMB-${cambVersion}/fortran/camb \
@@ -637,7 +647,8 @@ jobs:
             dynamic/fsps-${fspsVersion}/nebular \
             dynamic/fsps-${fspsVersion}/SPECTRA \
             dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES
+            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+            dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v4
         with:
@@ -1051,6 +1062,7 @@ jobs:
                 test-satellite-distance-minimum.pl,
                 test-treeFilterLabels.pl,
                 test-output.pl,
+                test-output-times.pl,
                 test-output-tree-contiguousity.pl,
                 test-outputSelector.pl,
                 test-parameter-validation.pl,

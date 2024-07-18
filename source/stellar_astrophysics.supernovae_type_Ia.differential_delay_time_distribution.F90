@@ -58,6 +58,11 @@
      end function numberDifferentialTemplate
   end interface
 
+  ! Sub-module-scope variables used in integration.
+  class           (supernovaeTypeIaDifferentialDTD), pointer :: self_
+  double precision                                           :: metallicity_
+  !$omp threadprivate(self_,metallicity_)
+  
 contains
   
   double precision function differentialDTTimeDelayMinimum(self) result(time)
@@ -92,7 +97,7 @@ contains
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (supernovaeTypeIaDifferentialDTD), intent(inout)         :: self
+    class           (supernovaeTypeIaDifferentialDTD), intent(inout), target :: self
     double precision                                 , intent(in   )         :: age        , metallicity
     type            (integrator                     ), allocatable  , save   :: integrator_
     !$omp threadprivate(integrator_)
@@ -106,22 +111,21 @@ contains
           allocate(integrator_)
           integrator_=integrator(timeDelayDistributionDifferential,toleranceRelative=1.0d-3)
        end if
+       self_ => self
+       metallicity_=metallicity
        number=integrator_%integrate(self%timeDelayMinimum(),min(age,self%timeDelayMaximum()))       
     end if
     return
-    
-  contains
-    
-    double precision function timeDelayDistributionDifferential(time)
-      !!{
-      Integrand used to compute the cumulative number of type Ia supernovae occuring by a given time.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: time
-      
-      timeDelayDistributionDifferential=self%numberDifferential(time,metallicity)
-      return
-    end function timeDelayDistributionDifferential
-    
   end function differentialDTDNumberCumulative
   
+  double precision function timeDelayDistributionDifferential(time)
+    !!{
+    Integrand used to compute the cumulative number of type Ia supernovae occuring by a given time.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: time
+    
+    timeDelayDistributionDifferential=self_%numberDifferential(time,metallicity_)
+    return
+  end function timeDelayDistributionDifferential
+

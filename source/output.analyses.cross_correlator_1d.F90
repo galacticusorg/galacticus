@@ -464,12 +464,13 @@ contains
     return
   end subroutine crossCorrelator1DReduce
 
-  subroutine crossCorrelator1DFinalize(self)
+  subroutine crossCorrelator1DFinalize(self,groupName)
     !!{
     Implement a crossCorrelator1D output analysis finalization.
     !!}
     implicit none
-    class(outputAnalysisCrossCorrelator1D), intent(inout) :: self
+    class(outputAnalysisCrossCorrelator1D), intent(inout)           :: self
+    type (varying_string                 ), intent(in   ), optional :: groupName
 
     ! Finalize analysis.
     call self%finalizeAnalysis()

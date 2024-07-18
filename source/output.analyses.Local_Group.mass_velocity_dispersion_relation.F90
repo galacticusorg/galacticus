@@ -575,14 +575,15 @@ contains
     return
   end subroutine localGroupMassVelocityDispersionRelationReduce
 
-  subroutine localGroupMassVelocityDispersionRelationFinalize(self)
+  subroutine localGroupMassVelocityDispersionRelationFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupMassVelocityDispersionRelation} output analysis finalization.
     !!}
     implicit none
-    class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self
+    class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout)           :: self
+    type (varying_string                                        ), intent(in   ), optional :: groupName
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     return
   end subroutine localGroupMassVelocityDispersionRelationFinalize
 
