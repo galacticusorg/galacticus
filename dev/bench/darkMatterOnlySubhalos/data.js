@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721167704285,
+  "lastUpdate": 1721289911535,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "051be396b0a919add84d46a5b85b0254c7b43136",
-          "message": "Merge pull request #466 from galacticusorg/optimization\n\nFurther optimization of baryonic physics models",
-          "timestamp": "2023-09-09T16:47:29Z",
-          "tree_id": "ac23c59150536c00e9d5ae80e78c411db8cac8b5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/051be396b0a919add84d46a5b85b0254c7b43136"
-        },
-        "date": 1694288567458,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.01,
-            "unit": "seconds",
-            "range": 0.106254411672726
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20405.9424512489,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c33e36f272f58a5d357a59fec647d4a310b1a7ca",
+          "message": "fix: Limit when event-based operations are applied",
+          "timestamp": "2024-07-17T15:44:32-07:00",
+          "tree_id": "20bd7e8f8057fa1d6bfbfbc37cddd4e92bfba9cb",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c33e36f272f58a5d357a59fec647d4a310b1a7ca"
+        },
+        "date": 1721289909793,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.5,
+            "unit": "seconds",
+            "range": 0.0702566722809861
           }
         ]
       }
