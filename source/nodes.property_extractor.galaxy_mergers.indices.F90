@@ -101,6 +101,7 @@ contains
     class  (nodeComponentBasic                       )                , pointer     :: basic
     integer(kind_int8                                ), dimension(:  ), allocatable :: indicesSatellite
     !$GLC attributes unused :: instance
+    !$GLC attributes initialized :: indicesSatellite
 
     basic            => node %basic                          (                                 )
     indicesSatellite =  basic%longIntegerRank1MetaPropertyGet(self%galaxyMergerSatelliteIndexID)
