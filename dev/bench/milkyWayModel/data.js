@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721289922860,
+  "lastUpdate": 1721432787855,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "219789d07e9fd373d3150fb691d04a9659f34f9f",
-          "message": "Merge pull request #465 from galacticusorg/fspsArm64\n\nFix build of FSPS on Apple M1/M2 chips",
-          "timestamp": "2023-09-09T02:39:08Z",
-          "tree_id": "230759199a9f1f1d41b627a1320054d4ce3bc165",
-          "url": "https://github.com/galacticusorg/galacticus/commit/219789d07e9fd373d3150fb691d04a9659f34f9f"
-        },
-        "date": 1694252793962,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 168.812,
-            "unit": "seconds",
-            "range": 0.136724540589684
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10720,6 +10690,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9659251973136,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "1903023f16d3be4f730de841f29c5b1f923f4000",
+          "message": "fix: Correct formatting of output times when the final output time is before 1.0 Gyr",
+          "timestamp": "2024-07-19T10:49:50-07:00",
+          "tree_id": "6068b702cfa1d05eb5af89aebbc2923ce10ff3c5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1903023f16d3be4f730de841f29c5b1f923f4000"
+        },
+        "date": 1721432786790,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 367.997,
+            "unit": "seconds",
+            "range": 0.389486970253314
           }
         ]
       }
