@@ -12,11 +12,11 @@ use PDL::IO::HDF5;
 system("mkdir -p outputs/");
 
 # Run the model.
-# system("cd ..; ./Galacticus.exe testSuite/parameters/outputSelector.xml");
-# unless ( $? == 0 ) {
-#     print "FAIL: output selector model failed to run\n";
-#     exit;
-# }
+system("cd ..; ./Galacticus.exe testSuite/parameters/outputSelector.xml");
+unless ( $? == 0 ) {
+    print "FAIL: output selector model failed to run\n";
+    exit;
+}
 
 # Check for contiguous output.
 my $model   = new PDL::IO::HDF5("outputs/outputSelector.hdf5");
