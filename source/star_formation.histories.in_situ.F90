@@ -43,6 +43,7 @@ Implements a star formation histories class which records \emph{in situ} star fo
      procedure :: update                      => inSituUpdate
      procedure :: scales                      => inSituScales
      procedure :: autoHook                    => inSituAutoHook
+     procedure :: times                       => inSituTimes
      procedure :: metallicityBoundaries       => inSituMetallicityBoundaries
      procedure :: perOutputTabulationIsStatic => inSituPerOutputTabulationIsStatic
   end type starFormationHistoryInSitu
@@ -280,3 +281,16 @@ contains
     inSituPerOutputTabulationIsStatic=self%starFormationHistory_%perOutputTabulationIsStatic()
     return
   end function inSituPerOutputTabulationIsStatic
+
+  function inSituTimes(self,indexOutput)
+    !!{
+    Return the times used in this tabulation.
+    !!}
+    implicit none
+    double precision                            , allocatable  , dimension(:) :: inSituTimes
+    class           (starFormationHistoryInSitu), intent(inout)               :: self
+    integer         (c_size_t                  ), intent(in   )               :: indexOutput
+
+    inSituTimes=self%starFormationHistory_%times(indexOutput)
+    return
+  end function inSituTimes
