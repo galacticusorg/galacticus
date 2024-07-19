@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageBelow" : 53.125,
-      "target" : 0.006,
-      "percentageAbove" : 46.875
-   },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c33e36f272f58a5d357a59fec647d4a310b1a7ca",
-      "id" : "c33e36f272f58a5d357a59fec647d4a310b1a7ca",
-      "timestamp" : "Wed, 17 Jul 2024 15:44:32 -0700",
-      "message" : "fix: Limit when event-based operations are applied",
       "author" : {
          "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
-      }
+      },
+      "message" : "fix: Correct formatting of output times when the final output time is before 1.0 Gyr",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/1903023f16d3be4f730de841f29c5b1f923f4000",
+      "id" : "1903023f16d3be4f730de841f29c5b1f923f4000",
+      "timestamp" : "Fri, 19 Jul 2024 10:49:50 -0700"
    },
    "slope" : {
-      "percentageBelow" : 64.2857142857143,
-      "target" : 0.85,
-      "percentageAbove" : 35.7142857142857
+      "percentageBelow" : 66.6666666666667,
+      "percentageAbove" : 33.3333333333333,
+      "target" : 0.85
    },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 50,
+      "percentageBelow" : 50
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }

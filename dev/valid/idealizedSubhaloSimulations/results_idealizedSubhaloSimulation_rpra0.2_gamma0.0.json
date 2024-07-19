@@ -1,28 +1,7 @@
 window.ANALYSES_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "results" : [
       {
-         "attributes" : {
-            "type" : "function1D",
-            "yAxisLabel" : "M_bound/M_bound,0",
-            "description" : "Satellite bound mass fraction vs. time.",
-            "name" : "satelliteBoundMass",
-            "xDataset" : "time",
-            "yDatasetTarget" : "fractionBoundMassTarget",
-            "logLikelihood" : 13.9314532875195,
-            "targetLabel" : "Simulations",
-            "yAxisIsLog" : 1,
-            "xAxisIsLog" : 0,
-            "yDataset" : "fractionBoundMass",
-            "xAxisLabel" : "t/Gyr"
-         },
          "data" : {
-            "yDataset" : [
-               1,
-               0.146372719264049,
-               0.0492214500616153,
-               0.0148037778913786
-            ],
             "xDataset" : [
                1,
                4.51960872879017,
@@ -34,25 +13,51 @@ window.ANALYSES_DATA = {
                0.151986719392104,
                0.0502843206988443,
                0.0136227985885302
+            ],
+            "yDataset" : [
+               1,
+               0.146372719264049,
+               0.0492214500616153,
+               0.0148037778913786
             ]
+         },
+         "attributes" : {
+            "xDataset" : "time",
+            "xAxisLabel" : "t/Gyr",
+            "xAxisIsLog" : 0,
+            "targetLabel" : "Simulations",
+            "name" : "satelliteBoundMass",
+            "description" : "Satellite bound mass fraction vs. time.",
+            "yAxisLabel" : "M_bound/M_bound,0",
+            "yAxisIsLog" : 1,
+            "logLikelihood" : 13.9314532875195,
+            "yDatasetTarget" : "fractionBoundMassTarget",
+            "yDataset" : "fractionBoundMass",
+            "type" : "function1D"
          }
       },
       {
          "attributes" : {
-            "xAxisIsLog" : 0,
             "xAxisLabel" : "t/Gyr",
-            "yDataset" : "fractionRadiusVelocityMaximum",
-            "logLikelihood" : 6.55374493681816,
-            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
+            "xAxisIsLog" : 0,
+            "targetLabel" : "Simulations",
             "xDataset" : "time",
-            "yAxisLabel" : "R_max/R_max,0",
-            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
-            "type" : "function1D",
             "name" : "satelliteRadiusVelocityMaximum",
+            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
+            "logLikelihood" : 6.55374493681816,
+            "yDataset" : "fractionRadiusVelocityMaximum",
+            "yAxisLabel" : "R_max/R_max,0",
             "yAxisIsLog" : 1,
-            "targetLabel" : "Simulations"
+            "type" : "function1D"
          },
          "data" : {
+            "xDataset" : [
+               1,
+               4.51960872879017,
+               8.03921745758035,
+               11.459043464678
+            ],
             "yDatasetTarget" : [
                1,
                0.566359912873344,
@@ -64,12 +69,6 @@ window.ANALYSES_DATA = {
                0.53568300633916,
                0.43161928742606,
                0.405194439818781
-            ],
-            "xDataset" : [
-               1,
-               4.51960872879017,
-               8.03921745758035,
-               11.459043464678
             ]
          }
       },
@@ -81,44 +80,45 @@ window.ANALYSES_DATA = {
                0.469240867767537,
                0.249868573500487
             ],
-            "xDataset" : [
-               1,
-               4.51960872879017,
-               8.03921745758035,
-               11.459043464678
-            ],
             "yDataset" : [
                1,
                0.718218095605674,
                0.499583464347943,
                0.322415893567986
+            ],
+            "xDataset" : [
+               1,
+               4.51960872879017,
+               8.03921745758035,
+               11.459043464678
             ]
          },
          "attributes" : {
-            "yAxisIsLog" : 1,
-            "targetLabel" : "Simulations",
-            "logLikelihood" : 5.00086311282378,
             "yDatasetTarget" : "fractionVelocityMaximumTarget",
-            "yAxisLabel" : "V_max/V_max,0",
-            "name" : "satelliteVelocityMaximum",
-            "type" : "function1D",
-            "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "xDataset" : "time",
+            "logLikelihood" : 5.00086311282378,
             "yDataset" : "fractionVelocityMaximum",
+            "yAxisLabel" : "V_max/V_max,0",
+            "yAxisIsLog" : 1,
+            "type" : "function1D",
             "xAxisLabel" : "t/Gyr",
-            "xAxisIsLog" : 0
+            "targetLabel" : "Simulations",
+            "xAxisIsLog" : 0,
+            "xDataset" : "time",
+            "name" : "satelliteVelocityMaximum",
+            "description" : "Satellite maximum circular velocity fraction vs. time."
          }
       }
    ],
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.2_alpha_1.0_beta_3.0_gamma_0.0.xml",
    "commit" : {
-      "timestamp" : "Wed, 17 Jul 2024 15:44:32 -0700",
+      "timestamp" : "Fri, 19 Jul 2024 10:49:50 -0700",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abenson@carnegiescience.edu"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c33e36f272f58a5d357a59fec647d4a310b1a7ca",
-      "message" : "fix: Limit when event-based operations are applied",
-      "id" : "c33e36f272f58a5d357a59fec647d4a310b1a7ca"
-   },
-   "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.2_alpha_1.0_beta_3.0_gamma_0.0.xml"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/1903023f16d3be4f730de841f29c5b1f923f4000",
+      "message" : "fix: Correct formatting of output times when the final output time is before 1.0 Gyr",
+      "id" : "1903023f16d3be4f730de841f29c5b1f923f4000"
+   }
 }
