@@ -37,13 +37,14 @@ Implements a star formation histories class which records \emph{in situ} star fo
      private
      class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
    contains
-     final     ::                          inSituDestructor
-     procedure :: create                => inSituCreate
-     procedure :: rate                  => inSituRate
-     procedure :: update                => inSituUpdate
-     procedure :: scales                => inSituScales
-     procedure :: autoHook              => inSituAutoHook
-     procedure :: metallicityBoundaries => inSituMetallicityBoundaries
+     final     ::                                inSituDestructor
+     procedure :: create                      => inSituCreate
+     procedure :: rate                        => inSituRate
+     procedure :: update                      => inSituUpdate
+     procedure :: scales                      => inSituScales
+     procedure :: autoHook                    => inSituAutoHook
+     procedure :: metallicityBoundaries       => inSituMetallicityBoundaries
+     procedure :: perOutputTabulationIsStatic => inSituPerOutputTabulationIsStatic
   end type starFormationHistoryInSitu
 
   interface starFormationHistoryInSitu
@@ -268,3 +269,14 @@ contains
     inSituMetallicityBoundaries=self%starFormationHistory_%metallicityBoundaries()
     return
   end function inSituMetallicityBoundaries
+
+  logical function inSituPerOutputTabulationIsStatic(self)
+    !!{
+    Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    !!}
+    implicit none
+    class(starFormationHistoryInSitu), intent(inout) :: self
+
+    inSituPerOutputTabulationIsStatic=self%starFormationHistory_%perOutputTabulationIsStatic()
+    return
+  end function inSituPerOutputTabulationIsStatic
