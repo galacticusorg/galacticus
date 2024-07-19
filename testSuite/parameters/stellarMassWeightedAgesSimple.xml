@@ -97,6 +97,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->

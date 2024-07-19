@@ -1589,6 +1589,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1643,6 +1645,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1700,6 +1704,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1746,6 +1752,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1795,6 +1803,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1843,6 +1853,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1891,6 +1903,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1939,6 +1953,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -1993,6 +2009,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -2040,6 +2058,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -2104,6 +2124,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -2164,6 +2186,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <nodeOperator value="satelliteMassLoss" iterable="no"/>
@@ -2227,6 +2251,8 @@
       <nodeOperator value="cosmicTime" iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Dark matter profile -->
+      <nodeOperator value="darkMatterProfileInitialize" iterable="no"/>
       <!-- Subhalo hierarchy -->
       <nodeOperator value="hierarchy" iterable="no"/>
       <!-- Satellite evolution -->

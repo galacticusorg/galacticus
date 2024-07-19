@@ -89,6 +89,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Maximum host mass -->
     <nodeOperator value="massHostMaximum"/>
     <!-- Satellite evolution -->

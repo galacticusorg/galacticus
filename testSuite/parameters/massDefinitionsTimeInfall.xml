@@ -95,6 +95,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
   </nodeOperator>
