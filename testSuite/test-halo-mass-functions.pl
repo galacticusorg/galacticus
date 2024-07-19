@@ -100,7 +100,7 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
     # Run Galacticus to generate the mass function.
     system("cd ..; ./Galacticus.exe testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}.".xml");
     unless ( $? == 0 ) {
-    	print "FAILED: Galacticus failed\n";
+    	print "FAILED: Galacticus failed for ".$massFunctionType->{'label'}."\n";
     	exit 0;
     }
 
