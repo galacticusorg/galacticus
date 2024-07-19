@@ -203,6 +203,13 @@ module Galacticus_Nodes
      integer, allocatable, dimension(:) :: values
   end type integerRank1MetaProperty
   
+  type :: longIntegerRank1MetaProperty
+     !!{
+     Type used to store long integer rank-1 meta-properties.
+     !!}
+     integer(kind_int8), allocatable, dimension(:) :: values
+  end type longIntegerRank1MetaProperty
+  
   ! Zero dimension arrays to be returned as defaults.
   double precision                                   , dimension(0) :: nullDouble1d
 
@@ -1073,6 +1080,23 @@ module Galacticus_Nodes
     call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
   end function Node_Component_Generic_Add_Integer_Rank1_Meta_Property
+  
+  integer function Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a longinteger meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property
   
   !![
   <metaPropertyDatabase/>
