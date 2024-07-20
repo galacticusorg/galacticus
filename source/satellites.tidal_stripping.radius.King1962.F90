@@ -192,15 +192,16 @@ contains
     class           (nodeComponentBasic                   ), pointer               :: basic                                  , basicHost
     class           (nodeComponentSatellite               ), pointer               :: satellite
     class           (massDistributionClass                ), pointer               :: massDistribution_
-    double precision                                       , dimension(3  )        :: position                               , velocity                        , &
+    double precision                                       , dimension(3  )        :: position                               , velocity                    , &
          &                                                                            tidalTensorEigenValueComponents
     double precision                                       , dimension(3,3)        :: tidalTensorComponents
     double precision                                       , parameter             :: radiusZero                      =0.0d+0
     double precision                                       , parameter             :: radiusTidalTinyFraction         =1.0d-6
-    double precision                                                               :: massSatellite                          , frequencyAngular                , &
-         &                                                                            radius                                 , tidalFieldRadial                , &
-         &                                                                            radiusGuess                            , densityTidal                    , &
-         &                                                                            tidalPull                              , tidalTensorEigenValueMaximum
+    double precision                                                               :: massSatellite                          , frequencyAngular            , &
+         &                                                                            radius                                 , tidalFieldRadial            , &
+         &                                                                            radiusGuess                            , densityTidal                , &
+         &                                                                            tidalPull                              , tidalTensorEigenValueMaximum, &
+         &                                                                            radiusDownwardLimit
     type            (tensorRank2Dimension3Symmetric       )                        :: tidalTensor
     type            (matrix                               )                        :: tidalTensorMatrix                      , tidalTensorEigenVectors
     type            (vector                               )                        :: tidalTensorEigenValues
@@ -306,7 +307,20 @@ contains
                &                  *(kilo*gigaYear/megaParsec)**2                &
                &                 )
        massDistribution_ => node             %massDistribution      (                        )
-       king1962Radius    =  massDistribution_%radiusEnclosingDensity(densityTidal,radiusGuess)
+       radiusDownwardLimit=radiusTidalTinyFraction*radiusGuess
+       if   (                                                                 &
+          &  + 3.0                                                            &
+          &   /4.0d0                                                          &
+          &   /Pi                                                             &
+          &   *massDistribution_%massEnclosedBySphere(radiusDownwardLimit)    &
+          &   /                                       radiusDownwardLimit **3 &
+          &  >                                                                &
+          &    densityTidal                                                   &
+          & ) then
+          king1962Radius    =  massDistribution_%radiusEnclosingDensity(densityTidal,radiusGuess)
+       else
+          king1962Radius    =  0.0d0
+       end if
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
