@@ -159,7 +159,7 @@ contains
              ! Use the approximate solution for velocity dispersion.
              radiusInitial                 =+massDistributionEmbedding%radiusInitial                                                                 (coordinates%rSpherical        ()                                            )
              coordinatesInitial            = [radiusInitial,0.0d0,0.0d0]
-             energySpecific                =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy               (            radiusInitial       ,massDistributionEmbedding                  )
+             energySpecific                =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy               (            radiusInitial       ,massDistributionEmbedding%massDistribution_)
              velocityDispersionSquare      =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D         (            coordinatesInitial  ,massDistributionEmbedding%massDistribution_)**2 &
                   &                         -2.0d0/3.0d0*energySpecific
              velocityDispersion            =+sqrt(max(0.0d0,velocityDispersionSquare))
@@ -167,7 +167,7 @@ contains
              ! Use a numerical solution.
              velocityDispersion            =+self                                                                      %velocityDispersion1DNumerical(coordinates                     ,massDistributionEmbedding                  )
           end if
-          class default
+       class default
           velocityDispersion               =+0.0d0
           call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
        end select
@@ -208,8 +208,8 @@ contains
     if (isSelfGravitating) then
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalHeated)
-          massEnclosed  =+massDistributionEmbedding                         %massDistribution_%massEnclosedBySphere(radius                          )
-          energySpecific=+massDistributionEmbedding%massDistributionHeating_                  %specificEnergy      (radius,massDistributionEmbedding)
+          massEnclosed  =+massDistributionEmbedding                         %massDistribution_%massEnclosedBySphere(radius                                            )
+          energySpecific=+massDistributionEmbedding%massDistributionHeating_                  %specificEnergy      (radius,massDistributionEmbedding%massDistribution_)
           radiusFinal   =+1.0d0                                                               &
                &         /(                                                                   &
                &           +1.0d0/radius                                                      &
