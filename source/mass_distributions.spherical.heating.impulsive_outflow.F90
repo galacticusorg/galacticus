@@ -117,19 +117,21 @@ contains
     
     massDistributionDisk     => massDistribution_%subset(componentType=componentTypeDisk    )
     massDistributionSpheroid => massDistribution_%subset(componentType=componentTypeSpheroid)
-    massTotalDisk            =  massDistributionDisk    %massTotal()
-    massTotalSpheroid        =  massDistributionSpheroid%massTotal()
-    if (massTotalDisk     > 0.0d0) then
-       fractionMassDisk    =+massDistributionDisk    %massEnclosedBySphere(radius) &
-            &               /                         massTotalDisk
-    else
-       fractionMassDisk    =+0.0d0
+    fractionMassDisk         =  0.0d0
+    fractionMassSpheroid     =  0.0d0
+    if (associated(massDistributionDisk    )) then
+       massTotalDisk            =  massDistributionDisk    %massTotal()
+       if (massTotalDisk     > 0.0d0) then
+          fractionMassDisk    =+massDistributionDisk    %massEnclosedBySphere(radius) &
+               &               /                         massTotalDisk
+       end if
     end if
-    if (massTotalSpheroid > 0.0d0) then
-       fractionMassSpheroid=+massDistributionSpheroid%massEnclosedBySphere(radius) &
-            &               /                         massTotalSpheroid
-    else
-       fractionMassSpheroid=+0.0d0
+    if (associated(massDistributionSpheroid)) then
+       massTotalSpheroid        =  massDistributionSpheroid%massTotal()
+       if (massTotalSpheroid > 0.0d0) then
+          fractionMassSpheroid=+massDistributionSpheroid%massEnclosedBySphere(radius) &
+               &               /                         massTotalSpheroid
+       end if
     end if
     energySpecific=+  self%impulsiveEnergyFactor          &
          &         *gravitationalConstantGalacticus       &
@@ -168,25 +170,27 @@ contains
     massDistributionDisk     => massDistribution_%subset(componentType=componentTypeDisk    )
     massDistributionSpheroid => massDistribution_%subset(componentType=componentTypeSpheroid)
     coordinates              =  [radius,0.0d0,0.0d0]
-    massTotalDisk            =  massDistributionDisk    %massTotal()
-    massTotalSpheroid        =  massDistributionSpheroid%massTotal()
-    if (massTotalDisk     > 0.0d0) then
-       fractionMassDisk       =+massDistributionDisk    %massEnclosedBySphere(radius     ) &
-            &                  /                         massTotalDisk
-       fractionDensityDisk    =+massDistributionDisk    %density             (coordinates) &
-            &                  /                         massTotalDisk
-    else
-       fractionMassDisk       =+0.0d0
-       fractionDensityDisk    =+0.0d0
+    fractionMassDisk         =  0.0d0
+    fractionMassSpheroid     =  0.0d0
+    fractionDensityDisk      =  0.0d0
+    fractionDensitySpheroid  =  0.0d0
+    if (associated(massDistributionDisk    )) then
+       massTotalDisk            =  massDistributionDisk    %massTotal()
+       if (massTotalDisk     > 0.0d0) then
+          fractionMassDisk       =+massDistributionDisk    %massEnclosedBySphere(radius     ) &
+               &                  /                         massTotalDisk
+          fractionDensityDisk    =+massDistributionDisk    %density             (coordinates) &
+               &                  /                         massTotalDisk
+       end if
     end if
-    if (massTotalSpheroid > 0.0d0) then
-       fractionMassSpheroid   =+massDistributionSpheroid%massEnclosedBySphere(radius     ) &
-            &                  /                         massTotalSpheroid
-       fractionDensitySpheroid=+massDistributionSpheroid%density             (coordinates) &
-            &                  /                         massTotalSpheroid
-    else
-       fractionMassSpheroid   =+0.0d0
-       fractionDensitySpheroid=+0.0d0
+    if (associated(massDistributionSpheroid)) then
+       massTotalSpheroid        =  massDistributionSpheroid%massTotal()
+       if (massTotalSpheroid > 0.0d0) then
+          fractionMassSpheroid   =+massDistributionSpheroid%massEnclosedBySphere(radius     ) &
+               &                  /                         massTotalSpheroid
+          fractionDensitySpheroid=+massDistributionSpheroid%density             (coordinates) &
+               &                  /                         massTotalSpheroid
+       end if
     end if
     energySpecificGradient=+self%impulsiveEnergyFactor              &
          &                 *gravitationalConstantGalacticus         &
