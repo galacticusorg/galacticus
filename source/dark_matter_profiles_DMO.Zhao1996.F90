@@ -174,7 +174,7 @@ contains
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
         kinematicsDistributionZhao1996( &amp;
-	 &amp;                       )
+	  &amp;                       )
       </constructor>
     </referenceConstruct>
     !!]
