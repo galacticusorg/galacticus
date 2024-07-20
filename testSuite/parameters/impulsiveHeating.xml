@@ -167,10 +167,6 @@
     </darkMatterProfileHeating>
     <darkMatterProfileHeating value="impulsiveOutflow">
       <impulsiveEnergyFactor value="1.0"/>
-      <galacticStructure value="standard">
-	<darkMatterProfile value="darkMatterOnly"/>
-	<darkMatterProfileDMO value="NFW"/>
-      </galacticStructure>
     </darkMatterProfileHeating>
   </darkMatterProfileHeating>
 

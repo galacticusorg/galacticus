@@ -114,7 +114,6 @@
       </nodeOperator>
     </darkMatterProfileDMO>
     <darkMatterProfileDMO value="accretionFlowDiemerKravtsov2014">
-      <toleranceRelativePotential value="1.0e-4"/>
       <darkMatterProfileDMO value="NFW"/>
     </darkMatterProfileDMO>
   </parameters>
@@ -579,7 +578,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <darkMatterProfileConcentration value="schneider2015">
-      <reference value="">
+      <reference value="" ignoreWarnings="true">
   	<criticalOverdensity value="fixed">
   	  <criticalOverdensity value="1.686"/>
   	</criticalOverdensity>
@@ -1302,7 +1301,7 @@
       <sigma_8 value="0.807"/>
     </cosmologicalMassVariance>
     <cosmologicalMassVariance value="filteredPower">
-      <normalizationScalar value="2.092e-9"/>
+      <amplitudeScalar value="2.092e-9"/>
     </cosmologicalMassVariance>
   </parameters>
 
@@ -1574,13 +1573,13 @@
   	<massRatioCount value="25"/>
   	<massRatioMaximum value="2.0"/>
   	<massRatioMinimum value="2.0e-6"/>
-  	<outputGroupName value="treeStatisticsAfterInsertion"/>
-  	<parentMassCount value="20"/>
-  	<parentMassMaximum value="1.0e15"/>
-  	<parentMassMinimum value="2.36e10"/>
-  	<parentRedshifts value="0.0 0.0"/>
-  	<primaryProgenitorDepth value="4"/>
-  	<progenitorRedshifts value="0.508591 1.077875"/>
+  	<nameGroupOutput value="treeStatisticsAfterInsertion"/>
+  	<countMassParent value="20"/>
+  	<massParentMaximum value="1.0e15"/>
+  	<massParentMinimum value="2.36e10"/>
+  	<redshiftsParent value="0.0 0.0"/>
+  	<depthProgenitorPrimary value="4"/>
+  	<redshiftsProgenitor value="0.508591 1.077875"/>
       </mergerTreeOperator>
     </mergerTreeOperator>
     <!-- Node evolution and physics -->
@@ -1690,13 +1689,13 @@
       <massRatioCount value="25"/>
       <massRatioMaximum value="2.0"/>
       <massRatioMinimum value="2.0e-6"/>
-      <outputGroupName value="conditionalMassFunction"/>
-      <parentMassCount value="20"/>
-      <parentMassMaximum value="1.0e15"/>
-      <parentMassMinimum value="2.36e10"/>
-      <parentRedshifts value="0.0 0.0"/>
-      <primaryProgenitorDepth value="4"/>
-      <progenitorRedshifts value="0.508591 1.077875"/>
+      <nameGroupOutput value="conditionalMassFunction"/>
+      <countMassParent value="20"/>
+      <massParentMaximum value="1.0e15"/>
+      <massParentMinimum value="2.36e10"/>
+      <redshiftsParent value="0.0 0.0"/>
+      <depthProgenitorPrimary value="4"/>
+      <redshiftsProgenitor value="0.508591 1.077875"/>
     </mergerTreeOperator>
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
@@ -2358,7 +2357,7 @@
       <varianceNumberPerDecade value="40"/>
     </excursionSetFirstCrossing>
     <darkMatterProfileConcentration value="schneider2015">
-      <reference value="">
+      <reference value="" ignoreWarnings="true">
   	<cosmologicalMassVariance value="filteredPower">
   	  <sigma_8 value="0.817"/>
   	  <powerSpectrumWindowFunction value="sharpKSpace">
