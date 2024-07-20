@@ -163,6 +163,7 @@ contains
     self%radiusFinalMinimum  =+huge(0.0d0)
     self%radiusFinalMaximum  =-huge(0.0d0)
     self%isBound             =.true.
+    self%dimensionless       =.false.
     return
   end function sphericalHeatedMonotonicConstructorInternal
 
