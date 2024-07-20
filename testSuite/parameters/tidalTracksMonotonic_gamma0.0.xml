@@ -61,9 +61,6 @@
       <darkMatterProfileDMO value="truncatedExponential">
     	<nonAnalyticSolver          value="numerical"       />
     	<radiusFractionalDecay value="1.0"/> <!-- Truncate beyond 10 r_s ~ 1 r_vir -->
-    	<alpha value="1.0"/>
-    	<beta  value="3.0"/>
-    	<gamma value="1.0"/>
         <darkMatterProfileDMO value="zhao1996">
 	  <alpha value="1.0"/>
 	  <beta  value="3.0"/>
