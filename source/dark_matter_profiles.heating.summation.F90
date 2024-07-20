@@ -142,6 +142,7 @@ contains
     type is (massDistributionHeatingSummation)
        heatSource                => self%heatSources
        massDistributionHeating__ => null()
+       massDistributionHeatings  => null()
        do while (associated(heatSource))
           if (associated(massDistributionHeatings)) then
              allocate(massDistributionHeating__%next)
