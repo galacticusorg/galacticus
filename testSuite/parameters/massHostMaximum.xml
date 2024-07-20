@@ -50,7 +50,7 @@
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
-<!-- Merger tree building options -->
+  <!-- Merger tree building options -->
   <mergerTreeConstructor value="build"/>
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
