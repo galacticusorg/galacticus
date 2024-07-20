@@ -15,7 +15,7 @@
   <componentDisk value="null"/>
   <componentSatellite value="orbiting"/>
   <componentSpheroid value="null"/>
-  <componentSpin value="scalar"/>
+  <componentSpin value="vector"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
