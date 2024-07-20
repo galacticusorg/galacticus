@@ -167,6 +167,7 @@ contains
     !!{
     Initialize a composite mass distribution.
     !!}
+    use :: ISO_Varying_String, only : char
     implicit none
     class  (massDistributionComposite              ), intent(inout) :: self
     type   (massDistributionList                   ), pointer       :: massDistribution_
@@ -174,7 +175,7 @@ contains
     logical                                                         :: firstComponent   , haveKinematics
     
     ! Begin by assuming the highest degree of symmetry.
-    self%symmetry_=massDistributionSymmetrySpherical
+    self%symmetry_        =massDistributionSymmetrySpherical
     ! Begin by assuming a single component.
     self%isSingleComponent=.true.
     firstComponent        =.true.
@@ -186,8 +187,8 @@ contains
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
           ! Dimensionless mass distributions are not allowed.
-          if (massDistribution_%massDistribution_%isDimensionless())                                                                         &
-               & call Error_Report('dimensionless mass distributions can not be part of a composite distribution'//{introspection:location})
+          if (massDistribution_%massDistribution_%isDimensionless())                                                                                                                                             &
+               & call Error_Report('dimensionless mass distribution (type: '//char(massDistribution_%massDistribution_%objectType())//') can not be part of a composite distribution'//{introspection:location})
           ! Determine the symmetry of the composite distribution.
           symmetry_=massDistribution_%massDistribution_%symmetry()
           select case (symmetry_%ID)
@@ -519,27 +520,38 @@ contains
     !!{
     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a composite mass distribution.
     !!}
+    use :: Error, only : Error_Report
     implicit none
-    class  (massDistributionComposite), intent(inout), target   :: self
-    class  (coordinate               ), intent(in   )           :: coordinates
-    logical                           , intent(in   ), optional :: logarithmic
-    type   (massDistributionList     ), pointer                 :: massDistribution_
+    class           (massDistributionComposite), intent(inout), target   :: self
+    class           (coordinate               ), intent(in   )           :: coordinates
+    logical                                    , intent(in   ), optional :: logarithmic
+    type            (massDistributionList     ), pointer                 :: massDistribution_
+    double precision                                                     :: density
     !![
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
     
-    compositeDensityGradientRadial=0.0d0
-    if (associated(self%massDistributions)) then
-       massDistribution_ => self%massDistributions
-       do while (associated(massDistribution_))
-          compositeDensityGradientRadial  =  +compositeDensityGradientRadial                                                                          &
-               &                             +massDistribution_             %massDistribution_%densityGradientRadial(coordinates,logarithmic=.false.)
-          massDistribution_               =>  massDistribution_             %next
-       end do
-       if (logarithmic_) then
-          compositeDensityGradientRadial=+compositeDensityGradientRadial                         &
-               &                         *coordinates                   %rSpherical(           ) &
-               &                         /self                          %density   (coordinates)
+    if (self%isSingleComponent) then
+       compositeDensityGradientRadial=self%massDistributions%massDistribution_%densityGradientRadial(coordinates,logarithmic)
+    else
+       compositeDensityGradientRadial=0.0d0
+       if (associated(self%massDistributions)) then
+          massDistribution_ => self%massDistributions
+          do while (associated(massDistribution_))
+             compositeDensityGradientRadial  =  +compositeDensityGradientRadial                                                                          &
+                  &                             +massDistribution_             %massDistribution_%densityGradientRadial(coordinates,logarithmic=.false.)
+             massDistribution_               =>  massDistribution_             %next
+          end do
+          if (logarithmic_) then
+             density=self%density(coordinates)
+             if (density <= 0.0d0) then
+                if (compositeDensityGradientRadial /= 0.0d0) call Error_Report('non-zero gradient, but zero density'//{introspection:location})
+             else
+                compositeDensityGradientRadial=+compositeDensityGradientRadial              &
+                     &                         *coordinates                   %rSpherical() &
+                     &                         /                               density
+             end if
+          end if
        end if
     end if
     return
