@@ -524,11 +524,14 @@ contains
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                               :: darkMatterHaloMassAccretionHistory_           => null()
     class           (virialDensityContrastClass             ), pointer                               :: virialDensityContrast_                        => null()
     !$omp threadprivate(haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,haloMassFunction_,darkMatterHaloScale_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterProfileShape_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,criticalOverdensity_)
-    class           (massDistributionClass                  ), pointer                               :: massDistribution_                             => null()
+    class           (massDistributionClass                  ), pointer                        , save :: massDistribution_                             => null()
+    !$omp threadprivate(massDistribution_)
     type            (virialDensityContrastList              ), allocatable   , dimension(:   )       :: virialDensityContrasts
     type            (mergerTree                             ), allocatable   , target         , save :: tree
     !$omp threadprivate(tree)
     type            (integrator                             ), allocatable                           :: integrator_
+    type            (inputParameters                        ), allocatable                    , save :: parameters
+    !$omp threadprivate(parameters)
     integer         (c_size_t                               )                                        :: iOutput                                                , outputCount                  , &
          &                                                                                              iMass                                                  , massCount                    , &
          &                                                                                              iAlternate
@@ -707,6 +710,11 @@ contains
        !!]
     end do
     !$omp end critical(taskHaloMassFunctionDeepCopy)
+    ! Call routines to perform initialization which must occur for all threads if run in parallel.
+    allocate(parameters)
+    parameters=inputParameters(self%parameters)
+    call parameters%parametersGroupCopy(self%parameters)
+    call Node_Components_Thread_Initialize(parameters)
     ! Build an integrator.
     allocate(integrator_)
     integrator_=integrator(subhaloMassFunctionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
@@ -837,6 +845,7 @@ contains
        !!]
     end do
     deallocate(virialDensityContrasts)
+    call Node_Components_Thread_Uninitialize()
     !$omp end parallel
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
