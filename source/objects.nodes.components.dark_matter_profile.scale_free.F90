@@ -53,7 +53,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
        <argument>integer                              , intent(in   ), optional :: weightIndex  </argument>
       </interface>
      </binding>
-     <binding method="massDistInit" bindsTo="component" isDeferred="true" >
+     <binding method="massDistributionInit" bindsTo="component" isDeferred="true" >
       <interface>
        <type>void</type>
        <self pass="true" intent="inout"/>
@@ -97,8 +97,8 @@ contains
     if (defaultDarkMatterProfileComponent%scaleFreeIsActive()) then
        Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_      => Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist
        Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init_ => Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init
-       call darkMatterProfile%massDistributionFunction(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_     )
-       call darkMatterProfile%massDistInitFunction    (Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init_)
+       call darkMatterProfile%massDistributionFunction    (Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_     )
+       call darkMatterProfile%massDistributionInitFunction(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init_)
     end if
     !$omp end critical (Node_Component_Dark_Matter_Profile_Init)
     return
@@ -165,7 +165,7 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Storing state for: componentDarkMatterProfile -> scale',verbosity=verbosityLevelInfo)
+    call displayMessage('Storing state for: componentDarkMatterProfile -> scaleFree',verbosity=verbosityLevelInfo)
     !![
     <stateStore variables="darkMatterProfile_ darkMatterProfileDMO_"/>
     !!]
@@ -188,7 +188,7 @@ contains
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
-    call displayMessage('Retrieving state for: componentDar -> scale',verbosity=verbosityLevelInfo)
+    call displayMessage('Retrieving state for: componentDarkProfile -> scaleFree',verbosity=verbosityLevelInfo)
     !![
     <stateRestore variables="darkMatterProfile_ darkMatterProfileDMO_"/>
     !!]

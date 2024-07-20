@@ -84,7 +84,7 @@ sub Class_Deferred_Binding_Attachers {
 	my $function =
 	{
 	    type        => "void",
-	    name        => $code::classFunctionName."DeferredFunctionSet",
+	    name        => $code::classFunctionName."DfrrdFnctnSet",
 	    description => "Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
 	    variables   =>
 		[
