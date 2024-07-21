@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "target" : 0.85,
+      "percentageAbove" : 33.3333333333333,
+      "percentageBelow" : 66.6666666666667
+   },
    "commit" : {
+      "id" : "2d424a3b299a73cded972164f4aa036c6756fef7",
+      "timestamp" : "Sat, 20 Jul 2024 16:58:14 -0700",
       "author" : {
          "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "message" : "fix: Correct formatting of output times when the final output time is before 1.0 Gyr",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/1903023f16d3be4f730de841f29c5b1f923f4000",
-      "id" : "1903023f16d3be4f730de841f29c5b1f923f4000",
-      "timestamp" : "Fri, 19 Jul 2024 10:49:50 -0700"
+      "message" : "feat: Add a `nodePropertyExtractor` for projected orbital radius",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/2d424a3b299a73cded972164f4aa036c6756fef7"
    },
-   "slope" : {
-      "percentageBelow" : 66.6666666666667,
-      "percentageAbove" : 33.3333333333333,
-      "target" : 0.85
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
       "target" : 0.006,
-      "percentageAbove" : 50,
-      "percentageBelow" : 50
-   },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875
+   }
 }
