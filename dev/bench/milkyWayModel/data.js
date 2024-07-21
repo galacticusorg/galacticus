@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721432797761,
+  "lastUpdate": 1721543260082,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "051be396b0a919add84d46a5b85b0254c7b43136",
-          "message": "Merge pull request #466 from galacticusorg/optimization\n\nFurther optimization of baryonic physics models",
-          "timestamp": "2023-09-09T16:47:29Z",
-          "tree_id": "ac23c59150536c00e9d5ae80e78c411db8cac8b5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/051be396b0a919add84d46a5b85b0254c7b43136"
-        },
-        "date": 1694288571929,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 230.926,
-            "unit": "seconds",
-            "range": 0.272738702788789
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10720,6 +10690,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0169844342262,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "2d424a3b299a73cded972164f4aa036c6756fef7",
+          "message": "feat: Add a `nodePropertyExtractor` for projected orbital radius",
+          "timestamp": "2024-07-20T16:58:14-07:00",
+          "tree_id": "d85e5beb82de3630a46e37b185076fa5b9aefa96",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2d424a3b299a73cded972164f4aa036c6756fef7"
+        },
+        "date": 1721543258991,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 420.729,
+            "unit": "seconds",
+            "range": 0.457273331832019
           }
         ]
       }
