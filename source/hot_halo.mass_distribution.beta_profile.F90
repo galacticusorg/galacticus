@@ -45,7 +45,6 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
      !!}
      private
      double precision                                                  :: beta
-     type            (massDistributionBetaProfile           )          :: distribution
      class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
      final     ::        betaProfileDestructor
