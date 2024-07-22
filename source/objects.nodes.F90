@@ -1861,15 +1861,13 @@ module Galacticus_Nodes
     type   (treeNode ), intent(inout) :: node
     integer(kind_int8), intent(in   ) :: uniqueID
     integer                           :: i
-    !$GLC attributes unused :: massDistributionsLast, node
-
+    !$GLC attributes unused :: massDistributionsLast, node, uniqueID
+    
     do i=1,massDistributionsCount
-       if (massDistributions__(i)%uniqueID == uniqueID) then
-          !![
-	  <objectDestructor name="massDistributions__(i)%massDistribution_"/>
-          !!]
-          massDistributions__(i)%uniqueID=-huge(kind_int8)
-       end if
+       !![
+       <objectDestructor name="massDistributions__(i)%massDistribution_"/>
+       !!]
+       massDistributions__(i)%uniqueID=-huge(kind_int8)
     end do
     return
   end subroutine massDistributionCalculationReset
