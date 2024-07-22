@@ -169,10 +169,11 @@ contains
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
-    class  (massDistributionComposite              ), intent(inout) :: self
-    type   (massDistributionList                   ), pointer       :: massDistribution_
-    type   (enumerationMassDistributionSymmetryType)                :: symmetry_
-    logical                                                         :: firstComponent   , haveKinematics
+    class           (massDistributionComposite              ), intent(inout) :: self
+    type            (massDistributionList                   ), pointer       :: massDistribution_
+    type            (enumerationMassDistributionSymmetryType)                :: symmetry_
+    logical                                                                  :: firstComponent                     , haveKinematics
+    double precision                                                         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     
     ! Begin by assuming the highest degree of symmetry.
     self%symmetry_        =massDistributionSymmetrySpherical
@@ -184,7 +185,9 @@ contains
     haveKinematics        =.true.
     ! Examine each distribution.
     if (associated(self%massDistributions)) then
-       massDistribution_ => self%massDistributions
+       massDistribution_                          => self%massDistributions
+       toleranceRelativeVelocityDispersion        =  0.0d0
+       toleranceRelativeVelocityDispersionMaximum =  0.0d0
        do while (associated(massDistribution_))
           ! Dimensionless mass distributions are not allowed.
           if (massDistribution_%massDistribution_%isDimensionless())                                                                                                                                             &
@@ -213,7 +216,12 @@ contains
           end if
           ! Check for collisional components.
           if (associated(massDistribution_%massDistribution_%kinematicsDistribution_)) then
-             if (massDistribution_%massDistribution_%kinematicsDistribution_%isCollisional()) self%isCollisionless=.false.
+             if (massDistribution_%massDistribution_%kinematicsDistribution_%isCollisional()) then
+                self%isCollisionless=.false.
+             else
+                toleranceRelativeVelocityDispersion       =max(toleranceRelativeVelocityDispersion,massDistribution_%massDistribution_%kinematicsDistribution_%toleranceRelativeVelocityDispersion       )
+                toleranceRelativeVelocityDispersionMaximum=max(toleranceRelativeVelocityDispersion,massDistribution_%massDistribution_%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum)
+             end if
           else
              haveKinematics=.false.
           end if
@@ -231,7 +239,7 @@ contains
              select type (kinematicsDistribution_ => self%kinematicsDistribution_)
              type is (kinematicsDistributionCollisionless)
                 !![
-		<referenceConstruct owner="self" object="kinematicsDistribution_" nameAssociated="kinematicsDistribution_" constructor="kinematicsDistributionCollisionless()"/>
+		<referenceConstruct owner="self" object="kinematicsDistribution_" nameAssociated="kinematicsDistribution_" constructor="kinematicsDistributionCollisionless(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)"/>
 	        !!]
              end select
           end if

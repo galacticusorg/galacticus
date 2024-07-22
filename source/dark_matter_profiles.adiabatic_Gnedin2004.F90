@@ -260,10 +260,11 @@ contains
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic         , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical
+    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical, kinematicsDistributionClass
     implicit none
     class           (massDistributionClass               ), pointer                 :: massDistribution_
     type            (kinematicsDistributionCollisionless ), pointer                 :: kinematicsDistribution_
+    type            (kinematicsDistributionClass         ), pointer                 :: kinematicsDistribution__
     class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)           :: self
     type            (treeNode                            ), intent(inout), target   :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
@@ -312,25 +313,26 @@ contains
               &amp;                                       )
 	    </constructor>
           </referenceConstruct>
+          !!]
+          allocate(kinematicsDistribution_)
+          kinematicsDistribution__ => massDistributionDecorated%kinematicsDistribution()
+          !![
+	  <referenceConstruct object="kinematicsDistribution_">
+	    <constructor>
+              kinematicsDistributionCollisionless(kinematicsDistribution__)
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+          call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+          !![
+	  <objectDestructor name="kinematicsDistribution_"  />
+	  <objectDestructor name="kinematicsDistribution__" />
           <objectDestructor name="massDistributionDecorated"/>
           !!]
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
        end select
     end select
-    allocate(kinematicsDistribution_)
-    !![
-    <referenceConstruct object="kinematicsDistribution_">
-      <constructor>
-        kinematicsDistributionCollisionless( &amp;
-	 &amp;                             )
-      </constructor>
-    </referenceConstruct>
-    !!]
-    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-    !![
-    <objectDestructor name="kinematicsDistribution_"/>
-    !!]
     return
   end function adiabaticGnedin2004Get
 

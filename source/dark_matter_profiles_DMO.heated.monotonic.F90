@@ -55,10 +55,11 @@
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
-     class(darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_      => null()
-     class(darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_     => null()
-     class(darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_ => null()
-     type (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_                => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_               => null()
+     class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_           => null()
+     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
+     double precision                                             :: toleranceRelativeVelocityDispersion          , toleranceRelativeVelocityDispersionMaximum
    contains
      final     ::        heatedMonotonicDestructor
      procedure :: get => heatedMonotonicGet
@@ -81,12 +82,13 @@ contains
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
-    type (darkMatterProfileDMOHeatedMonotonic)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
-    class(darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class(darkMatterProfileHeatingClass      ), pointer       :: darkMatterProfileHeating_
-    type (varying_string                     )                :: nonAnalyticSolver
+    type            (darkMatterProfileDMOHeatedMonotonic)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass      ), pointer       :: darkMatterProfileHeating_
+    type            (varying_string                     )                :: nonAnalyticSolver
+    double precision                                                     :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
     <inputParameter>
@@ -95,11 +97,23 @@ contains
       <source>parameters</source>
       <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersion</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersionMaximum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeatedMonotonic(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeatedMonotonic(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -109,20 +123,21 @@ contains
     return
   end function heatedMonotonicConstructorParameters
 
-  function heatedMonotonicConstructorInternal(nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedMonotonicConstructorInternal(nonAnalyticSolver,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily heatedMonotonic} dark matter profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
     implicit none
-    type (darkMatterProfileDMOHeatedMonotonic)                        :: self
-    class(darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
-    class(darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class(darkMatterProfileHeatingClass      ), intent(in   ), target :: darkMatterProfileHeating_
-    type (enumerationNonAnalyticSolversType  ), intent(in   )         :: nonAnalyticSolver
+    type            (darkMatterProfileDMOHeatedMonotonic)                        :: self
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass      ), intent(in   ), target :: darkMatterProfileHeating_
+    type            (enumerationNonAnalyticSolversType  ), intent(in   )         :: nonAnalyticSolver
+    double precision                                     , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
-    <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
@@ -200,7 +215,10 @@ contains
     !![
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
-        kinematicsDistributionCollisionless()
+        kinematicsDistributionCollisionless(                                                                                            &amp;
+         &amp;                              toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp; 
+         &amp;                              toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp; 
+	 &amp;                             )
       </constructor>
     </referenceConstruct>
     !!]
