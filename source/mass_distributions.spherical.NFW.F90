@@ -22,6 +22,8 @@
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
+
+  public :: massDistributionNFWStateStore, massDistributionNFWStateRestore
   
   !![
   <massDistribution name="massDistributionNFW">
@@ -1029,3 +1031,55 @@ contains
     return
   end subroutine nfwDescriptor
 
+  !![
+  <stateStoreTask>
+   <unitName>massDistributionNFWStateStore</unitName>
+  </stateStoreTask>
+  !!]
+  subroutine massDistributionNFWStateStore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Write the tabulation state to file.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: massDistributionNFW',verbosity=verbosityLevelInfo)
+    write (stateFile) densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum                , &
+         &            densityScaleFreeMinimum                      , densityScaleFreeMaximum                      , &
+         &            angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum, &
+         &            angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum      , &
+         &            timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum           , &
+         &            timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
+    return
+  end subroutine massDistributionNFWStateStore
+
+  !![
+  <stateRetrieveTask>
+   <unitName>massDistributionNFWStateRestore</unitName>
+  </stateRetrieveTask>
+  !!]
+  subroutine massDistributionNFWStateRestore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve the tabulation state from the file.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: massDistributionNFW',verbosity=verbosityLevelInfo)
+    read (stateFile) densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum                , &
+         &           densityScaleFreeMinimum                      , densityScaleFreeMaximum                      , &
+         &           angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum, &
+         &           angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum      , &
+         &           timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum           , &
+         &           timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
+    return
+  end subroutine massDistributionNFWStateRestore
+  

@@ -1241,7 +1241,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_ galacticStructure_"/>
     !!]
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return
@@ -1266,7 +1266,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_ galacticStructure_"/>
     !!]
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return
