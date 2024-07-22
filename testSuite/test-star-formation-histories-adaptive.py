@@ -9,26 +9,26 @@ import numpy as np
 
 # Run the model and check for completion                                                                                                                                                                                 
 print("Running model...")
-status = subprocess.run("mkdir -p outputs/test-star-formation-histories-adapative",shell=True)
-log = open("outputs/test-star-formation-histories-adapative/galacticus.log","w")
+status = subprocess.run("mkdir -p outputs/test-star-formation-histories-adaptive",shell=True)
+log = open("outputs/test-star-formation-histories-adaptive/galacticus.log","w")
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/test-star-formation-histories-adaptive.xml",stdout=log,stderr=log,shell=True)
 log.close()
 print("...done ("+str(status)+")")
 if status.returncode != 0:
     print("FAILED: model run:")
-    subprocess.run("cat outputs/test-star-formation-histories-adapative/galacticus.log",shell=True)
+    subprocess.run("cat outputs/test-star-formation-histories-adaptive/galacticus.log",shell=True)
     sys.exit()
 print("Checking for errors...")
-status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adapative/galacticus.log",shell=True)
+status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories-adaptive/galacticus.log",shell=True)
 print("...done ("+str(status)+")")
 if status.returncode == 0:
     print("FAILED: model run (errors):")
-    subprocess.run("cat outputs/test-star-formation-histories-adapative/galacticus.log",shell=True)
+    subprocess.run("cat outputs/test-star-formation-histories-adaptive/galacticus.log",shell=True)
     sys.exit()
 print("SUCCESS: model run")
 
 # Open the model and extract the recycled fraction.
-model             = h5py.File('outputs/test-star-formation-histories-adapative/galacticus.hdf5','r')
+model             = h5py.File('outputs/test-star-formation-histories-adaptive/galacticus.hdf5','r')
 outputs           = model['Outputs'                     ]
 stellarPopulation = model['Parameters/stellarPopulation']
 recycledFraction  = stellarPopulation.attrs['recycledFraction']

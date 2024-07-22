@@ -388,7 +388,7 @@ contains
     use :: Multi_Counters          , only : multiCounter
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D
+         &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D       , nodePropertyExtractorIntegerList
     use :: Poly_Ranks              , only : polyRankInteger           , polyRankDouble           , assignment(=)
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)                   :: self
@@ -396,11 +396,12 @@ contains
     double precision                             , intent(in   )                   :: time
     integer         (kind_int8                  ), allocatable  , dimension(:    ) :: integerTuple
     double precision                             , allocatable  , dimension(:    ) :: doubleTuple
+    integer         (kind_int8                  ), allocatable  , dimension(:,:  ) :: integerArray
     double precision                             , allocatable  , dimension(:,:  ) :: doubleArray
     double precision                             , allocatable  , dimension(:,:,:) :: doubleArray2D
     type            (polyRankInteger            ), allocatable  , dimension(:    ) :: integerProperties
     type            (polyRankDouble             ), allocatable  , dimension(:    ) :: doubleProperties
-    integer                                      , allocatable  , dimension(:    ) :: doubleRanks
+    integer                                      , allocatable  , dimension(:    ) :: doubleRanks      , integerRanks
     integer         (c_size_t                   ), allocatable  , dimension(:    ) :: shape_
     integer                                                                        :: doubleProperty   , integerProperty, &
          &                                                                            i
@@ -504,7 +505,25 @@ contains
           deallocate(doubleArray )
           doubleProperty                                                            =+doubleProperty                                                     &
                &                                                                     +extractor_     %elementCount(                                    )
-       class is (nodePropertyExtractorList2D       )
+       class is (nodePropertyExtractorIntegerList  )
+          ! Integer list property extractor - extract and store the values.
+          integerArray=extractor_%extract       (node     ,instance)
+          do i=1,+extractor_%elementCount(                      )
+             if (     allocated(self%integerProperty(integerProperty +i)%scalar     ))                          deallocate(self%integerProperty(integerProperty+i)%scalar)
+             if (     allocated(self%integerProperty(integerProperty +i)%rank1      ))                          deallocate(self%integerProperty(integerProperty+i)%rank1 )
+             if (.not.allocated(self%integerProperty(integerProperty +i)%rank1VarLen)) allocate(self%integerProperty (integerProperty +i)%rank1VarLen(self%integerBufferSize))
+             if (associated(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
+                if (size(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row) /= size(integerArray,dim=1)) deallocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)
+             end if
+             if (.not.associated(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
+                allocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row(size(integerArray,dim=1)))
+             end if
+             self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row=integerArray(:,i)
+          end do
+          deallocate(integerArray)
+          integerProperty                                                           =+integerProperty                                                    &
+               &                                                                     +extractor_     %elementCount(                                    )
+        class is (nodePropertyExtractorList2D       )
           ! 2D list property extractor - extract and store the values.
           doubleArray2D =extractor_%extract       (node     ,instance)
           do i=1,+extractor_%elementCount(                      )
@@ -597,27 +616,47 @@ contains
           deallocate(doubleProperties)
           doubleProperty                                                            =+doubleProperty                                                     &
                &                                                                     +extractor_     %elementCount(elementTypeDouble,     time         )
-          integerProperties =extractor_%extractInteger (node,time,instance)
+          integerProperties =extractor_%extractInteger (node,time,instance,integerRanks)
           do i=1,extractor_%elementCount(elementTypeInteger ,time)
-             select case (integerProperties(i)%rank())
+             select case (integerRanks(i))
              case (0)
-                if (.not.allocated(self%integerProperty(integerProperty +i)%scalar)) then
+                ! Scalar property.
+                if (     allocated(self%integerProperty(integerProperty+i)%rank1 ))            deallocate(self%integerProperty(integerProperty+i)%rank1 )
+                if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) then
                    allocate(self%integerProperty(integerProperty+i)%scalar(          self%integerBufferSize))
                 end if
-                self%integerProperty (integerProperty +i)%scalar(self%integerBufferCount  )=integerProperties(i)
+                self%integerProperty (integerProperty+i)%scalar(self%integerBufferCount  )=integerProperties(i)
              case (1)
-                if (     allocated(self%integerProperty(integerProperty +i)%rank1)) then
+                ! Rank-1 array property.
+                if (     allocated(self%integerProperty(integerProperty+i)%scalar))             deallocate(self%integerProperty(integerProperty+i)%scalar)
+                if (     allocated(self%integerProperty(integerProperty+i)%rank1 )) then
                    shape_=integerProperties(i)%shape()
                    if (size(self%integerProperty(integerProperty+i)%rank1,dim=1) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1)
                    deallocate(shape_)
                 end if
-                if (.not.allocated(self%integerProperty(integerProperty +i)%rank1)) then
+                if (.not.allocated(self%integerProperty(integerProperty+i)%rank1)) then
                    shape_=integerProperties(i)%shape()
                    allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),self%integerBufferSize))
                    deallocate(shape_)
                 end if
-                self%integerProperty (integerProperty +i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
-             case default
+                self%integerProperty (integerProperty+i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
+             case (-1)
+                ! Rank-1 list property
+                if (     allocated(self%integerProperty(integerProperty+i)%scalar     ))             deallocate(self%integerProperty (integerProperty+i)%scalar)
+                if (     allocated(self%integerProperty(integerProperty+i)%rank1      ))             deallocate(self%integerProperty (integerProperty+i)%rank1 )
+                if (.not.allocated(self%integerProperty(integerProperty+i)%rank1VarLen)) allocate(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferSize))
+                if (associated(self%integerProperty (integerProperty+i)%rank1VarLen (self%integerBufferCount )%row)) then
+                   shape_=integerProperties(i)%shape()
+                   if (size(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount )%row) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)
+                   deallocate(shape_)
+                end if
+                if (.not.associated(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
+                   shape_=integerProperties(i)%shape()
+                   allocate(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount)%row(shape_(1)))
+                   deallocate(shape_)
+                end if
+                self%integerProperty (integerProperty+i)%rank1VarLen (self%integerBufferCount )%row=integerProperties(i)
+            case default
                 call Error_Report('unsupported rank for output property'//{introspection:location})
              end select
           end do
@@ -689,27 +728,51 @@ contains
     Dump the contents of the integer properties buffer to the \glc\ output file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
-    integer                                             :: iProperty
-    type   (hdf5Object                 )                :: dataset
+    integer                                             :: iProperty  , iMetaDatum
+    type   (hdf5Object                 )                :: dataset    
 
     ! Write integer data from the buffer.
     if (self%integerPropertyCount > 0) then
        !$ call hdf5Access%set()
        do iProperty=1,self%integerPropertyCount
+          if      (allocated(self%integerProperty(iProperty)%scalar     )) then
           call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                             &
                &                                                                  self%integerProperty(iProperty)%scalar (1:self%integerBufferCount), &
                &                                                                  self%integerProperty(iProperty)%name                              , &
                &                                                                  self%integerProperty(iProperty)%comment                           , &
                &                                                         appendTo=.true.                                                              &
                &                                                        )
+          else if (allocated(self%integerProperty(iProperty)%rank1      )) then
+             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                          &
+                  &                                                                         self%integerProperty(iProperty)%rank1      (:,1:self%integerBufferCount), &
+                  &                                                                         self%integerProperty(iProperty)%name                                    , &
+                  &                                                                         self%integerProperty(iProperty)%comment                                 , &
+                  &                                                         appendTo       =.true.                                                                  , &
+                  &                                                         appendDimension=2                                                                         &
+                  &                                                        )
+          else if (allocated(self%integerProperty(iProperty)%rank1VarLen)) then
+             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                          &
+                  &                                                                         self%integerProperty(iProperty)%rank1VarLen(  1:self%integerBufferCount), &
+                  &                                                                         self%integerProperty(iProperty)%name                                    , &
+                  &                                                                         self%integerProperty(iProperty)%comment                                 , &
+                  &                                                         appendTo       =.true.                                                                    &
+                  &                                                        )
+          end if
           if (.not.self%outputGroups(indexOutput)% integerAttributesWritten.and. self%integerProperty(iProperty)%unitsInSI /= 0.0d0) then
              dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
              call dataset%writeAttribute(self%integerProperty(iProperty)%unitsInSI,"unitsInSI")
              call dataset%close         (                                                     )
+             do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank0%size()
+                call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
+             end do
+             do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank1%size()
+                call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
+             end do
+             call        dataset%close         (                                                                   )
           end if
        end do
        self%integerPropertiesWritten=self%integerPropertiesWritten+self%integerBufferCount
@@ -808,11 +871,13 @@ contains
     !!{
     Extend the size of the integer buffer.
     !!}
+    use :: IO_HDF5, only : hdf5VarInteger8
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout)                 :: self
     integer(kind_int8                  ), allocatable  , dimension(:  ) :: scalarTemporary
     integer(kind_int8                  ), allocatable  , dimension(:,:) :: rank1Temporary
-    integer                                                             :: i
+    type   (hdf5VarInteger8            ), allocatable  , dimension(:  ) :: rank1VarLenTemporary
+    integer                                                             :: i                   , j
 
     do i=1,size(self%integerProperty)
        if (allocated(self%integerProperty(i)%scalar)) then
@@ -826,6 +891,17 @@ contains
           allocate(self%integerProperty(i)%rank1 (size(rank1Temporary,dim=1),self%integerBufferSize+standardBufferSizeIncrement))
           self%integerProperty(i)%rank1(:,1:self%integerBufferSize)=rank1Temporary
           deallocate(rank1Temporary )
+       end if
+       if (allocated(self%integerProperty(i)%rank1VarLen)) then
+          call move_alloc(self%integerProperty(i)%rank1VarLen,rank1VarLenTemporary)
+          allocate(self%integerProperty(i)%rank1VarLen(                           self%integerBufferSize+standardBufferSizeIncrement))
+          self%integerProperty(i)%rank1VarLen(  1:self%integerBufferSize)=rank1VarLenTemporary
+          ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
+          ! deallocated.
+          do j=1,size(rank1VarLenTemporary)
+             rank1VarLenTemporary(j)%row => null()
+          end do
+          deallocate(rank1VarLenTemporary)
        end if
     end do
     self%integerBufferSize=self%integerBufferSize+standardBufferSizeIncrement
@@ -893,7 +969,7 @@ contains
     use :: Galacticus_Nodes        , only : treeNode
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D
+         &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D       , nodePropertyExtractorIntegerList
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout) :: self
     double precision                             , intent(in   ) :: time
@@ -919,16 +995,19 @@ contains
        self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(time)
     class is (nodePropertyExtractorList         )
        ! List property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1
+       self%doublePropertyCount =self%doublePropertyCount +1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE??? 
     class is (nodePropertyExtractorList2D       )
        ! 2D list property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1
+       self%doublePropertyCount =self%doublePropertyCount +1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE???
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - simply increment the integer property output count by one.
        self%integerPropertyCount=self%integerPropertyCount+1
     class is (nodePropertyExtractorIntegerTuple )
        ! Integer tuple property extractor - increment the integer property output count by the number of elements.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(time)
+    class is (nodePropertyExtractorIntegerList  )
+       ! Integer list property extractor - simply increment the integer property output count by one.
+       self%integerPropertyCount=self%integerPropertyCount+1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE???
     class is (nodePropertyExtractorMulti        )
        ! Multi property extractor - increment double and integer property output counts.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
@@ -969,7 +1048,7 @@ contains
     use :: Hashes                  , only : doubleHash                , rank1DoubleHash
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D
+         &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D       , nodePropertyExtractorIntegerList
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)               :: self
     double precision                             , intent(in   )               :: time
@@ -1078,6 +1157,15 @@ contains
        integerProperty=integerProperty+extractor_%elementCount(time)
        deallocate(namesTmp       )
        deallocate(descriptionsTmp)
+    class is (nodePropertyExtractorIntegerList  )
+       ! Integer list property extractor - get the name, description, and units.
+       call extractor_%names       (namesTmp            )
+       call extractor_%descriptions(descriptionsTmp     )
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%name      =namesTmp
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%comment   =descriptionsTmp
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
+       call    extractor_%metaData(node            ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
+       integerProperty =integerProperty +1
     class is (nodePropertyExtractorMulti        )
        ! Multi property extractor - get the names, descriptions, and units.
        if (extractor_%elementCount(elementTypeDouble ,time) > 0) then

@@ -256,14 +256,18 @@ contains
     ! Validate.
     if (evolveForestsInParallel .and. timeIntervalCheckpoint > 0_kind_int8) call Error_Report('Checkpointing is not possible when evolving forests in parallel'//{introspection:location})
     ! Find the minimum step in output times and compute the precision for outputting times such that all are distinct.
-    timeStepMinimum=huge(0.0d0)
-    if (self%outputTimes_%count() > 1) then
-       do i=2,self%outputTimes_%count()
-          timeStepMinimum=min(self%outputTimes_%time(i)-self%outputTimes_%time(i-1),timeStepMinimum)
-       end do
+    if (self%outputTimes_%count() > 0) then
+       timeStepMinimum=self%outputTimes_%time(1_c_size_t)
+       if (self%outputTimes_%count() > 1) then
+          do i=2,self%outputTimes_%count()
+             timeStepMinimum=min(self%outputTimes_%time(i)-self%outputTimes_%time(i-1),timeStepMinimum)
+          end do
+       end if
+       self%outputTimePrecision=max(2,-floor(log10(timeStepMinimum)))
+       write (self%outputTimeFormat,'(a2,i2.2,a1,i2.2,a1)') "(f",self%outputTimePrecision+2+max(0,floor(log10(self%outputTimes_%time(self%outputTimes_%count())))),".",self%outputTimePrecision,")"
+    else
+       self%outputTimeFormat="(f)"
     end if
-    self%outputTimePrecision=max(2,-floor(log10(timeStepMinimum)))
-    write (self%outputTimeFormat,'(a2,i2.2,a1,i2.2,a1)') "(f",self%outputTimePrecision+2+floor(log10(self%outputTimes_%time(self%outputTimes_%count()))),".",self%outputTimePrecision,")"
     return 
   end function evolveForestsConstructorInternal
 
