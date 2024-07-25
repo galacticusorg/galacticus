@@ -28,7 +28,7 @@ Contains a module which implements merger tree index property extractor class.
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesTree
      !!{
-     A merger tree index property extrator class.
+     A merger tree index property extractor class.
      !!}
      private
    contains
