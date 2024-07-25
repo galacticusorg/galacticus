@@ -104,7 +104,8 @@
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
      logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
-         &                                                                                   normalizationSigma8                   =.false., truncateAtParticleHorizon
+          &                                                                                  normalizationSigma8                   =.false., truncateAtParticleHorizon                            , &
+          &                                                                                  warnedNonIncreasing
    contains
      !![
      <methods>
@@ -370,6 +371,7 @@ contains
        !!]
     end if
     self%initialized           =.false.
+    self%warnedNonIncreasing   =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
     self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
          &                      'largeScaleStructure/'                                                               // &
@@ -973,7 +975,10 @@ contains
                    call Error_Report(message//{introspection:location})
                 else
                    message=message//char(10)//"         If problems occur consider not attempting to model structure below this mass scale."
-                   call Warn        (message                          )
+                   if (.not.self%warnedNonIncreasing) then
+                      call Warn     (message                          )
+                      self%warnedNonIncreasing=.true.
+                   end if
                 end if
              end if
           end do
@@ -994,11 +999,12 @@ contains
       Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       !!}
       use, intrinsic :: ISO_C_Binding           , only : c_size_t
-      use            :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol  , GSL_ERound, GSL_Success, &
+      use            :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol    , GSL_ERound , GSL_Success  , &
            &                                             GSL_EMaxIter
       use            :: Numerical_Constants_Math, only : Pi
       use            :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
       use            :: Sorting                 , only : sort
+      use            :: Display                 , only : displayReset     , displayGreen, displayBlue, displayYellow
       implicit none
       double precision                         , intent(in   ) :: time_
       logical                                  , intent(in   ) :: useTopHat
@@ -1099,7 +1105,19 @@ contains
          else if (status /= GSL_Success) then
             ! Integration failed for some other reason, report an error.
             computeLogarithmically=.false.
-            call Error_Report('integration over interval failed'//{introspection:location})
+            block
+              type     (varying_string) :: message
+              character(len=12        ) :: label
+              message='integration over interval failed'//char(10)//displayGreen()//'HELP:'//displayReset()//' try increasing the value of <'//displayBlue()//'tolerance'
+              if (useTopHat) then
+                 message=message//"TopHat"
+                 write (label,'(e12.6)') self%toleranceTopHat
+              else
+                 write (label,'(e12.6)') self%tolerance
+              end if
+              message=message//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'//displayReset()//'/> in the <'//displayBlue()//'cosmologicalMassVariance'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"filteredPower"'//displayReset()//'> parameter'
+              call Error_Report(message//{introspection:location})
+            end block
          else if (integrandInterval <= 0.0d0 .and. wavenumberLower > 0.0d0) then
             ! Integration gave a zero result, and the lower limit is non-zero. This may be because the upper limit is large and
             ! the power is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to
