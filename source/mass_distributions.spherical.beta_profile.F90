@@ -542,6 +542,7 @@ contains
     if (present(radiusMinimum)) then
        fractionalRadiusMinimum=radiusMinimum/self%coreRadius
     else
+       fractionalRadiusMinimum=0.0d0
        if (moment <= -1.0d0) then
           betaProfileDensityRadialMoment=0.0d0
           if (present(isInfinite)) then
