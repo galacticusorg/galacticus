@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 33.3333333333333,
-      "percentageBelow" : 66.6666666666667
-   },
-   "commit" : {
-      "id" : "2d424a3b299a73cded972164f4aa036c6756fef7",
-      "timestamp" : "Sat, 20 Jul 2024 16:58:14 -0700",
-      "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "message" : "feat: Add a `nodePropertyExtractor` for projected orbital radius",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/2d424a3b299a73cded972164f4aa036c6756fef7"
-   },
    "surfaceDensity" : {
+      "percentageAbove" : 46.875,
       "target" : 0.006,
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875
+      "percentageBelow" : 53.125
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "commit" : {
+      "timestamp" : "Thu, 25 Jul 2024 08:13:30 -0700",
+      "id" : "da79ef87c3e645c1a9bcd7c9ead0e194288def69",
+      "message" : "fix: Correct description",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/da79ef87c3e645c1a9bcd7c9ead0e194288def69",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abenson@obs.carnegiescience.edu"
+      }
+   },
+   "slope" : {
+      "percentageAbove" : 35.7142857142857,
+      "target" : 0.85,
+      "percentageBelow" : 64.2857142857143
    }
 }
