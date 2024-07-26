@@ -137,6 +137,7 @@ program Test_Mass_Distributions
 
   ! Beta profile.
   call Unit_Tests_Begin_Group("Beta profile")
+  call Unit_Tests_Begin_Group("β = 2/3")
   allocate(massDistributionBetaProfile :: massDistribution_)
   select type (massDistribution_)
   type is (massDistributionBetaProfile)
@@ -160,19 +161,19 @@ program Test_Mass_Distributions
           &      absTol=1.0d-6                                                 &
           &     )
      call Assert(                                                              &
-          &      "Radial moment, m=1"                                        , &
+          &      "Radial moment, m=1, from 0 to 1"                           , &
           &      +massDistribution_%densityRadialMoment  (1.0d0,0.0d0,1.0d0) , &
           &      +0.3465735902799727d0                                       , &
           &      absTol=1.0d-6                                                 &
           &     )
      call Assert(                                                              &
-          &      "Radial moment, m=2"                                        , &
+          &      "Radial moment, m=2, from 0 to 1"                           , &
           &      +massDistribution_%densityRadialMoment  (2.0d0,0.0d0,1.0d0) , &
           &      +0.2146018366025517d0                                       , &
           &      absTol=1.0d-6                                                 &
           &     )
      call Assert(                                                              &
-          &      "Radial moment, m=3"                                        , &
+          &      "Radial moment, m=3, from 0 to 1"                           , &
           &      +massDistribution_%densityRadialMoment  (3.0d0,0.0d0,1.0d0) , &
           &      +0.1534264097200273d0                                       , &
           &      absTol=1.0d-6                                                 &
@@ -184,6 +185,36 @@ program Test_Mass_Distributions
           &      absTol=1.0d-6                                                 &
           &     )
   end select
+  call Unit_Tests_End_Group()
+  deallocate(massDistribution_)
+  call Unit_Tests_Begin_Group("β = 2")
+  allocate(massDistributionBetaProfile :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionBetaProfile)
+     massDistribution_=massDistributionBetaProfile(beta=2.0d0,dimensionless=.true.)
+  end select
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     call Assert(                                                              &
+          &      "Radial moment, m=1, unbounded"                             , &
+          &      +massDistribution_%densityRadialMoment  (1.0d0            ) , &
+          &      +1.0d0/4.0d0                                                , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Radial moment, m=2, unbounded"                             , &
+          &      +massDistribution_%densityRadialMoment  (2.0d0            ) , &
+          &      +Pi/16.0d0                                                  , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+     call Assert(                                                              &
+          &      "Radial moment, m=3, unbounded"                             , &
+          &      +massDistribution_%densityRadialMoment  (3.0d0            ) , &
+          &      +1.0d0/4.0d0                                                , &
+          &      absTol=1.0d-6                                                 &
+          &     )
+  end select
+  call Unit_Tests_End_Group()
   ! Ensure that a dimensionful profile produces the correct mass inside of its outer radius.
   deallocate(massDistribution_)
   allocate(massDistributionBetaProfile :: massDistribution_)
