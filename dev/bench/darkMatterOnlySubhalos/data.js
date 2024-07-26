@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722032892399,
+  "lastUpdate": 1722032902195,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2c11769768762c96694def43cef28134e9856e9f",
-          "message": "Merge pull request #475 from galacticusorg/singleStepLabels\n\nAdd labeling of progenitor halo origins when using the `singleStep` build controller",
-          "timestamp": "2023-09-18T23:02:27Z",
-          "tree_id": "724e53c9d7489384be374b7f6b6c4c3c5e09e3c3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2c11769768762c96694def43cef28134e9856e9f"
-        },
-        "date": 1695091779377,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.7364585291731,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.6372510052421,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23643.7766921421,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8737,45 @@ window.BENCHMARK_DATA = {
             "value": 52.316,
             "unit": "seconds",
             "range": 0.0570648753617738
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6020c20eed080b9e3ded2845a3fded0fc47baf6d",
+          "message": "Merge pull request #653 from galacticusorg/featSigmaErrorMessage\n\nAdd a helpful error message when integration of σ(M) fails",
+          "timestamp": "2024-07-26T15:12:30Z",
+          "tree_id": "561e8276deb9ba41074c1e1e8ebfe1a6de06e0fe",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6020c20eed080b9e3ded2845a3fded0fc47baf6d"
+        },
+        "date": 1722032901105,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8746896313658,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.592532167748,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20598.3558316096,
+            "unit": "-logℒ"
           }
         ]
       }
