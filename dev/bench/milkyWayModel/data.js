@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721953307119,
+  "lastUpdate": 1722032897192,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "90736f9fff69acdc6c5e893519c274fb2f0260df",
-          "message": "Merge pull request #470 from galacticusorg/arrayPropertyColumns\n\nAllow `nodePropertyExtractorArray` objects to specify numerical column values",
-          "timestamp": "2023-09-14T20:51:32Z",
-          "tree_id": "f112f521e66397511c8a2b2c1d252c2b5415125f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/90736f9fff69acdc6c5e893519c274fb2f0260df"
-        },
-        "date": 1694735802549,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 266.26,
-            "unit": "seconds",
-            "range": 1.7358663543032
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10720,6 +10690,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9165308984541,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6020c20eed080b9e3ded2845a3fded0fc47baf6d",
+          "message": "Merge pull request #653 from galacticusorg/featSigmaErrorMessage\n\nAdd a helpful error message when integration of σ(M) fails",
+          "timestamp": "2024-07-26T15:12:30Z",
+          "tree_id": "561e8276deb9ba41074c1e1e8ebfe1a6de06e0fe",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6020c20eed080b9e3ded2845a3fded0fc47baf6d"
+        },
+        "date": 1722032896374,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 471.124,
+            "unit": "seconds",
+            "range": 0.344964345988507
           }
         ]
       }
