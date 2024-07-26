@@ -71,6 +71,8 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
      massDistribution_ => null()
   else
      ! Build the individual distributions.
+     massDistributionStellar => null()
+     massDistributionGas     => null()
      if (includeStars) then
         allocate(massDistributionStellar)
         select type (massDistributionStellar_)
@@ -91,7 +93,6 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
         end select
         call massDistributionGas    %setKinematicsDistribution(kinematicDistribution_)
      end if
-     ! Combine the distributions as necessary.
      ! Combine the distributions as necessary.
      if      (includeStars .and. includeGas) then
         ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any spheroid system, and then composite those.

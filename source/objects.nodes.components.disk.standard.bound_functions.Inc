@@ -93,6 +93,8 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
      massDistribution_ => null()
   else
      ! Build the individual distributions.
+     massDistributionStellar => null()
+     massDistributionGas     => null()
      if (includeStars) then
         allocate(massDistributionStellar)
         select type (massDistributionStellar_)

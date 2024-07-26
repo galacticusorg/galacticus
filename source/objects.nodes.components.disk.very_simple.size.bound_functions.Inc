@@ -71,6 +71,8 @@ function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentTy
      massDistribution_ => null()
   else
      ! Build the individual distributions.
+     massDistributionStellar => null()
+     massDistributionGas     => null()
      if (includeStars) then
         allocate(massDistributionStellar)
         select type (massDistributionStellar_)

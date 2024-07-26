@@ -152,6 +152,7 @@ contains
     <objectBuilder class="atomicRecombinationRateRadiative"  name="atomicRecombinationRateRadiative_"  source="parameters"/>
     <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     !!]
+    radiation_ => null()
     if (parameters%isPresent('radiationFieldIntergalacticBackground',searchInParents=.true.)) then
        !![
        <objectBuilder class="radiationField" name="radiation_" parameterName="radiationFieldIntergalacticBackground" source="parameters"/>
@@ -164,7 +165,7 @@ contains
 	  <referenceConstruct object="radiation_" constructor="radiationFieldNull()"/>
           !!]
        end select
-    end if
+    end if    
     self=nodeOperatorCGMChemistry(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiation_)
     !![
     <inputParametersValidate source="parameters"/>
