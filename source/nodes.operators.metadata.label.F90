@@ -74,11 +74,13 @@ contains
     <inputParameter>
       <name>onInitialize</name>
       <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
       <description>If true set the label on tree initialization.</description>
     </inputParameter>
     <inputParameter>
       <name>onPostEvolution</name>
       <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
       <description>If true set the label after each differential evolution.</description>
     </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
