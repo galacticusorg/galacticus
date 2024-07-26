@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageAbove" : 46.875,
+      "percentageAbove" : 53.125,
       "target" : 0.006,
-      "percentageBelow" : 53.125
+      "percentageBelow" : 46.875
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "timestamp" : "Thu, 25 Jul 2024 08:13:30 -0700",
-      "id" : "da79ef87c3e645c1a9bcd7c9ead0e194288def69",
-      "message" : "fix: Correct description",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/da79ef87c3e645c1a9bcd7c9ead0e194288def69",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/6020c20eed080b9e3ded2845a3fded0fc47baf6d",
+      "timestamp" : "Fri, 26 Jul 2024 15:12:30 +0000",
+      "id" : "6020c20eed080b9e3ded2845a3fded0fc47baf6d",
+      "message" : "Merge pull request #653 from galacticusorg/featSigmaErrorMessage",
       "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abenson@obs.carnegiescience.edu"
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
       }
    },
    "slope" : {
-      "percentageAbove" : 35.7142857142857,
+      "percentageAbove" : 33.3333333333333,
       "target" : 0.85,
-      "percentageBelow" : 64.2857142857143
+      "percentageBelow" : 66.6666666666667
    }
 }
