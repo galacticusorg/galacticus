@@ -151,21 +151,25 @@ contains
 
     ! Find the host node. Seek the descendant of the node closest in time to our satellite node. This is necessary as satellites
     ! can evolve ahead of their hosts.
-    basic            => node%basic ()
     nodeHostPrevious => node%parent
     nodeHostCurrent  => node%parent
-    basicPrevious => nodeHostPrevious%basic()
+    basic            => node            %basic()
+    basicCurrent     => nodeHostCurrent %basic()
+    basicPrevious    => nodeHostPrevious%basic()
     do while (associated(nodeHostCurrent))
-       basicCurrent => nodeHostCurrent%basic()
        if (basicCurrent%time() > basic%time()) exit
-       basicPrevious    => basicCurrent
-       nodeHostPrevious => nodeHostCurrent
-       nodeHostCurrent  => nodeHostCurrent%parent
+       nodeHostPrevious    => nodeHostCurrent
+       nodeHostCurrent     => nodeHostCurrent%parent
+       basicPrevious       => basicCurrent
+       if (associated(nodeHostCurrent))                &
+            & basicCurrent => nodeHostCurrent%basic ()
     end do
-    if     (                                        &
-         &   abs(basicPrevious%time()-basic%time()) &
-         &  <                                       &
-         &   abs(basicCurrent %time()-basic%time()) &
+    if     (                                         &
+         &    abs(basicPrevious%time()-basic%time()) &
+         &   <                                       &
+         &    abs(basicCurrent %time()-basic%time()) &
+         &  .or.                                     &
+         &   .not.associated(nodeHostCurrent)        &
          & ) then
        nodeHost  => nodeHostPrevious
        basicHost => basicPrevious
