@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "surfaceDensity" : {
-      "percentageAbove" : 53.125,
+      "percentageAbove" : 50,
       "target" : 0.006,
-      "percentageBelow" : 46.875
+      "percentageBelow" : 50
    },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
       "percentageAbove" : 33.3333333333333,
-      "target" : 0.85,
-      "percentageBelow" : 66.6666666666667
+      "percentageBelow" : 66.6666666666667,
+      "target" : 0.85
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "id" : "b90646e7cb33f064bd8f7c42805b7f989c69abc6",
-      "message" : "Merge pull request #654 from galacticusorg/featClassDefaultErrorMessage",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/b90646e7cb33f064bd8f7c42805b7f989c69abc6",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "timestamp" : "Sat, 27 Jul 2024 00:59:01 +0000"
+      "message" : "Merge pull request #655 from galacticusorg/fixTreeReadScaleSet",
+      "timestamp" : "Sat, 27 Jul 2024 15:51:33 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/2126b138dd20a2484b72ab08a81613f3078ea2ee",
+      "id" : "2126b138dd20a2484b72ab08a81613f3078ea2ee"
    }
 }
