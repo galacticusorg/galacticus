@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722069757262,
+  "lastUpdate": 1722118002722,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2c11769768762c96694def43cef28134e9856e9f",
-          "message": "Merge pull request #475 from galacticusorg/singleStepLabels\n\nAdd labeling of progenitor halo origins when using the `singleStep` build controller",
-          "timestamp": "2023-09-18T23:02:27Z",
-          "tree_id": "724e53c9d7489384be374b7f6b6c4c3c5e09e3c3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2c11769768762c96694def43cef28134e9856e9f"
-        },
-        "date": 1695091774588,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 214.385,
-            "unit": "seconds",
-            "range": 0.737146186315819
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10720,6 +10690,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0314259178523,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2126b138dd20a2484b72ab08a81613f3078ea2ee",
+          "message": "Merge pull request #655 from galacticusorg/fixTreeReadScaleSet\n\nAvoid thread conflicts when setting dark matter profile scales read from merger tree files",
+          "timestamp": "2024-07-27T15:51:33Z",
+          "tree_id": "77dc12e85bea9b59c59ec8713a21b195d3a0e623",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2126b138dd20a2484b72ab08a81613f3078ea2ee"
+        },
+        "date": 1722118002058,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 418.638,
+            "unit": "seconds",
+            "range": 0.354459588660125
           }
         ]
       }
