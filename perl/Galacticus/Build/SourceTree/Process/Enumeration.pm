@@ -160,7 +160,7 @@ sub Process_Enumerations {
 		$function .= "    ".$encodeFunctionName."IDChar=member%ID\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."IDChar\n\n";
-		$function .= "  function ".$encodeFunctionName."VarStr(name,includesPrefix,status)\n";
+		$function .= "  function ".$encodeFunctionName."VarStr(name,includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
@@ -169,11 +169,12 @@ sub Process_Enumerations {
 		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."VarStr\n";
 		$function .= "    type   (varying_string), intent(in   )           :: name\n";
 		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
-		$function .= "    integer                , intent(  out), optional :: status\n";
+		$function .= "    integer                , intent(  out), optional :: status\n"
+		    unless ( $onError );
 		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix)\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."VarStr\n\n";
-		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix,status)\n";
+		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
@@ -184,11 +185,13 @@ sub Process_Enumerations {
 		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."Char\n";
 		$function .= "    character(len=*), intent(in   )           :: name\n";
 		$function .= "    logical         , intent(in   ), optional :: includesPrefix\n";
-		$function .= "    integer         , intent(  out), optional :: status\n";
+		$function .= "    integer         , intent(  out), optional :: status\n"
+		    unless ( $onError );
 		$function .= "    logical                                   :: includesPrefix_\n\n";
 		$function .= "    includesPrefix_=.true.\n";
 		$function .= "    if (present(includesPrefix)) includesPrefix_=includesPrefix\n";
-		$function .= "    if (present(status)) status=errorStatusSuccess\n";
+		$function .= "    if (present(status)) status=errorStatusSuccess\n"
+		    unless ( $onError );
 		for(my $j=0;$j<2;++$j) {
 		    if ( $j == 0 ) {
 			$function .= "    if (includesPrefix_) then\n";
