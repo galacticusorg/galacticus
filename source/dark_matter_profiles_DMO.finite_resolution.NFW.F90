@@ -111,6 +111,7 @@ contains
     !!{
     Generic constructor for the {\normalfont \ttfamily finiteResolutionNFW} dark matter profile class.
     !!}
+    use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     implicit none
     type            (darkMatterProfileDMOFiniteResolutionNFW)                        :: self
     class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
