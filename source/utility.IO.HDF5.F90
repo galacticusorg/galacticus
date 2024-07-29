@@ -6617,7 +6617,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_1D
 
-  subroutine IO_HDF5_Write_Dataset_Integer8_2D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer8_2D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a long integer 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -6629,21 +6629,22 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )                             , intent(inout)                   :: self
-    character(len=*         )                             , intent(in   ), optional         :: commentText                , datasetName
+    character(len=*         )                             , intent(in   ), optional         :: commentText                 , datasetName
     integer  (kind=kind_int8)             , dimension(:,:), intent(in   )                   :: datasetValue
     logical                                               , intent(in   ), optional         :: appendTo
     integer  (hsize_t       )                             , intent(in   ), optional         :: chunkSize
-    integer                                               , intent(in   ), optional         :: compressionLevel
+    integer                                               , intent(in   ), optional         :: appendDimension             , compressionLevel
     type     (hdf5Object    )                             , intent(  out), optional         :: datasetReturned
     integer  (kind=kind_int8), allocatable, dimension(:,:)                         , target :: datasetValueContiguous
-    integer  (kind=HSIZE_T  )             , dimension(2  )                                  :: datasetDimensions          , hyperslabCount      , &
-         &                                                                                     hyperslabStart             , newDatasetDimensions, &
-         &                                                                                     newDatasetDimensionsMaximum
-    integer                                                                                 :: datasetRank                , errorCode
-    integer  (kind=HID_T    )                                                               :: dataspaceID                , newDataspaceID
-    logical                                                                                 :: appendToActual             , preExisted
+    integer  (kind=HSIZE_T  )             , dimension(2  )                                  :: datasetDimensions           , hyperslabCount             , &
+         &                                                                                     hyperslabStart              , newDatasetDimensions       , &
+         &                                                                                     newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
+    integer                                                                                 :: datasetRank                 , errorCode                  , &
+         &                                                                                     appendDimensionActual
+    integer  (kind=HID_T    )                                                               :: dataspaceID                 , newDataspaceID
+    logical                                                                                 :: appendToActual              , preExisted
     type     (hdf5Object    )                                                               :: datasetObject
-    type     (varying_string)                                                               :: datasetNameActual          , message
+    type     (varying_string)                                                               :: datasetNameActual           , message
     type     (c_ptr         )                                                               :: dataBuffer
 
     ! Check that this module is initialized.
@@ -6696,7 +6697,7 @@ attributeValue=trim(attributeValue)
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+            &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,2)
        ! If this dataset if not overwritable, report an error.
@@ -6724,9 +6725,21 @@ attributeValue=trim(attributeValue)
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
-       hyperslabStart      =newDatasetDimensions
-       hyperslabCount      =dataSetDimensions
-       newDatasetDimensions=newDatasetDimensions+datasetDimensions
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       ! Set the hyperslab.
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
        newDatasetDimensions=datasetDimensions
        hyperslabStart      =0

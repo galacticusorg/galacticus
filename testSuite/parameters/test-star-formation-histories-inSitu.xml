@@ -6,7 +6,7 @@
   <version>0.9.4</version>
 
   <!-- Output file -->
-  <outputFileName value="testSuite/outputs/test-star-formation-histories-adaptive/galacticus.hdf5"/>
+  <outputFileName value="testSuite/outputs/test-star-formation-histories-inSitu/galacticus.hdf5"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -285,9 +285,11 @@
   </nodePropertyExtractor>
 
   <!-- Star formation history -->
-  <starFormationHistory value="adaptive">
-    <countTimeStepsMaximum value="30"/>
-    <countOutputBuffer value=" 3"/>
+  <starFormationHistory value="inSitu">
+    <starFormationHistory value="adaptive">
+      <countTimeStepsMaximum value="30"/>
+      <countOutputBuffer value=" 3"/>
+    </starFormationHistory>
   </starFormationHistory>
 
 </parameters>

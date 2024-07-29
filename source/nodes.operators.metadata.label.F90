@@ -35,10 +35,12 @@ Implements a node operator class that applies labels to nodes during tree initia
      private
      type   (varying_string     )          :: label
      integer                               :: labelID
+     logical                               :: onInitialize             , onPostEvolution
      class  (galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
-     final     ::                       labelDestructor
-     procedure :: nodeTreeInitialize => labelTreeInitialize
+     final     ::                              labelDestructor
+     procedure :: nodeTreeInitialize        => labelTreeInitialize
+     procedure :: differentialEvolutionPost => labelDifferentialEvolutionPost
   end type nodeOperatorLabel
 
   interface nodeOperatorLabel
@@ -57,10 +59,11 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorLabel  )                :: self
-    type (inputParameters    ), intent(inout) :: parameters
-    class(galacticFilterClass), pointer       :: galacticFilter_
-    type (varying_string     )                :: label
+    type   (nodeOperatorLabel  )                :: self
+    type   (inputParameters    ), intent(inout) :: parameters
+    class  (galacticFilterClass), pointer       :: galacticFilter_
+    type   (varying_string     )                :: label
+    logical                                     :: onInitialize   , onPostEvolution
 
     !![
     <inputParameter>
@@ -68,9 +71,21 @@ contains
       <source>parameters</source>
       <description>The label to apply.</description>
     </inputParameter>
+    <inputParameter>
+      <name>onInitialize</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true set the label on tree initialization.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>onPostEvolution</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true set the label after each differential evolution.</description>
+    </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]    
-    self=nodeOperatorLabel(label,galacticFilter_)
+    self=nodeOperatorLabel(label,onInitialize,onPostEvolution,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticFilter_"/>
@@ -78,17 +93,18 @@ contains
     return
   end function labelConstructorParameters
 
-  function labelConstructorInternal(label,galacticFilter_) result(self)
+  function labelConstructorInternal(label,onInitialize,onPostEvolution,galacticFilter_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily label} node operator class which takes a parameter set as input.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
-    type (nodeOperatorLabel  )                        :: self
-    type (varying_string     ), intent(inout)         :: label
-    class(galacticFilterClass), intent(in   ), target :: galacticFilter_
+    type   (nodeOperatorLabel  )                        :: self
+    type   (varying_string     ), intent(inout)         :: label
+    logical                     , intent(in   )         :: onInitialize   , onPostEvolution
+    class  (galacticFilterClass), intent(in   ), target :: galacticFilter_
     !![
-    <constructorAssign variables="label, *galacticFilter_"/>
+    <constructorAssign variables="label, onInitialize, onPostEvolution, *galacticFilter_"/>
     !!]
 
     self%labelID=nodeLabelRegister(char(label))
@@ -98,7 +114,7 @@ contains
   subroutine labelDestructor(self)
     !!{
     Destructor for  the ``label'' galactic filter class.
-    !!}[<0;149;44m
+    !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self
 
@@ -117,7 +133,21 @@ contains
     class(nodeOperatorLabel), intent(inout), target :: self
     type (treeNode         ), intent(inout), target :: node
 
-    if (self%galacticFilter_%passes(node)) &
+    if (self%onInitialize .and. self%galacticFilter_%passes(node)) &
          & call nodeLabelSet(self%labelID,node)
     return
   end subroutine labelTreeInitialize
+
+  subroutine labelDifferentialEvolutionPost(self,node)
+    !!{
+    Initialize node branch tip indices.
+    !!}
+    use :: Nodes_Labels, only : nodeLabelSet
+    implicit none
+    class  (nodeOperatorLabel), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    
+    if (self%onPostEvolution .and. self%galacticFilter_%passes(node)) &
+         & call nodeLabelSet(self%labelID,node)
+    return
+  end subroutine labelDifferentialEvolutionPost

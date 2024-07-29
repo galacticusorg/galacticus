@@ -2056,7 +2056,7 @@ contains
          &                                                                                               useFallbackScaleMethod
     type            (rootFinder                       )           , save                              :: finder
     logical                                                       , save                              :: finderConstructed          =.false.
-    !$omp threadprivate(finder)
+    !$omp threadprivate(finder,finderConstructed)
     type            (varying_string                   )                                               :: message
     character       (len=16                           )                                               :: label
 
@@ -2161,11 +2161,11 @@ contains
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback method.
              node_ => nodeList(iIsolatedNode)%node
-             radiusScale=max(                                                                                                         &
-                  &          min(                                                                                                     &
+             radiusScale=max(                                                                                                      &
+                  &          min(                                                                                                  &
                   &              self%darkMatterProfileScaleRadius_%radius      (node_)                                          , &
                   &              self%darkMatterHaloScale_         %radiusVirial(node_)/self%presetScaleRadiiConcentrationMinimum  &
-                  &             )                                                                                                   , &
+                  &             )                                                                                                , &
                   &              self%darkMatterHaloScale_         %radiusVirial(node_)/self%presetScaleRadiiConcentrationMaximum  &
                   &         )
              call darkMatterProfile%scaleSet(radiusScale)
