@@ -80,13 +80,15 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType
        &   massDistributionMatches_(componentTypeBlackHole,massTypeBlackHole,componentType,massType) &
        &  .and.                                                                                      &
        &   weightBy_ == weightByMass                                                                 &
+       &  .and.                                                                                      &
+       &   self%mass() > 0.0d0                                                                       &
        & ) then
-         ! Create a black hole mass distribution.
+     ! Create a black hole mass distribution.
      allocate(massDistributionBlackHole :: massDistribution_)
      select type (massDistribution_)
      type is (massDistributionBlackHole)
         !![
-        <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=max(0.0d0,self%mass()),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
+        <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
         !!]
      end select
   else

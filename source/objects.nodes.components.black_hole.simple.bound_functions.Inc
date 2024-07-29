@@ -55,6 +55,8 @@ function Node_Component_Black_Hole_Simple_Mass_Distribution(self,componentType,m
        &   massDistributionMatches_(componentTypeBlackHole,massTypeBlackHole,componentType,massType) &
        &  .and.                                                                                      &
        &   weightBy_ == weightByMass                                                                 &
+       &  .and.                                                                                      &
+       &   self%mass() > 0.0d0                                                                       &
        & ) then
      ! Create a black hole mass distribution.
      allocate(massDistributionBlackHole :: massDistribution_)
