@@ -52,7 +52,7 @@
      class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_           => null()
      double precision                                             :: toleranceRelativeVelocityDispersion          , toleranceRelativeVelocityDispersionMaximum
      type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
-     logical                                                      :: velocityDispersionApproximate
+     logical                                                      :: velocityDispersionApproximate                , tolerateVelocityMaximumFailure
    contains
      final     ::        heatedDestructor
      procedure :: get => heatedGet
@@ -80,7 +80,7 @@ contains
     class           (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
     type            (varying_string                )                :: nonAnalyticSolver
-    logical                                                         :: velocityDispersionApproximate
+    logical                                                         :: velocityDispersionApproximate      , tolerateVelocityMaximumFailure
     double precision                                                :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
@@ -108,10 +108,16 @@ contains
       <source>parameters</source>
       <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateVelocityMaximumFailure</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, tolerate failures to find the radius of the peak in the rotation curve.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,tolerateVelocityMaximumFailure,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterProfileHeating_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -120,7 +126,7 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateVelocityMaximumFailure,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterProfileHeating_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     !!}
@@ -131,10 +137,10 @@ contains
     class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterProfileHeatingClass    ), intent(in   ), target :: darkMatterProfileHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
-    logical                                            , intent(in   )         :: velocityDispersionApproximate
+    logical                                            , intent(in   )         :: velocityDispersionApproximate      , tolerateVelocityMaximumFailure
     double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     !![
-    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, tolerateVelocityMaximumFailure, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, *darkMatterProfileDMO_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
@@ -190,12 +196,13 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalHeated(                                                         &amp;
-               &amp;                          nonAnalyticSolver       =self%nonAnalyticSolver        , &amp;
-               &amp;                          massDistribution_       =     massDistributionDecorated, &amp;
-               &amp;                          massDistributionHeating_=     massDistributionHeating_ , &amp;
-               &amp;                          componentType           =     componentTypeDarkHalo    , &amp;
-               &amp;                          massType                =     massTypeDark               &amp;
+              massDistributionSphericalHeated(                                                                    &amp;
+               &amp;                          nonAnalyticSolver             =self%nonAnalyticSolver             , &amp;
+	       &amp;                          tolerateVelocityMaximumFailure=self%tolerateVelocityMaximumFailure, &amp;
+               &amp;                          massDistribution_             =     massDistributionDecorated     , &amp;
+               &amp;                          massDistributionHeating_      =     massDistributionHeating_      , &amp;
+               &amp;                          componentType                 =     componentTypeDarkHalo         , &amp;
+               &amp;                          massType                      =     massTypeDark                    &amp;
                &amp;                         )
 	    </constructor>
 	  </referenceConstruct>

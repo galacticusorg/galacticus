@@ -404,29 +404,35 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <modules>Root_Finder</modules>
+    <modules>Root_Finder Error</modules>
     <code>
       type            (rootFinder), save      :: finder
       logical                     , save      :: finderConstructed=.false.
       !$omp threadprivate(finder,finderConstructed)
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
-
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-06, &amp;
+         &amp;                                   radiusTiny       =1.0d-9 , radiusHuge       =1.0d+30
+      integer                                 :: status
+      
       if (.not.finderConstructed) then
-       finder           =rootFinder(                                                             &amp;
-            &amp;                   rootFunction                 =rotationCurveMaximumRoot     , &amp;
-            &amp;                   toleranceAbsolute            =toleranceAbsolute            , &amp;
-            &amp;                   toleranceRelative            =toleranceRelative            , &amp;
-            &amp;                   solverType                   =GSL_Root_fSolver_Brent       , &amp;
-            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
-            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
-            &amp;                   rangeExpandType              =rangeExpandMultiplicative    , &amp;
-            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
+       finder           =rootFinder(                                                              &amp;
+            &amp;                   rootFunction                 =rotationCurveMaximumRoot      , &amp;
+            &amp;                   toleranceAbsolute            =toleranceAbsolute             , &amp;
+            &amp;                   toleranceRelative            =toleranceRelative             , &amp;
+            &amp;                   solverType                   =GSL_Root_fSolver_Brent        , &amp;
+            &amp;                   rangeExpandUpward            =2.0d0                         , &amp;
+            &amp;                   rangeExpandDownward          =0.5d0                         , &amp;
+            &amp;                   rangeExpandType              =rangeExpandMultiplicative     , &amp;
+            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive , &amp;
+            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative , &amp;
+            &amp;                   rangeDownwardLimit           =radiusTiny                    , &amp;
+            &amp;                   rangeUpwardLimit             =radiusHuge                      &amp;
             &amp;                  )
        finderConstructed=.true.
       end if
       self_                                               =&gt; self
-      massDistributionRadiusRotationCurveMaximumNumerical =     finder%find(rootGuess=1.0d0)
+      massDistributionRadiusRotationCurveMaximumNumerical =     finder%find(rootGuess=1.0d0,status=status)
+      if (status /= errorStatusSuccess .and. .not.self%tolerateVelocityMaximumFailure) &amp;
+            &amp; call Error_Report('failed to find radius of maximum circular velocity'//{introspection:location})
     </code>
    </method>
    <method name="surfaceDensity" >
@@ -541,6 +547,7 @@ module Mass_Distributions
    </method>
    <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_          => null()              </data>
    <data>logical                                                 :: dimensionless                                           </data>
+   <data>logical                                                 :: tolerateVelocityMaximumFailure   =  .false.             </data>
    <data>type            (enumerationComponentTypeType)          :: componentType                    =  componentTypeUnknown</data>
    <data>type            (enumerationMassTypeType     )          :: massType                         =  massTypeUnknown     </data>
    <data>double precision                                        :: radiusEnclosingDensityPrevious__ =  1.0d0               </data>

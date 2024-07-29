@@ -101,9 +101,10 @@ contains
     type (inputParameters                ), intent(inout) :: parameters
     class(massDistributionClass          ), pointer       :: massDistribution_
     class(massDistributionHeatingClass   ), pointer       :: massDistributionHeating_
-    type (varying_string                 )                :: nonAnalyticSolver       , componentType, &
+    type (varying_string                 )                :: nonAnalyticSolver            , componentType, &
          &                                                   massType
-
+    logical                                               :: tolerateVelocityMaximumFailure
+    
     !![
     <inputParameter>
       <name>nonAnalyticSolver</name>
@@ -123,12 +124,18 @@ contains
       <description>The mass type that this mass distribution represents.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateVelocityMaximumFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, tolerate failures to find the radius of the peak in the rotation curve.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistribution_"        source="parameters"/>
     <objectBuilder class="massDistributionHeating" name="massDistributionHeating_" source="parameters"/>
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),tolerateVelocityMaximumFailure,massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -140,7 +147,7 @@ contains
     return
   end function sphericalHeatedConstructorParameters
   
-  function sphericalHeatedConstructorInternal(nonAnalyticSolver,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
+  function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
     Constructor for ``sphericalHeated'' mass distribution class.
     !!}
@@ -149,11 +156,12 @@ contains
     class           (massDistributionSpherical        ), intent(in   ), target   :: massDistribution_
     class           (massDistributionHeatingClass     ), intent(in   ), target   :: massDistributionHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )           :: nonAnalyticSolver
+    logical                                            , intent(in   )           :: tolerateVelocityMaximumFailure
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    double precision                                   , parameter               :: toleranceAbsolute       =0.0d0, toleranceRelative=1.0d-6
+    double precision                                   , parameter               :: toleranceAbsolute             =0.0d0, toleranceRelative=1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
+    <constructorAssign variables="nonAnalyticSolver, tolerateVelocityMaximumFailure, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
     !!]
  
     self%      componentType=self%massDistribution_%componentType
