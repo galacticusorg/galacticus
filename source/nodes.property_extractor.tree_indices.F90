@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an ISM mass output analysis property extractor class.
+Contains a module which implements merger tree index property extractor class.
 !!}
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIndicesTree">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>A merger tree index property extractor class.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesTree
      !!{
-     A stellar mass output analysis class.
+     A merger tree index property extractor class.
      !!}
      private
    contains

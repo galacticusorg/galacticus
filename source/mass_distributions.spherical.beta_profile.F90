@@ -545,7 +545,7 @@ contains
                & +radialMomentTwoThirds(specialCaseMoment,fractionalRadiusMaximum)
        else
           ! General solution.
-          betaProfileDensityRadialMoment=                   &
+          betaProfileDensityRadialMoment=                                         &
                & +fractionalRadiusMaximum**(moment+1.0d0)                         &
                & *Hypergeometric_2F1     (                                        &
                &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &

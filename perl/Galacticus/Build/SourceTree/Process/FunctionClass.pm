@@ -140,6 +140,25 @@ sub Process_FunctionClass {
 		    )
 		    unless ( exists($_->{'abstract'}) && $_->{'abstract'} eq "yes" );
 	    }
+	    # Construct short names for each non-abstract class.
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		if ( $nonAbstractClass->{'name'} =~ m/^$directive->{'name'}([a-zA-Z0-9]+)/ ) {
+		    $nonAbstractClass->{'shortName'} = $1;
+		    $nonAbstractClass->{'shortName'} = lcfirst($nonAbstractClass->{'shortName'})
+			unless ( $nonAbstractClass->{'shortName'} =~ m/^[A-Z]{2,}/ );
+		} else {
+		    die("class name has incorrect format");
+		}
+	    }
+	    # Validate any default class.
+	    if ( exists($directive->{'default'}) ) {
+		unless ( grep {$directive->{'default'} eq $_->{'shortName'}} @nonAbstractClasses ) {
+		    print "ERROR: unrecognized default '".$directive->{'default'}."' for class '".$directive->{'name'}."'\n";
+		    print "  allowed defaults are:\n";
+		    print join("\n",map {"    ".$_->{'shortName'}} @nonAbstractClasses)."\n";
+		    exit 1;
+		}
+	    }
 	    # Add methods to store and retrieve state.
 	    $methods{'stateStore'} =
 	    {
