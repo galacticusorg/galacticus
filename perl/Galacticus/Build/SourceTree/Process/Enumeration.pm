@@ -171,7 +171,7 @@ sub Process_Enumerations {
 		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
 		$function .= "    integer                , intent(  out), optional :: status\n"
 		    unless ( $onError );
-		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix)\n";
+		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."VarStr\n\n";
 		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix".($onError ? "" : ",status").")\n";
