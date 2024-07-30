@@ -33,7 +33,7 @@ module Star_Formation_Rates_NSC
    <name>starFormationRateNSC</name>
    <descriptiveName>Rates for star formation in nuclear star cluster.</descriptiveName>
    <description>Class providing models of rates of star formation in nuclear star cluster.</description>
-   <default>Krumholz2009</default>
+   <default>krumholz2009</default>
    <method name="rate" >
     <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the nuclear star cluster component of {\normalfont \ttfamily node}.</description>
     <type>double precision</type>
