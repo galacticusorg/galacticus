@@ -585,7 +585,7 @@ contains
     else if (present(massFractional)) then
        call Error_Report('mass is unbounded, so mass fraction is undefined'//{introspection:location})
     else
-       call Error_Report('either mass or massFractional must be supplied'//{introspection:location})
+       call Error_Report('either mass or massFractional must be supplied'  //{introspection:location})
     end if
     massScaleFree=+     mass_                   &
          &        /self%densityNormalization    &
@@ -595,6 +595,7 @@ contains
          &  .or.                                        &
          &   massScaleFree >  self%massScaleFreeMaximum &
          & ) then
+       self_ => self
        do while (massEnclosedScaleFree(self%massScaleFreeRadiusMinimum) >= massScaleFree)
           self%massScaleFreeRadiusMinimum=0.5d0*self%massScaleFreeRadiusMinimum
        end do
@@ -606,7 +607,6 @@ contains
        allocate(     radii         (countRadii))
        allocate(     masses        (countRadii))
        allocate(self%massScaleFree_            )
-       self_                     => self
        radii                     =  Make_Range(self%massScaleFreeRadiusMinimum,self%massScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
        masses                    =  massEnclosedScaleFree(           radii)
        self%massScaleFreeMinimum =  masses               (         1      )
@@ -681,7 +681,7 @@ contains
             &  *Hypergeometric_2F1([(3.0d0-self_%gamma)/self_%alpha,(self_%beta-self_%gamma)/self_%alpha],[1.0d0+(3.0d0-self_%gamma)/self_%alpha],-radius**self_%alpha) &
             &  /                    (3.0d0-self_%gamma)
     case (specialCaseNFW%ID)
-       if (radius <radiusTiny) then
+       if (radius < radiusTiny) then
           ! Use series solution for small radii.
           mass   =+ 2.0d0      *Pi*radius**2 &
                &  - 8.0d0/3.0d0*Pi*radius**3 &
