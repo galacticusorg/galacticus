@@ -80,7 +80,7 @@
      double precision                                            :: massParticle                   , radiusTruncateOverRadiusVirial   , &
           &                                                         timeSnapshot                   , energyDistributionPointsPerDecade, &
           &                                                         lengthSoftening                , toleranceRelativeSmoothing       , &
-          &                                                         toleranceMass
+          &                                                         toleranceMass                  , tolerancePotential
      logical                                                     :: satelliteOffset                , nonCosmological                  , &
           &                                                         positionOffset                 , addHubbleFlow                    , &
           &                                                         haloIdToParticleType           , sampleParticleNumber             , &
@@ -138,7 +138,7 @@ contains
     double precision                                                  :: massParticle                   , radiusTruncateOverRadiusVirial   , &
          &                                                               timeSnapshot                   , energyDistributionPointsPerDecade, &
          &                                                               lengthSoftening                , toleranceRelativeSmoothing       , &
-         &                                                               toleranceMass
+         &                                                               toleranceMass                  , tolerancePotential
     logical                                                           :: satelliteOffset                , nonCosmological                  , &
          &                                                               positionOffset                 , addHubbleFlow                    , &
          &                                                               haloIdToParticleType           , sampleParticleNumber             , &
@@ -218,6 +218,12 @@ contains
       <description>The relative tolerance to use in the integrals over the mass distribution used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
     </inputParameter>
     <inputParameter>
+      <name>tolerancePotential</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-9</defaultValue>
+      <description>The relative tolerance to use in the integrals over the potential used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
+    </inputParameter>
+    <inputParameter>
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
@@ -281,9 +287,9 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection_,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening_,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection_,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening_,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,tolerancePotential,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection_,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening_,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection_,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening_,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,tolerancePotential,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -296,7 +302,7 @@ contains
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters) result(self)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,tolerancePotential,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters) result(self)
     !!{
     Internal constructor for the particulate merger tree operator class.
     !!}
@@ -308,7 +314,7 @@ contains
     double precision                                  , intent(in   )         :: massParticle         , radiusTruncateOverRadiusVirial   , &
          &                                                                       timeSnapshot         , energyDistributionPointsPerDecade, &
          &                                                                       lengthSoftening      , toleranceRelativeSmoothing       , &
-         &                                                                       toleranceMass
+         &                                                                       toleranceMass        , tolerancePotential
     logical                                           , intent(in   )         :: satelliteOffset      , nonCosmological                  , &
          &                                                                       positionOffset       , addHubbleFlow                    , &
          &                                                                       haloIdToParticleType , sampleParticleNumber             , &
@@ -323,7 +329,7 @@ contains
     class           (galacticStructureClass          ), intent(in   ), target :: galacticStructure_
     type            (inputParameters                 ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_,*galacticStructure_"/>
+    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,tolerancePotential,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_,*galacticStructure_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -541,16 +547,9 @@ contains
                 end do
              end do
              !$omp end critical (mergerTreeOperatorParticulateSample)
-             call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
-             call positionSpherical%thetaSet(acos(2.0d0   *randomDeviates(2)-1.0d0))
-             call positionSpherical%    rSet(                                                                            &
-                  &                          self_%galacticStructure_%radiusEnclosingMass(                               &
-                  &                                                                       node                         , &
-                  &                                                                       mass      =+massTruncate       &
-                  &                                                                                  *randomDeviates(3), &
-                  &                                                                       massType  =massTypeDark        &
-                  &                                                                      )                               &
-                  &                         )
+             call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
+             call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
+             call positionSpherical%    rSet(     radiusTruncate_*randomDeviates(3)       )
              ! Get the corresponding cartesian coordinates.
              positionCartesian=positionSpherical
              ! Construct the energy distribution function encompassing this radius.
@@ -560,9 +559,12 @@ contains
                   &                                                positionSpherical%r()           , &
                   &                                          table=energyDistributionTablePotential  &
                   &                                         )
-             speedEscape    =+sqrt(                 &
-                  &                +2.0d0           &
-                  &                *energyPotential &
+             speedEscape    =+sqrt(                      &
+                  &                +2.0d0                &
+                  &                *max(                 &
+                  &                     energyPotential, &
+                  &                     0.0d0            &
+                  &                    )                 &
                   &               )
              ! Estimate the maximum of the speed distribution function.
              distributionFunctionMaximum=+0.0d0
@@ -788,16 +790,15 @@ contains
     ! function. This allows for numerical inaccuracies that arise in cored density profiles where the central potential has the
     ! form Φ(r) = Φ₀ + k r², such that the potential is very weakly dependent on r at small radii.
     double precision                       , parameter     :: derivativeLogarithmicPotentialTolerance  =1.0d-5
-    double precision                                       :: radiusMinimum                                   , energyPotentialTruncate                  , &
+    double precision                                       :: radiusMinimum                                   , derivativeLogarithmicPotential           , &
          &                                                    particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
          &                                                    radiusFactorAsymptote                           , integralAsymptotic                       , &
          &                                                    gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
-         &                                                    densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper             , &
-         &                                                    derivativeLogarithmicPotential
+         &                                                    densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper
     logical                                                :: tableRebuild
     integer                                                :: i                                               , j
     integer                                                :: radiusCount
-    type            (coordinateSpherical  )                :: coordinates
+    type            (coordinateSpherical  )                :: coordinates                                     , coordinatesTruncate
     type            (integrator           )                :: intergatorSmoothingZ                            , integratorMass                           , &
          &                                                    integratorPotential                             , integratorEddington
 
@@ -826,38 +827,30 @@ contains
             &                         tableCount       = 5                                          , &
             &                         extrapolationType= [extrapolationTypeFix,extrapolationTypeFix]  &
             &                        )
-       select case (softeningKernel%ID)
-       case (particulateKernelDelta%ID)
-          coordinates            =[radiusTruncate_,0.0d0,0.0d0]
-          energyPotentialTruncate=+massDistribution_%potential(coordinates)
-       case default
-          ! Potential will be computed directly from the smoothed density profile in these cases.
-          energyPotentialTruncate=0.0d0
-       end select
        do i=1,radiusCount
           radius_    =energyDistribution%x(i)
           coordinates=[radius_,0.0d0,0.0d0]
-          call energyDistribution%populate(                                                                              &
-               &                                         +massDistribution_%density  (coordinates)                     , &
-               &                                         i                                                             , &
-               &                           table        =energyDistributionTableDensity                                , &
-               &                           computeSpline=i==radiusCount                                                  &
+          call energyDistribution%populate(                                                                                         &
+               &                                         +massDistribution_%density  (coordinates)                                , &
+               &                                         i                                                                        , &
+               &                           table        =energyDistributionTableDensity                                           , &
+               &                           computeSpline=i==radiusCount                                                             &
                &                          )
           select case (softeningKernel%ID)
           case (particulateKernelDelta%ID)
              ! No softening is applied, so use the actual density and potential.
-             call energyDistribution%populate(                                                                            &
-                  &                                         energyDistribution%y(i,table=energyDistributionTableDensity), &
-                  &                                                              i                                      , &
-                  &                           table        =energyDistributionTableDensitySmoothed                      , &
-                  &                           computeSpline=i==radiusCount                                                &
+             coordinatesTruncate=[radiusTruncate_,0.0d0,0.0d0]
+             call energyDistribution%populate(                                                                                      &
+                  &                                         energyDistribution%y(i,table=energyDistributionTableDensity)          , &
+                  &                                                              i                                                , &
+                  &                           table        =energyDistributionTableDensitySmoothed                                , &
+                  &                           computeSpline=i==radiusCount                                                          &
                   &                          )
-             call energyDistribution%populate(                                                                            &
-                  &                                         -massDistribution_%potential(coordinates)                     &
-                  &                                         +energyPotentialTruncate                                    , &
-                  &                                         i                                                           , &
-                  &                           table        =energyDistributionTablePotential                            , &
-                  &                           computeSpline=i==radiusCount                                                &
+             call energyDistribution%populate(                                                                                      &
+                  &                                         massDistribution_%potentialDifference(coordinatesTruncate,coordinates), &
+                  &                                         i                                                                     , &
+                  &                           table        =energyDistributionTablePotential                                      , &
+                  &                           computeSpline=i==radiusCount                                                          &
                   &                          )
           case default
              ! Compute potential from a density field smoothed by the density distribution corresponding to the softened
@@ -930,7 +923,7 @@ contains
                   &                           computeSpline=i==radiusCount                      &
                   &                          )
           end do
-          integratorPotential=integrator(particulatePotentialIntegrand,toleranceRelative=1.0d-9)
+          integratorPotential=integrator(particulatePotentialIntegrand,toleranceRelative=self_%tolerancePotential)
           do i=1,radiusCount
              radius_=energyDistribution%x(i)
              call energyDistribution%populate(                                                             &
