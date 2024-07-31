@@ -1173,6 +1173,9 @@ CODE
 		# Add a class guard for resets.
 		$deepCopy->{'resetCode'   } .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$deepCopy->{'finalizeCode'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		# Initialize a list of explicity-deep-copied variables that have been found.
+		my $foundDeepCopyNames;
+		@{$foundDeepCopyNames} = ();
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -1188,7 +1191,7 @@ CODE
 		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
@@ -1208,7 +1211,7 @@ CODE
 			unless ( defined($declarationSource) );
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    my @ignore      = ();
-		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy);
+		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames);
 		}
 		# Add any objects declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
@@ -1216,7 +1219,7 @@ CODE
 		    my @ignore = ();
 		    my $node   = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
@@ -1233,6 +1236,19 @@ CODE
 		$deepCopy->{'code'} .= "end select\n";
 		# Specify required modules.
 		$deepCopy->{'modules'}->{'Error'} = 1;
+		# Check that all explicit variables were found.
+		{
+		    my $class = $nonAbstractClass;
+		    while ( $class ) {
+			if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+			    foreach my $variable ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {				
+				die("Error: unable to find variable '".$variable."' marked for deep copy in class '".$class->{'name'}."'")
+				    unless ( grep {$_ eq lc($variable)} @{$foundDeepCopyNames} );
+			    }
+			}
+			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		    }
+		}
 	    }
             $deepCopy->{'code'        } .= "end select\n";
 	    $deepCopy->{'resetCode'   } .= "end select\n";
@@ -1351,6 +1367,8 @@ CODE
 		my $extensionOf;
 		# Generate code to output all variables from this class (and any parent class).
 		@{$stateStore->{'staticVariables'}} = ();
+		my $explicitNamesFound;
+		@{$explicitNamesFound} = ();
 		my $class = $nonAbstractClass;
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
@@ -1367,7 +1385,7 @@ CODE
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'})
+			&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'},$explicitNamesFound)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
@@ -1404,15 +1422,29 @@ CODE
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration);
+		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration,$explicitNamesFound);
 		}
 		# Add any variables declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			&stateStoreVariables($stateStores,$stateStore,undef(),$node->{'declarations'})
+			&stateStoreVariables($stateStores,$stateStore,undef(),$node->{'declarations'},$explicitNamesFound)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		    }
+		}
+		# Check that all explicit variables were found.
+		{
+		    my $class = $nonAbstractClass;
+		    while ( $class ) {
+			if ( exists($class->{'stateStorable'}->{'functionClass'}) && exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
+			    foreach my $variable ( split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
+				die("Error: unable to find variable '".$variable."' marked as state storable in class '".$class->{'name'}."'")
+				    unless ( grep {$_ eq lc($variable)} @{$explicitNamesFound} );
+			    }
+			}
+			# Move to the parent class.
+			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		    }
 		}
 		# Add code to method.
@@ -3062,13 +3094,14 @@ sub potentialDescriptorParameters {
     
 sub deepCopyDeclarations {
     # Process variable declarations from a node for deep copy.
-    my $class            =   shift() ;
-    my $nonAbstractClass =   shift() ;
-    my $node             =   shift() ;
-    my $declarations     =   shift() ;
-    my @ignore           = @{shift()};
-    my $lineNumber       =   shift() ;
-    my $deepCopy         =   shift() ;
+    my $class              =   shift() ;
+    my $nonAbstractClass   =   shift() ;
+    my $node               =   shift() ;
+    my $declarations       =   shift() ;
+    my @ignore             = @{shift()};
+    my $lineNumber         =   shift() ;
+    my $deepCopy           =   shift() ;
+    my $foundDeepCopyNames =   shift() ;
     our $stateStorables;
     our $debugging;
     our $deepCopyActions;
@@ -3167,6 +3200,7 @@ sub deepCopyDeclarations {
 	    foreach my $object ( @{$declaration->{'variables'}} ) {
 		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 		if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+		    push(@{$foundDeepCopyNames},$name);
 		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 			$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
 			$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
@@ -3312,16 +3346,16 @@ sub deepCopyDeclarations {
 		}
 	}
     }
-   
 }
 
 sub stateStoreVariables {
     # Generate code to store/restore variables in functionClass objects.
-    my  $stateStores    = shift();
-    my  $stateStore     = shift();
-    my  $class          = shift();
-    my  $declarations   = shift();
-    our $stateStorables          ;
+    my  $stateStores        = shift();
+    my  $stateStore         = shift();
+    my  $class              = shift();
+    my  $declarations       = shift();
+    my  $explicitNamesFound = shift();
+    our $stateStorables              ;
     foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
 	# Identify variable type.
 	if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
@@ -3438,8 +3472,11 @@ sub stateStoreVariables {
 		    (my $variableName = $_) =~ s/\s*=.*$//;
 		    next
 			if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+		    my $isExplicit = grep {lc($_) eq lc($variableName)} @explicits;
 		    next
-			unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
+			unless ( (! $isPointer) || $isExplicit );
+		    push(@{$explicitNamesFound},lc($variableName))
+			if ( $isExplicit );
 		    my $rank = 0;
 		    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 			my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
