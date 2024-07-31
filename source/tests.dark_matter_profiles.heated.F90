@@ -70,6 +70,7 @@ program Test_Dark_Matter_Profiles_Heated
   double precision                                                                , parameter    :: toleranceRelativeVelocityDispersionMaximum  = 1.0d-03
   double precision                                                                , parameter    :: toleranceRelativePotential                  = 1.0d-03
   logical                                                                         , parameter    :: velocityDispersionApproximate               =.false.
+  logical                                                                         , parameter    :: tolerateVelocityMaximumFailure              =.false.
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentSatellite                                        ), pointer      :: satellite
   double precision                                                                , dimension(3) :: radiusVirialFractional                      =[0.1d0,0.5d0,1.0d0]
@@ -163,10 +164,10 @@ program Test_Dark_Matter_Profiles_Heated
    </constructor>
   </referenceConstruct>
   !!]
-  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder        ,coefficientSecondOrder       ,coefficientSecondOrder                                                        ,correlationVelocityRadius                                                                                     )
+  darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder        ,coefficientSecondOrder                                      ,coefficientSecondOrder                                                        ,correlationVelocityRadius                                                                                     )
   darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                                                       darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversNumericalDMO,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum                           ,darkMatterProfileDMOIsothermal_                     ,darkMatterProfileHeatingTidal_)
-  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversNumericalDMO                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversNumericalDMO,velocityDispersionApproximate,tolerateVelocityMaximumFailure,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum                           ,darkMatterProfileDMOIsothermal_                     ,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversNumericalDMO                                                             ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)
@@ -190,12 +191,12 @@ program Test_Dark_Matter_Profiles_Heated
         toleranceRelativeVelocityDispersionAssert =  1.0d-2
         select type (massDistributionIsothermal_)
         class is (massDistributionSpherical)
-           allocate(massDistributionSphericalHeated         :: massDistributionSphericalHeated_)
-           allocate(kinematicsDistributionHeated            :: kinematicsDistributionHeated_   )
+           allocate(massDistributionSphericalHeated :: massDistributionSphericalHeated_)
+           allocate(kinematicsDistributionHeated    :: kinematicsDistributionHeated_   )
            select type (massDistributionSphericalHeated_)
            type is (massDistributionSphericalHeated         )
               !![
-	      <referenceConstruct object="massDistributionSphericalHeated_" constructor="massDistributionSphericalHeated(nonAnalyticSolversNumerical,massDistributionIsothermal_,massDistributionHeatingTidal_)"/>
+	      <referenceConstruct object="massDistributionSphericalHeated_" constructor="massDistributionSphericalHeated(nonAnalyticSolversNumerical,tolerateVelocityMaximumFailure,massDistributionIsothermal_,massDistributionHeatingTidal_)"/>
 	      !!]
            end select
            select type (kinematicsDistributionHeated_)
