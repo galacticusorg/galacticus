@@ -477,22 +477,24 @@ contains
     use            :: Error                  , only : Error_Report
     use            :: Input_Paths            , only : inputPath            , pathTypeDataStatic
     use            :: IO_XML                 , only : XML_Array_Read       , XML_Parse
-    use            :: ISO_Varying_String     , only : var_str              , char              , operator(//)
+    use            :: ISO_Varying_String     , only : var_str              , char              , operator(//), assignment(=), &
+         &                                            varying_string
     use            :: Numerical_Integration  , only : GSL_Integ_Gauss15    , integrator
     use            :: Numerical_Interpolation, only : interpolator
     use            :: Table_Labels           , only : extrapolationTypeZero
     implicit none
-    integer                       , intent(in   )              :: indexFilter
-    type            (integrator  )               , allocatable :: integratorVegaBuserV_        , integratorABBuserV_  , &
-         &                                                        integratorVegaFilter_        , integratorABFilter_
-    type            (interpolator), pointer                    :: interpolatorBuserV_          , interpolatorFilter_
-    type            (interpolator), save                       :: interpolatorVega_
-    type            (node        ), pointer                    :: doc
-    logical                       , save                       :: vegaLoaded           =.false.
-    double precision              , dimension(2)               :: wavelengthRangeBuserV        , wavelengthRangeFilter
-    double precision              , dimension(:) , allocatable :: wavelengthVega               , spectrumVega
-    integer                                                    :: indexBuserV                  , ioErr
-    logical                                                    :: isLocked
+    integer                         , intent(in   )              :: indexFilter
+    type            (integrator    )               , allocatable :: integratorVegaBuserV_        , integratorABBuserV_  , &
+         &                                                          integratorVegaFilter_        , integratorABFilter_
+    type            (interpolator  ), pointer                    :: interpolatorBuserV_          , interpolatorFilter_
+    type            (interpolator  ), save                       :: interpolatorVega_
+    type            (node          ), pointer                    :: doc
+    logical                         , save                       :: vegaLoaded           =.false.
+    double precision                , dimension(2)               :: wavelengthRangeBuserV        , wavelengthRangeFilter
+    double precision                , dimension(:) , allocatable :: wavelengthVega               , spectrumVega
+    integer                                                      :: indexBuserV                  , ioErr
+    logical                                                      :: isLocked
+    type            (varying_string)                             :: fileName
 
     isLocked=lock%owned()
     if (.not.isLocked) call lock%setRead()
@@ -507,8 +509,9 @@ contains
        if (.not.vegaLoaded) then
           !$omp critical (loadVegaSpectrum)
           if (.not.vegaLoaded) then
+             fileName=inputPath(pathTypeDataStatic)//'stellarAstrophysics/vega/A0V_Castelli.xml'
              !$omp critical (FoX_DOM_Access)
-             doc => XML_Parse(char(inputPath(pathTypeDataStatic)//'stellarAstrophysics/vega/A0V_Castelli.xml'),iostat=ioErr)
+             doc => XML_Parse(char(fileName),iostat=ioErr)
              if (ioErr /= 0) call Error_Report('failed to read Vega spectrum'//{introspection:location})
              call XML_Array_Read(doc,"datum",wavelengthVega,spectrumVega)
              call destroy(doc)
