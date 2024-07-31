@@ -27,10 +27,10 @@
     A dark matter profile DMO class which implements the \cite{penarrubia_impact_2010} density profile.
    </description>
    <deepCopy>
-    <functionClass variables="darkMatterProfileStripped, darkMatterProfileUnstripped"/>
+    <functionClass variables="massDistributionStripped, massDistributionUnstripped"/>
    </deepCopy>
    <stateStorable>
-    <functionClass variables="darkMatterProfileStripped, darkMatterProfileUnstripped"/>
+    <functionClass variables="massDistributionStripped, massDistributionUnstripped"/>
    </stateStorable>
   </darkMatterProfileDMO>
   !!]
@@ -143,10 +143,10 @@ contains
     implicit none
     type            (darkMatterProfileDMOPenarrubia2010)                        :: self
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                    , intent(in   )         :: alpha                   , beta                      , &
-         &                                                                         gamma                   , betaStripped              , &
-         &                                                                         muRadius                , etaRadius                 , &
-         &                                                                         muVelocity              , etaVelocity
+    double precision                                    , intent(in   )         :: alpha               , beta        , &
+         &                                                                         gamma               , betaStripped, &
+         &                                                                         muRadius            , etaRadius   , &
+         &                                                                         muVelocity          , etaVelocity
     !![
     <constructorAssign variables="alpha, beta, gamma, betaStripped, muRadius, etaRadius, muVelocity, etaVelocity, *darkMatterHaloScale_"/>
     !!]
@@ -157,8 +157,8 @@ contains
     <referenceConstruct isResult="yes" owner="self" object="massDistributionStripped"   constructor="massDistributionZhao1996(alpha,betaStripped,gamma,scaleLength=1.0d0,mass=1.0d0,radiusOuter=1.0d0)"/>
     <referenceConstruct isResult="yes" owner="self" object="massDistributionUnstripped" constructor="massDistributionZhao1996(alpha,beta        ,gamma,scaleLength=1.0d0,mass=1.0d0,radiusOuter=1.0d0)"/>
     !!]
-    self%ratioRadiusMaximumRadiusScaleStripped      =+self%massDistributionStripped  %  radiusRotationCurveMaximum(            )
-    self%ratioRadiusMaximumRadiusScaleUnstripped    =+self%massDistributionUnstripped%  radiusRotationCurveMaximum(            )
+    self%ratioRadiusMaximumRadiusScaleStripped  =+self%massDistributionStripped  %radiusRotationCurveMaximum()
+    self%ratioRadiusMaximumRadiusScaleUnstripped=+self%massDistributionUnstripped%radiusRotationCurveMaximum()
     return
   end function penarrubia2010ConstructorInternal
 
