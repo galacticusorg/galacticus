@@ -156,6 +156,10 @@ FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
 CCOMPILER_VERSION = `$(CCOMPILER) -v 2>&1`
 CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 
+# Find all source files.
+ALLSOURCES    = $(wildcard source/*.[fF]90              source/*.h source/*.c source/*.cpp)
+ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c source/*.cpp)
+
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by preprocessing and then compiling Fortran 90 (*.F90) source
@@ -545,25 +549,25 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.pl `pwd`
 	./scripts/build/stateStorables.pl `pwd`
 	./scripts/build/deepCopyActions.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/includeDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/findExecutables.pl `pwd`
 
