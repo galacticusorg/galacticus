@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722118017146,
+  "lastUpdate": 1722504278304,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
@@ -2008,6 +2008,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/2126b138dd20a2484b72ab08a81613f3078ea2ee"
         },
         "date": 1722118016422,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 57.2101605011752,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 29.5453576269612,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.0353080339689,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a341a7f09a9a4af10c242ac9a149af18a419766a",
+          "message": "Merge pull request #660 from galacticusorg/featXMLIncludeAbsolutePaths\n\nCorrectly handle XML `XInclude` elements with absolute paths",
+          "timestamp": "2024-08-01T03:15:02Z",
+          "tree_id": "1e8120b446e0c30085e7bb228526564ed24145a4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a341a7f09a9a4af10c242ac9a149af18a419766a"
+        },
+        "date": 1722504277165,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
