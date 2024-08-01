@@ -131,12 +131,16 @@ contains
     !!}
     use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Parse
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char                        , varying_string                   , operator(//)
     implicit none
-    type(localGroupDB) :: self
-
-    self%database => XML_Parse(char(inputPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
+    type(localGroupDB  ) :: self
+    type(varying_string) :: fileName
+    
+    fileName=inputPath(pathTypeDataStatic)//"observations/localGroup/localGroupSatellites.xml"
+    !$omp critical (FoX_DOM_Access)
+    self%database => XML_Parse(char(fileName))
     call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name(self%database,'galaxies'),'galaxy',self%galaxies)
+    !$omp end critical (FoX_DOM_Access)
     allocate(self%selected(0:size(self%galaxies)-1))
     self%selected=.false.
     return
