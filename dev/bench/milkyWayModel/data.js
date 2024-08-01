@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722118009988,
+  "lastUpdate": 1722504258564,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "40d12d74dfc67ddd41f69404da885368cdc235a6",
-          "message": "Merge pull request #476 from galacticusorg/optimization\n\nFurther minor optimizations",
-          "timestamp": "2023-09-19T02:55:55Z",
-          "tree_id": "b53625ec22535b8ae414099fdd31bee401d6ac8e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/40d12d74dfc67ddd41f69404da885368cdc235a6"
-        },
-        "date": 1695103182774,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 261.856,
-            "unit": "seconds",
-            "range": 0.36417633091625
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10720,6 +10690,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.027625685618,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a341a7f09a9a4af10c242ac9a149af18a419766a",
+          "message": "Merge pull request #660 from galacticusorg/featXMLIncludeAbsolutePaths\n\nCorrectly handle XML `XInclude` elements with absolute paths",
+          "timestamp": "2024-08-01T03:15:02Z",
+          "tree_id": "1e8120b446e0c30085e7bb228526564ed24145a4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a341a7f09a9a4af10c242ac9a149af18a419766a"
+        },
+        "date": 1722504257602,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 463.669,
+            "unit": "seconds",
+            "range": 0.213749619867609
           }
         ]
       }
