@@ -482,7 +482,7 @@ contains
     return
   end subroutine XML_Extrapolation_Element_Decode
   
-  function XML_Parse(fileName,iostat,ex) result(document)
+  function XML_Parse(fileName,iostat,ex,fileNameCurrent) result(document)
     !!{
     Parse an XML document, automatically resolve XInclude references.
     !!}
@@ -492,16 +492,17 @@ contains
           &                           getNodeName  , getNodeType       , getParentNode, hasAttribute    , &
           &                           hasChildNodes, importNode        , insertBefore , node            , &
           &                           parseFile    , removeChild       , replaceChild , setLiveNodeLists, &
-          &                           setAttribute
+          &                           setAttribute , inException
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=), char              , extract      , len             , &
-          &                           operator(//) , operator(==)
+          &                           operator(//) , operator(==)      , operator(/=)
     implicit none
     type     (node            ), pointer                     :: document           , nodeNew       , &
          &                                                      nodeCurrent        , nodeParent    , &
          &                                                      nodeXInclude       , nodeImported  , &
          &                                                      nodeInsert         , nodeNext
     character(len=*           ), intent(in   )               :: fileName
+    type     (varying_string  ), intent(  out), optional     :: fileNameCurrent
     integer                    , intent(inout), optional     :: iostat
     type     (DOMException    ), intent(  out), optional     :: ex
     type     (xmlNodeList     ), allocatable  , dimension(:) :: nodesCurrent
@@ -530,19 +531,29 @@ contains
     ! Process the document.
     allElements=.false.
     do while (stackCount > 0)
+       ! Construct the full filename.
+       if (extract(stack(stackCount)%fileName,1,1) == "/") then
+          fileNameFull=          stack(stackCount)%fileName
+       else
+          fileNameFull=filePath//stack(stackCount)%fileName
+       end if
+       if (present(fileNameCurrent)) fileNameCurrent=fileNameFull
        ! Check that file exists.
-       if (.not.File_Exists(char(filePath//stack(stackCount)%fileName))) call Error_Report('file "'//char(filePath//stack(stackCount)%fileName)//'" does not exist'//{introspection:location})
+       if (.not.File_Exists(char(fileNameFull))) call Error_Report('file "'//char(fileNameFull)//'" does not exist'//{introspection:location})
        ! Parse the document.
-       nodeNew => parseFile(char(filePath//stack(stackCount)%fileName),iostat=iostat,ex=ex)
-       if (present(iostat).and.iostat /= 0) return
+       nodeNew => parseFile(char(fileNameFull),iostat=iostat,ex=ex)
+       if (present(iostat).and.iostat /= 0.or.present(ex).and.inException(ex)) return
        ! Paths in any xi:include elements are relative to the file they are defined in. We must update this to be relative to our base parameter file.
        call XML_Get_Elements_By_Tag_Name(nodeNew,"xi:include",nodesCurrent)
        do i=0,size(nodesCurrent)-1
           nodeCurrent => nodesCurrent(i)%element
           if (getNodeName(nodeCurrent) == "xi:include") then
              if (.not.hasAttribute(nodeCurrent,"href")) call Error_Report("missing 'href' in XInclude"//{introspection:location})
-             fileNameFull=File_Path(stack(stackCount)%fileName)//getAttribute(nodeCurrent,"href")
-             call setAttribute(nodeCurrent,"href",char(fileNameFull))
+             fileNameFull=getAttribute(nodeCurrent,"href")
+             if (extract(fileNameFull,1,1) /= "/") then
+                fileNameFull=File_Path(stack(stackCount)%fileName)//getAttribute(nodeCurrent,"href")
+                call setAttribute(nodeCurrent,"href",char(fileNameFull))
+             end if
           end if
        end do
        ! Process the file into our combined document.
