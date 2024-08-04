@@ -121,7 +121,7 @@ contains
     class  (massDistributionClass                ), pointer                 :: massDistribution_
     type   (kinematicsDistributionSphericalScaler), pointer                 :: kinematicsDistribution_
     class  (kinematicsDistributionClass          ), pointer                 :: kinematicsDistributionDMO
-    class  (darkMatterProfileDarkMatterOnly      ), intent(inout)           :: self
+    class  (darkMatterProfileDarkMatterOnly      ), intent(inout), target   :: self
     type   (treeNode                             ), intent(inout), target   :: node
     type   (enumerationWeightByType              ), intent(in   ), optional :: weightBy
     integer                                       , intent(in   ), optional :: weightIndex

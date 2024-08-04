@@ -69,8 +69,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
   !$omp threadprivate(darkMatterProfile_,darkMatterProfileDMO_)
   
   ! Procedure pointers to mass distribution functions.
-  procedure(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist     ), pointer :: Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_
-  procedure(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init), pointer :: Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init_
+  procedure(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist), pointer :: Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_
 
   ! Mass distribution pointer used for post-construction initialization.
   class(massDistributionClass), pointer :: massDistribution__
@@ -95,10 +94,8 @@ contains
 
     !$omp critical (Node_Component_Dark_Matter_Profile_Init)
     if (defaultDarkMatterProfileComponent%scaleFreeIsActive()) then
-       Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_      => Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist
-       Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init_ => Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init
-       call darkMatterProfile%massDistributionFunction    (Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_     )
-       call darkMatterProfile%massDistributionInitFunction(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init_)
+       Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_ => Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist
+       call darkMatterProfile%massDistributionFunction(Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_)
     end if
     !$omp end critical (Node_Component_Dark_Matter_Profile_Init)
     return
@@ -239,16 +236,4 @@ contains
     return
   end function Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist
 
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init(self)
-    !!{
-    Finish initialization of the mass distribution associated with the dark matter profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfileScaleFree
-    implicit none
-    class(nodeComponentDarkMatterProfileScaleFree), intent(inout) :: self
-
-    if (associated(massDistribution__)) call darkMatterProfile_%initialize(self%hostNode,massDistribution__)
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist_Init
-  
 end module Node_Component_Dark_Matter_Profile_Scale_Free

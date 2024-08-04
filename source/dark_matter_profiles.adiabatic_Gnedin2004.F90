@@ -83,25 +83,16 @@
      A dark matter halo profile class implementing adiabaticGnedin2004 dark matter halos.
      !!}
      private
-     class           (cosmologyParametersClass            ), pointer  :: cosmologyParameters_   => null()
-     class           (darkMatterProfileDMOClass           ), pointer  :: darkMatterProfileDMO_  => null()
-     class           (darkMatterHaloScaleClass            ), pointer  :: darkMatterHaloScale_   => null()
-     integer         (kind_int8                           )           :: lastUniqueID
-     type            (enumerationNonAnalyticSolversType   )           :: nonAnalyticSolver
-     double precision                                                 :: A                               , omega               , &
-          &                                                              radiusFractionalPivot           , toleranceRelative   , &
-          &                                                              darkMatterFraction              , massBaryonicSubhalos
+     class           (cosmologyParametersClass         ), pointer  :: cosmologyParameters_   => null()
+     class           (darkMatterProfileDMOClass        ), pointer  :: darkMatterProfileDMO_  => null()
+     class           (darkMatterHaloScaleClass         ), pointer  :: darkMatterHaloScale_   => null()
+     type            (enumerationNonAnalyticSolversType)           :: nonAnalyticSolver
+     double precision                                              :: A                               , omega               , &
+          &                                                           radiusFractionalPivot           , toleranceRelative   , &
+          &                                                           darkMatterFraction
    contains    
-     !![
-     <methods>
-       <method description="Reset memoized calculations." method="calculationReset"/>
-     </methods>
-     !!]
-     final     ::                     adiabaticGnedin2004Destructor
-     procedure :: autoHook         => adiabaticGnedin2004AutoHook
-     procedure :: calculationReset => adiabaticGnedin2004CalculationReset
-     procedure :: get              => adiabaticGnedin2004Get
-     procedure :: initialize       => adiabaticGnedin2004Initialize
+     final     ::        adiabaticGnedin2004Destructor
+     procedure :: get => adiabaticGnedin2004Get
   end type darkMatterProfileAdiabaticGnedin2004
 
   interface darkMatterProfileAdiabaticGnedin2004
@@ -202,29 +193,13 @@ contains
     self%darkMatterFraction=+1.0d0                                   &
          &                  -self%cosmologyParameters_%OmegaBaryon() &
          &                  /self%cosmologyParameters_%OmegaMatter()
-    ! Initialize memoization state.
-    self%lastUniqueID        =-1_kind_int8
-    self%massBaryonicSubhalos=-huge(0.0d0)
     return
   end function adiabaticGnedin2004ConstructorInternal
-
-  subroutine adiabaticGnedin2004AutoHook(self)
-    !!{
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
-    implicit none
-    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
-    
-    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileAdiabaticGnedin2004')
-    return
-  end subroutine adiabaticGnedin2004AutoHook
 
   subroutine adiabaticGnedin2004Destructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
@@ -233,45 +208,29 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    if (calculationResetEvent%isAttached(self,adiabaticGnedin2004CalculationReset)) call calculationResetEvent%detach(self,adiabaticGnedin2004CalculationReset)
     return
   end subroutine adiabaticGnedin2004Destructor
-
-  subroutine adiabaticGnedin2004CalculationReset(self,node,uniqueID)
-    !!{
-    Reset the dark matter profile calculation.
-    !!}
-    use :: Kind_Numbers, only : kind_int8
-    implicit none
-    class  (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
-    type   (treeNode                            ), intent(inout) :: node
-    integer(kind_int8                           ), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    if (uniqueID /= self%lastUniqueID) then
-       self%lastUniqueID        =uniqueID
-       self%massBaryonicSubhalos=-huge(0.0d0)
-    end if
-    return
-  end subroutine adiabaticGnedin2004CalculationReset
 
   function adiabaticGnedin2004Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic         , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical, kinematicsDistributionClass
+    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical, kinematicsDistributionClass, &
+         &                                    sphericalAdiabaticGnedin2004Initializor
     implicit none
-    class           (massDistributionClass               ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionCollisionless ), pointer                 :: kinematicsDistribution_
-    type            (kinematicsDistributionClass         ), pointer                 :: kinematicsDistribution__
-    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)           :: self
-    type            (treeNode                            ), intent(inout), target   :: node
-    type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
-    integer                                               , intent(in   ), optional :: weightIndex
-    class           (massDistributionClass               ), pointer                 :: massDistributionDecorated    , massDistributionBaryonic
-    double precision                                                                :: massBaryonicSelfTotal        , massBaryonicTotal       , &
-         &                                                                             darkMatterDistributedFraction, initialMassFraction
+    class           (massDistributionClass                  ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless    ), pointer                 :: kinematicsDistribution_
+    type            (kinematicsDistributionClass            ), pointer                 :: kinematicsDistribution__
+    class           (darkMatterProfileAdiabaticGnedin2004   ), intent(inout), target   :: self
+    type            (treeNode                               ), intent(inout), target   :: node
+    type            (enumerationWeightByType                ), intent(in   ), optional :: weightBy
+    integer                                                  , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass                  ), pointer                 :: massDistributionDecorated    , massDistributionBaryonic
+    double precision                                                                   :: massBaryonicSelfTotal        , massBaryonicTotal       , &
+         &                                                                                darkMatterDistributedFraction, initialMassFraction
+    procedure       (sphericalAdiabaticGnedin2004Initializor), pointer                 :: initializationFunction
+    class           (*                                      ), pointer                 :: initializationSelf           , initializationArgument
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -293,6 +252,9 @@ contains
        massDistributionDecorated => self%darkMatterProfileDMO_%get(node,weightBy,weightIndex)
        select type (massDistributionDecorated)
        class is (massDistributionSpherical)
+          initializationFunction => adiabaticGnedin2004Initialize
+          initializationSelf     => self
+          initializationArgument => node
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
@@ -308,6 +270,9 @@ contains
 	      &amp;                                        toleranceRelative            =self                     %toleranceRelative                  , &amp;
 	      &amp;                                        massDistribution_            =                          massDistributionDecorated          , &amp;
 	      &amp;                                        massDistributionBaryonic     =                          massDistributionBaryonic           , &amp;
+	      &amp;                                        initializationFunction       =                          initializationFunction             , &amp;
+	      &amp;                                        initializationSelf           =                          initializationSelf                 , &amp;
+	      &amp;                                        initializationArgument       =                          initializationArgument             , &amp;
               &amp;                                        componentType                =                          componentTypeDarkHalo              , &amp;
               &amp;                                        massType                     =                          massTypeDark                         &amp;
               &amp;                                       )
@@ -336,7 +301,7 @@ contains
     return
   end function adiabaticGnedin2004Get
 
-  subroutine adiabaticGnedin2004Initialize(self,node,massDistribution_)
+  subroutine adiabaticGnedin2004Initialize(self,node,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
     !!{
     Initialize the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
@@ -345,31 +310,31 @@ contains
     use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004
     use :: Error                     , only : Error_Report
     implicit none
-    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
-    type            (treeNode                            ), intent(inout), target :: node
-    class           (massDistributionClass               ), intent(inout)         :: massDistribution_
-    class           (massDistributionClass               ), pointer               :: massDistributionBaryonic
-    type            (treeNode                            ), pointer               :: nodeCurrent
-    class           (nodeComponentBasic                  ), pointer               :: basic
-    double precision                                                              :: massBaryonicSelf             , massBaryonicTotal  , &
-         &                                                                           darkMatterDistributedFraction, initialMassFraction
+    class           (*                    ), intent(inout), target  :: self                         , node
+    class           (massDistributionClass), intent(  out), pointer :: massDistributionBaryonic
+    double precision                       , intent(  out)          :: darkMatterDistributedFraction, massFractionInitial
+    type            (treeNode             )               , pointer :: nodeCurrent
+    class           (nodeComponentBasic   )               , pointer :: basic
+    double precision                                                :: massBaryonicSelf             , massBaryonicTotal  , &
+         &                                                             massBaryonicSubhalos
     
-    select type (massDistribution_)
-    type is (massDistributionSphericalAdiabaticGnedin2004)
-       ! Compute the initial baryonic contribution from this halo, and any satellites.
-       massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
-       massBaryonicSelf         =  node%massBaryonic    (                         )
-       ! Recompute baryonic mass in subhalos if necessary.
-       if (self%massBaryonicSubhalos < 0.0d0 .or. node%uniqueID() /= self%lastUniqueID) then
-          self       %massBaryonicSubhalos =  0.0d0
-          nodeCurrent                      => node
+    select type (self)
+    type is (darkMatterProfileAdiabaticGnedin2004)
+       select type (node)
+       type is (treeNode)
+          ! Compute the initial baryonic contribution from this halo, and any satellites.
+          massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
+          massBaryonicSelf         =  node%massBaryonic    (                         )
+          ! Compute baryonic mass in subhalos.
+          massBaryonicSubhalos     =  0.0d0
+          nodeCurrent              => node
           do while (associated(nodeCurrent%firstSatellite))
              nodeCurrent => nodeCurrent%firstSatellite
           end do
           if (associated(nodeCurrent,node)) nodeCurrent => null()
           do while (associated(nodeCurrent))
-             self%massBaryonicSubhalos=+self      %massBaryonicSubhalos   &
-                  &                   +nodeCurrent%massBaryonic        ()
+             massBaryonicSubhalos=+            massBaryonicSubhalos   &
+                  &               +nodeCurrent%massBaryonic        ()
              if (associated(nodeCurrent%sibling)) then
                 nodeCurrent => nodeCurrent%sibling
                 do while (associated(nodeCurrent%firstSatellite))
@@ -380,25 +345,22 @@ contains
                 if (associated(nodeCurrent,node)) nodeCurrent => null()
              end if
           end do
-       end if
-       ! Compute the total baryonic mass.
-       massBaryonicTotal=+self%massBaryonicSubhalos &
-            &            +     massBaryonicSelf
-       ! Limit masses to physical values.
-       massBaryonicSelf =max(massBaryonicSelf ,0.0d0)
-       massBaryonicTotal=max(massBaryonicTotal,0.0d0)
-       ! Compute the fraction of matter assumed to be distributed like the dark matter.
-       basic                         => node%basic()
-       darkMatterDistributedFraction =  min(self%darkMatterFraction+(massBaryonicTotal-massBaryonicSelf)/basic%mass(),1.0d0)
-       ! Compute the initial mass fraction.
-       initialMassFraction           =  min(self%darkMatterFraction+ massBaryonicTotal                  /basic%mass(),1.0d0)
-       ! Set the baryonic component in the mass distribution.
-       call massDistribution_%setBaryonicComponent(massDistributionBaryonic,darkMatterDistributedFraction,initialMassFraction)
-       !![
-       <objectDestructor name="massDistributionBaryonic"/>
-       !!]
+          ! Compute the total baryonic mass.
+          massBaryonicTotal=+massBaryonicSubhalos &
+               &            +massBaryonicSelf
+          ! Limit masses to physical values.
+          massBaryonicSelf =max(massBaryonicSelf ,0.0d0)
+          massBaryonicTotal=max(massBaryonicTotal,0.0d0)
+          ! Compute the fraction of matter assumed to be distributed like the dark matter.
+          basic                         => node%basic()
+          darkMatterDistributedFraction =  min(self%darkMatterFraction+(massBaryonicTotal-massBaryonicSelf)/basic%mass(),1.0d0)
+          ! Compute the initial mass fraction.
+          massFractionInitial           =  min(self%darkMatterFraction+ massBaryonicTotal                  /basic%mass(),1.0d0)
+        class default
+          call Error_Report('unexpected class'//{introspection:location})
+       end select
     class default
-       call Error_Report("unexpected class - expected 'massDistributionSphericalAdiabaticGnedin2004' but found '"//char(massDistribution_%objectType())//"'"//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
     return
   end subroutine adiabaticGnedin2004Initialize

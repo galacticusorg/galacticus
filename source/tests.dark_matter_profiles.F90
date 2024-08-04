@@ -1668,7 +1668,6 @@ program Test_Dark_Matter_Profiles
   call dmProfile%scaleSet(radiusScale)
   massDistribution_       => darkMatterProfileSIDMIsothermal_%get                   (nodeJiang)
   kinematicsDistribution_ => massDistribution_               %kinematicsDistribution(         )
-  call darkMatterProfileSIDMIsothermal_%initialize(nodeJiang,massDistribution_)
   !! Target values were provided by Fangzhou Jiang (private communication).
   select type (massDistribution_)
   class is (massDistributionSphericalSIDM)
@@ -1705,7 +1704,6 @@ program Test_Dark_Matter_Profiles
   call Calculations_Reset(nodeJiang)
   massDistribution_       => darkMatterProfileSIDMIsothermal_%get                   (nodeJiang)
   kinematicsDistribution_ => massDistribution_               %kinematicsDistribution(         )
-  call darkMatterProfileSIDMIsothermal_%initialize(nodeJiang,massDistribution_)
   !! Target values were measured from Figure A1 of Jiang et al. (2022).
   select type (massDistribution_)
   class is (massDistributionSphericalSIDM)

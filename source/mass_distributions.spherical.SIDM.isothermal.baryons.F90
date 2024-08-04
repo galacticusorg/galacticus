@@ -26,6 +26,8 @@
   use            :: Numerical_Interpolation, only : interpolator
   use            :: Numerical_ODE_Solvers  , only : odeSolver
 
+  public :: sphericalSIDMIsothermalBaryonsInitializor
+  
   !![
   <massDistribution name="massDistributionSphericalSIDMIsothermalBaryons">
    <description>
@@ -54,9 +56,13 @@
      based on the model of \cite{jiang_semi-analytic_2023}.
      !!}
      private
-     double precision                                     :: velocityDispersionCentral
-     class           (massDistributionClass), pointer     :: massDistributionBaryonic  => null()
-     type            (interpolator         ), allocatable :: densityProfile                     , massProfile
+     double precision                                                                 :: velocityDispersionCentral
+     class           (massDistributionClass                    ), pointer             :: massDistributionBaryonic  => null()
+     type            (interpolator                             ), allocatable         :: densityProfile                     , massProfile
+     ! Call-back function and arguments used for as-needed initialization of the baryonic component.
+     logical                                                                          :: initialized
+     procedure       (sphericalSIDMIsothermalBaryonsInitializor), pointer    , nopass :: initializationFunction
+     class           (*                                        ), pointer             :: initializationSelf        => null(), initializationArgument => null()
    contains
      !![
      <methods>
@@ -82,6 +88,17 @@
      module procedure sphericalSIDMIsothermalBaryonsConstructorInternal
   end interface massDistributionSphericalSIDMIsothermalBaryons
 
+  abstract interface 
+     subroutine sphericalSIDMIsothermalBaryonsInitializor(initializationSelf,initializationArgument,massDistributionBaryonic)
+       !!{
+       Interface for call-back functions for as-needed initialization of the baryonic component.
+       !!}
+       import massDistributionClass
+       class(*                    ), intent(inout), target  :: initializationSelf      , initializationArgument
+       class(massDistributionClass), intent(  out), pointer :: massDistributionBaryonic
+     end subroutine sphericalSIDMIsothermalBaryonsInitializor
+  end interface
+
 contains
 
   function sphericalSIDMIsothermalBaryonsConstructorParameters(parameters) result(self)
@@ -93,9 +110,11 @@ contains
     implicit none
     type            (massDistributionSphericalSIDMIsothermalBaryons)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
-    class           (massDistributionClass                         ), pointer       :: massDistribution_  , massDistributionBaryonic
+    class           (massDistributionClass                         ), pointer       :: massDistribution_     , massDistributionBaryonic
     class           (darkMatterParticleClass                       ), pointer       :: darkMatterParticle_
-    type            (varying_string                                )                :: componentType      , massType                , &
+    procedure       (sphericalSIDMIsothermalBaryonsInitializor     ), pointer       :: initializationFunction
+    class           (*                                             ), pointer       :: initializationSelf    , initializationArgument
+    type            (varying_string                                )                :: componentType         , massType                , &
          &                                                                             nonAnalyticSolver
     double precision                                                                :: timeAge
 
@@ -129,7 +148,10 @@ contains
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalSIDMIsothermalBaryons(timeAge,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,darkMatterParticle_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       initializationFunction => null()
+       initializationSelf     => null()
+       initializationArgument => null()
+       self=massDistributionSphericalSIDMIsothermalBaryons(timeAge,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -141,7 +163,7 @@ contains
     return
   end function sphericalSIDMIsothermalBaryonsConstructorParameters
 
-  function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,componentType,massType) result(self)
+  function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sidmIsothermal} mass distribution class.
     !!}
@@ -153,10 +175,12 @@ contains
     class           (massDistributionClass                         ), intent(in   ), target   :: massDistributionBaryonic
     class           (darkMatterParticleClass                       ), intent(in   ), target   :: darkMatterParticle_
     type            (enumerationNonAnalyticSolversType             ), intent(in   )           :: nonAnalyticSolver
+    procedure       (sphericalSIDMIsothermalBaryonsInitializor     ), intent(in   ), pointer  :: initializationFunction
+    class           (*                                             ), intent(in   ), pointer  :: initializationSelf      , initializationArgument
     type            (enumerationComponentTypeType                  ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                       ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="timeAge, nonAnalyticSolver, componentType, massType, *massDistribution_, *massDistributionBaryonic, *darkMatterParticle_"/>
+    <constructorAssign variables="timeAge, nonAnalyticSolver, componentType, massType, *massDistribution_, *massDistributionBaryonic, *darkMatterParticle_, */initializationFunction, */initializationSelf, */initializationArgument"/>
     !!]
 
     ! Validate the dark matter particle type.
@@ -166,6 +190,8 @@ contains
     class default
        call Error_Report('this class expects a self-interacting dark matter particle'//{introspection:location})
     end select
+    ! Initialize state.
+    self%initialized=.not.associated(initializationFunction)
     return
   end function sphericalSIDMIsothermalBaryonsConstructorInternal
 
@@ -184,19 +210,20 @@ contains
     return
   end subroutine sphericalSIDMIsothermalBaryonsDestructor
 
-  subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent(self,massDistributionBaryonic)
+  subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent(self)
     !!{
     Set the baryonic component properties in an adiabatically-contracted spherical mass distribution.
     !!}
     implicit none
-    class(massDistributionSphericalSIDMIsothermalBaryons), intent(inout)         :: self
-    class(massDistributionClass                         ), intent(in   ), target :: massDistributionBaryonic
+    class(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
+    class(massDistributionClass                         ), pointer       :: massDistributionBaryonic
   
-    self%massDistributionBaryonic => massDistributionBaryonic
-    !![
-    <referenceCountIncrement owner="self" object="massDistributionBaryonic"/>
-    !!]
-    call self%computeSolution()
+    if (.not.self%initialized) then
+       call self%initializationFunction(self%initializationSelf,self%initializationArgument,massDistributionBaryonic)
+       self%massDistributionBaryonic => massDistributionBaryonic
+       self%initialized              =  .true.
+       call self%computeSolution()
+    end if
     return
   end subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent
 
@@ -363,6 +390,7 @@ contains
     class(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
     class(coordinate                                    ), intent(in   ) :: coordinates
 
+    call self%setBaryonicComponent()
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        density=self%massDistribution_%density    (coordinates             )
     else
@@ -404,6 +432,7 @@ contains
     class           (massDistributionSphericalSIDMIsothermalBaryons), intent(inout) , target :: self
     double precision                                                , intent(in   )          :: radius
 
+    call self%setBaryonicComponent()
     if (radius > self%radiusInteraction()) then
        mass=self%massDistribution_%massEnclosedBySphere(radius)
     else
@@ -436,6 +465,7 @@ contains
     type            (coordinateSpherical                           )                          :: coordinatesInteraction
     double precision                                                                          :: radiusInteraction
     
+    call self%setBaryonicComponent()
     if (present(status)) status=structureErrorCodeSuccess
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        potential             =+self%massDistribution_%potential(coordinates,status=status)

@@ -24,6 +24,8 @@
   use :: Math_Exponentiation, only : fastExponentiator
   use :: Root_Finder        , only : rootFinder
 
+  public :: sphericalAdiabaticGnedin2004Initializor
+  
   ! Number of previous radius solutions to store.
   !![
   <scoping>
@@ -89,20 +91,24 @@
      An adiabatically-contracted spherical mass distribution.
      !!}
      private
-     class           (massDistributionClass), pointer                                           :: massDistributionBaryonic => null()
-     type            (rootFinder           )                                                    :: finder
+     class           (massDistributionClass                  ), pointer                                                  :: massDistributionBaryonic => null()
+     type            (rootFinder                             )                                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
-     double precision                                                                           :: A                                 , omega                     , &
-          &                                                                                        radiusFractionalPivot
+     double precision                                                                                                    :: A                                 , omega                               , &
+          &                                                                                                                 radiusFractionalPivot
      ! Stored solutions for reuse.
-     integer                                                                                    :: radiusPreviousIndex               , radiusPreviousIndexMaximum
-     double precision                       , dimension(sphericalAdiabaticGnedin2004StoreCount) :: radiusPrevious                    , radiusInitialPrevious
+     integer                                                                                                             :: radiusPreviousIndex               , radiusPreviousIndexMaximum
+     double precision                                         , dimension(sphericalAdiabaticGnedin2004StoreCount)        :: radiusPrevious                    , radiusInitialPrevious
      ! Quantities used in solving the initial radius root function.
-     double precision                                                                           :: baryonicFinalTerm                 , baryonicFinalTermDerivative, &
-          &                                                                                        darkMatterDistributedFraction     , massFractionInitial        , &
-          &                                                                                        radiusFinal                       , radiusFinalMean            , &
-          &                                                                                        darkMatterFraction                , radiusVirial               , &
-          &                                                                                        toleranceRelative                 , massTotal_
+     double precision                                                                                                    :: baryonicFinalTerm                 , baryonicFinalTermDerivative         , &
+          &                                                                                                                 darkMatterDistributedFraction     , massFractionInitial                 , &
+          &                                                                                                                 radiusFinal                       , radiusFinalMean            ,          &
+          &                                                                                                                 darkMatterFraction                , radiusVirial                        , &
+          &                                                                                                                 toleranceRelative                 , massTotal_
+     ! Call-back function and arguments used for as-needed initialization of the baryonic component.
+     logical                                                                                                              :: initialized
+     procedure       (sphericalAdiabaticGnedin2004Initializor), pointer                                          , nopass :: initializationFunction
+     class           (*                                      ), pointer                                                   :: initializationSelf      => null(), initializationArgument      => null()
    contains
      !![
      <methods>
@@ -142,7 +148,19 @@
   type            (fastExponentiator                           ), allocatable :: radiusExponentiator
   double precision                                                            :: omegaPrevious      =-huge(0.0d0)
   !$omp threadprivate(radiusExponentiator,omegaPrevious)
-  
+
+  abstract interface 
+     subroutine sphericalAdiabaticGnedin2004Initializor(initializationSelf,initializationArgument,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
+       !!{
+       Interface for call-back functions for as-needed initialization of the baryonic component.
+       !!}
+       import massDistributionClass
+       class           (*                    ), intent(inout), target  :: initializationSelf           , initializationArgument
+       class           (massDistributionClass), intent(  out), pointer :: massDistributionBaryonic
+       double precision                       , intent(  out)          :: darkMatterDistributedFraction, massFractionInitial
+     end subroutine sphericalAdiabaticGnedin2004Initializor
+  end interface
+
 contains
 
   function sphericalAdiabaticGnedin2004ConstructorParameters(parameters) result(self)
@@ -156,6 +174,8 @@ contains
     type            (massDistributionSphericalAdiabaticGnedin2004)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
     class           (massDistributionClass                       ), pointer       :: massDistribution_            , massDistributionBaryonic
+    procedure       (sphericalAdiabaticGnedin2004Initializor     ), pointer       :: initializationFunction
+    class           (*                                           ), pointer       :: initializationSelf           , initializationArgument
     double precision                                                              :: A                            , omega                   , &
          &                                                                           radiusFractionalPivot        , toleranceRelative       , &
          &                                                                           radiusVirial                 , darkMatterFraction      , &
@@ -234,7 +254,10 @@ contains
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalAdiabaticGnedin2004(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       initializationFunction => null()
+       initializationSelf     => null()
+       initializationArgument => null()
+       self=massDistributionSphericalAdiabaticGnedin2004(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -246,7 +269,7 @@ contains
     return
   end function sphericalAdiabaticGnedin2004ConstructorParameters
   
-  function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,componentType,massType) result(self)
+  function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{
     Constructor for ``sphericalAdiabaticGnedin2004'' mass distribution class.
     !!}
@@ -259,10 +282,12 @@ contains
     class           (massDistributionSpherical                   ), intent(in   ), target   :: massDistribution_
     class           (massDistributionClass                       ), intent(in   ), target   :: massDistributionBaryonic
     type            (enumerationNonAnalyticSolversType           ), intent(in   )           :: nonAnalyticSolver
+    procedure       (sphericalAdiabaticGnedin2004Initializor     ), intent(in   ), pointer  :: initializationFunction
+    class           (*                                           ), intent(in   ), pointer  :: initializationSelf      , initializationArgument
     type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="A, omega, radiusVirial, radiusFractionalPivot, darkMatterFraction, darkMatterDistributedFraction, massFractionInitial, toleranceRelative, nonAnalyticSolver, *massDistribution_, *massDistributionBaryonic, componentType, massType"/>
+    <constructorAssign variables="A, omega, radiusVirial, radiusFractionalPivot, darkMatterFraction, darkMatterDistributedFraction, massFractionInitial, toleranceRelative, nonAnalyticSolver, *massDistribution_, *massDistributionBaryonic, */initializationFunction, */initializationSelf, */initializationArgument, componentType, massType"/>
     !!]
 
     ! Validate.
@@ -280,6 +305,7 @@ contains
     self%radiusPreviousIndex       = 0
     self%radiusPreviousIndexMaximum= 0
     self%radiusPrevious            =-1.0d0
+    self%initialized               =.not.associated(initializationFunction)
     return
   end function sphericalAdiabaticGnedin2004ConstructorInternal
 
@@ -297,21 +323,22 @@ contains
     return
   end subroutine sphericalAdiabaticGnedin2004Destructor
 
-  subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent(self,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
+  subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent(self)
     !!{
     Set the baryonic component properties in an adiabatically-contracted spherical mass distribution.
     !!}
     implicit none
-    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout)         :: self
-    class           (massDistributionClass                       ), intent(in   ), target :: massDistributionBaryonic
-    double precision                                              , intent(in   )         :: darkMatterDistributedFraction, massFractionInitial
-  
+    class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
+    class           (massDistributionClass                       ), pointer       :: massDistributionBaryonic
+    double precision                                                              :: darkMatterDistributedFraction, massFractionInitial
+
+    if (.not.self%initialized) then
+    call self%initializationFunction(self%initializationSelf,self%initializationArgument,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
     self%massDistributionBaryonic      => massDistributionBaryonic
     self%darkMatterDistributedFraction =  darkMatterDistributedFraction
     self%massFractionInitial           =  massFractionInitial
-    !![
-    <referenceCountIncrement owner="self" object="massDistributionBaryonic"/>
-    !!]
+    self%initialized                   =  .true.
+    end if
     return
   end subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent
   
@@ -372,6 +399,7 @@ contains
          &                                                                           iMod
     double precision                                                              :: radiusUpperBound, massEnclosed
 
+    call self%setBaryonicComponent()
     ! Handle non-positive radii.
     if (radius <= 0.0d0) then
        sphericalAdiabaticGnedin2004RadiusInitial=0.0d0
@@ -489,6 +517,7 @@ contains
          &                                                                           numerator                      , denominator
     type            (coordinateSpherical                         )                :: coordinatesInitialMean
     
+    call self%setBaryonicComponent()
     ! Compute the various factors needed by this calculation.
     call self%computeFactors(radius,computeGradientFactors=.true.)
     ! Return unit derivative if radius is larger than the virial radius.

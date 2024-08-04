@@ -514,22 +514,6 @@ end if
 !![
 <referenceAcquire target="massDistribution_" source="massDistributions__(iMassDistribution)%massDistribution_"/>
 !!]
-if (construct) then
-CODE
-    # Iterate over all component classes
-    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-	next
-	    unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (allocated(self%component{ucfirst($class->{'name'})})) then
-     do i=1,size(self%component{ucfirst($class->{'name'})})
-       call self%component{ucfirst($class->{'name'})}(i)%massDistributionInit()
-     end do
-  end if
-CODE
-    }
-$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end if
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

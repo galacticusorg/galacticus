@@ -54,9 +54,8 @@
      class(darkMatterProfileClass ), pointer :: darkMatterProfile_  => null()
      class(darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
    contains
-     final     ::               sidmIsothermalDestructor
-     procedure :: get        => sidmIsothermalGet
-     procedure :: initialize => sidmIsothermalInitialize
+     final     ::        sidmIsothermalDestructor
+     procedure :: get => sidmIsothermalGet
   end type darkMatterProfileSIDMIsothermal
 
   interface darkMatterProfileSIDMIsothermal
@@ -66,10 +65,6 @@
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
   end interface darkMatterProfileSIDMIsothermal
-
-  ! Sub-module-scope pointer to the decorated mass distribution used during initialization.
-  class(massDistributionClass), pointer :: sidmIsothermalMassDistributionDecorated
-  !$omp threadprivate(sidmIsothermalMassDistributionDecorated)
 
 contains
 
@@ -140,16 +135,19 @@ contains
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                         , massTypeDark                        , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSphericalSIDMIsothermalBaryons, kinematicsDistributionSIDMIsothermal, nonAnalyticSolversNumerical, massDistributionSpherical
+    use :: Mass_Distributions        , only : massDistributionSphericalSIDMIsothermalBaryons, kinematicsDistributionSIDMIsothermal, nonAnalyticSolversNumerical, massDistributionSpherical, &
+         &                                    sphericalSIDMIsothermalBaryonsInitializor
     implicit none
-    class           (massDistributionClass               ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionSIDMIsothermal), pointer                 :: kinematicsDistribution_
-    class           (darkMatterProfileSIDMIsothermal     ), intent(inout)           :: self
-    type            (treeNode                            ), intent(inout), target   :: node
-    type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
-    integer                                               , intent(in   ), optional :: weightIndex
-    class           (massDistributionClass               ), pointer                 :: massDistributionBaryonic
-    class           (nodeComponentBasic                  ), pointer                 :: basic
+    class    (massDistributionClass                    ), pointer                 :: massDistribution_
+    type     (kinematicsDistributionSIDMIsothermal     ), pointer                 :: kinematicsDistribution_
+    class    (darkMatterProfileSIDMIsothermal          ), intent(inout), target   :: self
+    type     (treeNode                                 ), intent(inout), target   :: node
+    type     (enumerationWeightByType                  ), intent(in   ), optional :: weightBy
+    integer                                             , intent(in   ), optional :: weightIndex
+    class    (massDistributionClass                    ), pointer                 :: massDistributionBaryonic, massDistributionDecorated
+    class    (nodeComponentBasic                       ), pointer                 :: basic
+    procedure(sphericalSIDMIsothermalBaryonsInitializor), pointer                 :: initializationFunction
+    class    (*                                        ), pointer                 :: initializationSelf      , initializationArgument
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -162,26 +160,31 @@ contains
     allocate(massDistributionSphericalSIDMIsothermalBaryons :: massDistribution_)
     select type(massDistribution_)
     type is (massDistributionSphericalSIDMIsothermalBaryons)
-       sidmIsothermalMassDistributionDecorated => self%darkMatterProfile_%get  (node,weightBy,weightIndex)
-       massDistributionBaryonic                => null                         (                         )
-       basic                                   => node                   %basic(                         )
-       select type (sidmIsothermalMassDistributionDecorated)
+       massDistributionDecorated => self%darkMatterProfile_%get  (node,weightBy,weightIndex)
+       massDistributionBaryonic  => null                         (                         )
+       basic                     => node                   %basic(                         )
+       select type (massDistributionDecorated)
        class is (massDistributionSpherical)
+          initializationFunction => sidmIsothermalInitialize
+          initializationSelf     => self
+          initializationArgument => node
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalSIDMIsothermalBaryons(                                                                          &amp;
-	      &amp;                                          timeAge                 =basic%time                                   (), &amp;
-	      &amp;                                          nonAnalyticSolver       =      nonAnalyticSolversNumerical              , &amp;
-	      &amp;                                          massDistribution_       =      sidmIsothermalMassDistributionDecorated  , &amp;
-	      &amp;                                          massDistributionBaryonic=      massDistributionBaryonic                 , &amp;
-	      &amp;                                          darkMatterParticle_     =self %darkMatterParticle_                      , &amp;
-              &amp;                                          componentType           =      componentTypeDarkHalo                    , &amp;
-              &amp;                                          massType                =      massTypeDark                               &amp;
+              massDistributionSphericalSIDMIsothermalBaryons(                                                              &amp;
+	      &amp;                                          timeAge                 =basic%time                       (), &amp;
+	      &amp;                                          nonAnalyticSolver       =      nonAnalyticSolversNumerical  , &amp;
+	      &amp;                                          massDistribution_       =      massDistributionDecorated    , &amp;
+	      &amp;                                          massDistributionBaryonic=      massDistributionBaryonic     , &amp;
+	      &amp;                                          darkMatterParticle_     =self %darkMatterParticle_          , &amp;
+	      &amp;                                          initializationFunction  =      initializationFunction       , &amp;
+	      &amp;                                          initializationSelf      =      initializationSelf           , &amp;
+	      &amp;                                          initializationArgument  =      initializationArgument       , &amp;
+              &amp;                                          componentType           =      componentTypeDarkHalo        , &amp;
+              &amp;                                          massType                =      massTypeDark                   &amp;
               &amp;                                         )
 	    </constructor>
           </referenceConstruct>
-          <objectDestructor name="massDistributionBaryonic"/>
           !!]
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
@@ -203,31 +206,25 @@ contains
     return
   end function sidmIsothermalGet
 
-  subroutine sidmIsothermalInitialize(self,node,massDistribution_)
+  subroutine sidmIsothermalInitialize(self,node,massDistributionBaryonic)
     !!{
     Initialize the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Mass_Distributions        , only : massDistributionSphericalSIDMIsothermalBaryons
     use :: Galactic_Structure_Options, only : massTypeBaryonic
     implicit none
-    class(darkMatterProfileSIDMIsothermal), intent(inout)          :: self
-    type (treeNode                       ), intent(inout), target  :: node
-    class(massDistributionClass          ), intent(inout)          :: massDistribution_
-    class(massDistributionClass          )               , pointer :: massDistributionBaryonic
+    class(*                    ), intent(inout), target  :: self                    , node
+    class(massDistributionClass), intent(  out), pointer :: massDistributionBaryonic
 
-    call self%darkMatterProfile_%initialize(node,sidmIsothermalMassDistributionDecorated)
-    !![
-    <objectDestructor name="sidmIsothermalMassDistributionDecorated"/>
-    !!]
-    select type (massDistribution_)
-    type is (massDistributionSphericalSIDMIsothermalBaryons)
-       massDistributionBaryonic  => node%massDistribution(massType=massTypeBaryonic)
-       call massDistribution_%setBaryonicComponent(massDistributionBaryonic)
-       !![
-       <objectDestructor name="massDistributionBaryonic"/>
-       !!]
+    select type (self)
+    type is (darkMatterProfileSIDMIsothermal)
+       select type (node)
+       type is (treeNode)
+          massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
+        class default
+          call Error_Report('unexpected class'//{introspection:location})
+       end select
     class default
-       call Error_Report("unexpected class - expected 'massDistributionSphericalSIDMIsothermalBaryons' but found '"//char(massDistribution_%objectType())//"'"//{introspection:location})
+       call Error_Report('unexpected class'//{introspection:location})
     end select
-   return
+    return
   end subroutine sidmIsothermalInitialize
