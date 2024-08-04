@@ -191,7 +191,8 @@ contains
        call Error_Report('this class expects a self-interacting dark matter particle'//{introspection:location})
     end select
     ! Initialize state.
-    self%initialized=.not.associated(initializationFunction)
+    self%dimensionless=.false.
+    self%initialized  =.not.associated(initializationFunction)
     return
   end function sphericalSIDMIsothermalBaryonsConstructorInternal
 

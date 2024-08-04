@@ -150,6 +150,8 @@ contains
     class default
        call Error_Report('this class expects a self-interacting dark matter particle'//{introspection:location})
     end select
+    ! Initialize state.
+    self%dimensionless=.false.
     return
   end function sphericalSIDMCoreNFWConstructorInternal
 

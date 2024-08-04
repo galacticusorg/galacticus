@@ -199,6 +199,7 @@ contains
     class default
        call Error_Report('this class expects a self-interacting dark matter particle'//{introspection:location})
     end select
+    self%dimensionless     =.false.
     self%xiTabulatedMinimum=+huge(0.0d0)
     self%xiTabulatedMaximum=-huge(0.0d0)
     call self%computeSolution()
@@ -207,7 +208,7 @@ contains
 
   subroutine sphericalSIDMIsothermalDestructor(self)
     !!{
-    Destructor for the abstract {\normalfont \ttfamily massDistributionSphericalSIDMIsothermal} class.
+    Destructor for the {\normalfont \ttfamily massDistributionSphericalSIDMIsothermal} class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermal), intent(inout) :: self
