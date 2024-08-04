@@ -26,7 +26,8 @@
   use :: Galactic_Structure          , only : galacticStructureClass
   use :: Kind_Numbers                , only : kind_int8
   use :: Root_Finder                 , only : rootFinder
-  
+  use :: Mass_Distributions          , only : massDistributionClass
+
   !![
   <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
    <description>
@@ -72,8 +73,9 @@
   ! Global variables used in root finding.
   class           (hotHaloRamPressureStrippingFont2008), pointer :: self_
   type            (treeNode                           ), pointer :: node_
+  class           (massDistributionClass              ), pointer :: massDistribution__, massDistributionGas__
   double precision                                               :: forceRamPressure
-  !$omp threadprivate(self_,node_,forceRamPressure)
+  !$omp threadprivate(self_,node_,forceRamPressure,massDistribution__, massDistributionGas__)
 
 contains
 
@@ -163,11 +165,12 @@ contains
     !!{
     Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     !!}
-    use :: Display         , only : displayMessage           , verbosityLevelSilent
-    use :: Error           , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
-    use :: String_Handling , only : operator(//)
-    use :: Functions_Global, only : State_Retrieve_          , State_Store_                 , mergerTreeStateStore_        , State_Set_
+    use :: Display                   , only : displayMessage           , verbosityLevelSilent
+    use :: Error                     , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
+    use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: String_Handling           , only : operator(//)
+    use :: Functions_Global          , only : State_Retrieve_          , State_Store_                 , mergerTreeStateStore_        , State_Set_
+    use :: Galactic_Structure_Options, only : componentTypeAll         , massTypeAll                  , componentTypeHotHalo         , massTypeGaseous
 
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
@@ -187,10 +190,13 @@ contains
     ! Test whether node is a satellite.
     if (node%isSatellite().and.node%isPhysicallyPlausible) then
        ! Set a pointer to the satellite node.
-       self_            => self
-       node_            =>                                     node
+       self_                 => self
+       node_                 => node
+       ! Get the hot halo mass distributions.
+       massDistribution__    => node%massDistribution(componentTypeAll    ,massTypeAll    )
+       massDistributionGas__ => node%massDistribution(componentTypeHotHalo,massTypeGaseous)
        ! Get the ram pressure force due to the hot halo.
-       forceRamPressure =  self%hotHaloRamPressureForce_%force(node)
+       forceRamPressure      =  self%hotHaloRamPressureForce_%force(node)
        ! Find the radial range within which the ram pressure radius must lie.
        radiusVirialRoot=font2008RadiusSolver(radiusVirial)
        if      (radiusVirialRoot >= 0.0d0) then
@@ -281,6 +287,10 @@ contains
              self%radiusLast=font2008RadiusStripped
           end if
        end if
+       !![
+       <objectDestructor name="massDistribution__"   />
+       <objectDestructor name="massDistributionGas__"/>
+       !!]
     else
        ! If node is not a satellite, or is not physically plausible, return a ram pressure stripping radius equal to the virial radius.
        font2008RadiusStripped=radiusVirial
@@ -292,33 +302,28 @@ contains
     !!{
     Root function used in finding the ram pressure stripping radius.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeAll
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
-    use :: Galactic_Structure_Options      , only : componentTypeHotHalo           , massTypeGaseous
     implicit none
-    double precision                       , intent(in   ) :: radius
-    class           (massDistributionClass), pointer       :: massDistribution_, massDistributionGas
-    type            (coordinateSpherical  )                :: coordinates
-    double precision                                       :: massEnclosed     , forceBindingGravitational, &
-         &                                                    densityHotHalo
+    double precision                     , intent(in   ) :: radius
+    type            (coordinateSpherical)                :: coordinates
+    double precision                                     :: massEnclosed  , forceBindingGravitational, &
+         &                                                  densityHotHalo
 
     ! Get the hot halo mass distribution.
     coordinates              =  [radius,0.0d0,0.0d0]
-    massDistribution_        =>  node_                                 %massDistribution(componentTypeAll    ,massTypeAll    )
-    massDistributionGas      =>  node_                                 %massDistribution(componentTypeHotHalo,massTypeGaseous)
-    massEnclosed             =  +self_              %galacticStructure_%massEnclosed    (node_,radius     ,componentType=componentTypeAll,massType=massTypeAll)
-    densityHotHalo           =  +massDistributionGas                   %density         (      coordinates                                                    )
-    forceBindingGravitational=  +self_                                 %formFactor                                                                              &
-         &                      *gravitationalConstantGalacticus                                                                                                &
-         &                      *massEnclosed                                                                                                                   &
-         &                      *densityHotHalo                                                                                                                 &
-         &                      /radius
-    !![
-    <objectDestructor name="massDistribution_"  />
-    <objectDestructor name="massDistributionGas"/>
-    !!]          
+    densityHotHalo           =  massDistributionGas__%density(coordinates)
+    if (densityHotHalo > 0.0d0) then
+       massEnclosed             =+massDistribution__%massEnclosedBySphere(radius)
+       forceBindingGravitational=+self_%formFactor                &
+            &                    *gravitationalConstantGalacticus &
+            &                    *massEnclosed                    &
+            &                    *densityHotHalo                  &
+            &                    /radius
+    else
+       forceBindingGravitational=0.0d0
+    end if
     if (forceBindingGravitational >= 0.0d0) then
        font2008RadiusSolver=forceBindingGravitational-forceRamPressure
     else
