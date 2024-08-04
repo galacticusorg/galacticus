@@ -68,6 +68,7 @@
         <method description="Compute a solution for the heated profile." method="computeSolution" />
      </methods>
      !!]
+     final     ::                         sphericalHeatedMonotonicDestructor
      procedure :: computeSolution      => sphericalHeatedMonotonicComputeSolution
      procedure :: density              => sphericalHeatedMonotonicDensity
      procedure :: massEnclosedBySphere => sphericalHeatedMonotonicMassEnclosedBySphere

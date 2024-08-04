@@ -204,12 +204,14 @@ contains
                &amp;                                  )
 	    </constructor>
 	  </referenceConstruct>
-	  <objectDestructor name="massDistributionDecorated"/>
-	  <objectDestructor name="massDistributionHeating_" />
           !!]
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
        end select
+       !![
+       <objectDestructor name="massDistributionDecorated"/>
+       <objectDestructor name="massDistributionHeating_" />
+       !!]
     end select
     allocate(kinematicsDistribution_)
     !![
