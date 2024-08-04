@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
+  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal">
     <description>
-      Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022). This
+      Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}. This
       model assumes that the dark matter within the interaction radius, $r_1$, has thermalized and can therefore be described by a
       constant velocity dispersion, $\sigma_0$. Under this assumption the spherical Jeans equation has a solution of the form:
       \begin{equation}
@@ -68,7 +68,7 @@
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMIsothermal
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}.
      !!}
      private
      class(darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
