@@ -25,20 +25,23 @@ module Satellite_Orbits
   !!{
   Implements calculations related to satellite orbits.
   !!}
-  use :: Galactic_Structure      , only : galacticStructureClass
-  use :: Galacticus_Nodes        , only : treeNode
-  use :: Kind_Numbers            , only : kind_int8
+  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Galacticus_Nodes  , only : treeNode
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Mass_Distributions, only : massDistributionClass
   implicit none
   private
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
-  double precision                                               :: orbitalAngularMomentumInternal   , orbitalEnergyInternal
+  double precision                                               :: orbitalAngularMomentumInternal        , orbitalEnergyInternal
   !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
-  ! Node used in root finding calculations.
+
+  ! Objects used in root finding calculations.
   type            (treeNode                 ), pointer           :: activeNode
-  double precision                                               :: radiusVirial__                   , massVirial__
-  !$omp threadprivate(activeNode,radiusVirial__,massVirial__)
+  class           (massDistributionClass    ), pointer           :: massDistribution__
+  double precision                                               :: radiusVirial__                        , massVirial__
+  !$omp threadprivate(activeNode,radiusVirial__,massVirial__,massDistribution__)
 
   ! Enumeration used to indicate type of extremum.
   integer                                    , parameter, public :: extremumPericenter            =-1
@@ -84,10 +87,12 @@ contains
     type            (keplerOrbit              )                          :: orbitCurrent
     double precision                                                     :: potential
 
+    ! Assign the active node.
+    activeNode         => nodeHost
+    ! Get the mass distribution.
+    massDistribution__ => nodeHost%massDistribution()
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,darkMatterHaloScale_)
-    ! Assign the active node.
-    activeNode     => nodeHost
     ! Get virial properties.
     basicHost      => nodeHost             %basic       (        )
     radiusVirial__ =  darkMatterHaloScale_ %radiusVirial(nodeHost)
@@ -95,7 +100,7 @@ contains
     ! Store the orbital energy.
     orbitalEnergyInternal=orbit%energy()
     ! Test for conditions that an equivalent circular orbit exists.
-    potential=Satellite_Orbit_Potential(activeNode,factorRadiusLarge*radiusVirial__,radiusVirial__,massVirial__)
+    potential=Satellite_Orbit_Potential(factorRadiusLarge*radiusVirial__,radiusVirial__,massVirial__)
     if (orbitalEnergyInternal >= potential) then
        ! Orbit is unbound, return unphysical value.
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
@@ -119,6 +124,9 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=radiusVirial__)
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
+    !![
+    <objectDestructor name="massDistribution__"/>
+    !!]
     return
   end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
 
@@ -128,23 +136,17 @@ contains
     !!}
     use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeInfinite, structureErrorCodeSuccess
     use :: Error                     , only : Error_Report
-    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     double precision                                   , intent(in   ) :: radius
     double precision                                   , parameter     :: potentialInfinite=huge(1.0d0)
-    class           (massDistributionClass            ), pointer       :: massDistribution_
     double precision                                                   :: potential
     type            (enumerationStructureErrorCodeType)                :: status
 
     ! Get potential.
-    potential=Satellite_Orbit_Potential(activeNode,radius,radiusVirial__,massVirial__,status)
+    potential=Satellite_Orbit_Potential(radius,radiusVirial__,massVirial__,status)
     select case (status%ID)
     case (structureErrorCodeSuccess %ID)
-       massDistribution_ => activeNode%massDistribution()
-       radiusCircular    =  potential+0.5d0*massDistribution_%rotationCurve(radius)**2-orbitalEnergyInternal
-       !![
-       <objectDestructor name="massDistribution_"/>
-       !!]
+       radiusCircular=+potential+0.5d0*massDistribution__%rotationCurve(radius)**2-orbitalEnergyInternal
     case (structureErrorCodeInfinite%ID)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.
@@ -183,6 +185,8 @@ contains
     type            (enumerationStructureErrorCodeType)                        :: status
     double precision                                                           :: potential                , energyKinetic
 
+    ! Get the mass distribution.
+    massDistribution__ => nodeHost%massDistribution()
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,darkMatterHaloScale_)
     ! Extract the orbital energy and angular momentum.
@@ -263,7 +267,7 @@ contains
           velocity=orbitalAngularMomentumInternal/radius
        else
           ! Orbit is radial - use energy to find velocity.
-          potential=Satellite_Orbit_Potential(activeNode,radius,darkMatterHaloScale_%radiusVirial(activeNode),basicHost%mass(),status)
+          potential=Satellite_Orbit_Potential(radius,darkMatterHaloScale_%radiusVirial(activeNode),basicHost%mass(),status)
           select case (status%ID)
           case (structureErrorCodeSuccess %ID)
              energyKinetic=max(orbitalEnergyInternal-potential,0.0d0)
@@ -299,6 +303,9 @@ contains
           velocity= apocenterVelocity
        end select
     end if
+    !![
+    <objectDestructor name="massDistribution__"/>
+    !!]
     return
   end subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
@@ -310,7 +317,7 @@ contains
     double precision, intent(in   ) :: radius
     double precision                :: potential
 
-    potential=Satellite_Orbit_Potential(activeNode,radius,radiusVirial__,massvirial__)
+    potential=Satellite_Orbit_Potential(radius,radiusVirial__,massvirial__)
     Extremum_Solver=potential+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Extremum_Solver
@@ -341,38 +348,33 @@ contains
     radiusVirialOriginal   =gravitationalConstantGalacticus*orbit%massHost()/orbit%velocityScale()**2
     velocityVirialOriginal =                                                 orbit%velocityScale()    
     radiusVirial           =darkMatterHaloScale_%radiusVirial    (currentHost)
-    potentialHost          =Satellite_Orbit_Potential(currentHost,radiusVirialOriginal,radiusVirial,orbit%massHost())
+    potentialHost          =Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,orbit%massHost())
     ! Create a new orbit with an adjusted energy.
     orbitCurrent=orbit
     call orbitCurrent%energySet(orbit%energy()+velocityVirialOriginal**2+potentialHost)
     return
   end function Satellite_Orbit_Convert_To_Current_Potential
 
-  double precision function Satellite_Orbit_Potential(node,radius,radiusVirial,massVirial,status) result(potential)
+  double precision function Satellite_Orbit_Potential(radius,radiusVirial,massVirial,status) result(potential)
     !!{
     Evaluate the gravitational potential under the convention that the potential at the virial radius is always
     $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for {\normalfont \ttfamily keplerOrbit} objects.
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType
-    use :: Mass_Distributions              , only : massDistributionClass
     use :: Coordinates                     , only : coordinateCartesian              , assignment(=)
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode                         ), intent(inout)           :: node
-    double precision                                   , intent(in   )           :: radius           , radiusVirial     , &
+    double precision                                   , intent(in   )           :: radius     , radiusVirial     , &
          &                                                                          massVirial
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-    class           (massDistributionClass            )               , pointer  :: massDistribution_
-    type            (coordinateCartesian              )                          :: coordinates      , coordinatesVirial
+    type            (coordinateCartesian              )                          :: coordinates, coordinatesVirial
 
-    coordinates       =  [radius      ,0.0d0,0.0d0]
-    coordinatesVirial =  [radiusVirial,0.0d0,0.0d0]
-    massDistribution_ =>  node             %massDistribution   (                                    )
-    potential         =  +massDistribution_%potentialDifference(coordinates,coordinatesVirial,status)    &
-         &               -gravitationalConstantGalacticus*massVirial/radiusVirial
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
+    coordinates      =[radius      ,0.0d0,0.0d0]
+    coordinatesVirial=[radiusVirial,0.0d0,0.0d0]
+    potential        =+massDistribution__%potentialDifference(coordinates,coordinatesVirial,status) &
+         &            -gravitationalConstantGalacticus                                              &
+         &            *  massVirial                                                                 &
+         &            /radiusVirial
     return
   end function Satellite_Orbit_Potential
   
