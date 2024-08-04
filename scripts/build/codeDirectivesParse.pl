@@ -36,6 +36,27 @@ my $sourceDirectoryName = $installDirectoryName."/source";
 opendir(my $sourceDirectory,$sourceDirectoryName) or die "Can't open the source directory: #!";
 my @sourceFileNames = grep {$_ =~ m/\.(f|f90|c|cpp|h)$/i && $_ !~ m/^\.\#/} readdir($sourceDirectory);
 closedir($sourceDirectory);
+
+# Look for changes in source files. Force a rescan of all files if anything has changed.
+my $forceRescan = 0;
+my @fileIdentifiers;
+foreach my $sourceFileName ( @sourceFileNames ) {
+    (my $fileIdentifier = $sourceDirectoryName."/".$sourceFileName) =~ s/\//_/g;
+    push(@fileIdentifiers,$fileIdentifier);
+}
+# Check for new files.
+foreach my $fileIdentifier ( @fileIdentifiers ) {
+    unless ( exists($directivesPerFile->{$fileIdentifier}) ) {
+	$forceRescan = 1;
+    }
+}
+# Check for removed files.
+foreach my $fileIdentifier ( keys(%{$directivesPerFile}) ) {
+    unless ( grep {$_ eq $fileIdentifier} @fileIdentifiers ) {
+	$forceRescan = 1;
+    }
+}
+
 # Iterate over source files.
 foreach my $fileName ( @sourceFileNames ) {
 
@@ -44,14 +65,13 @@ foreach my $fileName ( @sourceFileNames ) {
     (my $fileIdentifier = $sourceDirectoryName."/".$fileName) =~ s/\//_/g;
     $fileIdentifier =~ s/^\._??//;
 
-
     # Check if file is updated. If it is not, skip processing it. If it is, remove previous record of uses and rescan.
     my $rescan = 1;
     if ( $havePerFile && exists($directivesPerFile->{$fileIdentifier}) ) {
 	$rescan = 0
 	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($directivesPerFile->{$fileIdentifier}->{'files'}) );
     }
-    if ( $rescan ) {
+    if ( $rescan || $forceRescan ) {
 	delete($directivesPerFile->{$fileIdentifier})
     	    if ( $havePerFile && exists($directivesPerFile->{$fileIdentifier}) );
 	push(@{$directivesPerFile->{$fileIdentifier}->{'files'}},$sourceDirectoryName."/".$fileName);
