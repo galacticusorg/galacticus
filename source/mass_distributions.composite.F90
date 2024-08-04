@@ -358,9 +358,9 @@ contains
     !!]
 
     subset => null()
-    
     if (associated(self%massDistributions)) then
        subsetHead        => null()
+       subsetNext        => null()
        compositesHead    => null()
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
