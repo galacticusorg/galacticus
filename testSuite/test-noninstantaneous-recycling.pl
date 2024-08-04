@@ -25,15 +25,27 @@ my $yields;
 open(my $logFile,"outputs/noninstantaneous_recycling.log");
 while ( my $line = <$logFile> ) {
     if ( $line =~ m/(\S+\/yield(Metals|Fe)_[a-z0-9]+.hdf5)/ ) {
-	my $fileName     = $1;
-	my $type         = $2;
-	my $file         = new PDL::IO::HDF5($fileName);
-	$yields->{$type} = $file->dataset("yield".$type)->get();
+	my $fileName               = $1;
+	my $type                   = $2;
+	$yields->{'file'}->{$type} = $fileName;
+	my $file                   = new PDL::IO::HDF5($fileName);
+	$yields          ->{$type} = $file->dataset("yield".$type)->get();
     }
 }
 close($logFile);
-die("failed to read yield tables")
-    unless ( exists($yields->{'Metals'}) && exists($yields->{'Fe'}) );
+unless ( exists($yields->{'Metals'}) && exists($yields->{'Fe'}) ) {
+    foreach my $type ( "Metals", "Fe" ) {
+	if ( exists($yields->{'file'}->{$type}) ) {
+	    print "found ".$type." yield in '".$yields->{'file'}->{$type}."'\n";
+	} else {
+	    print "failed to find file for ".$type." yield\n";
+	    print "log file is:\n";
+	    system("cat outputs/noninstantaneous_recycling.log");
+	}
+    }
+    die("failed to read yield tables");
+}
+
 my $haveMetals   = which($yields->{'Metals'} > 0.0);
 my $ratioMaximum = maximum(
                            +$yields->{'Fe'    }->flat()->($haveMetals)
