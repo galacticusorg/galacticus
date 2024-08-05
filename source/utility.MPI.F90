@@ -37,8 +37,9 @@ module MPI_Utilities
   ! Define a type for interacting with MPI.
   type :: mpiObject
      private
-     integer                                            :: rankValue        , countValue    , &
-          &                                                nodeCountValue   , iCommunicator
+     integer                                            :: rankValue        , countValue      , &
+          &                                                nodeCountValue   , rankOnNodeValue , &
+          &                                                iCommunicator    , countOnNodeValue
 #ifdef USEMPI
      type   (MPI_Comm      )                            :: communicator
      type   (MPI_Comm      ), allocatable, dimension(:) :: communicatorStack
@@ -52,6 +53,8 @@ module MPI_Utilities
        <method description="Return true if MPI is active." method="isActive" />
        <method description="Return the rank of this process." method="rank" />
        <method description="Return the total number of processes." method="count" />
+       <method description="Return the rank of this process on its node." method="rankOnNode" />
+       <method description="Return the total number of processes on this processes' node." method="countOnNode" />
        <method description="Return a label containing the rank of the process." method="rankLabel" />
        <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
        <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
@@ -77,8 +80,10 @@ module MPI_Utilities
      procedure :: isMaster         => mpiIsMaster
      procedure :: isActive         => mpiIsActive
      procedure :: rank             => mpiGetRank
+     procedure :: rankOnNode       => mpiGetRankOnNode
      procedure :: rankLabel        => mpiGetRankLabel
      procedure :: count            => mpiGetCount
+     procedure :: countOnNode      => mpiGetCountOnNode
      procedure :: nodeCount        => mpiGetNodeCount
      procedure :: nodeAffinity     => mpiGetNodeAffinity
      procedure :: hostAffinity     => mpiGetHostAffinity
@@ -299,6 +304,26 @@ contains
     return
   end function mpiGetRank
 
+  integer function mpiGetRankOnNode(self)
+    !!{
+    Return MPI rank on the node.
+    !!}
+#ifndef USEMPI
+    use :: Error, only : Error_Report
+#endif
+    implicit none
+    class(mpiObject), intent(in   ) :: self
+
+#ifdef USEMPI
+    mpiGetRankOnNode=self%rankOnNodeValue
+#else
+    !$GLC attributes unused :: self
+    mpiGetRankOnNode=0
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiGetRankOnNode
+
   function mpiGetRankLabel(self)
     !!{
     Return MPI rank label.
@@ -368,6 +393,26 @@ contains
 #endif
     return
   end function mpiGetNodeCount
+
+  integer function mpiGetCountOnNode(self)
+    !!{
+    Return count of nodes used by MPI.
+    !!}
+#ifndef USEMPI
+    use :: Error, only : Error_Report
+#endif
+    implicit none
+    class(mpiObject), intent(in   ) :: self
+
+#ifdef USEMPI
+    mpiGetCountOnNode=self%countOnNodeValue
+#else
+    !$GLC attributes unused :: self
+    mpiGetCountOnNode=0
+    call Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiGetCountOnNode
 
   integer function mpiGetNodeAffinity(self,rank)
     !!{
@@ -1996,15 +2041,22 @@ contains
     allocate(processorNames(0:self%countValue-1))
     call MPI_AllGather(processorName,MPI_Max_Processor_Name,MPI_Character,processorNames,MPI_Max_Processor_Name,MPI_Character,self%communicator,iError)
     ! Count processes per node.
+    self%rankOnNodeValue =-1
+    self%countOnNodeValue=+0
     call processCount%initialize()
     do iProcess=0,self%countValue-1
        if (processCount%exists(trim(processorNames(iProcess)))) then
           call processCount%set(trim(processorNames(iProcess)),processCount%value(trim(processorNames(iProcess)))+1)
        else
-          call processCount%set(trim(processorNames(iProcess)),1)
+          call processCount%set(trim(processorNames(iProcess)),                                                   1)
+       end if
+       if (trim(processorNames(iProcess)) == trim(processorName(1))) then
+          if (iProcess <= self%rankValue) &
+               & self%rankOnNodeValue =self%rankOnNodeValue +1
+          self       %countOnNodeValue=self%countOnNodeValue+1
        end if
     end do
-    mpiself%nodeCountValue=processCount%size()
+    self%nodeCountValue=processCount%size()
     if (allocated(self%nodeAffinities)) deallocate(self%nodeAffinities)
     allocate(self%nodeAffinities(0:self%countValue-1))
     self%nodeAffinities=-1
