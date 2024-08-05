@@ -539,6 +539,7 @@ contains
           call    file      %writeDataset(property%property,char(property%label))
           call    file      %close       (                                      )
           !$ call hdf5Access%unset       (                                      )
+          call displayIndent('Storing to file: '//fileName,verbosityLevelWorking)
        end if
        call File_Unlock(lock)
        ! Build interpolators.
