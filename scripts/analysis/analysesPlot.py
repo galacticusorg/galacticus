@@ -5,17 +5,32 @@ import argparse
 import re
 import sys
 import matplotlib.pyplot as plt
+import lxml.etree as ET
 from queue import LifoQueue
+import os
 
 # Make plots of all analyses that were output to a Galacticus model file(s).
 # Andrew Benson (21-June-2024)
 
+# Convert command line arguments to floats.
+def restricted_float(x):
+    try:
+        x = float(x)
+    except ValueError:
+        raise argparse.ArgumentTypeError("%r not a floating-point literal" % (x,))
+    return x
+
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='analysesPlot.py',description='Make plots of all analyses that were output to a Galacticus model file(s).')
 parser.add_argument('filename',nargs='+')
-parser.add_argument('--outputDirectory', action='store'     ,default='.',help='the directory to which plots should be output'               )
-parser.add_argument('--showFullRange'  , action='store_true'            ,help='show the full range of the y-axis, not just the target range')
+parser.add_argument('--outputDirectory'          , action='store'     ,default='.'                      ,help='the directory to which plots should be output'                     )
+parser.add_argument('--showFullRange'            , action='store_true'                                  ,help='show the full range of the y-axis, not just the target range'      )
+parser.add_argument('--factorLogLikelihoodAccept', action='store'     ,default=0.5,type=restricted_float,help='the fractional shift in logℒ to accept when updating prior ranges')
+parser.add_argument('--configFileName'           , action='store'                                       ,help='the name of the posterior sampling config file to modify'          )
 args = parser.parse_args()
+
+# Open a file for reports.
+reports = open(args.outputDirectory+'/report.txt','w')
 
 # Open all files, and find all available analyses.
 models = LifoQueue()
@@ -60,28 +75,126 @@ for analysis in analyses:
         groupAnalysis = analysis['group'][analysisName]
         if "logLikelihood" in groupAnalysis.attrs.keys():
             logLikelihood = groupAnalysis.attrs['logLikelihood']
+            analysis['logLikelihood'] = logLikelihood
             logLikelihoodGlobal += logLikelihood
             if logLikelihood > logLikelihoodBest[analysisName]:
                 logLikelihoodBest[analysisName] = logLikelihood
                 analysisBest[analysisName] = analysis
+        else:
+            analysis['logLikelihood'] = -np.inf
     if "logLikelihood" in analysis['group'].attrs.keys():
         logLikelihoodGlobal = analysis['group'].attrs['logLikelihood']
+        analysis['logLikelihoodGlobal'] = logLikelihoodGlobal
+    else:
+        analysis['logLikelihoodGlobal'] = -np.inf
     if logLikelihoodGlobal > logLikelihoodBest['global']:
         logLikelihoodBest['global'] = logLikelihoodGlobal
         analysisBest['global'] = analysis
 analysisBest['global']['isBest'].update({'global': True})
 for analysisName in analysisNames.keys():
     analysisBest[analysisName]['isBest'].update({analysisName: True})
-    
+
+# Report on likelihoods and models.
+if not singleModel:
+    reports.write("-> Report on best fit models\n")
+    names = list(analysisNames.keys())
+    names.insert(0,'global')
+    for analysis in analyses:
+        bestFor = []
+        for name in names:
+            if analysis['isBest'][name]:
+                bestFor.append(name)
+        if len(bestFor) > 0:
+            stateVector    =      analysis['group']['simulationState'][:]
+            parameterNames = list(analysis['group']['parameterNames' ][:])
+            for i in range(len(parameterNames)):
+                parameterNames[i] = parameterNames[i].decode('utf-8')
+            lengthMaximum = len(max(parameterNames,key=len))
+            reports.write(" -> "+analysis['filename']+" : "+analysis['groupname']+" - is best for:\n")
+            reports.write("  -> "+", ".join(bestFor)+"\n")
+            reports.write("  -> State:\n")
+            for i in range(len(stateVector)):
+                reports.write("      "+(" "*(lengthMaximum-len(parameterNames[i])))+parameterNames[i]+" = %+12.6e\n" % stateVector[i])
+        
+# Report on update parameter ranges.
+logLikelihoodAccept = -np.inf
+if not singleModel:
+    reports.write("-> Report on updated parameter ranges\n")
+    # Get parameter names.
+    parameterNames = list(analysisBest['global']['group']['parameterNames'][:])
+    for i in range(len(parameterNames)):
+        parameterNames[i] = parameterNames[i].decode('utf-8')
+    lengthMaximum = len(max(parameterNames,key=len))
+    # Load the config file if available.
+    if args.configFileName:
+        tree             = ET.parse(args.configFileName)
+        activeParameters = tree.findall(".//modelParameter[@value='active']")
+    # Find accepted ranges.
+    names = [ 'global' ]
+    for name in names:
+        # Find the best likelihood, and offset by our acceptance factor.
+        logLikelihoodAccept = logLikelihoodBest[name]*(1.0+args.factorLogLikelihoodAccept)
+        # Gather states and likelihoods across all analyses.
+        logLikelihoods = []
+        states = np.column_stack([analysis['group']['simulationState'][:] for analysis in analyses])
+        for analysis in analyses:
+            logLikelihood = -np.inf
+            if name == "global":
+                if "logLikelihood" in analysis['group'].attrs.keys():
+                    logLikelihood = analysis['group'].attrs['logLikelihood']
+            else:
+                groupAnalysis = analysis['group'][name]
+                if "logLikelihood" in groupAnalysis.attrs.keys():
+                    logLikelihood = groupAnalysis.attrs['logLikelihood']
+            logLikelihoods = np.append(logLikelihoods,logLikelihood)
+        # Iterate over parameters, find the change in likelihood one step before and after the maximum likelihood.
+        for i in range(states.shape[0]):
+            order = np.argsort(states[i])
+            j     = np.argmax(logLikelihoods[order])
+            if j >            0:
+                logLikelihoodAccept = np.min([logLikelihoodAccept,logLikelihoods[order][j-1]])
+            if j < len(order)-1:
+                logLikelihoodAccept = np.min([logLikelihoodAccept,logLikelihoods[order][j+1]])
+        # Find accepted states.
+        accepted = logLikelihoods >= logLikelihoodAccept
+        # Check if any best fit models were not accepted.
+        for analysis, analysisAccepted in zip(analyses,accepted):
+            if not analysisAccepted:
+                bestFor = []
+                for comparison, isBest in analysis['isBest'].items():
+                    if isBest:
+                        bestFor.append(comparison)
+                if len(bestFor) > 0:
+                    reports.write("WARNING: "+analysis['filename']+" : "+analysis['groupname']+" was not accepted but is best for\n")
+                    reports.write("  -> "+", ".join(bestFor)+"\n")
+        # Iterate over parameters, finding the range which are above the acceptance likelihood.
+        for i in range(states.shape[0]):
+            statesAccepted       = np.sort(states[i][accepted])
+            stateAcceptedMinimum = np.min(statesAccepted)
+            stateAcceptedMaximum = np.max(statesAccepted)
+            reports.write(" -> "+(" "*(lengthMaximum-len(parameterNames[i])))+parameterNames[i]+": %+12.6e — %+12.6e\n" % ( stateAcceptedMinimum, stateAcceptedMaximum ))
+            if args.configFileName:
+                for activeParameter in activeParameters:
+                    activeParameterName = activeParameter.find('name').attrib['value']
+                    if activeParameterName == parameterNames[i]:
+                        prior        = activeParameter.find('distributionFunction1DPrior')
+                        priorMinimum = prior          .find('limitLower')
+                        priorMaximum = prior          .find('limitUpper')
+                        priorMinimum.set('value',str(stateAcceptedMinimum))
+                        priorMaximum.set('value',str(stateAcceptedMaximum))
+    if args.configFileName:
+        with open(args.outputDirectory+"/"+os.path.basename(args.configFileName), 'wb') as f:
+            tree.write(f)
+                    
 # Iterate over analyses making plots.
-print("-> Generating plots")
+reports.write("-> Generating plots\n")
 for analysisName in analysisNames.keys():
-    print(" -> "+analysisName)
+    reports.write(" -> "+analysisName+"\n")
     targetPlotted = False
     axesCreated   = False
     for analysis in analyses:
         if singleModel and "logLikelihood" in analysis['group'].attrs.keys():
-            print("   -> logℒ = "+str(analysis['group'].attrs['logLikelihood']))
+            reports.write("   -> logℒ = "+str(analysis['group'].attrs['logLikelihood'])+"\n")
         groupAnalysis = analysis['group'][analysisName]
         if "type" in groupAnalysis.attrs.keys():
             if groupAnalysis.attrs['type'] == b"function1D":
@@ -102,7 +215,7 @@ for analysisName in analysisNames.keys():
                     else:
                         if dataset['required']:
                             sys.exit("Error: attribute '"+datasetName+"' is missing from analysis '"+analysisName+"' but is required.")
-                for phase in range(4):
+                for phase in range(5):
                     if not axesCreated:
                         figure, axes = plt.subplots(tight_layout=True)
                         if groupAnalysis.attrs['yAxisIsLog'] == 1:
@@ -119,7 +232,7 @@ for analysisName in analysisNames.keys():
                         axes.set_ylabel(yAxisLabel )
                         axes.set_title (description)
                         axesCreated = True
-                    if not targetPlotted and phase == 1:
+                    if not targetPlotted and phase == 2:
                         # Plot the target dataset.
                         targetPlotted = True
                         if 'data' in datasets['yDatasetTarget']:
@@ -159,7 +272,7 @@ for analysisName in analysisNames.keys():
                             x        = datasets['xDataset']['data']
                             xMinimum = np.min(x)
                             xMaximum = np.max(x)
-                            if groupAnalysis.attrs['yAxisIsLog'] == 1:
+                            if groupAnalysis.attrs['xAxisIsLog'] == 1:
                                 xRange    = xMaximum/xMinimum
                                 xMinimum /= np.power(xRange,0.05)
                                 xMaximum *= np.power(xRange,0.05)
@@ -188,25 +301,34 @@ for analysisName in analysisNames.keys():
                         marker    = 'o'
                         lineStyle = ''
                         label     = "Galacticus (global best)"
+                    elif analysis['logLikelihoodGlobal'] >= logLikelihoodAccept:
+                        faceColor = '#cccccc'
+                        edgeColor = '#bbbbbb'
+                        marker    = ''
+                        lineStyle = 'solid'
+                        label     = None
                     else:
-                        faceColor = '#dddddd'
-                        edgeColor = '#cccccc'
+                        faceColor = '#eeeeee'
+                        edgeColor = '#dddddd'
                         marker    = ''
                         lineStyle = 'solid'
                         label     = None
                     # Determine which datasets to plot:
-                    #  phase 0: analysese that are not a the best fit
-                    #  phase 1: nothing (this is for the target dataset)
-                    #  phase 2: analyses that are the global (but not local) best fit
-                    #  phase 3: the local best fit
+                    #  phase 0: analyses that are not a the best fit, and are not close to the best fit
+                    #  phase 1: analyses that are not a the best fit, but are not close to the best fit
+                    #  phase 2: nothing (this is for the target dataset)
+                    #  phase 3: analyses that are the global (but not local) best fit
+                    #  phase 4: the local best fit
                     # This ensures that z-ordering is as desired.
-                    if phase == 0:
-                        doPlot = not analysis['isBest']['global'] and not analysis['isBest'][analysisName]
+                    if   phase == 0:
+                        doPlot = not analysis['isBest']['global'] and not analysis['isBest'][analysisName] and not analysis['logLikelihoodGlobal'] >= logLikelihoodAccept
                     elif phase == 1:
-                        doPlot = False
+                        doPlot = not analysis['isBest']['global'] and not analysis['isBest'][analysisName] and     analysis['logLikelihoodGlobal'] >= logLikelihoodAccept
                     elif phase == 2:
-                        doPlot =     analysis['isBest']['global'] and not analysis['isBest'][analysisName]
+                        doPlot = False
                     elif phase == 3:
+                        doPlot =     analysis['isBest']['global'] and not analysis['isBest'][analysisName]
+                    elif phase == 4:
                         doPlot =                                          analysis['isBest'][analysisName]
                     if doPlot:
                         nonZero = np.nonzero(datasets['yDataset']['data'])
@@ -219,25 +341,5 @@ for analysisName in analysisNames.keys():
     plt.savefig(args.outputDirectory+"/"+analysisName+'.pdf')  
     plt.clf()
 
-# Report on likelihoods and models.
-if not singleModel:
-    print("-> Report on best fit models")
-    names = list(analysisNames.keys())
-    names.insert(0,'global')
-    for analysis in analyses:
-        bestFor = []
-        for name in names:
-            if analysis['isBest'][name]:
-                bestFor.append(name)
-        if len(bestFor) > 0:
-            stateVector    =      analysis['group']['simulationState'][:]
-            parameterNames = list(analysis['group']['parameterNames' ][:])
-            for i in range(len(parameterNames)):
-                parameterNames[i] = parameterNames[i].decode('utf-8')
-            lengthMaximum = len(max(parameterNames,key=len))
-            print(" -> "+analysis['filename']+" : "+analysis['groupname']+" - is best for:")
-            print("  -> "+", ".join(bestFor))
-            print("  -> State:")
-            for i in range(len(stateVector)):
-                print("      "+(" "*(lengthMaximum-len(parameterNames[i])))+parameterNames[i]+" = %+12.6e" % stateVector[i])
-        
+# Close the report file.
+reports.close()
