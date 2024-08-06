@@ -3363,6 +3363,7 @@ contains
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     use :: Vectors                   , only : Vector_Magnitude
+    use :: Calculations_Resets       , only : Calculations_Reset
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
     class           (nodeData                 )                       , intent(in   ) :: lastSeenNode
@@ -3457,6 +3458,10 @@ contains
              end if
              satelliteNode%parent         => hostNode
              hostNode     %firstSatellite => satelliteNode
+             ! Perform a calculation reset as technically these nodes have changed. (Specifically, they may have the same unique
+             ! ID as the prior time this function was called, and yet be new copies. Not resetting calculations could result in
+             ! the old - now destroyed - copies of these nodes being accessed.)
+             call Calculations_Reset(satelliteNode)
              ! Determine the time until merging.
              timeUntilMerging=self%satelliteMergingTimescales_%timeUntilMerging(satelliteNode,orbit)
              ! Clean up.
