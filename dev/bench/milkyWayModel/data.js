@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722998452178,
+  "lastUpdate": 1723012761586,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7929a8eaaa3b36fee72cb343abe04644cbf3bc22",
-          "message": "Merge pull request #478 from galacticusorg/fixNBodyOperator\n\nFix nBody operator",
-          "timestamp": "2023-09-21T14:19:42Z",
-          "tree_id": "a6dc53c9df6c0035b2555999c50aaa6393d44688",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7929a8eaaa3b36fee72cb343abe04644cbf3bc22"
-        },
-        "date": 1695316883941,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 236.779,
-            "unit": "seconds",
-            "range": 1.89409685602436
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10720,6 +10690,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9364514698035,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "46ebfeaaf77256c59f6ba60eed92254b348b8861",
+          "message": "fix: Reset calculations to avoid accessing deallocated nodes\n\nThis occurs when processing merger trees from file as, in some instances, we make copies of nodes to work on, which means that their unique ID can be the same as on a previous call, even though the node is actually a different node and the prior node no longer exists.",
+          "timestamp": "2024-08-06T16:03:57Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/46ebfeaaf77256c59f6ba60eed92254b348b8861"
+        },
+        "date": 1723012760481,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 380.129,
+            "unit": "seconds",
+            "range": 0.954257250432524
           }
         ]
       }
