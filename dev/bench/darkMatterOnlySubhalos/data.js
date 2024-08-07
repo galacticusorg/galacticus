@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722504263393,
+  "lastUpdate": 1722998437818,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "54c7f9118c0af37e5841f387e790c6049de6dcc7",
-          "message": "Merge pull request #479 from galacticusorg/noninstantFix\n\nCopy element index in to OpenMP parallel region",
-          "timestamp": "2023-09-26T01:11:06Z",
-          "tree_id": "c26dc4bde88c09d9cde120ca2bfadd947a0e07b8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/54c7f9118c0af37e5841f387e790c6049de6dcc7"
-        },
-        "date": 1695712613815,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 53.814,
-            "unit": "seconds",
-            "range": 0.0215034880884339
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8776,6 +8746,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20598.3558316095,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
+          "message": "feat: Expand the functionality of the analysis script\n\nThe script can now assess and update the range of priors needed to encapsulate the span of \"good\" models. An updated configuration file is output suitable for the next iteration of model optimization.",
+          "timestamp": "2024-08-06T10:15:40-07:00",
+          "tree_id": "d27964c7e2c1b8d9c7db2198b5185a0ae2d272ad",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f6c72d27e56cc28a924e6b2a47ef8d6d68383317"
+        },
+        "date": 1722998435565,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.99,
+            "unit": "seconds",
+            "range": 0.04368065933728
           }
         ]
       }
