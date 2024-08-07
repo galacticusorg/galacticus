@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "slope" : {
+      "percentageBelow" : 60,
       "target" : 0.85,
-      "percentageBelow" : 66.6666666666667,
-      "percentageAbove" : 33.3333333333333
+      "percentageAbove" : 40
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 56.25,
+      "percentageBelow" : 43.75
+   },
    "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/46ebfeaaf77256c59f6ba60eed92254b348b8861",
       "author" : {
          "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "message" : "feat: Expand the functionality of the analysis script",
-      "id" : "f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
-      "timestamp" : "Tue, 6 Aug 2024 10:15:40 -0700"
+      "message" : "fix: Reset calculations to avoid accessing deallocated nodes",
+      "id" : "46ebfeaaf77256c59f6ba60eed92254b348b8861",
+      "timestamp" : "Tue, 6 Aug 2024 09:03:57 -0700"
    },
-   "surfaceDensity" : {
-      "percentageBelow" : 46.875,
-      "percentageAbove" : 53.125,
-      "target" : 0.006
-   }
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
