@@ -39,28 +39,21 @@ void repoHeadHash(char *repoPath, char hash[41]) {
     
     /* Open the repository. */
     err = git_repository_open_ext(&repo, repoPath, 0, NULL);
-    if (err == GIT_ENOTFOUND) {
-      /* No repo was found. Return an empty hash. */
-      return;
+    if (err == 0) {
+      /* Find the HEAD of the repo. */
+      err = git_repository_head(&head, repo);
+      if (err == 0) {
+	/* Extract the hash from HEAD */
+	int referenceType = git_reference_type(head);
+	if (referenceType == GIT_REF_OID) {
+	  /* Get the hash. */
+	  const git_oid *oid = git_reference_target(head);
+	  git_oid_tostr(hash, 41, oid);
+	}
+      }
+      git_reference_free(head);
     }
- 
-    /* Find the HEAD of the repo. */
-    err = git_repository_head(&head, repo);
-    if (err == GIT_ENOTFOUND) {
-      /* HEAD could not be found. Return an empty hash. */
-      return;
-    }
-    
-    /* Extract the hash from HEAD */
-    int referenceType = git_reference_type(head);
-    if (referenceType == GIT_REF_SYMBOLIC) {
-      /* Currently we do not handle symbolic references */
-      return;
-    } else if (referenceType == GIT_REF_OID) {
-      /* Get the hash. */
-      const git_oid *oid = git_reference_target(head);
-      git_oid_tostr(hash, 41, oid);
-    }
+    git_repository_free(repo);
     return;
 }
 
