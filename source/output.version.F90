@@ -21,10 +21,14 @@
 Contains a module which implements writing of the version number and run time to the \glc\ output file.
 !!}
 
+! Specify an explicit dependence on the git2.o object file.
+!: $(BUILDPATH)/git2.o
+
 module Output_Versioning
   !!{
   Implements writing of the version number and run time to the \glc\ output file.
   !!}
+  use, intrinsic :: ISO_C_Binding, only : c_char
   implicit none
   private
   public :: Version_Output, Version_String, Version
@@ -32,6 +36,19 @@ module Output_Versioning
   ! Include the automatically generated Git revision number.
   include 'output.version.revision.inc'
 
+#ifdef GIT2AVAIL
+  interface
+     subroutine repoHeadHash(repoPath,hash) bind(c,name='repoHeadHash')
+       !!{
+       Template for a C function that returns the Git hash of a repo HEAD.
+       !!}
+       import
+       character(kind=c_char) :: repoPath
+       character(kind=c_char) :: hash    (41)
+     end subroutine repoHeadHash
+  end interface
+#endif
+  
 contains
 
   subroutine Version(gitHash_,gitBranch_,buildTime_)
@@ -70,19 +87,27 @@ contains
     !!{
     Output version information to the main output file.
     !!}
-    use :: Dates_and_Times   , only : Formatted_Date_and_Time
-    use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : destroy                          , node           , extractDataContent
-    use :: FoX_utils         , only : generate_UUID
-    use :: Error             , only : Error_Report
-    use :: Output_HDF5       , only : outputFile
-    use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, XML_Parse
-    use :: ISO_Varying_String, only : varying_string
+#ifdef GIT2AVAIL
+    use, intrinsic :: ISO_C_Binding     , only : c_null_char
+#endif
+    use            :: Dates_and_Times   , only : Formatted_Date_and_Time
+    use            :: File_Utilities    , only : File_Exists
+    use            :: FoX_dom           , only : destroy                          , node              , extractDataContent
+    use            :: FoX_utils         , only : generate_UUID
+    use            :: Error             , only : Error_Report
+    use            :: Output_HDF5       , only : outputFile
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: Input_Paths       , only : inputPath                        , pathTypeDataStatic
+    use            :: IO_HDF5           , only : hdf5Object
+    use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , XML_Parse
+    use            :: ISO_Varying_String, only : varying_string                   , char
+    use            :: String_Handling   , only : String_C_to_Fortran
     implicit none
     type     (Node          ), pointer :: doc            , emailNode, nameNode
     integer                            :: ioErr
+#ifdef GIT2AVAIL
+    character(len= 41       )          :: gitHashDatasets
+#endif
     character(len=128       )          :: textBufferFixed
     type     (hdf5Object    )          :: versionGroup
     type     (varying_string)          :: runTime
@@ -98,7 +123,13 @@ contains
     call versionGroup%writeAttribute(trim(gitBranch),'gitBranch')
     call versionGroup%writeAttribute(trim(buildTime),'buildTime')
     call versionGroup%writeAttribute(     runTime   ,'runTime'  )
-
+#ifdef GIT2AVAIL
+    call repoHeadHash(char(inputPath(pathTypeDataStatic))//c_null_char,gitHashDatasets)
+    call versionGroup%writeAttribute(char(String_C_to_Fortran(gitHashDatasets)),'gitHashDatasets')
+#else
+    call versionGroup%writeAttribute('unknown'                                 ,'gitHashDatasets')
+#endif
+    
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then
        !$omp critical (FoX_DOM_Access)
