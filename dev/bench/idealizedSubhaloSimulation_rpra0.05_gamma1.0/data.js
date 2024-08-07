@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722504287889,
+  "lastUpdate": 1722998472040,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -2047,6 +2047,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/a341a7f09a9a4af10c242ac9a149af18a419766a"
         },
         "date": 1722504286817,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": 69.3673784528685,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 39.2457298923673,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 32.2364932477707,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "f6c72d27e56cc28a924e6b2a47ef8d6d68383317",
+          "message": "feat: Expand the functionality of the analysis script\n\nThe script can now assess and update the range of priors needed to encapsulate the span of \"good\" models. An updated configuration file is output suitable for the next iteration of model optimization.",
+          "timestamp": "2024-08-06T10:15:40-07:00",
+          "tree_id": "d27964c7e2c1b8d9c7db2198b5185a0ae2d272ad",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f6c72d27e56cc28a924e6b2a47ef8d6d68383317"
+        },
+        "date": 1722998470925,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
