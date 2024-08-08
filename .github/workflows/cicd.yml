@@ -1353,7 +1353,7 @@ jobs:
         run: |
           sudo port install python312
           sudo port select --set python python312
-          sudo port select --set python2 python312
+          sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
