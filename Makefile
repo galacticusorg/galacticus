@@ -283,8 +283,19 @@ $(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
 	 echo "CPPFLAGS += -DMATHEVALUNAVAIL" >> $(BUILDPATH)/Makefile_Config_MathEval ; \
 	fi
 
-# Configuration for availability of libgi2.
+# Configuration for availability of libgit2. For static builds, we
+# make libgit2 unavailable, as typically the `gssapi_krb5` library
+# (linked by libgit2) does not have a static version available. In
+# this case we will fall back to working through the `git` command
+# line.
 -include $(BUILDPATH)/Makefile_Config_Git2
+ifeq '${STATIC}' '-static'
+$(BUILDPATH)/Makefile_Config_Git2:
+	@mkdir -p $(BUILDPATH)
+	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
+else
 $(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
 	@mkdir -p $(BUILDPATH)
 	$(CCOMPILER) -c source/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(CFLAGS) > /dev/null 2>&1 ; \
@@ -297,6 +308,7 @@ $(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
 	 echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
 	 echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2 ; \
 	fi
+endif
 
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source

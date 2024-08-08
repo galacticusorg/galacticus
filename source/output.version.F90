@@ -89,6 +89,10 @@ contains
     !!}
 #ifdef GIT2AVAIL
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
+#else
+    use            :: Input_Paths       , only : pathTypeDataDynamic
+    use            :: System_Command    , only : System_Command_Do
+    use            :: File_Utilities    , only : File_Name_Temporary              , File_Remove
 #endif
     use            :: Dates_and_Times   , only : Formatted_Date_and_Time
     use            :: File_Utilities    , only : File_Exists
@@ -103,14 +107,17 @@ contains
     use            :: ISO_Varying_String, only : varying_string                   , char
     use            :: String_Handling   , only : String_C_to_Fortran
     implicit none
-    type     (Node          ), pointer :: doc            , emailNode, nameNode
+    type     (Node          ), pointer :: doc            , emailNode, &
+         &                                nameNode
     integer                            :: ioErr
-#ifdef GIT2AVAIL
     character(len= 41       )          :: gitHashDatasets
-#endif
     character(len=128       )          :: textBufferFixed
     type     (hdf5Object    )          :: versionGroup
     type     (varying_string)          :: runTime
+#ifndef GIT2AVAIL
+    integer                            :: status         , hashUnit
+    type     (varying_string)          :: hashFileName
+#endif
 
     ! Write a UUID for this model.
     !$ call hdf5Access%set()
@@ -124,11 +131,22 @@ contains
     call versionGroup%writeAttribute(trim(buildTime),'buildTime')
     call versionGroup%writeAttribute(     runTime   ,'runTime'  )
 #ifdef GIT2AVAIL
+    ! Use the git2 library to get the hash of the datasets repo.
     call repoHeadHash(char(inputPath(pathTypeDataStatic))//c_null_char,gitHashDatasets)
-    call versionGroup%writeAttribute(char(String_C_to_Fortran(gitHashDatasets)),'gitHashDatasets')
+    gitHashDatasets=char(String_C_to_Fortran(gitHashDatasets))
 #else
-    call versionGroup%writeAttribute('unknown'                                 ,'gitHashDatasets')
+    ! Git2 library is not available. If we have the command line `git` installed, use it insted.
+    gitHashDatasets="unknown"
+    hashFileName   =File_Name_Temporary("repoHash.txt")
+    call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(hashFileName)//"; else echo unknown; fi",iStatus=status)
+    if (status == 0) then
+       open(newUnit=hashUnit,file=char(hashFileName),status="old",form="formatted",iostat=ioErr)
+       if (ioErr == 0) read (hashUnit,'(a)') gitHashDatasets
+       close(hashUnit)
+    end if
+    call File_Remove(hashFileName)
 #endif
+    call versionGroup%writeAttribute(trim(gitHashDatasets),'gitHashDatasets')
     
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then
