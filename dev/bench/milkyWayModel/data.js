@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723178787485,
+  "lastUpdate": 1723202367512,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "456ee65559ae2d66240a0338a9207d59a749d28e",
-          "message": "Merge pull request #482 from galacticusorg/bryanNorman1998GeneralCosmology\n\nAllow the `virialDensityContrastBryanNorman1998` class to work for arbitrary cosmologies",
-          "timestamp": "2023-09-27T23:37:00Z",
-          "tree_id": "6123b72aff0f3c5e0099a26b1c6499cecaacd08e",
-          "url": "https://github.com/galacticusorg/galacticus/commit/456ee65559ae2d66240a0338a9207d59a749d28e"
-        },
-        "date": 1695869201233,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 228.507,
-            "unit": "seconds",
-            "range": 0.234230869016282
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10708,6 +10678,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9955758351234,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "3471c3c51b838ed00dabb5e422ea6d0800c59891",
+          "message": "feat: Report on IRATE revision used",
+          "timestamp": "2024-08-09T05:01:48Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3471c3c51b838ed00dabb5e422ea6d0800c59891"
+        },
+        "date": 1723202366369,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 462.675,
+            "unit": "seconds",
+            "range": 0.271154015284145
           }
         ]
       }
