@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "slope" : {
-      "percentageBelow" : 60,
-      "target" : 0.85,
-      "percentageAbove" : 40
-   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
+      "percentageAbove" : 53.125,
       "target" : 0.006,
-      "percentageAbove" : 56.25,
-      "percentageBelow" : 43.75
-   },
-   "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/46ebfeaaf77256c59f6ba60eed92254b348b8861",
-      "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "message" : "fix: Reset calculations to avoid accessing deallocated nodes",
-      "id" : "46ebfeaaf77256c59f6ba60eed92254b348b8861",
-      "timestamp" : "Tue, 6 Aug 2024 09:03:57 -0700"
+      "percentageBelow" : 46.875
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+   "commit" : {
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      },
+      "message" : "feat: Report on IRATE revision used",
+      "timestamp" : "Thu, 8 Aug 2024 22:01:48 -0700",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/3471c3c51b838ed00dabb5e422ea6d0800c59891",
+      "id" : "3471c3c51b838ed00dabb5e422ea6d0800c59891"
+   },
+   "slope" : {
+      "percentageBelow" : 69.2307692307692,
+      "target" : 0.85,
+      "percentageAbove" : 30.7692307692308
+   }
 }

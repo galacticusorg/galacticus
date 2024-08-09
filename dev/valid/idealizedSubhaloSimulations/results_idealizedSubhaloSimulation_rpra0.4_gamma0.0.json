@@ -1,32 +1,7 @@
 window.ANALYSES_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "results" : [
       {
-         "attributes" : {
-            "description" : "Satellite bound mass fraction vs. time.",
-            "yAxisLabel" : "M_bound/M_bound,0",
-            "logLikelihood" : 26.8526540912978,
-            "type" : "function1D",
-            "xAxisLabel" : "t/Gyr",
-            "xAxisIsLog" : 0,
-            "yDataset" : "fractionBoundMass",
-            "yAxisIsLog" : 1,
-            "xDataset" : "time",
-            "targetLabel" : "Simulations",
-            "yDatasetTarget" : "fractionBoundMassTarget",
-            "name" : "satelliteBoundMass"
-         },
          "data" : {
-            "yDataset" : [
-               1,
-               0.249379871159351,
-               0.124634068720499,
-               0.0667220093985895,
-               0.0357080709466007,
-               0.0184455402231832,
-               0.00844517601377885,
-               0.00246511609195124
-            ],
             "yDatasetTarget" : [
                1,
                0.220205307731856,
@@ -37,6 +12,16 @@ window.ANALYSES_DATA = {
                0.0108235350336936,
                0.00240435745092663
             ],
+            "yDataset" : [
+               1,
+               0.249379870999334,
+               0.124634068725946,
+               0.0667220093006483,
+               0.0357080713107937,
+               0.0184455402278459,
+               0.00844517600880444,
+               0.00246511609280883
+            ],
             "xDataset" : [
                1,
                5.19994546760271,
@@ -47,10 +32,44 @@ window.ANALYSES_DATA = {
                25.7370438232237,
                29.7464950039589
             ]
+         },
+         "attributes" : {
+            "name" : "satelliteBoundMass",
+            "description" : "Satellite bound mass fraction vs. time.",
+            "logLikelihood" : 26.8526542053203,
+            "xAxisLabel" : "t/Gyr",
+            "targetLabel" : "Simulations",
+            "type" : "function1D",
+            "xAxisIsLog" : 0,
+            "yDataset" : "fractionBoundMass",
+            "yAxisLabel" : "M_bound/M_bound,0",
+            "yAxisIsLog" : 1,
+            "yDatasetTarget" : "fractionBoundMassTarget",
+            "xDataset" : "time"
          }
       },
       {
          "data" : {
+            "xDataset" : [
+               1,
+               5.19994546760271,
+               9.30917937003041,
+               13.4184132724581,
+               17.5276471748858,
+               21.627809920796,
+               25.7370438232237,
+               29.7464950039589
+            ],
+            "yDataset" : [
+               1,
+               0.630559368057233,
+               0.504711803386037,
+               0.44290514717997,
+               0.413386954835888,
+               0.404977630792735,
+               0.420453731700185,
+               0.482141967886079
+            ],
             "yDatasetTarget" : [
                1,
                0.628036345583413,
@@ -60,7 +79,25 @@ window.ANALYSES_DATA = {
                0.362655764491834,
                0.324935039729862,
                0.46657288606457
-            ],
+            ]
+         },
+         "attributes" : {
+            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
+            "yAxisIsLog" : 1,
+            "xDataset" : "time",
+            "yAxisLabel" : "R_max/R_max,0",
+            "xAxisIsLog" : 0,
+            "yDataset" : "fractionRadiusVelocityMaximum",
+            "xAxisLabel" : "t/Gyr",
+            "targetLabel" : "Simulations",
+            "type" : "function1D",
+            "logLikelihood" : 12.8565299609539,
+            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
+            "name" : "satelliteRadiusVelocityMaximum"
+         }
+      },
+      {
+         "data" : {
             "xDataset" : [
                1,
                5.19994546760271,
@@ -73,32 +110,14 @@ window.ANALYSES_DATA = {
             ],
             "yDataset" : [
                1,
-               0.630559368055281,
-               0.504711803383467,
-               0.442905147176911,
-               0.413386954833806,
-               0.404977630793121,
-               0.420453731706499,
-               0.482141968308862
-            ]
-         },
-         "attributes" : {
-            "yDataset" : "fractionRadiusVelocityMaximum",
-            "logLikelihood" : 12.8565299575999,
-            "yAxisLabel" : "R_max/R_max,0",
-            "xAxisIsLog" : 0,
-            "description" : "Satellite maximum circular velocity radius fraction vs. time.",
-            "name" : "satelliteRadiusVelocityMaximum",
-            "xDataset" : "time",
-            "targetLabel" : "Simulations",
-            "yDatasetTarget" : "fractionRadiusVelocityMaximumTarget",
-            "yAxisIsLog" : 1,
-            "type" : "function1D",
-            "xAxisLabel" : "t/Gyr"
-         }
-      },
-      {
-         "data" : {
+               0.825457031663508,
+               0.669651881856981,
+               0.534525868501711,
+               0.423920019123153,
+               0.328752572143463,
+               0.246340459613657,
+               0.172183175864756
+            ],
             "yDatasetTarget" : [
                1,
                0.790017073115304,
@@ -108,53 +127,34 @@ window.ANALYSES_DATA = {
                0.373690477690465,
                0.256805221307694,
                0.121371346271537
-            ],
-            "xDataset" : [
-               1,
-               5.19994546760271,
-               9.30917937003041,
-               13.4184132724581,
-               17.5276471748858,
-               21.627809920796,
-               25.7370438232237,
-               29.7464950039589
-            ],
-            "yDataset" : [
-               1,
-               0.825457031662089,
-               0.669651881852751,
-               0.534525868493263,
-               0.423920019111114,
-               0.328752572129616,
-               0.246340459598271,
-               0.172183175847474
             ]
          },
          "attributes" : {
-            "description" : "Satellite maximum circular velocity fraction vs. time.",
-            "logLikelihood" : 11.5356192278559,
             "yAxisLabel" : "V_max/V_max,0",
-            "type" : "function1D",
-            "xAxisLabel" : "t/Gyr",
-            "xAxisIsLog" : 0,
-            "yDataset" : "fractionVelocityMaximum",
-            "yAxisIsLog" : 1,
             "xDataset" : "time",
             "yDatasetTarget" : "fractionVelocityMaximumTarget",
+            "yAxisIsLog" : 1,
+            "logLikelihood" : 11.5356192270007,
+            "type" : "function1D",
+            "xAxisLabel" : "t/Gyr",
             "targetLabel" : "Simulations",
-            "name" : "satelliteVelocityMaximum"
+            "yDataset" : "fractionVelocityMaximum",
+            "xAxisIsLog" : 0,
+            "name" : "satelliteVelocityMaximum",
+            "description" : "Satellite maximum circular velocity fraction vs. time."
          }
       }
    ],
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.4_alpha_1.0_beta_3.0_gamma_0.0.xml",
    "commit" : {
-      "message" : "fix: Reset calculations to avoid accessing deallocated nodes",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/46ebfeaaf77256c59f6ba60eed92254b348b8861",
-      "id" : "46ebfeaaf77256c59f6ba60eed92254b348b8861",
-      "timestamp" : "Tue, 6 Aug 2024 09:03:57 -0700",
       "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
-      }
-   },
-   "parameterFile" : "testSuite/parameters/idealizedSubhaloSimulations/tidalTrackBestFit_xc_0.7_ratio_0.4_alpha_1.0_beta_3.0_gamma_0.0.xml"
+         "email" : "abensonca@gmail.com",
+         "name" : "Andrew Benson"
+      },
+      "id" : "3471c3c51b838ed00dabb5e422ea6d0800c59891",
+      "timestamp" : "Thu, 8 Aug 2024 22:01:48 -0700",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/3471c3c51b838ed00dabb5e422ea6d0800c59891",
+      "message" : "feat: Report on IRATE revision used"
+   }
 }
