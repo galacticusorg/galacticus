@@ -29,12 +29,13 @@
     \begin{equation}
      \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &lt; \epsilon_\mathrm{c},
     \end{equation}
-    for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
-    exponential disk), $M_\mathrm{disk}$ is the mass of the disk and $r_\mathrm{disk}$ is its scale length (assuming an
-    exponential disk). The value of $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for
-    purely gaseous and stellar disks as specified by {\normalfont \ttfamily [stabilityThresholdStellar]} and {\normalfont
-    \ttfamily [stabilityThresholdGaseous]} respectively. For disks which are judged to be unstable, the timescale for bar
-    formation is estimated to be
+    for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve\footnote{In practice, the velocity is
+    evaluated at the disk scale radius and multiplied by the factor $1.1800237580$ which relates this velocity to the peak
+    rotation velocity for an isolated, thin exponential disk.}, $M_\mathrm{disk}$ is the mass of the disk and $r_\mathrm{disk}$ is
+    its scale length (assuming an exponential disk). The value of $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas
+    fraction between values for purely gaseous and stellar disks as specified by {\normalfont \ttfamily
+    [stabilityThresholdStellar]} and {\normalfont \ttfamily [stabilityThresholdGaseous]} respectively. For disks which are judged
+    to be unstable, the timescale for bar formation is estimated to be
     \begin{equation}
      t_\mathrm{bar} = t_\mathrm{disk} \left( {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon}
      \right)^2,
@@ -205,8 +206,8 @@ contains
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
-    ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
-    ! appears in stability criterion.
+    ! Factor by which to boost velocity (evaluated at the scale radius) to convert to maximum velocity (assuming an isolated
+    ! exponential disk) as appears in stability criterion.
     double precision                                              , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                           ), pointer       :: disk
     double precision                                                              :: massDisk                          , velocitySelf
