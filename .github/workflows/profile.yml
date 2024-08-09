@@ -56,7 +56,7 @@ jobs:
       - name: Detect linux-tools
         id: detector
         run: |
-          if [[ ${{ format('{0}',inputs.profiler) == "perf" ]]; then
+          if [[ ${{ format('{0}',inputs.profiler) }} == "perf" ]]; then
              if [[ `apt list | grep linux-tools-$(uname -r)` ]]; then
                 echo linux-tools was found
                 echo "detected=true" >> "$GITHUB_OUTPUT"
