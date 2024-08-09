@@ -107,7 +107,8 @@ jobs:
           ssh-add - <<< '${{ secrets.IRATE_DEPLOY_PRIVATE_KEY }}'
           GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git clone git@github.com:galacticusorg/irate-format.git
           cd irate-format
-          # For some reason install fails on the first attempt - so try twice.
+          echo NOTE: using IRATE revision:
+          git rev-parse HEAD
           CFLAGS=-I/usr/include/ntirpc/ python3 setup.py install
           cd -
       - name: Mark time for cache accesses
