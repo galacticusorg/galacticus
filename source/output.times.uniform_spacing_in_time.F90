@@ -64,7 +64,7 @@ contains
        !![
        <inputParameter>
 	 <name>timeMinimum</name>
-	 <description>The minimum time at which to output. Negative times are interpretted as look-back times.</description>
+	 <description>The minimum time at which to output. Negative times are interpreted as look-back times.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -89,7 +89,7 @@ contains
        !![
        <inputParameter>
 	 <name>timeMaximum</name>
-	 <description>The maximum time at which to output. Negative times are interpretted as look-back times.</description>
+	 <description>The maximum time at which to output. Negative times are interpreted as look-back times.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
