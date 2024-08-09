@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723164961493,
+  "lastUpdate": 1723178777583,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "ceb37911054a39d4fffe7855ba9050094ddab31f",
-          "message": "Merge pull request #480 from galacticusorg/sourceDigestFix\n\nEnsure source digests are updated",
-          "timestamp": "2023-09-26T13:16:37Z",
-          "tree_id": "f9663af3d536968c3c5881e78426ef2979a120df",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ceb37911054a39d4fffe7855ba9050094ddab31f"
-        },
-        "date": 1695745010689,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 209.643,
-            "unit": "seconds",
-            "range": 0.453449115117419
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10712,6 +10682,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9955758351234,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "b99e1c4372cba25e21475eb2b8e958dcfcb40cc7",
+          "message": "fix: Ignore warnings about executable stacks in static builds",
+          "timestamp": "2024-08-08T17:24:03Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b99e1c4372cba25e21475eb2b8e958dcfcb40cc7"
+        },
+        "date": 1723178776496,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 435.024,
+            "unit": "seconds",
+            "range": 0.300267214329724
           }
         ]
       }
