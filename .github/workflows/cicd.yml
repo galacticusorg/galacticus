@@ -1054,7 +1054,7 @@ jobs:
                 test-constraint-mass-function.pl,
                 test-extract-directives.pl,
                 test-fortran-utils.pl,
-                test-halo-mass-functions.pl,
+                test-halo-mass-functions.py,
                 test-inactive_luminosities.pl,
                 test-interoutput-star-formation-rate.pl,
                 test-mass-host-maximum.pl,
