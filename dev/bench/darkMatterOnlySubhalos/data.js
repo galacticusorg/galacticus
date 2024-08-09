@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723178772552,
+  "lastUpdate": 1723178782418,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "563a05278a954caba9f81b617d8bece9800c5cb4",
-          "message": "Merge pull request #483 from cgannonucm/tidally_truncated_improvement\n\nImprovements to the Radial Range that Subhalo Density Profiles are Tabulated when Fitting TNFW Profile",
-          "timestamp": "2023-09-28T19:11:30Z",
-          "tree_id": "869f3c09f051317a0b634f10f933ea66c1032e7f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/563a05278a954caba9f81b617d8bece9800c5cb4"
-        },
-        "date": 1695941962363,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.6017607146929,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.7122732032325,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23474.8868845493,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8766,6 +8727,43 @@ window.BENCHMARK_DATA = {
             "value": 52.841,
             "unit": "seconds",
             "range": 0.0422244005279384
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "b99e1c4372cba25e21475eb2b8e958dcfcb40cc7",
+          "message": "fix: Ignore warnings about executable stacks in static builds",
+          "timestamp": "2024-08-08T17:24:03Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b99e1c4372cba25e21475eb2b8e958dcfcb40cc7"
+        },
+        "date": 1723178781655,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8505921487505,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 8.73824617591471,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20520.2387742383,
+            "unit": "-logℒ"
           }
         ]
       }
