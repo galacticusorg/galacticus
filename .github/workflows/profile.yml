@@ -67,13 +67,15 @@ jobs:
                 echo 'Kernel version is: '`uname -r` >> $GITHUB_STEP_SUMMARY
                 echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
                 apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
+                # Create a dummy file here so that we have something to upload.
+                touch ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
              fi
           else
              echo linux-tools was found
              echo "detected=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Install packages
-        if: ${{ steps.detector.outputs.detected }}
+        if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
           apt -y update && apt -y upgrade
           apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
@@ -84,7 +86,7 @@ jobs:
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Profile
-        if: ${{ steps.detector.outputs.detected }}
+        if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
@@ -119,7 +121,6 @@ jobs:
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload profile
-        if: ${{ steps.detector.outputs.detected }}
         uses: actions/upload-artifact@v4
         with:
           name: perf-${{ inputs.name }}${{ format('{0}',inputs.profiler) == 'gprof' && '-gprof' || '' }}
