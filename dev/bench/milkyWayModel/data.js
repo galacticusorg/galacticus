@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723248895663,
+  "lastUpdate": 1723282001700,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "82f64062a3b79f48ea8ee6fb5282436b0c155e8f",
-          "message": "Merge pull request #487 from galacticusorg/brownianBridgeFix\n\nFix mathematical implementation of Brownian bridge solutions",
-          "timestamp": "2023-10-03T04:56:09Z",
-          "tree_id": "47de2ca5c923cedf8aeeb044c9ea346fdf77bfa0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/82f64062a3b79f48ea8ee6fb5282436b0c155e8f"
-        },
-        "date": 1696320726513,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 214.053,
-            "unit": "seconds",
-            "range": 0.2104331247647
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10700,6 +10670,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9160950702159,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "8ebb553f4e04fab4268fd36f880d942c28158544",
+          "message": "fix: Create directory before accessing",
+          "timestamp": "2024-08-10T02:51:29Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8ebb553f4e04fab4268fd36f880d942c28158544"
+        },
+        "date": 1723282000881,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 422.898,
+            "unit": "seconds",
+            "range": 0.883246058583249
           }
         ]
       }
