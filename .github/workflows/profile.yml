@@ -68,6 +68,7 @@ jobs:
                 echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
                 apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
                 # Create a dummy file here so that we have something to upload.
+                mkdir -p ./testSuite/outputs
                 touch ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
              fi
           else
