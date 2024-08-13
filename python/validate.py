@@ -120,17 +120,17 @@ def extract(fileName, name, suffix, parameterFileName):
                     result['attributes'][attributeName] = str(attributes[attributeName])
                 else:
                     # LaTeX conversions.
-                    attributes[attributeName] = re.sub(r"\$",""                       ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\mathrm\{([^\}]+)\}","\g<1>",attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\hbox\{([^\}]+)\}","\g<1>"  ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\odot","☉"                  ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\langle","⟨"                ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\rangle","⟩"                ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\star","★"                 ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\log_\{10\}","log₁₀"        ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\sigma","σ"                 ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\^\{-1\}","⁻¹"               ,attributes[attributeName])
-                    attributes[attributeName] = re.sub(r"\\,"," "                     ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\$",""                        ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\mathrm\{([^\}]+)\}",r"\g<1>",attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\hbox\{([^\}]+)\}",r"\g<1>"  ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\odot","☉"                   ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\langle","⟨"                 ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\rangle","⟩"                 ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\star","★"                   ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\log_\{10\}","log₁₀"         ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\sigma","σ"                  ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\^\{-1\}","⁻¹"                ,attributes[attributeName])
+                    attributes[attributeName] = re.sub(r"\\,"," "                      ,attributes[attributeName])
                     result['attributes'][attributeName] = attributes[attributeName]
             for dataName in data:
                 result['data'][dataName] = list(data[dataName])
