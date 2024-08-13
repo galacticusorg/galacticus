@@ -55,6 +55,9 @@ runs:
     - name: Install guile
       shell: bash
       run: sudo port install guile18
+    - name: Install libgit2
+      shell: bash
+      run: sudo port install libgit2
     - name: Install libmatheval
       shell: bash
       run: |
