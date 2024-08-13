@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "percentageBelow" : 46.875,
-      "target" : 0.006,
-      "percentageAbove" : 53.125
-   },
-   "commit" : {
-      "message" : "fix: Add missing quotes",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/33ccb6788b2c644fdf7f966fc062d2d4b369978e",
-      "author" : {
-         "email" : "abenson@obs.carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "timestamp" : "Fri, 9 Aug 2024 10:08:14 -0700",
-      "id" : "33ccb6788b2c644fdf7f966fc062d2d4b369978e"
-   },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
       "target" : 0.85,
-      "percentageAbove" : 30.7692307692308,
-      "percentageBelow" : 69.2307692307692
+      "percentageAbove" : 41.6666666666667,
+      "percentageBelow" : 58.3333333333333
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "commit" : {
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abenson@carnegiescience.edu"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/93eb4751ee0cf84243f636263b76daefe1418e55",
+      "id" : "93eb4751ee0cf84243f636263b76daefe1418e55",
+      "message" : "fix: Add missing package",
+      "timestamp" : "Mon, 12 Aug 2024 18:21:13 -0700"
+   },
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 50,
+      "percentageBelow" : 50
+   }
 }
