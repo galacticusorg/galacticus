@@ -17,20 +17,28 @@ print "Executable is '".$executable."'\n";
 
 # Get the compile command.
 my $compileCommand;
+my $postProcessCommand;
+my $postProcessing = 0;
 while ( scalar(@arguments) > 0 ) {
     my $arg = shift(@arguments);
-    if ( $arg =~ m/^`/ ) {
-	my $toExpand = $arg;
-	while ( $toExpand !~ m/`$/ ) {
-	    $arg = shift(@arguments);
-	    $toExpand .= " ".$arg;
-	}
-	$toExpand =~ s/`//g;
-	my $expanded = `$toExpand`;
-	$expanded =~ s/\n/ /g;
-	$compileCommand .= " ".$expanded;
+    $postProcessing = 1
+	if ( $arg eq "2>&1" );
+    if ( $postProcessing ) {
+	$postProcessCommand .= " ".$arg;
     } else {
-	$compileCommand .= " ".$arg;
+	if ( $arg =~ m/^`/ ) {
+	    my $toExpand = $arg;
+	    while ( $toExpand !~ m/`$/ ) {
+		$arg = shift(@arguments);
+		$toExpand .= " ".$arg;
+	    }
+	    $toExpand =~ s/`//g;
+	    my $expanded = `$toExpand`;
+	    $expanded =~ s/\n/ /g;
+	    $compileCommand .= " ".$expanded;
+	} else {
+	    $compileCommand .= " ".$arg;
+	}
     }
 }
 
@@ -123,6 +131,9 @@ $compileCommand .= " -static-libgcc"
     if ( $isGCC      );
 $compileCommand .= " -static-libstdc++"
     if ( $isGPP      );
+# Add on postprocessing.
+$compileCommand .= " ".$postProcessCommand
+    if ( defined($postProcessCommand) );
 # Compile the static binary.
 print "Relinking with: ".$compileCommand."\n";
 system($compileCommand);
