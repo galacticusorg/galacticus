@@ -112,7 +112,6 @@ contains
     class           (outputTimesClass                   ), target , intent(in   ) :: outputTimes_
     double precision                                              , intent(in   ) :: toleranceRelative
     type            (multiExtractorList                 ), pointer                :: extractor_
-    integer                                                                       :: i
     !![
     <constructorAssign variables="*outputTimes_, toleranceRelative"/>
     !!]
