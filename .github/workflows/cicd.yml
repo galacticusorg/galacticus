@@ -39,6 +39,7 @@ on:
       - 'perl/IO/Compress/**'
       - 'perl/System/**'
       - 'perl/Fortran/**'
+      - 'python/**'
       - 'scripts/build/**'
       - 'schema/**'
 concurrency:
