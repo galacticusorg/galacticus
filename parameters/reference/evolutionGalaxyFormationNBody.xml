@@ -205,6 +205,10 @@
     <nodeOperator value="nodeFormationTimeMassFraction">
       <fractionMassFormation value="0.5"/>
     </nodeOperator>
+    <!-- Position interpolation -->
+    <nodeOperator value="positionInterpolated">
+      <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Merger tree evolution -->
@@ -235,6 +239,12 @@
     <mergerTreeEvolveTimestep value="satellite">
       <timeOffsetMaximumAbsolute value="0.010"/>
       <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <!-- Set up the new lightcone output using an outputter passed to the lightcone-crossing merger tree evolution timestepper -->
+    <mergerTreeEvolveTimestep value="lightconeCrossing">
+      <mergerTreeOutputter value="standard">
+	<outputsGroupName value="Lightcone"/>
+      </mergerTreeOutputter>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
 
