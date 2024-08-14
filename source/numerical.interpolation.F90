@@ -462,6 +462,7 @@ contains
     double precision                              , intent(in   ) :: x
     integer         (c_size_t    )                , intent(  out) :: i
     double precision              , dimension(0:1), intent(  out) :: h
+    double precision              , parameter                     :: rangeTolerance=1.0d-6
     double precision                                              :: x_
 
     call self%assertInterpolatable()
@@ -470,7 +471,7 @@ contains
        ! Extrapolate to high values.
        select case (self%extrapolationType(2)%ID)
        case (extrapolationTypeExtrapolate%ID)
-          x_=x
+          x_=     x
        case (extrapolationTypeFix        %ID)
           x_=self%x(self%countArray)
        case (extrapolationTypeZero       %ID)
@@ -478,29 +479,37 @@ contains
           h =0.0d0
           return
        case (extrapolationTypeAbort      %ID)
-          i =0
-          h =0.0d0
-          call Error_Report('extrapolation is not allowed'//{introspection:location})
+          if (x > self%x(self%countArray)*(1.0d0+rangeTolerance)) then
+             i =0
+             h =0.0d0
+             call Error_Report('extrapolation is not allowed'//{introspection:location})
+          else
+             x_=self%x(self%countArray)
+          end if
        case default
           i =0
           h =0.0d0
           call Error_Report('unknown extrapolation type'  //{introspection:location})
        end select
-    else if (x < self%x(1)) then
+    else if (x < self%x(              1)) then
        ! Extrapolate to low values.
        select case (self%extrapolationType(1)%ID)
        case (extrapolationTypeExtrapolate%ID)
-          x_=x
+          x_=     x
        case (extrapolationTypeFix        %ID)
-          x_=self%x(self%countArray)
+          x_=self%x(              1)
        case (extrapolationTypeZero       %ID)
           i =1
           h =0.0d0
           return
        case (extrapolationTypeAbort      %ID)
-          i =0
-          h =0.0d0
-          call Error_Report('extrapolation is not allowed'//{introspection:location})
+          if (x < self%x(              1)*(1.0d0-rangeTolerance)) then
+             i =0
+             h =0.0d0
+             call Error_Report('extrapolation is not allowed'//{introspection:location})
+          else
+             x_=self%x(              1)
+          end if
        case default
           i =0
           h =0.0d0
