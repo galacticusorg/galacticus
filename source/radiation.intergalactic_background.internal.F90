@@ -192,7 +192,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
     !!}
-    use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
+    use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix, extrapolationTypeZero
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                        :: self
     integer                                                        , intent(in   )         :: wavelengthCountPerDecade          , timeCountPerDecade
@@ -280,8 +281,8 @@ contains
        self%crossSectionSinglyIonizedHelium(iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(2,2,1,self%wavelength(iWavelength))
     end do
     ! Build interpolators.
-    self%interpolatorWavelength=interpolator(self%wavelength)
-    self%interpolatorTime      =interpolator(self%time_     )
+    self%interpolatorWavelength=interpolator(self%wavelength,extrapolationType=extrapolationTypeZero)
+    self%interpolatorTime      =interpolator(self%time_     ,extrapolationType=extrapolationTypeFix )
     ! Initialize state.
     self%statePrevious            => null()
     self%timePrevious             =  -1.0d0
