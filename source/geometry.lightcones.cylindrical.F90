@@ -73,6 +73,7 @@
      </methods>
      !!]
      final     ::                              cylindricalDestructor
+     procedure :: timeMinimum               => cylindricalTimeMinimum
      procedure :: isInLightcone             => cylindricalIsInLightcone
      procedure :: replicationCount          => cylindricalReplicationCount
      procedure :: solidAngle                => cylindricalSolidAngle
@@ -486,6 +487,17 @@ contains
     return
   end function cylindricalReplicationCount
   
+  double precision function cylindricalTimeMinimum(self)
+    !!{
+    Return the minimum time in the lightcone.
+    !!}
+    implicit none
+    class(geometryLightconeCylindrical), intent(inout) :: self
+
+    cylindricalTimeMinimum=self%outputTimes_%time(1_c_size_t)
+    return
+  end function cylindricalTimeMinimum
+
   logical function cylindricalIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
     Determine if the given {\normalfont \ttfamily node} lies within the lightcone.

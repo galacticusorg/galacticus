@@ -113,6 +113,7 @@
      </methods>
      !!]
      final     ::                              squareDestructor
+     procedure :: timeMinimum               => squareTimeMinimum
      procedure :: isInLightcone             => squareIsInLightcone
      procedure :: replicationCount          => squareReplicationCount
      procedure :: solidAngle                => squareSolidAngle
@@ -248,7 +249,7 @@ contains
     origin              =origin           *unitConversionLength
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
-    self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
+    self                     =geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
     self%lengthUnitsInSI     =lengthUnitsInSI
     self%lengthHubbleExponent=lengthHubbleExponent
     !![
@@ -455,6 +456,17 @@ contains
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
+
+  double precision function squareTimeMinimum(self)
+    !!{
+    Return the minimum time in the lightcone.
+    !!}
+    implicit none
+    class(geometryLightconeSquare), intent(inout) :: self
+
+    squareTimeMinimum=self%outputTimes(1)
+    return
+  end function squareTimeMinimum
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{

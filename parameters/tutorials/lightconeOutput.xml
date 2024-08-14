@@ -323,7 +323,6 @@
   <mergerTreeEvolveTimestep value="multi">
     <mergerTreeEvolveTimestep value="standard"/>
     <mergerTreeEvolveTimestep value="lightconeCrossing">
-      <redshiftMaximum value="0.2"/>
       <mergerTreeOutputter value="standard">
 	<outputsGroupName value="Lightcone"/>
 	<nodePropertyExtractor value="multi">
