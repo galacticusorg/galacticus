@@ -1074,6 +1074,7 @@ jobs:
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
+                test-massProfileSatelliteBoundMass.py,
                 test-stateRestore.pl,
                 test-checkpointing.pl,
                 test-stellar-mass-weighted-ages.pl,

@@ -58,7 +58,8 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                          satelliteIsNeeded
    contains
      final     ::                       velocityDispersionDestructor
      procedure :: columnDescriptions => velocityDispersionColumnDescriptions
@@ -168,6 +169,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -227,6 +229,7 @@ contains
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid              , treeNode
     use :: Numerical_Integration               , only : integrator
+    use :: Error                               , only : Error_Report
     implicit none
     double precision                                         , dimension(:,:), allocatable :: velocityDispersionExtract
     class           (nodePropertyExtractorVelocityDispersion), intent(inout) , target      :: self
@@ -309,6 +312,8 @@ contains
                &                                                         )
           radius                       =    radius*radiusFromFraction
           radiusOuter_=max(radius,radiusFromFraction)*outerRadiusMultiplier
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        if (scaleIsZero) then
           ! Do not compute dispersions if the component scale is zero.
