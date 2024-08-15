@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723535503010,
+  "lastUpdate": 1723717628504,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -2347,6 +2347,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/93eb4751ee0cf84243f636263b76daefe1418e55"
         },
         "date": 1723535502302,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737845286848",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.245729892367294",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.23649324777072",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fed16edc88f03f0e4d0c4150aa82b86ca018f616",
+          "message": "Merge pull request #666 from galacticusorg/featOutputSelectorEnhancement\n\nEnhance the `nodePropertyExtactorOutputSelector` class",
+          "timestamp": "2024-08-15T04:04:42Z",
+          "tree_id": "f1daef6dd4a733a678ba0d425121a054becd647c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fed16edc88f03f0e4d0c4150aa82b86ca018f616"
+        },
+        "date": 1723717627660,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
