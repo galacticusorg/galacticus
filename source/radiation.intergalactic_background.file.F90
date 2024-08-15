@@ -137,13 +137,14 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
     !!}
-    use :: Array_Utilities  , only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
-    use :: FoX_DOM          , only : destroy                          , extractDataContent   , node
-    use :: Error            , only : Error_Report
-    use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
-    use :: IO_XML           , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
-          &                          XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
+    use :: Array_Utilities, only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
+    use :: FoX_DOM        , only : destroy                          , extractDataContent   , node
+    use :: Error          , only : Error_Report
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_XML         , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
+         &                         XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
+    use :: Table_Labels   , only : extrapolationTypeZero
     implicit none
     type            (radiationFieldIntergalacticBackgroundFile)                                :: self
     type            (varying_string                           ), intent(in   )                 :: fileName
@@ -247,8 +248,8 @@ contains
     else
        call Error_Report('unrecognized file format'//{introspection:location})
     end if
-    self%interpolatorWavelengths=interpolator(self%spectraWavelengths)
-    self%interpolatorTimes      =interpolator(self%spectraTimes      )
+    self%interpolatorWavelengths=interpolator(self%spectraWavelengths,extrapolationType=extrapolationTypeZero)
+    self%interpolatorTimes      =interpolator(self%spectraTimes      ,extrapolationType=extrapolationTypeZero)
     return
   end function intergalacticBackgroundFileConstructorInternal
 

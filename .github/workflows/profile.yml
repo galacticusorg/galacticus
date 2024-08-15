@@ -69,7 +69,7 @@ jobs:
                 apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
                 # Create a dummy file here so that we have something to upload.
                 mkdir -p ./testSuite/outputs
-                echo "perf tests disabled due to missing linux-tools" ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
+                echo "perf tests disabled due to missing linux-tools" > ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
              fi
           else
              echo linux-tools was found
