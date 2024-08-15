@@ -34,7 +34,12 @@ module Geometry_Lightcones
    <name>geometryLightcone</name>
    <descriptiveName>Lightcone Geometries</descriptiveName>
    <description>Class providing geometries of lightcones.</description>
-   <default>square</default>
+   <default>null</default>
+   <method name="timeMinimum" >
+    <description>Returns the minimum time in the lightcone.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
    <method name="isInLightcone" >
     <description>Returns true if the provided node lies within the lightcone.</description>
     <type>logical</type>

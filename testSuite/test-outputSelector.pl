@@ -18,7 +18,7 @@ unless ( $? == 0 ) {
     exit;
 }
 
-# Check for contiguous output.
+# Check for correctly selected outputs.
 my $model   = new PDL::IO::HDF5("outputs/outputSelector.hdf5");
 my $outputs = $model->group('Outputs');
 my $success = 1;

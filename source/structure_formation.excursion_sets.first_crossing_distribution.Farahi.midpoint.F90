@@ -115,13 +115,14 @@ contains
     !!{
     Return the excursion set barrier at the given variance and time.
     !!}
-    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent             , verbosityLevelWorking
-    use :: Error_Functions  , only : Error_Function_Complementary
-    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                         displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions , only : Error_Function_Complementary
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers    , only : kind_dble                   , kind_quad
+    use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
+    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                       , time
@@ -387,8 +388,8 @@ contains
           if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
           allocate(self%interpolatorVariance)
           allocate(self%interpolatorTime    )
-          self%interpolatorVariance=interpolator(self%variance)
-          self%interpolatorTime    =interpolator(self%time    )
+          self%interpolatorVariance=interpolator(self%variance,extrapolationType=extrapolationTypeFix)
+          self%interpolatorTime    =interpolator(self%time    ,extrapolationType=extrapolationTypeFix)
           ! Record that the table is now built.
           self%tableInitialized=.true.
           ! Write the table to file if possible.
@@ -426,14 +427,15 @@ contains
     !!{
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMagenta  , &
-          &                          displayMessage              , displayReset         , displayUnindent     , displayVerbosity, &
-          &                          verbosityLevelWarn          , verbosityLevelWorking
-    use :: Error_Functions  , only : Error_Function_Complementary
-    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMagenta  , &
+          &                         displayMessage              , displayReset         , displayUnindent     , displayVerbosity, &
+          &                         verbosityLevelWarn          , verbosityLevelWorking
+    use :: Error_Functions , only : Error_Function_Complementary
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers    , only : kind_dble                   , kind_quad
+    use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
+    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                                         , varianceProgenitor
@@ -981,10 +983,10 @@ contains
           allocate(self%interpolatorVarianceCurrentRate           )
           allocate(self%interpolatorVarianceCurrentRateNonCrossing)
           allocate(self%interpolatorTimeRate                      )
-          self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        )
-          self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           )
-          self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing)
-          self%interpolatorTimeRate                      =interpolator(self%timeRate                      )
+          self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        ,extrapolationType=extrapolationTypeFix)
+          self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           ,extrapolationType=extrapolationTypeFix)
+          self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing,extrapolationType=extrapolationTypeFix)
+          self%interpolatorTimeRate                      =interpolator(self%timeRate                      ,extrapolationType=extrapolationTypeFix)
           ! Set previous variance and time to unphysical values to force recompute of interpolation factors on next call.
           self%variancePreviousRate=-1.0d0
           self%timePreviousRate    =-1.0d0

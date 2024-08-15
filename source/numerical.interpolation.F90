@@ -455,15 +455,72 @@ contains
     !!{
     Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x}.
     !!}
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : extrapolationTypeAbort, extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
     class           (interpolator)                , intent(inout) :: self
     double precision                              , intent(in   ) :: x
     integer         (c_size_t    )                , intent(  out) :: i
     double precision              , dimension(0:1), intent(  out) :: h
+    double precision              , parameter                     :: rangeTolerance=1.0d-6
+    double precision                                              :: x_
 
     call self%assertInterpolatable()
-    i=self%locate(x)
-    call self%linearWeights(x,i,h)
+    ! Handle extrapolation types.
+    if (x > self%x(self%countArray)) then
+       ! Extrapolate to high values.
+       select case (self%extrapolationType(2)%ID)
+       case (extrapolationTypeExtrapolate%ID)
+          x_=     x
+       case (extrapolationTypeFix        %ID)
+          x_=self%x(self%countArray)
+       case (extrapolationTypeZero       %ID)
+          i =self%countArray-1
+          h =0.0d0
+          return
+       case (extrapolationTypeAbort      %ID)
+          if (x > self%x(self%countArray)*(1.0d0+rangeTolerance)) then
+             i =0
+             h =0.0d0
+             call Error_Report('extrapolation is not allowed'//{introspection:location})
+          else
+             x_=self%x(self%countArray)
+          end if
+       case default
+          i =0
+          h =0.0d0
+          call Error_Report('unknown extrapolation type'  //{introspection:location})
+       end select
+    else if (x < self%x(              1)) then
+       ! Extrapolate to low values.
+       select case (self%extrapolationType(1)%ID)
+       case (extrapolationTypeExtrapolate%ID)
+          x_=     x
+       case (extrapolationTypeFix        %ID)
+          x_=self%x(              1)
+       case (extrapolationTypeZero       %ID)
+          i =1
+          h =0.0d0
+          return
+       case (extrapolationTypeAbort      %ID)
+          if (x < self%x(              1)*(1.0d0-rangeTolerance)) then
+             i =0
+             h =0.0d0
+             call Error_Report('extrapolation is not allowed'//{introspection:location})
+          else
+             x_=self%x(              1)
+          end if
+       case default
+          i =0
+          h =0.0d0
+          call Error_Report('unknown extrapolation type'  //{introspection:location})
+       end select
+    else
+       ! No extrapolation needed.
+       x_=x
+    end if
+    i=self%locate(x_)
+    call self%linearWeights(x_,i,h)
     return
   end subroutine interpolatorLinearFactors
 

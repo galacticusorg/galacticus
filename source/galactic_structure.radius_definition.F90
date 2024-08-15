@@ -37,16 +37,17 @@ module Galactic_Structure_Radii_Definitions
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <validator>yes</validator>
-   <entry label="radius"                />
-   <entry label="virialRadius"          />
-   <entry label="darkMatterScaleRadius" />
-   <entry label="diskRadius"            />
-   <entry label="spheroidRadius"        />
-   <entry label="diskHalfMassRadius"    />
-   <entry label="spheroidHalfMassRadius"/>
-   <entry label="galacticMassFraction"  />
-   <entry label="galacticLightFraction" />
-   <entry label="stellarMassFraction"   />
+   <entry label="radius"                    />
+   <entry label="virialRadius"              />
+   <entry label="darkMatterScaleRadius"     />
+   <entry label="diskRadius"                />
+   <entry label="spheroidRadius"            />
+   <entry label="diskHalfMassRadius"        />
+   <entry label="spheroidHalfMassRadius"    />
+   <entry label="satelliteBoundMassFraction"/>
+   <entry label="galacticMassFraction"      />
+   <entry label="galacticLightFraction"     />
+   <entry label="stellarMassFraction"       />
   </enumeration>
   !!]
 
@@ -80,7 +81,7 @@ module Galactic_Structure_Radii_Definitions
 
 contains
 
-  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,radiusVirialRequired,radiusScaleRequired)
+  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,satelliteRequired,radiusVirialRequired,radiusScaleRequired)
     !!{
     Decode a set of radii descriptors and return the corresponding specifiers.
     !!}
@@ -96,7 +97,8 @@ contains
     type     (varying_string ), intent(in   ), dimension(:)              :: descriptors
     type     (radiusSpecifier), intent(inout), dimension(:), allocatable :: specifiers
     logical                   , intent(  out)                            :: diskRequired        , spheroidRequired   , &
-         &                                                                  radiusVirialRequired, radiusScaleRequired
+         &                                                                  radiusVirialRequired, radiusScaleRequired, &
+         &                                                                  satelliteRequired
     type     (varying_string  )              , dimension(5)              :: radiusDefinition
     type     (varying_string  )              , dimension(3)              :: fractionDefinition
     type     (varying_string  )              , dimension(2)              :: weightingDefinition
@@ -107,6 +109,7 @@ contains
 
     diskRequired        =.false.
     spheroidRequired    =.false.
+    satelliteRequired   =.false.
     radiusVirialRequired=.false.
     radiusScaleRequired =.false.
     radiiCount          =size(descriptors)
@@ -125,18 +128,22 @@ contains
           call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
           radiusDefinition(1)='galacticMassFraction'
        end if
+       if (extract(valueDefinition,1,27) == 'satelliteBoundMassFraction{' ) then
+          call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
+          radiusDefinition(1)='satelliteBoundMassFraction'
+       end if
        if (extract(valueDefinition,1,20) == 'stellarMassFraction{'  ) then
           call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
           radiusDefinition(1)='stellarMassFraction'
        end if
        ! Parse the radius definition.
        select case (char(radiusDefinition(1)))
-       case ('radius'                )
+       case ('radius'                    )
           specifiers(i)%type=radiusTypeRadius
-       case ('virialRadius'          )
+       case ('virialRadius'              )
           specifiers(i)%type=radiusTypeVirialRadius
           radiusVirialRequired         =.true.
-       case ('darkMatterScaleRadius' )
+       case ('darkMatterScaleRadius'     )
           specifiers(i)%type=radiusTypeDarkMatterScaleRadius
           radiusScaleRequired=.true.
           if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                        &
@@ -149,7 +156,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &      )
-       case ('diskRadius'            )
+       case ('diskRadius'                )
           specifiers(i)%type=radiusTypeDiskRadius
           diskRequired                 =.true.
           if (.not.defaultDiskComponent             %radiusIsGettable        ())                                        &
@@ -162,7 +169,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('spheroidRadius'        )
+       case ('spheroidRadius'            )
           specifiers(i)%type=radiusTypeSpheroidRadius
           spheroidRequired             =.true.
           if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                        &
@@ -175,7 +182,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('diskHalfMassRadius'    )
+       case ('diskHalfMassRadius'        )
           specifiers(i)%type=radiusTypeDiskHalfMassRadius
           diskRequired                 =.true.
           if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                        &
@@ -188,7 +195,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('spheroidHalfMassRadius')
+       case ('spheroidHalfMassRadius'    )
           specifiers(i)%type=radiusTypeSpheroidHalfMassRadius
           spheroidRequired   =.true.
           if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                        &
@@ -201,19 +208,26 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('galacticMassFraction'  )
+       case ('satelliteBoundMassFraction')
+          specifiers(i)%type=radiusTypeSatelliteBoundMassFraction
+          satelliteRequired=.true.
+          fractionLabel=fractionDefinition(2)
+          read (fractionLabel,*) specifiers(i)%fraction
+          specifiers(i)%weightBy     =weightByMass
+          specifiers(i)%weightByIndex=weightIndexNull
+       case ('galacticMassFraction'      )
           specifiers(i)%type=radiusTypeGalacticMassFraction
           fractionLabel=fractionDefinition(2)
           read (fractionLabel,*) specifiers(i)%fraction
           specifiers(i)%weightBy     =weightByMass
           specifiers(i)%weightByIndex=weightIndexNull
-       case ('galacticLightFraction' )
+       case ('galacticLightFraction'     )
           specifiers(i)%type=radiusTypeGalacticLightFraction
           fractionLabel=fractionDefinition(2)
           read (fractionLabel,*) specifiers(i)%fraction
           specifiers(i)%weightBy      =weightByLuminosity
           specifiers(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
-       case ('stellarMassFraction'   )
+       case ('stellarMassFraction'       )
           specifiers(i)%type=radiusTypeStellarMassFraction
           fractionLabel=fractionDefinition(2)
           read (fractionLabel,*) specifiers(i)%fraction

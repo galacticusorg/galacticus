@@ -54,7 +54,8 @@
      type   (varying_string                         ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier                        ), allocatable, dimension(:) :: radii
      logical                                                                     :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                                         spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                                         spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                                         satelliteIsNeeded
      type   (varying_string                         )                            :: label
    contains
      final     ::                       cgmCoolingFunctionDestructor
@@ -171,6 +172,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -250,6 +252,7 @@ contains
     use :: Numerical_Constants_Astronomical    , only : massSolar                            , megaParsec
     use :: Numerical_Constants_Atomic          , only : massHydrogenAtom
     use :: Numerical_Constants_Prefixes        , only : hecto
+    use :: Error                               , only : Error_Report
     implicit none
     double precision                                         , dimension(:,:), allocatable :: cgmCoolingFunctionExtract
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout) , target      :: self
@@ -318,6 +321,8 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        ! Extract properties needed for the cooling function.       
        basic   => node%basic  ()

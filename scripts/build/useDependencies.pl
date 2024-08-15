@@ -42,7 +42,8 @@ my %moduleLibraries = (
     vectors             => "blas"          ,
     models_likelihoods  => "matheval"      ,
     input_parameters    => "matheval"      ,
-    interface_gsl       => "gsl"
+    interface_gsl       => "gsl"           ,
+    output_versioning   => "git2"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.

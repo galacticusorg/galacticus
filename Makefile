@@ -283,6 +283,33 @@ $(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
 	 echo "CPPFLAGS += -DMATHEVALUNAVAIL" >> $(BUILDPATH)/Makefile_Config_MathEval ; \
 	fi
 
+# Configuration for availability of libgit2. For static builds, we
+# make libgit2 unavailable, as typically the `gssapi_krb5` library
+# (linked by libgit2) does not have a static version available. In
+# this case we will fall back to working through the `git` command
+# line.
+-include $(BUILDPATH)/Makefile_Config_Git2
+ifeq '${STATIC}' '-static'
+$(BUILDPATH)/Makefile_Config_Git2:
+	@mkdir -p $(BUILDPATH)
+	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
+else
+$(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
+	@mkdir -p $(BUILDPATH)
+	$(CCOMPILER) -c source/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(CFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DGIT2AVAIL"   >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CFLAGS   += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CPPFLAGS += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
+	else \
+	 echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2 ; \
+	fi
+endif
+
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
 $(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
@@ -511,7 +538,7 @@ $(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
 
 # Rules for version routines.
 $(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
-	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/output.version.revision.inc; fi
+	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=40), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=40), parameter :: gitHash="unknown"\n' > $(BUILDPATH)/output.version.revision.inc; fi
 	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/output.version.revision.inc; fi
 	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/output.version.revision.inc
 

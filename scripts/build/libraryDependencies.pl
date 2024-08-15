@@ -114,6 +114,9 @@ delete($libraries{'qhull_r' })
 # Remove libmatheval if not used.
 delete($libraries{'matheval'})
     if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
+# Remove libgit2 if not used.
+delete($libraries{'git2'})
+    if ( exists($libraries{'git2'}) && ! grep {$_ eq "-DGIT2AVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
 my @libraryNames = sort(keys(%libraries));
 my @sortedLibraries = &Sort::Topo::sort(\@libraryNames,\%staticLinkDependencies);

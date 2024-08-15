@@ -47,7 +47,8 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                          satelliteIsNeeded
    contains
      final     ::                       projectedDensityDestructor
      procedure :: columnDescriptions => projectedDensityColumnDescriptions
@@ -137,6 +138,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -197,6 +199,7 @@ contains
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Mass_Distributions                  , only : massDistributionClass
     use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
+    use :: Error                               , only : Error_Report
     implicit none
     double precision                                       , dimension(:,:), allocatable :: densityProjected
     class           (nodePropertyExtractorProjectedDensity), intent(inout) , target      :: self
@@ -263,6 +266,8 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        massDistribution_        => node%massDistribution(self%radii(i)%component,self%radii(i)%mass)
        densityProjectedPrevious =  0.0d0

@@ -41,7 +41,8 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                          satelliteIsNeeded
    contains
      final     ::                       densityProfileDestructor
      procedure :: columnDescriptions => densityProfileColumnDescriptions
@@ -127,6 +128,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -184,6 +186,7 @@ contains
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Numerical_Constants_Math            , only : Pi
+    use :: Error                               , only : Error_Report
     implicit none
     double precision                                     , dimension(:,:), allocatable :: densityProfileExtract
     class           (nodePropertyExtractorDensityProfile), intent(inout) , target      :: self
@@ -243,6 +246,8 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        densityProfileExtract       (i,1)=self%galacticStructure_%density(                                       &
             &                                                            node                                 , &
