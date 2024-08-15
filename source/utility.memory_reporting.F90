@@ -195,13 +195,23 @@ contains
     !!{
     Determines the size of the ``text'' (i.e. code) size.
     !!}
+    use :: Display      , only : displayMessage, displayGreen , displayReset
+#ifdef USEMPI
+    use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
-    character(len=80) :: procFileName, pid
-    integer           :: ioStatus    , proc         , &
-         &               pagesTotal  , pagesResident, &
-         &               pagesShared , pagesText    , &
-         &               pagesData   , pagesLibrary , &
-         &               pagesDirty
+    integer  (c_size_t), parameter :: kilo             =1024
+    integer  (c_size_t)            :: divisor
+    character(len= 2  )            :: suffix
+    character(len=80  )            :: procFileName          , pid                 , &
+         &                            slurmMemoryString     , sourceMemory
+    integer                        :: ioStatus              , proc                , &
+         &                            pagesTotal            , pagesResident       , &
+         &                            pagesShared           , pagesText           , &
+         &                            pagesData             , pagesLibrary        , &
+         &                            pagesDirty            , statusSlurmPerNode  , &
+         &                            statusSlurmPerCPU     , statusSlurmCountCPUs, &
+         &                            countCPUs
 
     if (.not.codeMemoryUsageInitialized) then
        ! Find memory used by code itself.
@@ -214,8 +224,38 @@ contains
           if (ioStatus == 0) memoryUsageCode=pagesText*getPageSize()
        end if
        close(proc)
-       ! Find available system memory.
-       memoryAvailable=getTotalSystemMemory()
+       ! Find available system memory. We first check if limits have been imposed by SLURM - if so, we use them, otherwise we use
+       ! the system total memory.
+       call Get_Environment_Variable('SLURM_MEM_PER_NODE',status=statusSlurmPerNode)
+       call Get_Environment_Variable('SLURM_MEM_PER_CPU' ,status=statusSlurmPerCPU )
+       if      (statusSlurmPerNode == 0) then
+          call Get_Environment_Variable('SLURM_MEM_PER_NODE',value=slurmMemoryString,status=statusSlurmPerNode)
+          if (statusSlurmPerNode /= 0) call Error_Report("failed to read environment variable 'SLURM_MEM_PER_NODE'"//{introspection:location})
+          read (slurmMemoryString,*) memoryAvailable
+          memoryAvailable=memoryAvailable*kilo**2
+          sourceMemory="SLURM"
+       else if (statusSlurmPerCPU  == 0) then
+          call Get_Environment_Variable('SLURM_MEM_PER_CPU',value=slurmMemoryString,status=statusSlurmPerCPU)
+          if (statusSlurmPerCPU    /= 0) call Error_Report("failed to read environment variable 'SLURM_MEM_PER_CPU'"//{introspection:location})
+          read (slurmMemoryString,*) memoryAvailable
+          memoryAvailable=memoryAvailable*kilo**2
+          call Get_Environment_Variable('SLURM_CPUS_ON_NODE',value=slurmMemoryString,status=statusSlurmCountCPUs)
+          if (statusSlurmCountCPUs /= 0) call Error_Report("failed to read environment variable 'SLURM_CPUS_ON_NODE'"//{introspection:location})
+          read (slurmMemoryString,*) countCPUs
+          memoryAvailable=memoryAvailable*countCPUs
+          sourceMemory   ="SLURM"
+       else
+          memoryAvailable=getTotalSystemMemory()
+          sourceMemory   ="system"
+       end if
+#ifdef USEMPI
+       memoryAvailable=+        memoryAvailable   &
+            &          /mpiSelf%countOnNode    ()
+#endif
+       ! Report on source of memory limits.
+       call getSuffix(memoryAvailable,divisor,suffix)
+       write (slurmMemoryString,'(f7.3,a1,a2)')  dble(memoryAvailable)/dble(divisor)," ",trim(adjustl(suffix))
+       call displayMessage(displayGreen()//"NOTE: "//displayReset()//"memory available ("//trim(adjustl(slurmMemoryString))//") determined from "//trim(sourceMemory))
        ! Mark that these results are now initialized.
        codeMemoryUsageInitialized=.true.
     end if
