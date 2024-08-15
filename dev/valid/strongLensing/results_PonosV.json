@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 41.6666666666667,
-      "percentageBelow" : 58.3333333333333
-   },
-   "commit" : {
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/93eb4751ee0cf84243f636263b76daefe1418e55",
-      "id" : "93eb4751ee0cf84243f636263b76daefe1418e55",
-      "message" : "fix: Add missing package",
-      "timestamp" : "Mon, 12 Aug 2024 18:21:13 -0700"
-   },
    "surfaceDensity" : {
       "target" : 0.006,
-      "percentageAbove" : 50,
-      "percentageBelow" : 50
+      "percentageBelow" : 50,
+      "percentageAbove" : 50
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageBelow" : 58.3333333333333,
+      "percentageAbove" : 41.6666666666667,
+      "target" : 0.85
+   },
+   "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/fed16edc88f03f0e4d0c4150aa82b86ca018f616",
+      "message" : "Merge pull request #666 from galacticusorg/featOutputSelectorEnhancement",
+      "id" : "fed16edc88f03f0e4d0c4150aa82b86ca018f616",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      },
+      "timestamp" : "Thu, 15 Aug 2024 04:04:42 +0000"
    }
 }

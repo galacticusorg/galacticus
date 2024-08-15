@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "93eb4751ee0cf84243f636263b76daefe1418e55",
-        "message": "fix: Add missing package\n",
-        "timestamp": "2024-08-12 18:21:13-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/93eb4751ee0cf84243f636263b76daefe1418e55"
+        "id": "fed16edc88f03f0e4d0c4150aa82b86ca018f616",
+        "message": "Merge pull request #666 from galacticusorg/featOutputSelectorEnhancement\n\nEnhance the `nodePropertyExtactorOutputSelector` class\n",
+        "timestamp": "2024-08-15 04:04:42+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/fed16edc88f03f0e4d0c4150aa82b86ca018f616"
     },
     "results": [
         {
