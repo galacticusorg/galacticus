@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723717601223,
+  "lastUpdate": 1723717609325,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d6ca028811ec022b51a2ae1c0b21d3538ac56a06",
-          "message": "Merge pull request #490 from galacticusorg/cgmCoolingFunction\n\nAdd a `nodePropertyExtractor` to output the cooling function in the CGM",
-          "timestamp": "2023-10-05T14:30:53Z",
-          "tree_id": "5ed79355033c2e09935deb3ef720d1bca878712d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d6ca028811ec022b51a2ae1c0b21d3538ac56a06"
-        },
-        "date": 1696536325759,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 57.6681754904595,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 25.6634741243711,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23666.4950168135,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8752,6 +8713,45 @@ window.BENCHMARK_DATA = {
             "value": 52.381,
             "unit": "seconds",
             "range": 0.0456168828401877
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fed16edc88f03f0e4d0c4150aa82b86ca018f616",
+          "message": "Merge pull request #666 from galacticusorg/featOutputSelectorEnhancement\n\nEnhance the `nodePropertyExtactorOutputSelector` class",
+          "timestamp": "2024-08-15T04:04:42Z",
+          "tree_id": "f1daef6dd4a733a678ba0d425121a054becd647c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/fed16edc88f03f0e4d0c4150aa82b86ca018f616"
+        },
+        "date": 1723717608494,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.824392129776,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.74096919504519,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20527.0687268737,
+            "unit": "-logℒ"
           }
         ]
       }
