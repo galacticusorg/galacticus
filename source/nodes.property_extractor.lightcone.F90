@@ -286,7 +286,7 @@ contains
        !  1 + zₚ = √[(1+βₚ)/(1-βₚ)]
        ! where βₚ=vₚ/c is the dimensionless peculiar velocity (e.g. Davis et al.; 2011; ApJ; 741; 67; eqn. 4;
        ! https://ui.adsabs.harvard.edu/abs/2011ApJ...741...67D).
-       lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
+       lightconeExtract(self%redshiftObservedOffset  +1)=                                       -1.0d0  &
             &                                            +    (+1.0d0                           +lightconeExtract(7  )) &
             &                                            *sqrt(                                                         &
             &                                                  +(+1.0d0+velocityBeta)                                   &
