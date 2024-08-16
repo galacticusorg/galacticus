@@ -153,7 +153,7 @@ contains
        ! If the maximum time is after the current time, find the time (if any) of lightcone crossing.
        basic => node%basic()
        if (timeMaximum > basic%time()) then       
-          timeCrossing=self%geometryLightcone_%timeLightconeCrossing(node,timeMaximum)
+          timeCrossing=self%geometryLightcone_%timeLightconeCrossing(node,self%timeMinimum,timeMaximum)
           if (timeCrossing <= timeEnd) lightconeCrossingTimeEvolveTo=timeCrossing
        end if
     end if
