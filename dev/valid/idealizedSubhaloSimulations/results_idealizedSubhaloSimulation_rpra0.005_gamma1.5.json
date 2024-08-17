@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "fed16edc88f03f0e4d0c4150aa82b86ca018f616",
-        "message": "Merge pull request #666 from galacticusorg/featOutputSelectorEnhancement\n\nEnhance the `nodePropertyExtactorOutputSelector` class\n",
-        "timestamp": "2024-08-15 04:04:42+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/fed16edc88f03f0e4d0c4150aa82b86ca018f616"
+        "id": "d6740de4a2affcc39ca24dc580f8a5ae40a23fa9",
+        "message": "Merge pull request #668 from galacticusorg/fixLightconeMinimumTime\n\nEnforce minimum time in lightcone output\n",
+        "timestamp": "2024-08-17 00:00:53+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d6740de4a2affcc39ca24dc580f8a5ae40a23fa9"
     },
     "results": [
         {
