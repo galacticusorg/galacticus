@@ -155,15 +155,15 @@ contains
     return
   end function nullVelocity
 
-  double precision function nullTimeLightconeCrossing(self,node,timeEnd)
+  double precision function nullTimeLightconeCrossing(self,node,timeStart,timeEnd)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
     implicit none
     class           (geometryLightconeNull), intent(inout)  :: self
     type            (treeNode             ), intent(inout)  :: node
-    double precision                       , intent(in   )  :: timeEnd
-    !$GLC attributes unused :: self, node, timeEnd
+    double precision                       , intent(in   )  :: timeStart, timeEnd
+    !$GLC attributes unused :: self, node, timeStart, timeEnd
 
     nullTimeLightconeCrossing=huge(0.0d0)
     return

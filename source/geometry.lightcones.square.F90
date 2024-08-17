@@ -831,7 +831,7 @@ contains
     return
   end function squarePositionAtOutput
 
-  double precision function squareTimeLightconeCrossing(self,node,timeEnd)
+  double precision function squareTimeLightconeCrossing(self,node,timeStart,timeEnd)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
@@ -843,7 +843,7 @@ contains
     implicit none
     class           (geometryLightconeSquare), intent(inout)  :: self
     type            (treeNode               ), intent(inout)  :: node
-    double precision                         , intent(in   )  :: timeEnd
+    double precision                         , intent(in   )  :: timeStart                   , timeEnd
     integer                                  , dimension(3,2) :: periodicRange
     class           (nodeComponentBasic     ), pointer        :: basic
     class           (nodeComponentPosition  ), pointer        :: position
@@ -860,11 +860,11 @@ contains
          &                                                       k
     type            (rootFinder             )                 :: finder
  
-    basic                       => node    %basic                               (               )
-    position                    => node    %position                            (               )
-    positionReference           =  position%position                            (               )
-    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(      timeEnd  )
-    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(basic%time   ())
+    basic                       => node    %basic                               (                           )
+    position                    => node    %position                            (                           )
+    positionReference           =  position%position                            (                           )
+    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(    timeEnd                )
+    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(max(timeStart,basic%time()))
     radiusBuffer                =  +(                       &
          &                           +      timeEnd         &
          &                           -basic%time   ()       &
