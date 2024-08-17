@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723717616965,
+  "lastUpdate": 1723875982330,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -2386,6 +2386,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/fed16edc88f03f0e4d0c4150aa82b86ca018f616"
         },
         "date": 1723717616209,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "48.57678428813709",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "35.054778180166466",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.749122714076858",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6740de4a2affcc39ca24dc580f8a5ae40a23fa9",
+          "message": "Merge pull request #668 from galacticusorg/fixLightconeMinimumTime\n\nEnforce minimum time in lightcone output",
+          "timestamp": "2024-08-17T00:00:53Z",
+          "tree_id": "2616da78ca47018a07a0d7c1bc5b625ff3e3e154",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6740de4a2affcc39ca24dc580f8a5ae40a23fa9"
+        },
+        "date": 1723875981610,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
