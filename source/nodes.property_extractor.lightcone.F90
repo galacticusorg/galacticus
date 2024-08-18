@@ -247,7 +247,11 @@ contains
 
     if (.not.present(instance).and..not.self%atCrossing) call Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
-    if (.not.self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+    if     (                                                                        &
+         &   .not.self                   %atCrossing                                &
+         &  .and.                                                                   &
+         &   .not.self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.) &
+         & ) then
        ! Node is not in the lightcone. If this is allowed, simply assign unphysical values.
        if (self%failIfNotInLightcone) call Error_Report('node is not in lightcone'//{introspection:location})
        lightconeExtract=-huge(0.0d0)

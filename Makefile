@@ -156,6 +156,10 @@ FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
 CCOMPILER_VERSION = `$(CCOMPILER) -v 2>&1`
 CPPCOMPILER_VERSION = `$(CPPCOMPILER) -v 2>&1`
 
+# Find all source files.
+ALLSOURCES    = $(wildcard source/*.[fF]90              source/*.h source/*.c source/*.cpp)
+ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c source/*.cpp)
+
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
 # Object (*.o) files are built by preprocessing and then compiling Fortran 90 (*.F90) source
@@ -278,6 +282,33 @@ $(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
 	 echo "FCFLAGS  += -DMATHEVALUNAVAIL" >  $(BUILDPATH)/Makefile_Config_MathEval ; \
 	 echo "CPPFLAGS += -DMATHEVALUNAVAIL" >> $(BUILDPATH)/Makefile_Config_MathEval ; \
 	fi
+
+# Configuration for availability of libgit2. For static builds, we
+# make libgit2 unavailable, as typically the `gssapi_krb5` library
+# (linked by libgit2) does not have a static version available. In
+# this case we will fall back to working through the `git` command
+# line.
+-include $(BUILDPATH)/Makefile_Config_Git2
+ifeq '${STATIC}' '-static'
+$(BUILDPATH)/Makefile_Config_Git2:
+	@mkdir -p $(BUILDPATH)
+	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
+else
+$(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
+	@mkdir -p $(BUILDPATH)
+	$(CCOMPILER) -c source/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(CFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DGIT2AVAIL"   >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CFLAGS   += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CPPFLAGS += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
+	else \
+	 echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2 ; \
+	fi
+endif
 
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
@@ -507,7 +538,7 @@ $(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
 
 # Rules for version routines.
 $(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
-	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=42), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=42), parameter :: gitHash="(unknown)"\n' > $(BUILDPATH)/output.version.revision.inc; fi
+	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=40), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=40), parameter :: gitHash="unknown"\n' > $(BUILDPATH)/output.version.revision.inc; fi
 	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/output.version.revision.inc; fi
 	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/output.version.revision.inc
 
@@ -545,25 +576,25 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.pl `pwd`
 	./scripts/build/stateStorables.pl `pwd`
 	./scripts/build/deepCopyActions.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/includeDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/findExecutables.pl `pwd`
 

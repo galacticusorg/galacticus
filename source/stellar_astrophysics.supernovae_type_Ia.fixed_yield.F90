@@ -52,12 +52,13 @@ contains
     !!{
     Read data for the {\normalfont \ttfamily fixedYield} supernovae type Ia class.
     !!}
-    use :: Atomic_Data, only : Atom_Lookup                   , Atomic_Data_Atoms_Count
-    use :: FoX_dom    , only : destroy                       , node                             , extractDataContent
-    use :: Error      , only : Error_Report
-    use :: Input_Paths, only : inputPath                     , pathTypeDataStatic
-    use :: IO_XML     , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, &
-         &                     XML_Parse
+    use :: Atomic_Data       , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
+    use :: FoX_dom           , only : destroy                       , node                             , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: Input_Paths       , only : inputPath                     , pathTypeDataStatic
+    use :: IO_XML            , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, &
+         &                            XML_Parse
+    use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (supernovaeTypeIaFixedYield), intent(inout)               :: self
     type            (node                      ), pointer                     :: doc         , atom        , &
@@ -66,6 +67,7 @@ contains
     integer                                                                   :: atomicIndex , atomicNumber, &
          &                                                                       iIsotope    , ioErr
     double precision                                                          :: isotopeYield
+    type            (varying_string            )                              :: fileName
     
     if (self%initialized) return
     ! Allocate an array to store individual element yields.
@@ -73,9 +75,9 @@ contains
     self%elementYield=0.0d0
     self%totalYield  =0.0d0
     ! Read in Type Ia yields.
+    fileName=char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'
     !$omp critical (FoX_DOM_Access)
-    ! Open the XML file containing yields.
-    doc => XML_Parse(char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
+    doc => XML_Parse(char(fileName),iostat=ioErr)
     if (ioErr /= 0) call Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
     call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)

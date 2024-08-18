@@ -19,13 +19,13 @@
 
 !!{
 Contains a program which tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-\href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+\href{http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
 !!}
 
 program Tests_Halo_Mass_Function_Tinker
   !!{
   Tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-  \href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+  \href{http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
   !!}
   use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

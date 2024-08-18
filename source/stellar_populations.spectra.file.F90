@@ -273,6 +273,7 @@ contains
     use :: Error         , only : Error_Report
     use :: HDF5_Access   , only : hdf5Access
     use :: IO_HDF5       , only : hdf5Object
+    use :: Table_Labels  , only : extrapolationTypeExtrapolate, extrapolationTypeZero, extrapolationTypeFix
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout) :: self
     integer                                              :: fileFormatVersion
@@ -302,9 +303,9 @@ contains
        !$ call hdf5Access%unset()
        self%fileRead=.true.
        ! Build interpolators.
-       self%spectra%interpolatorAge        =interpolator(self%spectra%ages         )
-       self%spectra%interpolatorWavelength =interpolator(self%spectra%wavelengths  )
-       self%spectra%interpolatorMetallicity=interpolator(self%spectra%metallicities)
+       self%spectra%interpolatorAge        =interpolator(self%spectra%ages         ,extrapolationType=extrapolationTypeExtrapolate)
+       self%spectra%interpolatorWavelength =interpolator(self%spectra%wavelengths  ,extrapolationType=extrapolationTypeZero       )
+       self%spectra%interpolatorMetallicity=interpolator(self%spectra%metallicities,extrapolationType=extrapolationTypeFix        )
     end if
     return
   end subroutine fileReadFile

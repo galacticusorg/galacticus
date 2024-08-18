@@ -114,6 +114,7 @@
       <branchIntervalStep value="true"/>
       <mergeProbability value="0.1"/>
       <redshiftMaximum value="10.0"/>
+      <toleranceTimeEarliest value="4.0e-6"/>
       <accretionLimit value="0.1"/>
     </mergerTreeBuilder>
     <mergerTreeBranchingProbability value="parkinsonColeHelly">

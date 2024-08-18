@@ -45,6 +45,12 @@ our @metaPropertyTypes =
 	 rank      => 0
      },
      {
+	 label     => "longInteger"     ,
+	 intrinsic => "integer"         ,
+	 type      => "kind_int8"       ,
+	 rank      => 1
+     },
+     {
 	 label     => "integer"         ,
 	 intrinsic => "integer"         ,
 	 rank      => 0

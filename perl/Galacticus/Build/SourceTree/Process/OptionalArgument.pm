@@ -19,9 +19,9 @@ sub Process_OptionalArguments {
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
-	if ( $node->{'type'} eq "optionalArgument" && ! $node->{'processed'} ) {
+	if ( $node->{'type'} eq "optionalArgument" && ! $node->{'directive'}->{'processed'} ) {
 	    # Record that node is processed.
-	    $node->{'processed'} = 1;
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Generate declaration and setting code for the optional argument.
 	    my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'name'});
 	    # Change the name of the declared variable, strip argument-based attributes.

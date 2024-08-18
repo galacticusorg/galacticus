@@ -279,14 +279,15 @@ contains
     logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
     double precision                                 :: massDistributionSpheroidDensityMomentum2   , massDistributionSpheroidDensityMomentum3, &
          &                                              ratioAngularMomentumScaleRadiusDefault
-    type            (dependencyRegEx), dimension(2)  :: dependencies
+    type            (dependencyRegEx), dimension(3)  :: dependencies
     type            (inputParameters)                :: subParameters
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
-       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          ) 
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
+       dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
+       dependencies(3)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
        call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
        call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
        ! Find our parameters.

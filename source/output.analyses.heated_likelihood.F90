@@ -132,14 +132,15 @@ contains
     return
   end subroutine heatedLikelihoodAnalyze
 
-  subroutine heatedLikelihoodFinalize(self)
+  subroutine heatedLikelihoodFinalize(self,groupName)
     !!{
     Finalize all analyses.
     !!}
     implicit none
-    class(outputAnalysisHeatedLikelihood), intent(inout) :: self
+    class(outputAnalysisHeatedLikelihood), intent(inout)           :: self
+    type (varying_string                ), intent(in   ), optional :: groupName
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     return
   end subroutine heatedLikelihoodFinalize
 

@@ -295,7 +295,7 @@ contains
     use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk       , massDistributionDisk_        
     implicit none
     type            (inputParameters), intent(inout) :: parameters
-    type            (dependencyRegEx), dimension(1)  :: dependencies
+    type            (dependencyRegEx), dimension(2)  :: dependencies
     double precision                                 :: massDistributionDiskDensityMoment1, massDistributionDiskDensityMoment2
     logical                                          :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
     type            (inputParameters)                :: subParameters
@@ -303,6 +303,7 @@ contains
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+       dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
        call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
        call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )

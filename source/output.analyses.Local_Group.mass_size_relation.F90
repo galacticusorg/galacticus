@@ -503,6 +503,7 @@ contains
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
     <objectDestructor name="galacticFilterHighPass_"                               />
+    <objectDestructor name="galacticFilterSurveyGeometry_"                         />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]
@@ -558,14 +559,15 @@ contains
     return
   end subroutine localGroupMassSizeRelationReduce
 
-  subroutine localGroupMassSizeRelationFinalize(self)
+  subroutine localGroupMassSizeRelationFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupMassSizeRelation} output analysis finalization.
     !!}
     implicit none
-    class(outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self
+    class(outputAnalysisLocalGroupMassSizeRelation), intent(inout)           :: self
+    type (varying_string                          ), intent(in   ), optional :: groupName
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     return
   end subroutine localGroupMassSizeRelationFinalize
 

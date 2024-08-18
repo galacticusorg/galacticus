@@ -107,7 +107,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
       <description>The redshift of the epoch at which the transfer function is defined.</description>
     </inputParameter>
     !!]
-    self=transferFunctionmurgia2017(transferFunctionCDM,alpha,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
+    self=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>

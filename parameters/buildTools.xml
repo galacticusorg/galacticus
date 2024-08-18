@@ -11,6 +11,7 @@
     <task value="buildToolCLASS"/>
     <task value="buildToolRecFast"/>
     <task value="buildToolCloudy"/>
+    <task value="buildToolMangle"/>
   </task>
 
 </parameters>

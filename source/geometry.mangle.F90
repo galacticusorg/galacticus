@@ -28,7 +28,7 @@ module Geometry_Mangle
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: geometryMangleSolidAngle, geometryMangleAngularPower, &
-       &    window
+       &    geometryMangleBuild     , window
 
   type :: cap
      !!{
@@ -207,31 +207,62 @@ contains
     return
   end function capPointIncluded
 
-  subroutine geometryMangleBuild()
+  subroutine geometryMangleBuild(manglePath,mangleVersion,static)
     !!{
     Download and build the \textsc{mangle} code.
     !!}
-    use :: File_Utilities    , only : Directory_Make   , File_Exists
+    use :: Dependencies      , only : dependencyVersion
+    use :: Display           , only : displayMessage   , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock      , File_Unlock  , &
+          &                           lockDescriptor
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)     , varying_string       , char           , assignment(=)
+    use :: String_Handling   , only : stringSubstitute
+    use :: System_Download   , only : download
     use :: System_Command    , only : System_Command_Do
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC
     implicit none
-    integer :: iStatus
+    type   (varying_string), intent(  out)           :: manglePath, mangleVersion
+    logical                , intent(in   ), optional :: static
+    integer                                          :: status
+    type   (lockDescriptor)                          :: fileLock
+    type   (varying_string)                          :: command   , staticOptions
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
-    ! Ensure that we have the mangle source.
-    if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle")) then
-       ! Clone the mangle repo.
-       call Directory_Make(inputPath(pathTypeDataDynamic)//"mangle")
-       call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"; git clone https://github.com/mollyswanson/mangle.git",iStatus)
-       if (iStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle"            )) &
-            & call Error_Report('failed to clone mangle repo'       //{introspection:location})
-    end if
-    ! Test for presence of the "ransack" executable - build if necessary.
-    if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle/bin/ransack")) then
-       call System_Command_Do("cd "//inputPath(pathTypeDataDynamic)//"mangle/src; ./configure; make cleanest; make",iStatus)
-       if (iStatus /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"mangle/bin/ransack")) &
-            & call Error_Report("failed to build mangle executables"//{introspection:location})
+    ! Get the version to use.
+    mangleVersion=dependencyVersion("mangle")
+    manglePath   =inputPath(pathTypeDataDynamic)//"mangle-"//mangleVersion//"/"
+    ! Build the mangle code.
+    if (.not.File_Exists(manglePath//"bin/harmonize")) then
+       call Directory_Make(     manglePath                                         )
+       call File_Lock     (char(manglePath//"mangle"),fileLock,lockIsShared=.false.)
+       ! Unpack the code.
+       if (.not.File_Exists(manglePath//"src/Makefile.in")) then
+          ! Download mangle if necessary.
+          if (.not.File_Exists(manglePath//".tar.gz")) then
+             call displayMessage("downloading mangle code....",verbosityLevelWorking)
+             call download("https://github.com/galacticusorg/mangle/archive/refs/tags/v"//char(mangleVersion)//".tar.gz",char(manglePath//".tar.gz"),status=status,retries=5,retryWait=60)
+             if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
+          end if
+          call displayMessage("unpacking mangle code....",verbosityLevelWorking)
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//manglePath//".tar.gz",status)
+          if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})
+       end if
+       staticOptions=""
+       if (static_) staticOptions=" -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
+       command=         'cd '//manglePath//'src; ./configure; '
+       command=command//'sed -E -i~ s/"^F77[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"F77 = '//                 compiler       (languageFortran)                         //'"/ Makefile; '
+       command=command//'sed -E -i~ s/"^CC[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"CC = '  //                 compiler       (languageC      )                         //'"/ Makefile; '
+       command=command//'sed -E -i~ s/"^FFLAGS[[:space:]]*:=(.*)"/"FFLAGS:=\1 '           //stringSubstitute(compilerOptions(languageFortran),"/","\/")//staticOptions//'"/ Makefile; '
+       command=command//'sed -E -i~ s/"^CFLAGS[[:space:]]*:=(.*)"/"CFLAGS:=\1 '           //stringSubstitute(compilerOptions(languageC      ),"/","\/")//staticOptions//'"/ Makefile; '
+       command=command//'make cleanest; make'
+       if (static_) command=command//' static'
+       call System_Command_Do(char(command),status);
+       if (status /= 0 .or. .not.File_Exists(manglePath//"bin/harmonize")) call Error_Report("failed to build mangle executables"//{introspection:location})
+       call File_Unlock(fileLock)
     end if
     return
   end subroutine geometryMangleBuild
@@ -242,7 +273,6 @@ contains
     !!}
     use :: File_Utilities          , only : File_Exists       , File_Name_Temporary
     use :: Error                   , only : Error_Report
-    use :: Input_Paths             , only : inputPath         , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
     use :: ISO_Varying_String      , only : char              , extract            , len               , operator(//), &
@@ -256,8 +286,9 @@ contains
     double precision                               , dimension(size(fileNames)) :: geometryMangleSolidAngle
     type            (varying_string), allocatable  , dimension(             : ) :: subFiles
     integer                                                                     :: i                       , j            , &
-         &                                                                         iStatus                 , wlmFile
-    type            (varying_string)                                            :: fileName                , fileNameTmp
+         &                                                                         status                  , wlmFile
+    type            (varying_string)                                            :: fileName                , fileNameTmp  , &
+         &                                                                         manglePath              , mangleVersion
     double precision                                                            :: multiplier              , subSolidAngle, &
          &                                                                         w00
     type            (hdf5Object    )                                            :: solidAngleFile
@@ -272,7 +303,7 @@ contains
        return
     end if
     ! Ensure mangle is available.
-    call geometryMangleBuild()
+    call geometryMangleBuild(manglePath,mangleVersion)
     ! Determine the solid angle of each file.
     do i=1,size(fileNames)
        allocate(subFiles(String_Count_Words(char(fileNames(i)),":")))
@@ -289,8 +320,8 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
-          call System_Command_Do(inputPath(pathTypeDataDynamic)//"mangle/bin/harmonize "//fileName//" "//fileNameTmp,iStatus)
-          if (iStatus /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
+          call System_Command_Do(manglePath//"bin/harmonize "//fileName//" "//fileNameTmp,status)
+          if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
           read (wlmFile,*) w00
@@ -319,7 +350,6 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists       , File_Name_Temporary
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath         , pathTypeDataDynamic
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char              , extract            , len               , operator(//), &
@@ -334,11 +364,12 @@ contains
     double precision                               , dimension(                                      2                                      ) :: coefficient
     double precision                               , dimension(size(fileNames)                      ,2,(degreeMaximum+1)*(degreeMaximum+2)/2) :: coefficients
     type            (varying_string), allocatable  , dimension(             :                                                               ) :: subFiles
-    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp
-    integer                                                                                                                                   :: degree                    , order      , &
-         &                                                                                                                                       iStatus                   , wlmFile    , &
-         &                                                                                                                                       i                         , j          , &
-         &                                                                                                                                       k                         , l          , &
+    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp  , &
+         &                                                                                                                                       manglePath                , mangleVersion
+    integer                                                                                                                                   :: degree                    , order        , &
+         &                                                                                                                                       status                    , wlmFile      , &
+         &                                                                                                                                       i                         , j            , &
+         &                                                                                                                                       k                         , l            , &
          &                                                                                                                                       p                         , q
     double precision                                                                                                                          :: multiplier                , weight
     type            (hdf5Object    )                                                                                                          :: angularPowerFile
@@ -360,7 +391,7 @@ contains
        return
     end if
     ! Ensure mangle is available.
-    call geometryMangleBuild()
+    call geometryMangleBuild(manglePath,mangleVersion)
     ! Determine the spherical harmonic coefficients of each file.
     coefficients=0.0d0
     do i=1,size(fileNames)
@@ -377,8 +408,8 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
-          call System_Command_Do(inputPath(pathTypeDataDynamic)//"mangle/bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,iStatus)
-          if (iStatus /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
+          call System_Command_Do(manglePath//"bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,status)
+          if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
           k=0

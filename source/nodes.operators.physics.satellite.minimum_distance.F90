@@ -23,6 +23,18 @@
   !!}
 
   !![
+  <enumeration>
+   <name>relativeTo</name>
+   <description>Options for which host halo to compute the minimum distance to.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
+   <entry label="immediateHost"/>
+   <entry label="isolatedHost" />
+  </enumeration>
+  !!]
+
+  !![
   <nodeOperator name="nodeOperatorSatelliteMinimumDistance">
     <description>
       A node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host
@@ -36,12 +48,19 @@
      halo.
      !!}
      private
-     integer :: satelliteDistanceMinimumID
+     integer                            :: satelliteDistanceMinimumID, isolatedHostID
+     type   (enumerationRelativeToType) :: relativeTo
    contains
-     final     ::                                satelliteMinimumDistanceDestructor
-     procedure :: differentialEvolutionPost   => satelliteMinimumDistanceDifferentialEvolutionPost
-     procedure :: nodesMerge                  => satelliteMinimumDistanceNodesMerge
-     procedure :: autoHook                    => satelliteMinimumDistanceAutoHook
+     !![
+     <methods>
+       <method method="distanceRelative" description="Compute the distance to the center of the relevant host halo."/>
+     </methods>
+     !!]
+     final     ::                              satelliteMinimumDistanceDestructor
+     procedure :: differentialEvolutionPost => satelliteMinimumDistanceDifferentialEvolutionPost
+     procedure :: nodesMerge                => satelliteMinimumDistanceNodesMerge
+     procedure :: autoHook                  => satelliteMinimumDistanceAutoHook
+     procedure :: distanceRelative          => satelliteMinimumDistanceDistanceRelative
   end type nodeOperatorSatelliteMinimumDistance
   
   interface nodeOperatorSatelliteMinimumDistance
@@ -60,25 +79,43 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorSatelliteMinimumDistance)                :: self
-    type (inputParameters                     ), intent(inout) :: parameters
+    type(nodeOperatorSatelliteMinimumDistance)                :: self
+    type(inputParameters                     ), intent(inout) :: parameters
+    type(varying_string                      )                :: relativeTo
 
-    self=nodeOperatorSatelliteMinimumDistance()
+    !![
+    <inputParameter>
+      <name>relativeTo</name>
+      <defaultValue>var_str('immediateHost')</defaultValue>
+      <description>
+	Specifies to which host halo the minimum distance should be referenced. ``{\normalfont \ttfamily immediateHost}'' computes
+	the minimum distance to the first host (so, for a sub-subhalo, this would be the subhalo in which it is
+	orbitting). ``{\normalfont \ttfamily isolatedHost}'' computes the minimum distance to the final (isolated halo) host.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
+    self=nodeOperatorSatelliteMinimumDistance(enumerationRelativeToEncode(char(relativeTo),includesPrefix=.false.))
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function satelliteMinimumDistanceConstructorParameters
 
-  function satelliteMinimumDistanceConstructorInternal() result(self)
+  function satelliteMinimumDistanceConstructorInternal(relativeTo) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteMinimumDistance} node operator class.
     !!}
     implicit none
-    type (nodeOperatorSatelliteMinimumDistance) :: self
-
+    type(nodeOperatorSatelliteMinimumDistance)                :: self
+    type(enumerationRelativeToType           ), intent(in   ) :: relativeTo
     !![
-    <addMetaProperty component="satellite" name="satelliteDistanceMinimum" id="self%satelliteDistanceMinimumID" isEvolvable="yes" isCreator="yes"/>
+    <constructorAssign variables="relativeTo"/>
+    !!]
+    
+    !![
+    <addMetaProperty component="satellite" name="satelliteDistanceMinimum" id="self%satelliteDistanceMinimumID" isEvolvable="yes"  isCreator="yes"/>
+    <addMetaProperty component="satellite" name="isolatedHostID"           id="self%isolatedHostID"             type="longInteger" isCreator="yes"/>
     !!]
     return
   end function satelliteMinimumDistanceConstructorInternal
@@ -114,14 +151,16 @@ contains
     Update the minimum distance of approach when two nodes merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Vectors         , only : Vector_Magnitude
     implicit none
     class(nodeOperatorSatelliteMinimumDistance), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
+    type (treeNode                            ), pointer       :: nodeIsolated
     class(nodeComponentSatellite              ), pointer       :: satellite
 
-    satellite => node%satellite()
-    call satellite%floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,Vector_Magnitude(satellite%position()))
+    satellite    => node%satellite     ()
+    nodeIsolated => node%isolatedParent()
+    call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self        %distanceRelative(node))
+    call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID        (    ))
     return
   end subroutine satelliteMinimumDistanceNodesMerge
 
@@ -130,21 +169,29 @@ contains
     Update the minimum distance of approach after differential evolution of the node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Vectors         , only : Vector_Magnitude
     implicit none
     class(nodeOperatorSatelliteMinimumDistance), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
+    type (treeNode                            ), pointer       :: nodeIsolated
     class(nodeComponentSatellite              ), pointer       :: satellite
 
     if (.not.node%isSatellite()) return
-    satellite => node%satellite()
-    call satellite%floatRank0MetaPropertySet(                                                                                 &
-         &                                                                           self     %satelliteDistanceMinimumID   , &
-         &                                   min(                                                                             &
-         &                                       satellite%floatRank0MetaPropertyGet(self     %satelliteDistanceMinimumID  ), &
-         &                                       Vector_Magnitude                   (satellite%position                  ())  &
-         &                                   )                                                                                &
-         &                                  )  
+    satellite    => node%satellite     ()
+    nodeIsolated => node%isolatedParent()
+    if (satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) == 0_kind_int8) then
+       ! This node has not been seen before - so simply set the minimum distance to the current distance.
+       call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self        %distanceRelative(node))
+       call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID        (    ))
+    else
+       ! The node has been seen before, so set the minimum distance to the smaller of the current and prior minimum.
+       call satellite%floatRank0MetaPropertySet(                                                                          &
+            &                                                                           self%satelliteDistanceMinimumID , &
+            &                                   min(                                                                      &
+            &                                       satellite%floatRank0MetaPropertyGet(self%satelliteDistanceMinimumID), &
+            &                                       self     %distanceRelative         (node                           )  &
+            &                                   )                                                                         &
+            &                                  )
+    end if
     return
   end subroutine satelliteMinimumDistanceDifferentialEvolutionPost
 
@@ -153,17 +200,31 @@ contains
     Update the minimum distance of approach when a satellite changes host node.
     !!}
     use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
-    use :: Vectors         , only : Vector_Magnitude
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
-    class(*                     ), intent(inout)         :: self
-    type (treeNode              ), intent(inout), target :: node
-    class(nodeComponentSatellite), pointer       :: satellite
+    class(*                     ), intent(inout)          :: self
+    type (treeNode              ), intent(inout), target  :: node
+    type (treeNode              )               , pointer :: nodeIsolated
+    class(nodeComponentSatellite)               , pointer :: satellite
 
     select type (self)
     class is (nodeOperatorSatelliteMinimumDistance)
-       satellite => node%satellite()
-       call satellite%floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,Vector_Magnitude(satellite%position())) 
+       satellite    => node%satellite     ()
+       nodeIsolated => node%isolatedParent()
+       ! Only apply if this node has already been operated on. This avoids opererating in cases where the node should be filtered
+       ! out.
+       if     (                                                                                                                                                &
+            &                                                       satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= 0_c_size_t               &
+            &  .and.                                                                                                                                           &
+            &   (                                                                                                                                              &
+            &      self%relativeTo == relativeToImmediateHost                                                                                                  &
+            &    .or.                                                                                                                                          &
+            &     (self%relativeTo == relativeToIsolatedHost  .and. satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= nodeIsolated%uniqueID()) &
+            &   )&
+            & ) then
+          call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,self        %distanceRelative(node))
+          call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID        (    ))
+       end if
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -175,19 +236,57 @@ contains
     Reset the minimum distance of approach when a satellite is promoted to be an isolated halo.
     !!}
     use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class(*                     ), intent(inout)          :: self
-    type (treeNode              ), intent(inout), pointer :: node     , nodePromotion
+    type (treeNode              ), intent(inout), pointer :: node        , nodePromotion
+    type (treeNode              )               , pointer :: nodeIsolated
     class(nodeComponentSatellite)               , pointer :: satellite
     !$GLC attributes unused :: nodePromotion
 
     select type (self)
     class is (nodeOperatorSatelliteMinimumDistance)
-       satellite => node%satellite()
-       call satellite%floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,-1.0d0)
+       satellite    => node%satellite     ()
+       nodeIsolated => node%isolatedParent()
+       ! Only apply if this node has already been operated on. This avoids opererating in cases where the node should be filtered
+       ! out.
+       if (satellite%longIntegerRank0MetaPropertyGet(self%isolatedHostID) /= 0_c_size_t) then
+          call satellite%      floatRank0MetaPropertySet(self%satelliteDistanceMinimumID,-1.0d0                 )
+          call satellite%longIntegerRank0MetaPropertySet(self%            isolatedHostID,nodeIsolated%uniqueID())
+       end if
     class default
        call Error_Report('incorrect class'//{introspection:location})
-    end select
+    end select    
     return
   end subroutine nodeSubhaloPromotion
+
+  double precision function satelliteMinimumDistanceDistanceRelative(self,node) result(distance)
+    !!{
+    Compute the current distance to the relevant host halo.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    use :: Vectors         , only : Vector_Magnitude
+    implicit none
+    class           (nodeOperatorSatelliteMinimumDistance), intent(inout)          :: self
+    type            (treeNode                            ), intent(inout), target  :: node
+    type            (treeNode                            )               , pointer :: nodeWork
+    class           (nodeComponentSatellite              )               , pointer :: satellite
+    double precision                                      , dimension(3)           :: position
+
+    position = 0.0d0
+    nodeWork => node
+    do while (associated(nodeWork))
+       satellite =>  nodeWork %satellite()
+       position  =  +          position    &
+            &       +satellite%position ()
+       if (self%relativeTo == relativeToImmediateHost) then
+          nodeWork => null()
+       else if (nodeWork%isSatellite()) then
+          nodeWork => nodeWork%parent
+       else
+          nodeWork => null()
+       end if
+    end do
+    distance=Vector_Magnitude(position)
+    return
+  end function satelliteMinimumDistanceDistanceRelative

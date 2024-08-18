@@ -37,23 +37,27 @@ sub Process_FunctionClass {
     our $deepCopyActions;
     # Determine if debugging output is required.
     our $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
+    # Get state storables database if we do not have it.
+    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
+	unless ( $stateStorables );
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
-    while ( $node ) {
+    while ( $node ) {	
+	if ( grep {$node->{'type'}."Class" eq $_} keys(%{$stateStorables->{'functionClasses'}}) ) {
+	    $node->{'directive'}->{'processed'} = 1;
+	}
 	if ( $node->{'type'} eq "functionClass" ) {
 	    # Assert that our parent is a module.
 	    die("Process_FunctionClass: parent node must be a module")
 		unless ( $node->{'parent'}->{'type'} eq "module" );
 	    my $lineNumber = $node->{'line'};
-	    # Extract the directive.
+	    # Extract the directive and mark as processed.
 	    my $directive = $node->{'directive'};
+	    $directive->{'processed'} = 1;
 	    # Get code directive locations if we do not have them.
 	    $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml")
 		unless ( $directiveLocations );
-	    # Get state storables database if we do not have it.
-	    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
-		unless ( $stateStorables );
 	    # Get state storables database if we do not have it.
 	    $deepCopyActions = $xml->XMLin($ENV{'BUILDPATH'}."/deepCopyActions.xml")
 		unless ( $deepCopyActions );
@@ -135,6 +139,25 @@ sub Process_FunctionClass {
 		    $_
 		    )
 		    unless ( exists($_->{'abstract'}) && $_->{'abstract'} eq "yes" );
+	    }
+	    # Construct short names for each non-abstract class.
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		if ( $nonAbstractClass->{'name'} =~ m/^$directive->{'name'}([a-zA-Z0-9]+)/ ) {
+		    $nonAbstractClass->{'shortName'} = $1;
+		    $nonAbstractClass->{'shortName'} = lcfirst($nonAbstractClass->{'shortName'})
+			unless ( $nonAbstractClass->{'shortName'} =~ m/^[A-Z]{2,}/ );
+		} else {
+		    die("class name has incorrect format");
+		}
+	    }
+	    # Validate any default class.
+	    if ( exists($directive->{'default'}) ) {
+		unless ( grep {$directive->{'default'} eq $_->{'shortName'}} @nonAbstractClasses ) {
+		    print "ERROR: unrecognized default '".$directive->{'default'}."' for class '".$directive->{'name'}."'\n";
+		    print "  allowed defaults are:\n";
+		    print join("\n",map {"    ".$_->{'shortName'}} @nonAbstractClasses)."\n";
+		    exit 1;
+		}
 	    }
 	    # Add methods to store and retrieve state.
 	    $methods{'stateStore'} =

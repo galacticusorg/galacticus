@@ -144,8 +144,8 @@ contains
     double precision                                        , intent(in   )         :: intervalRecent     , massRatioMajor
     type            (enumerationIntervalTypeType           ), intent(in   )         :: intervalType
     logical                                                 , intent(in   )         :: intervalFromInfall
-    class  (outputTimesClass                               ), intent(in   ), target :: outputTimes_
-    class  (darkMatterHaloScaleClass                       ), intent(in   ), target :: darkMatterHaloScale_
+    class           (outputTimesClass                      ), intent(in   ), target :: outputTimes_
+    class           (darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
     !![
     <constructorAssign variables="massRatioMajor, intervalRecent, intervalType, intervalFromInfall, *outputTimes_, *darkMatterHaloScale_"/>
     !!]

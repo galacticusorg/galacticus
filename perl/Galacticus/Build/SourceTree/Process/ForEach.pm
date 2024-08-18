@@ -20,9 +20,9 @@ sub Process_ForEach {
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
-	if ( $node->{'type'} eq "forEach" && ! $node->{'processed'} ) {
+	if ( $node->{'type'} eq "forEach" && ! $node->{'directive'}->{'processed'} ) {
 	    # Record that node is processed.
-	    $node->{'processed'} = 1;
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Get the declaration and determine rank.
 	    my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'variable'});
 	    my $rank = 0;

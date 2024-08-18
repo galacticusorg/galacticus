@@ -141,14 +141,15 @@ contains
     return
   end subroutine martin2010ALFALFADestructor
 
-  double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
-    double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute, luminosity
+    double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute                        , &
+         &                                                                        luminosity                                            , starFormationRate
     integer                                          , intent(in   ), optional :: field
     ! The signal-to-noise limit used by Martin et al. (2010).
     double precision                                 , parameter               :: signalToNoise                    = 6.5d0
@@ -162,24 +163,32 @@ contains
     double precision                                 , parameter               :: massNormalization               =2.356d5
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
-    !$GLC attributes unused :: self, magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.field /= 1) call Error_Report('field = 1 required'//{introspection:location})
-    ! Get the logarithm of the mass.
-    logarithmicMass=log10(mass)
-    ! Find the median line width for this mass. (See
-    ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.pl for details.)
-    lineWidth=10.0d0**(lineWidthCoefficient0+lineWidthCoefficient1*logarithmicMass)
-    ! Compute the limiting integrated flux using equation (A1) of Martin et al. (2010).
-    if (lineWidth < lineWidthCharacteristic) then
-       integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*sqrt(lineWidth/lineWidthCharacteristic)
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
+    ! Find the maximum distance.
+    if (present(mass)) then
+       ! Get the logarithm of the mass.
+       logarithmicMass=log10(mass)
+       ! Find the median line width for this mass. (See
+       ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.pl for details.)
+       lineWidth=10.0d0**(lineWidthCoefficient0+lineWidthCoefficient1*logarithmicMass)
+       ! Compute the limiting integrated flux using equation (A1) of Martin et al. (2010).
+       if (lineWidth < lineWidthCharacteristic) then
+          integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*sqrt(lineWidth/lineWidthCharacteristic)
+       else
+          integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*    (lineWidth/lineWidthCharacteristic)
+       end if
+       ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
+       ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
+       martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
     else
-       integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*    (lineWidth/lineWidthCharacteristic)
+       martin2010ALFALFADistanceMaximum=                                                     sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant()
     end if
-    ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
-    ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
-    martin2010ALFALFADistanceMaximum=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/self%cosmologyParameters_%hubbleConstant())
     return
   end function martin2010ALFALFADistanceMaximum
 

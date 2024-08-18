@@ -42,7 +42,8 @@ my %moduleLibraries = (
     vectors             => "blas"          ,
     models_likelihoods  => "matheval"      ,
     input_parameters    => "matheval"      ,
-    interface_gsl       => "gsl"
+    interface_gsl       => "gsl"           ,
+    output_versioning   => "git2"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.
@@ -127,6 +128,27 @@ foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
     closedir($sourceDirectory);
 }
 
+# Look for changes in source files. Force a rescan of all files if anything has changed.
+my @fileIdentifiers;
+my $forceRescan = 0;
+# Iterate over source directories.
+foreach my $sourceFile ( @sourceFilesToProcess ) {
+    (my $fileIdentifier = $sourceFile->{'fullPathFileName'}) =~ s/\//_/g;
+    push(@fileIdentifiers,$fileIdentifier);
+}
+# Check for new files.
+foreach my $fileIdentifier ( @fileIdentifiers ) {
+    unless ( exists($usesPerFile->{$fileIdentifier}) ) {
+	$forceRescan = 1;
+    }
+}
+# Check for removed files.
+foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
+    unless ( grep {$_ eq $fileIdentifier} @fileIdentifiers ) {
+	$forceRescan = 1;
+    }
+}
+
 # Initialize list of modules needed for event hooks.
 my @eventHookModules;
 # Iterate over files to process.
@@ -142,7 +164,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($usesPerFile->{$fileIdentifier}->{'files'}) );
     }
     next
-	unless ( $rescan );
+	unless ( $rescan || $forceRescan );
     delete($usesPerFile->{$fileIdentifier})
 	if ( $havePerFile && exists($usesPerFile->{$fileIdentifier}) );
     push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$sourceFile->{'fullPathFileName'});
