@@ -274,7 +274,7 @@ contains
          &                                                                          )
     lightconeExtract   (8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
     if (self%includeObservedRedshift) then
-       ! Compute the relativistic velocity β=v/c.
+       ! Compute the line-of-sight peculiar velocity divided by the speed of light: β_los=v_los/c.
        velocityBeta                                     =+Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
             &                                            /Vector_Magnitude(                      lightconeExtract(1:3)) &
             &                                            *kilo                                                          &
@@ -282,16 +282,12 @@ contains
        ! Compute the observed redshift. This is given by:
        !  1 + zₒ = (1 + zₕ) (1 + zₚ),
        ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the peculiar redshift,
-       ! given by
-       !  1 + zₚ = √[(1+βₚ)/(1-βₚ)]
-       ! where βₚ=vₚ/c is the dimensionless peculiar velocity (e.g. Davis et al.; 2011; ApJ; 741; 67; eqn. 4;
+       ! given by (in the non-relativistic limit) zₚ = β_los
+       ! (e.g. Davis et al.; 2011; ApJ; 741; 67; below eqn. 4;
        ! https://ui.adsabs.harvard.edu/abs/2011ApJ...741...67D).
        lightconeExtract(self%redshiftObservedOffset  +1)=                                       -1.0d0  &
             &                                            +    (+1.0d0                           +lightconeExtract(7  )) &
-            &                                            *sqrt(                                                         &
-            &                                                  +(+1.0d0+velocityBeta)                                   &
-            &                                                  /(+1.0d0-velocityBeta)                                   &
-            &                                                 )
+            &                                            *    (+1.0d0 + velocityBeta )
     end if
     if (self%includeAngularCoordinates) then
        lightconeExtract(self%angularCoordinatesOffset+1)=atan2(                              &
