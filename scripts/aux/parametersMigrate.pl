@@ -109,98 +109,104 @@ my %translations =
     (
      "0ab22d1b3959fc9242ee6314f3e199cd99600406" => {
      	 names => {
-     	     "/parameters/diskMassDistribution[\@value]"                                                      => "componentDisk--massDistributionDisk"                            ,
-	     "/parameters/spheroidMassDistribution[\@value]"                                                  => "componentSpheroid--massDistributionSpheroid"                    ,
+     	     "/parameters/diskMassDistribution[\@value]"                                                          => "componentDisk--massDistributionDisk"                            ,
+	     "/parameters/spheroidMassDistribution[\@value]"                                                      => "componentSpheroid--massDistributionSpheroid"                    ,
      	 }
      },
      "6eab8997cd73cb0a474228ade542d133890ad138" => {
      	 names => {
-     	     "/parameters/bondiHoyleAccretionEnhancementSpheroid[\@value]"                                    => "componentBlackHole--bondiHoyleAccretionEnhancementSpheroid"     ,
-     	     "/parameters/bondiHoyleAccretionEnhancementHotHalo[\@value]"                                     => "componentBlackHole--bondiHoyleAccretionEnhancementHotHalo"      ,
-     	     "/parameters/bondiHoyleAccretionHotModeOnly[\@value]"                                            => "componentBlackHole--bondiHoyleAccretionHotModeOnly"             ,
-     	     "/parameters/bondiHoyleAccretionTemperatureSpheroid[\@value]"                                    => "componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"     ,
-     	     "/parameters/blackHoleSeedMass[\@value]"                                                         => "componentBlackHole--massSeed"                                   ,
-             "/parameters/tripleBlackHoleInteraction[\@value]"                                                => "componentBlackHole--tripleInteraction"                          ,
-     	     "/parameters/blackHoleToSpheroidStellarGrowthRatio[\@value]"                                     => "componentBlackHole--growthRatioToStellarSpheroid"               ,
-     	     "/parameters/blackHoleHeatsHotHalo[\@value]"                                                     => "componentBlackHole--heatsHotHalo"                               ,
-     	     "/parameters/blackHoleHeatingEfficiency[\@value]"                                                => "componentBlackHole--efficiencyHeating"                          ,
-     	     "/parameters/blackHoleRadioModeFeedbackEfficiency[\@value]"                                      => "componentBlackHole--efficiencyRadioMode"                        ,
-     	     "/parameters/blackHoleWindEfficiency[\@value]"                                                   => "componentBlackHole--efficiencyWind"                             ,
-     	     "/parameters/blackHoleWindEfficiencyScalesWithRadiativeEfficiency[\@value]"                      => "componentBlackHole--efficiencyWindScalesWithEfficiencyRadiative",
-     	     "/parameters/blackHoleOutputAccretion[\@value]"                                                  => "componentBlackHole--outputAccretion"                            ,
-     	     "/parameters/blackHoleOutputData[\@value]"                                                       => "componentBlackHole--outputData"                                 ,
-     	     "/parameters/blackHoleOutputMergers[\@value]"                                                    => "componentBlackHole--outputMergers"                              ,
-     	     "/parameters/spheroidEnergeticOutflowMassRate[\@value]"                                          => "componentSpheroid--efficiencyEnergeticOutflow"                  ,
-     	     "/parameters/spheroidMetallicityTolerance[\@value]"                                              => "componentSpheroid--toleranceRelativeMetallicity"                ,
-     	     "/parameters/spheroidMassToleranceAbsolute[\@value]"                                             => "componentSpheroid--toleranceAbsoluteMass"                       ,
-     	     "/parameters/spheroidLuminositiesStellarInactive[\@value]"                                       => "componentSpheroid--inactiveLuminositiesStellar"                 ,
-     	     "/parameters/spheroidAngularMomentumAtScaleRadius[\@value]"                                      => "componentSpheroid--ratioAngularMomentumScaleRadius"             ,
-     	     "/parameters/spheroidVerySimpleMassScaleAbsolute[\@value]"                                       => "componentSpheroid--scaleAbsoluteMass"                           ,
-     	     "/parameters/diskMassToleranceAbsolute[\@value]"                                                 => "componentDisk--toleranceAbsoluteMass"                           ,
-     	     "/parameters/diskMetallicityTolerance[\@value]"                                                  => "componentDisk--toleranceRelativeMetallicity"                    ,
-     	     "/parameters/diskStructureSolverRadius[\@value]"                                                 => "componentDisk--radiusStructureSolver"                           ,
-     	     "/parameters/diskRadiusSolverCole2000Method[\@value]"                                            => "componentDisk--structureSolverUseCole2000Method"                ,
-     	     "/parameters/diskLuminositiesStellarInactive[\@value]"                                           => "componentDisk--inactiveLuminositiesStellar"                     ,
-     	     "/parameters/diskVerySimpleMassScaleAbsolute[\@value]"                                           => "componentDisk--scaleAbsoluteMass"                               ,
-     	     "/parameters/diskVerySimpleTrackAbundances[\@value]"                                             => "componentDisk--trackAbundances"                                 ,
-     	     "/parameters/diskVerySimpleTrackLuminosities[\@value]"                                           => "componentDisk--trackLuminosities"                               ,
-     	     "/parameters/diskVerySimpleUseAnalyticSolver[\@value]"                                           => "componentDisk--useAnalyticSolver"                               ,
-     	     "/parameters/diskVerySimpleAnalyticSolverPruneMassGas[\@value]"                                  => "componentDisk--pruneMassGas"                                    ,
-     	     "/parameters/diskVerySimpleAnalyticSolverPruneMassStars[\@value]"                                => "componentDisk--pruneMassStars"                                  ,
-     	     "/parameters/hotHaloOutflowToColdMode[\@value]"                                                  => "componentHotHalo--outflowToColdMode"                            ,
-     	     "/parameters/hotHaloVerySimpleDelayedMassScaleRelative[\@value]"                                 => "componentHotHalo--scaleRelativeMass"                            ,
-     	     "/parameters/starveSatellites[\@value]"                                                          => "componentHotHalo--starveSatellites"                             ,
-     	     "/parameters/starveSatellitesOutflowed[\@value]"                                                 => "componentHotHalo--starveSatellitesOutflowed"                    ,
-     	     "/parameters/hotHaloTrackStrippedGas[\@value]"                                                   => "componentHotHalo--trackStrippedGas"                             ,
-     	     "/parameters/hotHaloOutflowReturnOnFormation[\@value]"                                           => "componentHotHalo--outflowReturnOnFormation"                     ,
-     	     "/parameters/hotHaloAngularMomentumAlwaysGrows[\@value]"                                         => "componentHotHalo--angularMomentumAlwaysGrows"                   ,
-     	     "/parameters/hotHaloCoolingFromNode[\@value]"                                                    => "componentHotHalo--coolingFromNode"                              ,
-     	     "/parameters/hotHaloOutflowStrippingEfficiency[\@value]"                                         => "componentHotHalo--efficiencyStrippingOutflow"                   ,
-     	     "/parameters/hotHaloExpulsionRateMaximum[\@value]"                                               => "componentHotHalo--rateMaximumExpulsion"                         ,
-     	     "/parameters/hotHaloAngularMomentumLossFraction[\@value]"                                        => "componentHotHalo--fractionLossAngularMomentum"                  ,
-     	     "/parameters/hotHaloNodeMergerLimitBaryonFraction[\@value]"                                      => "componentHotHalo--fractionBaryonLimitInNodeMerger"              ,
-     	     "/parameters/satelliteBoundMassIsInactive[\@value]"                                              => "componentSatellite--inactiveBoundMass"                          ,
-     	     "/parameters/satelliteBoundMassInitializeType[\@value]"                                          => "componentSatellite--initializationTypeMassBound"                ,
-     	     "/parameters/satelliteMaximumRadiusOverVirialRadius[\@value]"                                    => "componentSatellite--radiusMaximumOverRadiusVirial"              ,
-     	     "/parameters/satelliteDensityContrast[\@value]"                                                  => "componentSatellite--densityContrastMassBound"                   ,
+     	     "/parameters/bondiHoyleAccretionEnhancementSpheroid[\@value]"                                        => "componentBlackHole--bondiHoyleAccretionEnhancementSpheroid"     ,
+     	     "/parameters/bondiHoyleAccretionEnhancementHotHalo[\@value]"                                         => "componentBlackHole--bondiHoyleAccretionEnhancementHotHalo"      ,
+     	     "/parameters/bondiHoyleAccretionHotModeOnly[\@value]"                                                => "componentBlackHole--bondiHoyleAccretionHotModeOnly"             ,
+     	     "/parameters/bondiHoyleAccretionTemperatureSpheroid[\@value]"                                        => "componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"     ,
+     	     "/parameters/blackHoleSeedMass[\@value]"                                                             => "componentBlackHole--massSeed"                                   ,
+             "/parameters/tripleBlackHoleInteraction[\@value]"                                                    => "componentBlackHole--tripleInteraction"                          ,
+     	     "/parameters/blackHoleToSpheroidStellarGrowthRatio[\@value]"                                         => "componentBlackHole--growthRatioToStellarSpheroid"               ,
+     	     "/parameters/blackHoleHeatsHotHalo[\@value]"                                                         => "componentBlackHole--heatsHotHalo"                               ,
+     	     "/parameters/blackHoleHeatingEfficiency[\@value]"                                                    => "componentBlackHole--efficiencyHeating"                          ,
+     	     "/parameters/blackHoleRadioModeFeedbackEfficiency[\@value]"                                          => "componentBlackHole--efficiencyRadioMode"                        ,
+     	     "/parameters/blackHoleWindEfficiency[\@value]"                                                       => "componentBlackHole--efficiencyWind"                             ,
+     	     "/parameters/blackHoleWindEfficiencyScalesWithRadiativeEfficiency[\@value]"                          => "componentBlackHole--efficiencyWindScalesWithEfficiencyRadiative",
+     	     "/parameters/blackHoleOutputAccretion[\@value]"                                                      => "componentBlackHole--outputAccretion"                            ,
+     	     "/parameters/blackHoleOutputData[\@value]"                                                           => "componentBlackHole--outputData"                                 ,
+     	     "/parameters/blackHoleOutputMergers[\@value]"                                                        => "componentBlackHole--outputMergers"                              ,
+     	     "/parameters/spheroidEnergeticOutflowMassRate[\@value]"                                              => "componentSpheroid--efficiencyEnergeticOutflow"                  ,
+     	     "/parameters/spheroidMetallicityTolerance[\@value]"                                                  => "componentSpheroid--toleranceRelativeMetallicity"                ,
+     	     "/parameters/spheroidMassToleranceAbsolute[\@value]"                                                 => "componentSpheroid--toleranceAbsoluteMass"                       ,
+     	     "/parameters/spheroidLuminositiesStellarInactive[\@value]"                                           => "componentSpheroid--inactiveLuminositiesStellar"                 ,
+     	     "/parameters/spheroidAngularMomentumAtScaleRadius[\@value]"                                          => "componentSpheroid--ratioAngularMomentumScaleRadius"             ,
+     	     "/parameters/spheroidVerySimpleMassScaleAbsolute[\@value]"                                           => "componentSpheroid--scaleAbsoluteMass"                           ,
+     	     "/parameters/diskMassToleranceAbsolute[\@value]"                                                     => "componentDisk--toleranceAbsoluteMass"                           ,
+     	     "/parameters/diskMetallicityTolerance[\@value]"                                                      => "componentDisk--toleranceRelativeMetallicity"                    ,
+     	     "/parameters/diskStructureSolverRadius[\@value]"                                                     => "componentDisk--radiusStructureSolver"                           ,
+     	     "/parameters/diskRadiusSolverCole2000Method[\@value]"                                                => "componentDisk--structureSolverUseCole2000Method"                ,
+     	     "/parameters/diskLuminositiesStellarInactive[\@value]"                                               => "componentDisk--inactiveLuminositiesStellar"                     ,
+     	     "/parameters/diskVerySimpleMassScaleAbsolute[\@value]"                                               => "componentDisk--scaleAbsoluteMass"                               ,
+     	     "/parameters/diskVerySimpleTrackAbundances[\@value]"                                                 => "componentDisk--trackAbundances"                                 ,
+     	     "/parameters/diskVerySimpleTrackLuminosities[\@value]"                                               => "componentDisk--trackLuminosities"                               ,
+     	     "/parameters/diskVerySimpleUseAnalyticSolver[\@value]"                                               => "componentDisk--useAnalyticSolver"                               ,
+     	     "/parameters/diskVerySimpleAnalyticSolverPruneMassGas[\@value]"                                      => "componentDisk--pruneMassGas"                                    ,
+     	     "/parameters/diskVerySimpleAnalyticSolverPruneMassStars[\@value]"                                    => "componentDisk--pruneMassStars"                                  ,
+     	     "/parameters/hotHaloOutflowToColdMode[\@value]"                                                      => "componentHotHalo--outflowToColdMode"                            ,
+     	     "/parameters/hotHaloVerySimpleDelayedMassScaleRelative[\@value]"                                     => "componentHotHalo--scaleRelativeMass"                            ,
+     	     "/parameters/starveSatellites[\@value]"                                                              => "componentHotHalo--starveSatellites"                             ,
+     	     "/parameters/starveSatellitesOutflowed[\@value]"                                                     => "componentHotHalo--starveSatellitesOutflowed"                    ,
+     	     "/parameters/hotHaloTrackStrippedGas[\@value]"                                                       => "componentHotHalo--trackStrippedGas"                             ,
+     	     "/parameters/hotHaloOutflowReturnOnFormation[\@value]"                                               => "componentHotHalo--outflowReturnOnFormation"                     ,
+     	     "/parameters/hotHaloAngularMomentumAlwaysGrows[\@value]"                                             => "componentHotHalo--angularMomentumAlwaysGrows"                   ,
+     	     "/parameters/hotHaloCoolingFromNode[\@value]"                                                        => "componentHotHalo--coolingFromNode"                              ,
+     	     "/parameters/hotHaloOutflowStrippingEfficiency[\@value]"                                             => "componentHotHalo--efficiencyStrippingOutflow"                   ,
+     	     "/parameters/hotHaloExpulsionRateMaximum[\@value]"                                                   => "componentHotHalo--rateMaximumExpulsion"                         ,
+     	     "/parameters/hotHaloAngularMomentumLossFraction[\@value]"                                            => "componentHotHalo--fractionLossAngularMomentum"                  ,
+     	     "/parameters/hotHaloNodeMergerLimitBaryonFraction[\@value]"                                          => "componentHotHalo--fractionBaryonLimitInNodeMerger"              ,
+     	     "/parameters/satelliteBoundMassIsInactive[\@value]"                                                  => "componentSatellite--inactiveBoundMass"                          ,
+     	     "/parameters/satelliteBoundMassInitializeType[\@value]"                                              => "componentSatellite--initializationTypeMassBound"                ,
+     	     "/parameters/satelliteMaximumRadiusOverVirialRadius[\@value]"                                        => "componentSatellite--radiusMaximumOverRadiusVirial"              ,
+     	     "/parameters/satelliteDensityContrast[\@value]"                                                      => "componentSatellite--densityContrastMassBound"                   ,
       	 },
      	 values => {
-     	     "/parameters/spheroidVerySimpleTrackAbundances[\@value]"                                         => {"false" => {}, "true" => {}}                                    ,
-     	     "/parameters/spheroidVerySimpleTrackLuminosities[\@value]"                                       => {"false" => {}, "true" => {}}                                    ,
+     	     "/parameters/spheroidVerySimpleTrackAbundances[\@value]"                                             => {"false" => {}, "true" => {}}                                    ,
+     	     "/parameters/spheroidVerySimpleTrackLuminosities[\@value]"                                           => {"false" => {}, "true" => {}}                                    ,
      	 }
      },
      "fc8f417cd8ccf5f80b4d3606779790caeda489cb" => {
 	 names => {
-	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestruction[\@value]"           => "massDestructionAbsolute"                                        ,
-	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestructionFractional[\@value]" => "massDestructionMassInfallFraction"                              ,
+	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestruction[\@value]"               => "massDestructionAbsolute"                                        ,
+	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestructionFractional[\@value]"     => "massDestructionMassInfallFraction"                              ,
 	 }
      },
      "50628ba20834080556274c4afc11bdf794a3e8b3" => {
 	 names => {
-	     "//transferFunction[\@value='axionCAMB']/axionCambCountPerDecade[\@value]"                       => "countPerDecade"                                                 ,
+	     "//transferFunction[\@value='axionCAMB']/axionCambCountPerDecade[\@value]"                           => "countPerDecade"                                                 ,
 	 }
      },
      "f27a00e1de9bb8e77359c754fae445ea8788513c" => {
      	 values => {
-     	     "//nodePropertyExtractor[\@value]"                                                               => {"descendents"    => "descendants"   }
+     	     "//nodePropertyExtractor[\@value]"                                                                   => {"descendents"    => "descendants"   }
 	 }
      },
      "ba10db0db7b0828b7e55bea0d2dd5113503fa971" => {
 	 values => {
-	     "//galacticFilter[\@value]"                                                                      => {"descendentNode" => "descendantNode"}                           ,
-	     "//nodePropertyExtractor[\@value]"                                                               => {"descendentNode" => "descendantNode"}
+	     "//galacticFilter[\@value]"                                                                          => {"descendentNode" => "descendantNode"}                           ,
+	     "//nodePropertyExtractor[\@value]"                                                                   => {"descendentNode" => "descendantNode"}
 	 }
      },
      "beab8e9234f4f7e986ec2d90b85bf4ec7dd8580b" => {
 	 values => {
-	     "//nodePropertyExtractor[\@value]"                                                               => {"radiusHalfMass" => "radiusHalfMassStellar"}
+	     "//nodePropertyExtractor[\@value]"                                                                   => {"radiusHalfMass" => "radiusHalfMassStellar"}
 	 }
      },
      "7030a7dab187c4e0aa5112681b3273647595bbde" => {
 	 specials => [
 	     \&radiationFieldIntergalacticBackgroundCMB
 	     ]
-     }
+     },
+     "e2cfe28923c9be574d334dd2f6dbe8b2e086a926" => {
+     	 values => {
+     	     "//starFormationRateSurfaceDensityDisks[\@value='blitz2006']/assumeMonotonicSurfaceDensity[\@value]" => {"false" => {}, "true" => {}}                                    ,
+     	     "//starFormationRateSurfaceDensityDisks[\@value='blitz2006']/assumeExponentialDisk[\@value]"         => {"false" => {}, "true" => {}}                                    ,
+	 }
+     },
     );
      
 # Define known defaults.
