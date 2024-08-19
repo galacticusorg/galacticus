@@ -614,7 +614,7 @@ contains
     return
   end function cylindricalVelocity
 
-  double precision function cylindricalTimeLightconeCrossing(self,node,timeEnd)
+  double precision function cylindricalTimeLightconeCrossing(self,node,timeStart,timeEnd)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
@@ -622,8 +622,8 @@ contains
     implicit none
     class           (geometryLightconeCylindrical), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: timeEnd
-    !$GLC attributes unused :: self, node, timeEnd
+    double precision                              , intent(in   ) :: timeStart, timeEnd
+    !$GLC attributes unused :: self, node, timeStart, timeEnd
 
     cylindricalTimeLightconeCrossing=0.0d0
     call Error_Report('not implemented'//{introspection:location})
