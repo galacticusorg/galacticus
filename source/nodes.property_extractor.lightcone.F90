@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Robertson, Andrew Benson
+  
   use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use            :: Geometry_Lightcones, only : geometryLightcone , geometryLightconeClass
   use, intrinsic :: ISO_C_Binding      , only : c_size_t
@@ -281,13 +283,14 @@ contains
             &                                            /speedLight
        ! Compute the observed redshift. This is given by:
        !  1 + zₒ = (1 + zₕ) (1 + zₚ),
-       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the peculiar redshift,
-       ! given by (in the non-relativistic limit) zₚ = β_los
-       ! (e.g. Davis et al.; 2011; ApJ; 741; 67; below eqn. 4;
+       ! where zₒ is observed redshift, zₕ is cosmological redshift (due
+       ! to Hubble expansion), and zₚ is the peculiar redshift, given by
+       ! (in the non-relativistic limit) zₚ = β_los (e.g. Davis et al.;
+       ! 2011; ApJ; 741; 67; below eqn. 4;
        ! https://ui.adsabs.harvard.edu/abs/2011ApJ...741...67D).
-       lightconeExtract(self%redshiftObservedOffset  +1)=                                       -1.0d0  &
-            &                                            +    (+1.0d0                           +lightconeExtract(7  )) &
-            &                                            *    (+1.0d0 + velocityBeta )
+       lightconeExtract(self%redshiftObservedOffset+1)=  -1.0d0                      &
+            &                                          +(+1.0d0+lightconeExtract(7)) &
+            &                                          *(+1.0d0+velocityBeta       )
     end if
     if (self%includeAngularCoordinates) then
        lightconeExtract(self%angularCoordinatesOffset+1)=atan2(                              &
