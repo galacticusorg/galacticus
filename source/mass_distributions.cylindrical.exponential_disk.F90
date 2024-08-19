@@ -22,7 +22,7 @@
   !!}
   
   !$ use :: OMP_Lib, only : omp_lock_kind
-  use :: Tables , only : table1DLogarithmicLinear
+  use    :: Tables , only : table1DLogarithmicLinear
 
   !![
   <massDistribution name="massDistributionExponentialDisk">
@@ -67,28 +67,30 @@
        <method description="Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk."  method="accelerationInterpolate"          />
      </methods>
      !!]
-     final     ::                                      exponentialDiskDestructor
-     procedure :: tabulate                          => exponentialDiskTabulate
-     procedure :: besselFactorRotationCurve         => exponentialDiskBesselFactorRotationCurve
-     procedure :: besselFactorRotationCurveGradient => exponentialDiskBesselFactorRotationCurveGradient
-     procedure :: besselFactorPotential             => exponentialDiskBesselFactorPotential
-     procedure :: massTotal                         => exponentialDiskMassTotal
-     procedure :: density                           => exponentialDiskDensity
-     procedure :: densityGradientRadial             => exponentialDensityGradientRadial
-     procedure :: densitySphericalAverage           => exponentialDiskDensitySphericalAverage
-     procedure :: surfaceDensity                    => exponentialDiskSurfaceDensity
-     procedure :: massEnclosedBySphere              => exponentialDiskMassEnclosedBySphere
-     procedure :: potentialIsAnalytic               => exponentialDiskPotentialIsAnalytic
-     procedure :: potential                         => exponentialDiskPotential
-     procedure :: rotationCurve                     => exponentialDiskRotationCurve
-     procedure :: rotationCurveGradient             => exponentialDiskRotationCurveGradient
-     procedure :: radiusHalfMass                    => exponentialDiskRadiusHalfMass
-     procedure :: surfaceDensityRadialMoment        => exponentialDiskSurfaceDensityRadialMoment
-     procedure :: acceleration                      => exponentialDiskAcceleration
-     procedure :: tidalTensor                       => exponentialDiskTidalTensor
-     procedure :: accelerationTabulate              => exponentialDiskAccelerationTabulate
-     procedure :: accelerationInterpolate           => exponentialDiskAccelerationInterpolate
-     procedure :: positionSample                    => exponentialDiskPositionSample
+     final     ::                                            exponentialDiskDestructor
+     procedure :: tabulate                                => exponentialDiskTabulate
+     procedure :: besselFactorRotationCurve               => exponentialDiskBesselFactorRotationCurve
+     procedure :: besselFactorRotationCurveGradient       => exponentialDiskBesselFactorRotationCurveGradient
+     procedure :: besselFactorPotential                   => exponentialDiskBesselFactorPotential
+     procedure :: assumeMonotonicDecreasingSurfaceDensity => exponentialDiskAssumeMonotonicDecreasingSurfaceDensity
+     procedure :: massTotal                               => exponentialDiskMassTotal
+     procedure :: density                                 => exponentialDiskDensity
+     procedure :: densityGradientRadial                   => exponentialDensityGradientRadial
+     procedure :: densitySphericalAverage                 => exponentialDiskDensitySphericalAverage
+     procedure :: surfaceDensity                          => exponentialDiskSurfaceDensity
+     procedure :: massEnclosedBySphere                    => exponentialDiskMassEnclosedBySphere
+     procedure :: radiusEnclosingSurfaceDensity           => exponentialDiskRadiusEnclosingSurfaceDensity
+     procedure :: potentialIsAnalytic                     => exponentialDiskPotentialIsAnalytic
+     procedure :: potential                               => exponentialDiskPotential
+     procedure :: rotationCurve                           => exponentialDiskRotationCurve
+     procedure :: rotationCurveGradient                   => exponentialDiskRotationCurveGradient
+     procedure :: radiusHalfMass                          => exponentialDiskRadiusHalfMass
+     procedure :: surfaceDensityRadialMoment              => exponentialDiskSurfaceDensityRadialMoment
+     procedure :: acceleration                            => exponentialDiskAcceleration
+     procedure :: tidalTensor                             => exponentialDiskTidalTensor
+     procedure :: accelerationTabulate                    => exponentialDiskAccelerationTabulate
+     procedure :: accelerationInterpolate                 => exponentialDiskAccelerationInterpolate
+     procedure :: positionSample                          => exponentialDiskPositionSample
   end type massDistributionExponentialDisk
 
   interface massDistributionExponentialDisk
@@ -302,6 +304,17 @@ contains
     return
   end subroutine exponentialDiskTabulate
 
+  logical function exponentialDiskAssumeMonotonicDecreasingSurfaceDensity(self) result(assumeMonotonicDecreasingSurfaceDensity)
+    !!{
+    Return true indicating that this distribution has a monotonically-decreasing surface density.
+    !!}
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+
+    assumeMonotonicDecreasingSurfaceDensity=.true.
+    return
+  end function exponentialDiskAssumeMonotonicDecreasingSurfaceDensity
+
   double precision function exponentialDiskMassTotal(self)
     !!{
     Return the total mass in an exponential disk distribution.
@@ -458,6 +471,23 @@ contains
     return
   end function exponentialDiskSurfaceDensity
 
+  double precision function exponentialDiskRadiusEnclosingSurfaceDensity(self,densitySurface,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given surface density for exponential disk mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionExponentialDisk), intent(inout), target   :: self
+    double precision                                 , intent(in   )           :: densitySurface
+    double precision                                 , intent(in   ), optional :: radiusGuess
+    
+    radius=-     self%scaleRadius                 &
+    &      *log(                                  &
+    &           +     densitySurface              &
+    &           /self%surfaceDensityNormalization &
+    &          )
+    return
+  end function exponentialDiskRadiusEnclosingSurfaceDensity
+  
   double precision function exponentialDiskRotationCurve(self,radius)
     !!{
     Return the mid-plane rotation curve for an exponential disk.

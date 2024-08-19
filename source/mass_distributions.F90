@@ -116,6 +116,14 @@ module Mass_Distributions
      massDistributionIsSphericallySymmetric=.false.
     </code>
    </method>
+   <method name="assumeMonotonicDecreasingSurfaceDensity" >
+    <description>Return true if the distribution can be assumed to have a monotonically decreasing surface density.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     massDistributionAssumeMonotonicDecreasingSurfaceDensity=.false.
+    </code>
+   </method>
    <method name="isDimensionless" >
     <description>Return true if the distribution is dimensionless.</description>
     <type>logical</type>
@@ -321,6 +329,54 @@ module Mass_Distributions
       if (present(radiusGuess)) radiusGuess_=radiusGuess
       massDistributionRadiusEnclosingDensityNumerical =     finder%find(rootGuess=radiusGuess_)
       self%radiusEnclosingDensityPrevious__           =     massDistributionRadiusEnclosingDensityNumerical
+    </code>
+   </method>
+   <method name="radiusEnclosingSurfaceDensity" >
+    <description>Return the radius enclosing a specified surface density.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   )           :: densitySurface</argument>
+    <argument>double precision, intent(in   ), optional :: radiusGuess   </argument>
+    <code>
+      massDistributionRadiusEnclosingSurfaceDensity=self%radiusEnclosingSurfaceDensityNumerical(densitySurface,radiusGuess)
+    </code>
+   </method>
+   <method name="radiusEnclosingSurfaceDensityNumerical" >
+    <description>Return the radius enclosing a specified surface density using a numerical calculation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   )           :: densitySurface</argument>
+    <argument>double precision, intent(in   ), optional :: radiusGuess   </argument>
+    <modules>Root_Finder</modules>
+    <code>
+      type            (rootFinder), save      :: finder
+      logical                     , save      :: finderConstructed=.false.
+      !$omp threadprivate(finder,finderConstructed)
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+      double precision                        :: radiusGuess_
+
+      if (.not.finderConstructed) then
+       finder           =rootFinder(                                                             &amp;
+            &amp;                   rootFunction                 =densitySurfaceEnclosedRoot   , &amp;
+            &amp;                   toleranceAbsolute            =toleranceAbsolute            , &amp;
+            &amp;                   toleranceRelative            =toleranceRelative            , &amp;
+            &amp;                   solverType                   =GSL_Root_fSolver_Brent       , &amp;
+            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
+            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
+            &amp;                   rangeExpandType              =rangeExpandMultiplicative    , &amp;
+            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
+            &amp;                  )
+       finderConstructed=.true.
+      end if
+      self_                                           =&gt; self
+      densitySurfaceTarget                            =     densitySurface
+      radiusGuess_                                    =     self%radiusEnclosingDensitySurfacePrevious__
+      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      massDistributionRadiusEnclosingSurfaceDensityNumerical =     finder%find(rootGuess=radiusGuess_)
+      self%radiusEnclosingDensitySurfacePrevious__           =     massDistributionRadiusEnclosingSurfaceDensityNumerical
     </code>
    </method>
    <method name="radiusFromSpecificAngularMomentum" >
@@ -545,12 +601,13 @@ module Mass_Distributions
       massSolversCount=massSolversCount-1
     </code>
    </method>
-   <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_          => null()              </data>
-   <data>logical                                                 :: dimensionless                                           </data>
-   <data>logical                                                 :: tolerateVelocityMaximumFailure   =  .false.             </data>
-   <data>type            (enumerationComponentTypeType)          :: componentType                    =  componentTypeUnknown</data>
-   <data>type            (enumerationMassTypeType     )          :: massType                         =  massTypeUnknown     </data>
-   <data>double precision                                        :: radiusEnclosingDensityPrevious__ =  1.0d0               </data>
+   <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_                 => null()              </data>
+   <data>logical                                                 :: dimensionless                                                  </data>
+   <data>logical                                                 :: tolerateVelocityMaximumFailure          =  .false.             </data>
+   <data>type            (enumerationComponentTypeType)          :: componentType                           =  componentTypeUnknown</data>
+   <data>type            (enumerationMassTypeType     )          :: massType                                =  massTypeUnknown     </data>
+   <data>double precision                                        :: radiusEnclosingDensityPrevious__        =  1.0d0               </data>
+   <data>double precision                                        :: radiusEnclosingDensitySurfacePrevious__ =  1.0d0               </data>
    </functionClass>
   !!]
 
@@ -751,9 +808,9 @@ module Mass_Distributions
 
   ! Module-scope variables used in root finding.
   class           (massDistributionClass), pointer :: self_
-  double precision                                 :: massTarget                   , densityTarget, &
-       &                                              angularMomentumSpecificTarget
-  !$omp threadprivate(self_,massTarget,densityTarget,angularMomentumSpecificTarget)
+  double precision                                 :: massTarget                   , densityTarget       , &
+       &                                              angularMomentumSpecificTarget, densitySurfaceTarget
+  !$omp threadprivate(self_,massTarget,densityTarget,angularMomentumSpecificTarget,densitySurfaceTarget)
 
   ! Module-scope pointers used in integrand functions and root finding.
   type :: kinematicsSolver
@@ -917,6 +974,21 @@ contains
          &              -      densityTarget
     return
   end function densityEnclosedRoot
+  
+  double precision function densitySurfaceEnclosedRoot(radius)
+    !!{
+    Root function used in finding radii enclosing a target surface density.
+    !!}
+    use :: Coordinates, only : coordinateCylindrical, assignment(=)
+    implicit none
+    double precision                       , intent(in   ) :: radius
+    type            (coordinateCylindrical)                :: coordinates
+
+    coordinates               =[radius,0.0d0,0.0d0]
+    densitySurfaceEnclosedRoot=+self_%surfaceDensity      (coordinates) &
+         &                     -      densitySurfaceTarget
+    return
+  end function densitySurfaceEnclosedRoot
   
   double precision function specificAngularMomentumRoot(radius)
     !!{

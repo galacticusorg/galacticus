@@ -49,34 +49,36 @@
        <method method="describe"   description="Display a description of a composite mass distibution."/>
      </methods>
      !!]
-     final     ::                            compositeDestructor
-     procedure :: initialize              => compositeInitialize
-     procedure :: subset                  => compositeSubset
-     procedure :: describe                => compositeDescribe
-     procedure :: matches                 => compositeMatches
-     procedure :: symmetry                => compositeSymmetry
-     procedure :: isSphericallySymmetric  => compositeIsSphericallySymmetric
-     procedure :: isDimensionless         => compositeIsDimensionless
-     procedure :: massTotal               => compositeMassTotal
-     procedure :: acceleration            => compositeAcceleration
-     procedure :: tidalTensor             => compositeTidalTensor
-     procedure :: density                 => compositeDensity
-     procedure :: surfaceDensity          => compositeSurfaceDensity
-     procedure :: densityGradientRadial   => compositeDensityGradientRadial
-     procedure :: densityRadialMoment     => compositeDensityRadialMoment
-     procedure :: densitySphericalAverage => compositeDensitySphericalAverage
-     procedure :: densitySquareIntegral   => compositeDensitySquareIntegral
-     procedure :: potentialIsAnalytic     => compositePotentialIsAnalytic
-     procedure :: potential               => compositePotential
-     procedure :: potentialDifference     => compositePotentialDifference
-     procedure :: energy                  => compositeEnergy
-     procedure :: massEnclosedBySphere    => compositeMassEnclosedBySphere
-     procedure :: radiusEnclosingMass     => compositeRadiusEnclosingMass
-     procedure :: radiusEnclosingDensity  => compositeRadiusEnclosingDensity
-     procedure :: rotationCurve           => compositeRotationCurve
-     procedure :: rotationCurveGradient   => compositeRotationCurveGradient
-     procedure :: chandrasekharIntegral   => compositeChandrasekharIntegral
-     procedure :: positionSample          => compositePositionSample
+     final     ::                                            compositeDestructor
+     procedure :: initialize                              => compositeInitialize
+     procedure :: subset                                  => compositeSubset
+     procedure :: describe                                => compositeDescribe
+     procedure :: matches                                 => compositeMatches
+     procedure :: symmetry                                => compositeSymmetry
+     procedure :: assumeMonotonicDecreasingSurfaceDensity => compositeAssumeMonotonicDecreasingSurfaceDensity
+     procedure :: isSphericallySymmetric                  => compositeIsSphericallySymmetric
+     procedure :: isDimensionless                         => compositeIsDimensionless
+     procedure :: massTotal                               => compositeMassTotal
+     procedure :: acceleration                            => compositeAcceleration
+     procedure :: tidalTensor                             => compositeTidalTensor
+     procedure :: density                                 => compositeDensity
+     procedure :: surfaceDensity                          => compositeSurfaceDensity
+     procedure :: densityGradientRadial                   => compositeDensityGradientRadial
+     procedure :: densityRadialMoment                     => compositeDensityRadialMoment
+     procedure :: densitySphericalAverage                 => compositeDensitySphericalAverage
+     procedure :: densitySquareIntegral                   => compositeDensitySquareIntegral
+     procedure :: potentialIsAnalytic                     => compositePotentialIsAnalytic
+     procedure :: potential                               => compositePotential
+     procedure :: potentialDifference                     => compositePotentialDifference
+     procedure :: energy                                  => compositeEnergy
+     procedure :: massEnclosedBySphere                    => compositeMassEnclosedBySphere
+     procedure :: radiusEnclosingMass                     => compositeRadiusEnclosingMass
+     procedure :: radiusEnclosingDensity                  => compositeRadiusEnclosingDensity
+     procedure :: radiusEnclosingSurfaceDensity           => compositeRadiusEnclosingSurfaceDensity
+     procedure :: rotationCurve                           => compositeRotationCurve
+     procedure :: rotationCurveGradient                   => compositeRotationCurveGradient
+     procedure :: chandrasekharIntegral                   => compositeChandrasekharIntegral
+     procedure :: positionSample                          => compositePositionSample
   end type massDistributionComposite
 
   interface massDistributionComposite
@@ -283,6 +285,30 @@ contains
     return
   end function compositeIsDimensionless
 
+  logical function compositeAssumeMonotonicDecreasingSurfaceDensity(self) result(isSphericallySymmetric)
+    !!{
+    Return true if the surface density is monotonically decreasing.
+    !!}
+    implicit none
+    class(massDistributionComposite), intent(inout) :: self
+    type (massDistributionList     ), pointer       :: massDistribution_
+
+    isSphericallySymmetric=.true.
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          ! If any of the components does not have a monotonically decreasing surface density, report that the total distribution
+          ! also does not. This is overly conservative.
+          if (.not.massDistribution_ %massDistribution_%assumeMonotonicDecreasingSurfaceDensity()) then
+             isSphericallySymmetric=.false.
+             exit
+          end if
+          massDistribution_ => massDistribution_%next
+       end do
+    end if
+    return
+  end function compositeAssumeMonotonicDecreasingSurfaceDensity
+
   logical function compositeMatches(self,componentType,massType)
     !!{
     Return the total mass of a composite mass distribution.
@@ -352,6 +378,7 @@ contains
     type (massDistributionList        ), pointer                 :: subsetHead         , subsetNext    , &
          &                                                          compositesHead     , compositesNext, &
          &                                                          massDistribution_
+    integer                                                      :: countComponents
     !![
     <optionalArgument name="componentType" defaultsTo="componentTypeAll"/>
     <optionalArgument name="massType"      defaultsTo="massTypeAll"     />
@@ -363,11 +390,13 @@ contains
        subsetNext        => null()
        compositesHead    => null()
        massDistribution_ => self%massDistributions
+       countComponents   =  0
        do while (associated(massDistribution_))
           select type (massDistribution__ => massDistribution_ %massDistribution_)
           class is (massDistributionComposite)
              massDistribution___ => massDistribution__%subset(componentType_,massType_)
              if (associated(massDistribution___)) then
+                countComponents=countComponents+1
                 if (associated(subsetHead)) then
                    allocate(subsetNext%next)
                    subsetNext => subsetNext%next
@@ -387,6 +416,7 @@ contains
              end if
           class default
              if (massDistribution__%matches(componentType,massType)) then
+                countComponents=countComponents+1
                 if (associated(subsetHead)) then
                    allocate(subsetNext%next)
                    subsetNext => subsetNext%next
@@ -400,13 +430,20 @@ contains
           massDistribution_ => massDistribution_%next
        end do
        if (associated(subsetHead)) then
-          allocate(massDistributionComposite :: subset)
-          select type(subset)
-          type is (massDistributionComposite)
+          if (countComponents == 1) then
              !![
-             <referenceConstruct object="subset" constructor="massDistributionComposite(subsetHead)"/>
-             !!]
-          end select
+	     <referenceAcquire target="subset" source="subsetHead%massDistribution_"/>
+	     !!]
+             deallocate(subsetHead)
+          else
+             allocate(massDistributionComposite :: subset)
+             select type(subset)
+             type is (massDistributionComposite)
+                !![
+		<referenceConstruct object="subset" constructor="massDistributionComposite(subsetHead)"/>
+                !!]
+             end select
+          end if
        end if
        do while (associated(compositesHead))
           compositesNext => compositesHead%next
@@ -631,7 +668,7 @@ contains
 
   double precision function compositeRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
-    Computes the radius enclosing a given mass or mass fraction for composite mass distributions.
+    Computes the radius enclosing a given mean density for composite mass distributions.
     !!}    
     implicit none
     class           (massDistributionComposite), intent(inout), target   :: self
@@ -645,6 +682,23 @@ contains
     end if
     return
   end function compositeRadiusEnclosingDensity
+  
+  double precision function compositeRadiusEnclosingSurfaceDensity(self,densitySurface,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given surface density for composite mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionComposite), intent(inout), target   :: self
+    double precision                           , intent(in   )           :: densitySurface
+    double precision                           , intent(in   ), optional :: radiusGuess
+
+    if (self%isSingleComponent) then
+       radius=self%massDistributions%massDistribution_%radiusEnclosingSurfaceDensity         (densitySurface,radiusGuess)
+    else
+       radius=self                                    %radiusEnclosingSurfaceDensityNumerical(densitySurface,radiusGuess)
+    end if
+    return
+  end function compositeRadiusEnclosingSurfaceDensity
   
   double precision function compositeRotationCurve(self,radius)
     !!{

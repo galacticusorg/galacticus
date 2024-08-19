@@ -42,23 +42,33 @@
      class           (massDistributionCylindrical), pointer :: massDistribution_   => null()
      double precision                                       :: factorScalingLength          , factorScalingMass
    contains
-     final     ::                                      cylindricalScalerDestructor
-     procedure :: massTotal                         => cylindricalScalerMassTotal
-     procedure :: density                           => cylindricalScalerDensity
-     procedure :: densitySphericalAverage           => cylindricalScalerDensitySphericalAverage
-     procedure :: densityGradientRadial             => cylindricalScalerDensityGradientRadial
-     procedure :: surfaceDensity                    => cylindricalScalerSurfaceDensity
-     procedure :: radiusHalfMass                    => cylindricalScalerRadiusHalfMass
-     procedure :: massEnclosedBySphere              => cylindricalScalerMassEnclosedBySphere
-     procedure :: potentialIsAnalytic               => cylindricalScalerPotentialIsAnalytic
-     procedure :: potential                         => cylindricalScalerPotential
-     procedure :: rotationCurve                     => cylindricalScalerRotationCurve
-     procedure :: rotationCurveGradient             => cylindricalScalerRotationCurveGradient
-     procedure :: surfaceDensityRadialMoment        => cylindricalScalerSurfaceDensityRadialMoment
-     procedure :: acceleration                      => cylindricalScalerAcceleration
-     procedure :: tidalTensor                       => cylindricalScalerTidalTensor
-     procedure :: positionSample                    => cylindricalScalerPositionSample
-     procedure :: isDimensionless                   => cylindricalScalerIsDimensionless
+     !![
+     <methods>
+       <method method="unscaled" description="Return a pointer to the unscaled mass distribution."/>
+     </methods>
+     !!]
+     final     ::                                            cylindricalScalerDestructor
+     procedure :: unscaled                                => cylindricalScalerUnscaled
+     procedure :: assumeMonotonicDecreasingSurfaceDensity => cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity
+     procedure :: massTotal                               => cylindricalScalerMassTotal
+     procedure :: density                                 => cylindricalScalerDensity
+     procedure :: densitySphericalAverage                 => cylindricalScalerDensitySphericalAverage
+     procedure :: densityGradientRadial                   => cylindricalScalerDensityGradientRadial
+     procedure :: surfaceDensity                          => cylindricalScalerSurfaceDensity
+     procedure :: radiusHalfMass                          => cylindricalScalerRadiusHalfMass
+     procedure :: massEnclosedBySphere                    => cylindricalScalerMassEnclosedBySphere
+     procedure :: radiusEnclosingMass                     => cylindricalScalerRadiusEnclosingMass
+     procedure :: radiusEnclosingDensity                  => cylindricalScalerRadiusEnclosingDensity
+     procedure :: radiusEnclosingSurfaceDensity           => cylindricalScalerRadiusEnclosingSurfaceDensity
+     procedure :: potentialIsAnalytic                     => cylindricalScalerPotentialIsAnalytic
+     procedure :: potential                               => cylindricalScalerPotential
+     procedure :: rotationCurve                           => cylindricalScalerRotationCurve
+     procedure :: rotationCurveGradient                   => cylindricalScalerRotationCurveGradient
+     procedure :: surfaceDensityRadialMoment              => cylindricalScalerSurfaceDensityRadialMoment
+     procedure :: acceleration                            => cylindricalScalerAcceleration
+     procedure :: tidalTensor                             => cylindricalScalerTidalTensor
+     procedure :: positionSample                          => cylindricalScalerPositionSample
+     procedure :: isDimensionless                         => cylindricalScalerIsDimensionless
   end type massDistributionCylindricalScaler
 
   interface massDistributionCylindricalScaler
@@ -140,6 +150,29 @@ contains
     return
   end subroutine cylindricalScalerDestructor
 
+  function cylindricalScalerUnscaled(self) result(massDistribution_)
+    !!{
+    Return a pointer to the unscaled mass distribution.
+    !!}
+    implicit none
+    class(massDistributionClass            ), pointer       :: massDistribution_
+    class(massDistributionCylindricalScaler), intent(inout) :: self
+
+    massDistribution_ => self%massDistribution_
+    return
+  end function cylindricalScalerUnscaled
+  
+  logical function cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity(self) result(assumeMonotonicDecreasingSurfaceDensity)
+    !!{
+    Return true indicating that this distribution has a monotonically-decreasing surface density.
+    !!}
+    implicit none
+    class(massDistributionCylindricalScaler), intent(inout) :: self
+
+    assumeMonotonicDecreasingSurfaceDensity=self%massDistribution_%assumeMonotonicDecreasingSurfaceDensity()
+    return
+  end function cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity
+  
   logical function cylindricalScalerIsDimensionless(self)
     !!{
     Return the dimensional status.
@@ -251,6 +284,82 @@ contains
     return
   end function cylindricalScalerMassEnclosedBySphere
 
+  double precision function cylindricalScalerRadiusEnclosingMass(self,mass,massFractional) result(radius)
+    !!{
+    Computes the radius enclosing a given mass or mass fraction for cylindrically-scaled mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionCylindricalScaler), intent(inout), target   :: self
+    double precision                                   , intent(in   ), optional :: mass, massFractional
+
+    if (present(mass)) then
+       radius=+self%massDistribution_%radiusEnclosingMass(mass/self%factorScalingMass,massFractional) &
+            & *self                  %factorScalingLength
+    else
+       radius=+self%massDistribution_%radiusEnclosingMass(mass                       ,massFractional) &
+            & *self                  %factorScalingLength
+    end if
+    return
+  end function cylindricalScalerRadiusEnclosingMass
+
+  double precision function cylindricalScalerRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given mean density for cylindrically-scaled mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionCylindricalScaler), intent(inout), target   :: self
+    double precision                                   , intent(in   )           :: density
+    double precision                                   , intent(in   ), optional :: radiusGuess
+
+    if (present(radiusGuess)) then
+       radius=+self%massDistribution_%radiusEnclosingDensity(                              &
+            &                                                +     density                 &
+            &                                                /self%factorScalingMass       &
+            &                                                *self%factorScalingLength**3, &
+            &                                                +     radiusGuess             &
+            &                                                /self%factorScalingLength     &
+            &                                               )                              &
+            & *self                  %factorScalingLength
+    else
+       radius=+self%massDistribution_%radiusEnclosingDensity(                              &
+            &                                                +     density                 &
+            &                                                /self%factorScalingMass       &
+            &                                                *self%factorScalingLength**3  &
+            &                                               )                              &
+            & *self                  %factorScalingLength
+    end if
+    return
+  end function cylindricalScalerRadiusEnclosingDensity
+  
+  double precision function cylindricalScalerRadiusEnclosingSurfaceDensity(self,densitySurface,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given surface density for cylindrically-scaled mass distributions.
+    !!}    
+    implicit none
+    class           (massDistributionCylindricalScaler), intent(inout), target   :: self
+    double precision                                   , intent(in   )           :: densitySurface
+    double precision                                   , intent(in   ), optional :: radiusGuess
+    
+    if (present(radiusGuess)) then
+       radius=+self%massDistribution_%radiusEnclosingSurfaceDensity(                              &
+            &                                                       +     densitySurface          &
+            &                                                       /self%factorScalingMass       &
+            &                                                       *self%factorScalingLength**2, &
+            &                                                       +     radiusGuess             &
+            &                                                       /self%factorScalingLength     &
+            &                                                      )                              &
+            & *self                  %factorScalingLength
+    else
+       radius=+self%massDistribution_%radiusEnclosingSurfaceDensity(                              &
+            &                                                       +     densitySurface          &
+            &                                                       /self%factorScalingMass       &
+            &                                                       *self%factorScalingLength**2  &
+            &                                                      )                              &
+            & *self                  %factorScalingLength
+    end if
+    return
+  end function cylindricalScalerRadiusEnclosingSurfaceDensity
+  
   double precision function cylindricalScalerSurfaceDensity(self,coordinates)
     !!{
     Return the surface density at the specified {\normalfont \ttfamily coordinates} in a scaled cylindrical distribution.
