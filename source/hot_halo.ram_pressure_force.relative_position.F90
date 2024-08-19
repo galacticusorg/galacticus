@@ -22,7 +22,6 @@
   !!}
 
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
-  use :: Galactic_Structure         , only : galacticStructureClass
 
   !![
   <hotHaloRamPressureForce name="hotHaloRamPressureForceRelativePosition">
@@ -43,7 +42,6 @@
      !!}
      private
      class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
-     class(galacticStructureClass      ), pointer :: galacticStructure_       => null()
    contains
      final     ::          relativePositionDestructor
      procedure :: force => relativePositionForce
@@ -68,22 +66,19 @@ contains
     type (hotHaloRamPressureForceRelativePosition)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(hotHaloMassDistributionClass           ), pointer       :: hotHaloMassDistribution_
-    class(galacticStructureClass                 ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
-    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=hotHaloRamPressureForceRelativePosition(hotHaloMassDistribution_,galacticStructure_)
+    self=hotHaloRamPressureForceRelativePosition(hotHaloMassDistribution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloMassDistribution_"/>
-    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function relativePositionConstructorParameters
 
-  function relativePositionConstructorInternal(hotHaloMassDistribution_,galacticStructure_) result(self)
+  function relativePositionConstructorInternal(hotHaloMassDistribution_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily relativePosition} hot halo ram pressure force class.
     !!}
@@ -93,9 +88,8 @@ contains
     implicit none
     type (hotHaloRamPressureForceRelativePosition)                        :: self
     class(hotHaloMassDistributionClass           ), intent(in   ), target :: hotHaloMassDistribution_
-    class(galacticStructureClass                 ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*hotHaloMassDistribution_, *galacticStructure_"/>
+    <constructorAssign variables="*hotHaloMassDistribution_"/>
     !!]
 
     ! Ensure that required methods are supported.
@@ -128,7 +122,6 @@ contains
 
     !![
     <objectDestructor name="self%hotHaloMassDistribution_"/>
-    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine relativePositionDestructor

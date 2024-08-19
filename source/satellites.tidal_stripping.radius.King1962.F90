@@ -25,7 +25,6 @@
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Kind_Numbers           , only : kind_int8
 
   !![
@@ -49,7 +48,6 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_  => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_  => null()
-     class           (galacticStructureClass  ), pointer :: galacticStructure_    => null()
      double precision                                    :: efficiencyCentrifugal          , expandMultiplier, &
           &                                                 fractionDarkMatter
      logical                                             :: applyPreInfall
@@ -78,7 +76,6 @@ contains
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
-    class           (galacticStructureClass               ), pointer       :: galacticStructure_
     double precision                                                       :: efficiencyCentrifugal
     logical                                                                :: applyPreInfall
 
@@ -97,19 +94,17 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=satelliteTidalStrippingRadiusKing1962(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
+    self=satelliteTidalStrippingRadiusKing1962(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function king1962ConstructorParameters
 
-  function king1962ConstructorInternal(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
+  function king1962ConstructorInternal(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
     !!}
@@ -117,12 +112,11 @@ contains
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
-    class           (galacticStructureClass               ), intent(in   ), target :: galacticStructure_
     double precision                                       , intent(in   )         :: efficiencyCentrifugal
     logical                                                , intent(in   )         :: applyPreInfall
     double precision                                       , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="efficiencyCentrifugal, applyPreInfall, *cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="efficiencyCentrifugal, applyPreInfall, *cosmologyParameters_, *darkMatterHaloScale_"/>
     !!]
 
     self%fractionDarkMatter=+(                                         & 
@@ -143,7 +137,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine king1962Destructor
@@ -191,7 +184,7 @@ contains
     type            (treeNode                             ), pointer               :: nodeHost
     class           (nodeComponentBasic                   ), pointer               :: basic                                  , basicHost
     class           (nodeComponentSatellite               ), pointer               :: satellite
-    class           (massDistributionClass                ), pointer               :: massDistribution_
+    class           (massDistributionClass                ), pointer               :: massDistribution_                      , massDistributionDark
     double precision                                       , dimension(3  )        :: position                               , velocity                    , &
          &                                                                            tidalTensorEigenValueComponents
     double precision                                       , dimension(3,3)        :: tidalTensorComponents
@@ -283,13 +276,14 @@ contains
        tidalFieldRadial                =+0.0d0
     end if
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
-    tidalPull=self%efficiencyCentrifugal*frequencyAngular**2-tidalFieldRadial
-    if     (                                                                          &
-         &   tidalPull                                             >  0.0d0           &
-         &  .and.                                                                     &
-         &   massSatellite                                         >  0.0d0           &
-         &  .and.                                                                     &
-         &   self%galacticStructure_%massEnclosed(node,radiusZero) >= 0.0d0           &
+    massDistribution_ => node%massDistribution()
+    tidalPull         =  self%efficiencyCentrifugal*frequencyAngular**2-tidalFieldRadial
+    if     (                                                             &
+         &   tidalPull                                          >  0.0d0 &
+         &  .and.                                                        &
+         &   massSatellite                                      >  0.0d0 &
+         &  .and.                                                        &
+         &   massDistribution_%massEnclosedBySphere(radiusZero) >= 0.0d0 &
          & ) then
        ! Find the tidal density.
        densityTidal=+tidalPull                          &
@@ -306,7 +300,6 @@ contains
                &                  /tidalPull                                    &
                &                  *(kilo*gigaYear/megaParsec)**2                &
                &                 )
-       massDistribution_ => node             %massDistribution      (                        )
        radiusDownwardLimit=radiusTidalTinyFraction*radiusGuess
        if   (                                                                 &
           &  + 3.0                                                            &
@@ -321,17 +314,21 @@ contains
        else
           king1962Radius    =  0.0d0
        end if
-       !![
-       <objectDestructor name="massDistribution_"/>
-       !!]
     else
        ! If the bound mass of the satellite exceeds the original mass (which can happen during failed ODE steps), simply return
        ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
-       if (massSatellite > self%galacticStructure_%massEnclosed(node,radius=self%darkMatterHaloScale_%radiusVirial(node),massType=massTypeDark)) then
-          king1962Radius=self%darkMatterHaloScale_%radiusVirial       (node                                                            )
+       massDistributionDark => node%massDistribution(massType=massTypeDark)
+       if (massSatellite > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
+          king1962Radius=self                %darkMatterHaloScale_%radiusVirial       (node                                 )
        else
-          king1962Radius=self%galacticStructure_  %radiusEnclosingMass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
+          king1962Radius=massDistributionDark                     %radiusEnclosingMass(massSatellite*self%fractionDarkMatter)
        end if
+       !![
+       <objectDestructor name="massDistributionDark"/>
+       !!]
     end if
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function king1962Radius

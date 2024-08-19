@@ -23,7 +23,6 @@
   !!}
 
   use :: Radiation_Fields       , only : radiationFieldCosmicMicrowaveBackground
-  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Cooling_Functions      , only : coolingFunctionClass
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Chemical_States        , only : chemicalStateClass
@@ -49,7 +48,6 @@
      class  (coolingFunctionClass                   ), pointer :: coolingFunction_     => null()
      class  (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
      class  (chemicalStateClass                     ), pointer :: chemicalState_       => null()
-     class  (galacticStructureClass                 ), pointer :: galacticStructure_   => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation            => null()
      integer                                                   :: energyRadiatedID
    contains
@@ -83,28 +81,25 @@ contains
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(coolingFunctionClass             ), pointer       :: coolingFunction_
     class(chemicalStateClass               ), pointer       :: chemicalState_
-    class(galacticStructureClass           ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="chemicalState"       name="chemicalState_"       source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_,galacticStructure_)
+     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="coolingFunction_"    />
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="chemicalState_"      />
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function coolingEnergyRadiatedConstructorParameters
 
-  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_,galacticStructure_) result(self)
+  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
     !!}
@@ -114,9 +109,8 @@ contains
     class(coolingFunctionClass             ), intent(in   ), target :: coolingFunction_
     class(darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class(chemicalStateClass               ), intent(in   ), target :: chemicalState_
-    class(galacticStructureClass           ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *darkMatterHaloScale_"/>
     !!]
 
     allocate(self%radiation)
@@ -153,7 +147,6 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%chemicalState_"      />
     <objectDestructor name="self%radiation"           />
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     if (hotHaloMassEjectionEvent%isAttached(self,coolingEnergyRadiatedHotHaloMassEjection)) call hotHaloMassEjectionEvent%detach(self,coolingEnergyRadiatedHotHaloMassEjection)
     return
@@ -231,10 +224,14 @@ contains
     type is (nodeComponentHotHalo)
        ! Hot halo does not exists - nothing to do here.
     class default
-       basic        =>  node                      %basic        (                                          )
-       massNotional =  +hotHalo                   %mass         (                                          ) &
-            &          +hotHalo                   %outflowedMass(                                          ) &
-            &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
+       basic             =>  node             %basic           (                         )
+       massDistribution_ =>  node             %massDistribution(massType=massTypeGalactic)
+       massNotional      =  +hotHalo          %mass            (                         ) &
+            &               +hotHalo          %outflowedMass   (                         ) &
+            &               +massDistribution_%massTotal       (                         )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        if (massNotional <= 0.0d0) return
        ! Compute the mean density and temperature of the hot halo.
        massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
@@ -356,24 +353,30 @@ contains
     Respond to mass ejection from the hot halo component.    
     !!}
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentHotHalo
-    use :: Galactic_Structure_Options, only : radiusLarge       , massTypeGalactic
+    use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo
+    use :: Galactic_Structure_Options, only : massTypeGalactic
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
-    class           (*                   ), intent(inout) :: self
-    class           (nodeComponentHotHalo), intent(inout) :: hotHalo
-    double precision                      , intent(in   ) :: massRate
-    class           (nodeComponentBasic  ), pointer       :: basic
-    type            (treeNode            ), pointer       :: node
-    double precision                                      :: massNotional
+    class           (*                    ), intent(inout) :: self
+    class           (nodeComponentHotHalo ), intent(inout) :: hotHalo
+    double precision                       , intent(in   ) :: massRate
+    class           (nodeComponentBasic   ), pointer       :: basic
+    type            (treeNode             ), pointer       :: node
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: massNotional
 
     select type (self)
     class is (nodeOperatorCoolingEnergyRadiated)
        ! Compute the mass in the notional hot halo.
-       node         =>  hotHalo%hostNode
-       basic        =>  node                      %basic        (                                          )
-       massNotional =  +hotHalo                   %mass         (                                          ) &
-            &          +hotHalo                   %outflowedMass(                                          ) &
-            &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
+       node              =>  hotHalo          %hostNode
+       basic             =>  node             %basic           (                         )
+       massDistribution_ =>  node             %massDistribution(massType=massTypeGalactic)
+       massNotional      =  +hotHalo          %mass            (                         ) &
+            &               +hotHalo          %outflowedMass   (                         ) &
+            &               +massDistribution_%massTotal       (                         )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     if (massNotional > 0.0d0) &
          & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
     class default

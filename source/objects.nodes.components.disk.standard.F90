@@ -29,7 +29,6 @@ module Node_Component_Disk_Standard
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Galactic_Structure              , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve                  , &
@@ -153,8 +152,7 @@ module Node_Component_Disk_Standard
   class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
   class(starFormationHistoryClass       ), pointer :: starFormationHistory_
   class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
-  class(galacticStructureClass          ), pointer :: galacticStructure_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationHistory_,mergerMassMovements_,galacticStructure_)
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationHistory_,mergerMassMovements_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -291,12 +289,11 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
-       <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"         source="subParameters"                    />
-       <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="subParameters"                    />
-       <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="subParameters"                    />
-       <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="subParameters"                    />
-       <objectBuilder class="galacticStructure"                                                   name="galacticStructure_"           source="subParameters"                    />
-       <objectBuilder class="massDistribution"               parameterName="massDistributionDisk" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
+       <objectBuilder class="darkMatterHaloScale"                                              name="darkMatterHaloScale_"         source="subParameters"                    />
+       <objectBuilder class="stellarPopulationProperties"                                      name="stellarPopulationProperties_" source="subParameters"                    />
+       <objectBuilder class="starFormationHistory"                                             name="starFormationHistory_"        source="subParameters"                    />
+       <objectBuilder class="mergerMassMovements"                                              name="mergerMassMovements_"         source="subParameters"                    />
+       <objectBuilder class="massDistribution"            parameterName="massDistributionDisk" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionDisk value="exponentialDisk">
           <dimensionless value="true"/>
@@ -376,7 +373,6 @@ contains
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
-       <objectDestructor name="galacticStructure_"          />
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        !!]
@@ -1241,7 +1237,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_ galacticStructure_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return
@@ -1266,7 +1262,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_ galacticStructure_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return

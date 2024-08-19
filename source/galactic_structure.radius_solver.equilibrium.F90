@@ -23,7 +23,6 @@
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <galacticStructureSolver name="galacticStructureSolverEquilibrium">
@@ -40,7 +39,6 @@
      double precision                                     :: solutionTolerance
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_       => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
-     class           (galacticStructureClass   ), pointer :: galacticStructure_         => null()
    contains
      final     ::             equilibriumDestructor
      procedure :: solve    => equilibriumSolve
@@ -77,7 +75,6 @@ contains
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
-    class           (galacticStructureClass            ), pointer       :: galacticStructure_
     logical                                                             :: useFormationHalo          , includeBaryonGravity     , &
          &                                                                 solveForInactiveProperties, convergenceFailureIsFatal
     double precision                                                    :: solutionTolerance
@@ -115,19 +112,17 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
+    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
     !!}
@@ -138,9 +133,8 @@ contains
     double precision                                    , intent(in   )         :: solutionTolerance
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -175,7 +169,6 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%galacticStructure_"   />
     !!]
     if (  preDerivativeEvent%isAttached(self,equilibriumSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,equilibriumSolvePreDeriativeHook)
     if (     postEvolveEvent%isAttached(self,equilibriumSolveHook            )) call      postEvolveEvent%detach(self,equilibriumSolveHook            )
@@ -396,7 +389,11 @@ contains
          darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
          ! Compute baryonic contribution to rotation curve.
          if (self%includeBaryonGravity) then
-            baryonicVelocitySquared=self%galacticStructure_%velocityRotation(node,radius,massType=massTypeBaryonic)**2
+            massDistribution_       => node             %massDistribution(massType=massTypeBaryonic)
+            baryonicVelocitySquared =  massDistribution_%rotationCurve   (         radius          )**2
+            !![
+	    <objectDestructor name="massDistribution_"/>
+	    !!]
          else
             baryonicVelocitySquared=0.0d0
          end if

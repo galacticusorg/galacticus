@@ -21,7 +21,6 @@
   Implements a node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
   !!}
 
-  use :: Galactic_Structure            , only : galacticStructureClass
   use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
   use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
   !![
@@ -41,7 +40,6 @@
      !!}
      private
      class(darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_         => null()
-     class(galacticStructureClass                    ), pointer :: galacticStructure_           => null()
      type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_ => null()
    contains
      !![
@@ -74,36 +72,32 @@ contains
     type (nodeOperatorPositionTraceDarkMatter)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class(galacticStructureClass             ), pointer       :: galacticStructure_
      
     !![
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodeOperatorPositionTraceDarkMatter(darkMatterHaloScale_,galacticStructure_)
+    self=nodeOperatorPositionTraceDarkMatter(darkMatterHaloScale_)
     !![
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function positionTraceDarkMatterConstructorParameters
 
-  function positionTraceDarkMatterConstructorInternal(darkMatterHaloScale_,galacticStructure_) result(self)
+  function positionTraceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily positionTraceDarkMatter} node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionTraceDarkMatter)                        :: self
     class(darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class(galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
 
     allocate(self%satelliteOrphanDistribution_)
     !![
-    <referenceConstruct owner="self" isResult="yes" object="satelliteOrphanDistribution_" constructor="satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_,galacticStructure_)"/>
+    <referenceConstruct owner="self" isResult="yes" object="satelliteOrphanDistribution_" constructor="satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_)"/>
     !!]
     return
   end function positionTraceDarkMatterConstructorInternal
@@ -131,7 +125,6 @@ contains
     if (satelliteHostChangeEvent%isAttached(self,positionTraceDarkMatterSatelliteHostChange)) call satelliteHostChangeEvent%detach(self,positionTraceDarkMatterSatelliteHostChange)
     !![
     <objectDestructor name="self%darkMatterHaloScale_"        />
-    <objectDestructor name="self%galacticStructure_"          />
     <objectDestructor name="self%satelliteOrphanDistribution_"/>
     !!]
     return

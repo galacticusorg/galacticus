@@ -1655,24 +1655,26 @@ contains
     use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances              , operator(>)
     use :: Accretion_Halos                      , only : accretionModeHot                    , accretionModeTotal
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)            , zeroChemicalAbundances      , operator(>)
-    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
+    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
           &                                              treeNode                            , defaultHotHaloComponent
+    use :: Mass_Distributions                   , only : massDistributionClass
     use :: Error                                , only : Error_Report 
     use :: Node_Component_Hot_Halo_Standard_Data, only : fractionBaryonLimitInNodeMerger, starveSatellites       , starveSatellitesOutflowed
     implicit none
-    type            (treeNode            ), intent(inout) :: node
-    type            (treeNode            ), pointer       :: nodeParent
-    class           (nodeComponentHotHalo), pointer       :: hotHaloParent          , hotHalo
-    class           (nodeComponentSpin   ), pointer       :: spinParent
-    class           (nodeComponentBasic  ), pointer       :: parentBasic            , basic
-    double precision                                      :: baryonicMassCurrent    , baryonicMassMaximum      , &
-         &                                                   fractionRemove         , massAccreted             , &
-         &                                                   massUnaccreted         , massReaccreted           , &
-         &                                                   fractionAccreted       , angularMomentumAccreted  , &
-         &                                                   massAccretedHot
-    logical                                               :: massTotalNonZero
-    type            (abundances          ), save          :: massMetalsReaccreted
+    type            (treeNode             ), intent(inout) :: node
+    type            (treeNode             ), pointer       :: nodeParent
+    class           (nodeComponentHotHalo ), pointer       :: hotHaloParent          , hotHalo
+    class           (nodeComponentSpin    ), pointer       :: spinParent
+    class           (nodeComponentBasic   ), pointer       :: basicParent            , basic
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: baryonicMassCurrent    , baryonicMassMaximum      , &
+         &                                                    fractionRemove         , massAccreted             , &
+         &                                                    massUnaccreted         , massReaccreted           , &
+         &                                                    fractionAccreted       , angularMomentumAccreted  , &
+         &                                                    massAccretedHot
+    logical                                                :: massTotalNonZero
+    type            (abundances           ), save          :: massMetalsReaccreted
     !$omp threadprivate(massMetalsReaccreted)
     type            (chemicalAbundances  ), save          :: massChemicalsAccreted  , fractionChemicalsAccreted, &
          &                                                   massChemicalsReaccreted
@@ -1690,7 +1692,7 @@ contains
        call Node_Component_Hot_Halo_Standard_Create(nodeParent)
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
        spinParent    => nodeParent%spin   (                 )
-       parentBasic   => nodeParent%basic  (                 )
+       basicParent   => nodeParent%basic  (                 )
        basic         => node      %basic  (                 )
        ! Any gas that failed to be accreted by this halo is always transferred to the parent.
        call hotHaloParent%      unaccretedMassSet(                                      &
@@ -1726,7 +1728,7 @@ contains
           massReaccreted=+hotHaloParent   %unaccretedMass() &
                &         *fractionAccreted                  &
                &         *basic           %          mass() &
-               &         /parentBasic     %          mass() 
+               &         /basicParent     %          mass() 
           !! Reaccrete the gas.
           call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
           call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
@@ -1734,13 +1736,13 @@ contains
           massMetalsReaccreted=+hotHaloParent   %unaccretedAbundances() &
                &               *fractionAccreted                        &
                &               *basic           %                mass() &
-               &               /parentBasic     %                mass()
+               &               /basicParent     %                mass()
           call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
           call hotHaloParent%          abundancesSet(hotHaloParent%          abundances()+massMetalsReaccreted)
           ! Compute the reaccreted angular momentum.
           angularMomentumAccreted=+            massReaccreted    &
                &                  *spinParent %angularMomentum() &
-               &                  /parentBasic%mass           ()
+               &                  /basicParent%mass           ()
           call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
        end if
        ! Compute the reaccreted chemicals.
@@ -1758,7 +1760,7 @@ contains
           massChemicalsReaccreted=+hotHaloParent   %unaccretedMass() &
                &                  *fractionChemicalsAccreted         &
                &                  *basic           %          mass() &
-               &                  /parentBasic     %          mass()
+               &                  /basicParent     %          mass()
           !! Reaccrete the chemicals.
           call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
        end if
@@ -1775,7 +1777,7 @@ contains
                   &                                          hotHaloParent%angularMomentum         () &
                   &                                         +hotHalo      %mass                    () &
                   &                                         *spinParent   %angularMomentum         () &
-                  &                                         /parentBasic  %mass                    () &
+                  &                                         /basicParent  %mass                    () &
                   &                                        )
           end if
           call    hotHaloParent%           outflowedMassSet(                                          &
@@ -1786,7 +1788,7 @@ contains
                &                                             hotHaloParent%outflowedAngularMomentum() &
                &                                            +hotHalo      %outflowedMass           () &
                &                                            *spinParent   %angularMomentum         () &
-               &                                            /parentBasic  %mass                    () &
+               &                                            /basicParent  %mass                    () &
                &                                           )
           if (starveSatellites) then
              call hotHalo      %                    massSet(                                          &
@@ -1838,8 +1840,14 @@ contains
           ! some of the mass to the failed accretion reservoir.
           if (fractionBaryonLimitInNodeMerger) then
              ! Get the default cosmology.
-             baryonicMassMaximum=parentBasic%mass()*cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter()
-             baryonicMassCurrent=galacticStructure_%massEnclosed(nodeParent,radiusLarge,massType=massTypeBaryonic,componentType =componentTypeAll)
+             massDistribution_   =>  nodeParent          %massDistribution(massType=massTypeBaryonic)
+             baryonicMassMaximum =  +basicParent         %mass            (                         ) &
+                  &                 *cosmologyParameters_%omegaBaryon     (                         ) &
+                  &                 /cosmologyParameters_%omegaMatter     (                         )
+             baryonicMassCurrent =  +massDistribution_   %massTotal       (                         )
+             !![
+	     <objectDestructor name="massDistribution_"/>
+	     !!]
              if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass() > 0.0d0) then
                 fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
                 call hotHaloParent%      unaccretedMassSet(                                                             &

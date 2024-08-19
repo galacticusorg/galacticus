@@ -64,7 +64,6 @@ contains
     class  (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     class  (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
-    class  (galacticStructureClass             ), pointer       :: galacticStructure_
     logical                                                     :: logarithmCoulombApproximate
     
     !![
@@ -77,20 +76,18 @@ contains
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
+    self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="cosmologyParameters_" />
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function petts2015ConstructorParameters
 
-  function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
     !!}
@@ -99,10 +96,9 @@ contains
     class  (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
-    class  (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     logical                                     , intent(in   )         :: logarithmCoulombApproximate
     !![
-    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -119,7 +115,6 @@ contains
     <objectDestructor name="self%cosmologyParameters_" />
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine petts2015Destructor
@@ -168,12 +163,11 @@ contains
          &                          massSatellite, &
          &                          basic%mass()   &
          &                         )
-    radiusHalfMassSatellite =  self%galacticStructure_%radiusEnclosingMass(                                 &
-         &                                                                 node                           , &
-         &                                                                 mass         =massHalfSatellite, &
-         &                                                                 componentType=componentTypeAll , &
-         &                                                                 massType     =massTypeDark       &
-         &                                                                )
+    massDistribution_       =>  node             %massDistribution   (componentType=componentTypeAll ,massType=massTypeDark)
+    radiusHalfMassSatellite =   massDistribution_%radiusEnclosingMass(mass         =massHalfSatellite                      )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     coordinates             =  [radiusOrbital,0.0d0,0.0d0]
     massDistribution_       =>     self             %darkMatterProfileDMO_%get                  (nodeHost                      )
     densitySlopeLogarithmic =  abs(massDistribution_                      %densityGradientRadial(coordinates,logarithmic=.true.))

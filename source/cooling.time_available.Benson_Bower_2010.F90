@@ -22,7 +22,6 @@
   !!}
   
   use :: Radiation_Fields   , only : radiationFieldCosmicMicrowaveBackground
-  use :: Galactic_Structure , only : galacticStructureClass
   use :: Cooling_Functions  , only : coolingFunctionClass
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Chemical_States    , only : chemicalStateClass
@@ -48,7 +47,6 @@
      class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
      class  (coolingFunctionClass                   ), pointer :: coolingFunction_    => null()
      class  (chemicalStateClass                     ), pointer :: chemicalState_      => null()
-     class  (galacticStructureClass                 ), pointer :: galacticStructure_  => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation           => null()
      integer                                                   :: energyRadiatedID
 
@@ -79,26 +77,23 @@ contains
     class(cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class(coolingFunctionClass               ), pointer       :: coolingFunction_
     class(chemicalStateClass                 ), pointer       :: chemicalState_
-    class(galacticStructureClass             ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="coolingFunction"    name="coolingFunction_"    source="parameters"/>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="chemicalState"      name="chemicalState_"      source="parameters"/>
-    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
-    self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,chemicalState_,galacticStructure_)
+    self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,chemicalState_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="coolingFunction_"   />
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="chemicalState_"     />
-    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function bensonBower2010ConstructorParameters
 
-  function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,galacticStructure_) result(self)
+  function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_) result(self)
     !!{
     Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
     !!}
@@ -107,9 +102,8 @@ contains
     class(cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class(coolingFunctionClass               ), intent(in   ), target :: coolingFunction_
     class(chemicalStateClass                 ), intent(in   ), target :: chemicalState_
-    class(galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *galacticStructure_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_"/>
     !!]
 
     allocate(self%radiation)
@@ -132,7 +126,6 @@ contains
     <objectDestructor name="self%coolingFunction_"   />
     <objectDestructor name="self%chemicalState_"     />
     <objectDestructor name="self%radiation"          />
-    <objectDestructor name="self%galacticStructure_" />
     !!]
     return
   end subroutine bensonBower2010Destructor
@@ -147,7 +140,7 @@ contains
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
     use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass
     use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge, massTypeGalactic
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , massTypeGalactic
     use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar                  , megaParsec
     use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
     use :: Numerical_Constants_Physical     , only : boltzmannsConstant
@@ -169,11 +162,15 @@ contains
     type            (abundances                         )                :: abundances_
     type            (chemicalAbundances                 )                :: chemicalDensities_     , chemicalMasses_
 
-    basic        =>  node                      %basic        (                                          )
-    hotHalo      =>  node                      %hotHalo      (                                          )
-    massNotional =  +hotHalo                   %mass         (                                          ) &
-         &          +hotHalo                   %outflowedMass(                                          ) &
-         &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
+    massDistribution_ =>  node             %massDistribution(massType=massTypeGalactic)
+    basic             =>  node             %basic           (                         )
+    hotHalo           =>  node             %hotHalo         (                         )
+    massNotional      =  +hotHalo          %mass            (                         ) &
+         &               +hotHalo          %outflowedMass   (                         ) &
+         &               +massDistribution_%massTotal       (                         )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (massNotional <= 0.0d0) then
        bensonBower2010TimeAvailable=0.0d0
        return

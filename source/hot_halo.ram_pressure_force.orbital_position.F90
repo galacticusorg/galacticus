@@ -21,8 +21,6 @@
   Implements a model of the ram pressure stripping force from hot halos based on orbital position within the host halo.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <hotHaloRamPressureForce name="hotHaloRamPressureForceOrbitalPosition">
    <description>
@@ -41,9 +39,7 @@
      Implementation of a hot halo ram pressure force class based on orbital position within the host halo.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_=> null()
    contains
-     final     ::          orbitalPositionDestructor
      procedure :: force => orbitalPositionForce
   end type hotHaloRamPressureForceOrbitalPosition
 
@@ -63,22 +59,17 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (hotHaloRamPressureForceOrbitalPosition)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(galacticStructureClass                ), pointer       :: galacticStructure_
+    type(hotHaloRamPressureForceOrbitalPosition)                :: self
+    type(inputParameters                       ), intent(inout) :: parameters
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=hotHaloRamPressureForceOrbitalPosition(galacticStructure_)
+    self=hotHaloRamPressureForceOrbitalPosition()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function orbitalPositionConstructorParameters
 
-  function orbitalPositionConstructorInternal(galacticStructure_) result(self)
+  function orbitalPositionConstructorInternal() result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class.
     !!}
@@ -86,11 +77,7 @@ contains
     use :: Error           , only : Error_Report             , Component_List
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
-    type (hotHaloRamPressureForceOrbitalPosition)                        :: self
-    class(galacticStructureClass                ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
+    type (hotHaloRamPressureForceOrbitalPosition) :: self
 
     ! Ensure that required methods are supported.
     if     (                                                                                                                         &
@@ -112,19 +99,6 @@ contains
     
     return
   end function orbitalPositionConstructorInternal
-
-  subroutine orbitalPositionDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class.
-    !!}
-    implicit none
-    type(hotHaloRamPressureForceOrbitalPosition), intent(inout) :: self
-
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine orbitalPositionDestructor
 
   double precision function orbitalPositionForce(self,node)
     !!{

@@ -21,8 +21,6 @@
 Contains a module which implements a stellar mass property extractor class.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-  
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
    <description>A stellar mass output analysis property extractor class.</description>
@@ -33,9 +31,7 @@ Contains a module which implements a stellar mass property extractor class.
      A stellar mass property extractor class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
-     final     ::                massStellarDestructor
      procedure :: extract     => massStellarExtract
      procedure :: name        => massStellarName
      procedure :: description => massStellarDescription
@@ -48,7 +44,6 @@ Contains a module which implements a stellar mass property extractor class.
      Constructors for the ``massStellar'' property extractor class.
      !!}
      module procedure massStellarConstructorParameters
-     module procedure massStellarConstructorInternal
   end interface nodePropertyExtractorMassStellar
 
 contains
@@ -61,58 +56,32 @@ contains
     implicit none
     type (nodePropertyExtractorMassStellar)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
-    class(galacticStructureClass          ), pointer       :: galacticStructure_
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=nodePropertyExtractorMassStellar(galacticStructure_)
+    self=nodePropertyExtractorMassStellar()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function massStellarConstructorParameters
-
-  function massStellarConstructorInternal(galacticStructure_) result(self)
-    !!{
-    Internal constructor for the ``massStellar'' output analysis property extractor class.
-    !!}
-    implicit none
-    type (nodePropertyExtractorMassStellar)                        :: self
-    class(galacticStructureClass          ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
-
-    return
-  end function massStellarConstructorInternal
-  
-  subroutine massStellarDestructor(self)
-    !!{
-    Destructor for the ``massStellar'' output analysis property extractor class.
-    !!}
-    implicit none
-    type(nodePropertyExtractorMassStellar), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine massStellarDestructor
 
   double precision function massStellarExtract(self,node,instance)
     !!{
     Implement a massStellar output analysis.
     !!}
-    use :: Galactic_Structure_Options, only : massTypeStellar, radiusLarge
+    use :: Galactic_Structure_Options, only : massTypeStellar
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout), target   :: self
     type (treeNode                        ), intent(inout), target   :: node
     type (multiCounter                    ), intent(inout), optional :: instance
+    class(massDistributionClass           )               , pointer  :: massDistribution_
     !$GLC attributes unused :: self, instance
 
-    massStellarExtract=self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeStellar)
+    massDistribution_  => node             %massDistribution(massType=massTypeStellar)
+    massStellarExtract =  massDistribution_%massTotal       (                        )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function massStellarExtract
 
