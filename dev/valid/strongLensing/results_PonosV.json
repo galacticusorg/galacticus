@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageBelow" : 50,
-      "percentageAbove" : 50,
-      "target" : 0.006
+      "target" : 0.006,
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875
    },
    "commit" : {
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/d6740de4a2affcc39ca24dc580f8a5ae40a23fa9",
-      "id" : "d6740de4a2affcc39ca24dc580f8a5ae40a23fa9",
-      "message" : "Merge pull request #668 from galacticusorg/fixLightconeMinimumTime",
-      "timestamp" : "Sat, 17 Aug 2024 00:00:53 +0000"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
+      "message" : "Merge pull request #669 from Andrew-Robertson/fix_lightconeRedshiftObserved",
+      "id" : "bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
+      "timestamp" : "Mon, 19 Aug 2024 23:48:57 +0000"
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
-      "target" : 0.85,
-      "percentageBelow" : 58.3333333333333,
-      "percentageAbove" : 41.6666666666667
+      "percentageBelow" : 69.2307692307692,
+      "percentageAbove" : 30.7692307692308,
+      "target" : 0.85
    }
 }

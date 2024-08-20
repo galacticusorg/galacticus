@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "d6740de4a2affcc39ca24dc580f8a5ae40a23fa9",
-        "message": "Merge pull request #668 from galacticusorg/fixLightconeMinimumTime\n\nEnforce minimum time in lightcone output\n",
-        "timestamp": "2024-08-17 00:00:53+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/d6740de4a2affcc39ca24dc580f8a5ae40a23fa9"
+        "id": "bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
+        "message": "Merge pull request #669 from Andrew-Robertson/fix_lightconeRedshiftObserved\n\nFix lightcone redshift observed\n",
+        "timestamp": "2024-08-19 23:48:57+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/bd363d5ec995b7a0cfa0771ccf1dce47805d19fe"
     },
     "results": [
         {
