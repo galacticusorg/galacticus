@@ -356,7 +356,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (galacticStructure_                                                        )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
     !!]
     ! Create a morphology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )

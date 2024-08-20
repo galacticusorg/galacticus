@@ -80,7 +80,7 @@ contains
 
     massDistributionDisk     =>  node                    %massDistribution(massType=massTypeGaseous,componentType=componentTypeDisk    )
     massDistributionSpheroid =>  node                    %massDistribution(massType=massTypeGaseous,componentType=componentTypeSpheroid)
-    massISMExtract           =  +massDistributionDisk    %massTotal       (                                                            )
+    massISMExtract           =  +massDistributionDisk    %massTotal       (                                                            ) &
          &                      +massDistributionSpheroid%massTotal       (                                                            )
     !![
     <objectDestructor name="massDistributionDisk"    />

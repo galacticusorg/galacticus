@@ -34,7 +34,6 @@
      private
      class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                                 => null()
      class           (outputTimesClass           ), pointer                     :: outputTimes_                                    => null()
-     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                              => null()
      double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                         , systematicErrorPolynomialCoefficient, &
           &                                                                        massStellarSystematicErrorPolynomialCoefficient
      integer                                                                    :: covarianceBinomialBinsPerDecade
@@ -72,7 +71,6 @@ contains
     type            (outputAnalysisLocalGroupStellarMassHaloMassRelation)                              :: self
     type            (inputParameters                                    ), intent(inout)               :: parameters
     class           (outputTimesClass                                   ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                             ), pointer                     :: galacticStructure_
     double precision                                                     , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient               , systematicErrorPolynomialCoefficient, &
          &                                                                                                massStellarSystematicErrorPolynomialCoefficient
     integer                                                                                            :: covarianceBinomialBinsPerDecade
@@ -147,10 +145,9 @@ contains
       <defaultValue>var_str('orbital')</defaultValue>
       <description>The type of position to use in survey geometry filters.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupStellarMassHaloMassRelation(outputTimes_,galacticStructure_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupStellarMassHaloMassRelation(outputTimes_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -158,7 +155,7 @@ contains
     return
   end function localGroupStellarMassHaloMassRelationConstructorParameters
 
-  function localGroupStellarMassHaloMassRelationConstructorInternal(outputTimes_,galacticStructure_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupStellarMassHaloMassRelationConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``localGroupStellarMassHaloMassRelation'' output analysis class for internal use.
     !!}
@@ -188,7 +185,6 @@ contains
          &                                                                                                     massStellarSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
     class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassBasic                        )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial       )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_           , outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
@@ -218,7 +214,7 @@ contains
     integer         (c_size_t                                              )                                :: i                                                           , bufferCount
     type            (hdf5Object                                            )                                :: fileData
     !![
-    <constructorAssign variables="*outputTimes_, *galacticStructure_, positionType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
+    <constructorAssign variables="*outputTimes_, positionType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
     
     ! Construct the target distribution.
@@ -247,7 +243,7 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                 )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (                                                                                   )"/>
     !!]
     ! Build a size weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
@@ -443,9 +439,8 @@ contains
     type(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"   />
-    <objectDestructor name="self%outputTimes_"      />
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputTimes_"   />
     !!]
     return
   end subroutine localGroupStellarMassHaloMassRelationDestructor

@@ -34,7 +34,6 @@ module Node_Component_Hot_Halo_Standard
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                      , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales                   , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure                        , only : galacticStructureClass
   use :: Hot_Halo_Mass_Distributions               , only : hotHaloMassDistributionClass
   use :: Hot_Halo_Temperature_Profiles             , only : hotHaloTemperatureProfileClass
   use :: Hot_Halo_Outflows_Reincorporations        , only : hotHaloOutflowReincorporationClass
@@ -265,8 +264,7 @@ module Node_Component_Hot_Halo_Standard
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  class(galacticStructureClass             ), pointer :: galacticStructure_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,accretionHalo_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_,galacticStructure_)
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,accretionHalo_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_)
 
   ! Internal count of abundances and chemicals.
   integer                                                                         :: abundancesCount                                             , chemicalsCount
@@ -520,7 +518,6 @@ contains
        <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="subParameters"/>
        <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="subParameters"/>
        <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="subParameters"/>
-       <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="subParameters"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(thread,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
@@ -573,7 +570,6 @@ contains
        <objectDestructor name="hotHaloOutflowReincorporation_"    />
        <objectDestructor name="coolingRate_"                      />
        <objectDestructor name="radiation"                         />
-       <objectDestructor name="galacticStructure_"                />
        !!]
        if (nodePromotionEvent  %isAttached(thread,nodePromotion  )) call nodePromotionEvent  %detach(thread,nodePromotion  )
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
@@ -2238,7 +2234,7 @@ contains
 
     call displayMessage('Storing state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Store
@@ -2261,7 +2257,7 @@ contains
 
     call displayMessage('Retrieving state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Restore

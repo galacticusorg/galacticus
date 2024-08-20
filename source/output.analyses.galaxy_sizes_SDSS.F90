@@ -262,7 +262,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_        )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar                 (galacticStructure_                                                                                                                                           )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar                 (                                                                                                                                                             )"/>
     !!]
     ! Create multiply, log10, cosmological angular distance, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMultiply_         )

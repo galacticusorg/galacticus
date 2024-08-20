@@ -36,7 +36,6 @@
      class           (outputAnalysisClass       ), pointer                   :: outputAnalysis_                      => null()
      class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_                 => null()
      class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_                  => null()
-     class           (galacticStructureClass    ), pointer                   :: galacticStructure_                   => null()
      class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_               => null()
      class           (outputTimesClass          ), pointer                   :: outputTimes_                         => null()
      logical                                                                 :: computeScatter
@@ -78,7 +77,6 @@ contains
     double precision                                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient
     class           (cosmologyParametersClass                            ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
-    class           (galacticStructureClass                              ), pointer                     :: galacticStructure_
     class           (virialDensityContrastClass                          ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
@@ -139,23 +137,21 @@ contains
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,galacticStructure_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
     <objectDestructor name="cosmologyFunctions_"   />
     <objectDestructor name="virialDensityContrast_"/>
-    <objectDestructor name="galacticStructure_"    />
     <objectDestructor name="outputTimes_"          />
     !!]
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,galacticStructure_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_) result (self)
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     !!}
@@ -191,7 +187,6 @@ contains
     class           (cosmologyParametersClass                            ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
     class           (virialDensityContrastClass                          ), intent(in   ), target         :: virialDensityContrast_
-    class           (galacticStructureClass                              ), intent(in   ), target         :: galacticStructure_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
     double precision                                                      , allocatable  , dimension(:  ) :: massHalo                                                      , massStellarDataLogarithmic                                         , &
@@ -236,7 +231,7 @@ contains
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     !![
-    <constructorAssign variables="redshiftInterval, likelihoodBins, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *galacticStructure_, *outputTimes_"/>
+    <constructorAssign variables="redshiftInterval, likelihoodBins, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Construct survey geometry.
@@ -436,7 +431,7 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                          )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                        constructor="nodePropertyExtractorMassStellar                      (                                   galacticStructure_                                                   )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                        constructor="nodePropertyExtractorMassStellar                      (                                                                                                        )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
@@ -628,7 +623,6 @@ contains
     <objectDestructor name="self%outputAnalysis_"       />
     <objectDestructor name="self%cosmologyParameters_"  />
     <objectDestructor name="self%cosmologyFunctions_"   />
-    <objectDestructor name="self%galacticStructure_"    />
     <objectDestructor name="self%virialDensityContrast_"/>
     <objectDestructor name="self%outputTimes_"          />
     !!]

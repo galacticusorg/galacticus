@@ -59,7 +59,6 @@ Contains a module which implements an intracluster medium Sunyaev-Zeldovich Comp
      class           (cosmologyFunctionsClass              ), pointer :: cosmologyFunctions_        => null()
      class           (darkMatterHaloScaleClass             ), pointer :: darkMatterHaloScale_       => null()
      class           (chemicalStateClass                   ), pointer :: chemicalState_             => null()
-     class           (galacticStructureClass               ), pointer :: galacticStructure_         => null()
      type            (nodePropertyExtractorDensityContrasts), pointer :: densityContrastExtractor_  => null()
      double precision                                                 :: densityContrast                     , distanceAngular
      logical                                                          :: useDensityContrast                  , useFixedDistance
@@ -96,7 +95,6 @@ contains
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
     class           (chemicalStateClass        ), pointer       :: chemicalState_
-    class           (galacticStructureClass    ), pointer       :: galacticStructure_
     double precision                                            :: densityContrast           , distanceAngular
     type            (varying_string            )                :: densityContrastRelativeTo
 
@@ -105,7 +103,6 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="chemicalState"       name="chemicalState_"       source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
     if (parameters%isPresent('densityContrast')) then
        !![
@@ -133,7 +130,7 @@ contains
     end if
     !![
     <conditionalCall>
-     <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,galacticStructure_{conditions})</call>
+     <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_{conditions})</call>
      <argument name="densityContrast"           value="densityContrast"                                                                              parameterPresent="parameters"                                />
      <argument name="densityContrastRelativeTo" value="enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.)" parameterPresent="parameters" parameterName="densityContrast"/>
      <argument name="distanceAngular"           value="distanceAngular"                                                                              parameterPresent="parameters"                                />
@@ -143,12 +140,11 @@ contains
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="chemicalState_"      />
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function icmSZConstructorParameters
 
-  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,galacticStructure_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
+  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily icmSZ} property extractor class.
     !!}
@@ -161,12 +157,11 @@ contains
     class           (cosmologyFunctionsClass           ), intent(in   ), target   :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass          ), intent(in   ), target   :: darkMatterHaloScale_
     class           (chemicalStateClass                ), intent(in   ), target   :: chemicalState_
-    class           (galacticStructureClass            ), intent(in   ), target   :: galacticStructure_
     double precision                                    , intent(in   ), optional :: densityContrast           , distanceAngular
     type            (enumerationDensityCosmologicalType), intent(in   ), optional :: densityContrastRelativeTo
     character       (len=8                             )                          :: label
     !![
-    <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *chemicalState_, *galacticStructure_"/>
+    <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *chemicalState_"/>
     !!]
 
     self%useDensityContrast=present(densityContrast)
@@ -183,8 +178,7 @@ contains
           &amp;                                densityContrastRelativeTo=densityContrastRelativeTo, &amp;
           &amp;                                cosmologyparameters_     =cosmologyParameters_     , &amp;
           &amp;                                cosmologyFunctions_      =cosmologyFunctions_      , &amp;
-          &amp;                                darkMatterHaloScale_     =darkMatterHaloScale_     , &amp;
-          &amp;                                galacticStructure_       =galacticStructure_         &amp;
+          &amp;                                darkMatterHaloScale_     =darkMatterHaloScale_       &amp;
           &amp;                               )
         </constructor>
        </referenceConstruct>
@@ -209,7 +203,6 @@ contains
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%chemicalState_"      />
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     if (self%useDensityContrast) then
        !![

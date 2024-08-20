@@ -37,7 +37,6 @@
      class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_                  => null()
      class           (outputAnalysisMolecularRatioClass), pointer                     :: outputAnalysisMolecularRatio_        => null()
      class           (virialDensityContrastClass       ), pointer                     :: virialDensityContrast_               => null()
-     class           (galacticStructureClass           ), pointer                     :: galacticStructure_                   => null()
      double precision                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
      integer         (c_size_t                         )                              :: likelihoodBin
    contains
@@ -72,7 +71,6 @@ contains
     class           (outputTimesClass                                 ), pointer                     :: outputTimes_
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
     class           (virialDensityContrastClass                       ), pointer                     :: virialDensityContrast_
-    class           (galacticStructureClass                           ), pointer                     :: galacticStructure_
     class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
     class           (*                                                ), pointer                     :: percolationObjects_
     integer         (c_size_t                                         )                              :: likelihoodBin
@@ -102,10 +100,9 @@ contains
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
-    <objectBuilder class="galacticStructure"            name="galacticStructure_"            source="parameters"/>
     !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,galacticStructure_,percolationObjects_)
+    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"         />
@@ -113,12 +110,11 @@ contains
     <objectDestructor name="outputTimes_"                 />
     <objectDestructor name="outputAnalysisMolecularRatio_"/>
     <objectDestructor name="virialDensityContrast_"       />
-    <objectDestructor name="galacticStructure_"           />
     !!]
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
-  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,galacticStructure_,percolationObjects_) result (self)
+  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
     !!{
     Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
     !!}
@@ -149,7 +145,6 @@ contains
     class           (cosmologyParametersClass                          ), intent(inout), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), intent(inout), target         :: cosmologyFunctions_
     class           (virialDensityContrastClass                        ), intent(in   ), target         :: virialDensityContrast_
-    class           (galacticStructureClass                            ), intent(in   ), target         :: galacticStructure_
     class           (outputTimesClass                                  ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target         :: outputAnalysisMolecularRatio_
     class           (*                                                 ), intent(in   ), target         :: percolationObjects_
@@ -199,7 +194,7 @@ contains
          &                                                                                                 jacobianVelocity0                                                    , jacobianVelocity1
     integer         (c_size_t                                          )                                :: iBin
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *outputAnalysisMolecularRatio_, *galacticStructure_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *outputAnalysisMolecularRatio_"/>
     !!]
     
     ! Construct survey geometry.
@@ -322,7 +317,7 @@ contains
     ! Create an HI mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (galacticStructure_                                                                )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                  )"/>
     !!]
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
@@ -482,7 +477,6 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"          />
     <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
     <objectDestructor name="self%virialDensityContrast_"       />
-    <objectDestructor name="self%galacticStructure_"           />
     !!]
     return
   end subroutine hiVsHaloMassRelationPadmanabhan2017Destructor

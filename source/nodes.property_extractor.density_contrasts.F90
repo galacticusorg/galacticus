@@ -253,7 +253,7 @@ contains
          &                                    *(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()) &
          &                                    / self%cosmologyParameters_%OmegaMatter()
     ! Iterate over density contrasts.
-    massDistribution_ => node%massDistribution_(massType=self%massTypeSelected)
+    massDistribution_ => node%massDistribution(massType=self%massTypeSelected)
     do i=1,self%countDensityContrasts
        densityTarget=self%densityContrasts(i)*densityReference
        if (densityContrastsRoot(radiusTiny*self%darkMatterHaloScale_%radiusVirial(node)) < 0.0d0) then
@@ -357,7 +357,6 @@ contains
     use :: Numerical_Constants_Math  , only : Pi
     implicit none
     double precision, intent(in   ) :: radius
-    double precision                :: enclosedMass
     
     densityContrastsRoot=+3.0d0                                          &
          &               *massDistribution_%massEnclosedBySphere(radius) &
