@@ -542,12 +542,16 @@ contains
           ! Test if the inner radius is below the pressure threshold.
           if (self%isExponentialDisk) then
              ! For exponential disks this condition has a simple analytic form.
-             rootValueInner    =-huge(0.0d0)
-             thresholdCondition=1.0d0/self%pressureRatioCoefficient-self%factorBoostStellarCoefficient >= 1.0d0
+             rootValueInner       =-huge(0.0d0)
+             if (self%pressureRatioCoefficient > 0.0d0 .and. -exponent(self%pressureRatioCoefficient) < maxExponent(0.0d0)) then
+                thresholdCondition=1.0d0/self%pressureRatioCoefficient-self%factorBoostStellarCoefficient >= 1.0d0
+             else
+                thresholdCondition=.true.
+             end if
            else
              ! For generic disks test this numerically.
-             rootValueInner    =blitz2006CriticalDensityRoot(radiusInner)
-             thresholdCondition=rootValueInner                                                         <= 0.0d0
+             rootValueInner       =blitz2006CriticalDensityRoot(radiusInner)
+             thresholdCondition   =rootValueInner                                                         <= 0.0d0
           end if          
           if (thresholdCondition) then
              ! The entire disk is below the pressure threshold so use a single interval.
