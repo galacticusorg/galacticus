@@ -126,7 +126,7 @@ $chiSquaredTarget->{'withBaryons_noReionization'}->[2] = 3.0;
 $chiSquaredTarget->{'withBaryons'               }->[3] = 5.0;
 $chiSquaredTarget->{'withBaryons_noReionization'}->[3] = 4.0;
 $chiSquaredTarget->{'withBaryons'               }->[4] = 3.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 3.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 4.0;
 
 # Make output directory.
 system("mkdir -p outputs/");
