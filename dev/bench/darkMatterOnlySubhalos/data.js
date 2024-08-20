@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723875974977,
+  "lastUpdate": 1724135684335,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "4a1abebecd4065bde5191c8d37f61bc3c59e80dd",
-          "message": "Merge pull request #492 from galacticusorg/memoryLeakFixes\n\nFix memory leaks",
-          "timestamp": "2023-10-07T14:52:07Z",
-          "tree_id": "b693cd8daca4d7bb18cb81b746e6eb13ce4b55c8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4a1abebecd4065bde5191c8d37f61bc3c59e80dd"
-        },
-        "date": 1696702249353,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 58.675,
-            "unit": "seconds",
-            "range": 0.0528819439878231
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8752,6 +8722,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20380.7977308708,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
+          "message": "Merge pull request #669 from Andrew-Robertson/fix_lightconeRedshiftObserved\n\nFix lightcone redshift observed",
+          "timestamp": "2024-08-19T23:48:57Z",
+          "tree_id": "fe2091f726810f033427e296a7e054ccc4fb59d3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/bd363d5ec995b7a0cfa0771ccf1dce47805d19fe"
+        },
+        "date": 1724135682629,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.068,
+            "unit": "seconds",
+            "range": 0.0444926960288232
           }
         ]
       }
