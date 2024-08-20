@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723875978717,
+  "lastUpdate": 1724135687498,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d6ca028811ec022b51a2ae1c0b21d3538ac56a06",
-          "message": "Merge pull request #490 from galacticusorg/cgmCoolingFunction\n\nAdd a `nodePropertyExtractor` to output the cooling function in the CGM",
-          "timestamp": "2023-10-05T14:30:53Z",
-          "tree_id": "5ed79355033c2e09935deb3ef720d1bca878712d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d6ca028811ec022b51a2ae1c0b21d3538ac56a06"
-        },
-        "date": 1696536321771,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 193.685,
-            "unit": "seconds",
-            "range": 0.272507798052126
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10696,6 +10666,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9649490228489,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
+          "message": "Merge pull request #669 from Andrew-Robertson/fix_lightconeRedshiftObserved\n\nFix lightcone redshift observed",
+          "timestamp": "2024-08-19T23:48:57Z",
+          "tree_id": "fe2091f726810f033427e296a7e054ccc4fb59d3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/bd363d5ec995b7a0cfa0771ccf1dce47805d19fe"
+        },
+        "date": 1724135686951,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 409.605,
+            "unit": "seconds",
+            "range": 0.230096718792956
           }
         ]
       }
