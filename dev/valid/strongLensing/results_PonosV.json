@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875
-   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
       "author" : {
-         "email" : "abensonca@gmail.com",
+         "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
-      "message" : "Merge pull request #669 from Andrew-Robertson/fix_lightconeRedshiftObserved",
-      "id" : "bd363d5ec995b7a0cfa0771ccf1dce47805d19fe",
-      "timestamp" : "Mon, 19 Aug 2024 23:48:57 +0000"
+      "timestamp" : "Tue, 20 Aug 2024 16:39:44 -0700",
+      "message" : "fix: Catch floating point overflows",
+      "id" : "bb3c2a18f0f2980abc79f64c2b5efa7ef2fc8463",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/bb3c2a18f0f2980abc79f64c2b5efa7ef2fc8463"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
-      "percentageBelow" : 69.2307692307692,
-      "percentageAbove" : 30.7692307692308,
-      "target" : 0.85
+      "percentageAbove" : 23.0769230769231,
+      "target" : 0.85,
+      "percentageBelow" : 76.9230769230769
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageBelow" : 43.75,
+      "percentageAbove" : 56.25,
+      "target" : 0.006
    }
 }
