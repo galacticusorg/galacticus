@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724135694342,
+  "lastUpdate": 1724237987535,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7f2cf528e741255fb62f08f1db1a2ae0cce0a131",
-          "message": "feat: Add functionality to output the (infimum of the) excursion along each branch\n\nAdds a `nodeOperator` and `nodePropertyExtractor` to output these.",
-          "timestamp": "2023-10-06T18:53:55Z",
-          "tree_id": "8b71a16284f768e8a225f4d38a676f11cf7ec5ae",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7f2cf528e741255fb62f08f1db1a2ae0cce0a131"
-        },
-        "date": 1696646072863,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 204.815,
-            "unit": "seconds",
-            "range": 0.206558708361339
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10696,6 +10666,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9787842568466,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "bb3c2a18f0f2980abc79f64c2b5efa7ef2fc8463",
+          "message": "fix: Catch floating point overflows",
+          "timestamp": "2024-08-20T23:39:44Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/bb3c2a18f0f2980abc79f64c2b5efa7ef2fc8463"
+        },
+        "date": 1724237986675,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 193.345,
+            "unit": "seconds",
+            "range": 0.448943760398817
           }
         ]
       }
