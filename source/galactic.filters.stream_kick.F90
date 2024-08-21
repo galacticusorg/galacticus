@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Paul Menker
+  
 !!{
 Implements a filter for subhalos that could impact a stream during the timestep.
 !!}
@@ -26,8 +28,10 @@ Implements a filter for subhalos that could impact a stream during the timestep.
   !![
   <galacticFilter name="galacticFilterStreamKick">
    <description>
-   A filter for subhalos that could impact a stream during the timestep. We compute an upper limit on the velocity kick a subhalo can impart on the stream, for any orientation along a sphere at 13kpc, and filter
-   out any subhalos that do not create a total velocity kick > 0.1km/s.
+     A filter for the velocity kick imparted by subhalos to a stellar stream. We compute an upper limit on the velocity kick a
+     subhalo can impart on the stream, for any orientation along a sphere of radius {\normalfont \ttfamily [radiusOrbitalStream]},
+     and filter out any subhalos that do not create a total velocity kick greater than {\normalfont \ttfamily
+     [cutoffVelocityKick]}.
   </description>
   </galacticFilter>
   !!]
@@ -37,8 +41,8 @@ Implements a filter for subhalos that could impact a stream during the timestep.
      !!}
      private
      class           (outputTimesClass), pointer :: outputTimes_        => null()
-     double precision                            :: radiusOrbitalStream
-     double precision                            :: cutoffVelocityKick
+     double precision                            :: radiusOrbitalStream          , cutoffVelocityKick, &
+          &                                         speedOrbitalStream
    contains
      final     ::           streamKickDestructor
      procedure :: passes => streamKickPasses
@@ -61,25 +65,30 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterStreamKick)                :: self
-    type            (inputParameters           ), intent(inout) :: parameters
-    class           (outputTimesClass          ), pointer       :: outputTimes_
-    double precision                                            :: radiusOrbitalStream
-    double precision                                            :: cutoffVelocityKick
+    type            (inputParameters         ), intent(inout) :: parameters
+    class           (outputTimesClass        ), pointer       :: outputTimes_
+    double precision                                          :: radiusOrbitalStream, cutoffVelocityKick, &
+         &                                                       speedOrbitalStream
     
     !![
     <inputParameter>
       <name>radiusOrbitalStream</name>
       <source>parameters</source>
       <description>The orbital radius of the stream (which is assumed to be on a circular orbit).</description>
-      </inputParameter>
-      <inputParameter>
+    </inputParameter>
+    <inputParameter>
+      <name>speedOrbitalStream</name>
+      <source>parameters</source>
+      <description>The orbital speed of the stream (which is assumed to be on a circular orbit).</description>
+    </inputParameter>
+    <inputParameter>
       <name>cutoffVelocityKick</name>
       <source>parameters</source>
-      <description>The minimum velocity kick we want to keep</description>
+      <description>The minimum velocity kick to pass.</description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=galacticFilterStreamKick(radiusOrbitalStream, cutoffVelocityKick, outputTimes_)
+    self=galacticFilterStreamKick(radiusOrbitalStream,speedOrbitalStream,cutoffVelocityKick,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -87,17 +96,17 @@ contains
     return
   end function streamKickConstructorParameters
 
-  function streamKickConstructorInternal(radiusOrbitalStream, cutoffVelocityKick, outputTimes_) result(self)
+  function streamKickConstructorInternal(radiusOrbitalStream,speedOrbitalStream,cutoffVelocityKick,outputTimes_) result(self)
     !!{
     Internal constructor for the ``streamImpact'' galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStreamKick)                        :: self
-    double precision                            , intent(in   )         :: radiusOrbitalStream
-    double precision                            , intent(in   )         :: cutoffVelocityKick
-    class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
+    double precision                          , intent(in   )         :: radiusOrbitalStream, speedOrbitalStream, &
+         &                                                               cutoffVelocityKick
+    class           (outputTimesClass        ), intent(in   ), target :: outputTimes_
     !![
-    <constructorAssign variables="radiusOrbitalStream, cutoffVelocityKick, *outputTimes_"/>
+    <constructorAssign variables="radiusOrbitalStream, speedOrbitalStream, cutoffVelocityKick, *outputTimes_"/>
     !!]
     
     return
@@ -120,55 +129,47 @@ contains
     !!{
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gravitationalConstantGalacticus
-    use :: Vectors, only : Vector_Magnitude
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (galacticFilterStreamKick), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), target  :: node
-    class           (nodeComponentBasic        )               , pointer :: basic
-    class           (nodeComponentSatellite    )               , pointer :: satellite
-    type            (treeNode                  )               , pointer :: nodeWork
-    double precision                            , dimension(3)           :: position         , velocity
-    double precision                                                     :: w                , deltaV
-    double precision                                                     :: massBound  
-    double precision                                                     :: b, &
-         &                                                                  speed
+    type            (treeNode                ), intent(inout), target  :: node
+    class           (nodeComponentSatellite  )               , pointer :: satellite
+    type            (treeNode                )               , pointer :: nodeWork
+    double precision                          , dimension(3)           :: position              , velocity
+    double precision                                                   :: speedRelativeMinimum  , velocityKick
+    double precision                                                   :: massBound  
+    double precision                                                   :: impactParameterMinimum, speed
 
     if (node%isSatellite()) then
        ! Find the position and velocity of the subhalo relative to its final host.
-       nodeWork => node
-       satellite => node%satellite()
-       position = 0.0d0
-       velocity = 0.0d0
-       massBound= satellite%boundMass()
+       nodeWork  => node
+       satellite => node     %satellite()
+       massBound =  satellite%boundMass()
+       position  =  0.0d0
+       velocity  =  0.0d0
        do while (nodeWork%isSatellite())
-          satellite => nodeWork %satellite()
-          position = position+satellite%position ()
-          velocity = velocity+satellite%velocity ()
-          nodeWork => nodeWork %parent
+          satellite =>  nodeWork %satellite()
+          position  =  +          position    &
+               &       +satellite%position ()
+          velocity  =  +          velocity    &
+               &       +satellite%velocity ()
+          nodeWork  =>  nodeWork %parent
        end do
-
-
-       ! Find deltav
-       speed            =Vector_Magnitude(velocity)
-       b=ABS(Vector_Magnitude(position - velocity * Dot_Product(velocity,position)/speed**2) - self%radiusOrbitalStream)
-       w= ABS(speed - 220)
-       deltaV= 2*gravitationalConstantGalacticus*massBound/(w*b)
-       ! Determine if the node passes. Note that the impact times computed above are relative to the current time, so we must include that offset here.
-       basic  => node%basic()
-       passes =  deltaV > self%cutoffVelocityKick                                                                                           &
-            &    .or.                                                                                                                       &
-            &     Vector_Magnitude(position - velocity * Dot_Product(velocity,position)/speed**2) < self%radiusOrbitalStream
-       ! FOR modification for elliptical streams
-       ! speed            =Vector_Magnitude(velocity)
-       ! b=ABS(Vector_Magnitude(position - velocity * Dot_Product(velocity,position)/speed**2) - maximum(self%radiusOrbitalStream))
-       ! w= ABS(speed - maximum(vstream))
-       ! deltaV= 2*gravitationalConstantGalacticus*massBound/(w*b)
-       ! passes =  deltaV > self%cutoffVelocityKick                                                                                           &
-       !      &    .or.                                                                                                                       &
-       !      &     Vector_Magnitude(position - velocity * Dot_Product(velocity,position)/speed**2) < maximum(self%radiusOrbitalStream)
-       ! write(0, *) "only subhalos with r>r_stream.  mass, w, b,  deltaV, passes, (r-. 013), node index are:", massBound, w, b, deltaV, passes, (Vector_Magnitude(position - velocity * Dot_Product(velocity,position)/speed**2) - .013), node%index()
+       ! Find the velocity kick, Δv.
+       speed                 =    Vector_Magnitude(         velocity                                        )
+       impactParameterMinimum=    Vector_Magnitude(position-velocity*Dot_Product(velocity,position)/speed**2)-self%radiusOrbitalStream
+       speedRelativeMinimum  =abs(                          speed                                            -self%speedOrbitalStream )
+       velocityKick          =+2.0d0                                &
+            &                 *    gravitationalConstantGalacticus  &
+            &                 *    massBound                        &
+            &                 /abs(speedRelativeMinimum           ) &
+            &                 /    impactParameterMinimum
+       ! Determine if the node passes.
+       passes= velocityKick           > self%cutoffVelocityKick &
+            & .or.                                              &
+            &  impactParameterMinimum < 0.0d0
     else
        ! Non-subhalos are always passed.
        passes=.true.
