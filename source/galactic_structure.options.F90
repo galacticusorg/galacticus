@@ -33,17 +33,16 @@ module Galactic_Structure_Options
    <name>massType</name>
    <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
    <encodeFunction>yes</encodeFunction>
-   <entry label="all"       />
-   <entry label="dark"      />
-   <entry label="baryonic"  />
-   <entry label="galactic"  />
-   <entry label="gaseous"   />
-   <entry label="stellar"   />
-   <entry label="blackHole" />
-   <entry label="unknown"   />
+   <entry label="all"       description="All mass types"                       />
+   <entry label="dark"      description="Dark matter mass"                     />
+   <entry label="baryonic"  description="Baryonic mass"                        />
+   <entry label="galactic"  description="Galactic mass (i.e. mass in a galaxy)"/>
+   <entry label="gaseous"   description="Gaseous mass"                         />
+   <entry label="stellar"   description="Stellar mass"                         />
+   <entry label="blackHole" description="Mass in black holes"                  />
+   <entry label="unknown"   description="Unknown mass type"                    />
   </enumeration>
   !!]
-
 
   !![
   <enumeration>
@@ -52,14 +51,14 @@ module Galactic_Structure_Options
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
-   <entry label="all"       />
-   <entry label="disk"      />
-   <entry label="spheroid"  />
-   <entry label="hotHalo"   />
-   <entry label="coldHalo"  />
-   <entry label="darkHalo"  />
-   <entry label="blackHole" />
-   <entry label="unknown"   />
+   <entry label="all"       description="All components"                />
+   <entry label="disk"      description="The disk component"            />
+   <entry label="spheroid"  description="The spheroid component"        />
+   <entry label="hotHalo"   description="The hot halo (CGM) component"  />
+   <entry label="coldHalo"  description="The cold halo (CGM) component" />
+   <entry label="darkHalo"  description="The dark matter halo component"/>
+   <entry label="blackHole" description="The black hole component"      />
+   <entry label="unknown"   description="Unknown components"            />
   </enumeration>
   !!]
 
@@ -86,8 +85,8 @@ module Galactic_Structure_Options
   <enumeration>
    <name>structureErrorCode</name>
    <description>Error codes for galactic structure functions.</description>
-   <entry label="success"  description="Successful completion."/>
-   <entry label="infinite" description="Result is ±∞."         />
+   <entry label="success"  description="Successful completion"/>
+   <entry label="infinite" description="Result is ±∞"         />
   </enumeration>
   !!]
 
