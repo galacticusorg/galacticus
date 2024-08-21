@@ -167,9 +167,9 @@ contains
             &                 /abs(speedRelativeMinimum           ) &
             &                 /    impactParameterMinimum
        ! Determine if the node passes.
-       passes= velocityKick           > self%cutoffVelocityKick &
-            & .or.                                              &
-            &  impactParameterMinimum < 0.0d0
+       passes= velocityKick           >  self%cutoffVelocityKick &
+            & .or.                                               &
+            &  impactParameterMinimum <= 0.0d0
     else
        ! Non-subhalos are always passed.
        passes=.true.
