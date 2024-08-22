@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724238023327,
+  "lastUpdate": 1724315230861,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -2405,6 +2405,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": "5.00086310866404",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "23e56219f100d8685052420d269969f5a9ab0883",
+          "message": "Merge pull request #670 from pmenker/elliptical\n\nAdd stream_kick.F90 filter for stream velocity kick.",
+          "timestamp": "2024-08-22T01:04:22Z",
+          "tree_id": "e2272a83f0e4019311d7c56cf12a13cb1846781e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/23e56219f100d8685052420d269969f5a9ab0883"
+        },
+        "date": 1724315229809,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931453287519465",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553744936818157",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.0008631128237795",
             "unit": "-logℒ"
           }
         ]
