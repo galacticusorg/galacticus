@@ -21,7 +21,7 @@
   Implements a node property extractor class that allows selection of output times at which to extract properties.
   !!}
 
-  use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Output_Times, only : outputTimesClass
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorOutputSelector">
@@ -34,16 +34,19 @@
      A node output extractor class that allows selection of output times at which to extract properties.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     double precision                         , allocatable, dimension(:) :: redshifts                    , times
+     class           (outputTimesClass), pointer                   :: outputTimes_      => null()
+     double precision                  , allocatable, dimension(:) :: times
+     double precision                                              :: toleranceRelative
    contains
      !![
      <methods>
+        <method method="initialize"  description="Initialize the object after construction."                                             />
         <method method="timeMatches" description="Return true if the current time matches a time for which we should extract properties."/>
      </methods>
      !!]
      final     ::                 outputSelectorDestructor
      procedure :: elementCount => outputSelectorElementCount
+     procedure :: initialize   => outputSelectorInitialize
      procedure :: timeMatches  => outputSelectorTimeMatches
   end type nodePropertyExtractorOutputSelector
 
@@ -67,7 +70,7 @@ contains
     type   (inputParameters                    ), intent(inout) :: parameters
     type   (multiExtractorList                 ), pointer       :: extractor_
     integer                                                     :: i
-
+    
     self      %extractors => null()
     extractor_            => null()
     do i=1,parameters%copiesCount('nodePropertyExtractor',zeroIfNotPresent=.true.)
@@ -83,56 +86,34 @@ contains
        !!]
     end do
     !![
-    <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="outputTimes" name="self%outputTimes_" source="parameters"/>
+    <inputParameter>
+      <name>toleranceRelative</name>
+      <variable>self%toleranceRelative</variable>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The relative tolerance to accept when comparing times.</description>
+    </inputParameter>
     !!]
-    if (parameters%isPresent('redshifts')) then
-       if (parameters%isPresent('times')) call Error_Report("only one of 'redshifts' and 'times' may be specified"//{introspection:location})
-       allocate(self%redshifts(parameters%count('redshifts')))
-       !![
-       <inputParameter>
-	 <name>redshifts</name>
-	 <variable>self%redshifts</variable>
-	 <description>A list of (space-separated) redshifts at which properties should be output.</description>
-	 <source>parameters</source>
-       </inputParameter>
-       !!]
-       allocate(self%times(size(self%redshifts)))
-       do i=1,size(self%redshifts)
-          self%times(i)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshifts(i)))
-       end do
-    else if (parameters%isPresent('times')) then
-       if (parameters%isPresent('redshifts')) call Error_Report("only one of 'redshifts' and 'times' may be specified"//{introspection:location})
-       allocate(self%times(parameters%count('times')))
-       !![
-       <inputParameter>
-	 <name>times</name>
-	 <variable>self%times</variable>
-	 <description>A list of (space-separated) times at which properties should be output.</description>
-	 <source>parameters</source>
-       </inputParameter>
-       !!]
-    else
-       call Error_Report("either 'redshifts' or 'times' must be specified"//{introspection:location})
-    end if
+    call self%initialize()
     !![
     <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
     !!]
     return
   end function outputSelectorConstructorParameters
 
-  function outputSelectorConstructorInternal(extractors,cosmologyFunctions_,times) result(self)
+  function outputSelectorConstructorInternal(extractors,outputTimes_,toleranceRelative) result(self)
     !!{
     Internal constructor for the ``outputSelector'' output extractor property extractor class.
     !!}
     implicit none
-    type            (nodePropertyExtractorOutputSelector)                              :: self
-    type            (multiExtractorList                 ), target      , intent(in   ) :: extractors
-    class           (cosmologyFunctionsClass            ), target      , intent(in   ) :: cosmologyFunctions_
-    double precision                                     , dimension(:), intent(in   ) :: times
-    type            (multiExtractorList                 ), pointer                     :: extractor_
-    integer                                                                            :: i
+    type            (nodePropertyExtractorOutputSelector)                         :: self
+    type            (multiExtractorList                 ), target , intent(in   ) :: extractors
+    class           (outputTimesClass                   ), target , intent(in   ) :: outputTimes_
+    double precision                                              , intent(in   ) :: toleranceRelative
+    type            (multiExtractorList                 ), pointer                :: extractor_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, times"/>
+    <constructorAssign variables="*outputTimes_, toleranceRelative"/>
     !!]
     
     self      %extractors => extractors
@@ -143,11 +124,8 @@ contains
        !!]
        extractor_ => extractor_%next
     end do
-    allocate(self%redshifts(size(self%times)))
-    do i=1,size(self%times)
-       self%redshifts(i)=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%times(i)))
-    end do
-   return
+    call self%initialize()
+    return
   end function outputSelectorConstructorInternal
 
   subroutine outputSelectorDestructor(self)
@@ -158,14 +136,30 @@ contains
     type(nodePropertyExtractorOutputSelector), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%outputTimes_"/>
     !!]
     return
   end subroutine outputSelectorDestructor
 
+  subroutine outputSelectorInitialize(self)
+    !!{
+    Initialize a {\normalfont \ttfamily outputSelector} object with the list of times to select.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    class  (nodePropertyExtractorOutputSelector), intent(inout) :: self
+    integer(c_size_t                           )                :: i
+    
+    allocate(self%times(self%outputTimes_%count()))
+    do i=1_c_size_t,self%outputTimes_%count()
+       self%times(i)=self%outputTimes_%time(i)
+    end do
+    return
+  end subroutine outputSelectorInitialize
+
   integer function outputSelectorElementCount(self,elementType,time)
     !!{
-    Return the number of elements in the outputSelectorple property extractors.
+    Return the number of elements in the outputSelector property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorOutputSelector), intent(inout) :: self
@@ -184,11 +178,12 @@ contains
     !!{
     Return true if the given {\normalfont \ttfamily time} matches a time for which we should extract properties.
     !!}
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (nodePropertyExtractorOutputSelector), intent(inout) :: self
     double precision                                     , intent(in   ) :: time
 
-    matches=any(time == self%times)
+    matches=any(Values_Agree(time,self%times,relTol=self%toleranceRelative))
     return
   end function outputSelectorTimeMatches
   

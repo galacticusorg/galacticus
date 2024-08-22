@@ -113,6 +113,7 @@
      </methods>
      !!]
      final     ::                              squareDestructor
+     procedure :: timeMinimum               => squareTimeMinimum
      procedure :: isInLightcone             => squareIsInLightcone
      procedure :: replicationCount          => squareReplicationCount
      procedure :: solidAngle                => squareSolidAngle
@@ -248,7 +249,7 @@ contains
     origin              =origin           *unitConversionLength
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
-    self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
+    self                     =geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
     self%lengthUnitsInSI     =lengthUnitsInSI
     self%lengthHubbleExponent=lengthHubbleExponent
     !![
@@ -455,6 +456,17 @@ contains
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
+
+  double precision function squareTimeMinimum(self)
+    !!{
+    Return the minimum time in the lightcone.
+    !!}
+    implicit none
+    class(geometryLightconeSquare), intent(inout) :: self
+
+    squareTimeMinimum=self%outputTimes(1)
+    return
+  end function squareTimeMinimum
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
@@ -819,7 +831,7 @@ contains
     return
   end function squarePositionAtOutput
 
-  double precision function squareTimeLightconeCrossing(self,node,timeEnd)
+  double precision function squareTimeLightconeCrossing(self,node,timeStart,timeEnd)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
@@ -831,7 +843,7 @@ contains
     implicit none
     class           (geometryLightconeSquare), intent(inout)  :: self
     type            (treeNode               ), intent(inout)  :: node
-    double precision                         , intent(in   )  :: timeEnd
+    double precision                         , intent(in   )  :: timeStart                   , timeEnd
     integer                                  , dimension(3,2) :: periodicRange
     class           (nodeComponentBasic     ), pointer        :: basic
     class           (nodeComponentPosition  ), pointer        :: position
@@ -848,11 +860,11 @@ contains
          &                                                       k
     type            (rootFinder             )                 :: finder
  
-    basic                       => node    %basic                               (               )
-    position                    => node    %position                            (               )
-    positionReference           =  position%position                            (               )
-    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(      timeEnd  )
-    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(basic%time   ())
+    basic                       => node    %basic                               (                           )
+    position                    => node    %position                            (                           )
+    positionReference           =  position%position                            (                           )
+    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(    timeEnd                )
+    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(max(timeStart,basic%time()))
     radiusBuffer                =  +(                       &
          &                           +      timeEnd         &
          &                           -basic%time   ()       &

@@ -47,7 +47,8 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                          satelliteIsNeeded
    contains
      final     ::                       rotationCurveDestructor
      procedure :: columnDescriptions => rotationCurveColumnDescriptions
@@ -133,6 +134,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -189,6 +191,7 @@ contains
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+    use :: Error                               , only : Error_Report
     implicit none
     double precision                                    , dimension(:,:), allocatable :: rotationCurveExtract
     class           (nodePropertyExtractorRotationCurve), intent(inout) , target      :: self
@@ -248,6 +251,8 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        rotationCurveExtract       (i,1)=self%galacticStructure_%velocityRotation(                                       &
                &                                                                 node                                 , &

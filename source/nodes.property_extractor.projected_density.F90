@@ -47,7 +47,8 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                          satelliteIsNeeded
    contains
      final     ::                       projectedDensityDestructor
      procedure :: columnDescriptions => projectedDensityColumnDescriptions
@@ -137,6 +138,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -195,6 +197,7 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Numerical_Integration               , only : integrator, GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
+    use :: Error                               , only : Error_Report
     implicit none
     double precision                                       , dimension(:,:), allocatable :: densityProjected
     class           (nodePropertyExtractorProjectedDensity), intent(inout) , target      :: self
@@ -259,6 +262,8 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        densityProjectedPrevious=0.0d0
        radiusOuter             =max(radius_* 2.0d0                    ,radiusVirial)

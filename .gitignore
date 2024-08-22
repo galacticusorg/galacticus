@@ -50,3 +50,4 @@ doc/Galacticus_Source.pdf
 doc/GalacticusAccented.bib
 source/FFTlog
 source/texfrag
+__pycache__

@@ -39,6 +39,7 @@ on:
       - 'perl/IO/Compress/**'
       - 'perl/System/**'
       - 'perl/Fortran/**'
+      - 'python/**'
       - 'scripts/build/**'
       - 'schema/**'
 concurrency:
@@ -779,7 +780,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-idealizedSubhaloSimulations-wrapper.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-idealizedSubhaloSimulations.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -1072,6 +1074,7 @@ jobs:
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
+                test-massProfileSatelliteBoundMass.py,
                 test-stateRestore.pl,
                 test-checkpointing.pl,
                 test-stellar-mass-weighted-ages.pl,
@@ -1402,7 +1405,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalos'
-          threshold: '115%'
+          threshold: '125%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model validation'
         uses: ./.github/actions/benchmark

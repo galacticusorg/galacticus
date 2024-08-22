@@ -302,7 +302,9 @@
     <countRedshifts value="151"/>
   </outputTimes>
   <nodePropertyExtractor value="outputSelector">
-    <redshifts value="0.04 2.34"/>
+    <outputTimes value="list">
+      <redshifts value="0.04 2.34"/>
+    </outputTimes>
     <nodePropertyExtractor value="indicesTree"/>
   </nodePropertyExtractor>
  
