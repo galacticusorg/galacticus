@@ -104,11 +104,12 @@ contains
     Display an error message.
     !!}
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI               , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-    use    :: System_Output, only : stdOutIsATTY
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: Display           , only : displayBold       , displayRed     , displayReset
+    use    :: System_Output     , only : stdOutIsATTY
+    use    :: ISO_Varying_String, only : char
     implicit none
     character(len=*  ), intent(in   ) :: message
 #ifdef USEMPI
@@ -128,6 +129,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    write (0,*) " => Command line was: ",char(commandLine())
     call BackTrace             ( )
     call Warn_Review( )
     call Flush                 (0)
@@ -246,11 +248,12 @@ contains
     Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !!}
 #ifdef USEMPI
-    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-    use    :: System_Output, only : stdOutIsATTY
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: Display           , only : displayBold       , displayRed     , displayReset
+    use    :: System_Output     , only : stdOutIsATTY
+    use    :: ISO_Varying_String, only : char
     implicit none
 #ifdef USEMPI
     integer            :: mpiRank , error
@@ -268,6 +271,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    write (0,*) " => Command line was: ",char(commandLine())
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
@@ -298,11 +302,12 @@ contains
     Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !!}
 #ifdef USEMPI
-    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-    use    :: System_Output, only : stdOutIsATTY
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: Display           , only : displayBold       , displayRed     , displayReset
+    use    :: System_Output     , only : stdOutIsATTY
+    use    :: ISO_Varying_String, only : char
     implicit none
 #ifdef USEMPI
     integer            :: mpiRank , error
@@ -320,6 +325,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    write (0,*) " => Command line was: ",char(commandLine())
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
@@ -350,11 +356,12 @@ contains
     Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !!}
 #ifdef USEMPI
-    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-    use    :: System_Output, only : stdOutIsATTY
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: Display           , only : displayBold       , displayRed     , displayReset
+    use    :: System_Output     , only : stdOutIsATTY
+    use    :: ISO_Varying_String, only : char
     implicit none
 #ifdef USEMPI
     integer            :: mpiRank , error
@@ -372,6 +379,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    write (0,*) " => Command line was: ",char(commandLine())
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
@@ -402,11 +410,12 @@ contains
     Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
     !!}
 #ifdef USEMPI
-    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-    use    :: System_Output, only : stdOutIsATTY
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: Display           , only : displayBold       , displayRed     , displayReset
+    use    :: System_Output     , only : stdOutIsATTY
+    use    :: ISO_Varying_String, only : char
     implicit none
 #ifdef USEMPI
     integer            :: mpiRank , error
@@ -424,6 +433,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    write (0,*) " => Command line was: ",char(commandLine())
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
@@ -454,11 +464,12 @@ contains
     Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
     !!}
 #ifdef USEMPI
-    use    :: MPI_F08      , only : MPI_Comm_Rank     , MPI_Comm_World
+    use    :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
-    !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use    :: Display      , only : displayBold       , displayRed     , displayReset
-    use    :: System_Output, only : stdOutIsATTY
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
+    use    :: Display           , only : displayBold       , displayRed     , displayReset
+    use    :: System_Output     , only : stdOutIsATTY
+    use    :: ISO_Varying_String, only : char
     implicit none
 #ifdef USEMPI
     integer            :: mpiRank , error
@@ -476,6 +487,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    write (0,*) " => Command line was: ",char(commandLine())
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
@@ -556,6 +568,7 @@ contains
        !$ else
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
+       write (0,*) " => Command line was: ",char(commandLine())
 #ifndef UNCLEANEXIT
        call closeHDF5()
 #endif
@@ -684,5 +697,41 @@ contains
     return
   end subroutine closeHDF5
 #endif
+
+  function commandLine()
+    !!{
+    Return the command line used to run this model.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    implicit none
+    type   (varying_string) :: commandLine
+    integer                 :: length     , statusLength, &
+         &                     i          , statusGet
+
+    commandLine=""
+    do i=0,1
+       call Get_Command_Argument(i,length=length,status=statusLength)
+       if (i > 0) commandLine=commandLine//" "
+       commandLine=commandLine//commandLineArgumentUnlimited(i,length,statusGet)
+       if (statusLength /= 0 .or. statusGet /= 0) then
+          commandLine="????????"
+          return
+       end if
+    end do
+    return
+  end function commandLine
+
+  function commandLineArgumentUnlimited(number,length,status) result(argument)
+    !!{
+    Get a command line argument of unlimited length.
+    !!}
+    implicit none
+    integer              , intent(in   ) :: number  , length
+    integer              , intent(  out) :: status
+    character(len=length)                :: argument
+
+    call Get_Command_Argument(number,value=argument,status=status)
+    return
+  end function commandLineArgumentUnlimited
   
 end module Error

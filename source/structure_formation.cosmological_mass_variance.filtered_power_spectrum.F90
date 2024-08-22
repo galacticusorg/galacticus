@@ -106,7 +106,7 @@
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
      logical                                                                              :: monotonicInterpolation                             , growthIsMassDependent_                               , &
           &                                                                                  normalizationSigma8                        =.false., truncateAtParticleHorizon                            , &
-          &                                                                                  storeTabulations
+          &                                                                                  storeTabulations                                   , warnedNonIncreasing
    contains
      !![
      <methods>
@@ -414,6 +414,7 @@ contains
        !!]
     end if
     self%initialized           =.false.
+    self%warnedNonIncreasing   =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
     self%fileName              =inputPath(pathTypeDataDynamic)                                                       // &
          &                      'largeScaleStructure/'                                                               // &
@@ -1030,7 +1031,10 @@ contains
                    call Error_Report(message//{introspection:location})
                 else
                    message=message//char(10)//"         If problems occur consider not attempting to model structure below this mass scale."
-                   call Warn        (message                          )
+                   if (.not.self%warnedNonIncreasing) then
+                      call Warn     (message                          )
+                      self%warnedNonIncreasing=.true.
+                   end if
                 end if
              end if
           end do
@@ -1052,7 +1056,8 @@ contains
       !!}
       use, intrinsic :: ISO_C_Binding           , only : c_size_t
       use            :: Display                 , only : displayIndent     , displayUnindent              , displayMessage, verbosityLevelStandard, &
-           &                                             verbosityLevelWarn, enumerationVerbosityLevelType
+           &                                             verbosityLevelWarn, enumerationVerbosityLevelType, displayReset  , displayGreen          , &
+           &                                             displayBlue       , displayYellow
       use            :: Error                   , only : Error_Report      , Warn
       use            :: Interface_GSL           , only : GSL_EBadTol       , GSL_ETol                     , GSL_ERound    , GSL_Success           , &
            &                                             GSL_EMaxIter      , GSL_ESing                    , gslErrorDecode
@@ -1161,15 +1166,22 @@ contains
          else if (status /= GSL_Success) then
             ! Integration failed for some other reason, report an error.
             computeLogarithmically=.false.
-            if (self%integrationFailureIsFatal)                                                           &
-                 & call Error_Report(                                                                     &
-                 &                   var_str       ('integration over interval failed [error number: ')// &
-                 &                                  status                                             // &
-                 &                           '; "'                                                     // &
-                 &                   gslErrorDecode(status                                            )// &
-                 &                           '"]'                                                      // &
-                 &                   {introspection:location}                                             &
-                 &                  )
+            if (self%integrationFailureIsFatal) then
+            block
+              type     (varying_string) :: message
+              character(len=12        ) :: label
+              message=var_str('integration over interval failed [error number: ')//status//'; "'//gslErrorDecode(status)//'"]'//char(10)// &
+                   &  displayGreen()//'HELP:'//displayReset()//' try increasing the value of <'//displayBlue()//'tolerance'
+              if (useTopHat) then
+                 message=message//"TopHat"
+                 write (label,'(e12.6)') self%toleranceTopHat
+              else
+                 write (label,'(e12.6)') self%tolerance
+              end if
+              message=message//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"'//trim(adjustl(label))//'"'//displayReset()//'/> in the <'//displayBlue()//'cosmologicalMassVariance'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"filteredPower"'//displayReset()//'> parameter'
+              call Error_Report(message//{introspection:location})
+            end block
+            end if
          else if (integrandInterval <= 0.0d0 .and. wavenumberLower > 0.0d0) then
             ! Integration gave a zero result, and the lower limit is non-zero. This may be because the upper limit is large and
             ! the power is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to

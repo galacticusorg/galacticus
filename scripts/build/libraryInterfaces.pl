@@ -859,10 +859,6 @@ sub ctypesArgTypes {
     my @argumentList = @{shift()};
     my @argTypes;
     foreach my $argument ( @argumentList ) {
-	# Only arguments prior to the first optional argument can be included in the list. ctypes will complain if we specify
-	# subsequent arguments but then pass "None" to them if they are not present.
-	last
-	    if ( $argument->{'isOptional'} );
 	# Wrap the type inside a "POINTER" function if it should be passed by reference.
 	my $ctype =
 	               $argument->{'ctypes'}->{'pointer'}

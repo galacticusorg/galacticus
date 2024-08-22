@@ -23,7 +23,6 @@
 
   use :: Geometry_Lightcones   , only : geometryLightconeClass
   use :: Merger_Tree_Outputters, only : mergerTreeOutputterClass
-  use :: Cosmology_Functions   , only : cosmologyFunctionsClass
 
   !![
   <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepLightconeCrossing">
@@ -39,8 +38,7 @@
      private
      class           (geometryLightconeClass  ), pointer :: geometryLightcone_   => null()
      class           (mergerTreeOutputterClass), pointer :: mergerTreeOutputter_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     double precision                                    :: timeMinimum                   , redshiftMaximum
+     double precision                                    :: timeMinimum
      integer                                             :: timeMaximumID
     contains
      final     ::                 lightconeCrossingDestructor
@@ -61,54 +59,42 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter         , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepLightconeCrossing)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (geometryLightconeClass                   ), pointer       :: geometryLightcone_
     class           (mergerTreeOutputterClass                 ), pointer       :: mergerTreeOutputter_
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
-    double precision                                                           :: redshiftMaximum
     
     !![
-    <inputParameter>
-      <name>redshiftMaximum</name>
-      <description>The maximum redshift at which to limit timesteps to the next lightcone crossing.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="geometryLightcone"   name="geometryLightcone_"   source="parameters"/>
     <objectBuilder class="mergerTreeOutputter" name="mergerTreeOutputter_" source="parameters"/>
     !!]
-    self=mergerTreeEvolveTimestepLightconeCrossing(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)),cosmologyFunctions_,geometryLightcone_,mergerTreeOutputter_)
+    self=mergerTreeEvolveTimestepLightconeCrossing(geometryLightcone_,mergerTreeOutputter_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="geometryLightcone_"  />
     <objectDestructor name="mergerTreeOutputter_"/>
     !!]
     return
   end function lightconeCrossingConstructorParameters
 
-  function lightconeCrossingConstructorInternal(timeMinimum,cosmologyFunctions_,geometryLightcone_,mergerTreeOutputter_) result(self)
+  function lightconeCrossingConstructorInternal(geometryLightcone_,mergerTreeOutputter_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepLightconeCrossing)                        :: self
-    class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class           (geometryLightconeClass                   ), intent(in   ), target :: geometryLightcone_
     class           (mergerTreeOutputterClass                 ), intent(in   ), target :: mergerTreeOutputter_
-    double precision                                           , intent(in   )         :: timeMinimum
     !![
-    <constructorAssign variables="timeMinimum, *cosmologyFunctions_, *geometryLightcone_, *mergerTreeOutputter_"/>
+    <constructorAssign variables="*geometryLightcone_, *mergerTreeOutputter_"/>
     !!]
 
-    self%redshiftMaximum=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(timeMinimum))
     !![
     <addMetaProperty component="position" name="positionInterpolatedTimeMaximum" id="self%timeMaximumID" rank="0" isEvolvable="no" isCreator="no"/>
     !!]
+    self%timeMinimum=self%geometryLightcone_%timeMinimum()
     return
   end function lightconeCrossingConstructorInternal
 
@@ -167,7 +153,7 @@ contains
        ! If the maximum time is after the current time, find the time (if any) of lightcone crossing.
        basic => node%basic()
        if (timeMaximum > basic%time()) then       
-          timeCrossing=self%geometryLightcone_%timeLightconeCrossing(node,timeMaximum)
+          timeCrossing=self%geometryLightcone_%timeLightconeCrossing(node,self%timeMinimum,timeMaximum)
           if (timeCrossing <= timeEnd) lightconeCrossingTimeEvolveTo=timeCrossing
        end if
     end if

@@ -89,6 +89,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v4
         with:
@@ -102,18 +103,14 @@ jobs:
         if: ${{ format('{0}',inputs.needsIRATE) == '1' && github.triggering_actor != 'dependabot[bot]'}}
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python2-minimal python2-dev python-setuptools libhdf5-dev curl libntirpc-dev
-          curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
-          python2 get-pip.py
-          pip2 install numpy h5py
-          pip2 install Cython --install-option="--no-cython-compile"
+          apt -y install python3-minimal python3-dev python3-setuptools libhdf5-dev curl libntirpc-dev python3-h5py python3-numpy cython3
           eval `ssh-agent -s`
           ssh-add - <<< '${{ secrets.IRATE_DEPLOY_PRIVATE_KEY }}'
           GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new" git clone git@github.com:galacticusorg/irate-format.git
           cd irate-format
-          # For some reason install fails on the first attempt - so try twice.
-          CFLAGS=-I/usr/include/ntirpc/ python2 setup.py install || true
-          CFLAGS=-I/usr/include/ntirpc/ python2 setup.py install
+          echo NOTE: using IRATE revision:
+          git rev-parse HEAD
+          CFLAGS=-I/usr/include/ntirpc/ python3 setup.py install
           cd -
       - name: Mark time for cache accesses
         if: ${{ format('{0}',inputs.cacheData) == '1' }}

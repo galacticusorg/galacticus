@@ -140,7 +140,7 @@
        <method description="Read the named power spectrum file." method="readFile" />
      </methods>
      !!]
-     final :: fileDestructor
+     final     ::                                fileDestructor
      procedure :: readFile                    => fileReadFile
      procedure :: power                       => filePower
      procedure :: logarithmicDerivative       => fileLogarithmicDerivative
@@ -226,14 +226,14 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use            :: Display                , only : displayMessage                  , displayMagenta, displayReset
+    use            :: Display                , only : displayMessage                  , displayMagenta                    , displayGreen                , displayReset
     use            :: File_Utilities         , only : File_Name_Expand                , File_Exists
     use            :: Error                  , only : Error_Report
     use            :: HDF5_Access            , only : hdf5Access
     use            :: IO_HDF5                , only : hdf5Object
     use            :: Numerical_Comparison   , only : Values_Differ
     use            :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use            :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode
+    use            :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
     use            :: ISO_Varying_String     , only : var_str                         , operator(//)
     use            :: Sorting                , only : sortIndex
     use            :: String_Handling        , only : operator(//)
@@ -308,6 +308,17 @@ contains
     end do
     self%interpolatorWavenumber=interpolator(self%wavenumberLogarithmic,extrapolationType=extrapolateWavenumber)
     self%interpolatorTime      =interpolator(self%timeLogarithmic      ,extrapolationType=extrapolateRedshift  )
+    ! Warn about potential problems extrapolating power to large wavenumber.
+    if     (                                                                                                                                                                                                                                           &
+         &            extrapolateWavenumber                   ==      extrapolationTypeExtrapolate                                                                                                                                                     &
+         &  .and.                                                                                                                                                                                                                                      &
+         &   any(self%powerLogarithmic     (:,size(redshift)) >  self%powerLogarithmic            (:,size(redshift)-1))                                                                                                                                &
+         & ) call Warn(                                                                                                                                                                                                                                &
+         &             displayMagenta()// "WARNING:"//displayReset()//" You have requested extrapolation of the power spectrum in wavenumber, but your power spectrum is increasing with wavenumber at the largest wavenumbers tabulated."//char(10)// &
+         &                               "         "                //" This can lead to excessive power when extrapolated to very large wavenumbers."                                                                                    //char(10)// &
+         &             displayGreen  ()//"    HELP:"//displayReset()//" Either ensure that your power spectrum is decreasing at the highest wavenumbers or, if your power spectrum is strongly truncated at large wavenumber, consider "            // &
+         &                                                            "setting the `extrapolationWavenumber` attribute to `zero` to simply truncate the power spectrum beyond the maximum tabulated wavenumber."                                       &
+         &            )
     return
   end subroutine fileReadFile
   

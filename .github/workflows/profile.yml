@@ -53,7 +53,30 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ format('{0}',inputs.profiler) == 'perf' && 'galacticus-exec' || 'galacticus-exec-instrumented' }}
+      - name: Detect linux-tools
+        id: detector
+        run: |
+          if [[ ${{ format('{0}',inputs.profiler) }} == "perf" ]]; then
+             if [[ `apt list | grep linux-tools-$(uname -r)` ]]; then
+                echo linux-tools was found
+                echo "detected=true" >> "$GITHUB_OUTPUT"
+             else
+                echo linux-tools was not found
+                echo "detected=false" >> "$GITHUB_OUTPUT"
+                echo '## :warning: `linux-tools` is missing - remainder of job will be skipped :warning:' >> $GITHUB_STEP_SUMMARY
+                echo 'Kernel version is: '`uname -r` >> $GITHUB_STEP_SUMMARY
+                echo 'Available `linux-tools` versions are:' >> $GITHUB_STEP_SUMMARY
+                apt list | grep -P linux\-tools\-[0-9\.\-]+\-azure >> $GITHUB_STEP_SUMMARY
+                # Create a dummy file here so that we have something to upload.
+                mkdir -p ./testSuite/outputs
+                echo "perf tests disabled due to missing linux-tools" > ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}
+             fi
+          else
+             echo linux-tools was found
+             echo "detected=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Install packages
+        if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
           apt -y update && apt -y upgrade
           apt -y install ${{ format('{0}',inputs.profiler) == 'perf' && 'linux-tools-$(uname -r) linux-tools-generic' || '' }} bzip2
@@ -64,6 +87,7 @@ jobs:
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Profile
+        if: ${{ steps.detector.outputs.detected == 'true' }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH

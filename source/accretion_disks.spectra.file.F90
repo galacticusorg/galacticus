@@ -143,9 +143,10 @@ contains
     !!{
     Load a file of AGN spectra.
     !!}
-    use :: Error      , only : Error_Report
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Error       , only : Error_Report
+    use :: HDF5_Access , only : hdf5Access
+    use :: IO_HDF5     , only : hdf5Object
+    use :: Table_Labels, only : extrapolationTypeZero, extrapolationTypeFix
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
     character(len=*                   ), intent(in   ) :: fileName
@@ -168,8 +169,8 @@ contains
     ! Convert luminosities to logarithmic form for interpolation.
     self%luminosity=log(self%luminosity)
     ! Build interpolators.
-    self%interpolatorLuminosity=interpolator(self%luminosity)
-    self%interpolatorWavelength=interpolator(self%wavelength)
+    self%interpolatorLuminosity=interpolator(self%luminosity,extrapolationType=extrapolationTypeFix )
+    self%interpolatorWavelength=interpolator(self%wavelength,extrapolationType=extrapolationTypeZero)
     return
   end subroutine fileLoadFile
 
