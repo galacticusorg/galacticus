@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724237997561,
+  "lastUpdate": 1724315196263,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "4a1abebecd4065bde5191c8d37f61bc3c59e80dd",
-          "message": "Merge pull request #492 from galacticusorg/memoryLeakFixes\n\nFix memory leaks",
-          "timestamp": "2023-10-07T14:52:07Z",
-          "tree_id": "b693cd8daca4d7bb18cb81b746e6eb13ce4b55c8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4a1abebecd4065bde5191c8d37f61bc3c59e80dd"
-        },
-        "date": 1696702253996,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 219.335,
-            "unit": "seconds",
-            "range": 0.179756780125228
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10692,6 +10662,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.6905295762412,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "23e56219f100d8685052420d269969f5a9ab0883",
+          "message": "Merge pull request #670 from pmenker/elliptical\n\nAdd stream_kick.F90 filter for stream velocity kick.",
+          "timestamp": "2024-08-22T01:04:22Z",
+          "tree_id": "e2272a83f0e4019311d7c56cf12a13cb1846781e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/23e56219f100d8685052420d269969f5a9ab0883"
+        },
+        "date": 1724315195198,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 410.538,
+            "unit": "seconds",
+            "range": 0.33529330443606
           }
         ]
       }
