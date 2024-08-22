@@ -19,7 +19,8 @@
 
   !!{
   Implements a node operator class that inserts an empirical model of the formation history of a galaxy.
-  Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} (https://arxiv.org/abs/1806.07893) correlation between Galaxy Growth and Dark Matter Halo Assembly.
+  Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} 
+  correlation between Galaxy Growth and Dark Matter Halo Assembly.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
@@ -28,14 +29,15 @@
   <nodeOperator name="nodeOperatorEmpiricalGalaxyUniverseMachine">
    <description>
     A node operator class that inserts an empirical model of the formation history of a galaxy. 
-    Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} (https://arxiv.org/abs/1806.07893) correlation between Galaxy Growth and Dark Matter Halo Assembly.    
+    Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} correlation between Galaxy Growth and Dark Matter Halo Assembly.    
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{     
      A node operator class that inserts an empirical model of the formation history of a galaxy. 
-     At each timestep and during mergers, the mass of the central galaxy is computed using the Stellar Mass - Halo Mass using {\normalfont \ttfamily [UniverseMachine]} fits.
+     At each timestep and during mergers, the mass of the central galaxy is computed using the 
+     Stellar Mass - Halo Mass using {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} fits.
      !!}
      private
      double precision                                                        :: epsilon_0, epsilon_a, epsilon_lna, &
@@ -70,130 +72,130 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                :: self
-    type            (inputParameters                            ), intent(inout) :: parameters
-    double precision                                                             :: epsilon_0, epsilon_a, epsilon_lna, &
-         &                                                                          epsilon_z, M_0      , M_a        , &
-         &                                                                          M_lna    , M_z      , alpha_0    , &
-         &                                                                        alpha_a  , alpha_lna, alpha_z    , &
-         &                                                                     beta_0   , beta_a   , beta_z     , &
-         &                                                                     delta_0  , gamma_0  , gamma_a    , &
-         &                                                                     gamma_z
-    class(cosmologyFunctionsClass                  ), pointer               :: cosmologyFunctions_
+    type            (inputParameters                           ), intent(inout) :: parameters
+    double precision                                                            :: epsilon_0, epsilon_a, epsilon_lna, &
+         &                                                                         epsilon_z, M_0      , M_a        , &
+         &                                                                         M_lna    , M_z      , alpha_0    , &
+         &                                                                         alpha_a  , alpha_lna, alpha_z    , &
+         &                                                                         beta_0   , beta_a   , beta_z     , &
+         &                                                                         delta_0  , gamma_0  , gamma_a    , &
+         &                                                                         gamma_z
+    class           (cosmologyFunctionsClass                  ), pointer        :: cosmologyFunctions_
     
     !![
     <inputParameter>
       <name>epsilon_0</name>
       <source>parameters</source>
-      <description>Parameter $\Epsilon_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_0$ (see Table J1 of \cite{Behroozi_2019})</description>
       <defaultValue>-1.435d0</defaultValue>
     </inputParameter>
     <inputParameter>
       <name>epsilon_a</name>
       <source>parameters</source>
       <defaultValue>+1.831d0</defaultValue>
-      <description>Parameter $\Epsilon_a$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_a$  (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon_lna</name>
       <source>parameters</source>
       <defaultValue>+1.368d0</defaultValue>
-      <description>Parameter $\Epsilon_{\ln a}$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_{\ln a} (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon_z</name>
       <source>parameters</source>
       <defaultValue>-0.217d0</defaultValue>
-      <description>Parameter $\Epsilon_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>M_0</name>
       <source>parameters</source>
-      <description>Parameter $M_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $M_0$ (see Table J1 of \cite{Behroozi_2019})</description>
       <defaultValue>+12.04d0</defaultValue>
     </inputParameter>
     <inputParameter>
       <name>M_a</name>
       <source>parameters</source>
       <defaultValue>+4.556d0</defaultValue>
-      <description>Parameter $M_a$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>M_lna</name>
       <source>parameters</source>
       <defaultValue>+4.417d0</defaultValue>
-      <description>Parameter $M_{\ln a}$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $M_{\ln a}$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>M_z</name>
       <source>parameters</source>
       <defaultValue>-0.731d0</defaultValue>
-      <description>Parameter $M_z$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $M_z$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>alpha_0</name>
       <source>parameters</source>
       <defaultValue>+1.963d0</defaultValue>
-      <description>Parameter $\alpha_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\alpha_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>alpha_a</name>
       <source>parameters</source>
       <defaultValue>-2.316d0</defaultValue>
-      <description>Parameter $\alpha_a$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\alpha_a$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>alpha_lna</name>
       <source>parameters</source>
       <defaultValue>-1.732d0</defaultValue>
-      <description>Parameter $\alpha_{\ln a}$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\alpha_{\ln a}$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>alpha_z</name>
       <source>parameters</source>
       <defaultValue>+0.178d0</defaultValue>
-      <description>Parameter $\alpha_z$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\alpha_z$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>beta_0</name>
       <source>parameters</source>
       <defaultValue>+0.482d0</defaultValue>
-      <description>Parameter $\beta_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\beta_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>beta_a</name>
       <source>parameters</source>
       <defaultValue>-0.841d0</defaultValue>
-      <description>Parameter $\beta_a$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\beta_a$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>beta_z</name>
       <source>parameters</source>
       <defaultValue>-0.471d0</defaultValue>
-      <description>Parameter $\beta_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\beta_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>delta_0</name>
       <source>parameters</source>
       <defaultValue>+0.411d0</defaultValue>
-      <description>Parameter $\delta_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\delta_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>gamma_0</name>
       <source>parameters</source>
       <defaultValue>-1.034d0</defaultValue>
-      <description>Parameter $\gamma_0$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\gamma_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>gamma_a</name>
       <source>parameters</source>
       <defaultValue>-3.100d0</defaultValue>
-      <description>Parameter $\gamma_a$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\gamma_a$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>gamma_z</name>
       <source>parameters</source>
       <defaultValue>-1.055d0</defaultValue>
-      <description>Parameter $\gamma_z$ from table J1</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\gamma_z$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -226,24 +228,24 @@ contains
     return
   end function empiricalGalaxyUniverseMachineConstructorParameters
 
-  function empiricalGalaxyUniverseMachineConstructorInternal(epsilon_0, epsilon_a, epsilon_lna            , epsilon_z          , &
-      &                                                      M_0      , M_a , M_lna    , M_z                    , alpha_0            , &
-      &                                                      alpha_a  , alpha_lna, alpha_z                , beta_0             , &
-      &                                                      beta_a   , beta_z   , delta_0                , gamma_0            , &
-      &                                                      gamma_a  , gamma_z  , cosmologyFunctions_                            ) result(self)
+  function empiricalGalaxyUniverseMachineConstructorInternal(epsilon_0, epsilon_a, epsilon_lna, epsilon_z          , &
+      &                                                      M_0      , M_a      , M_lna      , M_z                , &
+      &                                                      alpha_0  , alpha_a  , alpha_lna  , alpha_z            , &
+      &                                                      beta_0   , beta_a   , beta_z     , delta_0            , &
+      &                                                      gamma_0  , gamma_a  , gamma_z    , cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                          :: self
-    double precision                                            , intent(in   )           :: epsilon_0, epsilon_a, epsilon_lna, &
-         &                                                                                   epsilon_z, M_0      , M_a        , &
-         &                                                                                   M_lna    , M_z      , alpha_0    , &
-         &                                                                                   alpha_a  , alpha_lna, alpha_z    , &
-         &                                                                                   beta_0   , beta_a   , beta_z     , &
-         &                                                                                   delta_0  , gamma_0  , gamma_a    , &
-         &                                                                                   gamma_z
-    class           (cosmologyFunctionsClass                   ), intent(in  ),    target :: cosmologyFunctions_
+    type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                     :: self
+    double precision                                            , intent(in)         :: epsilon_0, epsilon_a, epsilon_lna, &
+         &                                                                              epsilon_z, M_0      , M_a        , &
+         &                                                                              M_lna    , M_z      , alpha_0    , &
+         &                                                                              alpha_a  , alpha_lna, alpha_z    , &
+         &                                                                              beta_0   , beta_a   , beta_z     , &
+         &                                                                              delta_0  , gamma_0  , gamma_a    , &
+         &                                                                              gamma_z
+    class           (cosmologyFunctionsClass                   ), intent(in), target :: cosmologyFunctions_
 
     !![
     <constructorAssign variables="epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyFunctions_"/>
@@ -253,20 +255,27 @@ contains
   end function empiricalGalaxyUniverseMachineConstructorInternal
 
   subroutine empiricalGalaxyUniverseMachineDestructor(self)    
+    !!{
+    Destructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
+    !!}
     implicit none
     type(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
     !!]
+
     return
   end subroutine empiricalGalaxyUniverseMachineDestructor
 
   double precision function universeMachineScaling(z, y0, ya, ylna, yz) 
+    !!{
+    Implements the scaling relations provided in equations J3-J8 of \citep{Behroozi_2019}
+    !!}
     implicit none
-    double precision                                        ,intent(in) :: z   , y0, ya, &
-         &                                                                 ylna, yz   
-    double precision                                                    :: a
+    double precision, intent(in) :: z   , y0, ya, &
+         &                          ylna, yz   
+    double precision             :: a
 
     a                      =+1.0d0  &
          &                 /(       &
@@ -288,14 +297,17 @@ contains
   end function universeMachineScaling
 
   double precision function universeMachineSMHM(self, haloMass, z)
+    !!{
+    Implements the Stellar Mass - Halo Mass relationship provided in equation J1 of \citep{Behroozi_2019}
+    !!}
     implicit none  
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target :: self
-    double precision                                        , intent(in)          :: haloMass, z
-    double precision                                                              :: MLog10  , gammalog10, M1  , &
-        &                                                                            epsilon , alpha     , beta, &
-        &                                                                            delta   , gamma     , x   , &
-        &                                                                            smLog10 , powa      , powb, &
-        &                                                                            expx
+    double precision                                            , intent(in)         :: haloMass  , z
+    double precision                                                                 :: MLog10    , gammalog10, M1  , &
+        &                                                                               epsilon   , alpha     , beta, &
+        &                                                                               delta     , gamma     , x   , &
+        &                                                                               smfm1Log10, smfm1     , powa, &
+        &                                                                               powb      , expd  
     
     MLog10             =universeMachineScaling(z, self%M_0      , self%M_a      , self%M_lna      , self%M_z      )
     gammalog10         =universeMachineScaling(z, self%gamma_0  , self%gamma_a  , 0.0d0           , self%gamma_z  )
@@ -311,24 +323,31 @@ contains
     x                  =+log10(          &
       &                        +haloMass &
       &                        /M1       &
-      &                       )          
-   
+      &                       )             
 
-    powa =  +10.0d0**(-alpha*x)
-    powb =  +10.0d0**(-beta*x)
-    expx =  -0.50d0 * (x / delta)**2
+    powa               =+10.0d0**(-alpha*x  )
+    powb               =+10.0d0**(-beta*x   )
 
-    smLog10            =+epsilon         &
-     &                  -log10(          &
-     &                          +powa     &
-     &                          +powb     &
-     &                         )          &
-     &                  +gamma           &
-     &                  *exp  (          &
-     &                         +expx      &
+    expd               =-0.50d0  &
+      &                 *(       &
+      &                   +x     &
+      &                   /delta &                     
+      &                  )**2    
+
+    smfm1Log10         =+epsilon     &
+     &                  -log10(      &
+     &                         +powa &
+     &                         +powb &
+     &                        )      &
+     &                  +gamma       &
+     &                  *exp  (      &
+     &                         +expd &
      &                        )         
 
-    universeMachineSMHM=M1*10.0d0**(smLog10)
+    smfm1              =10.0d0**(smfm1Log10 )
+
+    universeMachineSMHM=+M1    &
+      &                 *smfm1 
 
     return
  
@@ -349,10 +368,11 @@ contains
 
     if (.not.node%isOnMainBranch()) return
  
-    basic           =>node %basic                                          (              )
+    basic           =>node %basic                                          (                   )
+
     z               = self %cosmologyFunctions_%redshiftFromExpansionFactor(    &
          &                         self %cosmologyFunctions_%expansionFactor(   &
-         &                         basic                    %time    () &
+         &                         basic                    %time            () &
          &                                                                  )   &
          &                                                                  )    
     
@@ -372,9 +392,9 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
-    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
-    type            (treeNode                                  ), intent(inout), target  :: node
-    class           (nodeComponentSpheroid                     )               , pointer :: spheroid
+    class        (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
+    type         (treeNode                                  ), intent(inout), target  :: node
+    class        (nodeComponentSpheroid                     )               , pointer :: spheroid
 
     spheroid=>node%spheroid(autoCreate=.true.)
 
@@ -400,8 +420,8 @@ contains
     Update galactic properties at each merger
     !!}
     implicit none
-    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self
-    type            (treeNode                                  ), intent(inout) :: node        
+    class        (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self
+    type         (treeNode                                  ), intent(inout) :: node        
 
     call empiricalGalaxyUniverseMachineNodeUpdate(self, node)
     return
