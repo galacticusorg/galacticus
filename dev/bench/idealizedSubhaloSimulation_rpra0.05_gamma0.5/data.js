@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724238013612,
+  "lastUpdate": 1724315221018,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
@@ -2516,6 +2516,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
             "value": "9.849823975186059",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "23e56219f100d8685052420d269969f5a9ab0883",
+          "message": "Merge pull request #670 from pmenker/elliptical\n\nAdd stream_kick.F90 filter for stream velocity kick.",
+          "timestamp": "2024-08-22T01:04:22Z",
+          "tree_id": "e2272a83f0e4019311d7c56cf12a13cb1846781e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/23e56219f100d8685052420d269969f5a9ab0883"
+        },
+        "date": 1724315219875,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "21.58128069887297",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "7.8967620087179835",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "9.849830842989993",
             "unit": "-logℒ"
           }
         ]
