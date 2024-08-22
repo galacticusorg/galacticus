@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724315206892,
+  "lastUpdate": 1724363517207,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a29225c6ef9c5f69db7be1d84076f6272e863686",
-          "message": "Merge pull request #493 from sachiwee/master\n\nChanges to accretion.halo.cold_mode.F90 and cooling.cooling_function.molecular_hydrogen_Galli_Palla.F90",
-          "timestamp": "2023-10-10T12:46:37Z",
-          "tree_id": "e512ab8f80b76a75a9c79caf1413ccd688e3310c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a29225c6ef9c5f69db7be1d84076f6272e863686"
-        },
-        "date": 1696954591436,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 281.081,
-            "unit": "seconds",
-            "range": 1.213199447741
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10692,6 +10662,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.974935768467,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": false,
+          "id": "029c3a462b92f518b6ceabeb80a7d689f55cbd87",
+          "message": "fix: Correct redirect for `git` repo hash when no `git` repo is found",
+          "timestamp": "2024-08-22T07:54:17-07:00",
+          "tree_id": "f4be0a58191c50735bef622856d676c31640c303",
+          "url": "https://github.com/galacticusorg/galacticus/commit/029c3a462b92f518b6ceabeb80a7d689f55cbd87"
+        },
+        "date": 1724363516385,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 460.428,
+            "unit": "seconds",
+            "range": 0.212700728721256
           }
         ]
       }
