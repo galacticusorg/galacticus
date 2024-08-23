@@ -62,9 +62,8 @@ contains
     Constructor for the ``starFormingMainSequence'' output analysis class which takes a parameter set as input.
     !!}
     use :: Error             , only : Error_Report
-    use :: Input_Parameters  , only : inputParameter        , inputParameters
-    use :: Numerical_Ranges  , only : Make_Range            , rangeTypeLogarithmic
-    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: Numerical_Ranges  , only : Make_Range    , rangeTypeLogarithmic
     implicit none
     type            (outputAnalysisStarFormingMainSequence  )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters

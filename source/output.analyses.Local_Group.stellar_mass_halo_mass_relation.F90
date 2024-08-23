@@ -63,7 +63,6 @@ contains
     Constructor for the ``localGroupStellarMassHaloMassRelation'' output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
-    use :: Galactic_Structure          , only : galacticStructureClass
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
     use :: Galactic_Filters            , only : enumerationPositionTypeEncode
     use :: Models_Likelihoods_Constants, only : logImprobable

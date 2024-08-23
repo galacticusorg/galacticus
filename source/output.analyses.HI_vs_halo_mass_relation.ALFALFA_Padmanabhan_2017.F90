@@ -59,7 +59,6 @@ contains
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParameters                                     , cosmologyParametersClass
-    use :: Galactic_Structure              , only : galacticStructureClass
     use :: Functions_Global                , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use :: Input_Parameters                , only : inputParameter                                          , inputParameters
     use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatio                            , outputAnalysisMolecularRatioClass

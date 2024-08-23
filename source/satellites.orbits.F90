@@ -25,7 +25,6 @@ module Satellite_Orbits
   !!{
   Implements calculations related to satellite orbits.
   !!}
-  use :: Galactic_Structure, only : galacticStructureClass
   use :: Galacticus_Nodes  , only : treeNode
   use :: Kind_Numbers      , only : kind_int8
   use :: Mass_Distributions, only : massDistributionClass

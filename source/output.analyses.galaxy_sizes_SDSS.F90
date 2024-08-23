@@ -64,8 +64,7 @@ contains
     !!{
     Constructor for the ``galaxySizesSDSS'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters  , only : inputParameter        , inputParameters
-    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisGalaxySizesSDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters

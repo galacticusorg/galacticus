@@ -32,6 +32,4 @@
   <darkMatterProfileDMO       value="isothermal"       />
   <darkMatterProfile          value="darkMatterOnly"/>
 
-  <galacticStructure value="standard"/>
-
 </parameters>

@@ -68,7 +68,6 @@ contains
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-    use :: Galactic_Structure      , only : galacticStructureClass
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
     use :: Input_Parameters        , only : inputParameters
     implicit none

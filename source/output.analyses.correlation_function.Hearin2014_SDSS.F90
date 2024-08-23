@@ -50,8 +50,7 @@ contains
     Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Input_Parameters  , only : inputParameter        , inputParameters
-    use            :: Galactic_Structure, only : galacticStructureClass
+    use            :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisCorrelationFunctionHearin2013SDSS)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters

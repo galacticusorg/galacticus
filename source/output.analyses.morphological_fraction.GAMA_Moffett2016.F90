@@ -57,9 +57,8 @@ contains
     !!{
     Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions, only : cosmologyFunctions    , cosmologyFunctionsClass
-    use :: Galactic_Structure , only : galacticStructureClass
-    use :: Input_Parameters   , only : inputParameter        , inputParameters
+    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016)                              :: self
     type            (inputParameters                                   ), intent(inout)               :: parameters

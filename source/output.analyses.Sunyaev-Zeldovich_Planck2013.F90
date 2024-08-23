@@ -21,8 +21,6 @@
   Implements a thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
    <description>A thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.</description>
@@ -57,8 +55,7 @@ contains
     !!{
     Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters  , only : inputParameter        , inputParameters
-    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisSunyaevZeldovichPlanck2013)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters

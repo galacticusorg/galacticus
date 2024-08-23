@@ -60,7 +60,6 @@ contains
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
-    use :: Galactic_Structure            , only : galacticStructureClass
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2019)                              :: self
     type            (inputParameters                       ), intent(inout)               :: parameters

@@ -29,7 +29,6 @@
   use :: Merger_Tree_Initialization  , only : mergerTreeInitializorClass
   use :: Merger_Tree_Timesteps       , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
   use :: Merger_Trees_Evolve_Node    , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
-  use :: Galactic_Structure          , only : galacticStructureClass
 
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList

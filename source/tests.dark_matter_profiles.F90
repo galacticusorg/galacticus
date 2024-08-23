@@ -34,7 +34,6 @@ program Test_Dark_Matter_Profiles
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW             , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW, &
        &                                          darkMatterProfileDMOSIDMIsothermal                            , darkMatterProfileDMOZhao1996
   use :: Dark_Matter_Profiles            , only : darkMatterProfileSIDMIsothermal                               , darkMatterProfileAdiabaticGnedin2004
-  use :: Galactic_Structure              , only : galacticStructureStandard
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed          , fixedDensityTypeCritical
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
@@ -96,7 +95,6 @@ program Test_Dark_Matter_Profiles
   type            (darkMatterProfileDMOSIDMIsothermal                            ), pointer      :: darkMatterProfileDMOSIDMIsothermal_
   type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer      :: darkMatterProfileAdiabaticPippin_
   type            (darkMatterProfileSIDMIsothermal                               ), pointer      :: darkMatterProfileSIDMIsothermal_
-  type            (galacticStructureStandard                                     ), pointer      :: galacticStructureStandard_
   type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_                                                                                , &
        &                                                                                            cosmologyParametersPippin_
   type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_                                                                                 , &
@@ -147,7 +145,6 @@ program Test_Dark_Matter_Profiles
   allocate(darkMatterProfileDMOSIDMIsothermal_              )
   allocate(darkMatterProfileSIDMIsothermal_                 )
   allocate(darkMatterProfileAdiabaticPippin_                )
-  allocate(galacticStructureStandard_                       )
   allocate(darkMatterParticleSelfInteractingDarkMatter_     )
   allocate(darkMatterParticleSelfInteractingDarkMatterJiang_)
   allocate(darkMatterParticleCDM_                           )
@@ -1486,14 +1483,6 @@ program Test_Dark_Matter_Profiles
      &amp;                                            )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="galacticStructureStandard_"                        >
-   <constructor>
-    galacticStructureStandard                         (                                                                                        &amp;
-     &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsPippin_                        , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                         &amp;
-     &amp;                                            )
-   </constructor>
-  </referenceConstruct>
   <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatterJiang_">
    <!-- The cross-section is reduced here since Jiang use a halo age of 10 Gyr instead of the current age of the Universe. By
         offsetting the cross-section by this factor we get the correct interaction radius.                                    -->
@@ -1754,7 +1743,6 @@ program Test_Dark_Matter_Profiles
   <objectDestructor name="darkMatterProfileDMOSIDMCoreNFW_"                 />
   <objectDestructor name="darkMatterProfileDMOSIDMIsothermal_"              />
   <objectDestructor name="darkMatterProfileSIDMIsothermal_"                 />
-  <objectDestructor name="galacticStructureStandard_"                       />
   <objectDestructor name="darkMatterParticleSelfInteractingDarkMatter_"     />
   <objectDestructor name="darkMatterParticleSelfInteractingDarkMatterJiang_"/>
   <objectDestructor name="darkMatterParticleCDM_"                           />

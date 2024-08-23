@@ -20,11 +20,10 @@
 !!{
 Contains a module which implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
 !!}
-  use :: Chemical_States        , only : chemicalState         , chemicalStateClass
-  use :: Cosmology_Functions    , only : cosmologyFunctions    , cosmologyFunctionsClass , enumerationDensityCosmologicalType
-  use :: Cosmology_Parameters   , only : cosmologyParameters   , cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale   , darkMatterHaloScaleClass
-  use :: Galactic_Structure     , only : galacticStructureClass
+  use :: Chemical_States        , only : chemicalState      , chemicalStateClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass , enumerationDensityCosmologicalType
+  use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMSZ">
