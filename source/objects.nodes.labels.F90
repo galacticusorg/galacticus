@@ -28,8 +28,8 @@ module Nodes_Labels
   use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
   private
-  public :: nodeLabelRegister    , nodeLabelSet  , nodeLabelNames    , nodeLabelList, &
-       &    nodeLabelDescriptions, nodeLabelCount, nodeLabelIsPresent
+  public :: nodeLabelRegister    , nodeLabelSet  , nodeLabelNames, nodeLabelList     , &
+       &    nodeLabelDescriptions, nodeLabelUnset, nodeLabelCount, nodeLabelIsPresent
 
   integer                                            :: nodeLabelsID=-1
   type   (varying_string), allocatable, dimension(:) :: labels_        , descriptions_
@@ -129,6 +129,30 @@ contains
     !$omp end critical(lockNodeLabels)
     return
   end function nodeLabelCount
+  
+  subroutine nodeLabelUnset(labelID,node)
+    !!{
+    Unset a label on a node.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
+    implicit none
+    integer                    , intent(in   ) :: labelID
+    type   (treeNode          ), intent(inout) :: node
+    class  (nodeComponentBasic), pointer       :: basic
+
+    !$omp critical(lockNodeLabels)
+    if (.not.allocated(labels_) .or. labelID > size(labels_)) call Error_Report('label ID is out of range'//{introspection:location})
+    !$omp end critical(lockNodeLabels)
+    basic => node%basic(autoCreate=.true.)
+    call basic%longIntegerRank0MetaPropertySet(                                                                     &
+         &                                                                                 nodeLabelsID           , &
+         &                                     ibclr(                                                               &
+         &                                           basic%longIntegerRank0MetaPropertyGet(nodeLabelsID),labelID-1  &
+         &                                          )                                                               &
+         &                                    )
+    return
+  end subroutine nodeLabelUnset
   
   subroutine nodeLabelSet(labelID,node)
     !!{

@@ -138,7 +138,7 @@ contains
     ! Git2 library is not available. If we have the command line `git` installed, use it insted.
     gitHashDatasets="unknown"
     hashFileName   =File_Name_Temporary("repoHash.txt")
-    call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(hashFileName)//"; else echo unknown; fi",iStatus=status)
+    call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(hashFileName)//"; else echo unknown > "//char(hashFileName)//"; fi",iStatus=status)
     if (status == 0) then
        open(newUnit=hashUnit,file=char(hashFileName),status="old",form="formatted",iostat=ioErr)
        if (ioErr == 0) read (hashUnit,'(a)') gitHashDatasets
