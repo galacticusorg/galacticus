@@ -21,8 +21,6 @@
 Contains a module which implements a half-light radii property extractor class.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
    <description>
@@ -38,9 +36,7 @@ Contains a module which implements a half-light radii property extractor class.
      A half-light radii property extractor class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
-     final     ::                 radiiHalfLightPropertiesDestructor
      procedure :: elementCount => radiiHalfLightPropertiesElementCount
      procedure :: extract      => radiiHalfLightPropertiesExtract
      procedure :: names        => radiiHalfLightPropertiesNames
@@ -53,7 +49,6 @@ Contains a module which implements a half-light radii property extractor class.
      Constructors for the ``radiiHalfLightProperties'' output analysis class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
-     module procedure radiiHalfLightPropertiesConstructorInternal
   end interface nodePropertyExtractorRadiiHalfLightProperties
 
 contains
@@ -66,46 +61,13 @@ contains
     implicit none
     type (nodePropertyExtractorRadiiHalfLightProperties)                :: self
     type (inputParameters                              ), intent(inout) :: parameters
-    class(galacticStructureClass                       ), pointer       :: galacticStructure_
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=nodePropertyExtractorRadiiHalfLightProperties(galacticStructure_)
+    self=nodePropertyExtractorRadiiHalfLightProperties()
      !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
    return
   end function radiiHalfLightPropertiesConstructorParameters
-
-  function radiiHalfLightPropertiesConstructorInternal(galacticStructure_) result(self)
-    !!{
-    Internal constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
-    !!}
-    use :: Input_Parameters, only : inputParameters
-    implicit none
-    type (nodePropertyExtractorRadiiHalfLightProperties)                        :: self
-    class(galacticStructureClass                       ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
-
-    return
-  end function radiiHalfLightPropertiesConstructorInternal
-  
-  subroutine radiiHalfLightPropertiesDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
-    !!}
-    implicit none
-    type(nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine radiiHalfLightPropertiesDestructor
 
   integer function radiiHalfLightPropertiesElementCount(self,time)
     !!{
@@ -126,6 +88,7 @@ contains
     Implement a {\normalfont \ttfamily radiiHalfLightProperties} property extractor.
     !!}
     use :: Galactic_Structure_Options    , only : componentTypeAll       , massTypeAll, massTypeStellar, weightByLuminosity
+    use :: Mass_Distributions            , only : massDistributionClass
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     double precision                                               , dimension(:) , allocatable :: radiiHalfLightPropertiesExtract
@@ -133,20 +96,29 @@ contains
     type            (treeNode                                     ), intent(inout), target      :: node
     double precision                                               , intent(in   )              :: time
     type            (multiCounter                                 ), intent(inout), optional    :: instance
+    class           (massDistributionClass                        )               , pointer     :: massDistribution_              , lightDistribution_
     integer                                                                                     :: i                              , j
     double precision                                                                            :: halfLightRadius                , massEnclosed
     !$GLC attributes unused :: self, instance
 
     allocate(radiiHalfLightPropertiesExtract(2*unitStellarLuminosities%luminosityOutputCount(time)))
     j=-1
+    massDistribution_ => node%massDistribution(componentType=componentTypeAll,massType=massTypeAll)
     do i=1,unitStellarLuminosities%luminosityCount()
        if (unitStellarLuminosities%isOutput(i,time)) then
-          halfLightRadius=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0                                         ,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=i)
-          massEnclosed   =self%galacticStructure_%massEnclosed       (node,               halfLightRadius,componentType=componentTypeAll,massType=massTypeAll                                              )
-          j=j+1
-          radiiHalfLightPropertiesExtract(2*j+1:2*j+2)=[halfLightRadius,massEnclosed]
-       end if
-    end do
+          lightDistribution_                           => node              %massDistribution    (massType      =massTypeStellar,weightBy=weightByLuminosity,weightIndex=i)
+          halfLightRadius                              =  lightDistribution_%radiusEnclosingMass (massFractional=0.5d0                                                    )
+          massEnclosed                                 =  massDistribution_ %massEnclosedBySphere(radius        =halfLightRadius                                          )
+          j                                            =  j+1
+          radiiHalfLightPropertiesExtract(2*j+1:2*j+2) =  [halfLightRadius,massEnclosed]
+          !![
+	  <objectDestructor name="lightDistribution_"/>
+          !!]
+        end if
+     end do
+     !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function radiiHalfLightPropertiesExtract
 

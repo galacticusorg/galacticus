@@ -33,7 +33,6 @@ program Test_Dark_Matter_Profiles_Projected
   use            :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use            :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use            :: Node_Property_Extractors  , only : nodePropertyExtractorProjectedMass                            , nodePropertyExtractorProjectedDensity
-  use            :: Galactic_Structure        , only : galacticStructureStandard
   use            :: Display                   , only : displayMessage                                                , displayVerbositySet                  , verbosityLevelStandard
   use            :: Events_Hooks              , only : eventsHooksInitialize
   use            :: Functions_Global_Utilities, only : Functions_Global_Set
@@ -50,7 +49,6 @@ program Test_Dark_Matter_Profiles_Projected
   type            (cosmologyParametersSimple                                     )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )                          :: cosmologyFunctions_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrast_
-  type            (galacticStructureStandard                                     )                          :: galacticStructure_
   type            (darkMatterProfileDMONFW                                       )                          :: darkMatterProfileDMO_
   type            (nodePropertyExtractorProjectedMass                            )                          :: nodePropertyExtractorProjectedMass_
   type            (nodePropertyExtractorProjectedDensity                         )                          :: nodePropertyExtractorProjectedDensity_
@@ -132,22 +130,13 @@ program Test_Dark_Matter_Profiles_Projected
      &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
-   </referenceConstruct>
-   <referenceConstruct object="galacticStructure_"                 >
-   <constructor>
-    galacticStructureStandard            (                                                            &amp;
-     &amp;                                cosmologyFunctions_                 =cosmologyFunctions_  , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
-     &amp;                               )
-   </constructor>
   </referenceConstruct>
- <referenceConstruct object="nodePropertyExtractorProjectedMass_"  >
+  <referenceConstruct object="nodePropertyExtractorProjectedMass_"  >
    <constructor>
     nodePropertyExtractorProjectedMass   (                                                            &amp;
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                galacticStructure_                  =galacticStructure_     &amp;
+     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
   </referenceConstruct>
@@ -156,8 +145,7 @@ program Test_Dark_Matter_Profiles_Projected
     nodePropertyExtractorProjectedDensity(                                                            &amp;
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                galacticStructure_                  =galacticStructure_     &amp;
+     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
   </referenceConstruct>

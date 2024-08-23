@@ -49,7 +49,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   !!}
   use :: Mass_Distributions               , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
        &                                           massDistributionCylindrical, massDistributionMatches_
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_
   use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous             , enumerationWeightByType, &
        &                                           weightByMass               , weightByLuminosity               , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
@@ -103,6 +103,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
            <referenceConstruct object="massDistributionStellar" constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_  )"/>
            !!]
         end select
+        call massDistributionStellar%setKinematicsDistribution(kinematicDistribution_)
      end if
      if (includeGas  ) then
         allocate(massDistributionGas  )
@@ -112,6 +113,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
            <referenceConstruct object="massDistributionGas"     constructor="massDistributionCylindricalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
            !!]
         end select
+        call massDistributionGas    %setKinematicsDistribution(kinematicDistribution_)
      end if
      ! Combine the distributions as necessary.
      if      (includeStars .and. includeGas) then

@@ -22,7 +22,6 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
-  use :: Galactic_Structure                  , only : galacticStructureClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
   use :: Cooling_Functions                   , only : coolingFunctionClass
   use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
@@ -44,7 +43,6 @@
      private
      class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_           => null()
      class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_          => null()
-     class  (galacticStructureClass                 ), pointer                   :: galacticStructure_            => null()
      class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_              => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation                     => null()
      integer                                                                     :: radiiCount                             , elementCount_       , &
@@ -88,7 +86,6 @@ contains
     type   (inputParameters                        ), intent(inout)               :: parameters
     type   (varying_string                         ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
-    class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
     class  (coolingFunctionClass                   ), pointer                     :: coolingFunction_
     class  (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
     logical                                                                       :: includeRadii        , includeDensity
@@ -121,21 +118,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     !!]
-    self=nodePropertyExtractorCGMCoolingFunction(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_,coolingFunction_)
+    self=nodePropertyExtractorCGMCoolingFunction(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     <objectDestructor name="coolingFunction_"    />
     !!]
     return
   end function cgmCoolingFunctionConstructorParameters
 
-  function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_,coolingFunction_) result(self)
+  function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily cgmCoolingFunction} property extractor class.
     !!}
@@ -148,12 +143,11 @@ contains
     type   (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     class  (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
-    class  (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
     class  (coolingFunctionClass                   ), intent(in   ), target       :: coolingFunction_
     logical                                         , intent(in   )               :: includeRadii        , includeDensity
     type   (varying_string                         ), intent(in   )               :: label
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, includeDensity, *cosmologyFunctions_, *darkMatterHaloScale_, *galacticStructure_, *coolingFunction_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, includeDensity, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
 
     ! Decode radii specifiers.
@@ -199,7 +193,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     <objectDestructor name="self%coolingFunction_"    />
     <objectDestructor name="self%radiation"           />
     !!]
@@ -300,27 +293,33 @@ contains
           radius=+radius*spheroid         %halfMassRadius()
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID)
-          radius=+radius                                           &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeGalactic,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+          massDistribution_ =>  node             %massDistribution   (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius            =  +radius                                                                                &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
         case   (radiusTypeStellarMassFraction  %ID)
-          radius=+radius                                           &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeStellar ,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+           massDistribution_ =>  node             %massDistribution  (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius            =  +radius                                                                                &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select

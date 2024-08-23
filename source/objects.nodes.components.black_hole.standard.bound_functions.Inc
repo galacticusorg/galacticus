@@ -61,11 +61,12 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType
   !!{
   Return the mass distribution for the standard black hole component.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity, &
+  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity         , &
        &                                    enumerationWeightByType  , enumerationComponentTypeType, enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass       , massDistributionMatches_
+  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass       , massDistributionMatches_, kinematicsDistributionLocal
   implicit none
   class  (massDistributionClass         ), pointer                 :: massDistribution_
+  type   (kinematicsDistributionLocal   ), pointer                 :: kinematicsDistribution_
   class  (nodeComponentBlackHoleStandard), intent(inout)           :: self
   type   (enumerationComponentTypeType  ), intent(in   ), optional :: componentType
   type   (enumerationMassTypeType       ), intent(in   ), optional :: massType
@@ -91,6 +92,15 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType
         <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
         !!]
      end select
+     ! Construct the kinematic distribution.
+     allocate(kinematicsDistribution_)
+     !![
+     <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+     !!]
+     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+     !![
+     <objectDestructor name="kinematicsDistribution_"/>
+     !!]
   else
      massDistribution_ => null()
   end if
