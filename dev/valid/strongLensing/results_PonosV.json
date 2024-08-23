@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "slope" : {
+      "percentageAbove" : 42.8571428571429,
+      "target" : 0.85,
+      "percentageBelow" : 57.1428571428571
+   },
    "surfaceDensity" : {
-      "percentageBelow" : 50,
+      "target" : 0.006,
       "percentageAbove" : 50,
-      "target" : 0.006
+      "percentageBelow" : 50
    },
    "commit" : {
-      "message" : "fix: Correct redirect for `git` repo hash when no `git` repo is found",
-      "id" : "029c3a462b92f518b6ceabeb80a7d689f55cbd87",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/029c3a462b92f518b6ceabeb80a7d689f55cbd87",
-      "timestamp" : "Thu, 22 Aug 2024 07:54:17 -0700",
+      "id" : "4d83f520a8373a33758a45123027f40c7588eca0",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/4d83f520a8373a33758a45123027f40c7588eca0",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abenson@obs.carnegiescience.edu"
-      }
+         "email" : "abensonca@gmail.com"
+      },
+      "message" : "Merge pull request #674 from galacticusorg/featOutputTimeFilter",
+      "timestamp" : "Fri, 23 Aug 2024 02:08:10 +0000"
    },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "percentageAbove" : 41.6666666666667,
-      "percentageBelow" : 58.3333333333333,
-      "target" : 0.85
-   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }

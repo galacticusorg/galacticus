@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "029c3a462b92f518b6ceabeb80a7d689f55cbd87",
-        "message": "fix: Correct redirect for `git` repo hash when no `git` repo is found\n",
-        "timestamp": "2024-08-22 07:54:17-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/029c3a462b92f518b6ceabeb80a7d689f55cbd87"
+        "id": "4d83f520a8373a33758a45123027f40c7588eca0",
+        "message": "Merge pull request #674 from galacticusorg/featOutputTimeFilter\n\nAdd functionality for working with output times\n",
+        "timestamp": "2024-08-23 02:08:10+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/4d83f520a8373a33758a45123027f40c7588eca0"
     },
     "results": [
         {
