@@ -207,6 +207,11 @@ my %translations =
      	     "//starFormationRateSurfaceDensityDisks[\@value='blitz2006']/assumeExponentialDisk[\@value]"         => {"false" => {}, "true" => {}}                                    ,
 	 }
      },
+     "e77271d6b878035b124c22fed8169ec844a72316" => {
+     	 values => {
+     	     "//galacticStructure[\@value]"                                                                       => {"standard" => {}}
+	 }
+     },
     );
      
 # Define known defaults.
