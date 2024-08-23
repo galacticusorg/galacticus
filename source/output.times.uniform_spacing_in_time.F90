@@ -64,10 +64,14 @@ contains
        !![
        <inputParameter>
 	 <name>timeMinimum</name>
-	 <description>The minimum time at which to output.</description>
+	 <description>The minimum time at which to output. Negative times are interpreted as look-back times.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
+       if (timeMinimum < 0.0d0) then
+          timeMinimum=cosmologyFunctions_%cosmicTime(1.0d0)+timeMinimum
+          if (timeMinimum < 0.0d0) call Error_Report('look-back time exceeds the age of the universe'//{introspection:location})
+       end if
     else if (parameters%isPresent('redshiftMaximum')) then
        !![
        <inputParameter>
@@ -85,10 +89,14 @@ contains
        !![
        <inputParameter>
 	 <name>timeMaximum</name>
-	 <description>The maximum time at which to output.</description>
+	 <description>The maximum time at which to output. Negative times are interpreted as look-back times.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
+       if (timeMaximum < 0.0d0) then
+          timeMaximum=cosmologyFunctions_%cosmicTime(1.0d0)+timeMaximum
+          if (timeMaximum < 0.0d0) call Error_Report('look-back time exceeds the age of the universe'//{introspection:location})
+       end if
     else if (parameters%isPresent('redshiftMinimum')) then
        !![
        <inputParameter>
@@ -120,7 +128,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
+    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLinear
+    use :: Error           , only : Error_Report
     implicit none
     type            (outputTimesUniformSpacingInTime)                        :: self
     double precision                                 , intent(in   )         :: timeMinimum        , timeMaximum
@@ -131,6 +140,7 @@ contains
     <constructorAssign variables="timeMinimum, timeMaximum, countTimes, *cosmologyFunctions_"/>
     !!]
 
+    if (timeMinimum >= timeMaximum) call Error_Report('`timeMinimum` is after `timeMaximum`'//{introspection:location})
     allocate(self%times    (countTimes))
     allocate(self%redshifts(countTimes))
     self%times=Make_Range(timeMinimum,timeMaximum,int(countTimes),rangeTypeLinear)

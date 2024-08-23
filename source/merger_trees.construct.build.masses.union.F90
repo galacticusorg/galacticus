@@ -107,7 +107,7 @@ contains
        do while (associated(mergerTreeBuildMasses_))
           mergerTreeBuildMassesNext => mergerTreeBuildMasses_   %next
           deallocate(mergerTreeBuildMasses_%mergerTreeBuildMasses_)
-          deallocate(mergerTreeBuildMasses_          )
+          deallocate(mergerTreeBuildMasses_                       )
           mergerTreeBuildMasses_    => mergerTreeBuildMassesNext
        end do
     end if
