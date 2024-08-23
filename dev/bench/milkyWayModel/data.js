@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724363525315,
+  "lastUpdate": 1724402092739,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "58aa67136b6a741ddc2363338b604055acad476d",
-          "message": "fix: Update URL",
-          "timestamp": "2023-10-11T06:47:47-07:00",
-          "tree_id": "49bd2f41506894b7081486951d899277fd45c118",
-          "url": "https://github.com/galacticusorg/galacticus/commit/58aa67136b6a741ddc2363338b604055acad476d"
-        },
-        "date": 1697043309012,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 194.698,
-            "unit": "seconds",
-            "range": 0.12188355097913
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10692,6 +10662,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0160343719702,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4d83f520a8373a33758a45123027f40c7588eca0",
+          "message": "Merge pull request #674 from galacticusorg/featOutputTimeFilter\n\nAdd functionality for working with output times",
+          "timestamp": "2024-08-23T02:08:10Z",
+          "tree_id": "a6a1fbca6be4be9b04c5e667194193b615d1dd38",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4d83f520a8373a33758a45123027f40c7588eca0"
+        },
+        "date": 1724402091654,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 410.238,
+            "unit": "seconds",
+            "range": 0.523927094172586
           }
         ]
       }
