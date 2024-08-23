@@ -231,20 +231,20 @@ contains
           massDistribution_ => massDistribution_%next
        end do
        ! Establish a kinematics distribution.
-       if (haveKinematics) then
-          if (self%isSingleComponent) then
-             ! For a single component, simply use the kinematics distribution from that component
-             call self%setKinematicsDistribution(self%massDistributions%massDistribution_%kinematicsDistribution_)
-          else if (self%isCollisionless) then
-             ! Construct a collisionless mass distribution.
-             allocate(kinematicsDistributionCollisionless :: self%kinematicsDistribution_)
-             select type (kinematicsDistribution_ => self%kinematicsDistribution_)
-             type is (kinematicsDistributionCollisionless)
-                !![
-		<referenceConstruct owner="self" object="kinematicsDistribution_" nameAssociated="kinematicsDistribution_" constructor="kinematicsDistributionCollisionless(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)"/>
-	        !!]
-             end select
-          end if
+       if (haveKinematics.and.self%isSingleComponent) then
+          ! For a single component, simply use the kinematics distribution from that component
+          call self%setKinematicsDistribution(self%massDistributions%massDistribution_%kinematicsDistribution_)
+       else
+          ! Construct a collisionless mass distribution. Note that we build a collisionless distribution here even if some
+          ! component is collisional. A better approach might be to find a self-consistent solution for collisional components
+          ! assuming hydrostatic equilibrium.
+          allocate(kinematicsDistributionCollisionless :: self%kinematicsDistribution_)
+          select type (kinematicsDistribution_ => self%kinematicsDistribution_)
+          type is (kinematicsDistributionCollisionless)
+             !![
+             <referenceConstruct owner="self" object="kinematicsDistribution_" nameAssociated="kinematicsDistribution_" constructor="kinematicsDistributionCollisionless(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)"/>
+             !!]
+          end select
        end if
     end if
     return
