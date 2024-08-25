@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724474864373,
+  "lastUpdate": 1724551214626,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
@@ -2559,6 +2559,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": "11.535619227855877",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "550ec2bb0e90ab60c75fdae7fb8962b5dc225068",
+          "message": "Merge pull request #675 from galacticusorg/featExtractTreePython\n\nPort the script used to extract single merger trees from file to Python",
+          "timestamp": "2024-08-24T19:48:54Z",
+          "tree_id": "12e39dbbce98fb8ce3928e7cac55e8122b26b433",
+          "url": "https://github.com/galacticusorg/galacticus/commit/550ec2bb0e90ab60c75fdae7fb8962b5dc225068"
+        },
+        "date": 1724551214032,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "26.852654205320327",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "12.856529960953935",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "11.53561922700073",
             "unit": "-logℒ"
           }
         ]
