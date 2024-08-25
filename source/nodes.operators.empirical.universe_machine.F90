@@ -115,26 +115,26 @@ contains
     <inputParameter>
       <name>epsilon_0</name>
       <source>parameters</source>
-      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_0$ (see Table J1 of \cite{Behroozi_2019})</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\epsilon_0$ (see Table J1 of \cite{Behroozi_2019})</description>
       <defaultValue>-1.435d0</defaultValue>
     </inputParameter>
     <inputParameter>
       <name>epsilon_a</name>
       <source>parameters</source>
       <defaultValue>+1.831d0</defaultValue>
-      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_a$  (see Table J1 of \cite{Behroozi_2019})</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\epsilon_a$  (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon_lna</name>
       <source>parameters</source>
       <defaultValue>+1.368d0</defaultValue>
-      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_{\ln a} (see Table J1 of \cite{Behroozi_2019})</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\epsilon_{\ln a} (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon_z</name>
       <source>parameters</source>
       <defaultValue>-0.217d0</defaultValue>
-      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\Epsilon_0$ (see Table J1 of \cite{Behroozi_2019})</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\epsilon_0$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>M_0</name>
