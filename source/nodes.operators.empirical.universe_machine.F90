@@ -29,7 +29,8 @@
   <nodeOperator name="nodeOperatorEmpiricalGalaxyUniverseMachine">
    <description>
     A node operator class that inserts an empirical model of the formation history of a galaxy. 
-    Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} correlation between Galaxy Growth and Dark Matter Halo Assembly.    
+    Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} 
+    correlation between Galaxy Growth and Dark Matter Halo Assembly.    
    </description>
   </nodeOperator>
   !!]
@@ -40,14 +41,16 @@
      Stellar Mass - Halo Mass using {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} fits.
      !!}
      private
-     double precision                                                        :: epsilon_0, epsilon_a, epsilon_lna, &
-         &                                                                      epsilon_z, M_0      , M_a        , &
-         &                                                                      M_lna    , M_z      , alpha_0    , &
-         &                                                                      alpha_a  , alpha_lna, alpha_z    , &
-         &                                                                      beta_0   , beta_a   , beta_z     , &
-         &                                                                      delta_0  , gamma_0  , gamma_a    , &
-         &                                                                      gamma_z 
-    class(cosmologyFunctionsClass),                                  pointer :: cosmologyFunctions_               => null()
+     double precision                        :: massStellarFinal   , fractionMassSpheroid, fractionMassDisk, &
+         &                                      epsilon_0          , epsilon_a           , epsilon_lna     , &
+         &                                      epsilon_z          , M_0                 , M_a             , &
+         &                                      M_lna              , M_z                 , alpha_0         , &
+         &                                      alpha_a            , alpha_lna           , alpha_z         , &
+         &                                      beta_0             , beta_a              , beta_z          , &
+         &                                      delta_0            , gamma_0             , gamma_a         , &
+         &                                      gamma_z 
+     logical                                 :: setFinalStellarMass
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final     ::                                        empiricalGalaxyUniverseMachineDestructor
      procedure :: nodeInitialize                      => empiricalGalaxyUniverseMachineNodeInitialize
@@ -73,16 +76,42 @@ contains
     implicit none
     type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
-    double precision                                                            :: epsilon_0, epsilon_a, epsilon_lna, &
-         &                                                                         epsilon_z, M_0      , M_a        , &
-         &                                                                         M_lna    , M_z      , alpha_0    , &
-         &                                                                         alpha_a  , alpha_lna, alpha_z    , &
-         &                                                                         beta_0   , beta_a   , beta_z     , &
-         &                                                                         delta_0  , gamma_0  , gamma_a    , &
+    double precision                                                            :: massStellarFinal   , fractionMassSpheroid, fractionMassDisk, &
+         &                                                                         epsilon_0          , epsilon_a           , epsilon_lna     , &
+         &                                                                         epsilon_z          , M_0                 , M_a             , &
+         &                                                                         M_lna              , M_z                 , alpha_0         , &
+         &                                                                         alpha_a            , alpha_lna           , alpha_z         , &
+         &                                                                         beta_0             , beta_a              , beta_z          , &
+         &                                                                         delta_0            , gamma_0             , gamma_a         , &
          &                                                                         gamma_z
     class           (cosmologyFunctionsClass                  ), pointer        :: cosmologyFunctions_
     
-    !![
+    !![ 
+    <inputParameter>
+      <name>massStellarFinal</name>
+      <source>parameters</source>
+      <description>
+        Rescales the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} fitting functions to match a final mass.
+        A negative value indicates the final mass of the galaxy will be determined by UniverseMachine fits.
+      </description>
+      <defaultValue>-1.00d0</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>fractionMassSpheroid</name>
+      <source>parameters</source>
+      <description>
+        Sets the fraction of galaxy mass belonging to the spheroid component.
+      </description>
+      <defaultValue>1.00d0</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>fractionMassDisk</name>
+      <source>parameters</source>
+      <description>
+        Sets the fraction of galaxy mass belonging to the disk component.
+      </description>
+      <defaultValue>0.00d0</defaultValue>
+    </inputParameter>       
     <inputParameter>
       <name>epsilon_0</name>
       <source>parameters</source>
@@ -117,7 +146,7 @@ contains
       <name>M_a</name>
       <source>parameters</source>
       <defaultValue>+4.556d0</defaultValue>
-      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $ (see Table J1 of \cite{Behroozi_2019})</description>
+      <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $M_a$ (see Table J1 of \cite{Behroozi_2019})</description>
     </inputParameter>
     <inputParameter>
       <name>M_lna</name>
@@ -196,10 +225,13 @@ contains
       <source>parameters</source>
       <defaultValue>-1.055d0</defaultValue>
       <description>{\normalfont \ttfamily empiricalGalaxyUniverseMachine} Parameter $\gamma_z$ (see Table J1 of \cite{Behroozi_2019})</description>
-    </inputParameter>
+    </inputParameter> 
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
     self=nodeOperatorEmpiricalGalaxyUniverseMachine(                          &
+      &                                  massStellarFinal       , &
+      &                                  fractionMassSpheroid   , &
+      &                                  fractionMassDisk       , &
       &                                  epsilon_0              , &
       &                                  epsilon_a              , &
       &                                  epsilon_lna            , &
@@ -228,29 +260,31 @@ contains
     return
   end function empiricalGalaxyUniverseMachineConstructorParameters
 
-  function empiricalGalaxyUniverseMachineConstructorInternal(epsilon_0, epsilon_a, epsilon_lna, epsilon_z          , &
-      &                                                      M_0      , M_a      , M_lna      , M_z                , &
-      &                                                      alpha_0  , alpha_a  , alpha_lna  , alpha_z            , &
-      &                                                      beta_0   , beta_a   , beta_z     , delta_0            , &
-      &                                                      gamma_0  , gamma_a  , gamma_z    , cosmologyFunctions_) result(self)
+  function empiricalGalaxyUniverseMachineConstructorInternal(massStellarFinal, fractionMassSpheroid, fractionMassDisk   , epsilon_0,  &
+      &                                                      epsilon_a        , epsilon_lna         , epsilon_z          , M_0      , &
+      &                                                      M_a              , M_lna               , M_z                , alpha_0  , &
+      &                                                      alpha_a          , alpha_lna           , alpha_z            , beta_0   , &
+      &                                                      beta_a           , beta_z              , delta_0            , gamma_0  , &
+      &                                                      gamma_a          , gamma_z             , cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
     !!}
     implicit none
     type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                     :: self
-    double precision                                            , intent(in)         :: epsilon_0, epsilon_a, epsilon_lna, &
-         &                                                                              epsilon_z, M_0      , M_a        , &
-         &                                                                              M_lna    , M_z      , alpha_0    , &
-         &                                                                              alpha_a  , alpha_lna, alpha_z    , &
-         &                                                                              beta_0   , beta_a   , beta_z     , &
-         &                                                                              delta_0  , gamma_0  , gamma_a    , &
-         &                                                                              gamma_z
+    double precision                                            , intent(in)         :: massStellarFinal   , fractionMassSpheroid, fractionMassDisk, &
+         &                                                                              epsilon_0          , epsilon_a           , epsilon_lna     , &
+         &                                                                              epsilon_z          , M_0                 , M_a             , &
+         &                                                                              M_lna              , M_z                 , alpha_0         , &
+         &                                                                              alpha_a            , alpha_lna           , alpha_z         , &
+         &                                                                              beta_0             , beta_a              , beta_z          , &
+         &                                                                              delta_0            , gamma_0             , gamma_a         , &
+         &                                                                              gamma_z 
     class           (cosmologyFunctionsClass                   ), intent(in), target :: cosmologyFunctions_
 
     !![
-    <constructorAssign variables="epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyFunctions_"/>
+    <constructorAssign variables="massStellarFinal, fractionMassSpheroid, fractionMassDisk, epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyFunctions_"/>
     !!]
-    
+    self%setFinalStellarMass=(massStellarFinal .ge. 0.0d0)
     return
   end function empiricalGalaxyUniverseMachineConstructorInternal
 
@@ -268,20 +302,17 @@ contains
     return
   end subroutine empiricalGalaxyUniverseMachineDestructor
 
-  double precision function universeMachineScaling(z, y0, ya, ylna, yz) 
+  double precision function universeMachineScaling(self, z, y0, ya, ylna, yz) 
     !!{
     Implements the scaling relations provided in equations J3-J8 of \citep{Behroozi_2019}
     !!}
     implicit none
-    double precision, intent(in) :: z   , y0, ya, &
-         &                          ylna, yz   
-    double precision             :: a
+    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target  :: self
+    double precision                                            , intent(in)          :: z   , y0, ya, &
+      &                                                                                  ylna, yz   
+    double precision                                                                  :: a
 
-    a                      =+1.0d0  &
-         &                 /(       &
-         &                   +1.0d0 &
-         &                   +z     &
-         &                  )       
+    a                     =self%cosmologyFunctions_%expansionFactorFromRedshift(z)
                              
     universeMachineScaling=+y0     &
          &                 +ya     &
@@ -301,7 +332,7 @@ contains
     Implements the Stellar Mass - Halo Mass relationship provided in equation J1 of \citep{Behroozi_2019}
     !!}
     implicit none  
-    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target :: self
+    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target :: self 
     double precision                                            , intent(in)         :: haloMass  , z
     double precision                                                                 :: MLog10    , gammalog10, M1  , &
         &                                                                               epsilon   , alpha     , beta, &
@@ -309,13 +340,13 @@ contains
         &                                                                               smfm1Log10, smfm1     , powa, &
         &                                                                               powb      , expd  
     
-    MLog10             =universeMachineScaling(z, self%M_0      , self%M_a      , self%M_lna      , self%M_z      )
-    gammalog10         =universeMachineScaling(z, self%gamma_0  , self%gamma_a  , 0.0d0           , self%gamma_z  )
+    MLog10             =universeMachineScaling(self, z, self%M_0      , self%M_a      , self%M_lna      , self%M_z      )
+    gammalog10         =universeMachineScaling(self, z, self%gamma_0  , self%gamma_a  , 0.0d0           , self%gamma_z  )
 
-    epsilon            =universeMachineScaling(z, self%epsilon_0, self%epsilon_a, self%epsilon_lna, self%epsilon_z)
-    alpha              =universeMachineScaling(z, self%alpha_0  , self%alpha_a  , self%alpha_lna  , self%alpha_z  )
-    beta               =universeMachineScaling(z, self%beta_0   , self%beta_a   , 0.0d0           , self%beta_z   )
-    delta              =universeMachineScaling(z, self%delta_0  , 0.0d0         , 0.0d0           , 0.0d0         )
+    epsilon            =universeMachineScaling(self, z, self%epsilon_0, self%epsilon_a, self%epsilon_lna, self%epsilon_z)
+    alpha              =universeMachineScaling(self, z, self%alpha_0  , self%alpha_a  , self%alpha_lna  , self%alpha_z  )
+    beta               =universeMachineScaling(self, z, self%beta_0   , self%beta_a   , 0.0d0           , self%beta_z   )
+    delta              =universeMachineScaling(self, z, self%delta_0  , 0.0d0         , 0.0d0           , 0.0d0         )
 
     M1                 =+10.0d0**(MLog10    )
     gamma              =+10.0d0**(gammalog10)
@@ -328,7 +359,7 @@ contains
     powa               =+10.0d0**(-alpha*x  )
     powb               =+10.0d0**(-beta*x   )
 
-    expd               =-0.50d0  &
+    expd               =+0.50d0  &
       &                 *(       &
       &                   +x     &
       &                   /delta &                     
@@ -341,47 +372,79 @@ contains
      &                        )      &
      &                  +gamma       &
      &                  *exp  (      &
-     &                         +expd &
+     &                         -expd &
      &                        )         
 
-    smfm1              =10.0d0**(smfm1Log10 )
+    smfm1              =+10.0d0**(smfm1Log10 )
 
-    universeMachineSMHM=+M1    &
-      &                 *smfm1 
+    universeMachineSMHM=+M1*smfm1 
 
     return
  
-  end function universeMachineSMHM
+  end function universeMachineSMHM 
 
   subroutine empiricalGalaxyUniverseMachineNodeUpdate(self, node)
     !!{
     Updates the stellar mass of the node.
     !!} 
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentDisk
     implicit none
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
     type            (treeNode                                  ), intent(inout), target  :: node
-    class           (nodeComponentBasic                        ),                pointer :: basic  
+    type            (treeNode                                  )               , pointer :: nodeRoot     
+    class           (nodeComponentBasic                        )               , pointer :: basicNode    , basicRoot
     class           (nodeComponentSpheroid                     )               , pointer :: spheroid
-    double precision                                                                     :: z, basicMass, massStellar
-
-
-    if (.not.node%isOnMainBranch()) return
+    class           (nodeComponentDisk                         )               , pointer :: disk
+    double precision                                                                     :: zNode        , zRoot      , basicMassNode  , &
+        &                                                                                   basicMassRoot, massStellar, massStellarRoot, &
+        &                                                                                   massStellarNode
+    
+    if (.not.node%isOnMainBranch()) return 
  
-    basic           =>node %basic                                          (                   )
+    basicNode       =>node    %basic                                          (                                                           )
 
-    z               = self %cosmologyFunctions_%redshiftFromExpansionFactor(    &
-         &                         self %cosmologyFunctions_%expansionFactor(   &
-         &                         basic                    %time            () &
-         &                                                                  )   &
-         &                                                                  )    
+    zNode           =self     %cosmologyFunctions_%redshiftFromExpansionFactor(       &
+        &                         self %cosmologyFunctions_%expansionFactor    (      &
+        &                         basicNode                %time                ()    &
+        &                                                                      )      &
+        &                                                                     )    
     
-    basicMass       = basic              %mass                              (                  )
+    basicMassNode   = basicNode          %mass                                (                                                           )
+ 
+    spheroid        =>node               %spheroid                            (                                                           )
+    disk            =>node               %disk                                (                                                           )
+  
+    massStellarNode=universeMachineSMHM                                       (self                                 , basicMassNode, zNode)     
 
-    massStellar     = universeMachineSMHM                                   (self, basicMass, z)
-    spheroid        =>node               %spheroid                          (                  )
+    massStellar    =massStellarNode
     
-    call spheroid%    massStellarSet                                        (massStellar       )
+    if (self%setFinalStellarMass  ) then 
+      ! Compute the stellar mass at root
+      nodeRoot       =>node%hostTree%nodeBase
+      basicRoot      =>nodeRoot%basic                                      (                         )     
+      basicMassRoot  = basicRoot          %mass                            (                         )
+
+      zRoot          =self %cosmologyFunctions_%redshiftFromExpansionFactor(        &
+          &                         self %cosmologyFunctions_%expansionFactor(      &
+          &                         basicRoot                %time            ()    &
+          &                                                                  )      &
+          &                                                                )   
+
+      massStellarRoot=universeMachineSMHM                                  (self,basicMassRoot, zRoot)     
+
+      ! Make the stellar mass at the root match the requested final stellar mass
+      massStellar    =+massStellarNode       &
+        &             /massStellarRoot       &
+        &             *self%massStellarFinal  
+    end if
+
+    ! Ensure stellar mass remains non-negative
+    if (massStellar .lt. 0.0d0) then
+      massStellar = 0.0d0
+    end if
+    
+    call spheroid%massStellarSet                                              (self%fractionMassSpheroid*massStellar                      ) 
+    call disk    %massStellarSet                                              (self%fractionMassDisk    *massStellar                      ) 
   
     return
   end subroutine empiricalGalaxyUniverseMachineNodeUpdate
@@ -390,13 +453,17 @@ contains
     !!{
     Initialize the galaxy
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentDisk
     implicit none
     class        (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
     type         (treeNode                                  ), intent(inout), target  :: node
     class        (nodeComponentSpheroid                     )               , pointer :: spheroid
+    class        (nodeComponentDisk                         )               , pointer :: disk
+
+    if (.not.node%isOnMainBranch()) return 
 
     spheroid=>node%spheroid(autoCreate=.true.)
+    disk    =>node%disk    (autoCreate=.true.)
 
     call empiricalGalaxyUniverseMachineNodeUpdate(self, node)
     return
