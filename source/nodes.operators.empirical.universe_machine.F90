@@ -37,8 +37,8 @@
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{     
      A node operator class that inserts an empirical model of the formation history of a galaxy. 
-     At each timestep and during mergers, the mass of the central galaxy is computed using the 
-     Stellar Mass - Halo Mass using {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} fits.
+     At each time step and during mergers, the mass of the central galaxy is computed using the 
+     stellar mass - halo mass using {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} fits.
      !!}
      private
      double precision                        :: massStellarFinal   , fractionMassSpheroid, fractionMassDisk, &
@@ -261,11 +261,11 @@ contains
   end function empiricalGalaxyUniverseMachineConstructorParameters
 
   function empiricalGalaxyUniverseMachineConstructorInternal(massStellarFinal, fractionMassSpheroid, fractionMassDisk   , epsilon_0,  &
-      &                                                      epsilon_a        , epsilon_lna         , epsilon_z          , M_0      , &
-      &                                                      M_a              , M_lna               , M_z                , alpha_0  , &
-      &                                                      alpha_a          , alpha_lna           , alpha_z            , beta_0   , &
-      &                                                      beta_a           , beta_z              , delta_0            , gamma_0  , &
-      &                                                      gamma_a          , gamma_z             , cosmologyFunctions_) result(self)
+      &                                                      epsilon_a       , epsilon_lna         , epsilon_z          , M_0      , &
+      &                                                      M_a             , M_lna               , M_z                , alpha_0  , &
+      &                                                      alpha_a         , alpha_lna           , alpha_z            , beta_0   , &
+      &                                                      beta_a          , beta_z              , delta_0            , gamma_0  , &
+      &                                                      gamma_a         , gamma_z             , cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
     !!}
@@ -304,7 +304,7 @@ contains
 
   double precision function universeMachineScaling(self, z, y0, ya, ylna, yz) 
     !!{
-    Implements the scaling relations provided in equations J3-J8 of \citep{Behroozi_2019}
+    Implements the scaling relations provided in equations J3-J8 of \citep{Behroozi_2019}.
     !!}
     implicit none
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target  :: self
@@ -329,7 +329,7 @@ contains
 
   double precision function universeMachineSMHM(self, haloMass, z)
     !!{
-    Implements the Stellar Mass - Halo Mass relationship provided in equation J1 of \citep{Behroozi_2019}
+    Implements the stellar mass - halo mass relationship provided in equation J1 of \citep{Behroozi_2019}.
     !!}
     implicit none  
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target :: self 
@@ -392,45 +392,45 @@ contains
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
     type            (treeNode                                  ), intent(inout), target  :: node
     type            (treeNode                                  )               , pointer :: nodeRoot     
-    class           (nodeComponentBasic                        )               , pointer :: basicNode    , basicRoot
+    class           (nodeComponentBasic                        )               , pointer :: basicNode      , basicRoot
     class           (nodeComponentSpheroid                     )               , pointer :: spheroid
     class           (nodeComponentDisk                         )               , pointer :: disk
-    double precision                                                                     :: zNode        , zRoot      , basicMassNode  , &
-        &                                                                                   basicMassRoot, massStellar, massStellarRoot, &
+    double precision                                                                     :: zNode          , zRoot      , basicMassNode  , &
+        &                                                                                   basicMassRoot  , massStellar, massStellarRoot, &
         &                                                                                   massStellarNode
     
     if (.not.node%isOnMainBranch()) return 
  
     basicNode       =>node    %basic                                          (                                                           )
 
-    zNode           =self     %cosmologyFunctions_%redshiftFromExpansionFactor(       &
-        &                         self %cosmologyFunctions_%expansionFactor    (      &
-        &                         basicNode                %time                ()    &
+    zNode           = self    %cosmologyFunctions_%redshiftFromExpansionFactor(       &
+        &                       self %cosmologyFunctions_%expansionFactor      (      &
+        &                         basicNode%time                                ()    &
         &                                                                      )      &
         &                                                                     )    
     
-    basicMassNode   = basicNode          %mass                                (                                                           )
+    basicMassNode  = basicNode%mass                                           (                                                           )
  
-    spheroid        =>node               %spheroid                            (                                                           )
-    disk            =>node               %disk                                (                                                           )
+    spheroid       =>node     %spheroid                                       (                                                           )
+    disk           =>node     %disk                                           (                                                           )
   
-    massStellarNode=universeMachineSMHM                                       (self                                 , basicMassNode, zNode)     
+    massStellarNode= universeMachineSMHM                                      (self                                 , basicMassNode, zNode)     
 
-    massStellar    =massStellarNode
+    massStellar    = massStellarNode
     
-    if (self%setFinalStellarMass  ) then 
+    if (self%setFinalStellarMass) then 
       ! Compute the stellar mass at root
       nodeRoot       =>node%hostTree%nodeBase
-      basicRoot      =>nodeRoot%basic                                      (                         )     
-      basicMassRoot  = basicRoot          %mass                            (                         )
+      basicRoot      =>nodeRoot     %basic                                          (                         )     
+      basicMassRoot  = basicRoot    %mass                                           (                         )
 
-      zRoot          =self %cosmologyFunctions_%redshiftFromExpansionFactor(        &
-          &                         self %cosmologyFunctions_%expansionFactor(      &
-          &                         basicRoot                %time            ()    &
-          &                                                                  )      &
-          &                                                                )   
+      zRoot          =self          %cosmologyFunctions_%redshiftFromExpansionFactor(       &
+          &             self%cosmologyFunctions_%expansionFactor                     (      &
+          &               basicRoot%time                                              ()    &
+          &                                                                          )      &
+          &                                                                         )   
 
-      massStellarRoot=universeMachineSMHM                                  (self,basicMassRoot, zRoot)     
+      massStellarRoot=universeMachineSMHM                                           (self,basicMassRoot, zRoot)     
 
       ! Make the stellar mass at the root match the requested final stellar mass
       massStellar    =+massStellarNode       &

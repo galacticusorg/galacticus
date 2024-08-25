@@ -60,9 +60,9 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorspheroidRadiusPowerLaw)                    :: self
-    type            (inputParameters                       ), intent(inout) :: parameters
-    double precision                                                        :: alpha     , beta    
+    type            (nodeOperatorspheroidRadiusPowerLaw)                :: self
+    type            (inputParameters                   ), intent(inout) :: parameters
+    double precision                                                    :: alpha     , beta    
 
     !![
     <inputParameter>
@@ -78,10 +78,10 @@ contains
       <name>beta</name>
       <source>parameters</source>
       <description>
-        Coefitient $\beta$ in the power law fit.
-        Best fit value taken from \cite{2003MNRAS.343..978S} (table J1: Parameter b, for early type galaxies) and rescaled from half light radius to Hernquist radius \citep(hernquist_analytical_1990).
+        Coefficient $\beta$ in the power law fit.
+        Best fit value taken from \cite{2003MNRAS.343..978S} (table J1: Parameter b, for early type galaxies) and re-scaled from half light radius to Hernquist radius \citep(hernquist_analytical_1990).
         Note: there was a typo in the originally provided value see \cite{hernquist_analytical_1990} for the corrected value.        
-        Additionaly, 
+        Additionally, 
       </description>
     
       <defaultValue>1.19d-6</defaultValue>
@@ -162,7 +162,7 @@ contains
 
   subroutine spheroidRadiusPowerLawNodesMerge(self,node)
     !!{
-    Update radius of galaxy after merges
+    Update radius of galaxy after merger
     !!}
     implicit none
     class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
