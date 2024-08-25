@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724551177849,
+  "lastUpdate": 1724551184686,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "a09c88e66393e68cbb03588ca637e41f5468fd02",
-          "message": "feat: Update to use the new standard stellar properties compilation file",
-          "timestamp": "2023-10-25T09:49:56-07:00",
-          "tree_id": "ccd6ce8b65c9969b45d8d3f9181f717a656f9eba",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a09c88e66393e68cbb03588ca637e41f5468fd02"
-        },
-        "date": 1698265233879,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.1213547502388,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0721906207064,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23918.6861604503,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8744,6 +8705,45 @@ window.BENCHMARK_DATA = {
             "value": 51.923,
             "unit": "seconds",
             "range": 0.0754460071835614
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "550ec2bb0e90ab60c75fdae7fb8962b5dc225068",
+          "message": "Merge pull request #675 from galacticusorg/featExtractTreePython\n\nPort the script used to extract single merger trees from file to Python",
+          "timestamp": "2024-08-24T19:48:54Z",
+          "tree_id": "12e39dbbce98fb8ce3928e7cac55e8122b26b433",
+          "url": "https://github.com/galacticusorg/galacticus/commit/550ec2bb0e90ab60c75fdae7fb8962b5dc225068"
+        },
+        "date": 1724551184076,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.9316941946132,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.9736213659595,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20701.7854232171,
+            "unit": "-logℒ"
           }
         ]
       }
