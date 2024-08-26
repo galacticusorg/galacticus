@@ -17,30 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Charles Gannon, Andrew Benson.
+
   !!{
-  Implements a node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy.
+  Implements a node operator class that implements an an empirical power law relationship between spheroid stellar mass and
+  stellar radius.
   !!}
 
   !![
   <nodeOperator name="nodeOperatorspheroidRadiusPowerLaw">
    <description>
-    A {\normalfont \ttfamily nodeOperator} that implements an an empirical power law relationship between spheroid stellar mass and
-    stellar radius.
+    A node operator that implements an an empirical power law relationship between spheroid stellar radius and stellar mass.
   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorspheroidRadiusPowerLaw
      !!{
-      {\normalfont \ttfamily nodeOperator} that sets a power law prescription for the stellar mass - stellar radius of spheroid.
-      The form of the power law is:
-      \begin{equation}
-          r_{hq} = \beta \left( \frac{M_\star}{M_\odot} \right)^\alpha, 
-      \end{equation}
-      where $\alpha$ and $\beta$ are the free parameters, and M_\star is the stellar mass of the spheroid.
+     Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specificially:
+     \begin{equation}
+       r_\mathrm{s} = \beta \left( \frac{M_\star}{M_\odot} \right)^\alpha, 
+     \end{equation}
+     where $r_\mathrm{s}$ is the spheroid scale radius, $M_\star$ is the stellar mass of the spheroid, and $\alpha$ and $\beta$
+     are free parameters.
      !!}
      private
      double precision :: alpha, beta
    contains
+     !![
+     <methods>
+       <method method="update" description="Update the spheroid radius to be consistent with its stellar mass."/>
+     </methods>
+     !!]
+     procedure :: update                              => spheroidRadiusPowerLawUpdate
      procedure :: nodeInitialize                      => spheroidRadiusPowerLawNodeInitialize
      procedure :: differentialEvolutionSolveAnalytics => spheroidRadiusPowerLawSolveAnalytics
      procedure :: nodesMerge                          => spheroidRadiusPowerLawNodesMerge
@@ -70,23 +78,16 @@ contains
     <inputParameter>
       <name>alpha</name>
       <source>parameters</source>
-      <description>
-        Exponent $\alpha$ in the power law fit. 
-        Best fit value taken from \cite{2003MNRAS.343..978S} (table J1: Parameter a, for early type galaxies). 
-      </description> 
+      <description>Exponent $\alpha$ in the power law fit.</description> 
       <defaultValue>0.56d0</defaultValue>
+      <defaultSource>\cite[][table J1: Parameter $a$, for early type galaxies]{shen_erratum_2007}</defaultSource>
     </inputParameter>
     <inputParameter>
       <name>beta</name>
       <source>parameters</source>
-      <description>
-        Coefficient $\beta$ in the power law fit.
-        Best fit value taken from \cite{2003MNRAS.343..978S} (table J1: Parameter b, for early type galaxies) and re-scaled from half light radius to Hernquist radius \citep(hernquist_analytical_1990).
-        Note: there was a typo in the originally provided value see \cite{hernquist_analytical_1990} for the corrected value.        
-        Additionally, 
-      </description>
-    
+      <description>Coefficient $\beta$ in the power law fit.</description>
       <defaultValue>1.19d-6</defaultValue>
+      <defaultSource>\cite[][table J1: Parameter $b$, for early type galaxies) and re-scaled from half light radius to Hernquist radius \protect\citep{hernquist_analytical_1990}---Note: there was a typo in the originally provided value, see \protect\cite{hernquist_analytical_1990} for the corrected value]{shen_size_2003}</defaultSource>
     </inputParameter>
     !!]
   end function spheroidRadiusPowerLawConstructorParameters
@@ -101,76 +102,63 @@ contains
     !![
     <constructorAssign variables="alpha, beta"/>
     !!]
+    
     return
   end function spheroidRadiusPowerLawConstructorInternal
 
-  subroutine spheroidRadiusPowerLawNodeUpdate(self, node)
+  subroutine spheroidRadiusPowerLawUpdate(self, node)
     !!{
     Update radius of galaxy
     !!} 
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
-    class (nodeOperatorspheroidRadiusPowerLaw), intent(inout)          :: self
-    type  (treeNode                          ), intent(inout)          :: node
-    class (nodeComponentSpheroid             )               , pointer :: spheroid
-    double precision                                                   :: radiusStellar
+    class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    class           (nodeComponentSpheroid             ), pointer       :: spheroid
+    double precision                                                    :: radiusStellar
 
     if (.not.node%isOnMainBranch()) return 
-
-    spheroid     =>node%spheroid()
-    
-    radiusStellar= + self%beta              &
-      &            + spheroid%massStellar() &
-      &            **self%alpha 
-
+    spheroid      =>  node    %spheroid   (autoCreate=.true.)
+    radiusStellar =  +self    %beta                                       &
+      &              +spheroid%massStellar(                 )**self%alpha 
     call spheroid%radiusSet(radiusStellar)
-
     return  
-  end subroutine spheroidRadiusPowerLawNodeUpdate
+  end subroutine spheroidRadiusPowerLawUpdate
    
   subroutine spheroidRadiusPowerLawNodeInitialize(self,node)
     !!{
-    Initialize radii of galaxy
+    Initialize radii of spheroids.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
-    class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout), target  :: self
-    type            (treeNode                          ), intent(inout), target  :: node
-    class           (nodeComponentSpheroid             )               , pointer :: spheroid
+    class(nodeOperatorspheroidRadiusPowerLaw), intent(inout), target  :: self
+    type (treeNode                          ), intent(inout), target  :: node
 
-    if (.not.node%isOnMainBranch()) return 
-
-    spheroid=>node%spheroid(autoCreate=.true.)
-
-    call spheroidRadiusPowerLawNodeUpdate(self, node)
-
+    call self%update(node)
     return
   end subroutine spheroidRadiusPowerLawNodeInitialize
 
   subroutine spheroidRadiusPowerLawSolveAnalytics(self,node,time)
     !!{
-    Set radius of galaxy
+    Set the radius of the spheroid.
     !!}
     implicit none
-    
     class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
     double precision                                    , intent(in   ) :: time
+    !$GLC attributes unused :: time
 
-    call spheroidRadiusPowerLawNodeUpdate(self, node)
-
+    call self%update(node)
     return
   end subroutine spheroidRadiusPowerLawSolveAnalytics
 
   subroutine spheroidRadiusPowerLawNodesMerge(self,node)
     !!{
-    Update radius of galaxy after merger
+    Update the radius of the spheroid after a merger.
     !!}
     implicit none
-    class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
+    class(nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
 
-    call spheroidRadiusPowerLawNodeUpdate(self, node)
-
+    call self%update(node)
     return
   end subroutine spheroidRadiusPowerLawNodesMerge
