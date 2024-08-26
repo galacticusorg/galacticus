@@ -327,14 +327,15 @@ contains
           ! Do not compute dispersions if the component scale is zero.
           velocityDispersionExtract(i,1)=0.0d0
        else
-          massDistribution_         => node             %      massDistribution(componentType=self%radii(i)%component,massType=self%radii(i)%mass                                                                        )
-          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii(i)%component,massType=self%radii(i)%mass,weightBy=self%radii(i)%weightBy,weightIndex=self%radii(i)%weightByIndex)
-          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                         ) 
+          massDistribution_         => node             %      massDistribution(componentType=self%radii(i)%component       ,massType=self%radii(i)%mass                                                                                )
+          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii(i)%component       ,massType=self%radii(i)%mass        ,weightBy=self%radii(i)%weightBy,weightIndex=self%radii(i)%weightByIndex)
+          massDistributionTotal_    => node             %      massDistribution(componentType=              componentTypeAll,massType=              massTypeAll                                                                         )
+          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                                        ) 
           select case (self%radii(i)%direction%ID)
           case (directionRadial                    %ID)
              ! Radial velocity dispersion.
              coordinates                   =[radius,0.0d0,0.0d0]
-             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_)
+             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionTotal_)
           case (directionLineOfSight               %ID)
              ! Line-of-sight velocity dispersion.
              self_               => self
@@ -379,7 +380,6 @@ contains
                 velocityDispersionExtract(i,1)=1.0d0
              else
                 ! Full calculation is required.
-                massDistributionTotal_ => node%massDistribution(componentType=componentTypeAll,massType=massTypeAll)
                 radiusZero             =  0.0d0
                 numerator              =  integratorLambdaR2%integrate(radiusZero,radius)
                 denominator            =  integratorLambdaR1%integrate(radiusZero,radius)
@@ -388,9 +388,6 @@ contains
                 else
                    velocityDispersionExtract(i,1)=numerator/denominator
                 end if
-                !![
-	     <objectDestructor name="massDistributionTotal_"/>
-	     !!]
              end if
              !![
 	     <objectDestructor name="massDistributionStellarDisk_"    />
@@ -401,6 +398,7 @@ contains
 	  <objectDestructor name="massDistribution_"        />
 	  <objectDestructor name="massDistributionWeighted_"/>
 	  <objectDestructor name="kinematicsDistribution_"  />
+	  <objectDestructor name="massDistributionTotal_"   />
 	  !!]
        end if
        if (self%includeRadii)                       &
@@ -613,10 +611,10 @@ contains
        velocityDispersionVelocitySurfaceDensityIntegrand=0.0d0
     else
        coordinates                                      =[radius,0.0d0,0.0d0]
-       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                       )    &
-            &                                            *                                                                 radius                        **2 &
-            &                                            *massDistributionWeighted_%density                               (coordinates                  )    &
-            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistribution_)**2
+       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                            )    &
+            &                                            *                                                                 radius                             **2 &
+            &                                            *massDistributionWeighted_%density                               (coordinates                       )    &
+            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistributionTotal_)**2
     end if
    return
   end function velocityDispersionVelocitySurfaceDensityIntegrand
@@ -747,7 +745,7 @@ contains
     else
        velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                           &
             &                                     *massDistributionWeighted_%densitySphericalAverage(radius) &
-            &                                     *massDistribution_        %massEnclosedBySphere   (radius) &
+            &                                     *massDistributionTotal_   %massEnclosedBySphere   (radius) &
             &                                     /     radius**2                                            &
             &                                     *sqrt(radius**2-radiusImpact_**2)
     end if
