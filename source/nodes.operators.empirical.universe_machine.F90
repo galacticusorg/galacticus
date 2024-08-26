@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that inserts an empirical model of the formation history of a galaxy.
+  Implements a {\normalfont \ttfamily nodeOperator} class that inserts an empirical model of the formation history of a galaxy.
   Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} 
   correlation between Galaxy Growth and Dark Matter Halo Assembly.
   !!}
@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorEmpiricalGalaxyUniverseMachine">
    <description>
-    A node operator class that inserts an empirical model of the formation history of a galaxy. 
+    A {\normalfont \ttfamily nodeOperator} class that inserts an empirical model of the formation history of a galaxy. 
     Mass evolution is modeled using of the {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} 
     correlation between Galaxy Growth and Dark Matter Halo Assembly.    
    </description>
@@ -36,7 +36,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{     
-     A node operator class that inserts an empirical model of the formation history of a galaxy. 
+     A {\normalfont \ttfamily nodeOperator} class that inserts an empirical model of the formation history of a galaxy. 
      At each time step and during mergers, the mass of the central galaxy is computed using the 
      stellar mass - halo mass using {\normalfont \ttfamily [UniverseMachine]} \citep{Behroozi_2019} fits.
      !!}
@@ -60,7 +60,7 @@
   
   interface nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{
-     Constructors for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
+     Constructors for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
      !!}
      module procedure empiricalGalaxyUniverseMachineConstructorParameters
      module procedure empiricalGalaxyUniverseMachineConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function empiricalGalaxyUniverseMachineConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -267,7 +267,7 @@ contains
       &                                                      beta_a          , beta_z              , delta_0            , gamma_0  , &
       &                                                      gamma_a         , gamma_z             , cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
+    Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
     !!}
     implicit none
     type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                     :: self
@@ -290,7 +290,7 @@ contains
 
   subroutine empiricalGalaxyUniverseMachineDestructor(self)    
     !!{
-    Destructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} node operator class.
+    Destructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
     !!}
     implicit none
     type(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self
@@ -307,10 +307,10 @@ contains
     Implements the scaling relations provided in equations J3-J8 of \citep{Behroozi_2019}.
     !!}
     implicit none
-    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target  :: self
-    double precision                                            , intent(in)          :: z   , y0, ya, &
-      &                                                                                  ylna, yz   
-    double precision                                                                  :: a
+    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in) :: self
+    double precision                                            , intent(in) :: z   , y0, ya, &
+      &                                                                         ylna, yz   
+    double precision                                                         :: a
 
     a                     =self%cosmologyFunctions_%expansionFactorFromRedshift(z)
                              
@@ -332,13 +332,13 @@ contains
     Implements the stellar mass - halo mass relationship provided in equation J1 of \citep{Behroozi_2019}.
     !!}
     implicit none  
-    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in), target :: self 
-    double precision                                            , intent(in)         :: haloMass  , z
-    double precision                                                                 :: MLog10    , gammalog10, M1  , &
-        &                                                                               epsilon   , alpha     , beta, &
-        &                                                                               delta     , gamma     , x   , &
-        &                                                                               smfm1Log10, smfm1     , powa, &
-        &                                                                               powb      , expd  
+    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in) :: self 
+    double precision                                            , intent(in) :: haloMass  , z
+    double precision                                                         :: MLog10    , gammalog10, M1  , &
+        &                                                                       epsilon   , alpha     , beta, &
+        &                                                                       delta     , gamma     , x   , &
+        &                                                                       smfm1Log10, smfm1     , powa, &
+        &                                                                       powb      , expd  
     
     MLog10             =universeMachineScaling(self, z, self%M_0      , self%M_a      , self%M_lna      , self%M_z      )
     gammalog10         =universeMachineScaling(self, z, self%gamma_0  , self%gamma_a  , 0.0d0           , self%gamma_z  )
@@ -389,8 +389,8 @@ contains
     !!} 
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentDisk
     implicit none
-    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
-    type            (treeNode                                  ), intent(inout), target  :: node
+    class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout)          :: self
+    type            (treeNode                                  ), intent(inout)          :: node
     type            (treeNode                                  )               , pointer :: nodeRoot     
     class           (nodeComponentBasic                        )               , pointer :: basicNode      , basicRoot
     class           (nodeComponentSpheroid                     )               , pointer :: spheroid

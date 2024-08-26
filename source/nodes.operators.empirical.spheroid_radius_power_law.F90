@@ -24,17 +24,19 @@
   !![
   <nodeOperator name="nodeOperatorspheroidRadiusPowerLaw">
    <description>
-    An empirical power law for the Stellar Mass - Stellar Radius of a spheroid.
-   </description>
+    A {\normalfont \ttfamily nodeOperator} that implements an an empirical power law relationship between spheroid stellar mass and
+    stellar radius.
+  </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorspheroidRadiusPowerLaw
      !!{
-      Node operator that sets a power law prescription for the Stellar Mass - Stellar Radius of spheroid.
-      The power law is given by:
+      {\normalfont \ttfamily nodeOperator} that sets a power law prescription for the stellar mass - stellar radius of spheroid.
+      The form of the power law is:
       \begin{equation}
-          r_{hq} = \beta \left( \frac{M_\star}{M_\odot} \right)^\alpha
+          r_{hq} = \beta \left( \frac{M_\star}{M_\odot} \right)^\alpha, 
       \end{equation}
+      where $\alpha$ and $\beta$ are the free parameters, and M_\star is the stellar mass of the spheroid.
      !!}
      private
      double precision :: alpha, beta
@@ -56,7 +58,7 @@ contains
 
   function spheroidRadiusPowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily spheroidRadiusPowerLaw} {\normalfont \ttfamily nodeOperator} which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
