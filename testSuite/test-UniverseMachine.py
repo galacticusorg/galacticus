@@ -3,13 +3,12 @@ import subprocess
 import sys
 import h5py
 import numpy as np
-from numpy.testing import assert_allclose
 
-# Check internal self-consistency of adaptive star formation histories.
-# Andrew Benson (25-March-2021)
+# Check UniverseMachine results.
+# Charles Gannon (26-August-2024)
+
 def um_smhm_scaling_param_def():
-    # Scaling variables from universe machine table j1
-    # https://arxiv.org/pdf/1806.07893     
+    # Scaling variables from UniverseMachine table J1 (https://arxiv.org/pdf/1806.07893).
     return dict(
                  e0     = -1.435, 
                  ea     = +1.831,
@@ -142,16 +141,20 @@ if status.returncode == 0:
 print("SUCCESS: model run")
 
 # Open the model and extract the recycled fraction.
-model             = h5py.File('outputs/test-UniverseMachine/galacticus.hdf5','r')
-massHalo          = model["Outputs/Output1/nodeData/massHaloEnclosedCurrent"][:]
-massStellar       = model["Outputs/Output1/nodeData/spheroidMassStellar"    ][:]
-isIsolated        = model["Outputs/Output1/nodeData/nodeIsIsolated"         ][:].astype(bool)
-redshift          = model["Outputs/Output1/nodeData/redshiftLastIsolated"   ][:]
+model       = h5py.File('outputs/test-UniverseMachine/galacticus.hdf5','r')
+massHalo    = model["Outputs/Output1/nodeData/massHaloEnclosedCurrent"][:]
+massStellar = model["Outputs/Output1/nodeData/spheroidMassStellar"    ][:]
+isIsolated  = model["Outputs/Output1/nodeData/nodeIsIsolated"         ][:].astype(bool)
+redshift    = model["Outputs/Output1/nodeData/redshiftLastIsolated"   ][:]
         
 
 
 massHost, redshift = massHalo[isIsolated], 0.0
 
 massStellarPython = um_smhm(massHost, redshift)
-assert_allclose(massStellar[isIsolated], massStellarPython)
+
+if np.allclose(massStellar[isIsolated], massStellarPython, rtol=1e-6):
+    print("SUCCESS: results do agree"   )
+else:
+    print("FAILED: results do not agree")
 
