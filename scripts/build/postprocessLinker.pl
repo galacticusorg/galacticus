@@ -19,6 +19,8 @@ while ( my $line = <STDIN> ) {
 	    $line =~ m/warning: the use of `mktemp' is dangerous, better use `mkstemp'/
 	    ||
 	    $line =~ m/warning: Using 'dlopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking/
+	    ||
+	    $line =~ m/warning: ([^:]+): requires executable stack \(because the \.note\.GNU\-stack section is executable\)/
 	);
     $line = ""
 	if ( $dropBuffer );

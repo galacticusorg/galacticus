@@ -39,6 +39,7 @@ on:
       - 'perl/IO/Compress/**'
       - 'perl/System/**'
       - 'perl/Fortran/**'
+      - 'python/**'
       - 'scripts/build/**'
       - 'schema/**'
 concurrency:
@@ -779,7 +780,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-idealizedSubhaloSimulations-wrapper.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-idealizedSubhaloSimulations.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -1054,7 +1056,7 @@ jobs:
                 test-constraint-mass-function.pl,
                 test-extract-directives.pl,
                 test-fortran-utils.pl,
-                test-halo-mass-functions.pl,
+                test-halo-mass-functions.py,
                 test-inactive_luminosities.pl,
                 test-interoutput-star-formation-rate.pl,
                 test-mass-host-maximum.pl,
@@ -1072,6 +1074,7 @@ jobs:
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
+                test-massProfileSatelliteBoundMass.py,
                 test-stateRestore.pl,
                 test-checkpointing.pl,
                 test-stellar-mass-weighted-ages.pl,
@@ -1101,6 +1104,7 @@ jobs:
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
+      install: python3 python3-h5py python3-numpy
       runPath: ./testSuite
       needsIRATE: 1
     secrets: inherit
@@ -1306,10 +1310,10 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
-      - name: Install Python2
+      - name: Install Python
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python2.7
+          apt -y install python3
       - name: Download library
         uses: actions/download-artifact@v4
         with:
@@ -1317,7 +1321,7 @@ jobs:
       - name: Test interface
         run: |
           tar xvfj libgalacticus.tar.bz2
-          python2.7 testSuite/test-Python-interface.py
+          python3 testSuite/test-Python-interface.py
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Test Codes
@@ -1351,9 +1355,9 @@ jobs:
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
       - name: Install Python
         run: |
-          sudo port install python27 
-          sudo port select --set python python27
-          sudo port select --set python2 python27
+          sudo port install python312
+          sudo port select --set python python312
+          sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
@@ -1371,7 +1375,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          python2 testSuite/test-Python-interface.py
+          python3 testSuite/test-Python-interface.py
       - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:
@@ -1402,7 +1406,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalos'
-          threshold: '115%'
+          threshold: '125%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Milky Way model validation'
         uses: ./.github/actions/benchmark

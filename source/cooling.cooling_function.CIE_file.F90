@@ -543,22 +543,24 @@ contains
     !!{
     Read in data from a cooling function file.
     !!}
-    use :: Display           , only : displayIndent                     , displayUnindent     , verbosityLevelWorking
+    use :: Display           , only : displayIndent                     , displayUnindent     , verbosityLevelWorking       , displayGreen         , &
+         &                            displayReset
     use :: File_Utilities    , only : File_Name_Expand
-    use :: Error             , only : Error_Report
+    use :: Error             , only : Error_Report                      , errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : varying_string
-    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero
+    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero, &
+         &                            enumerationExtrapolationTypeDescribe
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     type            (varying_string        ), intent(in   ) :: fileName
     double precision                        , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string        )                :: limitType
-    integer                                                 :: fileFormatVersion
+    integer                                                 :: fileFormatVersion                  , status
     type            (hdf5Object            )                :: coolingFunctionFile                , metallicityDataset, &
          &                                                     temperatureDataset
-
+    
     !$ call hdf5Access%set()
     ! Read the file.
     call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
@@ -581,15 +583,19 @@ contains
     ! Extract extrapolation methods from the file.
     metallicityDataset=coolingFunctionFile%openDataset('metallicity')
     call metallicityDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
-    self%extrapolateMetallicityLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    self%extrapolateMetallicityLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
+    if (status /= errorStatusSuccess) call Error_Report("low metallicity extrapolation type '" //char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
     call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
-    self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
+    if (status /= errorStatusSuccess) call Error_Report("high metallicity extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
     call metallicityDataset%close()
     temperatureDataset=coolingFunctionFile%openDataset('temperature')
     call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
-    self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
+    if (status /= errorStatusSuccess) call Error_Report("low temperature extrapolation type '" //char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
     call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
-    self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.)
+    self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
+    if (status /= errorStatusSuccess) call Error_Report("high temperature extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
     call temperatureDataset%close()
     ! Validate extrapolation methods.
     if     (                                                                 &

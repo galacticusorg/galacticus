@@ -145,7 +145,7 @@ contains
           x                =0.0d0
           do i=0,self%countSamples-1
              if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
-             x(mpiSelf%rank())=self%randomNumberGenerator_%uniformSample()
+             x(i)=self%randomNumberGenerator_%uniformSample()
           end do
           y    =mpiSelf%sum(x)
           call mpiBarrier()

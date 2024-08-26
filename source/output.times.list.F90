@@ -25,7 +25,7 @@
       An output times class which simply reads a list of output times specified via parameters. Times can be given as a
       (space-separated) list of actual cosmic times (in Gyr) via the {\normalfont \ttfamily [times]} parameter, or as a
       (space-separated) list of redshifts via the {\normalfont \ttfamily [redshifts]} parameter, or by a combination of the
-      two. The {\normalfont \ttfamily [times]} parameter allows negative values which are interpretted as lookback times. For
+      two. The {\normalfont \ttfamily [times]} parameter allows negative values which are interpreted as lookback times. For
       example, in a cosmological model where the universe is currently 13.8~Gyr old the following:
       \begin{verbatim}
       &lt;outputTimes value="list"&gt;
@@ -108,7 +108,7 @@ contains
        !![
        <inputParameter>
          <name>times</name>
-         <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order. Negative times are interpretted as look-back times.</description>
+         <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order. Negative times are interpreted as look-back times.</description>
          <source>parameters</source>
        </inputParameter>
        !!]

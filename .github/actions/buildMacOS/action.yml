@@ -52,9 +52,15 @@ runs:
         curl -L https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
         sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
         rm ./MacPorts-${macportsbase}.pkg
+    - name: Install GCC
+      shell: bash
+      run: brew install gcc@11
     - name: Install guile
       shell: bash
       run: sudo port install guile18
+    - name: Install libgit2
+      shell: bash
+      run: sudo port install libgit2
     - name: Install libmatheval
       shell: bash
       run: |
@@ -66,7 +72,7 @@ runs:
         sed -E -i~ s/"-lguile"/"-lguile18"/ configure
         sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
-        CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+        CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local || (cat config.log && false)
         make -j3
         sudo make install
         cd ..

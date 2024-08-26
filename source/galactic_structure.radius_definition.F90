@@ -37,32 +37,34 @@ module Galactic_Structure_Radii_Definitions
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <validator>yes</validator>
-   <entry label="radius"                />
-   <entry label="virialRadius"          />
-   <entry label="darkMatterScaleRadius" />
-   <entry label="diskRadius"            />
-   <entry label="NSCRadius"             />
-   <entry label="spheroidRadius"        />
-   <entry label="diskHalfMassRadius"    />
-   <entry label="spheroidHalfMassRadius"/>
-   <entry label="NSCHalfMassRadius"     />
-   <entry label="galacticMassFraction"  />
-   <entry label="galacticLightFraction" />
-   <entry label="stellarMassFraction"   />
+
+   <entry label="radius"                     description="Radii are specified absolutely, in units of Mpc"                                            />
+   <entry label="virialRadius"               description="Radii are specified in units of the virial radius"                                          />
+   <entry label="darkMatterScaleRadius"      description="Radii are specified in units of the dark matter profile scale radius"                       />
+   <entry label="diskRadius"                 description="Radii are specified in units of the disk scale radius"                                      />
+   <entry label="NSCRadius"                  description="Radii are specified in units of the NSC scale radius"                                       />
+   <entry label="spheroidRadius"             description="Radii are specified in units of the spheroid scale radius"                                  />
+   <entry label="diskHalfMassRadius"         description="Radii are specified in units of the disk half-mass radius"                                  />
+   <entry label="NSCHalfMassRadius"          description="Radii are specified in units of the NSC half-mass radius"                                   />
+   <entry label="spheroidHalfMassRadius"     description="Radii are specified in units of the spheroid half-mass radius"                              />
+   <entry label="satelliteBoundMassFraction" description="Radii are specified in units of the radius enclosing a fraction of the satellite bound mass"/>
+   <entry label="galacticMassFraction"       description="Radii are specified in units of the radius enclosing a fraction of the galactic mass"       />
+   <entry label="galacticLightFraction"      description="Radii are specified in units of the radius enclosing a fraction of the galactic light"      />
+   <entry label="stellarMassFraction"        description="Radii are specified in units of the radius enclosing a fraction of the stellar mass"        />
   </enumeration>
   !!]
 
   !![
   <enumeration>
    <name>direction</name>
-   <description>Used to specify integration directions output specifiers.</description>
+   <description>Used to specify the type of velocity dispersion in output specifiers.</description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <validator>yes</validator>
-   <entry label="radial"                    />
-   <entry label="lineOfSight"               />
-   <entry label="lineOfSightInteriorAverage"/>
-   <entry label="lambdaR"                   />
+   <entry label="radial"                     description="The radial velocity dispersion is computed"                                                                  />
+   <entry label="lineOfSight"                description="The line-of-sight velocity dispersion (mass- or light-weighted) is computed"                                 />
+   <entry label="lineOfSightInteriorAverage" description="The line-of-sight velocity dispersion, averaged over all interior radii (mass- or light-weighted)"           />
+   <entry label="lambdaR"                    description="The λᵣ parameter of Ensellem et al. (2007; https://ui.adsabs.harvard.edu/abs/2007MNRAS.379..401E) is computed"/>
   </enumeration>
   !!]
 
@@ -82,36 +84,38 @@ module Galactic_Structure_Radii_Definitions
 
 contains
 
-  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,NSCRequired,radiusVirialRequired,radiusScaleRequired)
+
+  subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,NSCRequired,satelliteRequired,radiusVirialRequired,radiusScaleRequired)
     !!{
     Decode a set of radii descriptors and return the corresponding specifiers.
     !!}
-    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass       , &
-         &                                        weightIndexNull
-    use :: Error                         , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent     , defaultSpheroidComponent, defaultNSCComponent, &
-         &                                        treeNode     
-    use :: ISO_Varying_String            , only : char                             , extract                  , operator(==)            , assignment(=)      , &
-         &                                        operator(//)
+    use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode  , weightByLuminosity      , weightByMass       , &
+          &                                       enumerationComponentTypeDescribe , enumerationMassTypeDescribe, weightIndexNull
+    use :: Error                         , only : Component_List                   , Error_Report               , errorStatusSuccess
+    use :: Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent       , defaultSpheroidComponent, defaultNSCComponent, &
+          &                                       treeNode
+    use :: ISO_Varying_String            , only : char                             , extract                    , operator(==)            , assignment(=)      , &
+          &                                       operator(//)
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
-    use :: String_Handling               , only : String_Count_Words               , String_Split_Words       , char
+    use :: String_Handling               , only : String_Count_Words               , String_Split_Words         , char
     implicit none
     type     (varying_string ), intent(in   ), dimension(:)              :: descriptors
     type     (radiusSpecifier), intent(inout), dimension(:), allocatable :: specifiers
     logical                   , intent(  out)                            :: diskRequired        , spheroidRequired    , &
          &                                                                  NSCRequired         , radiusVirialRequired, &
-         &                                                                  radiusScaleRequired
+         &                                                                  radiusScaleRequired , satelliteRequired
     type     (varying_string  )              , dimension(5)              :: radiusDefinition
     type     (varying_string  )              , dimension(3)              :: fractionDefinition
     type     (varying_string  )              , dimension(2)              :: weightingDefinition
     type     (varying_string  )                                          :: valueDefinition     , message
     character(len=20          )                                          :: fractionLabel       , radiusLabel
     integer                                                              :: i                   , radiiCount         , &
-         &                                                                  countComponents
+         &                                                                  countComponents     , status
 
     diskRequired        =.false.
     spheroidRequired    =.false.
     NSCRequired         =.false.
+    satelliteRequired   =.false.
     radiusVirialRequired=.false.
     radiusScaleRequired =.false.
     radiiCount          =size(descriptors)
@@ -119,29 +123,28 @@ contains
     do i=1,radiiCount
        specifiers(i)%name=descriptors(i)
        countComponents=String_Count_Words(char(descriptors(i)),':',bracketing="{}")
+       if     (                     &
+            &   countComponents < 4 &
+            &  .or.                 &
+            &   countComponents > 5 &
+            & )  then
+          message='radius specifier must have 4 (or, optionally, 5 if a direction is permitted) elements separated by `:`'
+          call reportSpecifierError(specifiers(i)%name,message)
+       end if
        call String_Split_Words(radiusDefinition,char(descriptors(i)),':',bracketing="{}")
        ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction.
-       valueDefinition=radiusDefinition(1)
-       if (extract(valueDefinition,1,22) == 'galacticLightFraction{') then
-          call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-          radiusDefinition(1)='galacticLightFraction'
-       end if
-       if (extract(valueDefinition,1,21) == 'galacticMassFraction{' ) then
-          call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-          radiusDefinition(1)='galacticMassFraction'
-       end if
-       if (extract(valueDefinition,1,20) == 'stellarMassFraction{'  ) then
-          call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-          radiusDefinition(1)='stellarMassFraction'
-       end if
+       if (extract(radiusDefinition(1),1,22) == 'galacticLightFraction{'     ) call extractFraction(specifiers(i)%name,radiusDefinition(1),22,fractionDefinition)
+       if (extract(radiusDefinition(1),1,21) == 'galacticMassFraction{'      ) call extractFraction(specifiers(i)%name,radiusDefinition(1),21,fractionDefinition)
+       if (extract(radiusDefinition(1),1,27) == 'satelliteBoundMassFraction{') call extractFraction(specifiers(i)%name,radiusDefinition(1),27,fractionDefinition)
+       if (extract(radiusDefinition(1),1,20) == 'stellarMassFraction{'       ) call extractFraction(specifiers(i)%name,radiusDefinition(1),20,fractionDefinition)
        ! Parse the radius definition.
        select case (char(radiusDefinition(1)))
-       case ('radius'                )
+       case ('radius'                    )
           specifiers(i)%type=radiusTypeRadius
-       case ('virialRadius'          )
+       case ('virialRadius'              )
           specifiers(i)%type=radiusTypeVirialRadius
           radiusVirialRequired         =.true.
-       case ('darkMatterScaleRadius' )
+       case ('darkMatterScaleRadius'     )
           specifiers(i)%type=radiusTypeDarkMatterScaleRadius
           radiusScaleRequired=.true.
           if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                        &
@@ -154,7 +157,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &      )
-       case ('diskRadius'            )
+       case ('diskRadius'                )
           specifiers(i)%type=radiusTypeDiskRadius
           diskRequired                 =.true.
           if (.not.defaultDiskComponent             %radiusIsGettable        ())                                        &
@@ -167,7 +170,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('spheroidRadius'        )
+       case ('spheroidRadius'            )
           specifiers(i)%type=radiusTypeSpheroidRadius
           spheroidRequired             =.true.
           if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                        &
@@ -180,7 +183,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('NSCRadius'            )
+       case ('NSCRadius'                 )
           specifiers(i)%type=radiusTypeNSCRadius
           NSCRequired                 =.true.
           if (.not.defaultNSCComponent             %radiusIsGettable        ())                                         &
@@ -193,7 +196,8 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('diskHalfMassRadius'    )
+
+       case ('diskHalfMassRadius'        )
           specifiers(i)%type=radiusTypeDiskHalfMassRadius
           diskRequired                 =.true.
           if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                        &
@@ -206,7 +210,7 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('spheroidHalfMassRadius')
+       case ('spheroidHalfMassRadius'    )
           specifiers(i)%type=radiusTypeSpheroidHalfMassRadius
           spheroidRequired   =.true.
           if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                        &
@@ -232,29 +236,62 @@ contains
                &                       )                                                                             // &
                &       {introspection:location}                                                                         &
                &                             )
-       case ('galacticMassFraction'  )
-          specifiers(i)%type=radiusTypeGalacticMassFraction
+
+       case ('satelliteBoundMassFraction')
+          specifiers(i)%type=radiusTypeSatelliteBoundMassFraction
+          satelliteRequired=.true.
           fractionLabel=fractionDefinition(2)
-          read (fractionLabel,*) specifiers(i)%fraction
+          read (fractionLabel,*,iostat=status) specifiers(i)%fraction
+          if (status /= 0) then
+             message='unable to parse numerical fraction'
+             call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.true.)
+          end if
           specifiers(i)%weightBy     =weightByMass
           specifiers(i)%weightByIndex=weightIndexNull
-       case ('galacticLightFraction' )
+       case ('galacticMassFraction'      )
+          specifiers(i)%type=radiusTypeGalacticMassFraction
+          fractionLabel=fractionDefinition(2)
+          read (fractionLabel,*,iostat=status) specifiers(i)%fraction
+          if (status /= 0) then
+             message='unable to parse numerical fraction'
+             call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.true.)
+          end if
+          specifiers(i)%weightBy     =weightByMass
+          specifiers(i)%weightByIndex=weightIndexNull
+       case ('galacticLightFraction'     )
           specifiers(i)%type=radiusTypeGalacticLightFraction
           fractionLabel=fractionDefinition(2)
-          read (fractionLabel,*) specifiers(i)%fraction
+          read (fractionLabel,*,iostat=status) specifiers(i)%fraction
+          if (status /= 0) then
+             message='unable to parse numerical fraction'
+             call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.true.)
+          end if
           specifiers(i)%weightBy      =weightByLuminosity
           specifiers(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
-       case ('stellarMassFraction'   )
+       case ('stellarMassFraction'       )
           specifiers(i)%type=radiusTypeStellarMassFraction
           fractionLabel=fractionDefinition(2)
-          read (fractionLabel,*) specifiers(i)%fraction
+          read (fractionLabel,*,iostat=status) specifiers(i)%fraction
+          if (status /= 0) then
+             message='unable to parse numerical fraction'
+             call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.true.)
+          end if
           specifiers(i)%weightBy     =weightByMass
           specifiers(i)%weightByIndex=weightIndexNull
        case default
-          call Error_Report('unrecognized radius specifier "'//char(radiusDefinition(1))//'"'//{introspection:location})
+          message="unrecognized radius type"//char(10)//enumerationRadiusTypeDescribe()
+          call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.false.)
        end select
-       specifiers(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
-       specifiers(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
+       specifiers(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.,status=status)
+       if (status /= errorStatusSuccess) then
+          message="unrecognized component type"//char(10)//enumerationComponentTypeDescribe()
+          call reportSpecifierError(specifiers(i)%name,message,highlight=2,bracketed=.false.)
+       end if
+       specifiers(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.,status=status)
+       if (status /= errorStatusSuccess) then
+          message="unrecognized mass type"    //char(10)//enumerationMassTypeDescribe      ()
+          call reportSpecifierError(specifiers(i)%name,message,highlight=3,bracketed=.false.)
+       end if
        ! Detect cases which specify the weighting for integrals over the velocity dispersion.
        if (countComponents == 5) then
           valueDefinition=radiusDefinition(4)
@@ -284,20 +321,82 @@ contains
           case ('lambdaR'                   )
              specifiers(i)%direction=directionLambdaR
           case default
-             message='unrecognized direction specifier: "'//radiusDefinition(4)//'"'
-             message=message//char(10)//'available specifiers are:'
-             message=message//char(10)//' --> radial'
-             message=message//char(10)//' --> lineOfSight'
-             message=message//char(10)//' --> lineOfSightInteriorAverage'
-             message=message//char(10)//' --> lambdaR'
-             call Error_Report(message//{introspection:location})
+             message='unrecognized direction specifier'//char(10)//enumerationDirectionDescribe()
+             call reportSpecifierError(specifiers(i)%name,message,highlight=4,bracketed=.false.)
           end select
        end if
        ! Get the numerical radius.
        radiusLabel=radiusDefinition(countComponents)
-       read (radiusLabel,*) specifiers(i)%value
+       read (radiusLabel,*,iostat=status) specifiers(i)%value
+       if (status /= 0) then
+          message='unable to parse numerical radius'
+          call reportSpecifierError(specifiers(i)%name,message,highlight=countComponents,bracketed=.true.)
+       end if
     end do
     return
   end subroutine Galactic_Structure_Radii_Definition_Decode
 
+  subroutine extractFraction(specifier,radiusDefinition,openAt,fractionDefinition)
+    !!{
+    Parse a fractional radius definition.
+    !!}
+    use :: ISO_Varying_String, only : extract           , char, len, index, assignment(=)
+    use :: String_Handling   , only : String_Split_Words
+    implicit none
+    type   (varying_string), intent(in   )               :: specifier
+    type   (varying_string), intent(inout)               :: radiusDefinition
+    integer                , intent(in   )               :: openAt
+    type   (varying_string), intent(  out), dimension(3) :: fractionDefinition
+    type   (varying_string)                              :: message
+
+    if (index(radiusDefinition,'}') /= len(radiusDefinition)) then
+       message='missing `}`'
+       call reportSpecifierError(specifier,message,highlight=1)
+    end if
+    call String_Split_Words(fractionDefinition,char(radiusDefinition),'{}')
+    radiusDefinition=extract(radiusDefinition,1,openAt-1)
+    return
+  end subroutine extractFraction
+  
+  subroutine reportSpecifierError(specifier,message,highlight,bracketed)
+    !!{
+    Report an error in parsing a radius specifier.
+    !!}
+    use :: Display           , only : displayGreen      , displayRed        , displayReset
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//)      , var_str           , char        , extract, &
+         &                            index
+    use :: String_Handling   , only : String_Count_Words, String_Split_Words, String_Join
+    implicit none
+    type   (varying_string), intent(in   )               :: specifier       , message
+    integer                , intent(in   ), optional     :: highlight
+    logical                , intent(in   ), optional     ::  bracketed
+    type   (varying_string)               , dimension(5) :: radiusDefinition
+    type   (varying_string)                              :: specifier_
+    integer                                              :: countComponents , indexBracket
+    !![
+    <optionalArgument name="bracketed" defaultsTo=".false."/>
+    !!]
+    
+    if (present(highlight)) then
+       countComponents=String_Count_Words(char(specifier),':',bracketing="{}")
+       call String_Split_Words(radiusDefinition,char(specifier),':',bracketing="{}")
+       indexBracket=index(radiusDefinition(highlight),'{')
+       if (indexBracket /= 0) then
+          if (bracketed_) then
+             radiusDefinition(highlight)=              extract(radiusDefinition(highlight),1,indexBracket-1)//displayRed  ()//extract(radiusDefinition(highlight),indexBracket)//displayReset()
+          else
+             radiusDefinition(highlight)=displayRed()//extract(radiusDefinition(highlight),1,indexBracket-1)//displayReset()//extract(radiusDefinition(highlight),indexBracket)
+          end if
+       else
+          radiusDefinition   (highlight)=displayRed()//        radiusDefinition(highlight)                  //displayReset()
+       end if
+       specifier_=String_Join(radiusDefinition(1:countComponents),":")
+    else
+       specifier_=specifier
+    end if
+    call Error_Report(var_str('Failed to parse radius specifier:')//char(10)//char(10)//'   '//specifier_//char(10)//char(10)//message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' See https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec:radiusSpecifiers for an explanation of radius specifier syntax'//{introspection:location})    
+    return
+  end subroutine reportSpecifierError
+  
 end module Galactic_Structure_Radii_Definitions

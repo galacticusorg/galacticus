@@ -179,6 +179,7 @@ galacticus.hdf5
       +-> runTime                             Attribute {1}
       +-> gitBranch                           Attribute {1}
       +-> gitHash                             Attribute {1}
+      +-> gitHashDatasets                     Attribute {1}
       +-> runByName                           Attribute {1}
       +-> runByEmail                          Attribute {1}
 \end{verbatim}
@@ -228,7 +229,7 @@ The {\normalfont \ttfamily Parameters} group contains a record of all parameter 
 
 \subsection{Version}
 
-The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\normalfont \scshape Git} branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered). Additionally, the time at which the model was run is stored and, if the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
+The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the time at which the model was run is stored as {\normalfont \ttfamily runTime} and, if the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
 
 \subsection{Outputs}
 
