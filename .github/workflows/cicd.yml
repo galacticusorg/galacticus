@@ -1104,6 +1104,7 @@ jobs:
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
+      install: python3 python3-h5py python3-numpy
       runPath: ./testSuite
       needsIRATE: 1
     secrets: inherit

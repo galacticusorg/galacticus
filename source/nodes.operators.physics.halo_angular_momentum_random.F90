@@ -125,7 +125,8 @@ contains
     type            (treeNode                             )               , pointer :: nodeProgenitor
     class           (nodeComponentSpin                    )               , pointer :: spinProgenitor , spin
     class           (nodeComponentBasic                   )               , pointer :: basicProgenitor
-    double precision                                                                :: massPrevious   , spinPrevious
+    double precision                                                                :: massPrevious   , spinPrevious, &
+         &                                                                             angularMomentum
 
     ! Ensure that the spin has not yet been assigned for this node.
     spin => node%spin()
@@ -138,12 +139,17 @@ contains
        end do
        ! Walk forward through the branch, assigning spins/angular momenta. If the mass of the halo exceeds that of the halo for
        ! which we last selected a spin by a given factor, then select a new spin from the distribution. Otherwise, use the
-       ! previously assigned spin.
+       ! previously assigned spin. If available, the vector angular momentum is also set. As this model makes no prediction for
+       ! the direction of the angular momentum vector, it is assumed to be always aligned with the first axis.
        spinProgenitor  => nodeProgenitor                       %spin  (autoCreate=.true.        )
        basicProgenitor => nodeProgenitor                       %basic (                         )
        spinPrevious    =  self           %haloSpinDistribution_%sample(           nodeProgenitor)
        massPrevious    =  basicProgenitor                      %mass  (                         )
+       angularMomentum =  spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_)
        call spinProgenitor%angularMomentumSet(spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_))
+       call spinProgenitor%angularMomentumSet(angularMomentum)
+       if (spinProgenitor%angularMomentumVectorIsSettable()) &
+            & call spinProgenitor%angularMomentumVectorSet([angularMomentum,0.0d0,0.0d0])
        do while (nodeProgenitor%isPrimaryProgenitor())
           nodeProgenitor  => nodeProgenitor%parent
           basicProgenitor => nodeProgenitor%basic ()
@@ -152,7 +158,10 @@ contains
              massPrevious=basicProgenitor                      %mass  (              )
           end if
           spinProgenitor => nodeProgenitor%spin(autoCreate=.true.)
-          call spinProgenitor%angularMomentumSet(spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_))
+          angularMomentum =  spinPrevious*Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_)
+          call       spinProgenitor%angularMomentumSet       ( angularMomentum             )
+          if (spinProgenitor%angularMomentumVectorIsSettable()) &
+               & call spinProgenitor%angularMomentumVectorSet([angularMomentum,0.0d0,0.0d0])
        end do
     end select
     return
