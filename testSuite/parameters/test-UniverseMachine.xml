@@ -68,22 +68,12 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
 
-
-  <!--
-  <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <massTreeMinimum value="1.0e10"/>
-    <massTreeMaximum value="1.0e13"/>
-    <treesPerDecade value="2"/>
-  </mergerTreeBuildMasses>
-  -->
-
   <mergerTreeBuildMasses value="readXML">
-	  <fileName value="testSuite/parameters/UniverseMachine-treemass.xml" />
+    <fileName value="testSuite/parameters/UniverseMachine-treemass.xml" />
   </mergerTreeBuildMasses>
   
   <mergerTreeMassResolution value="scaled">
-		  <!--<massResolutionMinimum value="1.0e+7" />-->
-    <massResolutionFractional value="1.0E-1"/>
+    <massResolutionFractional value="1.0e-1"/>
   </mergerTreeMassResolution>
 
 
@@ -111,17 +101,6 @@
     <timestepHostAbsolute value="0.01"/>
     <timestepHostRelative value="0.01"/>
   </mergerTreeEvolver>
-	<!--
-  <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="0.01"/>	    
-    <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolver>
-  <mergerTreeEvolver value="standard">
-    <timestepHostAbsolute value="1.0"/>
-    <timestepHostRelative value="0.1"/>
-  </mergerTreeEvolver>
-	-->
-
 
   <!-- Output options -->
   <outputFileName value="testSuite/outputs/test-UniverseMachine/galacticus.hdf5"/>
@@ -131,6 +110,13 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
+  <nodePropertyExtractor value="multi">	
+    <nodePropertyExtractor value="massHalo">
+      <virialDensityContrastDefinition value="bryanNorman1998" /> 
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="nodeIndices" />
+    <nodePropertyExtractor value="redshiftLastIsolated" />
+  </nodePropertyExtractor>
 
   <!-- Node physics -->
   <nodeOperator value="multi">
@@ -145,37 +131,29 @@
     <nodeOperator value="satelliteMergingTime"/>
     <nodeOperator value="satelliteMassLoss"   />
     <nodeOperator value="empiricalGalaxyUniverseMachine">
-			<massStellarFinal value="-1.0d0" />
-			<fractionMassSpheroid value="1.0d0" />
-			<fractionMassDisk value="0.0d0" />
-			<epsilon_0 value="-1.435" />
-			<epsilon_a value= "+1.831" />
-			<epsilon_lna value= "+1.368"/>        
-			<epsilon_z value= "-0.217"/>
-			<M_0 value="+12.035"/>
-			<M_a value="+4.556"/>
-			<M_lna value="+4.417"/> 
-			<M_z value="-0.731"/>
-		  <alpha_0 value="+1.963"/>
-			<alpha_a value="-2.31"/>
-			<alpha_lna value="-1.73"/>
-			<alpha_z value="+0.17"/>
-			<beta_0 value= "+0.48"/>
-			<beta_a value = "-0.84"/>
-			<beta_z value= "-0.47"/>
-			<delta_0 value="+0.411"/>
-			<gamma_0 value="-1.03"/>
-			<gamma_a value="-3.10"/>
-			<gamma_z value="-1.055"/>
-	  </nodeOperator>
+      <massStellarFinal value="-1.0d0" />
+      <fractionMassSpheroid value="1.0d0" />
+      <fractionMassDisk value="0.0d0" />
+      <epsilon_0 value="-1.435" />
+      <epsilon_a value= "+1.831" />
+      <epsilon_lna value= "+1.368"/>        
+      <epsilon_z value= "-0.217"/>
+      <M_0 value="+12.035"/>
+      <M_a value="+4.556"/>
+      <M_lna value="+4.417"/> 
+      <M_z value="-0.731"/>
+      <alpha_0 value="+1.963"/>
+      <alpha_a value="-2.316"/>
+      <alpha_lna value="-1.733"/>
+      <alpha_z value="+0.178"/>
+      <beta_0 value= "+0.482"/>
+      <beta_a value = "-0.841"/>
+      <beta_z value= "-0.471"/>
+      <delta_0 value="+0.411"/>
+      <gamma_0 value="-1.034"/>
+      <gamma_a value="-3.10"/>
+      <gamma_z value="-1.055"/>
+    </nodeOperator>
   </nodeOperator>
-
-  <nodePropertyExtractor value="multi">	
-		<nodePropertyExtractor value="massHalo">
-      <virialDensityContrastDefinition value="bryanNorman1998" /> 
-    </nodePropertyExtractor>
-    <nodePropertyExtractor value="nodeIndices" />
-		<nodePropertyExtractor value="redshiftLastIsolated" />
-	</nodePropertyExtractor>
-
+  
 </parameters>
