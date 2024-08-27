@@ -42,7 +42,7 @@
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          NSCIsNeededd                           , satelliteIsNeeded
+          &                                                          NSCIsNeeded                            , satelliteIsNeeded
    contains
      final     ::                       densityProfileDestructor
      procedure :: columnDescriptions => densityProfileColumnDescriptions

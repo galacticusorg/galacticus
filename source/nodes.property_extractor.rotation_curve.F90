@@ -47,7 +47,7 @@
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
-          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, & 
           &                                                          NSCIsNeeded                            , satelliteIsNeeded
    contains
      final     ::                       rotationCurveDestructor
@@ -190,6 +190,7 @@ contains
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+          &                                             radiustypestellarmassfraction  , radiusTypeNSCRadius         , radiusTypeNSCHalfMassRadius     , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , nodeComponentNSC               , &
           &                                             treeNode
     use :: Error                               , only : Error_Report
