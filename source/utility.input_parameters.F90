@@ -1569,7 +1569,7 @@ contains
          &                                                                                    countNames         , copyCount      , &
          &                                                                                    copyInstance
     logical                                                                                :: hasValueAttribute  , hasValueElement, &
-         &                                                                                    isException
+         &                                                                                    isException        , isPresent
     character       (len=parameterLengthMaximum              )                             :: expression         , parameterName  , &
          &                                                                                    workText           , content
     type            (varying_string                          )                             :: attributeName      , nodeName
@@ -1675,10 +1675,18 @@ contains
                       end if
                    end do
                    if (countNames == 1) then
-                      call rootParameters%value(trim(parameterNames(countNames)),workValue)
+                      isPresent=rootParameters%isPresent(trim(parameterNames(countNames)))
+                      if (isPresent) call rootParameters%value(trim(parameterNames(countNames)),workValue)
                    else
-                      call subParameters %value(trim(parameterNames(countNames)),workValue)
+                      isPresent= subParameters%isPresent(trim(parameterNames(countNames)))
+                      if (isPresent) call subParameters %value(trim(parameterNames(countNames)),workValue)
                       deallocate(subParameters)
+                   end if
+                   if (.not.isPresent) then
+                      !$omp critical (FoX_DOM_Access)
+                      expression=getTextContent(valueElement)
+                      !$omp end critical (FoX_DOM_Access)
+                      call Error_Report('parameter `'//trim(parameterName)//'` referenced in expression `'//trim(expression)//'` does not exist'//{introspection:location})
                    end if
                    write (workText,'(e24.16)') workValue
                    deallocate(parameterNames)
