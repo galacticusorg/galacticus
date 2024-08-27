@@ -162,12 +162,13 @@ contains
     self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"      />
-    <objectDestructor name="mergerTreeEvolveTimestep_"/>
-    <objectDestructor name="mergerTreeNodeEvolver_"   />
-    <objectDestructor name="galacticStructureSolver_" />
-    <objectDestructor name="mergerTreeInitializor_"   />
-    <objectDestructor name="mergerTreeEvolveProfiler_"/>
+    <objectDestructor name="cosmologyFunctions_"         />
+    <objectDestructor name="mergerTreeEvolveTimestep_"   />
+    <objectDestructor name="mergerTreeNodeEvolver_"      />
+    <objectDestructor name="galacticStructureSolver_"    />
+    <objectDestructor name="mergerTreeInitializor_"      />
+    <objectDestructor name="mergerTreeEvolveProfiler_"   />
+    <objectDestructor name="mergerTreeEvolveConcurrency_"/>
     !!]
     return
   end function threadedConstructorParameters

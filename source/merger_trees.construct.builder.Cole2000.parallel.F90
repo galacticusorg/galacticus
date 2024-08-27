@@ -215,17 +215,16 @@ contains
     type            (mergerTree                       ), intent(inout), target  :: tree
     type            (treeNode                         )               , pointer :: node                    , nodeChild
     class           (nodeComponentBasic               )               , pointer :: basic                   , basicChild
-    integer         (kind=kind_int8                   )                         :: nodeIndex
     double precision                                                            :: deltaCritical           , deltaCriticalEarliest, &
          &                                                                         massResolution          , timeNodeBase         , &
          &                                                                         rootVarianceGrowthFactor, timeOfCollapse
     integer                                                                     :: countWorkers
     
     ! Begin construction.
-    self__ => self
-    nodeIndex =  1               ! Initialize the node index counter to unity.
-    node      => tree%nodeBase   ! Point to the base node.
-    basic     => node%basic   () ! Get the basic component of the node.
+    self__         => self
+    self%nodeIndex =  1               ! Initialize the node index counter to unity.
+    node           => tree%nodeBase   ! Point to the base node.
+    basic          => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
        ! Note that we use a unit rate - we will scale the results to the actual rate required.
        self%branchingIntervalDistribution           =distributionFunction1DNegativeExponential(1.0d0)
@@ -303,7 +302,7 @@ contains
     ! Begin build of the main branch - other branches will be built recursively.
     !$omp taskgroup
     !$omp task untied
-    call self%buildBranch(tree,massResolution,nodeIndex,node)
+    call self%buildBranch(tree,massResolution,node)
     !$omp end task
     !$omp end taskgroup
     ! Convert w to time (and test for well-ordering) along the main branch. Other branches will be converted recursively.
@@ -368,18 +367,17 @@ contains
 
   end subroutine cole2000ParallelBuild
 
-  recursive subroutine cole2000ParallelOnBranch(tree,massResolution,nodeIndex,node)
+  recursive subroutine cole2000ParallelOnBranch(tree,massResolution,node)
     !!{
     Act on branching.
     !!}
     implicit none
     type            (mergerTree), intent(in   )          :: tree
     double precision            , intent(in   )          :: massResolution
-    integer         (kind_int8 ), intent(inout)          :: nodeIndex
     type            (treeNode  ), intent(inout), pointer :: node
     
     !$omp task untied
-    call self__%buildBranch(tree,massResolution,nodeIndex,node)
+    call self__%buildBranch(tree,massResolution,node)
     !$omp end task
     return
   end subroutine cole2000ParallelOnBranch
