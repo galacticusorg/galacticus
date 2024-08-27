@@ -26,13 +26,10 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMONFW">
    <description>
-    A dark matter profile DMO class which implements the \gls{nfw} density profile \citep{navarro_universal_1997}:
-    \begin{equation}
-      \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
-      \right]^{-2},
-    \end{equation}
-    normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
-    $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}).
+    A dark matter profile DMO class which builds \refClass{} objects to implement the \gls{nfw} density profile
+    \citep{navarro_universal_1997}, normalized such that the total mass of the \gls{node} is enclosed with the virial radius and
+    with the scale length $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
+    \refPhysics{darkMatterProfileConcentration}).
    </description>
   </darkMatterProfileDMO>
   !!]

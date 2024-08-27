@@ -30,7 +30,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowShi2016">
     <description>
-       An accretion flow class which models the accretion flow using the model of \cite{shi_outer_2016}.
+       An adark matter profile class which builds \refClass{massDistributionShi2016} objects to model accretion flows using the
+       model of \cite{shi_outer_2016}.
     </description>
   </darkMatterProfileDMO>
   !!]

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of Jiang et al. (2022).
+  An implementation of a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
   !!}
 
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
@@ -26,7 +26,10 @@
   
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMCoreNFW">
-   <description>Cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of Jiang et al. (2022).</description>
+    <description>
+      Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}
+      are built via \refClass{} objects.
+    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMCoreNFW

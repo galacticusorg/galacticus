@@ -24,16 +24,17 @@
   !![
   <massDistribution name="massDistributionSphericalFiniteResolution">
    <description>
-     A mass distribution class which applies a finite resolution to some other mass distribution class, typically to mimic the effects
-     of finite resolution in an N-body simulation. Specifically, the density profile is given by
+     A mass distribution class which applies a finite resolution to some other mass distribution class, typically to mimic the
+     effects of finite resolution in an N-body simulation. Specifically, the density profile is given by
      \begin{equation}
      \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
      \end{equation}
      where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
      original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
      
-     Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile, $\rho^\prime(r)$, which
-     rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile under this model.
+     Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile,
+     $\rho^\prime(r)$, which rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile
+     under this model.
    </description>
   </massDistribution>
   !!]

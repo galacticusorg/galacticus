@@ -26,14 +26,11 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
    <description>
-    A dark matter profile DMO class which implements the Einasto density profile (e.g. \citealt{cardone_spherical_2005}):
-    \begin{equation}
-      \rho_\mathrm{dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1
-      \right] \right),
-    \end{equation}
-    normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length
-    $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}). The
-    shape parameter, $\alpha$, is set using the density profile shape method (see \refPhysics{darkMatterProfileShape}).
+    A dark matter profile DMO class which builds \refClass{massDistributionEinasto} objects to compute the Einasto density profile
+    (e.g. \citealt{cardone_spherical_2005}), normalized such that the total mass of the \gls{node} is enclosed with the virial
+    radius and with the characteristic length $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
+    \refPhysics{darkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method
+    (see \refPhysics{darkMatterProfileShape}).
    </description>
   </darkMatterProfileDMO>
   !!]

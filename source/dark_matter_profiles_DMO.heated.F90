@@ -26,20 +26,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
    <description>
-     A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
-     \ttfamily darkMatterProfileDMO}. This profile is then modified by heating, under the assumption that the
-     energy of a shell of mass before and after heating are related by
-     \begin{equation}
-     -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
-     \end{equation}    
-     where $M(r)$ is the mass enclosed within a radius $r$, and $\epsilon(r)$ represents the specific heating in the shell
-     initially at radius $r$. Primes indicate values after heating, while unprimed variables indicate quantities prior to
-     heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given
-     $r^\prime$ and $\epsilon(r)$.
-     
-     Not all methods have analytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
-     \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
-     unheated profile, otherwise a numerical calculation is performed.
+     A dark matter profile DMO class which builds \refClass{massDistributionSphericalHeated} objects to account for heating of
+     some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]

@@ -24,13 +24,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996">
    <description>
-    A dark matter profile DMO class which implements the \cite{zhao_analytical_1996} density profile
-    \begin{equation}
-      \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-\gamma} \left(1+\left[{r\over r_\mathrm{s}}\right]^\alpha \right)^{-(\beta-\gamma)/\alpha},
-    \end{equation}
-    normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length    
-    $r_\mathrm{s}$. Numerical solutions are implemented for the case of general $(\alpha,\beta,\gamma)$, with some analytic
-    solution for certain special cases.
+    A dark matter profile DMO class which builds \refClass{massDistributionZhao1996} objects.
    </description>
   </darkMatterProfileDMO>
   !!]

@@ -25,7 +25,9 @@
 
   !![
   <massDistributionHeating name="massDistributionHeatingMonotonic">
-    <description>A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation..</description>
+    <description>
+      A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation.
+    </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingMonotonic

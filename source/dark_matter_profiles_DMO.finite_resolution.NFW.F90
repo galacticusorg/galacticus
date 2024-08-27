@@ -27,13 +27,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolutionNFW">
    <description>
-    A dark matter profile DMO class which applies a finite resolution to an NFW density profile, typically to mimic the effects
-    of finite resolution in an N-body simulation. Specifically, the density profile is given by
-    \begin{equation}
-     \rho(r) = \rho_\mathrm{NFW}(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
-    \end{equation}
-    where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
-    original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
+    A dark matter profile DMO class which builds \refClass{massDistributionSphericalFiniteResolutionNFW} objects to mimic a finite
+    resolution to an NFW density profile.
    </description>
 
   </darkMatterProfileDMO>

@@ -28,7 +28,10 @@
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
-   <description>exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.</description>
+    <description>
+      Exponentially truncated dark matter halo profiles \cite{kazantzidis_2006} are constructed via the
+      \refClass{massDistributionSphericalTruncatedExponential} class.
+    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOTruncatedExponential

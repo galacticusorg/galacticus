@@ -24,7 +24,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOPenarrubia2010">
    <description>
-    A dark matter profile DMO class which implements the \cite{penarrubia_impact_2010} density profile.
+    A dark matter profile DMO class which builds \refClass{massDistributionZhao1996} to implement the
+    \cite{penarrubia_impact_2010} density profile.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionStripped, massDistributionUnstripped"/>

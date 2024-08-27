@@ -23,7 +23,10 @@
 
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingTwoBodyRelaxation">
-   <description>A dark matter profile heating model which computes heating due to two-body relaxation.</description>
+    <description>
+      A dark matter profile heating class which returns a \refClass{massDistributionHeatingTwoBodyRelaxation} objects to compute
+      heating due to two-body relaxation.
+    </description>
   </darkMatterProfileHeating>
   !!]
 

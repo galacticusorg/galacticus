@@ -31,7 +31,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowCorrelationFunction">
     <description>
-       An accretion flow class which models the accretion flow using the 2-halo correlation function.
+       An accretion flow class which models the accretion flow using the 2-halo correlation function by building
+       \refClass{massDistributionCorrelationFunction} objects.
     </description>
   </darkMatterProfileDMO>
   !!]

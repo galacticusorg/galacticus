@@ -25,7 +25,13 @@
   
   !![
   <massDistribution name="massDistributionEinasto">
-   <description>An Einasto (e.g. \citealt{cardone_spherical_2005}) mass distribution class.</description>
+    <description>
+      An Einasto (e.g. \citealt{cardone_spherical_2005}) mass distribution class. The density profile is given by:
+      \begin{equation}
+      \rho_\mathrm{dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1
+      \right] \right).
+      \end{equation}
+    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionEinasto

@@ -25,7 +25,10 @@
 
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonic">
-   <description>A dark matter profile heating model which takes another heating source and enforces monotonic heating energy perturbation.</description>
+    <description>
+      A dark matter profile heating model builds \refClass{massDistributionHeatingMonotonic} objects to enforce monotonic heating
+      energy perturbations.
+    </description>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingMonotonic

@@ -27,7 +27,13 @@
   
   !![
   <massDistribution name="massDistributionNFW">
-   <description>An NFW \citep{navarro_structure_1996} mass distribution class.</description>
+    <description>
+      An NFW \citep{navarro_structure_1996} mass distribution class. The density profile is given by:
+      \begin{equation}
+       \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
+      \right]^{-2}.
+      \end{equation}
+    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionNFW

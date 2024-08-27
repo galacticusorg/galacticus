@@ -23,7 +23,9 @@
 
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingNull">
-   <description>A dark matter profile heating model in which the heating is always zero.</description>
+    <description>
+      A dark matter profile heating model which constructs \refClass{massDistributionHeatingNull} objects to provide zero heating.
+    </description>
   </darkMatterProfileHeating>
   !!]
 

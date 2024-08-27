@@ -27,22 +27,8 @@
   !![
   <darkMatterProfile name="darkMatterProfileSIDMIsothermal">
     <description>
-      Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022). This
-      model assumes that the dark matter within the interaction radius, $r_1$, has thermalized and can therefore be described by a
-      constant velocity dispersion, $\sigma_0$. Under this assumption the spherical Jeans equation has a solution of the form:
-      \begin{equation}
-      \rho(r) = \rho_0 \exp\left[-\frac{\phi(r)}{\sigma_0^2}\right],
-      \end{equation}
-      where $\rho(r)$ is the density $\rho_0$ is the density at $r=0$, and the gravitational potential satisfies (Jiang et al. 2022):
-      \begin{equation}
-      \nabla^2 \phi(r) = 4 \pi \mathrm{G} \left[ \rho_0 \exp \left( - \frac{\phi(r)}{\sigma_0^2} \right) + \rho_\mathrm{b}(r) \right],
-      \end{equation}
-      where $\rho_\mathrm{b}(r)$ is the density of the baryonic component. This second-order differential equation is solved using the boundary conditions $\phi(r=0)=0$ and
-      $\mathrm{d}\phi/\mathrm{d}r(r=0)=0$. The values of $\rho_0$ and $\sigma_0$ are then found by minimizing a function      
-      \begin{equation}
-      \delta^2(\rho_0,\sigma_0) = \left[ \frac{\rho(r_1)}{\rho^\prime(r_1)} - 1 \right]^2 + \left[ \frac{M(r_1)}{M^\prime(r_1)} - 1 \right]^2,
-      \end{equation}
-      where $M(r)$ is the mass contained within radius $r$, and primes indicate the profile prior to SIDM thermalization.
+      A dark matter halo profile class that builds \refClass{massDistributionSphericalSIDMIsothermalBaryons} objects for
+      isothermal SIDM profiles containing baryons.
     </description>
   </darkMatterProfile>
   !!]

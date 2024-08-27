@@ -26,7 +26,9 @@
   
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
-   <description>truncated dark matter halo profiles.</description>
+    <description>
+      Truncated dark matter halo profiles are built via the \refClass{massDistributionSphericalTruncated} class.
+    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOTruncated

@@ -24,19 +24,12 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingImpulsiveOutflow">
    <description>
-    A dark matter profile heating model which accounts for heating due to impulsive outflows---i.e. outflows occurring on
-    timescales that are small relative to the dynamical time of the halo. The model assumed is that the energy injection is given by
+    A dark matter profile heating model which accounts for heating due to impulsive outflows. The quantity
     \begin{equation}
-    \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-    \end{equation}
-    where $\alpha$ is a normalization factor, $t_\phi = M_\mathrm{gas}/\dot{M}_\mathrm{outflow}$ is the timescale for the
-    outflow, and $t_\mathrm{dyn} = r_{1/2}/v_{1/2}$ is the dynamical time at the half-mass radius.
-    
-    In practice, the quantity
-    \begin{equation}
-    \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-    \end{equation}
-    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} object---radially-dependent factors are then applied here.
+     \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+    \end{equation}    
+    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} object---radially-dependent factors are then applied
+    in the \refClass{massDistributionHeatingImpulsiveOutflow} object returned from our factory.
    </description>
   </darkMatterProfileHeating>
   !!]

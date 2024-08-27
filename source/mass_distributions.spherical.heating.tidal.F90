@@ -23,7 +23,22 @@
 
   !![
   <massDistributionHeating name="massDistributionHeatingTidal">
-    <description>A tidal mass distribution heating class.</description>
+    <description>
+      A mass distribution heating model which accounts for heating due to tidal shocking. The model follows the general
+      approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is given by
+      $\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2$, where $\Delta \epsilon_1$, and $\Delta \epsilon_2$ are the first
+      and second order perturbations respectively. The first order term is given by $\Delta \epsilon_1 = Q r^2$ where $Q$ is the
+      tidal tensor integrated along the orbital path (see, for example, \citealt{taylor_dynamics_2001}), while the second order
+      term is given by $\Delta \epsilon_2 = (2/3) f \sigma_\mathrm{rms} (1+\chi_\mathrm{r,v}) \sqrt{\Delta \epsilon_1}$
+      \citep[][eqn.~20, see also \protect\citealt{gnedin_self-consistent_1999}; eqn.~18a,b]{gnedin_tidal_1999}. For the particle
+      velocity dispersion, $v_\mathrm{rms}$, we use $\sqrt{3} \sigma_\mathrm{r}(r)$, the radial velocity dispersion in the dark
+      matter profile scaled to the total velocity dispersion assuming an isotropic velocity distribution. The position-velocity
+      correlation function, $\chi_\mathrm{r,v}$, is taken to be a constant given by the parameter {\normalfont \ttfamily
+      [correlationVelocityRadius]}. The coefficient, $f=${\normalfont \ttfamily [coefficientSecondOrder]} is introduced to allow
+      some freedom to adjust the contribution of the second order term. It is degenerate with the value of $\chi_\mathrm{r,v}$
+      but is introduced to allow for possible future promotion of $\chi_\mathrm{r,v}$ from a constant to a function of the dark
+      matter profile potential \citep[see, for example,][appendix~B]{gnedin_self-consistent_1999}.
+    </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingTidal

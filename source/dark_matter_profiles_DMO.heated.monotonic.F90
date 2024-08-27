@@ -26,27 +26,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOHeatedMonotonic">
    <description>
-     A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
-     \ttfamily darkMatterProfileDMO}. This profile is then modified by heating, under the assumption that the
-     energy of a shell of mass before and after heating are related by
-     \begin{equation}
-     -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
-     \end{equation}    
-     where $M(r)$ is the mass enclosed within a radius $r$, and $\epsilon(r)$ represents the specific heating in the shell
-     initially at radius $r$. Primes indicate values after heating, while unprimed variables indicate quantities prior to
-     heating.
-
-     The above equation can be re-written as
-     \begin{equation}
-     -r^{\prime -1} = -r^{-1} + \xi(r),
-     \end{equation}     
-     where $\xi(r) = 2 \epsilon(r)/[\mathrm{G} M(r)/r]$ measures the perturbation to the shell. To avoid shell crossing a
-     monotonicity relation $r_1 &lt; r_2 \implies \xi(r_1) \le \xi(r_2)$ is enforced by starting at large radius and stepping inward,
-     enforcing the condition in the next innermost shell as necessary.
-     
-     Not all methods have analytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
-     \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
-     unheated profile, otherwise a numerical calculation is performed.
+     A dark matter profile DMO class in which builds \refClass{massDistributionSphericalHeatedMonotonic} objects to account for
+     heating of some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]

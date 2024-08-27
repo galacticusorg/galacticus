@@ -23,7 +23,21 @@
 
   !![
   <massDistributionHeating name="massDistributionHeatingImpulsiveOutflow">
-    <description>A mass distribution heating class that computes heating due to impulsive outflows.</description>
+    <description>
+      A mass distribution heating class that computes heating due to impulsive outflows---i.e. outflows occurring on
+      timescales that are small relative to the dynamical time of the halo. The model assumed is that the energy injection is given by
+      \begin{equation}
+    \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+    \end{equation}
+      where $\alpha$ is a normalization factor, $t_\phi = M_\mathrm{gas}/\dot{M}_\mathrm{outflow}$ is the timescale for the
+      outflow, and $t_\mathrm{dyn} = r_{1/2}/v_{1/2}$ is the dynamical time at the half-mass radius.
+      
+      The quantity
+      \begin{equation}
+    \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+    \end{equation}
+      if provided as an argument to the class constructor.
+    </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingImpulsiveOutflow

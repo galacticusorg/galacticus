@@ -23,7 +23,9 @@
 
   !![
   <massDistributionHeating name="massDistributionHeatingNull">
-    <description>A null mass distribution heating class.</description>
+    <description>
+      A null mass distribution heating class. The heating energy is always zero.
+    </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingNull

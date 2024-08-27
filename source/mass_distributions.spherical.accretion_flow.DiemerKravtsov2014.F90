@@ -25,9 +25,7 @@
   <massDistribution name="massDistributionDiemerKravtsov2014">
     <description>
       A mass distribution class for accretion flows which models the accretion flow using the fitting function of
-      \cite{diemer_dependence_2014}. Specifically, the density profile of the accretion flow is modeled using their equation~(4),
-      along with fits to the redshift and $\nu$ dependencies of the fitting parameters $b_\mathrm{e}$ and $s_\mathrm{e}$ chosen to
-      match the results of their figure~18.
+      \cite{diemer_dependence_2014}. Specifically, the density profile of the accretion flow is modeled using their equation~(4).
    </description>
   </massDistribution>
   !!]
