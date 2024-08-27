@@ -576,7 +576,7 @@ contains
              if (accretionFractionCumulative > 0.0d0) then
                 !$omp atomic
                 self_%nodeIndex =  self_%nodeIndex+1
-                nodeNew1        => treeNode(self_%nodeIndex,nodeTip%hostTree)
+                nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
                 basicNew1       => nodeNew1%basic(autoCreate=.true.)
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1       =  basic_%mass()*(1.0d0-accretionFractionCumulative)
@@ -609,7 +609,7 @@ contains
                 ! Terminate the branch with a final node.
                 !$omp atomic
                 self_%nodeIndex          =  self_%nodeIndex+1
-                nodeNew1           => treeNode      (self_%nodeIndex        ,nodeTip%hostTree)
+                nodeNew1           => treeNode      (self_%nodeIndex        ,nodeCurrent%hostTree)
                 basicNew1          => nodeNew1%basic(autoCreate=.true.     )
                 ! Create a node at the mass resolution.
                 nodeMass1          =  massResolution
@@ -789,7 +789,7 @@ contains
                    ! Branching occurs - create two progenitors.
                    !$omp atomic
                    self_%nodeIndex =  self_%nodeIndex+1
-                   nodeNew1        => treeNode(self_%nodeIndex,nodeTip%hostTree)
+                   nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
                    basicNew1       => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
                    nodeMass1       =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor_,self_%workers(numberWorker)%randomNumberGenerator_,nodeCurrent)
@@ -806,7 +806,7 @@ contains
                    if (nodeMass2 > massResolution) then
                       !$omp atomic
                       self_%nodeIndex =  self_%nodeIndex+1
-                      nodeNew2        => treeNode(self_%nodeIndex,nodeTip%hostTree)
+                      nodeNew2        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
                       basicNew2       => nodeNew2%basic(autoCreate=.true.)
                       ! Compute the critical overdensity of the second new node.
                       deltaCritical2=self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass2,nodeNew2)
@@ -843,7 +843,7 @@ contains
                    if (accretionFractionCumulative >= self_%accretionLimit) then
                       !$omp atomic
                       self_%nodeIndex =  self_%nodeIndex+1
-                      nodeNew1        => treeNode(self_%nodeIndex,nodeTip%hostTree)
+                      nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
                       basicNew1       => nodeNew1%basic(autoCreate=.true.)
                       ! Compute new mass accounting for sub-resolution accretion.
                       nodeMass1       =  basic_%mass()*(1.0d0-accretionFractionCumulative)
