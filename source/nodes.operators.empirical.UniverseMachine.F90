@@ -59,7 +59,7 @@
           &                                                    beta_0                                    , beta_a              , beta_z                     , &
           &                                                    gamma_0                                   , gamma_a             , gamma_z                    , &
           &                                                    delta_0
-     logical                                                :: setFinalStellarMass
+     logical                                                :: setFinalStellarMass                       , hasDisk             , hasSpheroid
      class  (cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
      class  (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
      class  (darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_            => null()
@@ -325,7 +325,9 @@ contains
     <constructorAssign variables="massStellarFinal, fractionMassSpheroid, fractionMassDisk, epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
     
-    self%setFinalStellarMass=massStellarFinal >= 0.0d0
+    self%setFinalStellarMass=massStellarFinal     >= 0.0d0
+    self%hasDisk            =fractionMassDisk     >= 0.0d0
+    self%hasSpheroid        =fractionMassSpheroid >= 0.0d0
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![
@@ -437,14 +439,11 @@ contains
     
     if (.not.node%isOnMainBranch()) return 
     basic       => node   %basic                                            (                 )
-    spheroid    => node   %spheroid                                         (autoCreate=.true.)
-    disk        => node   %disk                                             (autoCreate=.true.)
     redshift    =  self   %cosmologyFunctions_%redshiftFromExpansionFactor(                     &
         &           self  %cosmologyFunctions_%expansionFactor             (                    &
         &            basic%time                                             (                 ) &
         &                                                                  )                    &
         &                                                                 )
-
     massHalo    =  Dark_Matter_Profile_Mass_Definition                    (                                                                                                       &
          &                                                                                        node                                                                          , &
          &                                                                                        self%virialDensityContrastDefinition_%densityContrast(                          &
@@ -456,7 +455,6 @@ contains
          &                                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                    , &
          &                                                                 virialDensityContrast_=self%virialDensityContrast_                                                     &
          &                                                                ) 
-
     massStellar =  self   %stellarMassHaloMassRelation                      (massHalo,redshift)     
     ! If necessary, rescale the stellar mass to ensure that we match the requested final stellar mass.
     if (self%setFinalStellarMass) then 
@@ -488,8 +486,14 @@ contains
     ! Ensure stellar mass remains non-negative.
     massStellar=max(massStellar,0.0d0)
     ! Set the stellar mass, partitioned between disk and spheroid.
-    call spheroid%massStellarSet(self%fractionMassSpheroid*massStellar) 
-    call disk    %massStellarSet(self%fractionMassDisk    *massStellar) 
+    if (self%hasSpheroid) then
+      spheroid => node    %spheroid      (                                     )
+      call        spheroid%massStellarSet(self%fractionMassSpheroid*massStellar) 
+    end if 
+    if (self%hasDisk    ) then
+      disk     => node    %disk          (                                     )
+      call        disk    %massStellarSet(self%fractionMassDisk    *massStellar) 
+    end if
     return
   end subroutine empiricalGalaxyUniverseMachineUpdate
 
@@ -497,18 +501,27 @@ contains
     !!{
     Initialize the galaxy.
     !!}
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
-    class(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target :: self
-    type (treeNode                                  ), intent(inout), target :: node
+    class(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout), target  :: self
+    type (treeNode                                  ), intent(inout), target  :: node
+    class(nodeComponentSpheroid                     ),                pointer :: spheroid
+    class(nodeComponentDisk                         ),                pointer :: disk
+    if (.not.node%isOnMainBranch()) return 
+    if (self%hasSpheroid) then 
+      spheroid => node%spheroid(autoCreate=.true.)
+    end if 
+    if (self%hasDisk    ) then 
+      disk     => node%disk    (autoCreate=.true.)
+    end if       
 
-    call self%update(node)
     return
   end subroutine empiricalGalaxyUniverseMachineNodeInitialize
   
   subroutine empiricalGalaxyUniverseMachineAnalytics(self,node)
     !!{
     Mark disk and spheroid stellar masses as analytically-solvable.
-    !!}                                                                                                                                                                                                                     
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self
