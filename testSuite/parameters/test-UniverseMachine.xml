@@ -4,7 +4,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <randomNumberGenerator value="GSL">
-		<seed value="153" />
+    <seed value="153" />
   </randomNumberGenerator>
 
   <!-- Specify tasks to perform -->
@@ -60,8 +60,8 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructor value="build">
-		<redshiftBase value="0.0" />
-	</mergerTreeConstructor>
+    <redshiftBase value="0.0" />
+  </mergerTreeConstructor>
   <mergerTreeBuilder value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -100,7 +100,7 @@
   <!-- Tree evolution -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.001"/>	    
- 	  <odeToleranceRelative value="0.001"/>
+    <odeToleranceRelative value="0.001"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="0.01"/>
