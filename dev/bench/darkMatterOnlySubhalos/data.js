@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724722526982,
+  "lastUpdate": 1724822515746,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "f9e67cd1dde359d0864c04813883ea8618ad1bc4",
-          "message": "Merge pull request #502 from galacticusorg/dependabot/github_actions/tj-actions/changed-files-40\n\nbuild(deps): bump tj-actions/changed-files from 39 to 40",
-          "timestamp": "2023-10-30T14:28:00Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f9e67cd1dde359d0864c04813883ea8618ad1bc4"
-        },
-        "date": 1699476969086,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.617,
-            "unit": "seconds",
-            "range": 0.0752070475420184
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8712,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20598.8638559025,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17565016588319134998228384202ff1ba32e5e6",
+          "message": "Merge pull request #680 from galacticusorg/fixDetectMissingParameterInExpression\n\nProvide a more helpful error message when a parameter referenced in an expression is not found",
+          "timestamp": "2024-08-27T22:13:41Z",
+          "tree_id": "6b865f38be30b7d529d7b0eba7b3812965f86c3a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/17565016588319134998228384202ff1ba32e5e6"
+        },
+        "date": 1724822513957,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 51.785,
+            "unit": "seconds",
+            "range": 0.0569429539099225
           }
         ]
       }
