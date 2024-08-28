@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724822532727,
+  "lastUpdate": 1724832127941,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
@@ -2785,6 +2785,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
             "value": "23.035308052347663",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "44abc28ecbfdef8fa2cf6cac325595947792c29d",
+          "message": "fix: Update description text for dark matter profile classes to reflect their factory status",
+          "timestamp": "2024-08-27T22:55:15Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/44abc28ecbfdef8fa2cf6cac325595947792c29d"
+        },
+        "date": 1724832127099,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "57.210167813350665",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "29.545333361229993",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.035305633442512",
             "unit": "-logℒ"
           }
         ]
