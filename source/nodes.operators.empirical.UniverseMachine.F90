@@ -507,14 +507,11 @@ contains
     type (treeNode                                  ), intent(inout), target  :: node
     class(nodeComponentSpheroid                     ),                pointer :: spheroid
     class(nodeComponentDisk                         ),                pointer :: disk
-    if (.not.node%isOnMainBranch()) return 
-    if (self%hasSpheroid) then 
-      spheroid => node%spheroid(autoCreate=.true.)
-    end if 
-    if (self%hasDisk    ) then 
-      disk     => node%disk    (autoCreate=.true.)
-    end if       
-
+    
+    if (.not.node%isOnMainBranch().or.associated(node%firstChild)) return 
+    if (self%hasSpheroid) spheroid => node%spheroid(autoCreate=.true.)
+    if (self%hasDisk    ) disk     => node%disk    (autoCreate=.true.)
+    call self%update(node)
     return
   end subroutine empiricalGalaxyUniverseMachineNodeInitialize
   

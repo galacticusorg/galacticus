@@ -108,7 +108,7 @@ contains
 
   subroutine spheroidRadiusPowerLawUpdate(self, node)
     !!{
-    Update radius of galaxy
+    Update radius of the spheroid.
     !!} 
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
@@ -118,16 +118,16 @@ contains
     double precision                                                    :: radiusStellar
 
     if (.not.node%isOnMainBranch()) return 
-    spheroid      =>  node    %spheroid   (                 )
-    radiusStellar =  +self    %beta                                       &
-      &              +spheroid%massStellar(                 )**self%alpha 
+    spheroid      =>  node    %spheroid   ()
+    radiusStellar =  +self    %beta                      &
+      &              +spheroid%massStellar()**self%alpha 
     call spheroid%radiusSet(radiusStellar)
     return  
   end subroutine spheroidRadiusPowerLawUpdate
    
   subroutine spheroidRadiusPowerLawNodeInitialize(self,node)
     !!{
-    Initialize spheroid
+    Initialize the spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
@@ -135,10 +135,10 @@ contains
     type (treeNode                          ), intent(inout), target  :: node
     class           (nodeComponentSpheroid  ),                pointer :: spheroid
 
-    ! Initialize Sheroid
-    if (.not.node%isOnMainBranch()) return 
-    spheroid=>node%spheroid(autoCreate=.true.)
-
+    ! Initialize spheroid.
+    if (.not.node%isOnMainBranch().or.associated(node%firstChild)) return 
+    spheroid => node%spheroid(autoCreate=.true.)
+    call self%update(node)
     return
   end subroutine spheroidRadiusPowerLawNodeInitialize
 
