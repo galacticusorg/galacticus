@@ -100,7 +100,7 @@
   <!-- Tree evolution -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.001"/>	    
- 		<redshiftBase value="0.0" />   <odeToleranceRelative value="0.001"/>
+ 	  <odeToleranceRelative value="0.001"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="0.01"/>

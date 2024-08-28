@@ -439,18 +439,11 @@ contains
     
     if (.not.node%isOnMainBranch()) return 
     basic       => node   %basic                                            (                 )
-    if (self%hasSpheroid) then 
-      spheroid => node%spheroid(autoCreate=.true.)
-    end if 
-    if (self%hasDisk    ) then 
-      disk     => node%disk    (autoCreate=.true.)
-    end if
     redshift    =  self   %cosmologyFunctions_%redshiftFromExpansionFactor(                     &
         &           self  %cosmologyFunctions_%expansionFactor             (                    &
         &            basic%time                                             (                 ) &
         &                                                                  )                    &
         &                                                                 )
-
     massHalo    =  Dark_Matter_Profile_Mass_Definition                    (                                                                                                       &
          &                                                                                        node                                                                          , &
          &                                                                                        self%virialDensityContrastDefinition_%densityContrast(                          &
@@ -462,7 +455,6 @@ contains
          &                                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                    , &
          &                                                                 virialDensityContrast_=self%virialDensityContrast_                                                     &
          &                                                                ) 
-
     massStellar =  self   %stellarMassHaloMassRelation                      (massHalo,redshift)     
     ! If necessary, rescale the stellar mass to ensure that we match the requested final stellar mass.
     if (self%setFinalStellarMass) then 
@@ -495,10 +487,12 @@ contains
     massStellar=max(massStellar,0.0d0)
     ! Set the stellar mass, partitioned between disk and spheroid.
     if (self%hasSpheroid) then
-      call spheroid%massStellarSet(self%fractionMassSpheroid*massStellar) 
+      spheroid => node    %spheroid      (                                     )
+      call        spheroid%massStellarSet(self%fractionMassSpheroid*massStellar) 
     end if 
     if (self%hasDisk    ) then
-      call disk    %massStellarSet(self%fractionMassDisk    *massStellar) 
+      disk     => node    %disk          (                                     )
+      call        disk    %massStellarSet(self%fractionMassDisk    *massStellar) 
     end if
     return
   end subroutine empiricalGalaxyUniverseMachineUpdate

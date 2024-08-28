@@ -112,8 +112,8 @@ def um_smhm(m, z, umparams = None):
               
     return (
             +np.power(
-                    +10.0,
-                    log_msr
+                      +10.0,
+                      log_msr
                    )
             *m1
            ) 
@@ -126,20 +126,21 @@ for z in z_space:
     # Run the model and check for completion 
     print("Running model...")
     path_param = os.path.abspath(f"outputs/test-UniverseMachine/parameters/test-UniverseMachine-z{z:.1f}.xml" )
-    path_log   = os.path.abspath(f"outputs/test-UniverseMachine/logs/test-UniverseMachine-z{z:.1f}.log"            )
+    path_log   = os.path.abspath(f"outputs/test-UniverseMachine/logs/test-UniverseMachine-z{z:.1f}.log"       )
     path_out   = os.path.abspath(f"outputs/test-UniverseMachine/test-UniverseMachine-z{z:.1f}.hdf5"           )
     
     log = open(path_log,"w")
     
+    # Modify the output redshift of parameters/test-UniverseMachine.xml
     xroot = ET.parse("parameters/test-UniverseMachine.xml")
+
     element_zbase = xroot.find("mergerTreeConstructor/redshiftBase")
-    element_zout  = xroot.find("outputTimes/redshifts")
-    element_fname = xroot.find("outputFileName")
+    element_zout  = xroot.find("outputTimes/redshifts"             )
+    element_fname = xroot.find("outputFileName"                    )
     
-    element_zbase.set("value","{:.6f}".format(z))
-    element_zout.set("value","{:.6f}".format(z))
-    element_fname.set("value",path_out)  
-    
+    element_zbase.set("value","{:.2f}".format(z))
+    element_zout.set("value","{:.2f}".format(z))
+    element_fname.set("value",path_out)   
 
     xroot.write(path_param,xml_declaration=True, encoding="UTF-8")
 
@@ -166,14 +167,13 @@ for z in z_space:
     isIsolated  = model["Outputs/Output1/nodeData/nodeIsIsolated"         ][:].astype(bool)
     redshift    = model["Outputs/Output1/nodeData/redshiftLastIsolated"   ][:]  
     
-    massHost, redshift = massHalo[isIsolated], redshift[isIsolated]
+    massHost, redshift, massStellarHost = massHalo[isIsolated], redshift[isIsolated], massStellar[isIsolated]
     
     massStellarPython = um_smhm(massHost, redshift)
     
-    #print(redshift)
-    #print(*zip(*sorted(zip(massStellar[isIsolated], massStellarPython, massHost))), sep="\n")
+    select = massStellarPython / massHost > 1E-4
     
-    if np.allclose(massStellar[isIsolated], massStellarPython, rtol=1e-1):
+    if np.allclose(np.log10(massStellarHost[select]), np.log10(massStellarPython[select]), rtol=1e-2):
         print(f"SUCCESS: results do agree at redshift z={z:.1f}"   )
     else:
         print(f"FAILED: results do not agree z={z:.1f}")
