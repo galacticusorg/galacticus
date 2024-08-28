@@ -87,7 +87,7 @@ contains
       <source>parameters</source>
       <description>Coefficient $\beta$ in the power law fit.</description>
       <defaultValue>1.19d-6</defaultValue>
-      <defaultSource>\cite[][table J1: Parameter $b$, for early type galaxies) and re-scaled from half light radius to Hernquist radius \protect\citep{hernquist_analytical_1990}---Note: there was a typo in the originally provided value, see \protect\cite{hernquist_analytical_1990} for the corrected value]{shen_size_2003}</defaultSource>
+      <defaultSource>\cite[][table J1: Parameter $b$, for early type galaxies and re-scaled from half light radius to Hernquist radius \protect\citep{hernquist_analytical_1990}---Note: there was a typo in the originally provided value, see \protect\cite{shen_erratum_2007} for the corrected value]{shen_size_2003}</defaultSource>
     </inputParameter>
     !!]
   end function spheroidRadiusPowerLawConstructorParameters
@@ -127,13 +127,18 @@ contains
    
   subroutine spheroidRadiusPowerLawNodeInitialize(self,node)
     !!{
-    Initialize radii of spheroids.
+    Initialize spheroid
     !!}
+    use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class(nodeOperatorspheroidRadiusPowerLaw), intent(inout), target  :: self
     type (treeNode                          ), intent(inout), target  :: node
+    class           (nodeComponentSpheroid  ),                pointer :: spheroid
 
-    call self%update(node)
+    ! Initialize Sheroid
+    if (.not.node%isOnMainBranch()) return 
+    spheroid=>node%spheroid(autoCreate=.true.)
+
     return
   end subroutine spheroidRadiusPowerLawNodeInitialize
 
