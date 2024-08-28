@@ -118,7 +118,7 @@ contains
     double precision                                                    :: radiusStellar
 
     if (.not.node%isOnMainBranch()) return 
-    spheroid      =>  node    %spheroid   (autoCreate=.true.)
+    spheroid      =>  node    %spheroid   (                 )
     radiusStellar =  +self    %beta                                       &
       &              +spheroid%massStellar(                 )**self%alpha 
     call spheroid%radiusSet(radiusStellar)

@@ -114,7 +114,7 @@ def um_smhm(m, z, umparams = None):
             +np.power(
                       +10.0,
                       log_msr
-                   )
+                     )
             *m1
            ) 
 
