@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "18eaf8aeaa516ae8acddbaf211bfd03db1710e0b",
-        "message": "fix: Merge branch 'master' into massDistributions\n",
-        "timestamp": "2024-08-26 08:35:06-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/18eaf8aeaa516ae8acddbaf211bfd03db1710e0b"
+        "id": "17565016588319134998228384202ff1ba32e5e6",
+        "message": "Merge pull request #680 from galacticusorg/fixDetectMissingParameterInExpression\n\nProvide a more helpful error message when a parameter referenced in an expression is not found\n",
+        "timestamp": "2024-08-27 22:13:41+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/17565016588319134998228384202ff1ba32e5e6"
     },
     "results": [
         {
@@ -21,7 +21,7 @@ window.ANALYSES_DATA = {
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
                 "description": "Satellite bound mass fraction vs. time.",
-                "logLikelihood": "13.931453284628232",
+                "logLikelihood": "13.931453287519465",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionBoundMass",
@@ -36,9 +36,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.1463727192018819,
-                    0.04922145039017398,
-                    0.014803777906773272
+                    0.14637271926404924,
+                    0.049221450061615275,
+                    0.014803777891378645
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -57,7 +57,7 @@ window.ANALYSES_DATA = {
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
-                "logLikelihood": "6.553744936933258",
+                "logLikelihood": "6.553744936818157",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionRadiusVelocityMaximum",
@@ -72,9 +72,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.5356830063683717,
-                    0.43161928744310113,
-                    0.4051944398158523
+                    0.5356830063391598,
+                    0.4316192874260603,
+                    0.40519443981878106
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -93,7 +93,7 @@ window.ANALYSES_DATA = {
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
-                "logLikelihood": "5.00086310866404",
+                "logLikelihood": "5.0008631128237795",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionVelocityMaximum",
@@ -108,9 +108,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.7182180956476809,
-                    0.49958346440837986,
-                    0.32241589363653256
+                    0.7182180956056743,
+                    0.49958346434794293,
+                    0.3224158935679856
                 ],
                 "yDatasetTarget": [
                     1.0,
