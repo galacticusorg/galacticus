@@ -307,6 +307,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
     !!}
+    use :: Error               , only : Error_Report
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     type            (nodeOperatorEmpiricalGalaxyUniverseMachine)                        :: self
     double precision                                            , intent(in)            :: massStellarFinal      , fractionMassSpheroid, fractionMassDisk, &
@@ -326,8 +328,12 @@ contains
     !!]
     
     self%setFinalStellarMass=massStellarFinal     >= 0.0d0
-    self%hasDisk            =fractionMassDisk     >= 0.0d0
-    self%hasSpheroid        =fractionMassSpheroid >= 0.0d0
+    self%hasDisk            =fractionMassDisk     >  0.0d0
+    self%hasSpheroid        =fractionMassSpheroid >  0.0d0
+    ! Validate fractions.
+    if (.not.Values_Agree(fractionMassDisk+fractionMassSpheroid,1.0d0,absTol=1.0d-3)) call Error_Report('disk and spheroid fractions do not sum to 1'//{introspection:location})
+    if (fractionMassDisk     < 0.0d0) call Error_Report('negative disk fraction is unphysical'    //{introspection:location})
+    if (fractionMassSpheroid < 0.0d0) call Error_Report('negative spheroid fraction is unphysical'//{introspection:location})
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![
