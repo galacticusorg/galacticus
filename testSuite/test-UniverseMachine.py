@@ -120,14 +120,14 @@ def um_smhm(m, z, umparams = None):
 
 
 z_space = np.linspace(0,10,21)
-status = subprocess.run("mkdir -p outputs/test-UniverseMachine outputs/test-UniverseMachine/parameters",shell=True)
+status = subprocess.run("mkdir -p outputs/test-UniverseMachine outputs/test-UniverseMachine/parameters outputs/test-UniverseMachine/logs",shell=True)
 
 for z in z_space:
     # Run the model and check for completion 
     print("Running model...")
-    path_param = os.path.abspath(f"outputs/test-UniverseMachine/parameters/test-UniverseMachine-z{z:.1f}.xml")
-    path_log = os.path.abspath(f"outputs/test-UniverseMachine/test-UniverseMachine-z{z:.1f}.log")
-    path_out = os.path.abspath(f"outputs/test-UniverseMachine/parameters/test-UniverseMachine-z{z:.1f}.xml")
+    path_param = os.path.abspath(f"outputs/test-UniverseMachine/parameters/test-UniverseMachine-z{z:.1f}.xml" )
+    path_log   = os.path.abspath(f"outputs/test-UniverseMachine/logs/test-UniverseMachine-z{z:.1f}.log"            )
+    path_out   = os.path.abspath(f"outputs/test-UniverseMachine/test-UniverseMachine-z{z:.1f}.hdf5"           )
     
     log = open(path_log,"w")
     
@@ -138,14 +138,10 @@ for z in z_space:
     
     element_zbase.set("value","{:.6f}".format(z))
     element_zout.set("value","{:.6f}".format(z))
-    element_fname.set("value",path_param)  
+    element_fname.set("value",path_out)  
     
 
-    xroot.write(path_out,xml_declaration=True, encoding="UTF-8")
-    print("working")
-
-   
-
+    xroot.write(path_param,xml_declaration=True, encoding="UTF-8")
 
     status = subprocess.run(f"cd ..; ./Galacticus.exe {path_param}",stdout=log,stderr=log,shell=True)
     log.close()
@@ -175,7 +171,7 @@ for z in z_space:
     massStellarPython = um_smhm(massHost, redshift)
     
     #print(redshift)
-    print(*zip(*sorted(zip(massStellar[isIsolated], massStellarPython, massHost))), sep="\n")
+    #print(*zip(*sorted(zip(massStellar[isIsolated], massStellarPython, massHost))), sep="\n")
     
     if np.allclose(massStellar[isIsolated], massStellarPython, rtol=1e-1):
         print(f"SUCCESS: results do agree at redshift z={z:.1f}"   )
