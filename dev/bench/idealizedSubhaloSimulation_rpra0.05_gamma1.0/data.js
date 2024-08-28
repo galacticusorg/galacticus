@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724722545867,
+  "lastUpdate": 1724822539648,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -2746,6 +2746,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
             "value": "32.236493260231335",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17565016588319134998228384202ff1ba32e5e6",
+          "message": "Merge pull request #680 from galacticusorg/fixDetectMissingParameterInExpression\n\nProvide a more helpful error message when a parameter referenced in an expression is not found",
+          "timestamp": "2024-08-27T22:13:41Z",
+          "tree_id": "6b865f38be30b7d529d7b0eba7b3812965f86c3a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/17565016588319134998228384202ff1ba32e5e6"
+        },
+        "date": 1724822539044,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737845286848",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.245729892367294",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.23649324777072",
             "unit": "-logℒ"
           }
         ]
