@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724832106856,
+  "lastUpdate": 1724832115372,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d9ea36be8fbdd4c4cf57cbcbb1ba10913aea780a",
-          "message": "Merge pull request #503 from galacticusorg/perl38RegexFix\n\nFix broken regex behavior",
-          "timestamp": "2023-11-09T20:53:29Z",
-          "tree_id": "4a6ea660a42cf563a5c859aadda1a70c1f3869f2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d9ea36be8fbdd4c4cf57cbcbb1ba10913aea780a"
-        },
-        "date": 1699572578021,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.098565059781,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.0932286254012,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23972.8691141465,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8742,6 +8703,43 @@ window.BENCHMARK_DATA = {
             "value": 48.573,
             "unit": "seconds",
             "range": 0.0839172211169415
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "44abc28ecbfdef8fa2cf6cac325595947792c29d",
+          "message": "fix: Update description text for dark matter profile classes to reflect their factory status",
+          "timestamp": "2024-08-27T22:55:15Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/44abc28ecbfdef8fa2cf6cac325595947792c29d"
+        },
+        "date": 1724832114599,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.7353704644028,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.61303952926274,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 21209.1949599767,
+            "unit": "-logℒ"
           }
         ]
       }
