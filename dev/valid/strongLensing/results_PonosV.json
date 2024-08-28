@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "slope" : {
-      "percentageAbove" : 30.7692307692308,
-      "percentageBelow" : 69.2307692307692,
-      "target" : 0.85
-   },
-   "commit" : {
-      "message" : "Merge pull request #680 from galacticusorg/fixDetectMissingParameterInExpression",
-      "timestamp" : "Tue, 27 Aug 2024 22:13:41 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/17565016588319134998228384202ff1ba32e5e6",
-      "id" : "17565016588319134998228384202ff1ba32e5e6",
-      "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      }
-   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "target" : 0.85,
+      "percentageAbove" : 23.0769230769231,
+      "percentageBelow" : 76.9230769230769
+   },
    "surfaceDensity" : {
       "target" : 0.006,
       "percentageAbove" : 53.125,
       "percentageBelow" : 46.875
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/44abc28ecbfdef8fa2cf6cac325595947792c29d",
+      "author" : {
+         "email" : "abenson@carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "message" : "fix: Update description text for dark matter profile classes to reflect their factory status",
+      "timestamp" : "Tue, 27 Aug 2024 15:55:15 -0700",
+      "id" : "44abc28ecbfdef8fa2cf6cac325595947792c29d"
+   }
 }
