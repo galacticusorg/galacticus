@@ -555,17 +555,22 @@ contains
     return
   end function adaptiveMetallicityBoundaries
 
-  function adaptiveTimes(self,indexOutput)
+  function adaptiveTimes(self,indexOutput) result(times)
     !!{
     Return the times used in this tabulation.
     !!}
     implicit none
-    double precision                              , allocatable  , dimension(:) :: adaptiveTimes
+    double precision                              , allocatable  , dimension(:) :: times
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
     integer         (c_size_t                    ), intent(in   )               :: indexOutput
 
-    allocate(adaptiveTimes(size(self%intervals(indexOutput)%time)))
-    adaptiveTimes=self%intervals(indexOutput)%time
+    ! Set the times. These are just our tabulated intervals, except for the final time which is pinned to the output time. This is
+    ! because our final interval may extend past the output time due to the finite size of our minimum interval. Pinning to the
+    ! output time gives a better estimate of the effective size of the bin (since, by definition, no star formation can have
+    ! occurred after the current time).
+    allocate(times(size(self%intervals(indexOutput)%time)))
+    times             =self%intervals   (indexOutput)%time
+    times(size(times))=self%outputTimes_             %time(indexOutput)
     return
   end function adaptiveTimes
 
