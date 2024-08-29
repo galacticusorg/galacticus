@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 23.0769230769231,
-      "percentageBelow" : 76.9230769230769
-   },
    "surfaceDensity" : {
       "target" : 0.006,
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875
+      "percentageAbove" : 50,
+      "percentageBelow" : 50
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/44abc28ecbfdef8fa2cf6cac325595947792c29d",
+      "message" : "Merge pull request #677 from cgannonucm/EmpiricalGalaxyUniverseMachine",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/4d189fb7a539a452bfc96633a438f10492f58076",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
       },
-      "message" : "fix: Update description text for dark matter profile classes to reflect their factory status",
-      "timestamp" : "Tue, 27 Aug 2024 15:55:15 -0700",
-      "id" : "44abc28ecbfdef8fa2cf6cac325595947792c29d"
+      "timestamp" : "Thu, 29 Aug 2024 03:55:45 +0000",
+      "id" : "4d189fb7a539a452bfc96633a438f10492f58076"
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "slope" : {
+      "percentageBelow" : 69.2307692307692,
+      "percentageAbove" : 30.7692307692308,
+      "target" : 0.85
    }
 }
