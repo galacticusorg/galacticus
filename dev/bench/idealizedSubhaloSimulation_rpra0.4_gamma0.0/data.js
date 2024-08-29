@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724832153656,
+  "lastUpdate": 1724926340899,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
@@ -2711,6 +2711,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": "11.535619227855877",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4d189fb7a539a452bfc96633a438f10492f58076",
+          "message": "Merge pull request #677 from cgannonucm/EmpiricalGalaxyUniverseMachine\n\nEmpirical Universe Machine Fits",
+          "timestamp": "2024-08-29T03:55:45Z",
+          "tree_id": "54df11a393ec5cb4435baef0d707635a91659115",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4d189fb7a539a452bfc96633a438f10492f58076"
+        },
+        "date": 1724926340193,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "26.852654205320327",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "12.856529960953935",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "11.53561922700073",
             "unit": "-logℒ"
           }
         ]
