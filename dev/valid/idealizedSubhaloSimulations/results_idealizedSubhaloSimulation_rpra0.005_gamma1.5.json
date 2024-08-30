@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "4d189fb7a539a452bfc96633a438f10492f58076",
-        "message": "Merge pull request #677 from cgannonucm/EmpiricalGalaxyUniverseMachine\n\nEmpirical Universe Machine Fits\n",
-        "timestamp": "2024-08-29 03:55:45+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4d189fb7a539a452bfc96633a438f10492f58076"
+        "id": "46c15af91991266c03d28180bb06645e2916f9a9",
+        "message": "feat: Report timing and memory use statistics when building SED tabulations\n",
+        "timestamp": "2024-08-30 07:33:51-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/46c15af91991266c03d28180bb06645e2916f9a9"
     },
     "results": [
         {

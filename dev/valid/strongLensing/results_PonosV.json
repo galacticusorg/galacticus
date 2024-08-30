@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageAbove" : 50,
-      "percentageBelow" : 50
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "message" : "Merge pull request #677 from cgannonucm/EmpiricalGalaxyUniverseMachine",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/4d189fb7a539a452bfc96633a438f10492f58076",
+      "id" : "46c15af91991266c03d28180bb06645e2916f9a9",
+      "message" : "feat: Report timing and memory use statistics when building SED tabulations",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/46c15af91991266c03d28180bb06645e2916f9a9",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
+         "email" : "abenson@carnegiescience.edu"
       },
-      "timestamp" : "Thu, 29 Aug 2024 03:55:45 +0000",
-      "id" : "4d189fb7a539a452bfc96633a438f10492f58076"
+      "timestamp" : "Fri, 30 Aug 2024 07:33:51 -0700"
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageBelow" : 50,
+      "percentageAbove" : 50
+   },
    "slope" : {
-      "percentageBelow" : 69.2307692307692,
-      "percentageAbove" : 30.7692307692308,
-      "target" : 0.85
-   }
+      "percentageBelow" : 58.3333333333333,
+      "target" : 0.85,
+      "percentageAbove" : 41.6666666666667
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
