@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724926312376,
+  "lastUpdate": 1725050788176,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d9ea36be8fbdd4c4cf57cbcbb1ba10913aea780a",
-          "message": "Merge pull request #503 from galacticusorg/perl38RegexFix\n\nFix broken regex behavior",
-          "timestamp": "2023-11-09T20:53:29Z",
-          "tree_id": "4a6ea660a42cf563a5c859aadda1a70c1f3869f2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d9ea36be8fbdd4c4cf57cbcbb1ba10913aea780a"
-        },
-        "date": 1699572573604,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 271.328,
-            "unit": "seconds",
-            "range": 0.873920820209423
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10684,6 +10654,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9835966320067,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "46c15af91991266c03d28180bb06645e2916f9a9",
+          "message": "feat: Report timing and memory use statistics when building SED tabulations",
+          "timestamp": "2024-08-30T07:33:51-07:00",
+          "tree_id": "2eb20194930f302c7f9a614b02301234c7ad6341",
+          "url": "https://github.com/galacticusorg/galacticus/commit/46c15af91991266c03d28180bb06645e2916f9a9"
+        },
+        "date": 1725050787369,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 420.465,
+            "unit": "seconds",
+            "range": 0.238001050406467
           }
         ]
       }
