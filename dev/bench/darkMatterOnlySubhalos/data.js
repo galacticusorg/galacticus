@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724926308833,
+  "lastUpdate": 1725050783694,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "150e6e81fa667e06ab5d1db655c8a6bfea150199",
-          "message": "Merge pull request #505 from galacticusorg/smbhPropertyOutput\n\nRefactor SMBH property output such that these are output to the `nodeData` group",
-          "timestamp": "2023-11-17T22:22:56Z",
-          "tree_id": "c1538aa88d1a2df5ea90792719d3442ad0b70e20",
-          "url": "https://github.com/galacticusorg/galacticus/commit/150e6e81fa667e06ab5d1db655c8a6bfea150199"
-        },
-        "date": 1700268256876,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.015,
-            "unit": "seconds",
-            "range": 0.0535770473243397
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8710,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20701.7854232173,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "46c15af91991266c03d28180bb06645e2916f9a9",
+          "message": "feat: Report timing and memory use statistics when building SED tabulations",
+          "timestamp": "2024-08-30T07:33:51-07:00",
+          "tree_id": "2eb20194930f302c7f9a614b02301234c7ad6341",
+          "url": "https://github.com/galacticusorg/galacticus/commit/46c15af91991266c03d28180bb06645e2916f9a9"
+        },
+        "date": 1725050781358,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.865,
+            "unit": "seconds",
+            "range": 0.0630277716570594
           }
         ]
       }
