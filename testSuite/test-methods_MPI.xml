@@ -91,7 +91,7 @@
 	  </stellarFeedbackOutflows>
 	</nodeOperator>
 	<!-- Halo positions -->
-	<nodeOperator value="positionDiscrete"/>
+	<nodeOperator value="positionDiscrete" iterable="no"/>
       </nodeOperator>
     </mergerTreeConstructor>    
     <cosmologyParameters value="simple">
