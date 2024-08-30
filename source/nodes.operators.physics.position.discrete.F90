@@ -71,6 +71,7 @@ contains
     class(nodeOperatorPositionDiscrete), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
     class(nodeComponentPosition       ), pointer       :: position
+    !$GLC attributes unused :: self
 
     position => node%position()
     call position%positionAnalytic()
