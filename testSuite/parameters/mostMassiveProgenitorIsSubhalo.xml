@@ -66,6 +66,8 @@
     <nodeOperator value="massAccretionHistory"/>
     <nodeOperator value="cosmicTime"/>
     <nodeOperator value="DMOInterpolate"/>    
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
   </nodeOperator>
   
   <outputFileName value="testSuite/outputs/mostMassiveProgenitorIsSubhalo.hdf5"/>

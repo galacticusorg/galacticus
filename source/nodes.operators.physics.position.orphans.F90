@@ -26,7 +26,7 @@
    <description>A node operator class that sets the positions of orphaned subhalos.</description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorPositionOrphans
+  type, extends(nodeOperatorPositionDiscrete) :: nodeOperatorPositionOrphans
      !!{
      A node operator class that sets the positions of orphaned subhalos.
      !!}
@@ -123,10 +123,12 @@ contains
        ! Not a subhalo - can not be an orphan.
        isOrphan=.false.
     end if
-    if (.not.isOrphan) then
+    if (isOrphan) then
        position => node%position()
        call position%positionSet(self%satelliteOrphanDistribution_%position(node))
        call position%velocitySet(self%satelliteOrphanDistribution_%velocity(node))
+    else
+       call self%nodeOperatorPositionDiscrete%differentialEvolutionStepFinalState(node)
     end if
     return
   end subroutine positionOrphansDifferentialEvolutionStepFinalState
