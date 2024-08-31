@@ -13,6 +13,16 @@ system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildMillenni
 die("FAILED: failed to make Galacticus-format merger tree file from Millennium database output")
     unless ( $? == 0 );
 
+# Extract a single tree from the file we just created.
+system("cd ..; ./scripts/aux/extractSingleTree.py testSuite/outputs/millenniumTestTreesGLC.hdf5 testSuite/outputs/millenniumTestTreesGLCSingle.hdf5 79000000");
+die("FAILED: failed to extract a single merger tree")
+    unless ( $? == 0 );
+
+# Run the single tree to verify that the file is valid.
+system("cd ..; ./Galacticus.exe testSuite/parameters/extractSingleTreeRun.xml");
+die("FAILED: failed to run single merger tree")
+    unless ( $? == 0 );
+
 # Create a file in IRATE format.
 system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildMillenniumIRATE.xml");
 die("FAILED: failed to make IRATE-format merger tree file from Millennium database output")
