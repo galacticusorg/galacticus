@@ -28,7 +28,7 @@
   <nodeOperator name="nodeOperatorspheroidRadiusPowerLaw">
    <description>
     A node operator that implements an an empirical power law relationship between spheroid stellar radius and stellar mass.
-  </description>
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorspheroidRadiusPowerLaw
@@ -86,9 +86,13 @@ contains
       <name>beta</name>
       <source>parameters</source>
       <description>Coefficient $\beta$ in the power law fit.</description>
-      <defaultValue>1.19d-6</defaultValue>
+      <defaultValue>1.19d-9</defaultValue>
       <defaultSource>\cite[][table J1: Parameter $b$, for early type galaxies and re-scaled from half light radius to Hernquist radius \protect\citep{hernquist_analytical_1990}---Note: there was a typo in the originally provided value, see \protect\cite{shen_erratum_2007} for the corrected value]{shen_size_2003}</defaultSource>
     </inputParameter>
+    !!]
+    self=spheroidRadiusPowerLawConstructorInternal(alpha, beta)
+    !![
+    <inputParametersValidate source="parameters"/>
     !!]
   end function spheroidRadiusPowerLawConstructorParameters
 
@@ -102,7 +106,6 @@ contains
     !![
     <constructorAssign variables="alpha, beta"/>
     !!]
-    
     return
   end function spheroidRadiusPowerLawConstructorInternal
 
@@ -120,7 +123,7 @@ contains
     if (.not.node%isOnMainBranch()) return 
     spheroid      =>  node    %spheroid   ()
     radiusStellar =  +self    %beta                      &
-      &              +spheroid%massStellar()**self%alpha 
+      &              *spheroid%massStellar()**self%alpha 
     call spheroid%radiusSet(radiusStellar)
     return  
   end subroutine spheroidRadiusPowerLawUpdate
