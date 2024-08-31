@@ -6,8 +6,8 @@ import h5py
 import numpy as np
 import xml.etree.ElementTree as ET
 
-# Check UniverseMachine results.
-# Charles Gannon (26-August-2024)
+# Test spheroidRadiusPowerLaw nodeOperator.
+# Charles Gannon (31-August-2024)
 path_in_param = os.path.abspath(f"parameters/test-spheroid-power-law.xml"                       )
 path_out_dir  = os.path.abspath(f"outputs/test-spheroid-power-law"                              )
 path_out_log  = os.path.abspath(f"outputs/test-spheroid-power-law/test-spheroid-power-law.log"  )
