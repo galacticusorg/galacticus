@@ -25,13 +25,13 @@
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorspheroidRadiusPowerLaw">
+  <nodeOperator name="nodeOperatorSpheroidRadiusPowerLaw">
    <description>
     A node operator that implements an an empirical power law relationship between spheroid stellar radius and stellar mass.
    </description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorspheroidRadiusPowerLaw
+  type, extends(nodeOperatorClass) :: nodeOperatorSpheroidRadiusPowerLaw
      !!{
      Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specificially:
      \begin{equation}
@@ -52,15 +52,15 @@
      procedure :: nodeInitialize                      => spheroidRadiusPowerLawNodeInitialize
      procedure :: differentialEvolutionSolveAnalytics => spheroidRadiusPowerLawSolveAnalytics
      procedure :: nodesMerge                          => spheroidRadiusPowerLawNodesMerge
-  end type nodeOperatorspheroidRadiusPowerLaw
+  end type nodeOperatorSpheroidRadiusPowerLaw
   
-  interface nodeOperatorspheroidRadiusPowerLaw
+  interface nodeOperatorSpheroidRadiusPowerLaw
      !!{
      Constructors for the {\normalfont \ttfamily spheroidRadiusPowerLaw} node operator class.
      !!}
      module procedure spheroidRadiusPowerLawConstructorParameters
      module procedure spheroidRadiusPowerLawConstructorInternal
-  end interface nodeOperatorspheroidRadiusPowerLaw
+  end interface nodeOperatorSpheroidRadiusPowerLaw
   
 contains
 
@@ -70,7 +70,7 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorspheroidRadiusPowerLaw)                :: self
+    type            (nodeOperatorSpheroidRadiusPowerLaw)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: alpha     , beta    
 
@@ -101,7 +101,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily spheroidRadiusPowerLaw} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorspheroidRadiusPowerLaw)             :: self
+    type            (nodeOperatorSpheroidRadiusPowerLaw)             :: self
     double precision                                    , intent(in) :: alpha, beta
     !![
     <constructorAssign variables="alpha, beta"/>
@@ -115,7 +115,7 @@ contains
     !!} 
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
-    class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
+    class           (nodeOperatorSpheroidRadiusPowerLaw), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
     class           (nodeComponentSpheroid             ), pointer       :: spheroid
     double precision                                                    :: radiusStellar
@@ -134,7 +134,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
-    class(nodeOperatorspheroidRadiusPowerLaw), intent(inout), target  :: self
+    class(nodeOperatorSpheroidRadiusPowerLaw), intent(inout), target  :: self
     type (treeNode                          ), intent(inout), target  :: node
     class           (nodeComponentSpheroid  ),                pointer :: spheroid
 
@@ -150,7 +150,7 @@ contains
     Set the radius of the spheroid.
     !!}
     implicit none
-    class           (nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
+    class           (nodeOperatorSpheroidRadiusPowerLaw), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
     double precision                                    , intent(in   ) :: time
     !$GLC attributes unused :: time
@@ -164,7 +164,7 @@ contains
     Update the radius of the spheroid after a merger.
     !!}
     implicit none
-    class(nodeOperatorspheroidRadiusPowerLaw), intent(inout) :: self
+    class(nodeOperatorSpheroidRadiusPowerLaw), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
 
     call self%update(node)
