@@ -159,10 +159,10 @@
       <gamma_a value="-3.10"/>
       <gamma_z value="-1.055"/>
     </nodeOperator>
-		<nodeOperator value="spheroidRadiusPowerLaw">
-			<alpha value="0.56" />
-			<beta  value="1.19E-9"/>
-		</nodeOperator>
+    <nodeOperator value="spheroidRadiusPowerLaw">
+      <alpha value="0.56" />
+      <beta  value="1.19E-9"/>
+    </nodeOperator>
   </nodeOperator>
   
 </parameters>
