@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725050798307,
+  "lastUpdate": 1725230374343,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f98787d2300cfa787d4b55ee24f4d972812bd32b",
-          "message": "feat: Check that `satellite` component `position` and `velocity` are gettable",
-          "timestamp": "2023-11-13T18:18:34-08:00",
-          "tree_id": "aef7b94cceda9cbbfd61f452ca6fc5b1c7cd34b3",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f98787d2300cfa787d4b55ee24f4d972812bd32b"
-        },
-        "date": 1699937461648,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 180.552,
-            "unit": "seconds",
-            "range": 0.266780059225807
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10684,6 +10654,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9433073311975,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "0e3a5adea6e3b32b9eaaa3a6c4896bbe63fb0cb1",
+          "message": "fix: Correct conditional syntax",
+          "timestamp": "2024-09-01T16:01:45Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0e3a5adea6e3b32b9eaaa3a6c4896bbe63fb0cb1"
+        },
+        "date": 1725230373624,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 438.778,
+            "unit": "seconds",
+            "range": 0.148834135846689
           }
         ]
       }
