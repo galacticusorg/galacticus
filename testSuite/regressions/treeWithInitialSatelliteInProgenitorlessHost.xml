@@ -261,6 +261,8 @@
 	<stabilityThresholdStellar value="0.7"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->
