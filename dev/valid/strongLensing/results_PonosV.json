@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "surfaceDensity" : {
+      "percentageBelow" : 46.875,
+      "percentageAbove" : 53.125,
+      "target" : 0.006
+   },
+   "slope" : {
+      "percentageBelow" : 69.2307692307692,
+      "percentageAbove" : 30.7692307692308,
+      "target" : 0.85
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "id" : "46c15af91991266c03d28180bb06645e2916f9a9",
-      "message" : "feat: Report timing and memory use statistics when building SED tabulations",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/46c15af91991266c03d28180bb06645e2916f9a9",
+      "message" : "fix: Correct conditional syntax",
+      "id" : "0e3a5adea6e3b32b9eaaa3a6c4896bbe63fb0cb1",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/0e3a5adea6e3b32b9eaaa3a6c4896bbe63fb0cb1",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abenson@carnegiescience.edu"
       },
-      "timestamp" : "Fri, 30 Aug 2024 07:33:51 -0700"
-   },
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 50,
-      "percentageAbove" : 50
-   },
-   "slope" : {
-      "percentageBelow" : 58.3333333333333,
-      "target" : 0.85,
-      "percentageAbove" : 41.6666666666667
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+      "timestamp" : "Sun, 1 Sep 2024 09:01:45 -0700"
+   }
 }
