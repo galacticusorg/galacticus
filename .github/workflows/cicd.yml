@@ -1077,6 +1077,7 @@ jobs:
                 test-lightcone-crossing.py,
                 test-massProfileSatelliteBoundMass.py,
                 test-UniverseMachine.py,
+		test-spheroid-power-law.py,
                 test-stateRestore.pl,
                 test-checkpointing.pl,
                 test-stellar-mass-weighted-ages.pl,
