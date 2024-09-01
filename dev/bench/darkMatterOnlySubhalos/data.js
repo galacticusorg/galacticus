@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725050793283,
+  "lastUpdate": 1725230370611,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "f411bee51de1c75457b28077a09e74035ae015e9",
-          "message": "feat: Remove debugging code",
-          "timestamp": "2023-11-27T11:07:33-08:00",
-          "tree_id": "e9c36b8e1721df0527ea44537aa2cf20ad755b62",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f411bee51de1c75457b28077a09e74035ae015e9"
-        },
-        "date": 1701124464283,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 43.48,
-            "unit": "seconds",
-            "range": 0.0840476055577505
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8740,6 +8710,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20581.268633577,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "0e3a5adea6e3b32b9eaaa3a6c4896bbe63fb0cb1",
+          "message": "fix: Correct conditional syntax",
+          "timestamp": "2024-09-01T16:01:45Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0e3a5adea6e3b32b9eaaa3a6c4896bbe63fb0cb1"
+        },
+        "date": 1725230368876,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.643,
+            "unit": "seconds",
+            "range": 0.0930704034588455
           }
         ]
       }
