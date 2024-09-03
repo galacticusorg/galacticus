@@ -55,15 +55,19 @@
     in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
     the output time, and allows simple (interpolation-free) consolidation of accumulated star formation from the previous output
     time's timesteps to those of the current output time.
-  
-    Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
-    [countMetallicities]} bins between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily
-    [metallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum
-    metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin
-    which extends to infinite metallicity). If {\normalfont \ttfamily [countMetallicities]}$=0$ is set, then the star formation
-    history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
-    used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
-    [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added automatically.
+
+    The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
+    minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
+
+    The metallicity bins are arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]} bins
+    between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
+    units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
+    metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
+    final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
+    [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
+    encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
+    via the {\normalfont \ttfamily [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+    automatically.
    </description>
   </starFormationHistory>
   !!]
