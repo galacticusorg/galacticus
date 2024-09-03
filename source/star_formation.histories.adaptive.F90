@@ -291,7 +291,7 @@ contains
              timeStart=self%timeStepMinimum+self%intervals(iOutput-1)%time(size(self%intervals(iOutput-1)%time))
           end if
           timeEnd      =self%outputTimes_%time(iOutput)
-          countTimesNew=int((timeEnd-timeStart)/self%timeStepMinimum)+1
+          countTimesNew=int((timeEnd-timeStart)/self%timeStepMinimum)+2
           ! Construct new timesteps to span the the current output time.
           !! Allocate sufficient space for timesteps and copy in the previous timesteps.
           if (iOutput == 1) then
