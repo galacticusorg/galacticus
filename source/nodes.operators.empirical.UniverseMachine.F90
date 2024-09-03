@@ -25,10 +25,9 @@
   assembly.
   !!}
 
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Cosmology_Functions     , only : cosmologyFunctions        , cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass, virialDensityContrastBryanNorman1998
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastBryanNorman1998
   
   !![
   <nodeOperator name="nodeOperatorEmpiricalGalaxyUniverseMachine">
@@ -62,7 +61,6 @@
      logical                                                :: setFinalStellarMass                       , hasDisk             , hasSpheroid
      class  (cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
      class  (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
-     class  (darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_            => null()
      class  (virialDensityContrastClass          ), pointer :: virialDensityContrast_           => null()
      type   (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
    contains
@@ -110,7 +108,6 @@ contains
           &                                                                        delta_0
     class           (cosmologyParametersClass                 ), pointer        :: cosmologyParameters_
     class           (cosmologyFunctionsClass                  ), pointer        :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                ), pointer        :: darkMatterProfileDMO_
     class           (virialDensityContrastClass               ), pointer        :: virialDensityContrast_
 
     !![ 
@@ -274,18 +271,17 @@ contains
     </inputParameter> 
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=nodeOperatorEmpiricalGalaxyUniverseMachine(                                                                                        &
-         &                                          massStellarFinal    ,fractionMassSpheroid, fractionMassDisk                           , &
-         &                                          epsilon_0           ,epsilon_a           ,epsilon_lna          ,epsilon_z             , &
-         &                                          M_0                 ,M_a                 ,M_lna                ,M_z                   , &
-         &                                          alpha_0             ,alpha_a             ,alpha_lna            ,alpha_z               , &
-         &                                          beta_0              ,beta_a              ,beta_z                                      , &
-         &                                          gamma_0             ,gamma_a             ,gamma_z                                     , &
-         &                                          delta_0                                                                               , &
-         &                                          cosmologyParameters_,cosmologyFunctions_ ,darkMatterProfileDMO_,virialDensityContrast_  &
+    self=nodeOperatorEmpiricalGalaxyUniverseMachine(                                                                            &
+         &                                          massStellarFinal    ,fractionMassSpheroid, fractionMassDisk               , &
+         &                                          epsilon_0           ,epsilon_a           ,epsilon_lna           ,epsilon_z, &
+         &                                          M_0                 ,M_a                 ,M_lna                 ,M_z      , &
+         &                                          alpha_0             ,alpha_a             ,alpha_lna             ,alpha_z  , &
+         &                                          beta_0              ,beta_a              ,beta_z                          , &
+         &                                          gamma_0             ,gamma_a             ,gamma_z                         , &
+         &                                          delta_0                                                                   , &
+         &                                          cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                         )
     !![
     <inputParametersValidate source="parameters"/>
@@ -294,15 +290,15 @@ contains
     return
   end function empiricalGalaxyUniverseMachineConstructorParameters
 
-  function empiricalGalaxyUniverseMachineConstructorInternal(                                                                                        &
-         &                                                   massStellarFinal    ,fractionMassSpheroid,fractionMassDisk                            , &
-         &                                                   epsilon_0           ,epsilon_a           ,epsilon_lna          ,epsilon_z             , &
-         &                                                   M_0                 ,M_a                 ,M_lna                ,M_z                   , &
-         &                                                   alpha_0             ,alpha_a             ,alpha_lna            ,alpha_z               , &
-         &                                                   beta_0              ,beta_a              ,beta_z                                      , &
-         &                                                   gamma_0             ,gamma_a             ,gamma_z                                     , &
-         &                                                   delta_0                                                                               , &
-         &                                                   cosmologyParameters_,cosmologyFunctions_ ,darkMatterProfileDMO_,virialDensityContrast_  &
+  function empiricalGalaxyUniverseMachineConstructorInternal(                                                                            &
+         &                                                   massStellarFinal    ,fractionMassSpheroid,fractionMassDisk                , &
+         &                                                   epsilon_0           ,epsilon_a           ,epsilon_lna           ,epsilon_z, &
+         &                                                   M_0                 ,M_a                 ,M_lna                 ,M_z      , &
+         &                                                   alpha_0             ,alpha_a             ,alpha_lna             ,alpha_z  , &
+         &                                                   beta_0              ,beta_a              ,beta_z                          , &
+         &                                                   gamma_0             ,gamma_a             ,gamma_z                         , &
+         &                                                   delta_0                                                                   , &
+         &                                                   cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                                  ) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily empiricalGalaxyUniverseMachine} {\normalfont \ttfamily nodeOperator} class.
@@ -321,10 +317,9 @@ contains
          &                                                                                 gamma_z 
     class           (cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass                 ), intent(in   ), target :: darkMatterProfileDMO_
     class           (virialDensityContrastClass                ), intent(in   ), target :: virialDensityContrast_
     !![
-    <constructorAssign variables="massStellarFinal, fractionMassSpheroid, fractionMassDisk, epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    <constructorAssign variables="massStellarFinal, fractionMassSpheroid, fractionMassDisk, epsilon_0, epsilon_a, epsilon_lna, epsilon_z, M_0, M_a, M_lna, M_z, alpha_0, alpha_a, alpha_lna, alpha_z, beta_0, beta_a, beta_z, delta_0, gamma_0, gamma_a, gamma_z, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
     !!]
     
     self%setFinalStellarMass=massStellarFinal     >= 0.0d0
@@ -352,7 +347,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyParameters_"            />
     <objectDestructor name="self%cosmologyFunctions_"             />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
@@ -458,7 +452,6 @@ contains
          &                                                                                                                                             )                        , &
          &                                                                 cosmologyParameters_  =self%cosmologyParameters_                                                     , &
          &                                                                 cosmologyFunctions_   =self%cosmologyFunctions_                                                      , &
-         &                                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                    , &
          &                                                                 virialDensityContrast_=self%virialDensityContrast_                                                     &
          &                                                                ) 
     massStellar =  self   %stellarMassHaloMassRelation                      (massHalo,redshift)     
@@ -475,7 +468,6 @@ contains
          &                                                                                                                                                         )                            , &
          &                                                                             cosmologyParameters_  =self%cosmologyParameters_                                                         , &
          &                                                                             cosmologyFunctions_   =self%cosmologyFunctions_                                                          , &
-         &                                                                             darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                        , &
          &                                                                             virialDensityContrast_=self%virialDensityContrast_                                                         &
          &                                                                            ) 
       redshiftRoot    =  self       %cosmologyFunctions_%redshiftFromExpansionFactor(                             &
