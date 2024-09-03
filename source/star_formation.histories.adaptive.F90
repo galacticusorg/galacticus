@@ -461,7 +461,11 @@ contains
        basic => node %basic()
        time  =  basic%time ()
        ! Find the point in the table at which to accumulate the star formation rate.
-       iHistory=searchArray(historyStarFormation%time,time)+1
+       if (time <= historyStarFormation%time(1)) then
+          iHistory=1
+       else
+          iHistory=searchArray(historyStarFormation%time,time)+1
+       end if
        ! Find the metallicity bin to accumulate to.
        if    (self%countMetallicities    == 0              ) then
           iMetallicity   =                                                  +1
