@@ -204,6 +204,8 @@
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
   </nodeOperator>
 
 </parameters>

@@ -81,6 +81,8 @@
       <factorReset value="2.0"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

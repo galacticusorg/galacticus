@@ -43,6 +43,8 @@
         <exponent value="3.5"/>
       </stellarFeedbackOutflows>
     </nodeOperator>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
   </nodeOperator>
 
   <coolingTime value="simple">
