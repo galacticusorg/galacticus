@@ -264,7 +264,7 @@ contains
        end select
     end if
     ! Construct the time bins and rebinning strategy to be used for each output.
-    fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor()//".hdf5"
+    fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor(includeSourceDigest=.true.)//".hdf5"
     allocate(self%intervals(self%outputTimes_%count()))
     if (File_Exists(fileName)) then
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
