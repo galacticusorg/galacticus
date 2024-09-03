@@ -17,7 +17,7 @@ def restricted_integer(x):
     return x
 
 # Parse command line arguments.
-parser = argparse.ArgumentParser(prog='extractSingleTree.py',description='Extract a single tree from a Galacticus merger tree file to its own file')
+parser = argparse.ArgumentParser(prog='extractSingleTree.py',description='Extract a single forest from a Galacticus merger tree file to its own file')
 parser.add_argument('fromFile'                           )
 parser.add_argument('toFile'                             )
 parser.add_argument('forestIndex',type=restricted_integer)
@@ -36,7 +36,8 @@ fromFormatVersion = fromFile.attrs['formatVersion'] if "formatVersion" in fromFi
 forestName      = "treeIndex" if fromFormatVersion == 1 else "forestIndex"
 halosName       = "haloTrees" if fromFormatVersion == 1 else "forestHalos"
 
-# Find the tree to extract.
+# Find the forest to extract.
+print("Locating forest...")
 forestIndex = fromFile[forestName][forestName     ][:]
 firstNode   = fromFile[forestName]['firstNode'    ][:]
 nodeCount   = fromFile[forestName]['numberOfNodes'][:]
@@ -48,8 +49,10 @@ if len(np.nonzero(selected)) > 1:
 start       = firstNode[np.nonzero(selected)]
 count       = nodeCount[np.nonzero(selected)]
 end         = start+count
+print("...done")
 
 # Read all halo datasets.
+print("Extracting datasets...")
 toFile.create_group("forestHalos")
 for name, h5obj in fromFile[halosName].items():
     # Ignore groups.
@@ -58,8 +61,10 @@ for name, h5obj in fromFile[halosName].items():
     # Skip the particleIndex datasets as we will need to recompute them later.
     if name == "particleIndexStart" or name == "particleIndexCount":
         continue
+    print("   "+name)
     dataset    = fromFile[halosName][name][:]
     toFile["forestHalos"].create_dataset(name,data=dataset[start[0]:end[0],...])
+print("...done")
 
 # Create the forestIndex group.
 toFile.create_group("forestIndex")
@@ -69,6 +74,7 @@ toFile["forestIndex"].create_dataset("numberOfNodes",data=                     c
 
 # Copy the particle data if present.
 if "particleIndexStart" in fromFile[halosName]:
+    print("Extracting particle data...")
     particleIndexStart = fromFile[halosName]['particleIndexStart'][start[0]:end[0]]
     particleIndexCount = fromFile[halosName]['particleIndexCount'][start[0]:end[0]]
     indices = set()
@@ -91,15 +97,26 @@ if "particleIndexStart" in fromFile[halosName]:
         particleIndexStartNew[i] = np.nonzero(indices == particleIndexStart[i])[0][0]
     toFile[halosName].create_dataset("particleIndexStart",data=particleIndexStartNew)
     toFile[halosName].create_dataset("particleIndexCount",data=particleIndexCount   )
+    print("...done")
     
 # Set format version.
 toFile.attrs["formatVersion"] = 2
 
 # Copy all attributes.
+print("Copying attributes....")
 for name, h5obj in fromFile.items():
     # Ignore non-groups.
     if not isinstance(h5obj,h5py.Group):
         continue
-    if not name in toFile:
-        toFile.create_group(name)
-    toFile[name].attrs.update(h5obj.attrs)
+    # Translate names between versions.
+    nameTo = name
+    if name == "treeIndex":
+        nameTo = "forestIndex"
+    if name == "haloTrees":
+        nameTo = "forestHalos"
+    # Copy the attributes.
+    print("   "+name+" -> "+nameTo)
+    if not nameTo in toFile:
+        toFile.create_group(nameTo)
+    toFile[nameTo].attrs.update(h5obj.attrs)
+print("...done")
