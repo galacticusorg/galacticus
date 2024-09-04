@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725230381540,
+  "lastUpdate": 1725408990074,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "150e6e81fa667e06ab5d1db655c8a6bfea150199",
-          "message": "Merge pull request #505 from galacticusorg/smbhPropertyOutput\n\nRefactor SMBH property output such that these are output to the `nodeData` group",
-          "timestamp": "2023-11-17T22:22:56Z",
-          "tree_id": "c1538aa88d1a2df5ea90792719d3442ad0b70e20",
-          "url": "https://github.com/galacticusorg/galacticus/commit/150e6e81fa667e06ab5d1db655c8a6bfea150199"
-        },
-        "date": 1700268260687,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 143.042,
-            "unit": "seconds",
-            "range": 0.253691939171379
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10680,6 +10650,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9375897439675,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "dff395c7d57c7fdf93b3b881ede90f241b562a5c",
+          "message": "fix: Remove obsoleted `darkMatterProfileDMO` object in call to dark matter halo mass definition function",
+          "timestamp": "2024-09-03T16:09:29Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dff395c7d57c7fdf93b3b881ede90f241b562a5c"
+        },
+        "date": 1725408989396,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 255.963,
+            "unit": "seconds",
+            "range": 3.61356196847368
           }
         ]
       }
