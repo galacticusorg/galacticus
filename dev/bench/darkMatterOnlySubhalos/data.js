@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725230377932,
+  "lastUpdate": 1725408976480,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "60145e5c93a38a9103221c0ec80bf246656c0410",
-          "message": "Merge pull request #507 from galacticusorg/openMPCriticals\n\nRemove some OpenMP critical sections",
-          "timestamp": "2023-11-28T06:39:05Z",
-          "tree_id": "5e51b48d4c733f98b344864c6d99eccd1adbcef1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/60145e5c93a38a9103221c0ec80bf246656c0410"
-        },
-        "date": 1701162177394,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.847,
-            "unit": "seconds",
-            "range": 0.0532550467097593
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8706,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20514.1935203283,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "dff395c7d57c7fdf93b3b881ede90f241b562a5c",
+          "message": "fix: Remove obsoleted `darkMatterProfileDMO` object in call to dark matter halo mass definition function",
+          "timestamp": "2024-09-03T16:09:29Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/dff395c7d57c7fdf93b3b881ede90f241b562a5c"
+        },
+        "date": 1725408974800,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.517,
+            "unit": "seconds",
+            "range": 0.0357505244709077
           }
         ]
       }
