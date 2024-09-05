@@ -268,7 +268,7 @@ contains
              if (basic%time() == time) then
                 ! Perform our output.
                 call self%output(node,time)
-                ! Perform an extra output.
+                ! Perform any extra output.
                 !![
                 <eventHook name="mergerTreeExtraOutput">
 		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node),treeLock</callWith>

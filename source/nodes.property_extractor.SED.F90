@@ -604,16 +604,17 @@ contains
     !!{
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
-    use    :: Abundances_Structure          , only : abundances           , metallicityTypeLinearByMassSolar, adjustElementsReset
-    use    :: Display                       , only : displayIndent        , displayUnindent                 , displayCounter     , displayCounterClear, &
-         &                                           verbosityLevelWorking
-    use    :: Error                         , only : Error_Report
-    use    :: Histories                     , only : history
-    use    :: Numerical_Integration         , only : integrator
-    use    :: Multi_Counters                , only : multiCounter
-    use    :: Locks                         , only : ompLock
-    use    :: Stellar_Luminosities_Structure, only : frameRest            , frameObserved
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
+    use :: Abundances_Structure          , only : abundances           , metallicityTypeLinearByMassSolar, adjustElementsReset
+    use :: Display                       , only : displayIndent        , displayUnindent                 , displayCounter     , displayCounterClear, &
+         &                                        verbosityLevelWorking, displayMessage
+    use :: Error                         , only : Error_Report
+    use :: Histories                     , only : history
+    use :: Numerical_Integration         , only : integrator
+    use :: Numerical_Constants_Prefixes  , only : siFormat
+    use :: Multi_Counters                , only : multiCounter
+    use :: Locks                         , only : ompLock
+    use :: Stellar_Luminosities_Structure, only : frameRest            , frameObserved
+    use :: Timers                        , only : timer
     implicit none
     double precision                                            , dimension(:,:,:), allocatable :: sedLuminosityMean
     class           (nodePropertyExtractorSED                  ), intent(inout)                 :: self
@@ -641,6 +642,7 @@ contains
     character       (len=12                                    )                                :: label
     type            (multiCounter                              )                                :: state
     type            (ompLock                                   )                                :: stateLock
+    type            (timer                                     )                                :: timer_
     !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift)
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
@@ -714,6 +716,7 @@ contains
        write (label,'(f12.8)') time
        !$omp end critical(gfortranInternalIO)
        call displayIndent("computing template SEDs for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
+       call timer_%start()
     end if
     !$omp end master
     ! Iterate over (wavelength,time,metallicity).
@@ -778,8 +781,10 @@ contains
     !$omp end do
     !$omp master
     if (parallelize_) then
-       call displayCounterClear(       verbosityLevelWorking)
-       call displayUnindent    ("done",verbosityLevelWorking)
+       call timer_%stop()
+       call displayCounterClear(                                                                                          verbosityLevelWorking)
+       call displayMessage     ("table is "//trim(adjustl(siFormat(dble(sizeof(sedLuminosityMean)),'f9.3')))//"B in size",verbosityLevelWorking)
+       call displayUnindent    ("done in " //trim(adjustl(timer_%reportText()                             ))             ,verbosityLevelWorking)
     end if
     !$omp end master
     !![

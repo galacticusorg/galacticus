@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of cooling functions -->
+<!-- 27-June-2015              -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.00</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <position>
+      <position>150.002</position>
+      <position>  0.000</position>
+      <position>  0.000</position>
+    </position>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.8005</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <position>
+      <position> 900.0</position>
+      <position>   0.0</position>
+      <position>   0.0</position>
+    </position>
+  </node>
+</tree>

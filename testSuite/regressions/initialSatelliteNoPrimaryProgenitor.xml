@@ -27,6 +27,8 @@
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>    
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
   </nodeOperator>
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="haloScaling">
