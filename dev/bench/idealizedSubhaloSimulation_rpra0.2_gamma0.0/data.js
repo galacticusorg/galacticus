@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725409016740,
+  "lastUpdate": 1725510720763,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -2863,6 +2863,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": "5.00086310866404",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9a201aadd5f0738ce2a489c93be011eef2ebd47",
+          "message": "Merge pull request #687 from galacticusorg/fixSFHAdaptiveOffByOne\n\nFix an off-by-one error in the `starFormationHistoryAdaptive` class",
+          "timestamp": "2024-09-04T22:16:48Z",
+          "tree_id": "b635a27e6a8a7bde762aa4416d06fc89fe108e65",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a9a201aadd5f0738ce2a489c93be011eef2ebd47"
+        },
+        "date": 1725510720138,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931453287519465",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553744936818157",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.0008631128237795",
             "unit": "-logℒ"
           }
         ]
