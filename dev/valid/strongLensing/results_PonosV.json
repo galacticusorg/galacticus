@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "surfaceDensity" : {
-      "percentageBelow" : 43.75,
-      "percentageAbove" : 56.25,
+      "percentageAbove" : 50,
+      "percentageBelow" : 50,
       "target" : 0.006
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
-      "percentageAbove" : 23.0769230769231,
-      "percentageBelow" : 76.9230769230769,
-      "target" : 0.85
+      "target" : 0.85,
+      "percentageAbove" : 30.7692307692308,
+      "percentageBelow" : 69.2307692307692
    },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/dff395c7d57c7fdf93b3b881ede90f241b562a5c",
-      "id" : "dff395c7d57c7fdf93b3b881ede90f241b562a5c",
-      "timestamp" : "Tue, 3 Sep 2024 16:09:29 +0000",
-      "message" : "fix: Remove obsoleted `darkMatterProfileDMO` object in call to dark matter halo mass definition function",
+      "id" : "a9a201aadd5f0738ce2a489c93be011eef2ebd47",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/a9a201aadd5f0738ce2a489c93be011eef2ebd47",
+      "message" : "Merge pull request #687 from galacticusorg/fixSFHAdaptiveOffByOne",
+      "timestamp" : "Wed, 4 Sep 2024 22:16:48 +0000",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
-         "name" : "Andrew Benson"
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
       }
    }
 }
