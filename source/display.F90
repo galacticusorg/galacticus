@@ -189,7 +189,8 @@ contains
     !!{
     Increase the indentation level and display a message.
     !!}
-    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
+    use   , intrinsic :: ISO_Fortran_Env, only : output_unit
+    !$ use            :: OMP_Lib        , only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
     character(len=*                        ), intent(in   )           :: message
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
@@ -199,14 +200,14 @@ contains
     call initialize()
     if (showMessage(verbosity)) then
        !$ if (omp_in_parallel()) then
-       !$    write (0,threadFormat) omp_get_thread_num(),": "
+       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,masterFormat)                      ": "
+       !$    write (output_unit,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (0,indentationFormatNoNewLine(threadNumber)) '-> '
-       write (0,'(a)') trim(message)
+       write (output_unit,indentationFormatNoNewLine(threadNumber)) '-> '
+       write (output_unit,'(a)') trim(message)
        !$ if (omp_in_parallel()) then
        !$    indentationLevel(omp_get_thread_num()+1)=indentationLevel(omp_get_thread_num()+1)+1
        !$ else
@@ -235,7 +236,8 @@ contains
     !!{
     Decrease the indentation level and display a message.
     !!}
-    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
+    use   , intrinsic :: ISO_Fortran_Env, only : output_unit
+    !$ use            :: OMP_Lib        , only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
     character(len=*                        ), intent(in   )           :: message
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
@@ -251,14 +253,14 @@ contains
        !$ end if
        call formatIndentationCreate()
        !$ if (omp_in_parallel()) then
-       !$    write (0,threadFormat) omp_get_thread_num(),": "
+       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,masterFormat)                      ": "
+       !$    write (output_unit,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (0,indentationFormatNoNewLine(threadNumber)) '<- '
-       write (0,'(a)') trim(message)
+       write (output_unit,indentationFormatNoNewLine(threadNumber)) '<- '
+       write (output_unit,'(a)') trim(message)
     end if
     !$omp end critical(Display_Lock)
     return
@@ -268,7 +270,8 @@ contains
     !!{
     Display a message (input as a {\normalfont \ttfamily character} variable).
     !!}
-    !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
+    use   , intrinsic :: ISO_Fortran_Env, only : output_unit
+    !$ use            :: OMP_Lib        , only : OMP_In_Parallel, OMP_Get_Thread_Num
     implicit none
     character(len=*                        ), intent(in   )           :: message
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
@@ -279,13 +282,13 @@ contains
     if (showMessage(verbosity)) then
        if (barVisible) call counterClearLockless()
        !$ if (omp_in_parallel()) then
-       !$    write (0,threadFormat) omp_get_thread_num(),": "
+       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,masterFormat)                      ": "
+       !$    write (output_unit,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (0,indentationFormat(threadNumber)) trim(message)
+       write (output_unit,indentationFormat(threadNumber)) trim(message)
        if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
     !$omp end critical(Display_Lock)
@@ -296,8 +299,9 @@ contains
     !!{
     Display a message (input as a {\normalfont \ttfamily varying\_string} variable).
     !!}
-    !$ use :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
-    use    :: ISO_Varying_String, only : varying_string , char
+    use   , intrinsic :: ISO_Fortran_Env   , only : output_unit
+    !$ use            :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
+    use               :: ISO_Varying_String, only : varying_string , char
     implicit none
     type   (varying_string               ), intent(in   )           :: message
     type   (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
@@ -308,13 +312,13 @@ contains
     if (showMessage(verbosity)) then
        if (barVisible) call counterClearLockless()
        !$ if (omp_in_parallel()) then
-       !$    write (0,threadFormat) omp_get_thread_num(),": "
+       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,masterFormat)                      ": "
+       !$    write (output_unit,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (0,indentationFormat(threadNumber)) char(message)
+       write (output_unit,indentationFormat(threadNumber)) char(message)
        if (barVisible) call displayCounterLockless(barPercentage,.true.)
     end if
     !$omp end critical(Display_Lock)
@@ -370,6 +374,7 @@ contains
     !!{
     Displays a percentage counter and bar to show progress.
     !!}
+    use, intrinsic :: ISO_Fortran_Env, only : output_unit
     implicit none
     integer                                 , intent(in   )           :: percentageComplete
     logical                                 , intent(in   )           :: isNew
@@ -385,9 +390,9 @@ contains
        majorCount=percentage/2
        minorCount=percentage-majorCount*2
        bar=repeat("=",majorCount)//repeat("-",minorCount)//repeat(" ",50-majorCount-minorCount)
-       write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
+       write (output_unit,'(1x,i3,"% [",a50,"]",$)') percentage,bar
        ! For output to a file, add a newline, since we will not be deleting the bar.
-       if (stdOutIsFile) write (0,*)
+       if (stdOutIsFile) write (output_unit,*)
        barVisible   =.true.
        barPercentage=percentageComplete
     end if
@@ -413,6 +418,7 @@ contains
     !!{
     Clears a percentage counter.
     !!}
+    use, intrinsic :: ISO_Fortran_Env, only : output_unit
     implicit none
     type(enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
 
@@ -420,9 +426,9 @@ contains
     ! If output is to a file we do not attempt to clear the bar (which is useful only on a TTY).
     if (stdOutIsFile) return
     if (showMessage(verbosity)) then
-       write (0,'(a58,$)') repeat(char(8),58)
-       write (0,'(a58,$)') repeat(" "    ,58)
-       write (0,'(a58,$)') repeat(char(8),58)
+       write (output_unit,'(a58,$)') repeat(char(8),58)
+       write (output_unit,'(a58,$)') repeat(" "    ,58)
+       write (output_unit,'(a58,$)') repeat(char(8),58)
     end if
     return
   end subroutine counterClearLockless
