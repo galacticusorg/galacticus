@@ -16,8 +16,8 @@ runs:
         echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
         echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
-        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
-        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp" >> $GITHUB_ENV
+        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include -I/opt/local/include/guile-1.8" >> $GITHUB_ENV
+        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp -I/opt/local/include/guile-1.8" >> $GITHUB_ENV
         os_ver=$(sw_vers -productVersion)
         IFS='.' read -r -a ver <<< "$os_ver"
         echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
@@ -57,7 +57,9 @@ runs:
       run: brew install gcc@11
     - name: Install guile
       shell: bash
-      run: sudo port install guile18
+      run: |
+        sudo port install guile-1.8
+        sudo port select --set guile guile-1.8
     - name: Install libgit2
       shell: bash
       run: sudo port install libgit2
@@ -69,10 +71,8 @@ runs:
         cd libmatheval-1.1.12
         # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
         sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
-        sed -E -i~ s/"-lguile"/"-lguile18"/ configure
-        sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
-        CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local || (cat config.log && false)
+        CC=gcc-11 GUILE=/opt/local/bin/guile-1.8 GUILE_CONFIG=/opt/local/bin/guile-config-1.8 GUILE_TOOLS=/opt/local/bin/guile-tools-1.8 ./configure --prefix=/usr/local || (cat config.log && false)
         make -j3
         sudo make install
         cd ..
