@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725510692621,
+  "lastUpdate": 1725510699768,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "4ad1ed01f7180b8579aef9a691cb1d2e794a3463",
-          "message": "Merge pull request #508 from galacticusorg/openMPCriticals\n\nRemove obsoleted OpenMP `critical` sections",
-          "timestamp": "2023-11-28T21:47:23Z",
-          "tree_id": "49482750bb25967d8e9369a7e1f944397a4521c2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4ad1ed01f7180b8579aef9a691cb1d2e794a3463"
-        },
-        "date": 1701216784737,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.2676114491058,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.2791658368427,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 24167.8090118703,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8732,6 +8693,45 @@ window.BENCHMARK_DATA = {
             "value": 52.836,
             "unit": "seconds",
             "range": 0.041381155131801
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9a201aadd5f0738ce2a489c93be011eef2ebd47",
+          "message": "Merge pull request #687 from galacticusorg/fixSFHAdaptiveOffByOne\n\nFix an off-by-one error in the `starFormationHistoryAdaptive` class",
+          "timestamp": "2024-09-04T22:16:48Z",
+          "tree_id": "b635a27e6a8a7bde762aa4416d06fc89fe108e65",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a9a201aadd5f0738ce2a489c93be011eef2ebd47"
+        },
+        "date": 1725510699148,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.8011062086334,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.67948207514387,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20514.1935203283,
+            "unit": "-logℒ"
           }
         ]
       }
