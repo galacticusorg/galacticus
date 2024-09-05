@@ -94,17 +94,14 @@ contains
     use :: Error           , only : Error_Report
     use :: Nodes_Operators , only : nodeOperatorClass
     use :: Galacticus_Nodes, only : treeNode
-    use :: Debugging, only : isDebugging
     use :: ISO_Varying_String, only : char
-  implicit none
+    implicit none
     class           (*       ), intent(inout) :: nodeOperator_
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
- 
-        if (isDebugging()) write (0,*) "global #1",node%index()
+    
     select type (nodeOperator_)
     class is (nodeOperatorClass)
-        if (isDebugging()) write (0,*) "global #2",node%index(),char(nodeOperator_%objectType())
        call nodeOperator_%differentialEvolutionSolveAnalytics(node,time)
     class default
        call Error_Report('unexpected class'//{introspection:location})
