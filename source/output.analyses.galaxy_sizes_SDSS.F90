@@ -185,7 +185,7 @@ contains
     type            (varying_string                                 )                              :: description
     logical                                                                                        :: isLateType
     !![
-    <constructorAssign variables="distributionNumber, massStellarRatio, sizeSourceLensing, *cosmologyFunctions_, *outputTimes_, *gravitationalLensing_"/>
+    <constructorAssign variables="distributionNumber, massStellarRatio, sizeSourceLensing, *cosmologyFunctions_, *gravitationalLensing_"/>
     !!]
 
     ! Validate input.
