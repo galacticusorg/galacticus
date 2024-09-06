@@ -25,26 +25,27 @@ program Benchmark_Stellar_Populations_Luminosities
   !!{
   Benchmarking of stellar population luminosity calculations.
   !!}
-  use :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
-  use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
-  use :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
-  use :: Input_Paths                               , only : inputPath                                     , pathTypeDataDynamic                      , pathTypeDataStatic
-  use :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
-  use :: Input_Parameters                          , only : inputParameters
-  use :: Instruments_Filters                       , only : Filter_Get_Index
-  use :: Kind_Numbers                              , only : kind_int8
-  use :: Stellar_Astrophysics                      , only : stellarAstrophysics                           , stellarAstrophysicsFile
-  use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
-  use :: Stellar_Astrophysics_Winds                , only : stellarWindsLeitherer1992
-  use :: Stellar_Feedback                          , only : stellarFeedbackStandard
-  use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesStandard
-  use :: Stellar_Population_Spectra                , only : stellarPopulationSpectraFile
-  use :: Stellar_Population_Spectra_Postprocess    , only : stellarPopulationSpectraPostprocessorIdentity , stellarPopulationSpectraPostprocessorList
-  use :: Stellar_Populations                       , only : stellarPopulationStandard
-  use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionChabrier2001
-  use :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
-  use :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
+  use, intrinsic :: ISO_Fortran_Env, only : output_unit
+  use            :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
+  use            :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
+  use            :: Cosmology_Parameters                      , only : cosmologyParametersSimple
+  use            :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
+  use            :: Input_Paths                               , only : inputPath                                     , pathTypeDataDynamic                      , pathTypeDataStatic
+  use            :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
+  use            :: Input_Parameters                          , only : inputParameters
+  use            :: Instruments_Filters                       , only : Filter_Get_Index
+  use            :: Kind_Numbers                              , only : kind_int8
+  use            :: Stellar_Astrophysics                      , only : stellarAstrophysics                           , stellarAstrophysicsFile
+  use            :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
+  use            :: Stellar_Astrophysics_Winds                , only : stellarWindsLeitherer1992
+  use            :: Stellar_Feedback                          , only : stellarFeedbackStandard
+  use            :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesStandard
+  use            :: Stellar_Population_Spectra                , only : stellarPopulationSpectraFile
+  use            :: Stellar_Population_Spectra_Postprocess    , only : stellarPopulationSpectraPostprocessorIdentity , stellarPopulationSpectraPostprocessorList
+  use            :: Stellar_Populations                       , only : stellarPopulationStandard
+  use            :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionChabrier2001
+  use            :: Supernovae_Population_III                 , only : supernovaePopulationIIIHegerWoosley2002
+  use            :: Supernovae_Type_Ia                        , only : supernovaeTypeIaNagashima2005
   implicit none
   type            (inputParameters                               ), target                                 :: parameters
   integer                                                         , parameter                              :: filterCount                               =  137  , populationCount      =20, &
@@ -230,7 +231,7 @@ program Benchmark_Stellar_Populations_Luminosities
        &                /sqrt(                                        dble(trialCount-2)              &
        &                     )
   ! Report benchmark information.
-  write (0,'(a,1x,a,1x,a,f12.1,1x,f12.1,1x,a1,a2,a1)') 'BENCHMARK','stellarPopulationInterpolation','"Stellar population interpolation"',timeMean,timeMeanError,'"',trim(adjustl(units)),'"'
+  write (output_unit,'(a,1x,a,1x,a,f12.1,1x,f12.1,1x,a1,a2,a1)') 'BENCHMARK','stellarPopulationInterpolation','"Stellar population interpolation"',timeMean,timeMeanError,'"',trim(adjustl(units)),'"'
   ! Clean up.
   call parameters%destroy()
 end program Benchmark_Stellar_Populations_Luminosities
