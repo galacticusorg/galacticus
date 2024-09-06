@@ -54,7 +54,6 @@ contains
     implicit none
     type(nodePropertyExtractorAppendSuffix)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    type(varying_string                   )                :: suffix
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(parameters)
     !![
