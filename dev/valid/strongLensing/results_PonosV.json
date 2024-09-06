@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageAbove" : 50,
+      "target" : 0.006,
       "percentageBelow" : 50,
-      "target" : 0.006
+      "percentageAbove" : 50
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "commit" : {
+      "author" : {
+         "email" : "abenson@carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "timestamp" : "Thu, 5 Sep 2024 10:42:30 -0700",
+      "id" : "c9461f66f7f2c663785a26f1320158f2f355bcd9",
+      "message" : "fix: Remove debugging code",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/c9461f66f7f2c663785a26f1320158f2f355bcd9"
+   },
    "slope" : {
       "target" : 0.85,
-      "percentageAbove" : 30.7692307692308,
-      "percentageBelow" : 69.2307692307692
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "id" : "a9a201aadd5f0738ce2a489c93be011eef2ebd47",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/a9a201aadd5f0738ce2a489c93be011eef2ebd47",
-      "message" : "Merge pull request #687 from galacticusorg/fixSFHAdaptiveOffByOne",
-      "timestamp" : "Wed, 4 Sep 2024 22:16:48 +0000",
-      "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      }
+      "percentageBelow" : 58.3333333333333,
+      "percentageAbove" : 41.6666666666667
    }
 }
