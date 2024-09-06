@@ -1071,6 +1071,7 @@ jobs:
                 test-perl-modules.pl,
                 test-reproducibility.pl,
                 test-splitForests.pl,
+                test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
