@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725643317626,
+  "lastUpdate": 1725685911062,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "3c8c9887321041b96ff0eb07f87090ec375bc042",
-          "message": "fix: Revert incorrectly committed code",
-          "timestamp": "2023-12-04T13:19:10-08:00",
-          "tree_id": "8f1b01cd479346b1dea9a0db53dfd4747b137a17",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3c8c9887321041b96ff0eb07f87090ec375bc042"
-        },
-        "date": 1701733339128,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 195.966,
-            "unit": "seconds",
-            "range": 0.108519122733185
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10672,6 +10642,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.7653425714294,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5666c81730be7ffc136434efb4bea99cbf47b938",
+          "message": "Merge pull request #691 from galacticusorg/fixStdOutStdErr\n\nUse `output_unit` and `error_unit` from `ISO_Fortran_Env` to direct all output",
+          "timestamp": "2024-09-06T23:10:22Z",
+          "tree_id": "3e92027585ffd187118c3b6c01bb843f3726cb26",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5666c81730be7ffc136434efb4bea99cbf47b938"
+        },
+        "date": 1725685910328,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 508.16,
+            "unit": "seconds",
+            "range": 0.247661058693177
           }
         ]
       }
