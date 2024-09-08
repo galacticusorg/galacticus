@@ -1072,7 +1072,7 @@ jobs:
                 test-reproducibility.pl,
                 test-splitForests.pl,
                 test-parameters-diff.py,
-		test-parameters-extract.py,
+                test-parameters-extract.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
