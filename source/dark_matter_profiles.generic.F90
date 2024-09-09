@@ -67,7 +67,8 @@ module Dark_Matter_Profiles_Generic
      double precision                                                      :: genericPotentialRadiusMinimum                          , genericPotentialRadiusMaximum
      type            (interpolator            ), allocatable               :: genericPotential
      ! Options controlling tolerance of failures.
-     logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false., tolerateVelocityMaximumFailure             =.false.
+     logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false., tolerateVelocityMaximumFailure             =.false., &
+          &                                                                   toleratePotentialIntegrationFailure          =  .false.
    contains 
      !![
      <methods>
@@ -347,6 +348,7 @@ contains
     use            :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType, structureErrorCodeSuccess
     use            :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use            :: Numerical_Integration           , only : integrator
+    use            :: Error                           , only : Error_Report                     , errorStatusSuccess
     implicit none
     class           (darkMatterProfileGeneric         ), intent(inout), target      :: self
     type            (treeNode                         ), intent(inout), target      :: node
@@ -365,6 +367,7 @@ contains
     double precision                                                                :: radiusMaximum                    , radiusMinimum     , &
          &                                                                             radiusVirial                     , potentialZeroPoint, &
          &                                                                             massRadiusMaximum
+    integer                                                                         :: status_
 
     if (present(status)) status=structureErrorCodeSuccess
     radiusVirial =+self%darkMatterHaloScale_%radiusVirial       (node)
@@ -428,8 +431,10 @@ contains
                 ! Skip cases for which we have a pre-existing solution.
                 if (i >= iMinimum .and. i <= iMaximum) cycle  
                 ! Evaluate the integral.
-                potentials(i)=-integrator_%integrate(radii(i),radiusMaximum) &
+                potentials(i)=-integrator_%integrate(radii(i),radiusMaximum,status_) &
                      &        -potentialZeroPoint
+                if (status_ /= errorStatusSuccess .and. .not.self%toleratePotentialIntegrationFailure) &
+                     & call Error_Report('potential integration failed'//{introspection:location})
              end do
              call self%solverUnset()
              ! Build the interpolator.
