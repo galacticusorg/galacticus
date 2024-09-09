@@ -291,7 +291,7 @@ contains
     Assume, without loss of generality, that the kick is along the $z$-axis. The specific kinetic energy of the retained particles,
     in excess of their original energy is:
     \begin{equation}
-      \epsilon =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_0^{v_\mathrm{e}} \mathrm{d}v \frac{1}{2} \left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta - v^2 \right) p(v,\theta|s) H\left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta < v_\mathrm{e}^2 \right)
+      \epsilon =  \int_{-1}^{+1} \mathrm{d}\cos\theta \int_0^{v_\mathrm{e}} \mathrm{d}v \frac{1}{2} \left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta - v^2 \right) p(v,\theta|s) H\left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta < v_\mathrm{e}^2 \right)
     \end{equation}
 
     where $v_\mathrm{k}$ is the scale-free kick velocity, and $H(x) = 1$ if $x$ is true, and 0 otherwise. Solving the inequality
