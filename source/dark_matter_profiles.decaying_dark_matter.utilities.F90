@@ -353,6 +353,10 @@ contains
       call File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.false.)
       ! Attempt to read existing data from file.
       if (File_Exists(fileName)) then
+         if (allocated(velocitiesEscapeScaleFree)) deallocate(velocitiesEscapeScaleFree)
+         if (allocated(velocitiesKickScaleFree  )) deallocate(velocitiesKickScaleFree  )
+         if (allocated(fractionRetained         )) deallocate(fractionRetained         )
+         if (allocated(energyRetained           )) deallocate(energyRetained           )
          !$ call hdf5Access%set()
          call file%openFile   (char(fileName),overWrite=.false.,readOnly=.true.)
          call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
@@ -374,9 +378,9 @@ contains
          ! minimum value to a fixed multiple of the velocity dispersion. Below this it becomes difficult to find a velocity width
          ! for the truncated Maxwell-Boltzmann distribution.
          velocityEscapeScaleFreeMinimum=min(velocityEscapeScaleFreeMinimum,max(velocityEscapeScaleFreeLimit,0.5d0*velocityEscapeScaleFree))
-         velocityEscapeScaleFreeMaximum=max(velocityEscapeScaleFreeMinimum,                                 2.0d0*velocityEscapeScaleFree )
+         velocityEscapeScaleFreeMaximum=max(velocityEscapeScaleFreeMaximum,                                 2.0d0*velocityEscapeScaleFree )
          velocityKickScaleFreeMinimum  =min(velocityKickScaleFreeMinimum  ,                                 0.5d0*velocityKickScaleFree   )
-         velocityKickScaleFreeMaximum  =max(velocityKickScaleFreeMinimum  ,                                 2.0d0*velocityKickScaleFree   )
+         velocityKickScaleFreeMaximum  =max(velocityKickScaleFreeMaximum  ,                                 2.0d0*velocityKickScaleFree   )
          call displayIndent     ('Tabulating decaying dark matter retained fractions',verbosity=verbosityLevelStandard)
          write (labelMinimum,'(f8.2)') velocityEscapeScaleFreeMinimum
          write (labelMaximum,'(f8.2)') velocityEscapeScaleFreeMaximum
