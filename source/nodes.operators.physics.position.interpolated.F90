@@ -253,8 +253,8 @@ contains
                &       +coefficientsCubic(3,i)*time    &
                &       +coefficientsCubic(4,i)
           velocity_(i)=+3.0d0*coefficientsCubic(1,i)*time**2 &
-               &      +2.0d0*coefficientsCubic(2,i)*time    &
-               &      +      coefficientsCubic(3,i)
+               &       +2.0d0*coefficientsCubic(2,i)*time    &
+               &       +      coefficientsCubic(3,i)
        end do
        ! Convert from comoving back to physical position/velocity, and to km/s.
        position_=+position_                                      &
@@ -303,6 +303,9 @@ contains
           end do
        end do
     end if
+    ! Set the position and velocity.
+    call position%positionSet(position_)
+    call position%velocitySet(velocity_)
     return
   end subroutine positionInterpolatedDifferentialEvolutionSolveAnalytics
 
@@ -598,7 +601,6 @@ contains
              positionComoving(2,:) =  positionHistory       %data  (i+1,1:3               )
              velocityComoving(1,:) =  positionHistory       %data  (i  ,4:6               )
              velocityComoving(2,:) =  positionHistory       %data  (i+1,4:6               )
-
           end if
        else
           ! We have no means to determine the start/end points for this interval. This node must have no future, and so we can

@@ -57,7 +57,7 @@ sub Lock_IO {
 		    my $isExplicit = ! defined($1);
 		    $processedLine =~ s/\(gfortranInternalIO\)/(gfortranInternalIO_)/;
 		    if ( $report && $isExplicit ) {
-			$processedLine = $processedLine."    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n"               ;
+			$processedLine = $processedLine."    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n"               ;
 			$ignoreLine    = 1;
 			&addUse($node);
 		    }
@@ -67,7 +67,7 @@ sub Lock_IO {
 		    my $isExplicit = ! defined($1);
 		    $processedLine =~ s/\(gfortranInternalIO\)/(gfortranInternalIO_)/;
 		    if ( $report && $isExplicit ) {
-			$processedLine =                "    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n".$processedLine;
+			$processedLine =                "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n".$processedLine;
 			$ignoreLine    = 1;
 			&addUse($node);
 		    }
@@ -80,9 +80,9 @@ sub Lock_IO {
 		    if ( $report ) {
 			&addUse($node);
 			if ( defined($1) ) {
-			    $rawLine =          "    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n".$rawLine;
+			    $rawLine =          "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n".$rawLine;
 			} else {
-			    $rawLine = $rawLine."    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n"         ;
+			    $rawLine = $rawLine."    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n"         ;
 			}
 		    }
 		}
@@ -100,14 +100,14 @@ sub Lock_IO {
 		    $inIO        = 1;
 		    $newContent .= "    !\$omp critical(gfortranInternalIO_)\n";
 		    if ( $report ) {
-			$newContent  .= "    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n";
+			$newContent  .= "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n";
 			&addUse($node);
 		    }
 		}
 		if ( ! $isIO && $inIO && ! $inCritical && ! $ignoreLine ) {
 		    $inIO        = 0;
 		    if ( $report ) {
-			$newContent  .= "    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n";
+			$newContent  .= "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n";
 			&addUse($node);
 		    }
 		    $newContent .= "    !\$omp end critical(gfortranInternalIO_)\n";
@@ -117,7 +117,7 @@ sub Lock_IO {
 	    close($content);
 	    if ( $inIO && ! $inCritical && ! $ignoreLine ) {
 		if ( $report ) {
-		    $newContent  .= "    write (0,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n";
+		    $newContent  .= "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n";
 		    &addUse($node);
 		}
 		$newContent .= "    !\$omp end critical(gfortranInternalIO_)\n";		

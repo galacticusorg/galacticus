@@ -202,9 +202,9 @@ while ( my $line = <STDIN> ) {
 	    if (  exists($interoperableVariables->{lc($inProcedure)}->{lc($variableName)}) );
     }
     # Handle uninitialized variable attributes.
-    if ( $line =~ /Warning: ['‘]([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*['’] may be used uninitialized( in this function)?? \[\-Wmaybe\-uninitialized\]/ ) {
+    if ( $line =~ /Warning: ['‘](\(\*)??([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]\s\{\}\):]*['’] may be used uninitialized( in this function)?? \[\-Wmaybe\-uninitialized\]/ ) {
 	$dropBuffer = 1
-	    if ( exists($initializedVariables{lc($1)}) );
+	    if ( exists($initializedVariables{lc($2)}) );
     }
     if ( $line =~ /Warning: ['‘]([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*['’] is used uninitialized( in this function)?? \[\-Wuninitialized\]/ ) {
 	$dropBuffer = 1

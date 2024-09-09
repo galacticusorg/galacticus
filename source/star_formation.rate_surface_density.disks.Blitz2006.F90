@@ -719,14 +719,15 @@ contains
     !!}
     implicit none
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
-    double precision                                               , intent(in   ) :: radiusInner                              , radiusOuter                          , &
-         &                                                                            coefficientNormalization                 , coefficientFactorBoost               , &
+    double precision                                               , intent(in   ) :: radiusInner                              , radiusOuter                             , &
+         &                                                                            coefficientNormalization                 , coefficientFactorBoost                  , &
          &                                                                            coefficientFactorBoostStellar
-    double precision                                               , parameter     :: coefficientFactorBoostStellarLarge=1.0d+4, radiusScaleFreeTiny           =1.0d-3
+    double precision                                               , parameter     :: coefficientFactorBoostStellarLarge=1.0d+4, radiusScaleFreeTiny              =1.0d-3
+    double precision                                               , parameter     :: coefficientFactorBoostTiny        =1.0d-6, coefficientFactorBoostStellarTiny=1.0d-6
     double precision                                               , save          :: coefficientFactorBoost_                  , coefficientFactorBoostStellar_
     !$omp threadprivate(coefficientFactorBoost_,coefficientFactorBoostStellar_)
     integer                                                                        :: i
-    double precision                                                               :: multiplier                               , radiusScaleFree                      , &
+    double precision                                                               :: multiplier                               , radiusScaleFree                         , &
          &                                                                            radiusScaleFreeInner                     , radiusScaleFreeOuter
     
     ! Compute scale free radii.
@@ -859,7 +860,6 @@ contains
       implicit none
       double precision                , intent(in   ) :: radiusScaleFree
       double precision                , parameter     :: toleranceRelative                    =1.0d-6
-      double precision                , parameter     :: coefficientFactorBoostTiny           =1.0d-6, coefficientFactorBoostStellarTiny           =1.0d-6
       integer                         , parameter     :: pointsPerDecadeFactorBoost           =30    , pointsPerDecadeFactorBoostStellar           =30    , &
            &                                             pointsPerDecadeRadius                =30
       integer                                         :: countFactorBoost                            , countFactorBoostStellar                            , &
@@ -884,9 +884,9 @@ contains
       logical                                         :: haveLock
       !$omp threadprivate(message,file,fileLock)
       
-      ! Read table if we do not have it.
+      ! If our table is insufficient (or does not yet exist), attempt to read the table from file.
       haveLock=.false.
-      if (.not.self%tableInitialized) then
+      if (tableIsInsufficient()) then
          call Directory_Make(char(File_Path(char(self%filenameTable))))
          call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
          haveLock=.true.
@@ -914,28 +914,8 @@ contains
             self%tableInitialized=.true.
          end if
       end if
-      ! Recompute table if it has insufficient range.
-      if     (                                                                                 &
-           &   (                                                                               &
-           &     coefficientFactorBoost            < self%coefficientFactorBoostMinimum        &
-           &    .and.                                                                          &
-           &     coefficientFactorBoostTiny        < self%coefficientFactorBoostMinimum        &
-           &   )                                                                               &
-           &  .or.                                                                             &
-           &     coefficientFactorBoost            > self%coefficientFactorBoostMaximum        &
-           &  .or.                                                                             &
-           &   (                                                                               &
-           &     coefficientFactorBoostStellar     < self%coefficientFactorBoostStellarMinimum &
-           &    .and.                                                                          &
-           &     coefficientFactorBoostStellarTiny < self%coefficientFactorBoostStellarMinimum &
-           &   )                                                                               &
-           &  .or.                                                                             &
-           &     coefficientFactorBoostStellar     > self%coefficientFactorBoostStellarMaximum &
-           &  .or.                                                                             &
-           &     radiusScaleFree                   < self%radiusScaleFreeMinimum               &
-           &  .or.                                                                             &
-           &     radiusScaleFree                   > self%radiusScaleFreeMaximum               &
-           & ) then
+      ! Having read the table from file (if it exists), check again to see if it is sufficient. If it is not, we must retabulate.
+      if (tableIsInsufficient()) then
          ! Obtain a file lock if we don't already have one.
          if (.not.haveLock) then
             call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
@@ -1064,31 +1044,61 @@ contains
             hhi=      +hi
          end if
          do jj=0,1
-               if (jj == 0) then
-                  hhj=+1.0d0-hj
+            if (jj == 0) then
+               hhj=+1.0d0-hj
+            else
+               hhj=      +hj
+            end if
+            do kk=0,1
+               if (kk == 0) then
+                  hhk=+1.0d0-hk
                else
-                  hhj=      +hj
+                  hhk=      +hk
                end if
-               do kk=0,1
-                  if (kk == 0) then
-                     hhk=+1.0d0-hk
-                  else
-                     hhk=      +hk
-                  end if
-                  integral=+integral                                             &
-                       &   +self%integralPartiallyMolecularTable(i+ii,j+jj,k+kk) &
-                       &   *                                      hhi            &
-                       &   *                                           hhj       &
-                       &   *                                                hhk
-               end do
+               integral=+integral                                             &
+                    &   +self%integralPartiallyMolecularTable(i+ii,j+jj,k+kk) &
+                    &   *                                      hhi            &
+                    &   *                                           hhj       &
+                    &   *                                                hhk
             end do
          end do
-         integralAnalyticPartiallyMolecularGeneric=+integralAnalyticPartiallyMolecularGeneric &
-              &                                    +exp(integral)                             &
-              &                                    *coefficientNormalization
+      end do
+      integralAnalyticPartiallyMolecularGeneric=+integralAnalyticPartiallyMolecularGeneric &
+           &                                    +exp(integral)                             &
+           &                                    *coefficientNormalization
       return
     end function integralAnalyticPartiallyMolecularGeneric
-   
+    
+    logical function tableIsInsufficient()
+      !!{
+      Determine if the current table is insufficient for our purposes.
+      !!}
+      implicit none
+      
+      tableIsInsufficient=                                    .not. self%tableInitialized                     &
+           &              .or.                                                                                &
+           &               (                                                                                  &
+           &                 coefficientFactorBoost            <    self%coefficientFactorBoostMinimum        &
+           &                .and.                                                                             &
+           &                 coefficientFactorBoostTiny        <    self%coefficientFactorBoostMinimum        &
+           &               )                                                                                  &
+           &              .or.                                                                                &
+           &                 coefficientFactorBoost            >    self%coefficientFactorBoostMaximum        &
+           &              .or.                                                                                &
+           &               (                                                                                  &
+           &                 coefficientFactorBoostStellar     <    self%coefficientFactorBoostStellarMinimum &
+           &                .and.                                                                             &
+           &                 coefficientFactorBoostStellarTiny <    self%coefficientFactorBoostStellarMinimum &
+           &               )                                                                                  &
+           &              .or.                                                                                &
+           &                 coefficientFactorBoostStellar     >    self%coefficientFactorBoostStellarMaximum &
+           &              .or.                                                                                &
+           &                 radiusScaleFree                   <    self%radiusScaleFreeMinimum               &
+           &              .or.                                                                                &
+           &                 radiusScaleFree                   >    self%radiusScaleFreeMaximum
+      return
+    end function tableIsInsufficient
+    
     double precision function integrand(radiusScaleFree)
       !!{
       Integrand for the partially molecular case.

@@ -259,7 +259,8 @@ contains
          &                                                   coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
          &                                                   coolingTimeTemperatureLogSlope  , density                   , &
          &                                                   densityLogSlope                 , outerRadius               , &
-         &                                                   temperature                     , temperatureLogSlope
+         &                                                   temperature                     , temperatureLogSlope       , &
+         &                                                   slope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -293,13 +294,18 @@ contains
           coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,abundancesGas_,fractionsChemical_*density,self%radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
-             self%radiusGrowthRateStored=+coolingRadius                                        &
-                  &                      /coolingTimeAvailable                                 &
-                  &                      *coolingTimeAvailableIncreaseRate                     &
-                  &                      /(                                                    &
-                  &                        +    densityLogSlope*coolingTimeDensityLogSlope     &
-                  &                        +temperatureLogSlope*coolingTimeTemperatureLogSlope &
-                  &                       )
+             slope                      =+    densityLogSlope*coolingTimeDensityLogSlope     &
+                  &                      +temperatureLogSlope*coolingTimeTemperatureLogSlope
+             if (slope /= 0.0d0) then
+                self%radiusGrowthRateStored=+coolingRadius                                      &
+                     &                      /coolingTimeAvailable                               &
+                     &                      *coolingTimeAvailableIncreaseRate                   &
+                     &                      /slope
+             else
+                ! The slope of the cooling radius vs. time available curve can be zero in cases where there are discontinuities in
+                ! the cooling function. Catch such behavior here.
+                self%radiusGrowthRateStored=0.0d0
+             end if
           else
              self%radiusGrowthRateStored=0.0d0
           end if

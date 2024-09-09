@@ -35,7 +35,8 @@
      !!}
      private
      type   (varying_string               )          :: failedParametersFileName
-     logical                                         :: randomize                         , collaborativeMPI
+     logical                                         :: randomize                         , collaborativeMPI, &
+          &                                             outputAnalyses
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
@@ -67,7 +68,8 @@ contains
     type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
     type   (inputParameters                          ), intent(inout) :: parameters
     type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
-    logical                                                           :: randomize             , collaborativeMPI
+    logical                                                           :: randomize             , collaborativeMPI        , &
+         &                                                               outputAnalyses
     type   (varying_string)                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
@@ -75,6 +77,12 @@ contains
     <inputParameter>
       <name>baseParametersFileName</name>
       <description>The base set of parameters to use.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputAnalyses</name>
+      <description>If true, results of the analyses on each step will be stored to the output file.</description>
+      <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -104,7 +112,7 @@ contains
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,collaborativeMPI,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,outputAnalyses,collaborativeMPI,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -112,18 +120,19 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,randomize,collaborativeMPI,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,randomize,outputAnalyses,collaborativeMPI,evolveForestsVerbosity,failedParametersFileName) result(self)
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
-    logical                                           , intent(in   )         :: randomize               , collaborativeMPI
+    logical                                           , intent(in   )         :: randomize               , collaborativeMPI, &
+         &                                                                       outputAnalyses
     type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )         :: failedParametersFileName
     !![
-    <constructorAssign variables="*parametersModel, randomize, collaborativeMPI, evolveForestsVerbosity, failedParametersFileName"/>
+    <constructorAssign variables="*parametersModel, randomize, outputAnalyses, collaborativeMPI, evolveForestsVerbosity, failedParametersFileName"/>
     !!]
 
     return
@@ -177,7 +186,7 @@ contains
     real                                                                                       :: timeBegin             , timeEnd
     double precision                                                                           :: logLikelihoodProposed
     character       (len=24                                   )                                :: valueText
-    type            (varying_string                           )                                :: message
+    type            (varying_string                           )                                :: message               , groupName
     logical                                                                                    :: isActive
     !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
@@ -249,7 +258,15 @@ contains
           ! Extract the log-likelihood. This is evaluated by all chains (as they likely need to perform reduction across MPI
           ! processes), but only stored for the chain of this rank.
           logLikelihoodProposed=self%outputAnalysis_%logLikelihood()
-          if (isActive) galaxyPopulationEvaluate=logLikelihoodProposed
+          ! For active analysis, return this likelihood.
+          if (isActive) then
+             galaxyPopulationEvaluate=logLikelihoodProposed
+             ! Optionally output results.
+             if (self%outputAnalyses) then
+                groupName=var_str("step")//simulationState%count()//":chain"//simulationState%chainIndex()
+                call self%outputAnalysis_%finalize(groupName)
+             end if
+          end if
        end if
        if (isActive) then
           ! Record timing information.

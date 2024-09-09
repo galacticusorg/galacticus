@@ -538,7 +538,7 @@ contains
     return
   end subroutine subhaloMassFunctionFinalizeAnalysis
 
-  subroutine subhaloMassFunctionFinalize(self)
+  subroutine subhaloMassFunctionFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily subhaloMassFunction} output analysis finalization.
     !!}
@@ -547,15 +547,22 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
-    class(outputAnalysisSubhaloMassFunction), intent(inout) :: self
-    type (hdf5Object                       )                :: analysesGroup, analysisGroup, &
-         &                                                     dataset
+    class(outputAnalysisSubhaloMassFunction), intent(inout)           :: self
+    type (varying_string                   ), intent(in   ), optional :: groupName
+    type (hdf5Object                       )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                       )               , pointer  :: inGroup
+    type (hdf5Object                       )                          :: analysisGroup, dataset
 
     ! Finalize analysis.
     call self%finalizeAnalysis()
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                )
-    analysisGroup=analysesGroup%openGroup('subhaloMassFunction','Analysis of subhalo mass functions')
+    analysesGroup =  outputFile   %openGroup('analyses'                         )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName)                    )
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('subhaloMassFunction','Analysis of subhalo mass functions')
     call analysisGroup   %writeAttribute('Subhalo mass function'              ,'description'                                                                                         )
     call analysisGroup   %writeAttribute('function1D'                         ,'type'                                                                                                )
     call analysisGroup   %writeAttribute('$M_\mathrm{sub}/M_\mathrm{host}$'   ,'xAxisLabel'                                                                                          )
@@ -580,6 +587,8 @@ contains
        call analysisGroup%writeDataset  (self%massFunctionCovarianceTarget    ,'massFunctionCovarianceTarget','Subhalo number per bin [observed; covariance]'                        )
     end if
     call analysisGroup   %close         (                                                                                                                                            )
+    if (present(groupName)) &
+         & call subGroup %close         (                                                                                                                                            )
     call analysesGroup   %close         (                                                                                                                                            )
     !$ call hdf5Access%unset()
     return

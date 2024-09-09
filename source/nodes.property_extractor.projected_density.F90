@@ -48,7 +48,7 @@
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          tolerateIntegrationFailures
+          &                                                          tolerateIntegrationFailures            , satelliteIsNeeded
    contains
      final     ::                       projectedDensityDestructor
      procedure :: columnDescriptions => projectedDensityColumnDescriptions
@@ -144,6 +144,7 @@ contains
          &                                          self%radii                        , &
          &                                          self%diskIsNeeded                 , &
          &                                          self%spheroidIsNeeded             , &
+         &                                          self%satelliteIsNeeded            , &
          &                                          self%virialRadiusIsNeeded         , &
          &                                          self%darkMatterScaleRadiusIsNeeded  &
          &                                         )
@@ -267,6 +268,8 @@ contains
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
+       case default
+          call Error_Report('unrecognized radius type'//{introspection:location})
        end select
        densityProjectedPrevious=0.0d0
        radiusOuter             =max(radius_* 2.0d0                    ,radiusVirial)

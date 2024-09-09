@@ -407,13 +407,14 @@ contains
     !!{
     Return the excursion set barrier at the given variance and time.
     !!}
-    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent             , verbosityLevelWorking
-    use :: Error_Functions  , only : Error_Function_Complementary
-    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                         displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions , only : Error_Function_Complementary
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers    , only : kind_dble                   , kind_quad
+    use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
+    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
     double precision                                 , intent(in   )                 :: variance                        , time
@@ -643,8 +644,8 @@ contains
           if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
           allocate(self%interpolatorVariance)
           allocate(self%interpolatorTime    )
-          self%interpolatorVariance=interpolator(self%variance)
-          self%interpolatorTime    =interpolator(self%time    )
+          self%interpolatorVariance=interpolator(self%variance,extrapolationType=extrapolationTypeFix)
+          self%interpolatorTime    =interpolator(self%time    ,extrapolationType=extrapolationTypeFix)
           ! Record that the table is now built.
           self%tableInitialized=.true.
           ! Write the table to file if possible.
@@ -851,13 +852,14 @@ contains
     !!{
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent             , verbosityLevelWorking
-    use :: Error_Functions  , only : Error_Function_Complementary
-    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                         displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions , only : Error_Function_Complementary
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers    , only : kind_dble                   , kind_quad
+    use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
+    use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
     double precision                                 , intent(in   )               :: time                             , varianceProgenitor
@@ -1256,10 +1258,10 @@ contains
           allocate(self%interpolatorVarianceCurrentRate           )
           allocate(self%interpolatorVarianceCurrentRateNonCrossing)
           allocate(self%interpolatorTimeRate                      )
-          self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        )
-          self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           )
-          self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing)
-          self%interpolatorTimeRate                      =interpolator(self%timeRate                      )
+          self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        ,extrapolationType=extrapolationTypeFix)
+          self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           ,extrapolationType=extrapolationTypeFix)
+          self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing,extrapolationType=extrapolationTypeFix)
+          self%interpolatorTimeRate                      =interpolator(self%timeRate                      ,extrapolationType=extrapolationTypeFix)
           ! Set previous variance and time to unphysical values to force recompute of interpolation factors on next call.
           self%variancePreviousRate=-1.0d0
           self%timePreviousRate    =-1.0d0
@@ -1288,12 +1290,13 @@ contains
     !!{
     Read tabulated data on excursion set first crossing probabilities from file.
     !!}
-    use :: Display           , only : displayIndent, displayMessage  , displayUnindent, verbosityLevelWorking
-    use :: File_Utilities    , only : File_Exists  , File_Name_Expand
+    use :: Display           , only : displayIndent       , displayMessage  , displayUnindent, verbosityLevelWorking
+    use :: File_Utilities    , only : File_Exists         , File_Name_Expand
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
-    use :: ISO_Varying_String, only : operator(//) , var_str         , varying_string
+    use :: ISO_Varying_String, only : operator(//)        , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                     , dataGroup
@@ -1346,8 +1349,8 @@ contains
        if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
        allocate(self%interpolatorVariance)
        allocate(self%interpolatorTime    )
-       self%interpolatorVariance=interpolator(self%variance)
-       self%interpolatorTime    =interpolator(self%time    )
+       self%interpolatorVariance=interpolator(self%variance,extrapolationType=extrapolationTypeFix)
+       self%interpolatorTime    =interpolator(self%time    ,extrapolationType=extrapolationTypeFix)
        ! Report.
        message=var_str('read excursion set first crossing probability from: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
@@ -1422,10 +1425,10 @@ contains
        allocate(self%interpolatorVarianceCurrentRate           )
        allocate(self%interpolatorVarianceCurrentRateNonCrossing)
        allocate(self%interpolatorTimeRate                      )
-       self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        )
-       self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           )
-       self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing)
-       self%interpolatorTimeRate                      =interpolator(self%timeRate                      )
+       self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        ,extrapolationType=extrapolationTypeFix)
+       self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           ,extrapolationType=extrapolationTypeFix)
+       self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing,extrapolationType=extrapolationTypeFix)
+       self%interpolatorTimeRate                      =interpolator(self%timeRate                      ,extrapolationType=extrapolationTypeFix)
        ! Report.
        message=var_str('read excursion set first crossing rates from: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)

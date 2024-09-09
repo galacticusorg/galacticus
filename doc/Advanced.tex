@@ -176,9 +176,12 @@ galacticus.hdf5
  +-> Version                                  Group
       |
       +-> buildTime                           Attribute {1}
-      +-> runTime                             Attribute {1}
+      +-> runStartTime                        Attribute {1}
+      +-> runEndTime                          Attribute {1}
+      +-> runDuration                         Attribute {1}
       +-> gitBranch                           Attribute {1}
       +-> gitHash                             Attribute {1}
+      +-> gitHashDatasets                     Attribute {1}
       +-> runByName                           Attribute {1}
       +-> runByEmail                          Attribute {1}
 \end{verbatim}
@@ -228,7 +231,7 @@ The {\normalfont \ttfamily Parameters} group contains a record of all parameter 
 
 \subsection{Version}
 
-The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\normalfont \scshape Git} branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered). Additionally, the time at which the model was run is stored and, if the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
+The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the times at which the model run started and eneded are stored as {\normalfont \ttfamily runStartTime} and {\normalfont \ttfamily runEndTime}, with the duration of the run (in seconds) stored as {\normalfont \ttfamily runDuration}. If the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
 
 \subsection{Outputs}
 
@@ -321,7 +324,7 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 
 \section{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{http://www.cs.wisc.edu/condor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
  ./scripts/aux/launch.pl <runFile>
 \end{verbatim}
@@ -516,8 +519,7 @@ This configuration file should have the following structure:
   </email>
 </config>
 \end{verbatim}
-The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
-setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed.
 
 \section{Writing Data To a Temporary File}\index{output!temporary}
 

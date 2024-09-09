@@ -160,7 +160,7 @@ sub Process_Enumerations {
 		$function .= "    ".$encodeFunctionName."IDChar=member%ID\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."IDChar\n\n";
-		$function .= "  function ".$encodeFunctionName."VarStr(name,includesPrefix)\n";
+		$function .= "  function ".$encodeFunctionName."VarStr(name,includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
@@ -169,23 +169,29 @@ sub Process_Enumerations {
 		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."VarStr\n";
 		$function .= "    type   (varying_string), intent(in   )           :: name\n";
 		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
-		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix)\n";
+		$function .= "    integer                , intent(  out), optional :: status\n"
+		    unless ( $onError );
+		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."VarStr\n\n";
-		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix)\n";
+		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
-		$function .= "    use :: Error             , only : Error_Report\n"
+		$function .= "    use :: Error             , only : Error_Report, errorStatusSuccess, errorStatusFail\n"
 		    unless ( $onError );
 		$function .= "    use :: ISO_Varying_String, only : var_str     , operator(//)\n";
 		$function .= "    implicit none\n\n";
 		$function .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type) :: ".$encodeFunctionName."Char\n";
 		$function .= "    character(len=*), intent(in   )           :: name\n";
 		$function .= "    logical         , intent(in   ), optional :: includesPrefix\n";
+		$function .= "    integer         , intent(  out), optional :: status\n"
+		    unless ( $onError );
 		$function .= "    logical                                   :: includesPrefix_\n\n";
 		$function .= "    includesPrefix_=.true.\n";
 		$function .= "    if (present(includesPrefix)) includesPrefix_=includesPrefix\n";
+		$function .= "    if (present(status)) status=errorStatusSuccess\n"
+		    unless ( $onError );
 		for(my $j=0;$j<2;++$j) {
 		    if ( $j == 0 ) {
 			$function .= "    if (includesPrefix_) then\n";
@@ -209,7 +215,11 @@ sub Process_Enumerations {
 			$function .= "      ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(".$onError.")\n";
 		    } else {
 			$function .= "      ".$encodeFunctionName."Char=enumeration".$node->{'directive'}->{'name'}."Type(-1)\n";
-			$function .= "      call Error_Report(var_str('unrecognized enumeration member [')//trim(name)//']'//enumeration".ucfirst($node->{'directive'}->{'name'})."Describe()//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+			$function .= "      if (present(status)) then\n";
+			$function .= "         status=errorStatusFail\n";
+			$function .= "      else\n";
+			$function .= "         call Error_Report(var_str('unrecognized enumeration member [')//trim(name)//']'//enumeration".ucfirst($node->{'directive'}->{'name'})."Describe()//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";	
+			$function .= "      end if\n";
 		    }
 		    $function .= "      end select\n";
 		}
@@ -305,6 +315,75 @@ sub Process_Enumerations {
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
 	    }
 	    # Create description function.
+	    if ( exists($node->{'directive'}->{'decodeFunction'}) && $node->{'directive'}->{'decodeFunction'} eq "yes" ) {
+	    	my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Description";
+		my $interface;
+		$interface .= " interface ".$functionName."\n";
+		$interface .= "  module procedure ".$functionName."Enumerator\n";
+		$interface .= "  module procedure ".$functionName."ID\n";
+		$interface .= " end interface ".$functionName."\n\n";
+		my $descriptorFunctionWrapper;
+		$descriptorFunctionWrapper .= "\n";
+		$descriptorFunctionWrapper .= "  ! Auto-generated enumeration function\n";
+		$descriptorFunctionWrapper .= "  function ".$functionName."Enumerator(enumerationValue)\n";
+		$descriptorFunctionWrapper .= "    !!{\n";
+		$descriptorFunctionWrapper .= "    Return a description of a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration member.\n";
+		$descriptorFunctionWrapper .= "    !!}\n";
+		$descriptorFunctionWrapper .= "    use ISO_Varying_String\n";
+		$descriptorFunctionWrapper .= "    implicit none\n\n";
+		$descriptorFunctionWrapper .= "    type   (varying_string)                                                             :: ".$functionName."Enumerator\n";
+		$descriptorFunctionWrapper .= "    type   (enumeration".$node->{'directive'}->{'name'}."Type), intent(in   )           :: enumerationValue\n\n";
+		$descriptorFunctionWrapper .= "    ".$functionName."Enumerator=".$functionName."(enumerationValue%ID)\n";
+		$descriptorFunctionWrapper .= "    return\n";
+		$descriptorFunctionWrapper .= "  end function ".$functionName."Enumerator\n";
+		my $descriptorFunction;
+		$descriptorFunction .= "  function ".$functionName."ID(enumerationValue) result(description)\n";
+		$descriptorFunction .= "    !!{\n";
+		$descriptorFunction .= "    Return a description of a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$descriptorFunction .= "    !!}\n";
+		$descriptorFunction .= "    use :: ISO_Varying_String, only : varying_string, assignment(=)\n";
+		$descriptorFunction .= "    implicit none\n";
+		$descriptorFunction .= "    type(varying_string) :: description\n";
+		$descriptorFunction .= "    integer, intent(in) :: enumerationValue\n\n";
+		my $description      = "    select case (enumerationValue)\n";
+		my @entries          = &List::ExtraUtils::as_array($node->{'directive'}->{'entry'});
+		my $i = $indexing-1;
+		foreach my $entry ( @entries ) {
+		    $description .= "   case (".++$i.")\n";
+		    $description .= "    description='".(exists($entry->{'description'}) ? $entry->{'description'} : "")."'\n";
+		}
+		$description        .= "    end select\n";
+		$description        .= "    return\n";
+		$descriptorFunction .= "  end function ".$functionName."ID\n";
+		$descriptorFunction .= "  ! End auto-generated enumeration function\n";
+		# Insert into the module.
+		my $descriptorWrapperTree  = &Galacticus::Build::SourceTree::ParseCode($descriptorFunctionWrapper,"Galacticus::Build::SourceTree::Process::Enumeration()", instrument => 0);
+		my $descriptorTree         = &Galacticus::Build::SourceTree::ParseCode($descriptorFunction       ,"Galacticus::Build::SourceTree::Process::Enumeration()", instrument => 0);
+		my @descriptorNodes        = &Galacticus::Build::SourceTree::Children ($descriptorTree                                                                                    );
+		my @descriptorWrapperNodes = &Galacticus::Build::SourceTree::Children ($descriptorWrapperTree                                                                             );
+		my $newNode = $descriptorNodes[0];
+		while ( $newNode->{'type'} ne "function" ) {
+		    $newNode = $newNode->{'sibling'};
+		}
+		$newNode = $newNode->{'firstChild'};
+		while ( defined($newNode->{'sibling'}) ) {
+		    $newNode = $newNode->{'sibling'};
+		}
+		my $describeNode =
+		{
+		    type => "code",
+		    content => $description
+		};
+		&Galacticus::Build::SourceTree::InsertAfterNode($newNode,[$describeNode]);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@descriptorNodes       );
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@descriptorWrapperNodes);
+		my $interfaceTree = &Galacticus::Build::SourceTree::ParseCode($interface,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @interfaceNodes = &Galacticus::Build::SourceTree::Children($interfaceTree);
+		&Galacticus::Build::SourceTree::InsertPreContains($node->{'parent'},\@interfaceNodes);
+		# Set the visibility.
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
+	    }
+	    # Create describe function.
 	    {
 	    	my $functionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Describe";
 		my $descriptorFunction;
@@ -312,7 +391,7 @@ sub Process_Enumerations {
 		$descriptorFunction .= "  ! Auto-generated enumeration function\n";
 		$descriptorFunction .= "  function ".$functionName."() result(description)\n";
 		$descriptorFunction .= "    !!{\n";
-		$descriptorFunction .= "    Return a description of a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$descriptorFunction .= "    Return a description of the {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration.\n";
 		$descriptorFunction .= "    !!}\n";
 		$descriptorFunction .= "    use :: ISO_Varying_String, only : varying_string, var_str, operator(//)\n";
 		$descriptorFunction .= "    implicit none\n";

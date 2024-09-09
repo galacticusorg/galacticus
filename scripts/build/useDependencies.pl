@@ -42,7 +42,8 @@ my %moduleLibraries = (
     vectors             => "blas"          ,
     models_likelihoods  => "matheval"      ,
     input_parameters    => "matheval"      ,
-    interface_gsl       => "gsl"
+    interface_gsl       => "gsl"           ,
+    output_versioning   => "git2"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.
@@ -51,22 +52,26 @@ my %includeLibraries = (
     );
 # Parse the Makefile to find preprocessor macros that are set.
 my @preprocessorDirectives;
-my @conditionsStack;
-open(my $makefile,"Makefile");
-while ( my $line = <$makefile> ) {
-    # Build a stack of true/false values indicating whether the current line is active or not based on pre-processor arguments.
-    push(@conditionsStack,exists($ENV{$1}))
-	if ( $line =~ m/^ifdef ([A-Z]+)/ );
-    push(@conditionsStack,1)
-	if ( $line =~ m/^ifeq /          );
-    pop (@conditionsStack  )
-	if ( $line =~ m/^endif/          );
-    # If this line sets compiler flags, and no false entries exist in the preprocessor conditions stack, extract all preprocessor
-    # directives from the line.
-    push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$line))
-	if ( ! grep {! $_} @conditionsStack && $line =~ m/^\s*FCFLAGS\s*\+??=/ );
+my @makefiles = ( "Makefile", glob($ENV{'BUILDPATH'}."/Makefile*") );
+foreach my $makefileName ( @makefiles ) { 
+    my @conditionsStack = ( 1 );;
+    open(my $makefile,$makefileName);
+    while ( my $line = <$makefile> ) {
+	# Build a stack of true/false values indicating whether the current line is active or not based on pre-processor arguments.
+	push(@conditionsStack,exists($ENV{$1}))
+	    if ( $line =~ m/^ifdef ([A-Z]+)/ );
+	push(@conditionsStack,1)
+	    if ( $line =~ m/^ifeq /          );
+	pop (@conditionsStack  )
+	    if ( $line =~ m/^endif/          );
+	# If this line sets compiler flags, and no false entries exist in the preprocessor conditions stack, extract all preprocessor
+	# directives from the line.    
+	push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$line))
+		if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ && ! grep {! $_} @conditionsStack );
+    }
+    close($makefile);
 }
-close($makefile);
+
 # Extract any preprocessor directives specified via the GALACTICUS_FCFLAGS environment variable.
 push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$ENV{"GALACTICUS_FCFLAGS"}))
     if ( exists($ENV{"GALACTICUS_FCFLAGS"}) );
@@ -76,6 +81,7 @@ while ( my $line = <$compilerDefs> ) {
     my @columns = split(" ",$line);
     push(@preprocessorDirectives,$columns[1]);
 }
+
 # Initialize structure to hold record of directives from each source file.
 my $usesPerFile;
 my $havePerFile = -e $workDirectoryName."Makefile_Use_Dependencies.blob";
@@ -122,6 +128,27 @@ foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
     closedir($sourceDirectory);
 }
 
+# Look for changes in source files. Force a rescan of all files if anything has changed.
+my @fileIdentifiers;
+my $forceRescan = 0;
+# Iterate over source directories.
+foreach my $sourceFile ( @sourceFilesToProcess ) {
+    (my $fileIdentifier = $sourceFile->{'fullPathFileName'}) =~ s/\//_/g;
+    push(@fileIdentifiers,$fileIdentifier);
+}
+# Check for new files.
+foreach my $fileIdentifier ( @fileIdentifiers ) {
+    unless ( exists($usesPerFile->{$fileIdentifier}) ) {
+	$forceRescan = 1;
+    }
+}
+# Check for removed files.
+foreach my $fileIdentifier ( keys(%{$usesPerFile}) ) {
+    unless ( grep {$_ eq $fileIdentifier} @fileIdentifiers ) {
+	$forceRescan = 1;
+    }
+}
+
 # Initialize list of modules needed for event hooks.
 my @eventHookModules;
 # Iterate over files to process.
@@ -137,7 +164,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($usesPerFile->{$fileIdentifier}->{'files'}) );
     }
     next
-	unless ( $rescan );
+	unless ( $rescan || $forceRescan );
     delete($usesPerFile->{$fileIdentifier})
 	if ( $havePerFile && exists($usesPerFile->{$fileIdentifier}) );
     push(@{$usesPerFile->{$fileIdentifier}->{'files'}},$sourceFile->{'fullPathFileName'});
@@ -266,15 +293,15 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		pop (@preprocessorConditionalsStack                                    )
 		    if ( $line =~ m/^\#endif\s*$/                   );
 		$preprocessorConditionalsStack[-1]->{'state'} = 1-$preprocessorConditionalsStack[-1]->{'state'}
-		if ( $line =~ m/^\#else\s*$/                    );
+		    if ( $line =~ m/^\#else\s*$/                    );
 		# Determine whether or not the current code will be conditionally compiled.
 		$conditionallyCompile = 1;
 		foreach my $preprocessorConditional ( @preprocessorConditionalsStack ) {
 		    my $conditionalActive = 
 			(grep {$_ eq $preprocessorConditional->{'name'}} @preprocessorDirectives)
 			?
-			$preprocessorConditional->{'state'} 
-		    : 
+			  $preprocessorConditional->{'state'} 
+		        : 
 			1-$preprocessorConditional->{'state'};
 		    $conditionallyCompile = 0	
 			if ( $conditionalActive == 0 );

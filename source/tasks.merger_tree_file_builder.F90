@@ -669,15 +669,6 @@ contains
     ! Dummy host ID.
     if (self%dummyHostId              %isSet) &
          & call mergerTrees%setDummyHostId          (self%dummyHostId              %value)
-    ! Read in the data.
-    call mergerTrees%readASCII(char(self%inputFileName),columnHeaders=self%columnHeaders,commentCharacter="#",separator=self%columnSeparator)
-    ! Specify that we do not want to create individual merger tree reference datasets.
-    call mergerTrees%makeReferences          (.false.)
-    ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
-    call mergerTrees%setSelfContained        (.true. )
-    call mergerTrees%setUnits(unitsMass    ,unitsInSI=self%unitsMassInSI    ,hubbleExponent=self%unitsMassHubbleExponent    ,scaleFactorExponent=self%unitsMassScaleFactorExponent    ,name=char(self%unitsMassName    ))
-    call mergerTrees%setUnits(unitsLength  ,unitsInSI=self%unitsLengthInSI  ,hubbleExponent=self%unitsLengthHubbleExponent  ,scaleFactorExponent=self%unitsLengthScaleFactorExponent  ,name=char(self%unitsLengthName  ))
-    call mergerTrees%setUnits(unitsVelocity,unitsInSI=self%unitsVelocityInSI,hubbleExponent=self%unitsVelocityHubbleExponent,scaleFactorExponent=self%unitsVelocityScaleFactorExponent,name=char(self%unitsVelocityName))
     ! Set subhalo mass definition.
     if (self%haloMassesIncludeSubhalos%isSet) &
          & call mergerTrees%setIncludesSubhaloMasses(self%haloMassesIncludeSubhalos%value)
@@ -690,6 +681,15 @@ contains
     ! Particle mass.
     if (self%massParticle             %isSet) &
          & call mergerTrees%setParticleMass         (self%massParticle             %value)
+    ! Read in the data.
+    call mergerTrees%readASCII(char(self%inputFileName),columnHeaders=self%columnHeaders,commentCharacter="#",separator=self%columnSeparator)
+    ! Specify that we do not want to create individual merger tree reference datasets.
+    call mergerTrees%makeReferences          (.false.)
+    ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
+    call mergerTrees%setSelfContained        (.true. )
+    call mergerTrees%setUnits(unitsMass    ,unitsInSI=self%unitsMassInSI    ,hubbleExponent=self%unitsMassHubbleExponent    ,scaleFactorExponent=self%unitsMassScaleFactorExponent    ,name=char(self%unitsMassName    ))
+    call mergerTrees%setUnits(unitsLength  ,unitsInSI=self%unitsLengthInSI  ,hubbleExponent=self%unitsLengthHubbleExponent  ,scaleFactorExponent=self%unitsLengthScaleFactorExponent  ,name=char(self%unitsLengthName  ))
+    call mergerTrees%setUnits(unitsVelocity,unitsInSI=self%unitsVelocityInSI,hubbleExponent=self%unitsVelocityHubbleExponent,scaleFactorExponent=self%unitsVelocityScaleFactorExponent,name=char(self%unitsVelocityName))
     ! Get descriptors.
     descriptorPowerSpectrum   =inputParameters()
     descriptorTransferFunction=inputParameters()

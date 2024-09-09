@@ -117,7 +117,7 @@
   </satelliteTidalHeatingRate>
   <satelliteTidalStripping    value="zentner2005"      >
     <useDynamicalTimeScale value="true" />
-    <efficiency            value="10.0" />
+    <efficiency            value="20.0" />
   </satelliteTidalStripping>
   <satelliteTidalStrippingRadius value="king1962">
     <efficiencyCentrifugal value="0.0"  />

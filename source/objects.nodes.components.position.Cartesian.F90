@@ -40,7 +40,6 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <getFunction bindsTo="component">PositionCartesianPosition</getFunction>
       <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
@@ -49,7 +48,6 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <getFunction bindsTo="component">PositionCartesianVelocity</getFunction>
       <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
@@ -60,7 +58,6 @@ module Node_Component_Position_Cartesian
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
    </properties>
-   <functions>objects.nodes.components.position.Cartesian.bound_functions.inc</functions>
   </component>
   !!]
 

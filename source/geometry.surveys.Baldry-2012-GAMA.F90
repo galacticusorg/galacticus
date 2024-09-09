@@ -158,40 +158,48 @@ contains
     return
   end function baldry2012GAMAFieldCount
 
-  double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
-    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
+    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                     luminosity     , starFormationRate
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
-    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (.not.present(field)) call Error_Report('field must be specified'//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Compute the limiting distance.
-    logarithmicMass=log10(mass)
-    select case (field)
-    case (1,3) ! Fields G09 and G15.
-       baldry2012GAMADistanceMaximum                          &
-            & =10.0d0**(                                      &
-            &           -0.521147071716417d0                  &
-            &           +0.318557607893107d0*logarithmicMass  &
-            &          )
-    case (2)
-       baldry2012GAMADistanceMaximum                          &
-            & =10.0d0**(                                      &
-            &           -0.361147071716369d0                  &
-            &           +0.318557607893101d0*logarithmicMass  &
-            &          )
-    case default
-       baldry2012GAMADistanceMaximum=0.0d0
-       call Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
-    end select
-    baldry2012GAMADistanceMaximum=min(baldry2012GAMADistanceMaximum,self%distanceMaximumSurvey)
+    if (present(mass)) then
+       logarithmicMass=log10(mass)
+       select case (field)
+       case (1,3) ! Fields G09 and G15.
+          baldry2012GAMADistanceMaximum                          &
+               & =10.0d0**(                                      &
+               &           -0.521147071716417d0                  &
+               &           +0.318557607893107d0*logarithmicMass  &
+               &          )
+       case (2)
+          baldry2012GAMADistanceMaximum                          &
+               & =10.0d0**(                                      &
+               &           -0.361147071716369d0                  &
+               &           +0.318557607893101d0*logarithmicMass  &
+               &          )
+       case default
+          baldry2012GAMADistanceMaximum=0.0d0
+          call Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
+       end select
+       baldry2012GAMADistanceMaximum=min(baldry2012GAMADistanceMaximum,self%distanceMaximumSurvey)
+    else
+       baldry2012GAMADistanceMaximum=self%distanceMaximumSurvey
+    end if
     return
   end function baldry2012GAMADistanceMaximum
 

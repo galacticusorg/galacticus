@@ -18,17 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a star formation histories class which records \emph{in situ} star formation.
+Implements a star formation histories class which records \emph{in situ} star formation alongside the star formation history computed by some other class.
 !!}
-
-  use :: Output_Times, only : outputTimes, outputTimesClass
 
   !![
   <starFormationHistory name="starFormationHistoryInSitu">
    <description>
-    A star formation histories class which records \emph{in situ} star formation. The star formation history is tabulated on a
-    grid of time and is split between in-situ and accreted star formation. The time grid is the same as (and controlled by the
-    same parameters) are for the {\normalfont \ttfamily metallicitySplit} method.
+     A star formation histories class which records \emph{in situ} star formation. Another {\normalfont \ttfamily
+     starFormationHistory} object is used to provide the base star formation history. This class tracks a second copy which is
+     identical but excludes any star formation from merging galaxies.
    </description>
   </starFormationHistory>
   !!]
@@ -37,23 +35,17 @@ Contains a module which implements a star formation histories class which record
      A star formation histories class which records \emph{in situ} star formation.
      !!}
      private
-     class           (outputTimesClass), pointer :: outputTimes_ => null()
-     double precision                            :: timeStep              , timeStepFine, &
-          &                                         timeFine
+     class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
    contains
-     !![
-     <methods>
-       <method description="Make the star formation history." method="make" />
-     </methods>
-     !!]
-     final     ::                          inSituDestructor
-     procedure :: create                => inSituCreate
-     procedure :: rate                  => inSituRate
-     procedure :: update                => inSituUpdate
-     procedure :: scales                => inSituScales
-     procedure :: make                  => inSituMake
-     procedure :: autoHook              => inSituAutoHook
-     procedure :: metallicityBoundaries => inSituMetallicityBoundaries
+     final     ::                                inSituDestructor
+     procedure :: create                      => inSituCreate
+     procedure :: rate                        => inSituRate
+     procedure :: update                      => inSituUpdate
+     procedure :: scales                      => inSituScales
+     procedure :: autoHook                    => inSituAutoHook
+     procedure :: times                       => inSituTimes
+     procedure :: metallicityBoundaries       => inSituMetallicityBoundaries
+     procedure :: perOutputTabulationIsStatic => inSituPerOutputTabulationIsStatic
   end type starFormationHistoryInSitu
 
   interface starFormationHistoryInSitu
@@ -64,14 +56,6 @@ Contains a module which implements a star formation histories class which record
      module procedure inSituConstructorInternal
   end interface starFormationHistoryInSitu
 
-  ! Type used to store timestep range information.
-  type inSituTimeStepRange
-     private
-     integer                                        :: count
-     double precision                               :: timeBegin          , timeEnd
-     type            (inSituTimeStepRange), pointer :: next      => null()
-  end type inSituTimeStepRange
-
 contains
 
   function inSituConstructorParameters(parameters) result(self)
@@ -80,52 +64,30 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (starFormationHistoryInSitu)                :: self
-    type            (inputParameters           ), intent(inout) :: parameters
-    class           (outputTimesClass          ), pointer       :: outputTimes_
-    double precision                                            :: timeStep    , timeStepFine, &
-         &                                                         timeFine
+    type (starFormationHistoryInSitu)                :: self
+    type (inputParameters           ), intent(inout) :: parameters
+    class(starFormationHistoryClass ), pointer       :: starFormationHistory_
 
     !![
-    <inputParameter>
-      <name>timeStep</name>
-      <defaultValue>0.1d0</defaultValue>
-      <description>The time step to use in tabulations of star formation histories [Gyr].</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>timeStepFine</name>
-      <defaultValue>0.01d0</defaultValue>
-      <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>timeFine</name>
-      <defaultValue>0.1d0</defaultValue>
-      <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
-      <source>parameters</source>
-    </inputParameter>
-    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    <objectBuilder class="starFormationHistory" name="starFormationHistory_" source="parameters"/>
     !!]
-    self=starFormationHistoryInSitu(timeStep,timeStepFine,timeFine,outputTimes_)
+    self=starFormationHistoryInSitu(starFormationHistory_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="outputTimes_"/>
+    <objectDestructor name="starFormationHistory_"/>
     !!]
     return
   end function inSituConstructorParameters
 
-  function inSituConstructorInternal(timeStep,timeStepFine,timeFine,outputTimes_) result(self)
+  function inSituConstructorInternal(starFormationHistory_) result(self)
     !!{
     Internal constructor for the ``inSitu'' star formation history class.
     !!}
     implicit none
-    type            (starFormationHistoryInSitu)                        :: self
-    double precision                            , intent(in   )         :: timeStep    , timeStepFine, &
-         &                                                                 timeFine
-    class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
+    type (starFormationHistoryInSitu)                        :: self
+    class(starFormationHistoryClass ), intent(in   ), target :: starFormationHistory_
     !![
-    <constructorAssign variables="timeStep, timeStepFine, timeFine, *outputTimes_"/>
+    <constructorAssign variables="*starFormationHistory_"/>
     !!]
 
     return
@@ -151,7 +113,7 @@ contains
     type(starFormationHistoryInSitu), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputTimes_"/>
+    <objectDestructor name="self%starFormationHistory_"/>
     !!]
     return
   end subroutine inSituDestructor
@@ -160,22 +122,20 @@ contains
     !!{
     Create the history required for storing star formation history.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)           :: self
     type            (treeNode                  ), intent(inout)           :: node
     type            (history                   ), intent(inout)           :: historyStarFormation
     double precision                            , intent(in   )           :: timeBegin
     double precision                            , intent(in   ), optional :: timeEnd
-    class           (nodeComponentBasic        ), pointer                 :: basic
-    double precision                                                      :: timeBeginActual     , timeEnd_
-    !$GLC attributes unused :: timeEnd
+    type            (history                   )                          :: history_
     
-    ! Find the start and end times for this history.
-    basic           =>               node %basic()
-    timeBeginActual =  min(timeBegin,basic%time ())
-    timeEnd_        =  self%outputTimes_%timeNext(timeBegin)
-    call self%make(historyStarFormation,timeBeginActual,timeEnd_)
+    call self%starFormationHistory_%create(node,history_,timeBegin,timeEnd)
+    historyStarFormation%rangeType=history_%rangeType
+    historyStarFormation%time     =history_%time
+    allocate(historyStarFormation%data(size(history_%data,dim=1),2*size(history_%data,dim=2)))
+    historyStarFormation%data(:,1                          :  size(history_%data,dim=2))=history_%data
+    historyStarFormation%data(:,1+size(history_%data,dim=2):2*size(history_%data,dim=2))=history_%data
     return
   end subroutine inSituCreate
 
@@ -183,67 +143,64 @@ contains
     !!{
     Set the rate the star formation history for {\normalfont \ttfamily node}.
     !!}
-    use :: Arrays_Search   , only : searchArray
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    use :: Error           , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
     type            (history                   ), intent(inout) :: historyStarFormation
     type            (abundances                ), intent(in   ) :: abundancesFuel
     double precision                            , intent(in   ) :: rateStarFormation
-    class           (nodeComponentBasic        ), pointer       :: basic
-    integer                                                     :: historyCount
-    integer         (c_size_t                  )                :: iHistory
-    double precision                                            :: timeNode
-    !$GLC attributes unused :: self, abundancesFuel
+    type            (history                   )                :: history_
 
     ! Check if history exists.
     if (historyStarFormation%exists()) then
-       basic                                 =>             node                %basic()
-       timeNode                              =              basic               %time ()
-       historyCount                          =         size(historyStarFormation%time            )
-       iHistory                              =  searchArray(historyStarFormation%time   ,timeNode)+1
-       historyStarFormation%data(iHistory,:) =  rateStarFormation
+       allocate(history_%time(size(historyStarFormation%data,dim=1)                                        ))
+       allocate(history_%data(size(historyStarFormation%data,dim=1),size(historyStarFormation%data,dim=2)/2))
+       history_%rangeType=historyStarFormation%rangeType
+       history_%time     =historyStarFormation%time
+       history_%data=historyStarFormation%data(:,1:size(historyStarFormation%data,dim=2)/2)
+       call self%starFormationHistory_%rate(node,history_,abundancesFuel,rateStarFormation)
+       historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)=history_%data
+       historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )=history_%data
     else
        ! No history exists - this is acceptable only if the star formation rate is zero.
        if (rateStarFormation > 0.0d0) call Error_Report('non-zero star formation rate, but star formation history is uninitialized'//{introspection:location})
     end if
     return
   end subroutine inSituRate
-
+  
   subroutine inSituUpdate(self,node,indexOutput,historyStarFormation)
     !!{
     Update the star formation history after outputting.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (starFormationHistoryInSitu  ), intent(inout)         :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    type            (history                     ), intent(inout)         :: historyStarFormation
-    integer         (c_size_t                    ), intent(in   )         :: indexOutput
-    class           (nodeComponentBasic          ), pointer               :: basicParent
-    type            (treeNode                    ), pointer               :: nodeParent
-    double precision                                                      :: timeBegin           , timeEnd
-    type            (history                     )                        :: newHistory
+    class  (starFormationHistoryInSitu), intent(inout)         :: self
+    type   (treeNode                  ), intent(inout), target :: node
+    type   (history                   ), intent(inout)         :: historyStarFormation
+    integer(c_size_t                  ), intent(in   )         :: indexOutput
+    type   (history                   )                        :: history1            , history2
 
     if (.not.historyStarFormation%exists()) return
-    timeBegin=historyStarFormation%time(1)
-    if (indexOutput < self%outputTimes_%count()) then
-       timeEnd=self%outputTimes_%time(indexOutput+1)
-    else
-       nodeParent => node
-       do while (associated(nodeParent%parent))
-          nodeParent => nodeParent%parent
-       end do
-       basicParent => nodeParent %basic()
-       timeEnd     =  basicParent%time ()
-    end if
-    call self%make(newHistory,timeBegin,timeEnd,historyStarFormation%time)
-    newHistory%data(1:size(historyStarFormation%time),:)=historyStarFormation%data(:,:)
+    allocate(history1%time(size(historyStarFormation%data,dim=1)                                        ))
+    allocate(history2%time(size(historyStarFormation%data,dim=1)                                        ))
+    allocate(history1%data(size(historyStarFormation%data,dim=1),size(historyStarFormation%data,dim=2)/2))
+    allocate(history2%data(size(historyStarFormation%data,dim=1),size(historyStarFormation%data,dim=2)/2))
+    history1%rangeType=historyStarFormation%rangeType
+    history2%rangeType=historyStarFormation%rangeType
+    history1%time     =historyStarFormation%time
+    history2%time     =historyStarFormation%time
+    history1%data=historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)
+    history2%data=historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )
+    call self%starFormationHistory_%update(node,indexOutput,history1)
+    call self%starFormationHistory_%update(node,indexOutput,history2)
     call historyStarFormation%destroy()
-    historyStarFormation=newHistory
-    call newHistory%destroy()
+    allocate(historyStarFormation%time(size(history1%data,dim=1)                            ))
+    allocate(historyStarFormation%data(size(history1%data,dim=1),size(history1%data,dim=2)*2))
+    historyStarFormation%rangeType=history1%rangeType
+    historyStarFormation%time     =history1%time
+    historyStarFormation%data(:,1                          :  size(history1%data,dim=2))=history1%data
+    historyStarFormation%data(:,1+size(history1%data,dim=2):2*size(history1%data,dim=2))=history2%data
     return
   end subroutine inSituUpdate
 
@@ -252,168 +209,26 @@ contains
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
-    class           (starFormationHistoryInSitu), intent(inout)               :: self
-    double precision                            , intent(in   )               :: massStellar
-    type            (abundances                ), intent(in   )               :: abundancesStellar
-    type            (history                   ), intent(inout)               :: historyStarFormation
-    double precision                            , allocatable  , dimension(:) :: timeSteps
-    double precision                            , parameter                   :: massStellarMinimum  =1.0d0
-    integer                                                                   :: i
-    !$GLC attributes unused :: self, abundancesStellar
+    class           (starFormationHistoryInSitu), intent(inout) :: self
+    double precision                            , intent(in   ) :: massStellar
+    type            (abundances                ), intent(in   ) :: abundancesStellar
+    type            (history                   ), intent(inout) :: historyStarFormation
+    type            (history                   )                :: history_
 
-    if (.not.historyStarFormation%exists()) return
-    call historyStarFormation%timeSteps(timeSteps)
-    forall(i=1:2)
-       historyStarFormation%data(:,i)=max(massStellar,massStellarMinimum)/timeSteps
-    end forall
-    deallocate(timeSteps)
+    allocate(history_%time(size(historyStarFormation%data,dim=1)                                        ))
+    allocate(history_%data(size(historyStarFormation%data,dim=1),size(historyStarFormation%data,dim=2)/2))
+    history_%rangeType=historyStarFormation%rangeType
+    history_%time     =historyStarFormation%time
+    history_%data=historyStarFormation%data(:,1:size(historyStarFormation%data,dim=2)/2)
+    call self%starFormationHistory_%scales(history_,massStellar,abundancesStellar)
+    historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)=history_%data
+    historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )=history_%data
     return
   end subroutine inSituScales
 
-  subroutine inSituMake(self,historyStarFormation,timeBegin,timeEnd,timesCurrent)
-    !!{
-    Create the history required for storing star formation history.
-    !!}
-    use :: Error           , only : Error_Report
-    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLinear
-    implicit none
-    class           (starFormationHistoryInSitu), intent(inout)                         :: self
-    type            (history                   ), intent(inout)                         :: historyStarFormation
-    double precision                            , intent(in   )                         :: timeBegin           , timeEnd
-    double precision                            , intent(in   ), dimension(:), optional :: timesCurrent
-    type            (inSituTimeStepRange       ), pointer                               :: timeStepFirst       , timeStepNext , &
-         &                                                                                 timeStepCurrent
-    integer                                                                             :: countTimeCoarse     , countTimeFine, &
-         &                                                                                 countTime
-    logical                                                                             :: timeStepFirstFound
-    double precision                                                                    :: timeCoarseBegin     , timeCoarseEnd, &
-         &                                                                                 timeFineBegin       , timeNext     , &
-         &                                                                                 timeNow
-
-    ! Exit with a null history if it would contain no time.
-    if (timeEnd <= timeBegin) then
-       call historyStarFormation%destroy()
-       return
-    end if
-    ! If we have a set of times tabulated already, do some sanity checks.
-    if (present(timesCurrent)) then
-       ! Complain if the beginning time is before the given list of times.
-       if (timeBegin < timesCurrent(1                 )) call Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
-       ! Complain if the end time is less than the maximum tabulated time.
-       if (timeEnd   < timesCurrent(size(timesCurrent))) call Error_Report('requested end time is within currently tabulated times'  //{introspection:location})
-    end if
-
-    ! Step through time, creating a set of timesteps as needed.
-    if (present(timesCurrent)) then
-       timeNow         =  timesCurrent(size(timesCurrent))
-    else
-       timeNow         =  timeBegin
-    end if
-    countTime          =  0
-    timeStepFirstFound =  .false.
-    timeStepCurrent    => null()
-    do while (timeNow < timeEnd)
-       ! Get the time of the next output
-       timeNext=self%outputTimes_%timeNext(timeNow)
-       ! Unphysical (negative) value indicates no next output.
-       if (timeNext < 0.0d0 .or. timeNext > timeEnd) timeNext=timeEnd
-       ! Construct coarse and fine timesteps for this output, recording the parameters of each range.
-       ! Determine the number of fine timestep bins required and the time at which we begin using fine timesteps.
-       if (self%timeFine > 0.0d0) then
-          countTimeFine  =int(min(timeNext-timeNow,self%timeFine)/self%timeStepFine)+1
-          timeFineBegin  =timeNext-self%timeStepFine*dble(countTimeFine-1)
-          timeCoarseBegin=timeNow      +self%timeStep
-          timeCoarseEnd  =timeFineBegin-self%timeStepFine
-       else
-          countTimeFine  =0
-          timeFineBegin  =timeNext
-          timeCoarseBegin=timeNow      +self%timeStep
-          timeCoarseEnd  =timeNext
-       end if
-       ! Determine the number of coarse time bins required for this history.
-       if (timeCoarseEnd > timeCoarseBegin) then
-          countTimeCoarse=max(int((timeCoarseEnd-timeCoarseBegin)/self%timeStep)+1,2)
-       else if (countTimeFine == 0) then
-          countTimeCoarse=2
-          timeCoarseBegin=(timeCoarseEnd-timeNow)/3.0d0+timeNow
-       else
-          countTimeCoarse=0
-       end if
-       ! Create the time steps.
-       if (timeStepFirstFound) then
-          allocate(timeStepCurrent%next)
-          timeStepCurrent => timeStepCurrent%next
-       else
-          allocate(timeStepFirst)
-          timeStepCurrent => timeStepFirst
-          if (countTimeCoarse > 0) then
-             countTimeCoarse=countTimeCoarse+1
-             timeCoarseBegin=max(timeCoarseBegin-self%timeStep    ,0.0d0)
-          else
-             countTimeFine  =countTimeFine  +1
-             timeFineBegin  =max(timeFineBegin  -self%timeStepFine,0.0d0)
-          end if
-          timeStepFirstFound=.true.
-       end if
-       if (countTimeCoarse > 0) then
-          timeStepCurrent%count    =  countTimeCoarse
-          timeStepCurrent%timeBegin=  timeCoarseBegin
-          timeStepCurrent%timeEnd  =  timeCoarseEnd
-          allocate(timeStepCurrent%next)
-          timeStepCurrent          => timeStepCurrent%next
-       end if
-       if (countTimeFine > 0) then
-          timeStepCurrent%count    =  countTimeFine
-          timeStepCurrent%timeBegin=  timeFineBegin
-          timeStepCurrent%timeEnd  =  timeNext
-       end if
-       timeStepCurrent%next => null()
-       ! Increment the total number of steps required.
-       countTime=countTime+countTimeFine+countTimeCoarse
-       ! Increment the time.
-       timeNow=timeNext
-    end do
-    ! Shift the end point for the final step to the overall end time.
-    if (timeStepFirstFound) timeStepCurrent%timeEnd=timeNext
-    ! Copy in existing times if necessary.
-    if (present(timesCurrent)) then
-       countTime=countTime+size(timesCurrent)
-       if (timeStepFirstFound) countTime=countTime-1
-    end if
-    call historyStarFormation%create(2,countTime)
-    countTime=0
-    if (present(timesCurrent)) then
-       if (timeStepFirstFound) then
-          historyStarFormation%time(countTime+1:countTime+size(timesCurrent)-1)=timesCurrent(1:size(timesCurrent)-1)
-          countTime=size(timesCurrent)-1
-       else
-          historyStarFormation%time(countTime+1:countTime+size(timesCurrent)  )=timesCurrent(1:size(timesCurrent)  )
-          countTime=size(timesCurrent)
-       end if
-    end if
-    ! Create new times if necessary.
-    if (timeStepFirstFound) then
-       timeStepCurrent => timeStepFirst
-       do while (associated(timeStepCurrent))
-          ! Populate the time array.
-          if      (timeStepCurrent%count == 1) then
-             historyStarFormation%time(countTime+1                                )=                                     timeStepCurrent%timeEnd
-          else if (timeStepCurrent%count >  1) then
-             historyStarFormation%time(countTime+1:countTime+timeStepCurrent%count)=Make_Range(timeStepCurrent%timeBegin,timeStepCurrent%timeEnd,timeStepCurrent%count,rangeTypeLinear)
-          end if
-          countTime=countTime+timeStepCurrent%count
-          ! Jump to the next time step.
-          timeStepNext => timeStepCurrent%next
-          deallocate(timeStepCurrent)
-          timeStepCurrent => timeStepNext
-       end do
-    end if
-    return
-  end subroutine inSituMake
-
   subroutine inSituSatelliteMerger(self,node)
     !!{
-    Zero any in-situ star formation history for galaxy about to merge.
+    Zero any in-situ star formation history for the galaxy about to merge.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
@@ -431,11 +246,11 @@ contains
        historyStarFormationDisk               =  disk    %starFormationHistory()
        historyStarFormationSpheroid           =  spheroid%starFormationHistory()
        if (historyStarFormationDisk    %exists()) then
-          historyStarFormationDisk    %data(:,1)=0.0d0
+          historyStarFormationDisk    %data(:,1+size(historyStarFormationDisk    %data,dim=2)/2:size(historyStarFormationDisk    %data,dim=2))=0.0d0
           call disk    %starFormationHistorySet(    historyStarFormationDisk)
        end if
        if (historyStarFormationSpheroid%exists()) then
-          historyStarFormationSpheroid%data(:,1)=0.0d0
+          historyStarFormationSpheroid%data(:,1+size(historyStarFormationSpheroid%data,dim=2)/2:size(historyStarFormationSpheroid%data,dim=2))=0.0d0
           call spheroid%starFormationHistorySet(historyStarFormationSpheroid)
        end if
     class default
@@ -452,7 +267,30 @@ contains
     double precision                            , allocatable  , dimension(:) :: inSituMetallicityBoundaries
     class           (starFormationHistoryInSitu), intent(inout)               :: self
 
-    allocate(inSituMetallicityBoundaries(0:1))
-    inSituMetallicityBoundaries(0:1)=[0.0d0,huge(0.0d0)]
+    inSituMetallicityBoundaries=self%starFormationHistory_%metallicityBoundaries()
     return
   end function inSituMetallicityBoundaries
+
+  logical function inSituPerOutputTabulationIsStatic(self)
+    !!{
+    Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    !!}
+    implicit none
+    class(starFormationHistoryInSitu), intent(inout) :: self
+
+    inSituPerOutputTabulationIsStatic=self%starFormationHistory_%perOutputTabulationIsStatic()
+    return
+  end function inSituPerOutputTabulationIsStatic
+
+  function inSituTimes(self,indexOutput)
+    !!{
+    Return the times used in this tabulation.
+    !!}
+    implicit none
+    double precision                            , allocatable  , dimension(:) :: inSituTimes
+    class           (starFormationHistoryInSitu), intent(inout)               :: self
+    integer         (c_size_t                  ), intent(in   )               :: indexOutput
+
+    inSituTimes=self%starFormationHistory_%times(indexOutput)
+    return
+  end function inSituTimes

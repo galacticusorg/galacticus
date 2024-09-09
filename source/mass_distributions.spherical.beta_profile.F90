@@ -463,9 +463,9 @@ contains
                &  )
        end if
     end if
-    if (.not.self%isDimensionless())                  &
-         & betaProfilePotential=  &
-         &   betaProfilePotential &
+    if (.not.self%isDimensionless()) &
+         & betaProfilePotential=     &
+         &   betaProfilePotential    &
          &   *gravitationalConstantGalacticus
     return
   end function betaProfilePotential
@@ -476,6 +476,8 @@ contains
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Comparison    , only : Values_Agree
+    use :: Error                   , only : Error_Report
+    use :: Gamma_Functions         , only : Gamma_Function
     implicit none
     class           (massDistributionBetaProfile ), intent(inout)           :: self
     double precision                              , intent(in   )           :: moment
@@ -512,7 +514,7 @@ contains
                & +radialMomentTwoThirds(specialCaseMoment,fractionalRadiusMaximum)
        else
           ! General solution.
-          betaProfileDensityRadialMoment=                   &
+          betaProfileDensityRadialMoment=                                         &
                & +fractionalRadiusMaximum**(moment+1.0d0)                         &
                & *Hypergeometric_2F1     (                                        &
                &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &
@@ -522,12 +524,34 @@ contains
                & /                         (moment+1.0d0)
        end if
     else
-       betaProfileDensityRadialMoment=0.0d0
+       if (moment >= 3.0d0*self%beta-1.0d0) then
+          betaProfileDensityRadialMoment=0.0d0
+          if (present(isInfinite)) then
+             isInfinite=.true.
+             return
+          else
+             call Error_Report('radial moment is infinite at r=0 for m ≥ 3β-1'//{introspection:location})
+          end if
+       else
+          betaProfileDensityRadialMoment=+Gamma_Function((+3.0d0+moment                )/2.0d0) &
+               &                         *Gamma_Function((-1.0d0-moment+3.0d0*self%beta)/2.0d0) &
+               &                         /Gamma_Function((             +3.0d0*self%beta)/2.0d0) &
+               &                         /               (+1.0d0+moment                ) 
+       end if
     end if
     if (present(radiusMinimum)) then
        fractionalRadiusMinimum=radiusMinimum/self%coreRadius
     else
        fractionalRadiusMinimum=0.0d0
+       if (moment <= -1.0d0) then
+          betaProfileDensityRadialMoment=0.0d0
+          if (present(isInfinite)) then
+             isInfinite=.true.
+             return
+          else
+             call Error_Report('radial moment is infinite at r=0 for m ≤ -1'//{introspection:location})
+          end if
+       end if
     end if
     if (specialCaseMoment /= -huge(0)) then
        ! Special case for 0ᵗʰ, 1ˢᵗ, 2ⁿᵈ, and 3ʳᵈ moments of a β=2/3 distribution.

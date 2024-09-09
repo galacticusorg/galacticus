@@ -24,7 +24,7 @@
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorLabels
      !!{
-     A property extractor which extracts virialProperties properties.
+     A property extractor which extracts labels associated with nodes.
      !!}
      private
    contains

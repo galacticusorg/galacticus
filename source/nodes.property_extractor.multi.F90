@@ -188,6 +188,8 @@ contains
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(            time)
        class is (nodePropertyExtractorList         )
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(                )
+       class is (nodePropertyExtractorIntegerList  )
+          if (elementType == elementTypeInteger) multiElementCount=multiElementCount+extractor_%elementCount(                )
        class is (nodePropertyExtractorList2D       )
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(                )
        class is (nodePropertyExtractorMulti        )
@@ -283,6 +285,8 @@ contains
           elementCount=0
        class is (nodePropertyExtractorIntegerTuple )
           elementCount=0
+       class is (nodePropertyExtractorIntegerList  )
+          elementCount=0
        class default
           elementCount=0
           call Error_Report('unsupported property extractor type'//{introspection:location})
@@ -293,25 +297,29 @@ contains
     return
   end function multiExtractDouble
 
-  function multiExtractInteger(self,node,time,instance)
+  function multiExtractInteger(self,node,time,instance,ranks)
     !!{
     Implement a multi output extractor.
     !!}
     use :: Error     , only : Error_Report
     use :: Poly_Ranks, only : polyRankInteger
     implicit none
-    type            (polyRankInteger           ), dimension(:) , allocatable  :: multiExtractInteger
-    class           (nodePropertyExtractorMulti), intent(inout)               :: self
-    type            (treeNode                  ), intent(inout)               :: node
-    double precision                            , intent(in   )               :: time
-    type            (multiCounter              ), intent(inout), optional     :: instance
-    type            (multiExtractorList        ), pointer                     :: extractor_
-    integer         (kind_int8                 ), allocatable  , dimension(:) :: rank0
-    integer                                                                   :: offset             , elementCount, &
-         &                                                                       i
+    type            (polyRankInteger           )                         , allocatable, dimension(:  ) :: multiExtractInteger
+    class           (nodePropertyExtractorMulti), intent(inout)                                        :: self
+    type            (treeNode                  ), intent(inout)                                        :: node
+    double precision                            , intent(in   )                                        :: time
+    type            (multiCounter              ), intent(inout), optional                              :: instance
+    integer                                     , intent(  out), optional, allocatable, dimension(:  ) :: ranks
+    type            (multiExtractorList        ), pointer                                              :: extractor_
+    integer         (kind_int8                 )                         , allocatable, dimension(:  ) :: rank0
+    integer         (kind_int8                 )                         , allocatable, dimension(:,:) :: rank1
+    integer                                                              , allocatable, dimension(:  ) :: ranks_
+    integer                                                                                            :: offset             , elementCount, &
+         &                                                                                                i
 
     elementCount=self%elementCount(elementTypeInteger,time)
     allocate(multiExtractInteger(elementCount))
+    if (present(ranks)) allocate(ranks(self%elementCount(elementTypeInteger,time)))
     if (elementCount == 0) return
     offset     =  0
     extractor_ => self%extractors
@@ -330,16 +338,37 @@ contains
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=1
           multiExtractInteger(offset+1)=polyRankInteger(extractor_%extract(node,time,instance))
+          if (present(ranks)) ranks(offset+1)=0
        class is (nodePropertyExtractorIntegerTuple )
           elementCount=extractor_%elementCount(time)
           rank0=extractor_%extract(node,time,instance)
           do i=1,elementCount
              multiExtractInteger(offset+i)=polyRankInteger(rank0(i))
+             if (present(ranks)) ranks(offset+i)=0
           end do
           deallocate(rank0)
+       class is (nodePropertyExtractorIntegerList  )
+          elementCount=extractor_%elementCount()
+          rank1=extractor_%extract(node     ,instance)
+          do i=1,elementCount
+             multiExtractInteger(offset+i)=polyRankInteger(rank1(:,i))
+             if (present(ranks)) ranks(offset+i)=-1
+          end do
+          deallocate(rank1)
        class is (nodePropertyExtractorMulti        )
           elementCount=extractor_%elementCount(elementTypeInteger,time)
-          if (elementCount > 0) multiExtractInteger(offset+1:offset+elementCount)=extractor_%extractInteger(node,time,instance)
+          if (elementCount > 0) then
+             !![
+	     <conditionalCall>
+	       <call>multiExtractInteger(offset+1:offset+elementCount)=extractor_%extractInteger(node,time,instance{conditions})</call>
+	       <argument name="ranks" value="ranks_" condition="present(ranks)"/>
+	     </conditionalCall>
+             !!]
+             if (present(ranks)) then
+                ranks(offset+1:offset+elementCount)=ranks_
+                deallocate(ranks_)
+             end if
+          end if
        class default
           elementCount=0
           call Error_Report('unsupported property extractor type'//{introspection:location})
@@ -427,6 +456,15 @@ contains
           end if
        class is (nodePropertyExtractorList         )
           if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             if (elementCount > 0) then
+                call extractor_%names(namesTmp     )
+                names(offset+1:offset+elementCount)=namesTmp
+                deallocate(namesTmp)
+             end if
+          end if
+       class is (nodePropertyExtractorIntegerList  )
+          if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount()
              if (elementCount > 0) then
                 call extractor_%names(namesTmp     )
@@ -529,6 +567,14 @@ contains
                 return
              end if
           end if
+       class is (nodePropertyExtractorIntegerList  )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount()
+             if (offset+elementCount >= i) then
+                allocate(descriptions(0))
+                return
+             end if
+          end if
        class is (nodePropertyExtractorList2D       )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount()
@@ -618,6 +664,15 @@ contains
                 deallocate(descriptionsTmp)
              end if
           end if
+        class is (nodePropertyExtractorIntegerList )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount()
+             if (elementCount > 0) then
+                call extractor_%descriptions(descriptionsTmp)
+                descriptions(offset+1:offset+elementCount)=descriptionsTmp
+                deallocate(descriptionsTmp)
+             end if
+          end if
        class is (nodePropertyExtractorList2D       )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount()
@@ -692,6 +747,11 @@ contains
              elementCount=extractor_%elementCount()
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
           end if
+       class is (nodePropertyExtractorIntegerList  )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount()
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
+          end if
        class is (nodePropertyExtractorList2D       )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount()
@@ -756,6 +816,11 @@ contains
           end if
        class is (nodePropertyExtractorList        )
           if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             multiRanks(offset+1:offset+elementCount)=-1
+          end if
+       class is (nodePropertyExtractorIntegerList )
+          if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount()
              multiRanks(offset+1:offset+elementCount)=-1
           end if
@@ -824,6 +889,11 @@ contains
           end if
        class is (nodePropertyExtractorList         )
           if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
+          end if
+       class is (nodePropertyExtractorIntegerList  )
+          if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount()
              if (offset+1 <= iProperty .and. offset+elementCount >= iProperty) call extractor_%metaData(node                                  ,metaDataRank0,metaDataRank1)
           end if

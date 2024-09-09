@@ -97,15 +97,16 @@ contains
     return
   end subroutine gunawardhana2013SDSSDestructor
 
-  double precision function gunawardhana2013SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function gunawardhana2013SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                    , intent(in   ), optional :: mass      , magnitudeAbsolute, &
+         &                                                                           luminosity, starFormationRate
     integer                                             , intent(in   ), optional :: field
-    !$GLC attributes unused :: field, mass, luminosity, magnitudeAbsolute
+    !$GLC attributes unused :: field, mass, luminosity, magnitudeAbsolute, starFormationRate
 
     ! Compute limiting distances. This is due only to the redshift limit.
     gunawardhana2013SDSSDistanceMinimum=self   %cosmologyFunctions_%distanceComoving           (          &
@@ -118,7 +119,7 @@ contains
     return
   end function gunawardhana2013SDSSDistanceMinimum
 
-  double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
@@ -130,39 +131,45 @@ contains
     implicit none
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass                           , magnitudeAbsolute        , &
-         &                                                                           luminosity
+         &                                                                           luminosity                     , starFormationRate
     integer                                             , intent(in   ), optional :: field
     double precision                                    , parameter               :: fluxLimiting           =1.0d-18 ! W m⁻².
     double precision                                                              :: distanceMaximumRedshift        , distanceMaximumLuminosity, &
          &                                                                           distanceLuminosity
-    !$GLC attributes unused :: field, mass, magnitudeAbsolute
+    !$GLC attributes unused :: field
 
-    ! Validate input.
-    if (.not.present(luminosity)) call Error_Report('luminosity must be supplied '//{introspection:location})
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(mass             )) call Error_Report(             '`mass` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Compute limiting distances. We find the luminosity distance from the supplied luminosity and the limiting flux of the survey.
-    distanceLuminosity      =sqrt(                 &
-         &                        +luminosity      &
-         &                        *ergs            &
-         &                        /4.0d0           &
-         &                        /Pi              &
-         &                        /fluxLimiting    &
-         &                        /megaParsec  **2 &
-         &                       )
-    distanceMaximumRedshift =self   %cosmologyFunctions_%distanceComoving           (                                         &
-         &                    self  %cosmologyFunctions_%cosmicTime                  (                                        &
-         &                     self %cosmologyFunctions_%expansionFactorFromRedshift  (                                       &
-         &                                                                                              1.0d-1                &
-         &                                                                            )                                       &
-         &                                                                           )                                        &
+    distanceMaximumRedshift =self   %cosmologyFunctions_%distanceComoving           (          &
+         &                    self  %cosmologyFunctions_%cosmicTime                  (         &
+         &                     self %cosmologyFunctions_%expansionFactorFromRedshift  (        &
+         &                                                                              1.0d-1 &
+         &                                                                            )        &
+         &                                                                           )         &
          &                                                                          )
-    distanceMaximumLuminosity=self   %cosmologyFunctions_%distanceComovingConvert    (                                        &
-         &                                                                           output            =distanceTypeComoving, &
-         &                                                                           distanceLuminosity=distanceLuminosity    &
-         &                                                                          )
-    ! Take the smaller of the two distances.
-    gunawardhana2013SDSSDistanceMaximum=min(                           &
-         &                                  distanceMaximumRedshift  , &
-         &                                  distanceMaximumLuminosity  &
-         &                                 )
+    if (present(luminosity)) then
+       distanceLuminosity      =sqrt(                 &
+            &                        +luminosity      &
+            &                        *ergs            &
+            &                        /4.0d0           &
+            &                        /Pi              &
+            &                        /fluxLimiting    &
+            &                        /megaParsec  **2 &
+            &                       )
+       distanceMaximumLuminosity=self   %cosmologyFunctions_%distanceComovingConvert(                                         &
+            &                                                                        output            =distanceTypeComoving, &
+            &                                                                        distanceLuminosity=distanceLuminosity    &
+            &                                                                       )
+       ! Take the smaller of the two distances.
+       gunawardhana2013SDSSDistanceMaximum=min(                           &
+            &                                  distanceMaximumRedshift  , &
+            &                                  distanceMaximumLuminosity  &
+            &                                 )
+    else
+       gunawardhana2013SDSSDistanceMaximum=    distanceMaximumRedshift
+    end if
     return
   end function gunawardhana2013SDSSDistanceMaximum
