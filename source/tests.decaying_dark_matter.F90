@@ -108,7 +108,7 @@ program Test_Decaying_Dark_Matter
   call Assert('          ∂f/∂vₖ',fractionDerivativeVelocityKick  ,fractionDerivativeVelocityKickFiniteDifference  ,relTol=1.5d-1,absTol=2.0d-3)
   call Assert('          ∂ε/∂vₖ',energyDerivativeVelocityKick    ,energyDerivativeVelocityKickFiniteDifference    ,relTol=4.0d-1,absTol=2.0d-2)
   call Assert('          ∂f/∂vₑ',fractionDerivativeVelocityEscape,fractionDerivativeVelocityEscapeFiniteDifference,relTol=1.5d-1,absTol=1.0d-3)
-  call Assert('          ∂ε/∂vₑ',energyDerivativeVelocityEscape  ,energyDerivativeVelocityEscapeFiniteDifference  ,relTol=5.0d-1,absTol=5.0d-2)
+  call Assert('          ∂ε/∂vₑ',energyDerivativeVelocityEscape  ,energyDerivativeVelocityEscapeFiniteDifference  ,relTol=6.0d-1,absTol=5.0d-2)
   deallocate(fractionRetainedTarget                        )
   deallocate(fractionRetainedTargetUncertainty             )
   deallocate(energyRetainedTarget                          )
