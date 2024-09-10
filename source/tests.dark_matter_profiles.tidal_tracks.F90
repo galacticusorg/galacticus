@@ -148,7 +148,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call Unit_Tests_Begin_Group("Unstripped profile matches NFW"    )
   call Assert("Density at scale radius" ,darkMatterProfileNFW_%density(node_,radius=radiusVirial),darkMatterProfilePenarrubia2010_%density(node_,radius=radiusVirial),relTol=1.0d-6)
   call Assert("Density at virial radius",darkMatterProfileNFW_%density(node_,radius=radiusVirial),darkMatterProfilePenarrubia2010_%density(node_,radius=radiusVirial),relTol=1.0d-6)
-  call Unit_Tests_End_Group  (                                )
+  call Unit_Tests_End_Group  (                                    )
   call Unit_Tests_Begin_Group("Stripped profile (95%) tidal track")
   call satellite_%boundMassSet(0.95d0*massVirial)
   call Calculations_Reset(node_)
