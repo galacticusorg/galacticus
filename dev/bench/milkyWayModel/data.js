@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725685918344,
+  "lastUpdate": 1725960974469,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1b4ef685df687dd6710fb5fdbdca360fcb841464",
-          "message": "Merge pull request #510 from galacticusorg/agesFix\n\nCorrect indexing of meta-properties when computing stellar mass-weighted ages of disk and spheroid.",
-          "timestamp": "2023-12-07T02:45:19Z",
-          "tree_id": "e517388542a5d8e2423d2734ecdd285dbdc673b0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1b4ef685df687dd6710fb5fdbdca360fcb841464"
-        },
-        "date": 1701925340287,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 175.287,
-            "unit": "seconds",
-            "range": 0.431476650585494
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10672,6 +10642,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9158966291241,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "66fa8b5748162c36bae4b122a19bba6a4045180b",
+          "message": "fix: Update constructor calls in test codes",
+          "timestamp": "2024-09-10T03:33:13Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/66fa8b5748162c36bae4b122a19bba6a4045180b"
+        },
+        "date": 1725960973261,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 392.942,
+            "unit": "seconds",
+            "range": 1.90764766138701
           }
         ]
       }
