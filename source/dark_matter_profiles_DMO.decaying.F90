@@ -21,6 +21,7 @@
   An implementation of decaying dark matter halo profiles.
   !!}
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Decaying_Dark_Matter , only : decayingDarkMatterFractionRetained
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMODecaying">
@@ -34,7 +35,7 @@
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
-     double precision                                     :: lifetime_                      , massSplitting_
+     double precision                                     :: lifetime_                      , massSplitting_ , velocityKick
      logical                                              :: massLoss_
    contains
      !![
@@ -63,7 +64,6 @@
      procedure :: freefallRadius                    => decayingFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => decayingFreefallRadiusIncreaseRate
      procedure :: decayingFactor                    => decayingDecayingFactor
-     procedure :: escapeFraction                    => decayingEscapeFraction
   end type darkMatterProfileDMODecaying
 
   interface darkMatterProfileDMODecaying
@@ -123,6 +123,8 @@ contains
     !!}
     use :: Error                , only : Error_Report
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (darkMatterProfileDMODecaying)                        :: self
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
@@ -139,12 +141,16 @@ contains
     class is (darkMatterParticleDecayingDarkMatter)
        self%lifetime_                             =darkMatterParticle_%lifetime     ()
        self%massSplitting_                        =darkMatterParticle_%massSplitting()
+       self%velocityKick  =+self               %massSplitting_  &
+            &              *speedLight                          &
+            &              /kilo
        self%massLoss_                             =darkMatterParticle_%massLoss     ()
        self%tolerateEnclosedMassIntegrationFailure=.true.
     class default
        ! No decays.
        self%lifetime_                             =-1.0d0
        self%massSplitting_                        =+0.0d0
+       self%velocityKick  =+0.0d0
        self%massLoss_                             =.false.
        self%tolerateEnclosedMassIntegrationFailure=.false.
     end select
@@ -214,13 +220,31 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
+    double precision                              , parameter     :: fractionRadiusVirialMaximum=1.0d3
     double precision                              , intent(  out) :: factor
     class           (nodeComponentBasic          ), pointer       :: basic
-    double precision                                              :: fractionEscaped, fractionDecayed
+    double precision                                              :: velocityDispersion, velocityEscape, fractionRetained, fractionDecayed
 
     if (self%massLoss_) then
        basic           =>  node%basic         (           )
-       fractionEscaped =  +self%escapeFraction(radius,node)
+       velocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+       if (velocityDispersion > 0.0d0) then
+          ! Find the escape velocity.
+          if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+             velocityEscape=+sqrt(                                                                                                                     &
+                  &               +2.0d0                                                                                                               &
+                  &               *(                                                                                                                   &
+                  &               +self%darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
+                  &                 -self%darkMatterProfileDMO_%potential(node,                                                    radius            ) &
+                  &                )                                                                                                                   &
+                  &              )                                                                                                                     
+          else
+             velocityEscape=+0.0d0
+          end if
+       else
+          velocityEscape=+0.0d0
+       end if
+       fractionRetained=+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
        fractionDecayed =  +1.0d0                  &
             &             -exp(                   &
             &                  -basic%time     () &
@@ -228,68 +252,13 @@ contains
             &                 )
        factor          =  +(+1.0d0-fractionDecayed    ) & ! { Fraction of particles undecayed - have 100% of their original mass.
             &             +        fractionDecayed      & ! ⎧ Fraction of particles decayed...
-            &             *(+1.0d0-fractionEscaped    ) & ! ⎨  ...but not escaped...
+            &             *(fractionRetained    ) & ! ⎨  ...but not escaped...
             &             *(+1.0d0-self%massSplitting_)   ! ⎩  ...have 1-ε of their original mass.
     else
        factor          = +1.0d0                           !   Mass loss is being ignored.
     end if
     return
   end subroutine decayingDecayingFactor
-
-  double precision function decayingEscapeFraction(self,radius,node)
-    !!{
-    Return the fraction of the particles that escape after decaying at a given radius.
-    !!}
-    use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Prefixes, only : kilo
-    use :: Statistics_Distributions    , only : distributionFunction1DNonCentralChiDegree3
-    implicit none
-    class           (darkMatterProfileDMODecaying              ), intent(inout) :: self
-    type            (treeNode                                  ), intent(inout) :: node
-    double precision                                            , intent(in   ) :: radius
-    double precision                                            , parameter     :: fractionRadiusVirialMaximum=1.0d3
-    type            (distributionFunction1DNonCentralChiDegree3)                :: distributionSpeed
-    double precision                                                            :: velocityDispersion               , velocityEscape
-    
-    velocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-    if (velocityDispersion > 0.0d0) then
-       ! Find the escape velocity.
-       if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
-          velocityEscape=+sqrt(                                                                                                                       &
-               &               +2.0d0                                                                                                                 &
-               &               *(                                                                                                                     &
-               &                 +self%darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
-               &                 -self%darkMatterProfileDMO_%potential(node,                                                      radius            ) &
-               &                )                                                                                                                     &
-               &              )
-       else
-          velocityEscape=+0.0d0
-       end if
-       ! To find the escaping fraction, we assume that the particles initially have a Gaussian velocity distribution in each
-       ! direction, with isotropic dispersion, σ. When a particle decays, it receives a kick with velocity εc isotropically. The
-       ! resulting distribution of speeds will follow a degree-3 non-central χ² distribution with non-centrality parameter
-       ! λ=(εc/σ)². The fraction of that distribution with speed above the escape velocity then gives us the escaping fraction.
-       distributionSpeed     =distributionFunction1DNonCentralChiDegree3(                       &
-            &                                                            +(                     &
-            &                                                              +self%massSplitting_ &
-            &                                                              *speedLight          &
-            &                                                              /kilo                &
-            &                                                              /velocityDispersion  &
-            &                                                             )**2                  &
-            &                                                           )
-       decayingEscapeFraction=+1.0d0                                             &
-            &                 -distributionSpeed%cumulative(                     &
-            &                                               (                    &
-            &                                                +velocityEscape     &
-            &                                                /velocityDispersion &
-            &                                               )**2                 &
-            &                                              )
-    else
-       ! Non-positive velocity dispersion - assume that all particles escape.
-       decayingEscapeFraction = +1.0d0
-    end if
-    return
-  end function decayingEscapeFraction
 
   double precision function decayingDensity(self,node,radius)
     !!{
