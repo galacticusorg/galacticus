@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "5666c81730be7ffc136434efb4bea99cbf47b938",
-        "message": "Merge pull request #691 from galacticusorg/fixStdOutStdErr\n\nUse `output_unit` and `error_unit` from `ISO_Fortran_Env` to direct all output\n",
-        "timestamp": "2024-09-06 23:10:22+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5666c81730be7ffc136434efb4bea99cbf47b938"
+        "id": "66fa8b5748162c36bae4b122a19bba6a4045180b",
+        "message": "fix: Update constructor calls in test codes\n",
+        "timestamp": "2024-09-09 20:33:13-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/66fa8b5748162c36bae4b122a19bba6a4045180b"
     },
     "results": [
         {
