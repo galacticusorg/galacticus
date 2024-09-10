@@ -60,7 +60,8 @@ program Test_Dark_Matter_Profiles_Heated
   double precision                                                                , parameter    :: toleranceRelativePotential                  = 1.0d-03
   double precision                                                                , parameter    :: fractionRadiusFinalSmall                    = 1.0d-03
   logical                                                                         , parameter    :: velocityDispersionApproximate               =.true.
-  logical                  , parameter    :: tolerateVelocityMaximumFailure              =.false.
+  logical            , parameter    :: tolerateVelocityMaximumFailure              =.false.
+  logical            , parameter    :: toleratePotentialIntegrationFailure          =.false.
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentSatellite                                        ), pointer      :: satellite
   double precision                                                                , dimension(3) :: radiusVirialFractional                      =[0.1d0,0.5d0,1.0d0]
@@ -148,7 +149,7 @@ program Test_Dark_Matter_Profiles_Heated
   !!]
   darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder       ,coefficientSecondOrder       ,coefficientSecondOrder                                                                                   ,correlationVelocityRadius                                                          )
   darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                                                      darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversFallThrough,velocityDispersionApproximate,tolerateVelocityMaximumFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversFallThrough,velocityDispersionApproximate,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversFallThrough                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
