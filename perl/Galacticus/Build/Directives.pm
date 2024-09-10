@@ -34,7 +34,7 @@ sub Extract_Directive {
 	    $xmlText .= $line;
 	    $depth += () = ( $line =~ /<([a-zA-Z0-9]+)[^\/>]*>/g ); # Increment depth by count of any opening elements.
 	    $depth -= () = ( $line =~ /<\/([a-zA-Z0-9]+)>/g      ); # Decrement depth by count of any closing elements.
-	    if ( defined($xmlText) && $depth == 0 ) {
+	    if ( defined($xmlText) && $xmlText !~ m/^\s*$/ && $depth == 0 ) {
 		# Parse the XML.
 		my $xml    = new XML::Simple(KeepRoot => 1);
 		$directive = eval{$xml->XMLin($xmlText)};
