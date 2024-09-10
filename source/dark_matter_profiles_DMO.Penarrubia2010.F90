@@ -149,37 +149,44 @@ contains
     implicit none
     type            (darkMatterProfileDMOPenarrubia2010)                        :: self
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                    , intent(in   )         :: alpha               , beta        , &
-         &                                                                         gamma               , betaStripped, &
-         &                                                                         muRadius            , etaRadius   , &
-         &                                                                         muVelocity          , etaVelocity
+    double precision                                    , intent(in   )         :: alpha                      , beta        , &
+         &                                                                         gamma                      , betaStripped, &
+         &                                                                         muRadius                   , etaRadius   , &
+         &                                                                         muVelocity                 , etaVelocity
     type            (treeNode                          ), pointer               :: node
     class           (nodeComponentBasic                ), pointer               :: basic
     class           (nodeComponentDarkMatterProfile    ), pointer               :: darkMatterProfile
+    double precision                                    , parameter             :: concentration       =10.0d0
+    double precision                                                            :: radiusVirial               , radiusScale
     !![
     <constructorAssign variables="alpha, beta, gamma, betaStripped, muRadius, etaRadius, muVelocity, etaVelocity, *darkMatterHaloScale_"/>
     !!]
 
-    ! Compute the mapping between scale radius and radius of peak velocity in the scale-free stripped and unstripped profiles.
+    ! Compute the mapping between scale radius and radius of peak velocity in the scale-free stripped and unstripped profiles. We
+    ! use a halo of arbitrary mass here, but do set a somewhat physical scale radius to ensure that numerical solvers have a
+    ! reasonable profile to work with.
     node              =>  treeNode                  (                 )
     basic             =>  node    %basic            (autoCreate=.true.)
     darkMatterProfile =>  node    %darkMatterProfile(autoCreate=.true.)
     call basic            %timeSet            (1.0d0)
     call basic            %timeLastIsolatedSet(1.0d0)
     call basic            %massSet            (1.0d0)
-    call darkMatterProfile%scaleSet           (1.0d0)
+    radiusVirial=+self%darkMatterHaloScale_%radiusVirial (node)
+    radiusScale =+                          radiusVirial        &
+         &       /                          concentration
+    call darkMatterProfile%scaleSet(radiusScale)
     allocate(self%darkMatterProfileStripped  )
     allocate(self%darkMatterProfileUnstripped)
     !![
     <referenceConstruct isResult="yes" owner="self" object="darkMatterProfileStripped"   constructor="darkMatterProfileDMOZhao1996(alpha,betaStripped,gamma,darkMatterHaloScale_)"/>
     <referenceConstruct isResult="yes" owner="self" object="darkMatterProfileUnstripped" constructor="darkMatterProfileDMOZhao1996(alpha,beta        ,gamma,darkMatterHaloScale_)"/>
     !!]
-    self%ratioRadiusMaximumRadiusScaleStripped      =+self%darkMatterProfileStripped  %radiusCircularVelocityMaximum(node             )
-    self%ratioRadiusMaximumRadiusScaleUnstripped    =+self%darkMatterProfileUnstripped%radiusCircularVelocityMaximum(node             )
-    self%ratioVelocityMaximumVelocityScaleStripped  =+self%darkMatterProfileStripped  %      circularVelocityMaximum(node             ) &
-         &                                           /self%darkMatterProfileStripped  %      circularVelocity       (node,radius=1.0d0)
-    self%ratioVelocityMaximumVelocityScaleUnstripped=+self%darkMatterProfileUnstripped%      circularVelocityMaximum(node             ) &
-         &                                           /self%darkMatterProfileUnstripped%      circularVelocity       (node,radius=1.0d0)
+    self%ratioRadiusMaximumRadiusScaleStripped      =+self%darkMatterProfileStripped  %radiusCircularVelocityMaximum(node                   )
+    self%ratioRadiusMaximumRadiusScaleUnstripped    =+self%darkMatterProfileUnstripped%radiusCircularVelocityMaximum(node                   )
+    self%ratioVelocityMaximumVelocityScaleStripped  =+self%darkMatterProfileStripped  %      circularVelocityMaximum(node                   ) &
+         &                                           /self%darkMatterProfileStripped  %      circularVelocity       (node,radius=radiusScale)
+    self%ratioVelocityMaximumVelocityScaleUnstripped=+self%darkMatterProfileUnstripped%      circularVelocityMaximum(node                   ) &
+         &                                           /self%darkMatterProfileUnstripped%      circularVelocity       (node,radius=radiusScale)
     call node%destroy()
     deallocate(node)
     ! Initialize state.
