@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "66fa8b5748162c36bae4b122a19bba6a4045180b",
-        "message": "fix: Update constructor calls in test codes\n",
-        "timestamp": "2024-09-09 20:33:13-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/66fa8b5748162c36bae4b122a19bba6a4045180b"
+        "id": "f682b8da0987843912223dd0143d1faf77c71216",
+        "message": "Merge pull request #698 from galacticusorg/fixEmptyDirectiveLineParse\n\nIgnore empty lines when parsing directives\n",
+        "timestamp": "2024-09-11 03:48:21+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f682b8da0987843912223dd0143d1faf77c71216"
     },
     "results": [
         {
