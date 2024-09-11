@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725960984356,
+  "lastUpdate": 1726049853796,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "303504a414be4a532d36d27139be8ad3eadc6ded",
-          "message": "fix: Merge branch 'agesFix'",
-          "timestamp": "2023-12-12T08:12:47-08:00",
-          "tree_id": "a1e796c7988ac1a0613cbad11bd9db6658e95d71",
-          "url": "https://github.com/galacticusorg/galacticus/commit/303504a414be4a532d36d27139be8ad3eadc6ded"
-        },
-        "date": 1702406249893,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 149.374,
-            "unit": "seconds",
-            "range": 0.16238965484094
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10668,6 +10638,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0090478430952,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f682b8da0987843912223dd0143d1faf77c71216",
+          "message": "Merge pull request #698 from galacticusorg/fixEmptyDirectiveLineParse\n\nIgnore empty lines when parsing directives",
+          "timestamp": "2024-09-11T03:48:21Z",
+          "tree_id": "724a11fd5782d3d1b5ec6befa6585ad3c271462f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f682b8da0987843912223dd0143d1faf77c71216"
+        },
+        "date": 1726049852674,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 499.883,
+            "unit": "seconds",
+            "range": 0.530041602139901
           }
         ]
       }
