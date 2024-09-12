@@ -196,8 +196,8 @@ module Input_Parameters
    contains
      !![
      <methods>
-       <method description="Serialize a list of input parameters to an XML document." method="serializeToXML" />
-       <method description="Add a parameter and value to the list." method="add" />
+       <method description="Serialize a list of input parameters to an XML document." method="serializeToXML"/>
+       <method description="Add a parameter and value to the list."                   method="add"           />
      </methods>
      !!]
      final     ::                      inputParameterListDestructor
@@ -221,6 +221,16 @@ module Input_Parameters
    <entry label="parse"          />
    <entry label="emptyValue"     />
    <entry label="ambiguousValue" />
+  </enumeration>
+  !!]
+
+  !![
+  <enumeration>
+   <name>inputParameterType</name>
+   <description>Types for input parameters.</description>
+   <entry label="double" />
+   <entry label="integer"/>
+   <entry label="text"   />
   </enumeration>
   !!]
 
@@ -910,10 +920,10 @@ contains
     return
   end subroutine inputParameterSetDouble
 
- subroutine inputParameterSetVarStr(self,value)
-   !!{
-   Set the value of a parameter.
-   !!}
+  subroutine inputParameterSetVarStr(self,value)
+    !!{
+    Set the value of a parameter.
+    !!}
     use :: FoX_DOM           , only : setAttribute
     use :: ISO_Varying_String, only : char
     implicit none
@@ -1009,7 +1019,7 @@ contains
           if (currentParameter%isParameter()) then
              node_ => currentParameter%content
              ! Attempt to read the parameter value.
-             call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
+             call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.,evaluate=.false.)
              ! Determine if warnings should be ignored for this parameter.
              ignoreWarnings=.false.
              !$omp critical (FoX_DOM_Access)
@@ -1480,7 +1490,7 @@ contains
     return
   end function inputParametersPath
 
-  recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
+  recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance,evaluate)
     !!{
     Return the value of the parameter specified by name.
     !!}
@@ -1495,7 +1505,7 @@ contains
     {Type¦intrinsic}                                          , intent(in   ), optional :: defaultValue
     type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
     integer                                                   , intent(in   ), optional :: copyInstance
-    logical                                                   , intent(in   ), optional :: writeOutput
+    logical                                                   , intent(in   ), optional :: writeOutput   , evaluate
     type            (inputParameters                         ), pointer                 :: parametersRoot
     type            (inputParameter                          ), pointer                 :: parameterNode
     type            (varying_string                          )                          :: parameterPath
@@ -1505,7 +1515,7 @@ contains
 
     if (self%isPresent(parameterName)) then
        parameterNode => self%node(parameterName,copyInstance=copyInstance)
-       call self%value(parameterNode,parameterValue,errorStatus,writeOutput)
+       call self%value(parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
     else if (present(defaultValue)) then
        parametersRoot => self
        do while (associated(parametersRoot%parent))
@@ -1533,16 +1543,16 @@ contains
     return
   end subroutine inputParametersValueName{Type¦label}
 
-  recursive subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
+  recursive subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
     !!{
     Return the value of the specified parameter.
     !!}
-    use, intrinsic :: ISO_C_Binding     , only : c_int64_t
+    use, intrinsic :: ISO_C_Binding     , only : c_int64_t                        , c_size_t
     use            :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName   , hasAttribute      , &
           &                                      inException                      , node              , getTextContent, extractDataContent
     use            :: Error             , only : Error_Report
     use            :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//)  , operator(==)      , &
-          &                                      trim
+          &                                      trim                             , var_str
     use            :: String_Handling   , only : String_Count_Words               , String_Split_Words, operator(//)
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use            :: HDF5_Access       , only : hdf5Access
@@ -1551,7 +1561,7 @@ contains
     type            (inputParameter                          ), intent(inout), target      :: parameterNode
     {Type¦intrinsic}                                          , intent(  out)              :: parameterValue
     type            (enumerationInputParameterErrorStatusType), intent(  out), optional    :: errorStatus
-    logical                                                   , intent(in   ), optional    :: writeOutput
+    logical                                                   , intent(in   ), optional    :: writeOutput        , evaluate
 #ifdef MATHEVALAVAIL
     integer         (c_int64_t                               )                             :: evaluator
     ! Declarations of GNU libmatheval procedures used.
@@ -1569,15 +1579,20 @@ contains
          &                                                                                    countNames         , copyCount      , &
          &                                                                                    copyInstance
     logical                                                                                :: hasValueAttribute  , hasValueElement, &
-         &                                                                                    isException        , isPresent
+         &                                                                                    isException        , isPresent      , &
+         &                                                                                    isDouble           , isText
     character       (len=parameterLengthMaximum              )                             :: expression         , parameterName  , &
-         &                                                                                    workText           , content
+         &                                                                                    workText           , content        , &
+         &                                                                                    workValueText      , formatSpecifier
     type            (varying_string                          )                             :: attributeName      , nodeName
-    double precision                                                                       :: workValue
+    double precision                                                                       :: workValueDouble
+    integer         (c_size_t                                )                             :: workValueInteger
+    type            (enumerationInputParameterTypeType       )                             :: parameterType
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
+    <optionalArgument name="evaluate"    defaultsTo=".true." />
     !!]
 
     if (present(errorStatus)) errorStatus=inputParameterErrorStatusSuccess
@@ -1619,9 +1634,11 @@ contains
           !$omp critical (FoX_DOM_Access)
           expression=getTextContent(valueElement)
           !$omp end critical (FoX_DOM_Access)
-          if (expression(1:1) == "=") then
-             {Type¦match¦^Double$¦if (.true.) then¦if (.false.) then}
-                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.             
+          if (expression(1:1) == "=" .and. evaluate_) then
+             {Type¦match¦^(Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+                {Type¦match¦^Double$¦isDouble=.true.¦isDouble=.false.}
+                {Type¦match¦^(Character|VarStr)¦isText=.true.¦isText=.false.}
+                ! This is an expression, and we have a scalar, floating point or text type - it can be evaluated.             
                 !! Mark this parameter as being evaluated and store its original content. This allows the parameter to be reset to
                 !! its original (unevaluated) state if necessary.
                 parameterNode%evaluated      =.true.
@@ -1631,6 +1648,29 @@ contains
                 !! Replace other parameter values inside the parameter.
                 do while (index(expression,"[") /= 0)
                    parameterName=expression(index(expression,"[")+1:index(expression,"]")-1)
+                   parameterType=inputParameterTypeDouble
+                   if (isText) then
+                      if (index(parameterName,"|") > 0) then
+                         formatSpecifier=parameterName(1:index(parameterName,"|")-1)
+                         parameterName  =parameterName(index(parameterName,"|")+1:len_trim(parameterName))
+                         if (formatSpecifier(1:1) /= "%") call Error_Report('unrecognized format specifier'//{introspection:location})
+                         select case (formatSpecifier(len_trim(formatSpecifier):len_trim(formatSpecifier)))
+                         case ("s"    )
+                            parameterType=inputParameterTypeText
+                            formatSpecifier="(a)"
+                         case ("d"    )
+                            parameterType=inputParameterTypeInteger
+                            formatSpecifier="(i"//formatSpecifier(2:len_trim(formatSpecifier)-1)//")"
+                         case ("f","e")
+                            parameterType=inputParameterTypeDouble
+                            formatSpecifier="("//formatSpecifier(len_trim(formatSpecifier):len_trim(formatSpecifier))//formatSpecifier(2:len_trim(formatSpecifier)-1)//")"
+                         case default
+                            call Error_Report('unrecognized format specifier'//{introspection:location})
+                         end select
+                      else
+                         call Error_Report('inserted parameters must have a format specifier'//{introspection:location})
+                      end if
+                   end if
                    countNames=String_Count_Words(parameterName,":")
                    allocate(parameterNames(countNames))
                    call String_Split_Words(parameterNames,parameterName,":")
@@ -1676,10 +1716,26 @@ contains
                    end do
                    if (countNames == 1) then
                       isPresent=rootParameters%isPresent(trim(parameterNames(countNames)))
-                      if (isPresent) call rootParameters%value(trim(parameterNames(countNames)),workValue)
+                      if (isPresent) then
+                         if      (parameterType == inputParameterTypeDouble ) then
+                            call rootParameters%value(trim(parameterNames(countNames)),workValueDouble )
+                         else if (parameterType == inputParameterTypeInteger) then
+                            call rootParameters%value(trim(parameterNames(countNames)),workValueInteger)
+                         else if (parameterType == inputParameterTypeText   ) then
+                            call rootParameters%value(trim(parameterNames(countNames)),workValueText   )
+                         end if
+                      end if
                    else
                       isPresent= subParameters%isPresent(trim(parameterNames(countNames)))
-                      if (isPresent) call subParameters %value(trim(parameterNames(countNames)),workValue)
+                      if (isPresent) then
+                         if      (parameterType == inputParameterTypeDouble ) then
+                            call subParameters %value(trim(parameterNames(countNames)),workValueDouble)
+                         else if (parameterType == inputParameterTypeInteger) then
+                            call rootParameters%value(trim(parameterNames(countNames)),workValueInteger)
+                         else if (parameterType == inputParameterTypeText   ) then
+                            call rootParameters%value(trim(parameterNames(countNames)),workValueText   )
+                         end if
+                      end if
                       deallocate(subParameters)
                    end if
                    if (.not.isPresent) then
@@ -1688,23 +1744,40 @@ contains
                       !$omp end critical (FoX_DOM_Access)
                       call Error_Report('parameter `'//trim(parameterName)//'` referenced in expression `'//trim(expression)//'` does not exist'//{introspection:location})
                    end if
-                   write (workText,'(e24.16)') workValue
                    deallocate(parameterNames)
+                   if (isDouble) then
+                      write (workText,'(e24.16)') workValueDouble
+                   else if (isText) then
+                      if      (parameterType == inputParameterTypeDouble ) then
+                         write (worktext,formatSpecifier) workValueDouble
+                      else if (parameterType == inputParameterTypeInteger) then
+                         write (worktext,formatSpecifier) workValueInteger
+                      else if (parameterType == inputParameterTypeText   ) then
+                         write (worktext,formatSpecifier) workValueText
+                      end if
+                   end if
                    expression=expression(1:index(expression,"[")-1)//trim(adjustl(workText))//expression(index(expression,"]")+1:len_trim(expression))
                 end do
                 !! Evaluate the expression.
+                if (isDouble) then
 #ifdef MATHEVALAVAIL
-                evaluator=Evaluator_Create_(trim(expression))
-                if (evaluator == 0) call Error_Report('failed to parse expression'//{introspection:location})
-                workValue=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
-                call Evaluator_Destroy_(evaluator)
-                call parameterNode%set(workValue)
-                !$omp critical (FoX_DOM_Access)
-                valueElement => getAttributeNode(parameterNode%content,"value")
-                !$omp end critical (FoX_DOM_Access)
+                   evaluator=Evaluator_Create_(trim(expression))
+                   if (evaluator == 0) call Error_Report('failed to parse expression'//{introspection:location})
+                   workValueDouble=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
+                   call Evaluator_Destroy_(evaluator)
+                   call parameterNode%set(workValueDouble)
+                   !$omp critical (FoX_DOM_Access)
+                   valueElement => getAttributeNode(parameterNode%content,"value")
+                   !$omp end critical (FoX_DOM_Access)
 #else
-                call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+                   call Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
 #endif
+                else if (isText) then
+                   call parameterNode%set(var_str(trim(expression)))
+                   !$omp critical (FoX_DOM_Access)
+                   valueElement => getAttributeNode(parameterNode%content,"value")
+                   !$omp end critical (FoX_DOM_Access)
+                end if
              end if
           end if
           ! Extract the value.          
