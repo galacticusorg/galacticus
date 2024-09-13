@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "f682b8da0987843912223dd0143d1faf77c71216",
-        "message": "Merge pull request #698 from galacticusorg/fixEmptyDirectiveLineParse\n\nIgnore empty lines when parsing directives\n",
-        "timestamp": "2024-09-11 03:48:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/f682b8da0987843912223dd0143d1faf77c71216"
+        "id": "3f3d9a2af2b05c0a279e4aa3602f89fd682665cc",
+        "message": "Merge pull request #700 from galacticusorg/featEvaluateTextParameters\n\nAllow evaluation of text parameters\n",
+        "timestamp": "2024-09-13 14:34:09+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"
     },
     "results": [
         {
