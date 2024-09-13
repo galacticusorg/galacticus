@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726049858475,
+  "lastUpdate": 1726260326824,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "238952f386539838344b47298704274566207a0c",
-          "message": "Merge pull request #513 from galacticusorg/dependabot/github_actions/actions/upload-artifact-4\n\nbuild(deps): bump actions/upload-artifact from 3 to 4",
-          "timestamp": "2023-12-18T03:57:38Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/238952f386539838344b47298704274566207a0c"
-        },
-        "date": 1702881667986,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 43.106,
-            "unit": "seconds",
-            "range": 0.0657753753316054
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8696,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20581.268633577,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3f3d9a2af2b05c0a279e4aa3602f89fd682665cc",
+          "message": "Merge pull request #700 from galacticusorg/featEvaluateTextParameters\n\nAllow evaluation of text parameters",
+          "timestamp": "2024-09-13T14:34:09Z",
+          "tree_id": "fe36ba6ba2a8362e4a8047b2455fadb2f7feec20",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"
+        },
+        "date": 1726260324950,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 54.35,
+            "unit": "seconds",
+            "range": 0.0984377976186003
           }
         ]
       }
