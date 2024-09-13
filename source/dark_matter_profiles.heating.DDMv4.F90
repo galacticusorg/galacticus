@@ -37,17 +37,35 @@
      A dark matter profile heating class which accounts for heating due to decays.
      !!}
      private
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     logical                                             :: heating_                      , massLoss_
-     double precision                                    :: lifetime_                     , massSplitting_,&
-          &                                                 gamma_                        , velocityKick
-  contains
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_    => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_   => null()
+     logical                                             :: heating_                        , massLoss_
+     double precision                                    :: lifetime_                       , massSplitting_                , &
+          &                                                 gamma_                          , velocityKick
+     integer         (kind_int8               )          :: lastUniqueID
+     logical                                             :: energySpecificComputed          , energySpecificGradientComputed, &
+          &                                                 factorsComputed
+     double precision                                    :: radius                          , massEnclosed                  , &
+          &                                                 fractionRetained                , energyRetained                , &
+          &                                                 velocityDispersion              , velocityEscape                , &
+          &                                                 massLossEnergy                  , fractionDecayed               , &
+          &                                                 energySpecificGradient          , energySpecific
+   contains
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset"/>
+       <method description="Compute memoized factors."    method="computeFactors"  />
+     </methods>
+     !!]
+     final     ::                                   DDMv4Destructor
+     procedure :: autoHook                       => DDMv4AutoHook
+     procedure :: calculationReset               => DDMv4CalculationReset
      procedure :: specificEnergy                 => DDMv4SpecificEnergy
      procedure :: specificEnergyGradient         => DDMv4SpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero => DDMv4SpecificEnergyIsEverywhereZero
+     procedure :: computeFactors                 => DDMv4ComputeFactors
   end type darkMatterProfileHeatingDDMv4
-
+  
   interface darkMatterProfileHeatingDDMv4
      !!{
      Constructors for the {\normalfont \ttfamily DDMv4} dark matter profile heating class.
@@ -115,12 +133,59 @@ contains
        self%gamma_        =+1.0d0
        self%velocityKick  =+0.0d0
     end select
+    ! Initialize memoized calculations.
+    self%lastUniqueID                  =-1_kind_int8
+    self%radius                        =-huge(0.0d0)
+    self%factorsComputed               =.false.
+    self%energySpecificComputed        =.false.
+    self%energySpecificGradientComputed=.false.
     return
   end function DDMv4ConstructorInternal
 
-  double precision function DDMv4SpecificEnergy(self,node,radius,darkMatterProfileDMO_) result(energySpecific)
+  subroutine DDMv4AutoHook(self)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterProfileHeatingDDMv4), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,DDMv4CalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileHeatingDDMv4')
+    return 
+  end subroutine DDMv4AutoHook
+    
+  subroutine DDMv4CalculationReset(self,node,uniqueID)
+    !!{ 
+    Reset the stored specific energy and associated factors.
+    !!}
+    implicit none   
+    class  (darkMatterProfileHeatingDDMv4), intent(inout) :: self
+    type   (treeNode                     ), intent(inout) :: node
+    integer(kind_int8                    ), intent(in   ) :: uniqueID
+
+    self%lastUniqueID                  =uniqueID
+    self%radius                        =-huge(0.0d0)
+    self%factorsComputed               =.false.
+    self%energySpecificComputed        =.false.
+    self%energySpecificGradientComputed=.false.
+    return
+  end subroutine DDMv4CalculationReset
+
+  subroutine DDMv4Destructor(self)
+    !!{
+    Destructor for the ``DDMv4'' dark matter profile heating class.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent
+    implicit none
+    type(darkMatterProfileHeatingDDMv4), intent(inout) :: self
+
+    if (calculationResetEvent%isAttached(self,DDMv4CalculationReset)) call calculationResetEvent%detach(self,DDMv4CalculationReset)
+    return
+  end subroutine DDMv4Destructor
+
+  subroutine DDMv4ComputeFactors(self,node,radius,darkMatterProfileDMO_,gradientRequired)
+    !!{
+    Compute various factors for specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -129,71 +194,163 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
+    logical                                        , intent(in   ) :: gradientRequired
     class           (nodeComponentBasic           ), pointer       :: basic
-    double precision                               , parameter     :: fractionRadiusVirialMaximum=1.0d3
-    double precision                                               :: massLossEnergy                   , velocityDispersion , &
-         &                                                            velocityEscape                   , potentialDifference, &
-         &                                                            fractionRetained                 , energyRetained     , &
-         &                                                            fractionDecayed
+    double precision                               , parameter     :: fractionRadiusVirialMaximum              =1.0d3
+    double precision                                               :: density                                        , densityLogGradient                , &
+         &                                                            fractionDerivativeVelocityEscapeScaleFree      , fractionDerivativeVelocityKick    , &
+         &                                                            energyDerivativeVelocityEscapeScaleFree        , energyDerivativeVelocityKick      , &
+         &                                                            fractionDerivativeVelocityEscapeScaleFree      , fractionDerivativeVelocityKick    , &
+         &                                                            energyDerivativeVelocityEscapeScaleFree        , energyDerivativeVelocityKick      , &
+         &                                                            fractionDerivativeVelocityDispersion           , energyDerivativeVelocityDispersion, &
+         &                                                            velocityDispersionGradient                     , velocityEscapeGradient            , &
+         &                                                            potentialDifference                            , massLossGradient
+    
+    if (node%uniqueID() /= self%lastUniqueID .or. radius /= self%radius) call self%calculationReset(node,node%uniqueID())
+    if (.not.self%factorsComputed) then
+       ! Find the fraction of particles that have decayed by this time.
+       basic                =>  node%basic()
+       self%fractionDecayed =  +1.0d0                  &
+            &                  -exp(                   &
+            &                       -basic%time     () &
+            &                       /self %lifetime_   &
+            &                      )
+       ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
+       if (self%massLoss_) then
+          self%massEnclosed  =darkMatterProfileDMO_%enclosedMass(node,radius)
+          self%massLossEnergy=+self%gamma_                          &
+               &              *     gravitationalConstantGalacticus &
+               &              *self%massEnclosed                    &
+               &              /     radius
+       else
+          self%massLossEnergy=+0.0d0
+       end if
+       ! Compute the velocity dispersion.
+       self%velocityDispersion=darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+       ! Find the escape velocity.
+       if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+          potentialDifference=+darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
+               &              -darkMatterProfileDMO_%potential(node,                                                      radius            )
+          if (potentialDifference > 0.0d0) then
+             self%velocityEscape=+sqrt(                     &
+                  &                    +2.0d0               &
+                  &                    *potentialDifference &
+                  &                   )
+          else
+             self%velocityEscape=+0.0d0
+          end if
+       else
+          self%velocityEscape   =+0.0d0
+       end if
+       ! Store computation point.
+       self%radius=radius
+       self%factorsComputed=.true.
+    end if
+    if (.not.self%energySpecificComputed) then
+      ! Compute the fraction of particles, and kick energy retained.
+       if (self%velocityDispersion > 0.0d0) then
+          self%fractionRetained   =+decayingDarkMatterFractionRetained(self%velocityDispersion,self%velocityEscape,self%velocityKick)
+          self%energyRetained     =+decayingDarkMatterEnergyRetained  (self%velocityDispersion,self%velocityEscape,self%velocityKick)
+       else
+          if (self%velocityKick > self%velocityEscape) then
+             self%fractionRetained=+0.0d0
+             self%energyRetained  =+0.0d0
+          else
+             self%fractionRetained=+1.0d0
+             self%energyRetained  =+decayingDarkMatterEnergyRetained  (self%velocityDispersion,self%velocityEscape,self%velocityKick)
+          end if
+       end if
+       ! If heating is not to be included, set the energy retained to zero.
+       if (.not.self%heating_) self%energyRetained=0.0d0
+       ! Compute the specific heating energy.
+       self%energySpecific=+(                                                     &
+            &                +self%energyRetained                                 &
+            &                +(                                                   &
+            &                  +(1.0d0-self%fractionRetained)                     &
+            &                  +       self%fractionRetained *self%massSplitting_ &
+            &                 )                                                   &
+            &                *self%massLossEnergy                                 &
+            &               )                                                     &
+            &              *self%fractionDecayed
+       self%energySpecificComputed=.true.
+    end if
+    if (.not.self%energySpecificGradientComputed.and.gradientRequired) then
+       ! Compute properties of the dark matter density profile.
+       density           =+darkMatterProfileDMO_%density        (node,radius)
+       densityLogGradient=+darkMatterProfileDMO_%densityLogSlope(node,radius)
+       ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
+       if (self%massLoss_) then
+          massLossGradient=self%gamma_                             &
+               &           *gravitationalConstantGalacticus        &
+               &           *(                                      &
+               &             -         self%massEnclosed/radius    &
+               &             +4.0d0*Pi*density          *radius**2 &
+               &            )                                      &
+               &           /radius
+       else
+          massLossGradient=+0.0d0
+       end if
+       ! Compute the fraction of particles, and kick energy retained derivatives with respect to the scale-free escape and kick velocities..
+       call decayingDarkMatterFractionRetainedDerivatives(self%velocityDispersion,self%velocityEscape,self%velocityKick,fractionDerivativeVelocityEscapeScaleFree,fractionDerivativeVelocityKick)
+       call decayingDarkMatterEnergyRetainedDerivatives  (self%velocityDispersion,self%velocityEscape,self%velocityKick,  energyDerivativeVelocityEscapeScaleFree,  energyDerivativeVelocityKick)
+       ! Convert derivatives to dimensionful form.
+       fractionDerivativeVelocityEscapeScaleFree=fractionDerivativeVelocityEscapeScaleFree/self%velocityDispersion
+       fractionDerivativeVelocityKick           =fractionDerivativeVelocityKick           /self%velocityDispersion
+       energyDerivativeVelocityEscapeScaleFree  =energyDerivativeVelocityEscapeScaleFree  /self%velocityDispersion
+       energyDerivativeVelocityKick             =energyDerivativeVelocityKick             /self%velocityDispersion
+       ! Construct the derivatives with respect to velocity dispersion.
+       fractionDerivativeVelocityDispersion     =-      (     fractionDerivativeVelocityEscapeScaleFree*self%velocityEscape+fractionDerivativeVelocityKick*self%velocityKick)/self%velocityDispersion
+       energyDerivativeVelocityDispersion       =-      (       energyDerivativeVelocityEscapeScaleFree*self%velocityEscape+  energyDerivativeVelocityKick*self%velocityKick)/self%velocityDispersion &
+            &                                    +2.0d0*   self%energyRetained                                                                                               /self%velocityDispersion
+       ! Compute the gradient in velocity disperson.
+       velocityDispersionGradient=+(                                         &
+            &                       -     gravitationalConstantGalacticus    &
+            &                       *self%massEnclosed                       &
+            &                       /     radius                         **2 &
+            &                       -self%velocityDispersion             **2 &
+            &                       *     densityLogGradient                 &
+            &                       /     radius                             &
+            &                      )                                         &
+            &                     /2.0d0                                     &
+            &                     /self%velocityDispersion
+       ! Compute the gradient in escape velocity.
+       if (self%velocityEscape > 0.0d0) then
+          velocityEscapeGradient=-     gravitationalConstantGalacticus &
+               &                 *self%massEnclosed                    &
+               &                 /self%velocityEscape                  &
+               &                 *     radius**2
+       else
+          velocityEscapeGradient=+0.0d0
+       end if
+       ! If heating is not to be included, set the energy retained derivatives to zero.
+       if (.not.self%heating_) then
+          energyDerivativeVelocityDispersion     =0.0d0
+          energyDerivativeVelocityEscapeScaleFree=0.0d0
+       end if
+       ! Compute the specific heating gradient.
+       self%energySpecificGradient=+(                                                                                                                                                            &
+         &                   +((1.0d0-self%fractionRetained)+self%massSplitting_*self%fractionRetained)*massLossGradient                                                                           &
+         &                   +(energyDerivativeVelocityDispersion     +(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityDispersion     *self%massLossEnergy)*velocityDispersionGradient &
+         &                   +(energyDerivativeVelocityEscapeScaleFree+(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityEscapeScaleFree*self%massLossEnergy)*velocityEscapeGradient     &
+         &                  )                                                                                                                                                            &
+         &                 *self%fractionDecayed
+       self%energySpecificGradientComputed=.true.
+    end if
+    return
+  end subroutine DDMv4ComputeFactors
 
-    ! Find the fraction of particles that have decayed by this time.
-    basic           =>  node%basic()
-    fractionDecayed =  +1.0d0                  &
-         &             -exp(                   &
-         &                  -basic%time     () &
-         &                  /self %lifetime_   &
-         &                 )
-    ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
-    if (self%massLoss_) then
-       massLossEnergy=+self%gamma_                                     &
-            &         *gravitationalConstantGalacticus                 &
-            &         *darkMatterProfileDMO_%enclosedMass(node,radius) &
-            &         /radius
-    else
-       massLossEnergy=+0.0d0
-    end if
-    ! Compute the velocity dispersion.
-    velocityDispersion=darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-    ! Find the escape velocity.
-    if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
-       potentialDifference=+darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
-            &              -darkMatterProfileDMO_%potential(node,                                                      radius            )
-       if (potentialDifference > 0.0d0) then
-          velocityEscape=+sqrt(                     &
-               &               +2.0d0               &
-               &               *potentialDifference &
-               &              )
-       else
-          velocityEscape=+0.0d0
-       end if
-    else
-       velocityEscape   =+0.0d0
-    end if
-    ! Compute the fraction of particles, and kick energy retained.
-    if (velocityDispersion > 0.0d0) then
-       fractionRetained   =+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
-       energyRetained     =+decayingDarkMatterEnergyRetained  (velocityDispersion,velocityEscape,self%velocityKick)
-    else
-       if (self%velocityKick > velocityEscape) then
-          fractionRetained=+0.0d0
-          energyRetained  =+0.0d0
-       else
-          fractionRetained=+1.0d0
-          energyRetained  =+decayingDarkMatterEnergyRetained  (velocityDispersion,velocityEscape,self%velocityKick)
-       end if
-    end if
-    ! If heating is not to be included, set the energy retained to zero.
-    if (.not.self%heating_) energyRetained=0.0d0
-    ! Compute the specific heating energy.
-    energySpecific=+(                                                &
-         &           +energyRetained                                 &
-         &           +(                                              &
-         &             +(1.0d0-fractionRetained)                     &
-         &             +       fractionRetained *self%massSplitting_ &
-         &            )                                              &
-         &           *massLossEnergy                                 &
-         &          )                                                &
-         &         *fractionDecayed
+  double precision function DDMv4SpecificEnergy(self,node,radius,darkMatterProfileDMO_) result(energySpecific)
+    !!{
+    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class           (darkMatterProfileHeatingDDMv4), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    double precision                               , intent(in   ) :: radius
+    class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
+
+    call self%computeFactors(node,radius,darkMatterProfileDMO_,gradientRequired=.false.)
+    energySpecific=self%energySpecific
     return
   end function DDMv4SpecificEnergy
 
@@ -201,118 +358,14 @@ contains
     !!{
     Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     !!}
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Galacticus_Nodes                , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileHeatingDDMv4), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
     class           (darkMatterProfileDMOClass    ), intent(inout) :: darkMatterProfileDMO_
-    class           (nodeComponentBasic           ), pointer       :: basic
-    double precision                               , parameter     :: fractionRadiusVirialMaximum=1.0d3
-    double precision                                               :: massLossEnergy, massLossGradient,&
-   & velocityDispersion,velocityDispersionGradient,&
-   & velocityEscape,  velocityEscapeGradient,&
-   & fractionRetained, energyRetained,&
-   & fractionDerivativeVelocityEscapeScaleFree, energyDerivativeVelocityEscapeScaleFree,&
-   & fractionDerivativeVelocityKick,energyDerivativeVelocityKick,&
-   & fractionDerivativeVelocityDispersion,energyDerivativeVelocityDispersion,&
-   & massEnclosed, potentialDifference,&
-   & density, densityLogGradient,&
-   & fractionDecayed
-    
-    ! Find the fraction of particles that have decayed by this time.
-    basic           =>  node%basic()
-    fractionDecayed =  +1.0d0                  &
-         &             -exp(                   &
-         &                  -basic%time     () &
-         &                  /self %lifetime_   &
-         &                 )
-    ! Compute properties of the dark matter density profile.
-    massEnclosed      =+darkMatterProfileDMO_%enclosedMass   (node,radius)
-    density           =+darkMatterProfileDMO_%density        (node,radius)
-    densityLogGradient=+darkMatterProfileDMO_%densityLogSlope(node,radius)
-    ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
-    if (self%massLoss_) then
-       massLossGradient=self%gamma_                        &
-            &           *gravitationalConstantGalacticus   &
-            &           *(                                 &
-            &             -         massEnclosed/radius    &
-            &             +4.0d0*Pi*density     *radius**2 &
-            &            )                                 &
-            &           /radius
-       massLossEnergy  =+self%gamma_                       &
-            &           *gravitationalConstantGalacticus   &
-            &           *massEnclosed                      &
-            &           /radius
-    else
-       massLossEnergy  =+0.0d0
-       massLossGradient=+0.0d0
-    end if
-    ! Compute the velocity dispersion.
-    velocityDispersion=darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-    ! Find the escape velocity.
-    if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
-       potentialDifference=+darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
-            &              -darkMatterProfileDMO_%potential(node,                                                      radius            )
-       if (potentialDifference > 0.0d0) then
-          velocityEscape=+sqrt(                     &
-               &               +2.0d0               &
-               &               *potentialDifference &
-               &              )
-       else
-          velocityEscape=+0.0d0
-       end if
-    else
-       velocityEscape   =+0.0d0
-    end if
-    ! Compute the fraction of particles, and kick energy retained, along with their derivatives with respect to the scale-free escape and kick velocities..
-    fractionRetained=decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
-    energyRetained  =decayingDarkMatterEnergyRetained  (velocityDispersion,velocityEscape,self%velocityKick)
-    call decayingDarkMatterFractionRetainedDerivatives(velocityDispersion,velocityEscape,self%velocityKick,fractionDerivativeVelocityEscapeScaleFree,fractionDerivativeVelocityKick)
-    call decayingDarkMatterEnergyRetainedDerivatives  (velocityDispersion,velocityEscape,self%velocityKick,  energyDerivativeVelocityEscapeScaleFree,  energyDerivativeVelocityKick)
-    ! Convert derivatives to dimensionful form.
-    fractionDerivativeVelocityEscapeScaleFree=fractionDerivativeVelocityEscapeScaleFree/velocityDispersion
-    fractionDerivativeVelocityKick           =fractionDerivativeVelocityKick           /velocityDispersion
-    energyDerivativeVelocityEscapeScaleFree  =energyDerivativeVelocityEscapeScaleFree  /velocityDispersion
-    energyDerivativeVelocityKick             =energyDerivativeVelocityKick             /velocityDispersion
-    ! Construct the derivatives with respect to velocity dispersion.
-    fractionDerivativeVelocityDispersion     =-      (fractionDerivativeVelocityEscapeScaleFree*velocityEscape+fractionDerivativeVelocityKick*self%velocityKick)/velocityDispersion
-    energyDerivativeVelocityDispersion       =-      (  energyDerivativeVelocityEscapeScaleFree*velocityEscape+  energyDerivativeVelocityKick*self%velocityKick)/velocityDispersion &
-         &                                    +2.0d0*   energyRetained                                                                                          /velocityDispersion
-    ! Compute the gradient in velocity disperson.
-    velocityDispersionGradient=+(                                    &
-         &                       -gravitationalConstantGalacticus    &
-         &                       *massEnclosed                       &
-         &                       /radius                         **2 &
-         &                       -velocityDispersion             **2 &
-         &                       *densityLogGradient                 &
-         &                       /radius                             &
-         &                      )                                    &
-         &                     /2.0d0                                &
-         &                     /velocityDispersion
-    ! Compute the gradient in escape velocity.
-    if (velocityEscape > 0.0d0) then
-       velocityEscapeGradient=-gravitationalConstantGalacticus &
-            &                 *massEnclosed                    &
-            &                 /velocityEscape                  &
-            &                 *radius**2
-    else
-       velocityEscapeGradient=+0.0d0
-    end if
-    ! If heating is not to be included, set the energy retained derivatives to zero.
-    if (.not.self%heating_) then
-       energyDerivativeVelocityDispersion     =0.0d0
-       energyDerivativeVelocityEscapeScaleFree=0.0d0
-    end if
-    ! Compute the specific heating gradient.
-    energySpecificGradient=+(                                                                                                                                                            &
-         &                   +((1.0d0-fractionRetained)+self%massSplitting_*fractionRetained)*massLossGradient                                                                           &
-         &                   +(energyDerivativeVelocityDispersion     +(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityDispersion     *massLossEnergy)*velocityDispersionGradient &
-         &                   +(energyDerivativeVelocityEscapeScaleFree+(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityEscapeScaleFree*massLossEnergy)*velocityEscapeGradient     &
-         &                  )                                                                                                                                                            &
-         &                 *fractionDecayed
+ 
+    call self%computeFactors(node,radius,darkMatterProfileDMO_,gradientRequired=.true.)
+    energySpecificGradient=self%energySpecificGradient
     return
   end function DDMv4SpecificEnergyGradient
 
