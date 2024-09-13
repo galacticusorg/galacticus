@@ -308,11 +308,21 @@ contains
     type            (treeNode                         ), intent(inout), target :: node
     class           (darkMatterProfileDMOClass        ), intent(inout), target :: darkMatterProfileDMO_
     double precision                                   , intent(in   )         :: radius
+    double precision                                   , parameter             :: radiusSearchMaximum  =10.0d0
     integer         (kind_int8                        )                        :: uniqueID
+    double precision                                                           :: radiusSearch                , radiusShellCrossingMinimum
 
     uniqueID=node%uniqueID()
     if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
     if (self%energyPerturbationShellCrossing < 0.0d0) then
+       ! Search for the largest radius at which shell-crossing occurs.
+       radiusSearch              =radius
+       radiusShellCrossingMinimum=radius
+       do while (radiusSearch <= radiusSearchMaximum)
+          if (.not.self%noShellCrossingIsValid(node,radiusSearch,darkMatterProfileDMO_)) radiusShellCrossingMinimum=radiusSearch
+          radiusSearch=2.0d0*radiusSearch
+       end do
+       ! Seek the exact radius at which shell-crossing first occurs.
        self_                  => self
        node_                  => node
        darkMatterProfileDMO__ => darkMatterProfileDMO_
@@ -323,7 +333,7 @@ contains
             &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
             &                       rangeExpandType              =rangeExpandMultiplicative      &
             &                      )
-       self%radiusShellCrossing             =+self%finder%find(rootGuess=radius)
+       self%radiusShellCrossing             =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
        self%energyPerturbationShellCrossing =+self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) &
             &                                /(                                                                                                  &
             &                                  +0.5d0                                                                                            &
