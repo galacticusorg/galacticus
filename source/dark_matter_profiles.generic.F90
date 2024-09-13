@@ -200,7 +200,8 @@ contains
     double precision                          , intent(in   )              :: radiusLower                      , radiusUpper
     double precision                                         , parameter   :: countPointsPerOctave     =4.0d+00
     double precision                                         , parameter   :: radiusVirialFractionSmall=1.0d-12
-    double precision                          , dimension(:) , allocatable :: masses                           , radii
+    double precision                          , dimension(:) , allocatable :: masses                           , radii              , &
+         &                                                                    masses_                          , radii_
     type            (integrator              ), save                       :: integrator_
     logical                                   , save                       :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
@@ -295,7 +296,13 @@ contains
        else if (all(masses == 0.0d0)) then
           ! This is a fully-destroyed profile - we leave the mass profile unallocated to indicate this.
        else
-          call Error_Report('unphysical mass profile'//{introspection:location})
+          ! We have a partial profile. Attempt to work with this by selecting out the physically-reasonable values.
+          radii_ =pack(radii ,masses > 0.0d0)
+          masses_=pack(masses,masses > 0.0d0)
+          if (size(masses_) > 1) then
+             allocate(self%genericEnclosedMass)
+             self%genericEnclosedMass=interpolator(log(radii_),log(masses_),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)
+          end if
        end if
        ! Store the current results for future re-use.
        if (allocated(self%genericEnclosedMassRadius)) deallocate(self%genericEnclosedMassRadius)
