@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726290506420,
+  "lastUpdate": 1726354167857,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9a43b429c981765a16cde8b7e826d206d4d4c677",
-          "message": "Merge pull request #516 from galacticusorg/adaptiveSFHLengths\n\nAdd missing `update` method to `starFormationHistoryAdsptive` class",
-          "timestamp": "2023-12-21T05:48:51Z",
-          "tree_id": "a292640f1ebe2735a04808208c19d1d76558e699",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a43b429c981765a16cde8b7e826d206d4d4c677"
-        },
-        "date": 1703145968206,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.915,
-            "unit": "seconds",
-            "range": 0.0621007246335036
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8694,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20580.8882477407,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "60ed585bb332898b6689bb3921dbbff11b883695",
+          "message": "feat: Support tolerating failures of potential integration and velocity maximum seeking",
+          "timestamp": "2024-09-14T16:28:41Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60ed585bb332898b6689bb3921dbbff11b883695"
+        },
+        "date": 1726354166047,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.073,
+            "unit": "seconds",
+            "range": 0.0449455225814314
           }
         ]
       }
