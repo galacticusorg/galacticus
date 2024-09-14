@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726290510381,
+  "lastUpdate": 1726354171718,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "238952f386539838344b47298704274566207a0c",
-          "message": "Merge pull request #513 from galacticusorg/dependabot/github_actions/actions/upload-artifact-4\n\nbuild(deps): bump actions/upload-artifact from 3 to 4",
-          "timestamp": "2023-12-18T03:57:38Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/238952f386539838344b47298704274566207a0c"
-        },
-        "date": 1702881671917,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 159.105,
-            "unit": "seconds",
-            "range": 0.125005999862403
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10636,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9950672328379,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "60ed585bb332898b6689bb3921dbbff11b883695",
+          "message": "feat: Support tolerating failures of potential integration and velocity maximum seeking",
+          "timestamp": "2024-09-14T16:28:41Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/60ed585bb332898b6689bb3921dbbff11b883695"
+        },
+        "date": 1726354171121,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 395.995,
+            "unit": "seconds",
+            "range": 0.290472890304781
           }
         ]
       }
