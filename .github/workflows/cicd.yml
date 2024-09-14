@@ -1524,7 +1524,7 @@ jobs:
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
       - name: Push build profile
         run: |
           git checkout gh-pages
@@ -1536,7 +1536,7 @@ jobs:
           git commit -m "Update build profile"
           git push --set-upstream origin gh-pages
           git checkout -
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
   Deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
