@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726260347672,
+  "lastUpdate": 1726290502184,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "59f25e73014154ae31a6a2d797af229c7dbafd95",
-          "message": "Merge pull request #511 from galacticusorg/fixOutputRank2ExtendSegFault\n\nFix a segfault associated with output of `rank?VarLen` datasets",
-          "timestamp": "2023-12-15T02:07:31Z",
-          "tree_id": "1807e9134e6c99eac3c8c7018039dc50c941a2df",
-          "url": "https://github.com/galacticusorg/galacticus/commit/59f25e73014154ae31a6a2d797af229c7dbafd95"
-        },
-        "date": 1702617836717,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 161.878,
-            "unit": "seconds",
-            "range": 0.299619091515065
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10668,6 +10638,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9495849881554,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
+          "message": "feat: Memoize calculations to speed up evaluation of decaying dark matter heating",
+          "timestamp": "2024-09-13T22:24:30Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3b9f0bbd09c0f9d040b77e4e105a24f915df5df4"
+        },
+        "date": 1726290501429,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 460.013,
+            "unit": "seconds",
+            "range": 0.224726722923829
           }
         ]
       }
