@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      },
-      "id" : "3f3d9a2af2b05c0a279e4aa3602f89fd682665cc",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/3f3d9a2af2b05c0a279e4aa3602f89fd682665cc",
-      "timestamp" : "Fri, 13 Sep 2024 14:34:09 +0000",
-      "message" : "Merge pull request #700 from galacticusorg/featEvaluateTextParameters"
-   },
    "surfaceDensity" : {
-      "percentageBelow" : 46.875,
-      "percentageAbove" : 53.125,
-      "target" : 0.006
+      "percentageAbove" : 50,
+      "target" : 0.006,
+      "percentageBelow" : 50
    },
    "slope" : {
       "percentageBelow" : 69.2307692307692,
       "percentageAbove" : 30.7692307692308,
       "target" : 0.85
-   }
+   },
+   "commit" : {
+      "author" : {
+         "email" : "abenson@carnegiescience.edu",
+         "name" : "Andrew Benson"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
+      "timestamp" : "Fri, 13 Sep 2024 15:24:30 -0700",
+      "id" : "3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
+      "message" : "feat: Memoize calculations to speed up evaluation of decaying dark matter heating"
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }

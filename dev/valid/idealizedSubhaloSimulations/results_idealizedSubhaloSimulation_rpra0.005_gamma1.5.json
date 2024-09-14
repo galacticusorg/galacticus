@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "3f3d9a2af2b05c0a279e4aa3602f89fd682665cc",
-        "message": "Merge pull request #700 from galacticusorg/featEvaluateTextParameters\n\nAllow evaluation of text parameters\n",
-        "timestamp": "2024-09-13 14:34:09+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"
+        "id": "3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
+        "message": "feat: Memoize calculations to speed up evaluation of decaying dark matter heating\n",
+        "timestamp": "2024-09-13 15:24:30-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3b9f0bbd09c0f9d040b77e4e105a24f915df5df4"
     },
     "results": [
         {
