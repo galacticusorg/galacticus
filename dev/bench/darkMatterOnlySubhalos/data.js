@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726260344064,
+  "lastUpdate": 1726290498000,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f36b106bdbda4fe2eb2649b12c2ae6bcad732189",
-          "message": "Merge pull request #515 from galacticusorg/directivesErrorMessage\n\nAdd more useful error reporting when failing to parse source code directives",
-          "timestamp": "2023-12-19T16:08:42Z",
-          "tree_id": "1c92c7ad381ef098f2383587e35deb33a1b70ea1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f36b106bdbda4fe2eb2649b12c2ae6bcad732189"
-        },
-        "date": 1703010698654,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 43.488,
-            "unit": "seconds",
-            "range": 0.0598798797591809
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8728,6 +8698,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20580.8882477406,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
+          "message": "feat: Memoize calculations to speed up evaluation of decaying dark matter heating",
+          "timestamp": "2024-09-13T22:24:30Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3b9f0bbd09c0f9d040b77e4e105a24f915df5df4"
+        },
+        "date": 1726290496031,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.965,
+            "unit": "seconds",
+            "range": 0.0420773098001826
           }
         ]
       }
