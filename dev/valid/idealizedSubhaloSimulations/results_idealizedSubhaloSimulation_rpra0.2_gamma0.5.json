@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "3b9f0bbd09c0f9d040b77e4e105a24f915df5df4",
-        "message": "feat: Memoize calculations to speed up evaluation of decaying dark matter heating\n",
-        "timestamp": "2024-09-13 15:24:30-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3b9f0bbd09c0f9d040b77e4e105a24f915df5df4"
+        "id": "61a6ae9fe2e535e74ec71d3f97df5412f04d3921",
+        "message": "Merge pull request #702 from galacticusorg/fixConcentrationMeanSchneider2015\n\nfix: Correctly compute the mean concentration when using the `schneider2015` class\n",
+        "timestamp": "2024-09-17 01:31:21+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/61a6ae9fe2e535e74ec71d3f97df5412f04d3921"
     },
     "results": [
         {
