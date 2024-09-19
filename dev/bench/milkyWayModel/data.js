@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726559683198,
+  "lastUpdate": 1726723012950,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9a43b429c981765a16cde8b7e826d206d4d4c677",
-          "message": "Merge pull request #516 from galacticusorg/adaptiveSFHLengths\n\nAdd missing `update` method to `starFormationHistoryAdsptive` class",
-          "timestamp": "2023-12-21T05:48:51Z",
-          "tree_id": "a292640f1ebe2735a04808208c19d1d76558e699",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a43b429c981765a16cde8b7e826d206d4d4c677"
-        },
-        "date": 1703145973120,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 156.421,
-            "unit": "seconds",
-            "range": 0.137385952702897
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10634,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9673295802699,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "edaed8127ec61cd37e40196fddad4631220f8e6c",
+          "message": "Merge pull request #703 from galacticusorg/fixStreamImpactFinalTime\n\nNever pass nodes at the final output time in the `streamImpact` galactic filter",
+          "timestamp": "2024-09-18T22:56:29Z",
+          "tree_id": "f5fa79a4f50a2dbdaa04e11648fbab363fdebcbf",
+          "url": "https://github.com/galacticusorg/galacticus/commit/edaed8127ec61cd37e40196fddad4631220f8e6c"
+        },
+        "date": 1726723011822,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 437.733,
+            "unit": "seconds",
+            "range": 0.798400964429638
           }
         ]
       }
