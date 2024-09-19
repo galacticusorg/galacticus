@@ -2,7 +2,7 @@
 <!-- Run Galacticus on Millennium merger trees outputting a classic lightcone and a "lightcone-crossing" lightcone -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
 
   <verbosityLevel value="standard"/>
   <evolveForestsWorkShare value="cyclic"/>

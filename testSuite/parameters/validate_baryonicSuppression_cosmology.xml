@@ -3,6 +3,7 @@
      Taken from Zheng et al. (2024; https://ui.adsabs.harvard.edu/abs/2024arXiv240317044Z) -->
 <parameters>
   <formatVersion>2</formatVersion>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
 
   <!-- Dark matter properties -->
   <darkMatterParticle value="CDM"/>
