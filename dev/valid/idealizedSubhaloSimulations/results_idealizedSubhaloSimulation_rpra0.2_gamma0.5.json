@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "61a6ae9fe2e535e74ec71d3f97df5412f04d3921",
-        "message": "Merge pull request #702 from galacticusorg/fixConcentrationMeanSchneider2015\n\nfix: Correctly compute the mean concentration when using the `schneider2015` class\n",
-        "timestamp": "2024-09-17 01:31:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/61a6ae9fe2e535e74ec71d3f97df5412f04d3921"
+        "id": "edaed8127ec61cd37e40196fddad4631220f8e6c",
+        "message": "Merge pull request #703 from galacticusorg/fixStreamImpactFinalTime\n\nNever pass nodes at the final output time in the `streamImpact` galactic filter\n",
+        "timestamp": "2024-09-18 22:56:29+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/edaed8127ec61cd37e40196fddad4631220f8e6c"
     },
     "results": [
         {
