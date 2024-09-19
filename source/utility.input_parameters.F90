@@ -555,7 +555,6 @@ contains
              call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus")
           end if
        end if
-       stop
 #else
        call Warn(displayMagenta()//"WARNING:"//displayReset()//" can not check if parameter file is up to date (`libgit` is not available)")
 #endif
