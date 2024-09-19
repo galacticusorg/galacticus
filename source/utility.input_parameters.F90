@@ -21,18 +21,22 @@
 Contains a module which implements reading of parameters from an XML data file.
 !!}
 
+! Specify an explicit dependence on the git2.o object file.
+!: $(BUILDPATH)/git2.o
+
 module Input_Parameters
   !!{
   Implements reading of parameters from an XML file.
   !!}
-  use :: FoX_dom           , only : node
-  use :: Function_Classes  , only : functionClass
-  use :: IO_HDF5           , only : hdf5Object
-  use :: ISO_Varying_String, only : varying_string
-  use :: Kind_Numbers      , only : kind_int8
-  use :: String_Handling   , only : char
-  use :: Hashes            , only : integerHash
-  use :: Locks             , only : ompLock
+  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int
+  use            :: FoX_dom           , only : node
+  use            :: Function_Classes  , only : functionClass
+  use            :: IO_HDF5           , only : hdf5Object
+  use            :: ISO_Varying_String, only : varying_string
+  use            :: Kind_Numbers      , only : kind_int8
+  use            :: String_Handling   , only : char
+  use            :: Hashes            , only : integerHash
+  use            :: Locks             , only : ompLock
   private
   public :: inputParameters, inputParameter, inputParameterList
   
@@ -245,6 +249,20 @@ module Input_Parameters
      end subroutine knownParameterNames
   end interface
 
+#ifdef GIT2AVAIL
+  interface
+     function gitDescendantOf(repoPath,commitHash,ancestorHash) bind(c,name='gitDescendantOf')
+       !!{
+       Template for a C function that returns whether a commit is an ancestor of another commit.
+       !!}
+       import c_char, c_int
+       integer  (c_int )                :: gitDescendantOf
+       character(c_char)                :: repoPath
+       character(c_char), dimension(41) :: commitHash     , ancestorHash
+     end function gitDescendantOf
+  end interface
+#endif
+
 contains
 
   function inputParametersConstructorNull() result(self)
@@ -361,11 +379,12 @@ contains
          &                                             'parameters'  &
          &                                            )
     !$omp end critical (FoX_DOM_Access)
-    self=inputParameters(                       &
-         &               parameterNode        , &
-         &               allowedParameterNames, &
-         &               outputParametersGroup, &
-         &               noOutput               &
+    self=inputParameters(                                &
+         &                        parameterNode        , &
+         &                        allowedParameterNames, &
+         &                        outputParametersGroup, &
+         &                        noOutput             , &
+         &               fileName=fileName               &
          &              )
     return
   end function inputParametersConstructorFileChar
@@ -394,31 +413,47 @@ contains
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild) result(self)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use :: Display           , only : displayGreen                     , displayMessage , displayReset
-    use :: File_Utilities    , only : File_Name_Temporary
-    use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
-    use :: String_Handling   , only : String_Strip
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
-    use :: Display           , only : displayMessage
-    use :: IO_HDF5           , only : ioHDF5AccessInitialize
-    use :: HDF5_Access       , only : hdf5Access
+    use            :: Display           , only : displayGreen                     , displayMessage , displayReset
+    use            :: File_Utilities    , only : File_Name_Temporary
+    use            :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent, hasAttribute, getAttributeNode
+    use            :: Error             , only : Error_Report
+#ifdef GIT2AVAIL
+    use, intrinsic :: ISO_C_Binding     , only : c_null_char
+    use            :: Input_Paths       , only : pathTypeExec                     , inputPath
+    use            :: Output_Versioning , only : Version
+    use            :: Display           , only : displayMagenta                   , displayReset
+#else
+    use            :: Error             , only : Warn
+#endif
+    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
+    use            :: String_Handling   , only : String_Strip,String_C_To_Fortran
+    use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use            :: Display           , only : displayMessage
+    use            :: IO_HDF5           , only : ioHDF5AccessInitialize
+    use            :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: self
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    character(len=*          )              , intent(in   ), optional :: fileName
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                 , intent(in   ), optional :: noOutput                      , noBuild
-    type     (node           ), pointer                               :: versionElement
+    logical                                 , intent(in   ), optional :: noOutput                   , noBuild
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)
-    character(len=  10       )                                        :: versionLabel
+#ifdef GIT2AVAIL
     type     (varying_string )                                        :: message
+    type     (node           ), pointer                               :: lastModifiedNode           , revisionNode
+    integer  (c_int          ), dimension(:), allocatable             :: isAncestorOfParameters
+    integer  (c_int          )                                        :: isAncestorOfSelf
+    character(len=41         )                                        :: commitHashSelf             , commitHashParameters
+    character(len=42         )                                        :: commitHashSelf_
+    integer                                                           :: i
+    logical                                                           :: hasRevision
+#endif
     !![
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
@@ -477,23 +512,54 @@ contains
     ! Get allowed parameter names.
     if (.not.allocated(allowedParameterNamesGlobal)) &
          & call knownParameterNames(allowedParameterNamesGlobal)
-    ! Check for version information.
-    !$omp critical (FoX_DOM_Access)
-    if (XML_Path_Exists(self%rootNode,"version")) then
-       versionElement => XML_Get_First_Element_By_Tag_Name(self%rootNode,"version")
-       versionLabel=getTextContent(versionElement)
-       if (String_Strip(versionLabel) /= "0.9.4") then
-          message=displayGreen()//"HELP:"//displayReset()                           // &
-               &  " Parameter file appears to be for version "                      // &
-               &  String_Strip(versionLabel)                              //char(10)// &
-               &  "      Consider using: scripts/aux/parametersMigrate.pl"          // &
-               &  " oldParameters.xml"                                              // &
-               &  " newParameters.xml"                                    //char(10)// &
-               &  "      to migrate your parameter file."
-          call displayMessage(message)
+    ! Check for migration information.
+    if (XML_Path_Exists(self%rootNode,"lastModified")) then
+#ifdef GIT2AVAIL
+       ! Look for a "lastModified" element in the parameter file.
+       !$omp critical (FoX_DOM_Access)
+       lastModifiedNode => XML_Get_First_Element_By_Tag_Name(self%rootNode        ,'lastModified')
+       hasRevision      =  hasAttribute                     (     lastModifiedNode,'revision'    )
+       if (hasRevision) then
+          revisionNode         => getAttributeNode(lastModifiedNode,'revision')
+          commitHashParameters =  getTextContent  (revisionNode               )//c_null_char
        end if
+       !$omp end critical (FoX_DOM_Access)
+       if (hasRevision) then
+          ! A revision was available in the parameter file.
+          !! Build an array of known migration commit hashes.
+          !![
+	  <parameterMigration/>
+          !!]
+          !! Extract the commit hash at which Galacticus was built.
+          call Version(commitHashSelf_)
+          commitHashSelf=trim(commitHashSelf_)//c_null_char
+          !! Iterate over known migration commit hashes and check if they are ancestors.
+          allocate(isAncestorOfParameters(size(commitHash)))
+          do i=1,size(commitHash)
+             isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
+          end do
+          if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
+             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
+          else if (any(isAncestorOfParameters == 0)) then
+             ! Parameter file is missing migrations - issue a warning.
+             message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider running:"//char(10)//char(10)//"./scripts/aux/parametersMigrate.pl "
+             if (present(fileName)) message=message//trim(fileName)//" newParameterFile.xml "
+             message=message//char(10)//char(10)//"to update your parameter file"
+             call displayMessage(message)
+          end if
+          isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
+          if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
+             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
+          else if (isAncestorOfSelf == 0_c_int) then
+             ! Parameters are more recent than the executable - issue a warning.
+             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus")
+          end if
+       end if
+       stop
+#else
+       call Warn(displayMagenta()//"WARNING:"//displayReset()//" can not check if parameter file is up to date (`libgit` is not available)")
+#endif
     end if
-    !$omp end critical (FoX_DOM_Access)
     ! Check parameters.
     call self%checkParameters(allowedParameterNamesGlobal=allowedParameterNamesGlobal,allowedParameterNames=allowedParameterNames)
     return
