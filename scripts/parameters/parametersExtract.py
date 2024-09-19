@@ -87,7 +87,7 @@ formatVersion.text = "2"
 version            = fileIn['Version']
 if 'gitHash' in version.attrs.keys():
     lastModified      = ET.SubElement(parameters, 'lastModified')
-    lastModified.text = version.attrs['gitHash'].decode()
+    lastModified.set('revision',version.attrs['gitHash'].decode())
 
 # Construct the structure of the parameter file by visiting all groups in `Parameters`.
 parametersGroup.visititems(createStructure)
