@@ -36,23 +36,24 @@ sub Process_ParameterMigration {
 	    for(my $i=0;$i<scalar(@commitHashes);++$i) {
 		$code .= "commitHash(".($i+1).")=\"".$commitHashes[$i]."\"//c_null_char\n";
 	    }
-            my $newNode   =
-            {
+	    my $newNode   =
+	    {
 		type       => "code",
 		content    => $code,
 		firstChild => undef(),
-                source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_ParameterMigration()",
-                line       => 1
+		source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_ParameterMigration()",
+		line       => 1
 	    };
-            &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
 	    # Insert a variable for the commit hash array.
 	    my @declarations =
 		(
-                 {
-                     intrinsic  => "character",
-		     type       => "len=41",
-		     attributes => [ "dimension(".scalar(@commitHashes).")" ],
-		     variables  => [ "commitHash" ]
+		 {
+		     intrinsic    => "character",
+		     type         => "len=41",
+		     attributes   => [ "dimension(".scalar(@commitHashes).")" ],
+		     variables    => [ "commitHash" ],
+		     preprocessor => "GIT2AVAIL"
 		 }
 		);
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);

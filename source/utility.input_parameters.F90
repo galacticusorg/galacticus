@@ -417,7 +417,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use            :: Display           , only : displayGreen                     , displayMessage , displayReset
+    use            :: Display           , only : displayGreen                     , displayMessage , displayMagenta  , displayReset
     use            :: File_Utilities    , only : File_Name_Temporary
     use            :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent, hasAttribute, getAttributeNode
     use            :: Error             , only : Error_Report
@@ -425,7 +425,6 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Input_Paths       , only : pathTypeExec                     , inputPath
     use            :: Output_Versioning , only : Version
-    use            :: Display           , only : displayMagenta                   , displayReset
 #else
     use            :: Error             , only : Warn
 #endif
@@ -442,8 +441,6 @@ contains
     character(len=*          )              , intent(in   ), optional :: fileName
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild
-    type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
-    !$omp threadprivate(allowedParameterNamesGlobal)
 #ifdef GIT2AVAIL
     type     (varying_string )                                        :: message
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode
@@ -454,6 +451,9 @@ contains
     integer                                                           :: i
     logical                                                           :: hasRevision
 #endif
+    type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
+    !$omp threadprivate(allowedParameterNamesGlobal)
+    !$GLC attributes unused :: fileName
     !![
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
