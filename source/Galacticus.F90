@@ -26,12 +26,12 @@ program Galacticus
   !!{
   The main {\normalfont \scshape Galacticus} program.
   !!}
-  use    :: Display                   , only : displayMessage                   , displayMagenta, displayReset
+  use    :: Display                   , only : displayMessage                   , displayMagenta       , displayReset
   use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
   use    :: Events_Hooks              , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities, only : Functions_Global_Set
   use    :: Display_Banner            , only : Display_Banner_Show
-  use    :: Error                     , only : Error_Handler_Register           , Error_Report
+  use    :: Error                     , only : Error_Handler_Register           , Error_Report         , errorStatusSuccess
   use    :: Error_Wait                , only : Error_Wait_Set_From_Parameters
   use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File, Output_HDF5_Completion_Status
   use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string
@@ -49,10 +49,11 @@ program Galacticus
   integer                             , parameter :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer   :: task_
   integer                                         :: status
-  character(len=fileNameLengthMaximum)            :: parameterFileCharacter
+  character(len=fileNameLengthMaximum)            :: parameterFileCharacter    , option
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
-  logical                                         :: outputFileIsRequired
+  logical                                         :: outputFileIsRequired      , dryRun
+  integer                                         :: i
 
   ! Initialize MPI.
 #ifdef USEMPI
@@ -64,10 +65,24 @@ program Galacticus
 #endif
   ! Register error handlers.
   call Error_Handler_Register()
+  ! Check that we have at least one command line argument.
+  if (Command_Argument_Count() < 1) call usageError()
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)
-  if (len_trim(parameterFileCharacter) == 0) call Error_Report(message="Usage: Galacticus.exe <parameterFile>")
   parameterFile=parameterFileCharacter
+  ! Parse any options.
+  dryRun=.false.
+  if (Command_Argument_Count() > 1) then
+     do i=2,Command_Argument_Count()
+        call Get_Command_Argument(2,option)
+        select case (trim(option))
+        case ('--dry-run')
+           dryRun=.true.
+        case default
+           call usageError(option=trim(option))
+        end select
+     end do
+  end if
   ! Open the parameter file.
   parameters=inputParameters(parameterFile)
   ! Tell OpenMP that nested parallelism is allowed.
@@ -90,9 +105,17 @@ program Galacticus
   !![
   <objectBuilder class="task" name="task_" source="parameters"/>
   !!]
-  outputFileIsRequired=task_%requiresOutputFile()
+  if (.not.dryRun) then
+     outputFileIsRequired=task_%requiresOutputFile()
+  else
+     outputFileIsRequired=.true.
+  end if
   if (outputFileIsRequired) call Output_HDF5_Open_File (parameters)
-  call task_%perform(status)
+  if (.not.dryRun) then
+     call task_%perform(status)
+  else
+     status=errorStatusSuccess
+  end if
   call Output_HDF5_Completion_Status(status)
   if (status /= errorStatusSuccess) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' task failed')
   call parameters%reset  ()
@@ -108,4 +131,24 @@ program Galacticus
   call mpiFinalize()
 #endif
   ! All done, finish.
+
+contains
+
+  subroutine usageError(option)
+    !!{
+    Report a usage error.
+    !!}
+    use :: ISO_Varying_String, only : operator(//)
+    implicit none
+    character(len=*         ), intent(in   ), optional :: option
+    type     (varying_string)                          :: message
+
+    message=""
+    if (present(option)) message="unknown option `"//option//"`"//char(10)
+    message=message//"Usage: Galacticus.exe <parameterFile> [options...]"//char(10)//char(10)
+    message=message//"  --dry-run   do not perform any task, just parse the parameter file and exit"
+    call Error_Report(message)
+    return
+  end subroutine usageError
+  
 end program Galacticus

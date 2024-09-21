@@ -140,3 +140,11 @@ diskMassStellar          Dataset {7/Inf}
 which lists the mass of stars in each galaxy disk (in units of $\mathrm{M}_\odot$) (note that some of them are zero---these halos in the merger tree either formed no galaxy, or formed a galaxy with no disk component).
 
 These data can be extracted and analyzed using any software or language that supports reading HDF5 files.
+
+\subsection{Dry Runs}
+
+You can tell Galacticus to parse your parameter file, report any warnings, and write the parameters to the output HDF5 file, but then no nothing else (i.e. don't actually run the model) by adding the {\normalfont \ttfamily --dry-run} option, for example:
+\begin{verbatim}
+ Galacticus.exe parameters.xml --dry-run
+\end{verbatim}
+This can be useful to check that your parameter file is valid, and allow you to explore the values of any parameters that were set to defaults (as these will have been output to the HDF5 file).
