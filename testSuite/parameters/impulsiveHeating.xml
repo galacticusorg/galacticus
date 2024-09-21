@@ -3,7 +3,7 @@
 <!-- No baryonic physics is included - a purely dark matter universe is assumed. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
 
   <!-- Set verbosity to show when background work is being performed -->
   <verbosityLevel value="standard"/>

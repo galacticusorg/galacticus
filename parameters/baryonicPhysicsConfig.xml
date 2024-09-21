@@ -3,7 +3,7 @@
   <!-- Posterior sampling simulation parameter file for search of Galacticus model parameter space -->
   <!-- Andrew Benson (29-April-2020) -->  
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
 
   <verbosityLevel value="standard"/>
 

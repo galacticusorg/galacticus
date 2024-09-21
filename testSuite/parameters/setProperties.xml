@@ -2,7 +2,7 @@
 <!-- Parameter file for "set properties" test case -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
 
   <!-- Set output file name -->
   <outputFileName value="testSuite/outputs/test-set-properties.hdf5"/>

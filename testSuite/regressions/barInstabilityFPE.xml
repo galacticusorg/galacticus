@@ -2,7 +2,7 @@
 <!-- Model which triggered a floating point exception in the Efstathiou et al. disk instability class -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
