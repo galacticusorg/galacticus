@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726723046008,
+  "lastUpdate": 1727069684145,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -3269,6 +3269,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/edaed8127ec61cd37e40196fddad4631220f8e6c"
         },
         "date": 1726723044899,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931453287519465",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553744936818157",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.0008631128237795",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f2a178a2ac175eaaa1b89dee2f23ee99070855b",
+          "message": "Merge pull request #707 from galacticusorg/fixOutputNameSpaces\n\nStrip leading and trailing spaces from the output file name",
+          "timestamp": "2024-09-22T22:37:41Z",
+          "tree_id": "0f28aebb2261fb50e52cb6d85c51c657667c0e1f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7f2a178a2ac175eaaa1b89dee2f23ee99070855b"
+        },
+        "date": 1727069683339,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
