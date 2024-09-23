@@ -35,8 +35,11 @@
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
-     double precision                                     :: lifetime_                      , massSplitting_ , velocityKick
-     logical                                              :: massLoss_
+     integer         (kind_int8                )          :: lastUniqueID
+     double precision                                     :: lifetime_                      , massSplitting_         , &
+          &                                                  velocityKick                   , potentialEscape        , &
+          &                                                  radiusUndepleted               , massUndepleted
+     logical                                              :: massLoss_                      , potentialEscapeComputed
    contains
      !![
      <methods>
@@ -197,7 +200,9 @@ contains
        self%tolerateEnclosedMassIntegrationFailure=.false.
     end select
     ! Initialize.
-    self%genericLastUniqueID=-1_kind_int8
+    self%genericLastUniqueID    =-1_kind_int8
+    self%lastUniqueID           =-1_kind_int8
+    self%potentialEscapeComputed=.false.
    return
   end function decayingConstructorInternal
 
@@ -237,7 +242,11 @@ contains
     type (treeNode                    ), intent(inout) :: node
 
     ! Reset calculations for this profile.
+    self%lastUniqueID                                =node%uniqueID()
     self%genericLastUniqueID                         =node%uniqueID()
+    self%potentialEscapeComputed                     =.false.
+    self%radiusUndepleted                            =+     0.0d0
+    self%massUndepleted                              =+     0.0d0
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
     self%genericPotentialRadiusMinimum               =+huge(0.0d0)
@@ -262,23 +271,33 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    double precision                              , parameter     :: fractionRadiusVirialMaximum=1.0d3
+    double precision                              , parameter     :: fractionRadiusVirialMaximum=1.0d3, depletionNegligble=1.0d-2
     double precision                              , intent(  out) :: factor
     class           (nodeComponentBasic          ), pointer       :: basic
-    double precision                                              :: velocityDispersion, velocityEscape, fractionRetained, fractionDecayed
+    double precision                                              :: velocityDispersion               , velocityEscape           , &
+         &                                                           fractionRetained                 , fractionDecayed          , &
+         &                                                           potentialDifference
 
+    ! For radii within the undepleted region of the halo, the depletion factor is, by definition, 1.
+    if (radius < self%radiusUndepleted) then
+       factor=1.0d0
+       return
+    end if
+    ! Outside of the undepeleted region, compute the depletion factor directly.
     if (self%massLoss_) then
-       basic           =>  node%basic         (           )
-       velocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-       if (velocityDispersion > 0.0d0) then
-          ! Find the escape velocity.
-          if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
-             velocityEscape=+sqrt(                                                                                                                     &
-                  &               +2.0d0                                                                                                               &
-                  &               *(                                                                                                                   &
-                  &               +self%darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
-                  &                 -self%darkMatterProfileDMO_%potential(node,                                                    radius            ) &
-                  &                )                                                                                                                   &
+       ! Find the escape velocity.
+       if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
+          if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+          if (.not.self%potentialEscapeComputed) then
+             self%potentialEscape=self%darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node))
+             self%potentialEscapeComputed=.true.
+          end if
+          potentialDifference=+self                      %potentialEscape             &
+               &              -self%darkMatterProfileDMO_%potential      (node,radius)
+          if (potentialDifference > 0.0d0) then
+             velocityEscape=+sqrt(                                                     &
+                  &               +2.0d0                                               &
+                  &               *potentialDifference                                 &
                   &              )                                                                                                                     
           else
              velocityEscape=+0.0d0
@@ -286,16 +305,33 @@ contains
        else
           velocityEscape=+0.0d0
        end if
-       fractionRetained=+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
+       velocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+       if (velocityDispersion > 0.0d0) then
+          fractionRetained   =+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
+       else
+          if (self%velocityKick > velocityEscape) then
+             fractionRetained=+0.0d0
+          else
+             fractionRetained=+1.0d0
+          end if
+       end if
+       basic => node%basic()
        fractionDecayed =  +1.0d0                  &
             &             -exp(                   &
             &                  -basic%time     () &
             &                  /self %lifetime_   &
             &                 )
-       factor          =  +(+1.0d0-fractionDecayed    ) & ! { Fraction of particles undecayed - have 100% of their original mass.
-            &             +        fractionDecayed      & ! ⎧ Fraction of particles decayed...
-            &             *(fractionRetained    ) & ! ⎨  ...but not escaped...
-            &             *(+1.0d0-self%massSplitting_)   ! ⎩  ...have 1-ε of their original mass.
+       factor          =  +(+1.0d0-     fractionDecayed ) & ! { Fraction of particles undecayed - have 100% of their original mass.
+            &             +             fractionDecayed   & ! ⎧ Fraction of particles decayed...
+            &             *             fractionRetained  & ! ⎨  ...but not escaped...
+            &             *(+1.0d0-self%massSplitting_  )   ! ⎩  ...have 1-ε of their original mass.
+       ! Check for negligible depletion, and update the undepleted radius to the largest such radius yet found.
+       if (factor > 1.0d0-depletionNegligble) then
+          if (radius > self%radiusUndepleted) then
+             self%radiusUndepleted=radius
+             self%massUndepleted=self%darkMatterProfileDMO_%enclosedMass(node,radius)
+          end if
+       end if
     else
        factor          = +1.0d0                           !   Mass loss is being ignored.
     end if
@@ -352,13 +388,18 @@ contains
     Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     {\normalfont \ttfamily mass} (given in units of $M_\odot$).
     !!}
-    
     implicit none
     class           (darkMatterProfileDMODecaying), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: mass
 
-    decayingRadiusEnclosingMass=self%radiusEnclosingMassNumerical(node, mass)
+    if (mass <= self%massUndepleted) then
+       ! The mass is wihtin the undepleted region - simply use the unmodified profile.
+       decayingRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
+    else
+       ! The mass is outside of the undepleted region - use a numerical solution.
+       decayingRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
+    end if
     return
   end function decayingRadiusEnclosingMass
 
@@ -386,8 +427,15 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    
-    decayingEnclosedMass=+self%enclosedMassNumerical(node, radius)
+
+    if (radius <= 0.0d0) then
+       decayingEnclosedMass=0.0d0
+    else if (radius < self%radiusUndepleted) then
+       ! Within the undepleted radius the mass is unchanged.
+       decayingEnclosedMass=self%darkMatterProfileDMO_%enclosedMass         (node,radius)
+    else
+       decayingEnclosedMass=self                      %enclosedMassNumerical(node,radius)
+    end if
     return
   end function decayingEnclosedMass
 
@@ -444,7 +492,6 @@ contains
     return
   end function decayingRadiusCircularVelocityMaximum
 
-  ! Multiply by sqrt of factor
   double precision function decayingRadialVelocityDispersion(self,node,radius)
     !!{
     Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
@@ -455,7 +502,7 @@ contains
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
     
-    decayingRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node, radius)
+    decayingRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
     return
   end function decayingRadialVelocityDispersion
 
