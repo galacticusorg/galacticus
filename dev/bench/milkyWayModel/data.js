@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726723022273,
+  "lastUpdate": 1727069647160,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": false,
-          "id": "f167a854c58407da4412c3812d4994c0394bdb73",
-          "message": "Merge pull request #521 from galacticusorg/fixAdaptiveSFHs\n\nFix adapative star formation history lengths and times",
-          "timestamp": "2024-01-05T23:32:53Z",
-          "tree_id": "35b78c2092837d0d11ad0cc78d912f2ed5319589",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f167a854c58407da4412c3812d4994c0394bdb73"
-        },
-        "date": 1704508903102,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 168.567,
-            "unit": "seconds",
-            "range": 0.200110219625845
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10634,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9934622240314,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f2a178a2ac175eaaa1b89dee2f23ee99070855b",
+          "message": "Merge pull request #707 from galacticusorg/fixOutputNameSpaces\n\nStrip leading and trailing spaces from the output file name",
+          "timestamp": "2024-09-22T22:37:41Z",
+          "tree_id": "0f28aebb2261fb50e52cb6d85c51c657667c0e1f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7f2a178a2ac175eaaa1b89dee2f23ee99070855b"
+        },
+        "date": 1727069646332,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 410.107,
+            "unit": "seconds",
+            "range": 0.56247142149853
           }
         ]
       }
