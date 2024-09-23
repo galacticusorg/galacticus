@@ -159,13 +159,15 @@ contains
     class           (nodeComponentSatellite             ), pointer       :: satellite
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basic
-    double precision                                     , dimension(3)  :: position                 , velocity
-    double precision                                                     :: massSatellite            , velocityCircularSatellite, &
-         &                                                                  radius                   , speed                    , &
-         &                                                                  timescaleShock           , heatingRateNormalized    , &
-         &                                                                  orbitalFrequencySatellite, radiusHalfMassSatellite  , &
-         &                                                                  massHalfSatellite        , fractionDarkMatter
-    type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor              , tidalTensorPathIntegrated
+    double precision                                     , dimension(3)  :: position                           , velocity
+    double precision                                     , parameter     :: radiusHalfMassSatelliteTiny=1.0d-30, fractionMassTiny         =1.0d-6
+    double precision                                                     :: massSatellite                      , velocityCircularSatellite       , &
+         &                                                                  radius                             , speed                           , &
+         &                                                                  timescaleShock                     , heatingRateNormalized           , &
+         &                                                                  orbitalFrequencySatellite          , radiusHalfMassSatellite         , &
+         &                                                                  massHalfSatellite                  , fractionDarkMatter
+    logical                                                              :: useFrequencyOrbital
+    type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor                        , tidalTensorPathIntegrated
     
     ! Construct required properties of satellite and host.
     nodeHost                  => node     %mergesWith               (        )
@@ -196,20 +198,24 @@ contains
          &                                                                  componentType=componentTypeAll                            , &
          &                                                                  massType     =massTypeDark                                  &
          &                                                                 )                                                            &
-         &                      )
-    radiusHalfMassSatellite  =  self%galacticStructure_%radiusEnclosingMass(                                            &
-         &                                                                   node                                     , &
-         &                                                                   mass                   =massHalfSatellite, &
-         &                                                                   componentType          =componentTypeAll , &
-         &                                                                   massType               =massTypeDark       &
-         &                                                                  )
-    velocityCircularSatellite=  self%galacticStructure_%velocityRotation    (                                           &
-         &                                                                   node                                     , &
-         &                                                                   radiusHalfMassSatellite                  , &
-         &                                                                   componentType          =componentTypeAll , &
-         &                                                                   massType               =massTypeDark       &
-         &                                                                  )
-    if (radiusHalfMassSatellite > 0.0d0) then
+         &                          )
+    useFrequencyOrbital      = massHalfSatellite > fractionMassTiny*basic%mass()
+    if (useFrequencyOrbital) then
+       radiusHalfMassSatellite  =  self%galacticStructure_%radiusEnclosingMass(                                            &
+            &                                                                   node                                     , &
+            &                                                                   mass                   =massHalfSatellite, &
+            &                                                                   componentType          =componentTypeAll , &
+            &                                                                   massType               =massTypeDark       &
+            &                                                                  )
+       velocityCircularSatellite=  self%galacticStructure_%velocityRotation    (                                           &
+            &                                                                   node                                     , &
+            &                                                                   radiusHalfMassSatellite                  , &
+            &                                                                   componentType          =componentTypeAll , &
+            &                                                                   massType               =massTypeDark       &
+            &                                                                  )
+       useFrequencyOrbital=radiusHalfMassSatellite > radiusHalfMassSatelliteTiny
+    end if
+    if (useFrequencyOrbital) then
        ! Compute the orbital frequency.
        orbitalFrequencySatellite =  +velocityCircularSatellite &
             &                       /radiusHalfMassSatellite   &
