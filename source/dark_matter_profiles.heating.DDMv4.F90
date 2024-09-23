@@ -44,12 +44,13 @@
           &                                                 gamma_                          , velocityKick
      integer         (kind_int8               )          :: lastUniqueID
      logical                                             :: energySpecificComputed          , energySpecificGradientComputed, &
-          &                                                 factorsComputed
+          &                                                 factorsComputed                 , potentialEscapeComputed
      double precision                                    :: radius                          , massEnclosed                  , &
           &                                                 fractionRetained                , energyRetained                , &
           &                                                 velocityDispersion              , velocityEscape                , &
           &                                                 massLossEnergy                  , fractionDecayed               , &
-          &                                                 energySpecificGradient          , energySpecific
+          &                                                 energySpecificGradient          , energySpecific                , &
+          &                                                 potentialEscape
    contains
      !![
      <methods>
@@ -168,6 +169,7 @@ contains
     self%factorsComputed               =.false.
     self%energySpecificComputed        =.false.
     self%energySpecificGradientComputed=.false.
+    self%potentialEscapeComputed       =.false.
     return
   end subroutine DDMv4CalculationReset
 
@@ -206,7 +208,19 @@ contains
          &                                                            velocityDispersionGradient                     , velocityEscapeGradient            , &
          &                                                            potentialDifference                            , massLossGradient
     
-    if (node%uniqueID() /= self%lastUniqueID .or. radius /= self%radius) call self%calculationReset(node,node%uniqueID())
+    if (node%uniqueID() /= self%lastUniqueID) then
+       call self%calculationReset(node,node%uniqueID())
+    else if (radius /= self%radius) then
+       self%radius                        =-huge(0.0d0)
+       self%factorsComputed               =.false.
+       self%energySpecificComputed        =.false.
+       self%energySpecificGradientComputed=.false.       
+    end if
+    if (.not.self%potentialEscapeComputed) then
+       ! Compute the gravitational potential corresponding to escape (i.e. at some large radius).
+       self%potentialEscape        =darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node))
+       self%potentialEscapeComputed=.true.
+    end if
     if (.not.self%factorsComputed) then
        ! Find the fraction of particles that have decayed by this time.
        basic                =>  node%basic()
@@ -218,10 +232,14 @@ contains
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
        if (self%massLoss_) then
           self%massEnclosed  =darkMatterProfileDMO_%enclosedMass(node,radius)
-          self%massLossEnergy=+self%gamma_                          &
-               &              *     gravitationalConstantGalacticus &
-               &              *self%massEnclosed                    &
-               &              /     radius
+          if (radius <= 0.0d0) then
+             self%massLossEnergy=+0.0d0
+          else
+             self%massLossEnergy=+self%gamma_                          &
+                  &              *     gravitationalConstantGalacticus &
+                  &              *self%massEnclosed                    &
+                  &              /     radius
+          end if
        else
           self%massLossEnergy=+0.0d0
        end if
@@ -229,8 +247,8 @@ contains
        self%velocityDispersion=darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
        ! Find the escape velocity.
        if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
-          potentialDifference=+darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) &
-               &              -darkMatterProfileDMO_%potential(node,                                                      radius            )
+          potentialDifference=+self                 %potentialEscape              &
+               &              -darkMatterProfileDMO_%potential      (node,radius)
           if (potentialDifference > 0.0d0) then
              self%velocityEscape=+sqrt(                     &
                   &                    +2.0d0               &
@@ -247,7 +265,7 @@ contains
        self%factorsComputed=.true.
     end if
     if (.not.self%energySpecificComputed) then
-      ! Compute the fraction of particles, and kick energy retained.
+       ! Compute the fraction of particles, and kick energy retained.
        if (self%velocityDispersion > 0.0d0) then
           self%fractionRetained   =+decayingDarkMatterFractionRetained(self%velocityDispersion,self%velocityEscape,self%velocityKick)
           self%energyRetained     =+decayingDarkMatterEnergyRetained  (self%velocityDispersion,self%velocityEscape,self%velocityKick)
