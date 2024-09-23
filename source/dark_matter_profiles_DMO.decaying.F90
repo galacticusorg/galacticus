@@ -89,10 +89,12 @@ contains
     class           (darkMatterParticleClass      ), pointer       :: darkMatterParticle_
     double precision                                               :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
          &                                                            toleranceRelativePotential
-    logical                                                        :: tolerateVelocityMaximumFailure     , toleratePotentialIntegrationFailure
+    logical                                                        :: tolerateVelocityMaximumFailure     , toleratePotentialIntegrationFailure       , &
+         &                                                            tolerateVelocityDispersionFailure  , tolerateEnclosedMassIntegrationFailure    , &
+         &                                                            velocityDispersionRadialTabulate
 
     !![
-     <inputParameter>
+    <inputParameter>
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
@@ -103,6 +105,18 @@ contains
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
       <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativePotential</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the gravitational potential.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerateEnclosedMassIntegrationFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, tolerate failures to find the mass enclosed as a function of radius.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateVelocityMaximumFailure</name>
@@ -116,11 +130,23 @@ contains
       <source>parameters</source>
       <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateVelocityDispersionFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the velocity dispersion.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityDispersionRadialTabulate</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>If true, use tabulations to evaluate the radial velocity dispersion. Otherwise, compute directly.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=darkMatterProfileDMODecaying(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=darkMatterProfileDMODecaying(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateVelocityDispersionFailure,tolerateEnclosedMassIntegrationFailure,velocityDispersionRadialTabulate,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
@@ -130,7 +156,7 @@ contains
     return
   end function decayingConstructorParameters
 
-  function decayingConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function decayingConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateVelocityDispersionFailure,tolerateEnclosedMassIntegrationFailure,velocityDispersionRadialTabulate,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
     !!}
@@ -145,9 +171,11 @@ contains
     class           (darkMatterParticleClass     ), intent(in   ), target :: darkMatterParticle_
     double precision                              , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
          &                                                                   toleranceRelativePotential
-    logical                                            , intent(in   )    :: tolerateVelocityMaximumFailure     , toleratePotentialIntegrationFailure
+    logical                                       , intent(in   )         :: tolerateVelocityMaximumFailure     , toleratePotentialIntegrationFailure       , &
+         &                                                                   tolerateVelocityDispersionFailure  , tolerateEnclosedMassIntegrationFailure    , &
+         &                                                                   velocityDispersionRadialTabulate
     !![
-    <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, *darkMatterParticle_, *darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateVelocityDispersionFailure, tolerateEnclosedMassIntegrationFailure, velocityDispersionRadialTabulate, *darkMatterParticle_, *darkMatterProfileDMO_,*darkMatterHaloScale_"/>
     !!]
 
     ! In models with decays, tolerate failures in integration of the density profile (as this can become almost fully disrupted).

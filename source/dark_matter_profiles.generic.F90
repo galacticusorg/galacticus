@@ -54,6 +54,7 @@ module Dark_Matter_Profiles_Generic
      ! Unique ID for memoization
      integer         (kind_int8               )                            :: genericLastUniqueID
      ! Memoized solutions for the radial velocity dispersion.
+     logical                                                               :: velocityDispersionRadialTabulate             =  .true.
      double precision                          , allocatable, dimension(:) :: genericVelocityDispersionRadialVelocity                , genericVelocityDispersionRadialRadius
      double precision                                                      :: genericVelocityDispersionRadialRadiusMinimum           , genericVelocityDispersionRadialRadiusMaximum       , &
           &                                                                   genericVelocityDispersionRadialRadiusOuter
@@ -68,7 +69,7 @@ module Dark_Matter_Profiles_Generic
      type            (interpolator            ), allocatable               :: genericPotential
      ! Options controlling tolerance of failures.
      logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false., tolerateVelocityMaximumFailure             =.false., &
-          &                                                                   toleratePotentialIntegrationFailure          =  .false.
+          &                                                                   toleratePotentialIntegrationFailure          =  .false., tolerateVelocityDispersionFailure          =.false.
    contains 
      !![
      <methods>
@@ -212,7 +213,7 @@ contains
          &                                                                    radiusMinimum                    , radiusMaximum      , &
          &                                                                    radiusVirial
     integer                                                                :: status
-    
+
     ! Validate input.
     if (radiusUpper < radiusLower) call Error_Report('radiusUpper ≥ radiusLower is required'//{introspection:location})
     if (radiusUpper <= 0.0d0) then
@@ -584,139 +585,194 @@ contains
 
     ! Reset calculations if necessary.
     if (node%uniqueID() /= self%genericLastUniqueID) call self%calculationResetGeneric(node,node%uniqueID())
-    ! Determine if the table must be rebuilt.
-    remakeTable=.false.
-    if (.not.allocated(self%genericVelocityDispersionRadialVelocity)) then
-       remakeTable=.true.
-    else
-       remakeTable= radius < self%genericVelocityDispersionRadialRadiusMinimum &
-            &      .or.                                                        &
-            &       radius > self%genericVelocityDispersionRadialRadiusMaximum
-    end if
-    if (remakeTable) then
-       ! Initialize integrator if necessary.
-       if (.not.initialized) then
-          integrator_=integrator(genericJeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
-          initialized=.true.
-       end if
-       ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
-       call self%solverSet  (node)
-       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
-       !! Set an initial range of radii that brackets the requested radius, but avoids tiny radii.
-       radiusMinimum=max(0.5d0*radius,radiusTinyFactor*radiusVirial)
-       radiusMaximum=max(2.0d0*radius,           2.0d0*radiusVirial)
-       !! Round to the nearest factor of 2.
-       radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
-       radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
-       !! Expand to encompass any pre-existing range.
-       if (allocated(self%genericVelocityDispersionRadialRadius)) then
-          radiusMinimum=min(radiusMinimum,self%genericVelocityDispersionRadialRadiusMinimum)
-          radiusMaximum=max(radiusMaximum,self%genericVelocityDispersionRadialRadiusMaximum)
-       end if
-       !! Set a suitable outer radius for integration.
-       if (present(radiusOuter)) then
-          radiusOuter_=radiusOuter
+    ! Velocity dispersions can be computed via a tabulation (which is optimal if velocity dispersions are needed at many radii in the same profile), or directly.
+    if (self%velocityDispersionRadialTabulate) then
+       ! Determine if the table must be rebuilt.
+       remakeTable=.false.
+       if (.not.allocated(self%genericVelocityDispersionRadialVelocity)) then
+          remakeTable=.true.
        else
-          radiusOuter_=max(10.0d0*radiusMaximum,radiusLargeFactor*radiusVirial)
+          remakeTable= radius < self%genericVelocityDispersionRadialRadiusMinimum &
+               &      .or.                                                        &
+               &       radius > self%genericVelocityDispersionRadialRadiusMaximum
        end if
-       !! Construct arrays.
-       countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
-       allocate(radii              (countRadii))
-       allocate(velocityDispersions(countRadii))
-       radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
-       ! Copy in any usable results from any previous solution.
-       !! Assume by default that no previous solutions are usable.
-       iMinimum=+huge(0_c_size_t)
-       iMaximum=-huge(0_c_size_t)
-       !! Check that a pre-existing solution exists.
-       if (allocated(self%genericVelocityDispersionRadialRadius)) then
-          !! Check that the outer radius for integration has not changed - if it has we need to recompute the full solution for
-          !! consistency.
-          if (radiusOuter_ == self%genericVelocityDispersionRadialRadiusOuter) then
-             iMinimum=nint(log(self%genericVelocityDispersionRadialRadiusMinimum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
-             iMaximum=nint(log(self%genericVelocityDispersionRadialRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
-             velocityDispersions(iMinimum:iMaximum)=self%genericVelocityDispersionRadialVelocity
+       if (remakeTable) then
+          ! Initialize integrator if necessary.
+          if (.not.initialized) then
+             integrator_=integrator(genericJeansEquationIntegrand_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+             initialized=.true.
           end if
-       end if
-       ! Solve for the velocity dispersion where old results were unavailable.
-       jeansIntegralPrevious=0.0d0
-       do i=countRadii,1,-1
-          ! Skip cases for which we have a pre-existing solution.
-          if (i >= iMinimum .and. i <= iMaximum) cycle
-          ! Find the limits for the integral.
-          if (i == countRadii) then
-             radiusUpper=radiusOuter_
+          ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
+          call self%solverSet  (node)
+          radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
+          !! Set an initial range of radii that brackets the requested radius, but avoids tiny radii.
+          radiusMinimum=max(0.5d0*radius,radiusTinyFactor*radiusVirial)
+          radiusMaximum=max(2.0d0*radius,           2.0d0*radiusVirial)
+          !! Round to the nearest factor of 2.
+          radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
+          radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
+          !! Expand to encompass any pre-existing range.
+          if (allocated(self%genericVelocityDispersionRadialRadius)) then
+             radiusMinimum=min(radiusMinimum,self%genericVelocityDispersionRadialRadiusMinimum)
+             radiusMaximum=max(radiusMaximum,self%genericVelocityDispersionRadialRadiusMaximum)
+          end if
+          !! Set a suitable outer radius for integration.
+          if (present(radiusOuter)) then
+             radiusOuter_=radiusOuter
           else
-             radiusUpper=radii(i+1)
+             radiusOuter_=max(10.0d0*radiusMaximum,radiusLargeFactor*radiusVirial)
           end if
-          radiusLower   =radii(i  )
-          ! Reset the accumulated Jeans integral if necessary.
-          if (i == iMinimum-1) jeansIntegralPrevious=+     velocityDispersions(           iMinimum )**2 &
-               &                                     *self%density            (node,radii(iMinimum))
-          ! If the interval is wholly outside of the outer radius, the integral is zero.
-          if (radiusLower > radiusOuter_) then
-             jeansIntegral         =0.0d0
-             velocityDispersions(i)=0.0d0
-         else
-             ! Evaluate the integral.
-             density                 =self       %density            (node,radiusLower                                             )
-             radiusLowerJeansEquation=self       %jeansEquationRadius(node,radiusLower                                             )
-             radiusUpperJeansEquation=self       %jeansEquationRadius(node,radiusUpper                                             )
-             jeansIntegral           =integrator_%integrate          (     radiusLowerJeansEquation,radiusUpperJeansEquation,status)
-             if (status /= errorStatusSuccess) then
-                ! Integration failed.
-                toleranceRelative=+     toleranceFactor                     &
-                     &            *self%toleranceRelativeVelocityDispersion
-                do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
-                   call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
-                   jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
-                   if (status == errorStatusSuccess) then
-                      exit
-                   else
-                      toleranceRelative=+toleranceFactor   &
-                           &            *toleranceRelative
-                   end if
-                end do
-                if (status /= errorStatusSuccess) call Error_Report('integration of Jeans equation failed'//{introspection:location})
-                call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+          !! Construct arrays.
+          countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+          allocate(radii              (countRadii))
+          allocate(velocityDispersions(countRadii))
+          radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+          ! Copy in any usable results from any previous solution.
+          !! Assume by default that no previous solutions are usable.
+          iMinimum=+huge(0_c_size_t)
+          iMaximum=-huge(0_c_size_t)
+          !! Check that a pre-existing solution exists.
+          if (allocated(self%genericVelocityDispersionRadialRadius)) then
+             !! Check that the outer radius for integration has not changed - if it has we need to recompute the full solution for
+             !! consistency.
+             if (radiusOuter_ == self%genericVelocityDispersionRadialRadiusOuter) then
+                iMinimum=nint(log(self%genericVelocityDispersionRadialRadiusMinimum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+                iMaximum=nint(log(self%genericVelocityDispersionRadialRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+                velocityDispersions(iMinimum:iMaximum)=self%genericVelocityDispersionRadialVelocity
              end if
-             if (density <= 0.0d0) then
-                ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
-                ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
-                ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
-                velocityDispersions(i)=0.0d0
-                if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Error_Report('undefined velocity dispersion'//{introspection:location})
+          end if
+          ! Solve for the velocity dispersion where old results were unavailable.
+          jeansIntegralPrevious=0.0d0
+          do i=countRadii,1,-1
+             ! Skip cases for which we have a pre-existing solution.
+             if (i >= iMinimum .and. i <= iMaximum) cycle
+             ! Find the limits for the integral.
+             if (i == countRadii) then
+                radiusUpper=radiusOuter_
              else
-                velocityDispersions(i)=sqrt(                         &
-                     &                      +(                       &
-                     &                        +jeansIntegral         &
-                     &                        +jeansIntegralPrevious &
-                     &                       )                       &
-                     &                      /density                 &
-                     &                     )
+                radiusUpper=radii(i+1)
              end if
+             radiusLower   =radii(i  )
+             ! Reset the accumulated Jeans integral if necessary.
+             if (i == iMinimum-1) jeansIntegralPrevious=+     velocityDispersions(           iMinimum )**2 &
+                  &                                     *self%density            (node,radii(iMinimum))
+             ! If the interval is wholly outside of the outer radius, the integral is zero.
+             if (radiusLower > radiusOuter_) then
+                jeansIntegral         =0.0d0
+                velocityDispersions(i)=0.0d0
+             else
+                ! Evaluate the integral.
+                density                 =self       %density            (node,radiusLower                                             )
+                radiusLowerJeansEquation=self       %jeansEquationRadius(node,radiusLower                                             )
+                radiusUpperJeansEquation=self       %jeansEquationRadius(node,radiusUpper                                             )
+                jeansIntegral           =integrator_%integrate          (     radiusLowerJeansEquation,radiusUpperJeansEquation,status)
+                if (status /= errorStatusSuccess) then
+                   ! Integration failed.
+                   toleranceRelative=+     toleranceFactor                     &
+                        &            *self%toleranceRelativeVelocityDispersion
+                   do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                      call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                      jeansIntegral=integrator_%integrate(radiusLowerJeansEquation,radiusUpperJeansEquation,status)
+                      if (status == errorStatusSuccess) then
+                         exit
+                      else
+                         toleranceRelative=+toleranceFactor   &
+                              &            *toleranceRelative
+                      end if
+                   end do
+                   if (status /= errorStatusSuccess) then
+                      if (self%tolerateVelocityDispersionFailure) then
+                         jeansIntegral=0.0d0
+                      else
+                         call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                      end if
+                      call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+                   end if
+                end if
+                if (density <= 0.0d0) then
+                   ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
+                   ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
+                   ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
+                   velocityDispersions(i)=0.0d0
+                   if (jeansIntegral+jeansIntegralPrevious > 0.0d0 .and. .not.self%tolerateVelocityDispersionFailure) &
+                        & call Error_Report('undefined velocity dispersion'//{introspection:location})
+                else
+                   velocityDispersions(i)=sqrt(                         &
+                        &                      +(                       &
+                        &                        +jeansIntegral         &
+                        &                        +jeansIntegralPrevious &
+                        &                       )                       &
+                        &                      /density                 &
+                        &                     )
+                end if
+             end if
+             jeansIntegralPrevious=+jeansIntegralPrevious &
+                  &                +jeansIntegral
+          end do
+          call self%solverUnset(   )
+          ! Build the interpolator.
+          if (allocated(self%genericVelocityDispersionRadial)) deallocate(self%genericVelocityDispersionRadial)
+          allocate(self%genericVelocityDispersionRadial)
+          self%genericVelocityDispersionRadial=interpolator(log(radii),velocityDispersions,interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeFix)
+          ! Store the current results for future re-use.
+          if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+          if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+          allocate(self%genericVelocityDispersionRadialRadius  (countRadii))
+          allocate(self%genericVelocityDispersionRadialVelocity(countRadii))
+          self%genericVelocityDispersionRadialRadius       =radii
+          self%genericVelocityDispersionRadialVelocity     =velocityDispersions
+          self%genericVelocityDispersionRadialRadiusMinimum=radiusMinimum
+          self%genericVelocityDispersionRadialRadiusMaximum=radiusMaximum
+          self%genericVelocityDispersionRadialRadiusOuter  =radiusOuter_
+       end if
+       ! Interpolate in the table to find the velocity dispersion.
+       genericRadialVelocityDispersionNumerical=self%genericVelocityDispersionRadial%interpolate(log(radius))
+    else
+       density                 =self       %density            (node,radius                                             )
+       if (density > 0.0d0) then
+          if (.not.initialized) then
+             ! Use a integrand in log(radius) here as we are likely integrating over a large radius dynamic range.
+             integrator_=integrator(genericJeansEquationIntegrandLog_,toleranceRelative=self%toleranceRelativeVelocityDispersion)
+             initialized=.true.
           end if
-          jeansIntegralPrevious=+jeansIntegralPrevious &
-               &                +jeansIntegral
-       end do
-       call self%solverUnset(   )
-       ! Build the interpolator.
-       if (allocated(self%genericVelocityDispersionRadial)) deallocate(self%genericVelocityDispersionRadial)
-       allocate(self%genericVelocityDispersionRadial)
-       self%genericVelocityDispersionRadial=interpolator(log(radii),velocityDispersions,interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeFix)
-       ! Store the current results for future re-use.
-       if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
-       if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
-       allocate(self%genericVelocityDispersionRadialRadius  (countRadii))
-       allocate(self%genericVelocityDispersionRadialVelocity(countRadii))
-       self%genericVelocityDispersionRadialRadius       =radii
-       self%genericVelocityDispersionRadialVelocity     =velocityDispersions
-       self%genericVelocityDispersionRadialRadiusMinimum=radiusMinimum
-       self%genericVelocityDispersionRadialRadiusMaximum=radiusMaximum
-       self%genericVelocityDispersionRadialRadiusOuter  =radiusOuter_
+          call self%solverSet  (node)
+          if (present(radiusOuter)) then
+             radiusOuter_=radiusOuter
+          else
+             radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
+             radiusOuter_=max(10.0d0*radius,radiusLargeFactor*radiusVirial)
+          end if
+          jeansIntegral           =integrator_%integrate          (     log(radius),log(radiusOuter_),status)
+          if (status /= errorStatusSuccess) then
+             ! Integration failed.
+             toleranceRelative=+     toleranceFactor                     &
+                  &            *self%toleranceRelativeVelocityDispersion
+             do while (toleranceRelative < self%toleranceRelativeVelocityDispersionMaximum)
+                call integrator_%toleranceSet(toleranceRelative=toleranceRelative)
+                jeansIntegral=integrator_%integrate(log(radius),log(radiusOuter_),status)
+                if (status == errorStatusSuccess) then
+                   exit
+                else
+                   toleranceRelative=+toleranceFactor   &
+                        &            *toleranceRelative
+                end if
+             end do
+             if (status /= errorStatusSuccess) then
+                if (self%tolerateVelocityDispersionFailure) then
+                   jeansIntegral=0.0d0
+                else
+                   call Error_Report('integration of Jeans equation failed'//{introspection:location})
+                end if
+             end if
+             call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
+          end if
+          jeansIntegral=sqrt(jeansIntegral/density)
+          call self%solverUnset(   )
+       else
+          jeansIntegral=0.0d0
+       end if
+       genericRadialVelocityDispersionNumerical=jeansIntegral
     end if
-    ! Interpolate in the table to find the velocity dispersion.
-    genericRadialVelocityDispersionNumerical=self%genericVelocityDispersionRadial%interpolate(log(radius))
     return
   end function genericRadialVelocityDispersionNumerical
   
@@ -730,6 +786,20 @@ contains
     genericJeansEquationIntegrand_=solvers(solversCount)%self%jeansEquationIntegrand(solvers(solversCount)%node,radius)
     return
   end function genericJeansEquationIntegrand_
+
+  double precision function genericJeansEquationIntegrandLog_(logRadius)
+    !!{
+    Integrand for generic dark matter profile Jeans equation.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: logRadius
+    double precision                :: radius
+
+    radius=exp(logRadius)
+    genericJeansEquationIntegrandLog_=+solvers(solversCount)%self%jeansEquationIntegrand(solvers(solversCount)%node,radius) &
+         &                            *                                                                             radius
+    return
+  end function genericJeansEquationIntegrandLog_
 
   double precision function genericJeansEquationIntegrand(self,node,radius)
     !!{
