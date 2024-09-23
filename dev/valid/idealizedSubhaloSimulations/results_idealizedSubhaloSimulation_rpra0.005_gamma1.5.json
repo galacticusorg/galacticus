@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "edaed8127ec61cd37e40196fddad4631220f8e6c",
-        "message": "Merge pull request #703 from galacticusorg/fixStreamImpactFinalTime\n\nNever pass nodes at the final output time in the `streamImpact` galactic filter\n",
-        "timestamp": "2024-09-18 22:56:29+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/edaed8127ec61cd37e40196fddad4631220f8e6c"
+        "id": "7f2a178a2ac175eaaa1b89dee2f23ee99070855b",
+        "message": "Merge pull request #707 from galacticusorg/fixOutputNameSpaces\n\nStrip leading and trailing spaces from the output file name\n",
+        "timestamp": "2024-09-22 22:37:41+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7f2a178a2ac175eaaa1b89dee2f23ee99070855b"
     },
     "results": [
         {
