@@ -55,7 +55,13 @@
           &                                                         densityRadiusPrevious                              , densityPrevious                                , &
           &                                                         densityNormalizationPrevious                       , radiusEnclosingDensityDensityPrevious          , &
           &                                                         radiusEnclosingDensityPrevious                     , radiusEnclosingMassMassPrevious                , &
-          &                                                         radiusEnclosingMassPrevious                        , energyPrevious
+          &                                                         radiusEnclosingMassPrevious                        , energyPrevious                                 , &
+          &                                                         lengthResolutionScaleFreePotentialPrevious         , lengthResolutionPotentialTerm1                 , &
+          &                                                         lengthResolutionPotentialTerm2                     , lengthResolutionPotentialSquare                , &
+          &                                                         lengthResolutionPotentialRootSquare                , lengthResolutionPotentialOnePlusSquare         , &
+          &                                                         lengthResolutionPotentialSqrtOnePlusSquare         , lengthResolutionPotentialOnePlusTwoSquare      , &
+          &                                                         lengthResolutionPotentialOnePlusSquareP1p5         , lengthResolutionPotentialAtanh                 , &
+          &                                                         concentrationPotentialPrevious                     , concentrationPotentialTerm
      ! Velocity dispersion tabulation.
      logical                                                     :: velocityDispersionRadialTableInitialized
      integer                                                     :: velocityDispersionRadialTableRadiusCoreCount       , velocityDispersionRadialTableRadiusCount
@@ -91,45 +97,45 @@
   contains
      !![
      <methods>
-       <method method="velocityDispersionRadialTabulate" description="Tabulate the enclosed mass as a function of radius and core radius."                               />
-       <method method="radiusEnclosingDensityTabulate"   description="Tabulate the radius enclosing a given density as a function of density and core radius."           />
-       <method method="radiusEnclosingMassTabulate"      description="Tabulate the radius enclosing a given mass as a function of density and core radius."              />
-       <method method="energyTabulate"                   description="Tabulate the energy as a function of concentration and core radius."                               />
-       <method method="densityScaleFree"                 description="The density of the profile in units where the mass and scale length are both 1."                   />
-       <method method="massEnclosedScaleFree"            description="The mass enclosed of the profile in units where the mass and scale length are both 1."             />
-       <method method="storeVelocityDispersionTable"     description="Store the tabulated velocity dispersion to file."                                                  />
-       <method method="restoreVelocityDispersionTable"   description="Attempt to restore the tabulated velocity dispersion from file, returning true if successful."     />
-       <method method="storeDensityTable"                description="Store the tabulated radius-enclosing-density to file."                                             />
-       <method method="restoreDensityTable"              description="Attempt to restore the tabulated radius-enclosing-density from file, returning true if successful."/>
-       <method method="storeMassTable"                   description="Store the tabulated radius-enclosing-mass to file."                                                />
-       <method method="restoreMassTable"                 description="Attempt to restore the tabulated radius-enclosing-mass from file, returning true if successful."   />
-       <method method="storeEnergyTable"                 description="Store the tabulated energy to file."                                                               />
-       <method method="restoreEnergyTable"               description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
+       <method method="velocityDispersionRadialComputeTabulation" description="Tabulate the enclosed mass as a function of radius and core radius."                               />
+       <method method="radiusEnclosingDensityTabulate"            description="Tabulate the radius enclosing a given density as a function of density and core radius."           />
+       <method method="radiusEnclosingMassTabulate"               description="Tabulate the radius enclosing a given mass as a function of density and core radius."              />
+       <method method="energyTabulate"                            description="Tabulate the energy as a function of concentration and core radius."                               />
+       <method method="densityScaleFree"                          description="The density of the profile in units where the mass and scale length are both 1."                   />
+       <method method="massEnclosedScaleFree"                     description="The mass enclosed of the profile in units where the mass and scale length are both 1."             />
+       <method method="storeVelocityDispersionTable"              description="Store the tabulated velocity dispersion to file."                                                  />
+       <method method="restoreVelocityDispersionTable"            description="Attempt to restore the tabulated velocity dispersion from file, returning true if successful."     />
+       <method method="storeDensityTable"                         description="Store the tabulated radius-enclosing-density to file."                                             />
+       <method method="restoreDensityTable"                       description="Attempt to restore the tabulated radius-enclosing-density from file, returning true if successful."/>
+       <method method="storeMassTable"                            description="Store the tabulated radius-enclosing-mass to file."                                                />
+       <method method="restoreMassTable"                          description="Attempt to restore the tabulated radius-enclosing-mass from file, returning true if successful."   />
+       <method method="storeEnergyTable"                          description="Store the tabulated energy to file."                                                               />
+       <method method="restoreEnergyTable"                        description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
      </methods>
      !!]
-     procedure :: autoHook                         => finiteResolutionNFWAutoHook
-     procedure :: calculationReset                 => finiteResolutionNFWCalculationReset
-     procedure :: density                          => finiteResolutionNFWDensity
-     procedure :: enclosedMass                     => finiteResolutionNFWEnclosedMass
-     procedure :: potential                        => finiteResolutionNFWPotential
-     procedure :: radiusEnclosingDensity           => finiteResolutionNFWRadiusEnclosingDensity
-     procedure :: radiusEnclosingMass              => finiteResolutionNFWRadiusEnclosingMass
-     procedure :: energy                           => finiteResolutionNFWEnergy
-     procedure :: radialVelocityDispersion         => finiteResolutionNFWRadialVelocityDispersion
-     procedure :: velocityDispersionRadialTabulate => finiteResolutionNFWVelocityDispersionRadialTabulate
-     procedure :: radiusEnclosingDensityTabulate   => finiteResolutionNFWRadiusEnclosingDensityTabulate
-     procedure :: radiusEnclosingMassTabulate      => finiteResolutionNFWRadiusEnclosingMassTabulate
-     procedure :: energyTabulate                   => finiteResolutionNFWEnergyTabulate
-     procedure :: densityScaleFree                 => finiteResolutionNFWDensityScaleFree
-     procedure :: massEnclosedScaleFree            => finiteResolutionNFWMassEnclosedScaleFree
-     procedure :: storeVelocityDispersionTable     => finiteResolutionNFWStoreVelocityDispersionTable
-     procedure :: restoreVelocityDispersionTable   => finiteResolutionNFWRestoreVelocityDispersionTable
-     procedure :: storeDensityTable                => finiteResolutionNFWStoreDensityTable
-     procedure :: restoreDensityTable              => finiteResolutionNFWRestoreDensityTable
-     procedure :: storeMassTable                   => finiteResolutionNFWStoreMassTable
-     procedure :: restoreMassTable                 => finiteResolutionNFWRestoreMassTable
-     procedure :: storeEnergyTable                 => finiteResolutionNFWStoreEnergyTable
-     procedure :: restoreEnergyTable               => finiteResolutionNFWRestoreEnergyTable
+     procedure :: autoHook                                  => finiteResolutionNFWAutoHook
+     procedure :: calculationReset                          => finiteResolutionNFWCalculationReset
+     procedure :: density                                   => finiteResolutionNFWDensity
+     procedure :: enclosedMass                              => finiteResolutionNFWEnclosedMass
+     procedure :: potential                                 => finiteResolutionNFWPotential
+     procedure :: radiusEnclosingDensity                    => finiteResolutionNFWRadiusEnclosingDensity
+     procedure :: radiusEnclosingMass                       => finiteResolutionNFWRadiusEnclosingMass
+     procedure :: energy                                    => finiteResolutionNFWEnergy
+     procedure :: radialVelocityDispersion                  => finiteResolutionNFWRadialVelocityDispersion
+     procedure :: velocityDispersionRadialComputeTabulation => finiteResolutionNFWVelocityDispersionRadialComputeTabulation
+     procedure :: radiusEnclosingDensityTabulate            => finiteResolutionNFWRadiusEnclosingDensityTabulate
+     procedure :: radiusEnclosingMassTabulate               => finiteResolutionNFWRadiusEnclosingMassTabulate
+     procedure :: energyTabulate                            => finiteResolutionNFWEnergyTabulate
+     procedure :: densityScaleFree                          => finiteResolutionNFWDensityScaleFree
+     procedure :: massEnclosedScaleFree                     => finiteResolutionNFWMassEnclosedScaleFree
+     procedure :: storeVelocityDispersionTable              => finiteResolutionNFWStoreVelocityDispersionTable
+     procedure :: restoreVelocityDispersionTable            => finiteResolutionNFWRestoreVelocityDispersionTable
+     procedure :: storeDensityTable                         => finiteResolutionNFWStoreDensityTable
+     procedure :: restoreDensityTable                       => finiteResolutionNFWRestoreDensityTable
+     procedure :: storeMassTable                            => finiteResolutionNFWStoreMassTable
+     procedure :: restoreMassTable                          => finiteResolutionNFWRestoreMassTable
+     procedure :: storeEnergyTable                          => finiteResolutionNFWStoreEnergyTable
+     procedure :: restoreEnergyTable                        => finiteResolutionNFWRestoreEnergyTable
   end type darkMatterProfileDMOFiniteResolutionNFW
 
   interface darkMatterProfileDMOFiniteResolutionNFW
@@ -241,6 +247,8 @@ contains
     self%lengthResolutionScaleFreePreviousSqrt2Term    =-huge(0.0d0)
     self%lengthResolutionScaleFreePreviousSqrtCubedTerm=-huge(0.0d0)
     self%lengthResolutionScaleFreePreviousLowerTerm    =-huge(0.0d0)
+    self%lengthResolutionScaleFreePotentialPrevious    =-huge(0.0d0)
+    self%concentrationPotentialPrevious                =-huge(0.0d0)
     self%densityRadiusPrevious                         =-huge(0.0d0)
     self%densityPrevious                               =-huge(0.0d0)
     self%densityNormalizationPrevious                  =-huge(0.0d0)
@@ -984,11 +992,12 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
-    double precision                                         , intent(in   ) :: radiusScaleFree                 , lengthResolutionScaleFree
-    double precision                                         , parameter     :: radiusScaleFreeSmall     =1.0d-3, radiusScaleFreeLarge     =1.0d4, &
-         &                                                                      radiusScaleFreeLargeATanh=1.0d+6
-    double precision                                                         :: radiusScaleFreeEffective        , arctanhTerm                    , &
-         &                                                                      arctanhTerm1
+    double precision                                         , intent(in   ) :: radiusScaleFree                       , lengthResolutionScaleFree
+    double precision                                         , parameter     :: radiusScaleFreeSmall           =1.0d-3, radiusScaleFreeLarge     =1.0d4, &
+         &                                                                      radiusScaleFreeLargeATanh      =1.0d+6
+    double precision                                                         :: radiusScaleFreeEffective              , arctanhTerm                    , &
+         &                                                                      arctanhTerm1                          , radiusNormTerm                 , &
+         &                                                                      radiusScaleFreeEffectiveSquared
     
     if (lengthResolutionScaleFree /= self%lengthResolutionScaleFreePrevious) then
        self%lengthResolutionScaleFreePrevious             =lengthResolutionScaleFree
@@ -1040,38 +1049,40 @@ contains
     else
        ! Full analytic solution.
        !! Limit the evaluation to some large radius.
-       radiusScaleFreeEffective=min(radiusScaleFree,radiusScaleFreeLarge)
+       radiusScaleFreeEffective       =min(radiusScaleFree,radiusScaleFreeLarge)
+       radiusScaleFreeEffectiveSquared=radiusScaleFreeEffective**2
+       radiusNormTerm                 =sqrt(+radiusScaleFreeEffectiveSquared+self%lengthResolutionScaleFreePreviousSquared)
        if (radiusScaleFreeEffective > radiusScaleFreeLargeATanh*self%lengthResolutionScaleFreePrevious) then
           arctanhTerm1=+log  (                                               &
                &              +4.0d0                                         &
-               &              *      radiusScaleFreeEffective**2             &
+               &              *      radiusScaleFreeEffectiveSquared         &
                &              /self%lengthResolutionScaleFreePreviousSquared &
                &             )                                               &
                &       /2.0d0                                                &
                &       -self%lengthResolutionScaleFreePreviousSquared        &
                &       /8.0d0                                                &
-               &       /     radiusScaleFreeEffective**2
+               &       /     radiusScaleFreeEffectiveSquared
        else
-          arctanhTerm1=+atanh(                                                                                  &
-            &                       +radiusScaleFreeEffective                                                   &
-            &                 /sqrt(+radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePreviousSquared) &
+          arctanhTerm1=+atanh(                          &
+            &                 +radiusScaleFreeEffective &
+            &                 /radiusNormTerm           &
             &                )
        end if
-       finiteResolutionNFWMassEnclosedScaleFree=-         sqrt(+radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePrevious**2) &
-            &                                   /(+1.0d0+radiusScaleFreeEffective)                                                     &
-            &                                   /self%lengthResolutionScaleFreePreviousOnePlusTerm                                     &
-            &                                   -2.0d0                                                                                 &
-            &                                   *self%lengthResolutionScaleFreePreviousOnePlus2Term                                    &
-            &                                   *atanh(                                                                                &
-            &                                          +(                                                                              &
-            &                                            +1.0d0                                                                        &
-            &                                            +radiusScaleFreeEffective                                                     &
-            &                                            -sqrt(+radiusScaleFreeEffective**2+self%lengthResolutionScaleFreePrevious**2) &
-            &                                           )                                                                              &
-            &                                          /self%lengthResolutionScaleFreePreviousSqrtTerm                                 &
-            &                                         )                                                                                &
-            &                                   /self%lengthResolutionScaleFreePreviousSqrtCubedTerm                                   &
-            &                                   +arctanhTerm1                                                                          &
+       finiteResolutionNFWMassEnclosedScaleFree=-        radiusNormTerm                                &
+            &                                   /(+1.0d0+radiusScaleFreeEffective)                     &
+            &                                   /self%lengthResolutionScaleFreePreviousOnePlusTerm     &
+            &                                   -2.0d0                                                 &
+            &                                   *self%lengthResolutionScaleFreePreviousOnePlus2Term    &
+            &                                   *atanh(                                                &
+            &                                          +(                                              &
+            &                                            +1.0d0                                        &
+            &                                            +radiusScaleFreeEffective                     &
+            &                                            -radiusNormTerm                               &
+            &                                           )                                              &
+            &                                          /self%lengthResolutionScaleFreePreviousSqrtTerm &
+            &                                         )                                                &
+            &                                   /self%lengthResolutionScaleFreePreviousSqrtCubedTerm   &
+            &                                   +arctanhTerm1                                          &
             &                                   +self%lengthResolutionScaleFreePreviousLowerTerm
        !! Beyond the limiting radius assume logarithmic growth in mass as appropriate for an r⁻³ profile.
        if (radiusScaleFree > radiusScaleFreeEffective)                                           &
@@ -1112,100 +1123,116 @@ contains
     class           (nodeComponentDarkMatterProfile         ), pointer                 :: darkMatterProfile
     double precision                                         , parameter               :: radiusScaleFreeSmall     =1.0d-3
     double precision                                         , parameter               :: radiusScaleFreeLarge     =1.0d+5
-    double precision                                                                   :: concentration                   , radiusScaleFree, &
-         &                                                                                lengthResolutionScaleFree
+    double precision                                                                   :: concentration                   , radiusScaleFree  , &
+         &                                                                                lengthResolutionScaleFree       , radiusScaleLength
 
     if (present(status)) status=structureErrorCodeSuccess
     if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node,node%uniqueID())
     if (     radius     /= self%potentialRadiusPrevious) then
-       basic                        =>  node%basic                                        (    )
-       darkMatterProfile            =>  node%darkMatterProfile                            (    )
-       radiusScaleFree              =                             radius                        /darkMatterProfile%scale()
-       concentration                =   self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
-       lengthResolutionScaleFree    =   self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
-       self%potentialRadiusPrevious =                             radius
+       basic                        =>  node             %basic                                        (    )
+       darkMatterProfile            =>  node             %darkMatterProfile                            (    )
+       radiusScaleLength            =   darkMatterProfile                     %scale                   (     )
+       radiusScaleFree              =                                          radius                        /radiusScaleLength
+       concentration                =   self             %darkMatterHaloScale_%radiusVirial            (node)/radiusScaleLength
+       lengthResolutionScaleFree    =   self                                  %lengthResolutionPhysical(node)/radiusScaleLength
+       self%potentialRadiusPrevious =                                          radius
+       if (concentration /= self%concentrationPotentialPrevious) then
+          ! Recompute terms that depend only on the concentration.
+          self%concentrationPotentialPrevious=concentration
+          self%concentrationPotentialTerm    =1.0d0/(                          &
+               &                                     -          concentration  &
+               &                                     /   (1.0d0+concentration) &
+               &                                     +log(1.0d0+concentration) &
+               &                                    )
+       end if
+       if (lengthResolutionScaleFree /= self%lengthResolutionScaleFreePotentialPrevious) then
+          ! Recompute terms that depend only on the scale free resolution length.
+          self%lengthResolutionScaleFreePotentialPrevious=lengthResolutionScaleFree
+          self%lengthResolutionPotentialSquare           =lengthResolutionScaleFree**2
+          self%lengthResolutionPotentialRootSquare       =sqrt(self%lengthResolutionPotentialSquare)
+          self%lengthResolutionPotentialOnePlusSquare    =1.0d0+self%lengthResolutionPotentialSquare
+          self%lengthResolutionPotentialSqrtOnePlusSquare=sqrt(self%lengthResolutionPotentialOnePlusSquare)
+          self%lengthResolutionPotentialOnePlusTwoSquare =1.0d0+2.0d0*self%lengthResolutionPotentialSquare
+          self%lengthResolutionPotentialOnePlusSquareP1p5=self%lengthResolutionPotentialOnePlusSquare**1.5d0
+          self%lengthResolutionPotentialAtanh            =atanh(                                                                                         &
+               &                                                +sqrt(+self%lengthResolutionPotentialSquare/self%lengthResolutionPotentialOnePlusSquare) &
+               &                                               )
+          self%lengthResolutionPotentialTerm1            =+(+1.0d0-lengthResolutionScaleFree   )                            &
+               &                                          /self%lengthResolutionPotentialOnePlusSquare                      &
+               &                                          +self%lengthResolutionPotentialSquare                             &
+               &                                          *(                                                                &
+               &                                            +asinh(lengthResolutionScaleFree   )                            &
+               &                                            +log  (                                                         &
+               &                                                   +(1.0d0+self%lengthResolutionPotentialSqrtOnePlusSquare) &
+               &                                                   /            lengthResolutionScaleFree                   &
+               &                                                  )                                                         &
+               &                                           )                                                                &
+               &                                          /self%lengthResolutionPotentialOnePlusSquareP1p5
+          self%lengthResolutionPotentialTerm2            =+(                                                      &
+               &                                            +self%lengthResolutionPotentialSqrtOnePlusSquare      &
+               &                                            -self%lengthResolutionPotentialSquare                 &
+               &                                            *log(                                                 &
+               &                                                 -1.0d0                                           &
+               &                                                 +self%lengthResolutionPotentialSqrtOnePlusSquare &
+               &                                                )                                                 &
+               &                                           )                                                      &
+               &                                          /self%lengthResolutionPotentialOnePlusSquareP1p5
+       end if
+       ! Evaluate the potential.
        if      (radiusScaleFree > radiusScaleFreeLarge) then
           ! Truncate to zero at very large radii.
           self%potentialPrevious=0.0d0
        else if (radiusScaleFree < radiusScaleFreeSmall) then
           ! Series expansion for small radii.
-          self%potentialPrevious       =  -gravitationalConstantGalacticus                              &
-               &                          *basic            %mass ()                                    &
-               &                          /darkMatterProfile%scale()                                    &
-               &                          *(                                                            &
-               &                            +(+1.0d0-lengthResolutionScaleFree   )                      &
-               &                            /(+1.0d0+lengthResolutionScaleFree**2)                      &
-               &                            +        lengthResolutionScaleFree**2                       &
-               &                            *(                                                          &
-               &                              +asinh(lengthResolutionScaleFree   )                      &
-               &                              +log  (                                                   &
-               &                                     +(1.0d0+sqrt(+1.0d0+lengthResolutionScaleFree**2)) &
-               &                                     /                   lengthResolutionScaleFree      &
-               &                                    )                                                   &
-               &                             )                                                          &
-               &                            /(+1.0d0+lengthResolutionScaleFree**2)**1.5d0               &
-               &                            -        radiusScaleFree**2                                 &
-               &                            *(+1.0d0-radiusScaleFree             )                      &
-               &                            /        lengthResolutionScaleFree                          &
-               &                            /6.0d0                                                      &
-               &                           )                                                            &
-               &                          /(                                                            &
-               &                            -          concentration                                    &
-               &                            /   (1.0d0+concentration)                                   &
-               &                            +log(1.0d0+concentration)                                   &
-               &                           )
+          self%potentialPrevious       =  -gravitationalConstantGalacticus        &
+               &                          *basic            %mass ()              &
+               &                          /radiusScaleLength                      &
+               &                          *(                                      &
+               &                            +self%lengthResolutionPotentialTerm1  &
+               &                            -        radiusScaleFree**2           &
+               &                            *(+1.0d0-radiusScaleFree            ) &
+               &                            /        lengthResolutionScaleFree    &
+               &                            /6.0d0                                &
+               &                           )                                      &
+               &                          *self%concentrationPotentialTerm
        else
-          self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                          &
-               &                          *basic            %mass ()                                                                                                &
-               &                          /darkMatterProfile%scale()                                                                                                &
-               &                          *(                                                                                                                        &
-               &                            +       sqrt(                          lengthResolutionScaleFree**2                                           )         &
-               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)         &
-               &                            -       sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)         &
-               &                            -                                                                   (+1.0d0+2.0d0*lengthResolutionScaleFree**2)         &
-               &                            *atanh(                                                                                                                 &
-               &                                   +sqrt(                         +lengthResolutionScaleFree**2/(+1.0d0+      lengthResolutionScaleFree**2)       ) &
-               &                                  )                                                                                                                 &
-               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-               &                            +atanh(                                                                                                                 &
-               &                                   +            radiusScaleFree                                                                                     &
-               &                                   /sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-               &                                  )                                                                                                                 &
-               &                            /                   radiusScaleFree                                                                                     &
-               &                            +                                                                   (+1.0d0+2.0d0*lengthResolutionScaleFree**2)         &
-               &                            *atanh(                                                                                                                 &
-               &                                        (      -radiusScaleFree   +lengthResolutionScaleFree**2                                           )         &
-               &                                   /sqrt                                                        (+1.0d0+      lengthResolutionScaleFree**2)         &
-               &                                   /sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-               &                                  )                                                                                                                 &
-               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-               &                            -                                      lengthResolutionScaleFree**2                                                     &
-               &                            *log  (                                                                                                                 &
-               &                                         +1.0d0+radiusScaleFree                                                                                     &
-               &                                  )                                                                                                                 &
-               &                            /                                                                   (+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-               &                            +                                      lengthResolutionScaleFree**2/(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-               &                            *log  (                                                                                                                 &
-               &                                               -radiusScaleFree   +lengthResolutionScaleFree**2                                                     &
-               &                                   +sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
-               &                                   *sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-               &                                  )                                                                                                                 &
-               &                            +(                                                                                                                      &
-               &                              +     sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
-               &                              -                                    lengthResolutionScaleFree**2                                                     &
-               &                              *log(                                                                                                                 &
-               &                                         -1.0d0                                                                                                     &
-               &                                   +sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
-               &                                  )                                                                                                                 &
-               &                             )                                                                                                                      &
-               &                            /                                                                   (+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-               &                           )                                                                                                                        &
-               &                          /(                                                                                                                        &
-               &                            -          concentration                                                                                                &
-               &                            /   (1.0d0+concentration)                                                                                               &
-               &                            +log(1.0d0+concentration)                                                                                               &
-               &                           )
+          self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                               &
+               &                          *basic            %mass ()                                                                                                     &
+               &                          /radiusScaleLength                                                                                                             &
+               &                          *(                                                                                                                             &
+               &                            +     self%lengthResolutionPotentialRootSquare                                                                               &
+               &                            /                   radiusScaleFree                                        /self%lengthResolutionPotentialOnePlusSquare      &
+               &                            -       sqrt(      +radiusScaleFree**2+self%lengthResolutionPotentialSquare                                           )      &
+               &                            /                   radiusScaleFree                                        /self%lengthResolutionPotentialOnePlusSquare      &
+               &                            -                                                                           self%lengthResolutionPotentialOnePlusTwoSquare   &
+               &                            *self%lengthResolutionPotentialAtanh                                                                                         &
+               &                            /                   radiusScaleFree                                        /self%lengthResolutionPotentialOnePlusSquareP1p5  &
+               &                            +atanh(                                                                                                                      &
+               &                                   +            radiusScaleFree                                                                                          &
+               &                                   /sqrt(      +radiusScaleFree**2+self%lengthResolutionPotentialSquare                                                ) &
+               &                                  )                                                                                                                      &
+               &                            /                   radiusScaleFree                                                                                          &
+               &                            +                                                                           self%lengthResolutionPotentialOnePlusTwoSquare   &
+               &                            *atanh(                                                                                                                      &
+               &                                        (      -radiusScaleFree   +self%lengthResolutionPotentialSquare                                                ) &
+               &                                   /                                                                    self%lengthResolutionPotentialSqrtOnePlusSquare  &
+               &                                   /sqrt(      +radiusScaleFree**2+self%lengthResolutionPotentialSquare                                                ) &
+               &                                  )                                                                                                                      &
+               &                            /                   radiusScaleFree                                        /self%lengthResolutionPotentialOnePlusSquareP1p5  &
+               &                            -                                      self%lengthResolutionPotentialSquare                                                  &
+               &                            *log  (                                                                                                                      &
+               &                                         +1.0d0+radiusScaleFree                                                                                          &
+               &                                  )                                                                                                                      &
+               &                            /                                                                           self%lengthResolutionPotentialOnePlusSquareP1p5  &
+               &                            +                                      self%lengthResolutionPotentialSquare/self%lengthResolutionPotentialOnePlusSquareP1p5  &
+               &                            *log  (                                                                                                                      &
+               &                                               -radiusScaleFree   +self%lengthResolutionPotentialSquare                                                  &
+               &                                   +self%lengthResolutionPotentialSqrtOnePlusSquare                                                                      &
+               &                                   *sqrt(      +radiusScaleFree**2+self%lengthResolutionPotentialSquare                                                ) &
+               &                                  )                                                                                                                      &
+               &                            +self%lengthResolutionPotentialTerm2                                                                                         &
+               &                           )                                                                                                                             &
+               &                          *self%concentrationPotentialTerm
        end if
     end if
     finiteResolutionNFWPotential=self%potentialPrevious
@@ -1245,7 +1272,7 @@ contains
        ! dispersion is assumed.
        radiusScaleFreeEffective=max(radiusScaleFree,lengthResolutionScaleFreeSmall*lengthResolutionScaleFree)
        ! Ensure table is sufficiently extensive.
-       call self%velocityDispersionRadialTabulate(radiusScaleFreeEffective,lengthResolutionScaleFree)
+       call self%velocityDispersionRadialComputeTabulation(radiusScaleFreeEffective,lengthResolutionScaleFree)
        ! Interpolate to get the velocity dispersion.
        call self%velocityDispersionRadialTableRadiusCoreInterpolator%linearFactors(lengthResolutionScaleFree,jRadiusCore(0),hRadiusCore)
        jRadiusCore(1)=jRadiusCore(0)+1
@@ -1271,7 +1298,7 @@ contains
     return
   end function finiteResolutionNFWRadialVelocityDispersion
   
-  subroutine finiteResolutionNFWVelocityDispersionRadialTabulate(self,radius,radiusCore)
+  subroutine finiteResolutionNFWVelocityDispersionRadialComputeTabulation(self,radius,radiusCore)
     !!{
     Tabulates the mass enclosed within a given radius for finite resolution NFW density profiles.
     !!}
@@ -1383,7 +1410,7 @@ contains
        call self%storeVelocityDispersionTable()
     end if
     return
-  end subroutine finiteResolutionNFWVelocityDispersionRadialTabulate
+  end subroutine finiteResolutionNFWVelocityDispersionRadialComputeTabulation
   
   double precision function jeansEquationIntegrand(radius)
     !!{
