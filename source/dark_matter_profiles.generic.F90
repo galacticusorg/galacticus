@@ -207,7 +207,8 @@ contains
     logical                                   , save                       :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
     integer         (c_size_t                )                             :: countRadii                       , iMinimum           , &
-         &                                                                    iMaximum                         , i
+         &                                                                    iMaximum                         , i                  , &
+         &                                                                    iPrevious
     logical                                                                :: remakeTable
     double precision                                                       :: radiusIntegralLower              , radiusIntegralUpper, &
          &                                                                    radiusMinimum                    , radiusMaximum      , &
@@ -298,9 +299,42 @@ contains
           ! This is a fully-destroyed profile - we leave the mass profile unallocated to indicate this.
        else
           ! We have a partial profile. Attempt to work with this by selecting out the physically-reasonable values.
-          radii_ =pack(radii ,masses > 0.0d0)
-          masses_=pack(masses,masses > 0.0d0)
-          if (size(masses_) > 1) then
+          countRadii=+0_c_size_t
+          iPrevious =-1_c_size_t
+          do i=size(masses),1,-1
+             if     (                                         &
+                  &     masses   (i) >  0.0d0                 &
+                  &  .and.                                    &
+                  &   (                                       &
+                  &     iPrevious    <= 0_c_size_t            &
+                  &    .or.                                   &
+                  &     masses   (i) <  masses    (iPrevious) &
+                  &   )                                       &
+                  & ) then
+                countRadii=countRadii+1_c_size_t
+                iPrevious =           i
+             end if
+          end do
+          if (countRadii > 1) then
+             allocate(radii_ (countRadii))
+             allocate(masses_(countRadii))
+             iPrevious=-1_c_size_t
+             do i=size(masses),1,-1
+                if     (                                         &
+                     &     masses   (i) >  0.0d0                 &
+                     &  .and.                                    &
+                     &   (                                       &
+                     &     iPrevious    <= 0_c_size_t            &
+                     &    .or.                                   &
+                     &     masses   (i) <  masses    (iPrevious) &
+                     &   )                                       &
+                     & ) then
+                   radii_    (countRadii)=radii     (i)
+                   masses_   (countRadii)=masses    (i)
+                   iPrevious             =           i
+                   countRadii            =countRadii-1_c_size_t
+                end if
+             end do
              allocate(self%genericEnclosedMass)
              self%genericEnclosedMass=interpolator(log(radii_),log(masses_),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)
           end if
