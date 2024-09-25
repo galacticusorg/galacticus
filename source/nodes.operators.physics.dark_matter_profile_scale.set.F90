@@ -155,8 +155,8 @@ contains
        ! The reset factor is zero - we assign a new scale radius for every node.
        radiusScaleNew=.true.
     end if
-    if (radiusScaleNew) radiusScalePrevious=self%darkMatterProfileScaleRadius_%radius(node)
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    if (radiusScaleNew) radiusScalePrevious=self%darkMatterProfileScaleRadius_%radius(node)
     call darkMatterProfile%scaleSet(radiusScalePrevious)
     return
   end subroutine darkMatterProfileScaleSetNodeTreeInitialize
