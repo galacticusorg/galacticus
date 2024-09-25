@@ -35,7 +35,8 @@
      A node operator class that sets the dark matter profile scale radius in halos.
      !!}
      private
-     class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     double precision                                             :: factorReset
    contains
      final     ::                       darkMatterProfileScaleSetConstructorDestructor
      procedure :: nodeTreeInitialize => darkMatterProfileScaleSetNodeTreeInitialize
@@ -58,14 +59,21 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorDarkMatterProfileScaleSet)                :: self
-    type (inputParameters                      ), intent(inout) :: parameters
-    class(darkMatterProfileScaleRadiusClass    ), pointer       :: darkMatterProfileScaleRadius_
+    type            (nodeOperatorDarkMatterProfileScaleSet)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    class           (darkMatterProfileScaleRadiusClass    ), pointer       :: darkMatterProfileScaleRadius_
+    double precision                                                       :: factorReset
 
     !![
+    <inputParameter>
+      <name>factorReset</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The factor by which a node must increase in mass before its scale radius is reset.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     !!]
-    self=nodeOperatorDarkMatterProfileScaleSet(darkMatterProfileScaleRadius_)
+    self=nodeOperatorDarkMatterProfileScaleSet(factorReset,darkMatterProfileScaleRadius_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
@@ -73,16 +81,17 @@ contains
     return
   end function darkMatterProfileScaleSetConstructorParameters
 
-  function darkMatterProfileScaleSetConstructorInternal(darkMatterProfileScaleRadius_) result(self)
+  function darkMatterProfileScaleSetConstructorInternal(factorReset,darkMatterProfileScaleRadius_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily darkMatterProfileScaleSet} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorDarkMatterProfileScaleSet)                        :: self
-    class(darkMatterProfileScaleRadiusClass    ), intent(in   ), target :: darkMatterProfileScaleRadius_
+    type            (nodeOperatorDarkMatterProfileScaleSet)                        :: self
+    class           (darkMatterProfileScaleRadiusClass    ), intent(in   ), target :: darkMatterProfileScaleRadius_
+    double precision                                       , intent(in   )         :: factorReset
     !![
-    <constructorAssign variables="*darkMatterProfileScaleRadius_"/>
+    <constructorAssign variables="factorReset, *darkMatterProfileScaleRadius_"/>
     !!]
 
     return
@@ -105,14 +114,50 @@ contains
     !!{
     Initialize dark matter profile scale radii.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class(nodeOperatorDarkMatterProfileScaleSet), intent(inout), target  :: self
-    type (treeNode                             ), intent(inout), target  :: node
-    class(nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile
+    class           (nodeOperatorDarkMatterProfileScaleSet), intent(inout), target  :: self
+    type            (treeNode                             ), intent(inout), target  :: node
+    type            (treeNode                             )               , pointer :: nodeProgenitor
+    class           (nodeComponentBasic                   )               , pointer :: basicProgenitor
+    class           (nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile, darkMatterProfileProgenitor
+    double precision                                                                :: massPrevious     , radiusScalePrevious
+    logical                                                                         :: radiusScaleNew
 
+    if (self%factorReset > 0.0d0) then
+       ! Walk the tree back along primary children to the earliest such progenitor.
+       nodeProgenitor => node
+       do while (associated(nodeProgenitor%firstChild))
+          nodeProgenitor => nodeProgenitor%firstChild
+       end do
+       ! Walk forward through the branch. If the mass of the halo exceeds that of the halo for which we last assigned a scale
+       ! radius by a given factor, then assign a new scale radius. Otherwise, use the previously assigned scale radius.
+       darkMatterProfileProgenitor => nodeProgenitor%darkMatterProfile()
+       basicProgenitor             => nodeProgenitor%basic            ()
+       radiusScalePrevious         =  0.0d0
+       massPrevious                =  0.0d0
+       radiusScaleNew              =  .false.
+       do while (associated(nodeProgenitor))
+          basicProgenitor             => nodeProgenitor%basic            ()
+          darkMatterProfileProgenitor => nodeProgenitor%darkMatterProfile()
+          if (basicProgenitor%mass() > self%factorReset*massPrevious) then
+             radiusScalePrevious=darkMatterProfileProgenitor%scale()
+             massPrevious       =basicProgenitor            %mass ()
+             radiusScaleNew     =associated(nodeProgenitor,node)
+          end if
+          if (associated(nodeProgenitor,node)) then
+             nullify(nodeProgenitor)
+          else
+             nodeProgenitor => nodeProgenitor%parent
+          end if
+       end do
+    else
+       ! The reset factor is zero - we assign a new scale radius for every node.
+       radiusScaleNew=.true.
+    end if
+    if (radiusScaleNew) radiusScalePrevious=self%darkMatterProfileScaleRadius_%radius(node)
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    call darkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
+    call darkMatterProfile%scaleSet(radiusScalePrevious)
     return
   end subroutine darkMatterProfileScaleSetNodeTreeInitialize
     
