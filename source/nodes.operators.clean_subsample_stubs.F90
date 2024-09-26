@@ -103,14 +103,14 @@ contains
     class  (nodeComponentBasic             )               , pointer :: basic         , basicParent
     type   (mergerTreeWalkerIsolatedNodes  )                         :: treeWalker
     integer(c_size_t                       )                         :: countNodes
-    logical                                                          :: finished
+    logical                                                          :: nodesRemain
 
     ! Only operator once the root node is reached so that we can be sure that none of the stubs are needed.
     if (associated(node%parent)) return
     treeWalker=mergerTreeWalkerIsolatedNodes(node%hostTree,spanForest=.false.)
-    finished  =treeWalker%next(nodeWork)
-    do while (.not.finished)
-       finished=treeWalker%next(nodeNext)
+    nodesRemain  =treeWalker%next(nodeWork)
+    do while (nodesRemain)
+       nodesRemain=treeWalker%next(nodeNext)
        if (nodeWork%subsamplingWeight() < 0.0d0) then
           ! Decouple the node from the tree.
           nodeParent => nodeWork  %parent
