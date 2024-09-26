@@ -40,12 +40,12 @@ module Galactic_Dynamics_Bar_Instabilities
     <description>
      Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value
      indicates no instability. Also returns the net torque due to any external force causing this instability, and the fraction of
-     the angular momentum of the material depleted into the pseudo-bulge which is retained by the disk.
+     the angular momentum of the material depleted into the pseudo-bulge which is retained by the disk and the spheroid.
      </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(  out) :: timescale, externalDrivingSpecificTorque, fractionAngularMomentumRetained</argument>
+    <argument>double precision          , intent(  out) :: timescale, externalDrivingSpecificTorque, fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid</argument>
    </method>
   </functionClass>
   !!]
