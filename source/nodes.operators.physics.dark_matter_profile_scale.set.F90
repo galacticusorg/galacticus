@@ -27,9 +27,9 @@
      !!{
      Type used to create a stack of branches being processed.
      !!}
-     double precision                       :: mass, radiusScale
-     type            (branchStack), pointer :: next
-     integer(kind_int8) :: indexTip
+     double precision                       :: mass              , radiusScale
+     type            (branchStack), pointer :: next     => null()
+     integer         (kind_int8  )          :: indexTip
   end type branchStack
   
   !![
