@@ -23,6 +23,15 @@
 
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
   
+  type :: branchStack
+     !!{
+     Type used to create a stack of branches being processed.
+     !!}
+     double precision                       :: mass, radiusScale
+     type            (branchStack), pointer :: next
+     integer(kind_int8) :: indexTip
+  end type branchStack
+  
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileScaleSet">
    <description>
@@ -36,6 +45,7 @@
      !!}
      private
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     type            (branchStack                      ), pointer :: branch                        => null()
      double precision                                             :: factorReset
    contains
      final     ::                       darkMatterProfileScaleSetConstructorDestructor
@@ -50,7 +60,7 @@
      module procedure darkMatterProfileScaleSetConstructorParameters
      module procedure darkMatterProfileScaleSetConstructorInternal
   end interface nodeOperatorDarkMatterProfileScaleSet
-  
+
 contains
   
   function darkMatterProfileScaleSetConstructorParameters(parameters) result(self)
@@ -118,46 +128,51 @@ contains
     implicit none
     class           (nodeOperatorDarkMatterProfileScaleSet), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
-    type            (treeNode                             )               , pointer :: nodeProgenitor
-    class           (nodeComponentBasic                   )               , pointer :: basicProgenitor
-    class           (nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile, darkMatterProfileProgenitor
-    double precision                                                                :: massPrevious     , radiusScalePrevious
+    class           (nodeComponentBasic                   )               , pointer :: basic
+    class           (nodeComponentDarkMatterProfile       )               , pointer :: darkMatterProfile
+    type            (branchStack                          )               , pointer :: branchPrevious
+    double precision                                                                :: radiusScalePrevious
     logical                                                                         :: radiusScaleNew
 
     if (self%factorReset > 0.0d0) then
-       ! Walk the tree back along primary children to the earliest such progenitor.
-       nodeProgenitor => node
-       do while (associated(nodeProgenitor%firstChild))
-          nodeProgenitor => nodeProgenitor%firstChild
-       end do
-       ! Walk forward through the branch. If the mass of the halo exceeds that of the halo for which we last assigned a scale
-       ! radius by a given factor, then assign a new scale radius. Otherwise, use the previously assigned scale radius.
-       darkMatterProfileProgenitor => nodeProgenitor%darkMatterProfile()
-       basicProgenitor             => nodeProgenitor%basic            ()
-       radiusScalePrevious         =  0.0d0
-       massPrevious                =  0.0d0
-       radiusScaleNew              =  .false.
-       do while (associated(nodeProgenitor))
-          basicProgenitor             => nodeProgenitor%basic            ()
-          darkMatterProfileProgenitor => nodeProgenitor%darkMatterProfile()
-          if (basicProgenitor%mass() > self%factorReset*massPrevious) then
-             radiusScalePrevious=darkMatterProfileProgenitor%scale()
-             massPrevious       =basicProgenitor            %mass ()
-             radiusScaleNew     =associated(nodeProgenitor,node)
-          end if
-          if (associated(nodeProgenitor,node)) then
-             nullify(nodeProgenitor)
-          else
-             nodeProgenitor => nodeProgenitor%parent
-          end if
-       end do
+       basic => node%basic()
+       if (.not.associated(node%firstChild)) then
+          ! This is the tip of a branch. Push the branch onto the stack, and record the initial mass.
+          branchPrevious => self%branch
+          nullify (self%branch)
+          allocate(self%branch)
+          self%branch%next     => branchPrevious
+          self%branch%mass     =  basic         %mass    ()
+          self%branch%indexTip =  node          %uniqueID()
+          ! In this case we must always compute a new scale radius.
+          radiusScaleNew=.true.
+       else
+          ! This is not a branch tip - a new scale radius is computed only if the prior mass is exceeded by the required factor.
+          radiusScaleNew=basic%mass() > self%factorReset*self%branch%mass
+          ! If a new scale radius is to be computed, record the mass at which this occurred.
+          if (radiusScaleNew) self%branch%mass=basic%mass()
+       end if
     else
        ! The reset factor is zero - we assign a new scale radius for every node.
        radiusScaleNew=.true.
     end if
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    if (radiusScaleNew) radiusScalePrevious=self%darkMatterProfileScaleRadius_%radius(node)
+    if (radiusScaleNew) then
+       ! Compute a new scale radius, and save it on our current branch.
+       radiusScalePrevious=self%darkMatterProfileScaleRadius_%radius(node)
+       if (associated(self%branch)) self%branch%radiusScale=radiusScalePrevious
+    else
+       ! Use the previously computed scale radius for this branch.
+       radiusScalePrevious=self%branch%radiusScale
+    end if
     call darkMatterProfile%scaleSet(radiusScalePrevious)
+    ! If the node is not the primary progenitor, then we have reached the end of this branch.
+    if (self%factorReset > 0.0d0 .and. .not.node%isPrimaryProgenitor()) then
+       ! Remove the branch from the stack and restore the previous branch.
+       branchPrevious        => self          %branch%next
+       deallocate(self%branch)
+       self          %branch => branchPrevious
+   end if
     return
   end subroutine darkMatterProfileScaleSetNodeTreeInitialize
     
