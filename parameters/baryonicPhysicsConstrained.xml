@@ -250,7 +250,7 @@
       <galacticDynamicsBarInstability value="efstathiou1982">
 	<stabilityThresholdGaseous value="0.751314746070123"/>
 	<stabilityThresholdStellar value="0.757125972218825"/>
-	<fractionAngularMomentumRetained value="0.951702062215515"/>
+	<fractionAngularMomentumRetainedDisk value="0.951702062215515"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
     <!-- Halo concentrations -->

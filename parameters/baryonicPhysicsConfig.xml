@@ -132,7 +132,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::fractionAngularMomentumRetained"/>
+       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::fractionAngularMomentumRetainedDisk"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
 	 <limitUpper value="1.0"/>
