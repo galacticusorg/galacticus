@@ -59,6 +59,7 @@ Contains a module which implements a merger tree build controller class which pe
      double precision                                               :: massThreshold                            , subsamplingRateAtThreshold , &
           &                                                            exponent                                 , factorMassGrowthConsolidate
      type            (enumerationDestroyStubsType        )          :: destroyStubs
+     integer         (kind_int8                          )          :: uniqueIDKnownMainBranchNode
   contains
      final     ::                               subsampleDestructor
      procedure :: control                    => subsampleControl
@@ -144,6 +145,8 @@ contains
 
     if (self%destroyStubs == destroyStubsNever .and. self%factorMassGrowthConsolidate > 0.0d0) &
          & call Error_Report("branch consolidation is not supported when branch stubs are not to be detroyed"//{introspection:location})
+    ! Initialize the known main branch unique ID to an impossible value.
+    self%uniqueIDKnownMainBranchNode=-1_kind_int8
     return
   end function subsampleConstructorInternal
 
@@ -175,7 +178,7 @@ contains
     class           (nodeComponentBasic                )               , pointer  :: basic          , basicParent
     double precision                                                              :: rateSubsampling
     integer         (c_size_t                          )                          :: countNodes
-    logical                                                                       :: finished       , destroyStub
+    logical                                                                       :: finished       , destroyStub,isMainBranch
 
     ! If the node has been left in place as a stub, never process it.
     ! The node which we return to the tree builder must be one that we have determined will not be pruned, since this node will be
@@ -219,7 +222,26 @@ contains
           case (destroyStubsAlways          %ID)
              destroyStub=.true.
           case (destroyStubsSideBranchesOnly%ID)
-             destroyStub=.not.node%parent%isOnMainBranch()
+             ! Determine if the node's parent is on the main branch. We implement this test directly here as we can often exploit
+             ! the order in which the tree is built to speed up this test.
+             nodeParent   => node%parent
+             isMainBranch =  .true.
+             do while (associated(nodeParent%parent))
+                ! If we have reached another node known to be on the main branch, then our node must be on the main branch also.
+                if (nodeParent%uniqueID() == self%uniqueIDKnownMainBranchNode) exit
+                ! Test if we are the primary progenitor - if we are not then we are not on the main branch.
+                if (.not.nodeParent%isPrimaryProgenitor()) then
+                   isMainBranch=.false.
+                   exit
+                end if
+                ! Move to the parent node and test again.
+                nodeParent => nodeParent%parent
+             end do
+             ! If our parent node was on the main branch, then its parent is also. Record the unique ID of that node - if we find
+             ! it again we know we are on the main branch.
+             if (isMainBranch.and.associated(node%parent%parent)) self%uniqueIDKnownMainBranchNode=node%parent%parent%uniqueID()
+             ! Destroy the stub only if it is not on the main branch.
+             destroyStub=.not.isMainBranch
           case default
              destroyStub=.false.
              call Error_Report('unknown `destroyStubs` option'//{introspection:location})
