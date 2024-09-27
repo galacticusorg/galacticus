@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727470331197,
+  "lastUpdate": 1727470339347,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "38eb56e63706ddadc6d5d8041c73d21137c8cf6a",
-          "message": "Merge pull request #532 from galacticusorg/fixZeroStellarHistories\n\nEnsure stellar histories are zeroed when zeroing stellar mass due to ODE solver failure",
-          "timestamp": "2024-01-18T15:20:03Z",
-          "tree_id": "052cbacc96846aa8dd513d1abd956fec1d04b0f9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/38eb56e63706ddadc6d5d8041c73d21137c8cf6a"
-        },
-        "date": 1705607259200,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5946207352462,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.1763665565697,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23958.5193682761,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8681,45 @@ window.BENCHMARK_DATA = {
             "value": 52.339,
             "unit": "seconds",
             "range": 0.151620908848412
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a11ac6ab603648f4ab70ab8c91756ec8e3fec9b9",
+          "message": "Merge pull request #710 from galacticusorg/featDiskInstabilityRetainedFractions\n\nAllow different fractions of angular momentum to be retained in disk and spheroid during disk instabilities",
+          "timestamp": "2024-09-27T13:58:28Z",
+          "tree_id": "f8fe09995b75aad4c6e9f8b051f983427f0d0715",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a11ac6ab603648f4ab70ab8c91756ec8e3fec9b9"
+        },
+        "date": 1727470338610,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.824392129776,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.74096919504519,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20527.0687268738,
+            "unit": "-logℒ"
           }
         ]
       }
