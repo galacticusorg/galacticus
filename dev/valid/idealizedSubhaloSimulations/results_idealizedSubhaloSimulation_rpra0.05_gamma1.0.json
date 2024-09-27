@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "7f2a178a2ac175eaaa1b89dee2f23ee99070855b",
-        "message": "Merge pull request #707 from galacticusorg/fixOutputNameSpaces\n\nStrip leading and trailing spaces from the output file name\n",
-        "timestamp": "2024-09-22 22:37:41+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7f2a178a2ac175eaaa1b89dee2f23ee99070855b"
+        "id": "a11ac6ab603648f4ab70ab8c91756ec8e3fec9b9",
+        "message": "Merge pull request #710 from galacticusorg/featDiskInstabilityRetainedFractions\n\nAllow different fractions of angular momentum to be retained in disk and spheroid during disk instabilities\n",
+        "timestamp": "2024-09-27 13:58:28+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a11ac6ab603648f4ab70ab8c91756ec8e3fec9b9"
     },
     "results": [
         {
