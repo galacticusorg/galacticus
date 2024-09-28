@@ -32,9 +32,10 @@ while ( my $line = <$dependenciesFile> ) {
 close($dependenciesFile);
 
 # Scan the source directory for files
-my @directories = ($galacticusPath."/source");
+my @directories = ($galacticusPath."/source",$galacticusPath."/scripts");
 my @links;
 find(\&linkFinder,@directories);
+$_ = "Makefile"; &linkFinder();
 
 # Retrieve links.
 my $report;
@@ -64,23 +65,42 @@ exit;
 sub linkFinder {
     # Find links that may be downloaded at run-time.
     my $fileName = $_;
-    my $fullName = $File::Find::name;
     return
-        unless ( $fileName =~ m/\.(F90|Inc)$/ );
+        unless ( $fileName =~ m/\.(F90|Inc|py)$/ || $fileName =~ m/^Makefile/ );
     open(my $file,$fileName);
     while ( my $line = <$file> ) {
-        if ( $line =~ m/^\s*call\s+download\s*\(\s*(["'][^,]+)/ ) {
-	    my $link = $1;
-	    $link =~ s/["']//g;
-	    # Replace dependencies with the actual version number here. Handle the "cloudyVersion" case as a special instance as
-	    # we have to insert a "c" prefix.
-	    $link =~ s/\/\/char\(([a-zA-Z]+)VersionMajor\)\/\//$dependencies->{$1}->{'versionMajor'}/g;
-	    $link =~ s/\/\/char\(cloudyVersion\)\/\//c$dependencies->{'cloudy'}->{'version'}/g;
-	    $link =~ s/\/\/char\(([a-zA-Z]+)Version\)\/\//$dependencies->{$1}->{'version'}/g;
-	    # Add the link to the list to retrieve. We skip the "backup" ("old") Cloudy path here.
-	    push(@links,$link)
-		unless ( $link =~ m/cloudy_releases\/c\d+\/old\// );
-        }
+	# Fortran source.
+	if ( $fileName =~ m/\.(F90|Inc)$/ ) {
+	    if ( $line =~ m/^\s*call\s+download\s*\(\s*(["'][^,]+)/ ) {
+		my $link = $1;
+		$link =~ s/["']//g;
+		# Replace dependencies with the actual version number here. Handle the "cloudyVersion" case as a special instance as
+		# we have to insert a "c" prefix.
+		$link =~ s/\/\/char\(([a-zA-Z]+)VersionMajor\)\/\//$dependencies->{$1}->{'versionMajor'}/g;
+		$link =~ s/\/\/char\(cloudyVersion\)\/\//c$dependencies->{'cloudy'}->{'version'}/g;
+		$link =~ s/\/\/char\(([a-zA-Z]+)Version\)\/\//$dependencies->{$1}->{'version'}/g;
+		# Add the link to the list to retrieve. We skip the "backup" ("old") Cloudy path here.
+		push(@links,$link)
+		    unless ( $link =~ m/cloudy_releases\/c\d+\/old\// );
+	    }
+	}
+	# Python scripts.
+	if ( $fileName =~ m/\.py$/ ) {
+	    if ( $line =~ m/^\s*urllib\.request\.urlretrieve\s*\(\s*(["'][^,]+)/ ) {
+		my $link = $1;
+		$link =~ s/["']//g;
+		# Add the link to the list to retrieve.
+		push(@links,$link);
+	    }
+	}
+	# Makefiles
+	if ( $fileName =~ m/^Makefile*/ ) {
+	    if ( $line =~ m/^\s*wget\s+(\-\-\S+\s+)*(\S+)/ ) {
+		my $link = $2;
+		# Add the link to the list to retrieve.
+		push(@links,$link);
+	    }
+	}
     }
     close($file);
 }

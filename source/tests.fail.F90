@@ -25,6 +25,7 @@ program Test_Fail
   !!{
   Tests that failures are detected.
   !!}
-
-  write (0,*) "FAILED: failed intentionally"
+  use, intrinsic :: ISO_Fortran_Env, only : output_unit
+  
+  write (output_unit,*) "FAILED: failed intentionally"
 end program Test_Fail

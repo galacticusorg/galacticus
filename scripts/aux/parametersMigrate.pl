@@ -6,10 +6,12 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Scalar::Util 'reftype';
 use XML::LibXML qw(:libxml);
 use XML::LibXML::PrettyPrint;
+use XML::Simple;
 use Data::Dumper;
 use Galacticus::Options;
 use List::ExtraUtils;
 use System::Redirect;
+use DateTime;
 
 # Update a Galacticus parameter file from its last modified revision to the current revision.
 # Andrew Benson (13-September-2014)
@@ -63,8 +65,8 @@ my $hashHead;
 }
 ## Find last modified hash.
 my $hashLastModified;
-if ( exists($options{'lastModified'}) ) {
-    $hashLastModified = $options{'lastModified'};
+if ( exists($options{'lastModifiedRevision'}) ) {
+    $hashLastModified = $options{'lastModifiedRevision'};
 } elsif ( $isInGit ) {
     # File is in git index, use git to determine the last revision at which it was modified.
     ## Find the hash at which the file was last modified.
@@ -75,23 +77,25 @@ if ( exists($options{'lastModified'}) ) {
     }
 } else {
     # Look for a last modification hash.
-    my $elementLastModified = $input->findnodes('lastModified')->[0];
+    my $elementLastModified = $root->findnodes('lastModified')->[0];
     if ( defined($elementLastModified) ) {
 	# A last modified element exists, extract the hash, and update.
-	$hashLastModified = $elementLastModified->textContent();
-	$elementLastModified->firstChild()->setData($hashHead);
-    } else {
+	$hashLastModified = $elementLastModified->getAttribute('revision');
+   } else {
 	# No last modified element exists. Set the last modified hash that immediately prior to the earliest one that this script
 	# is aware of, and add a last modified element.
-	$hashLastModified = "6eab8997cd73cb0a474228ade542d133890ad138^";
+	$hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
 	my $elementLastModifiedNode = $input->createElement("lastModified");
-	my $newLastModified         = $input->createTextNode($hashHead);
 	my $newBreak                = $input->createTextNode("\n  "   );
-	$elementLastModifiedNode->addChild($newLastModified);
 	$root->insertBefore($elementLastModifiedNode,$root->firstChild());
 	$root->insertBefore($newBreak               ,$root->firstChild());
     }
 }
+## Update the last modified metadata.
+my $elementLastModified = $root->findnodes('lastModified')->[0];
+$elementLastModified->setAttribute('revision',$hashHead);
+$elementLastModified->setAttribute('time'    ,DateTime->now());
+
 ## Find the ancestry.
 my @ancestry;
 {
@@ -102,131 +106,16 @@ my @ancestry;
     }
 }
 
-# Define translations.
-## These enumerate the parameter changes that occurred at each revision hash.
-## Matching is done via XPath specifications.
-my %translations =
-    (
-     "0ab22d1b3959fc9242ee6314f3e199cd99600406" => {
-     	 names => {
-     	     "/parameters/diskMassDistribution[\@value]"                                                      => "componentDisk--massDistributionDisk"                            ,
-	     "/parameters/spheroidMassDistribution[\@value]"                                                  => "componentSpheroid--massDistributionSpheroid"                    ,
-     	 }
-     },
-     "6eab8997cd73cb0a474228ade542d133890ad138" => {
-     	 names => {
-     	     "/parameters/bondiHoyleAccretionEnhancementSpheroid[\@value]"                                    => "componentBlackHole--bondiHoyleAccretionEnhancementSpheroid"     ,
-     	     "/parameters/bondiHoyleAccretionEnhancementHotHalo[\@value]"                                     => "componentBlackHole--bondiHoyleAccretionEnhancementHotHalo"      ,
-     	     "/parameters/bondiHoyleAccretionHotModeOnly[\@value]"                                            => "componentBlackHole--bondiHoyleAccretionHotModeOnly"             ,
-     	     "/parameters/bondiHoyleAccretionTemperatureSpheroid[\@value]"                                    => "componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"     ,
-     	     "/parameters/blackHoleSeedMass[\@value]"                                                         => "componentBlackHole--massSeed"                                   ,
-             "/parameters/tripleBlackHoleInteraction[\@value]"                                                => "componentBlackHole--tripleInteraction"                          ,
-     	     "/parameters/blackHoleToSpheroidStellarGrowthRatio[\@value]"                                     => "componentBlackHole--growthRatioToStellarSpheroid"               ,
-     	     "/parameters/blackHoleHeatsHotHalo[\@value]"                                                     => "componentBlackHole--heatsHotHalo"                               ,
-     	     "/parameters/blackHoleHeatingEfficiency[\@value]"                                                => "componentBlackHole--efficiencyHeating"                          ,
-     	     "/parameters/blackHoleRadioModeFeedbackEfficiency[\@value]"                                      => "componentBlackHole--efficiencyRadioMode"                        ,
-     	     "/parameters/blackHoleWindEfficiency[\@value]"                                                   => "componentBlackHole--efficiencyWind"                             ,
-     	     "/parameters/blackHoleWindEfficiencyScalesWithRadiativeEfficiency[\@value]"                      => "componentBlackHole--efficiencyWindScalesWithEfficiencyRadiative",
-     	     "/parameters/blackHoleOutputAccretion[\@value]"                                                  => "componentBlackHole--outputAccretion"                            ,
-     	     "/parameters/blackHoleOutputData[\@value]"                                                       => "componentBlackHole--outputData"                                 ,
-     	     "/parameters/blackHoleOutputMergers[\@value]"                                                    => "componentBlackHole--outputMergers"                              ,
-     	     "/parameters/spheroidEnergeticOutflowMassRate[\@value]"                                          => "componentSpheroid--efficiencyEnergeticOutflow"                  ,
-     	     "/parameters/spheroidMetallicityTolerance[\@value]"                                              => "componentSpheroid--toleranceRelativeMetallicity"                ,
-     	     "/parameters/spheroidMassToleranceAbsolute[\@value]"                                             => "componentSpheroid--toleranceAbsoluteMass"                       ,
-     	     "/parameters/spheroidLuminositiesStellarInactive[\@value]"                                       => "componentSpheroid--inactiveLuminositiesStellar"                 ,
-     	     "/parameters/spheroidAngularMomentumAtScaleRadius[\@value]"                                      => "componentSpheroid--ratioAngularMomentumScaleRadius"             ,
-     	     "/parameters/spheroidVerySimpleMassScaleAbsolute[\@value]"                                       => "componentSpheroid--scaleAbsoluteMass"                           ,
-     	     "/parameters/diskMassToleranceAbsolute[\@value]"                                                 => "componentDisk--toleranceAbsoluteMass"                           ,
-     	     "/parameters/diskMetallicityTolerance[\@value]"                                                  => "componentDisk--toleranceRelativeMetallicity"                    ,
-     	     "/parameters/diskStructureSolverRadius[\@value]"                                                 => "componentDisk--radiusStructureSolver"                           ,
-     	     "/parameters/diskRadiusSolverCole2000Method[\@value]"                                            => "componentDisk--structureSolverUseCole2000Method"                ,
-     	     "/parameters/diskLuminositiesStellarInactive[\@value]"                                           => "componentDisk--inactiveLuminositiesStellar"                     ,
-     	     "/parameters/diskVerySimpleMassScaleAbsolute[\@value]"                                           => "componentDisk--scaleAbsoluteMass"                               ,
-     	     "/parameters/diskVerySimpleTrackAbundances[\@value]"                                             => "componentDisk--trackAbundances"                                 ,
-     	     "/parameters/diskVerySimpleTrackLuminosities[\@value]"                                           => "componentDisk--trackLuminosities"                               ,
-     	     "/parameters/diskVerySimpleUseAnalyticSolver[\@value]"                                           => "componentDisk--useAnalyticSolver"                               ,
-     	     "/parameters/diskVerySimpleAnalyticSolverPruneMassGas[\@value]"                                  => "componentDisk--pruneMassGas"                                    ,
-     	     "/parameters/diskVerySimpleAnalyticSolverPruneMassStars[\@value]"                                => "componentDisk--pruneMassStars"                                  ,
-     	     "/parameters/hotHaloOutflowToColdMode[\@value]"                                                  => "componentHotHalo--outflowToColdMode"                            ,
-     	     "/parameters/hotHaloVerySimpleDelayedMassScaleRelative[\@value]"                                 => "componentHotHalo--scaleRelativeMass"                            ,
-     	     "/parameters/starveSatellites[\@value]"                                                          => "componentHotHalo--starveSatellites"                             ,
-     	     "/parameters/starveSatellitesOutflowed[\@value]"                                                 => "componentHotHalo--starveSatellitesOutflowed"                    ,
-     	     "/parameters/hotHaloTrackStrippedGas[\@value]"                                                   => "componentHotHalo--trackStrippedGas"                             ,
-     	     "/parameters/hotHaloOutflowReturnOnFormation[\@value]"                                           => "componentHotHalo--outflowReturnOnFormation"                     ,
-     	     "/parameters/hotHaloAngularMomentumAlwaysGrows[\@value]"                                         => "componentHotHalo--angularMomentumAlwaysGrows"                   ,
-     	     "/parameters/hotHaloCoolingFromNode[\@value]"                                                    => "componentHotHalo--coolingFromNode"                              ,
-     	     "/parameters/hotHaloOutflowStrippingEfficiency[\@value]"                                         => "componentHotHalo--efficiencyStrippingOutflow"                   ,
-     	     "/parameters/hotHaloExpulsionRateMaximum[\@value]"                                               => "componentHotHalo--rateMaximumExpulsion"                         ,
-     	     "/parameters/hotHaloAngularMomentumLossFraction[\@value]"                                        => "componentHotHalo--fractionLossAngularMomentum"                  ,
-     	     "/parameters/hotHaloNodeMergerLimitBaryonFraction[\@value]"                                      => "componentHotHalo--fractionBaryonLimitInNodeMerger"              ,
-     	     "/parameters/satelliteBoundMassIsInactive[\@value]"                                              => "componentSatellite--inactiveBoundMass"                          ,
-     	     "/parameters/satelliteBoundMassInitializeType[\@value]"                                          => "componentSatellite--initializationTypeMassBound"                ,
-     	     "/parameters/satelliteMaximumRadiusOverVirialRadius[\@value]"                                    => "componentSatellite--radiusMaximumOverRadiusVirial"              ,
-     	     "/parameters/satelliteDensityContrast[\@value]"                                                  => "componentSatellite--densityContrastMassBound"                   ,
-      	 },
-     	 values => {
-     	     "/parameters/spheroidVerySimpleTrackAbundances[\@value]"                                         => {"false" => {}, "true" => {}}                                    ,
-     	     "/parameters/spheroidVerySimpleTrackLuminosities[\@value]"                                       => {"false" => {}, "true" => {}}                                    ,
-     	 }
-     },
-     "fc8f417cd8ccf5f80b4d3606779790caeda489cb" => {
-	 names => {
-	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestruction[\@value]"           => "massDestructionAbsolute"                                        ,
-	     "//nodeOperator[\@value='satelliteDestructionMassThreshold']/massDestructionFractional[\@value]" => "massDestructionMassInfallFraction"                              ,
-	 }
-     },
-     "50628ba20834080556274c4afc11bdf794a3e8b3" => {
-	 names => {
-	     "//transferFunction[\@value='axionCAMB']/axionCambCountPerDecade[\@value]"                       => "countPerDecade"                                                 ,
-	 }
-     },
-     "f27a00e1de9bb8e77359c754fae445ea8788513c" => {
-     	 values => {
-     	     "//nodePropertyExtractor[\@value]"                                                               => {"descendents"    => "descendants"   }
-	 }
-     },
-     "ba10db0db7b0828b7e55bea0d2dd5113503fa971" => {
-	 values => {
-	     "//galacticFilter[\@value]"                                                                      => {"descendentNode" => "descendantNode"}                           ,
-	     "//nodePropertyExtractor[\@value]"                                                               => {"descendentNode" => "descendantNode"}
-	 }
-     },
-     "beab8e9234f4f7e986ec2d90b85bf4ec7dd8580b" => {
-	 values => {
-	     "//nodePropertyExtractor[\@value]"                                                               => {"radiusHalfMass" => "radiusHalfMassStellar"}
-	 }
-     },
-     "7030a7dab187c4e0aa5112681b3273647595bbde" => {
-	 specials => [
-	     \&radiationFieldIntergalacticBackgroundCMB
-	     ]
-     }
-    );
-     
-# Define known defaults.
-my %knownDefaults =
-    (
-     "componentBlackHole"             => "standard"        ,
-     "componentDisk"                  => "standard"        ,
-     "componentHotHalo"               => "standard"        ,
-     "componentSpheroid"              => "standard"        ,
-     "cosmologyParameters"            => "simple"          ,
-     "mergerTreeBuilder"              => "cole2000"        ,
-     "cosmologicalMassVariance"       => "filteredPower"   ,
-     "cosmologyParameters"            => "simple"          ,
-     "darkMatterProfileConcentration" => "gao2008"         ,
-     "powerSpectrumPrimordial"        => "powerLaw"        ,
-     "haloMassFunction"               => "tinker2008"      ,
-     "satelliteMergingTimescales"     => "jiang2008"       ,
-     "starFormationHistory"           => "metallicitySplit"
-  );
+# Read migration rules.
+my $xml        = new XML::Simple();
+my $migrations = $xml->XMLin("scripts/aux/migrations.xml");
 
 # Write starting message.
 print "Translating file: ".$inputFileName."\n";
 
 # Iterate over parameter sets.
 foreach my $parameters ( @parameterSets ) {
-    &Translate($parameters,1,$inputFileName);
+    &Migrate($parameters,1,$inputFileName);
 }
 
 # Output the resulting file.
@@ -242,24 +131,11 @@ close($outputFile);
 
 exit;
 
-sub Translate {
+sub Migrate {
     my $parameters    = shift();
     my $rootLevel     = shift();
     my $inputFileName = shift();
 
-    # Check for a version element.
-    my $version    = $parameters->findnodes('version')->[0];
-    if ( defined($version) ) {
-	$version->firstChild()->setData("0.9.4");
-    } elsif ( $rootLevel ) {
-	my $versionNode = $input->createElement ("version");
-	my $newVersion  = $input->createTextNode("0.9.4"  );
-	my $newBreak    = $input->createTextNode("\n  "   );
-	$versionNode->addChild($newVersion);
-	$parameters->insertBefore($versionNode,$parameters->firstChild());
-	$parameters->insertBefore($newBreak   ,$parameters->firstChild());
-    }
-    
     # Determine output format version.
     $options{'outputFormatVersion'} = 2
 	unless ( exists($options{'outputFormatVersion'}) );
@@ -286,27 +162,36 @@ sub Translate {
     
     # Iterate over the revision ancestry.
     foreach my $hashAncestor ( reverse(@ancestry) ) {
+	my @matchedMigrations = grep {$_->{'commit'} eq $hashAncestor} &List::ExtraUtils::as_array($migrations->{'migration'});
 	next
-	    unless ( exists($translations{$hashAncestor}) );
-	my $translation = $translations{$hashAncestor};
+	    unless ( scalar(@matchedMigrations) == 1 );
+	my $migration = $matchedMigrations[0];
 	# Report.
 	print "Updating to revision ".$hashAncestor."\n";
 
-	# Handle special cases.
-	if ( exists($translation->{'specials'}) ) {
-	    foreach my $special ( @{$translation->{'specials'}} ) {
-		&{$special}($input,$parameters);
+	# Iterate over translation.
+	foreach my $translation ( &List::ExtraUtils::as_array($migration->{'translation'}) ) {
+	    
+	    # Handle special cases.
+	    if ( exists($translation->{'function'}) ) {
+		&{\&{$translation->{'function'}}}($input,$parameters);
 	    }
-	}
+	    
+	    # Handle removals.
+	    if ( exists($translation->{'remove'}) ) {
+		foreach my $parameter ( $parameters->findnodes($translation->{'xpath'})->get_nodelist() ) {
+		    print "   remove parameter: ".$parameter->nodeName()."\n";
+		    $parameter->parentNode->removeChild($parameter);
+		}
+	    }
 	
-	# Translate names.
-	if ( exists($translation->{'names'}) ) {
-	    foreach my $translationPath ( keys(%{$translation->{'names'}}) ) {
-		foreach my $parameter ( $parameters->findnodes($translationPath)->get_nodelist() ) {
-		    print "   translate parameter name: ".$parameter->nodeName()." --> ".$translation->{'names'}->{$translationPath}."\n";
-		    my $leafName = $translation->{'names'}->{$translationPath};
+	    # Translate names.
+	    if ( exists($translation->{'name'}) ) {
+		foreach my $parameter ( $parameters->findnodes($translation->{'xpath'})->get_nodelist() ) {
+		    print "   translate parameter name: ".$parameter->nodeName()." --> ".$translation->{'name'}->{'new'}."\n";
+		    my $leafName = $translation->{'name'}->{'new'};
 		    my $valueTo;
-		    unless ( $translation->{'names'}->{$translationPath} =~ m/\-\-/ ) {
+		    unless ( $translation->{'name'}->{'new'} =~ m/\-\-/ ) {
 			if ( $leafName =~ m/(.*)\.(.*)\./ ) {
 			    $valueTo    = $2;
 			}
@@ -316,12 +201,10 @@ sub Translate {
 			if ( $valueTo );
 		}
 	    }
-	}
-
-	# Translate values.
-	if ( exists($translation->{'values'}) ) {
-	    foreach my $translationPath ( keys(%{$translation->{'values'}}) ) {
-		foreach my $parameter ( $parameters->findnodes($translationPath)->get_nodelist() ) {
+	
+	    # Translate values.
+	    if ( exists($translation->{'value'}) ) {
+		foreach my $parameter ( $parameters->findnodes($translation->{'xpath'})->get_nodelist() ) {
 		    my @allValues;
 		    if ( $parameter->exists('value') ) {
 			@allValues = $parameter->findnodes('value');
@@ -340,51 +223,24 @@ sub Translate {
 			$valuesText =~ s/\s*$//;
 			my @values = split(/\s+/,$valuesText);
 			foreach my $thisValue ( @values ) {
-			    if ( exists($translation->{'values'}->{$translationPath}->{$thisValue}) ) {
-				print "   translate parameter value: ".$translationPath."\n";
-				if ( ref($translation->{'values'}->{$translationPath}->{$thisValue}) ) {
-				    my $newValue = $translation->{'values'}->{$translationPath}->{$thisValue};
-				    if ( exists($newValue->{'value'}) ) {
-					print "                                 ".$thisValue." --> ".$newValue->{'value'}."\n";
-					$thisValue = $newValue->{'value'};
-				    } else {
-					print "                                 ".$thisValue." --> {remove}\n";
-					$thisValue = undef();
-				    }
-				    if ( exists($newValue->{'new'}) ) {
-					foreach my $newParameter ( &List::ExtraUtils::as_array($newValue->{'new'}) ) {
-					    print "      add parameter: ".$newParameter->{'name'}." = ".$newParameter->{'value'}."\n";
-					    my $parameterNode = $input->createElement($newParameter->{'name'});
-					    $parameterNode->setAttribute('value',$newParameter->{'value'});
-					    $parameters->insertAfter($parameterNode,$parameter);
-					    $parameters->insertAfter($input->createTextNode("\n  "),$parameter);
-					}
-				    }
-				} else {
-				    print "                                 ".$thisValue." --> ".$translation->{'values'}->{$translationPath}->{$thisValue}."\n";
-				    $thisValue = $translation->{'values'}->{$translationPath}->{$thisValue};
-				}
+			    if ( $thisValue eq $translation->{'value'}->{'old'} ) {
+				print "   translate parameter value: ".$translation->{'xpath'}."\n";
+				print "                                 ".$thisValue." --> ".$translation->{'value'}->{'new'}."\n";
+				$thisValue = $translation->{'value'}->{'new'};
 			    }
-			    if ( scalar(@values) == 1 && ! defined($values[0]) ) {
-				if ( $value->isSameNode($parameter) ) {
-				    $value->parentNode->removeChild($value);
-				} else {
-				    $value->removeChild($value->firstChild());
-				}
-			    } else {
-				if ( $value->isSameNode($parameter) ) {
-				    $value->setAttribute('value',join(" ",@values));
-				} else {
-				    $value->firstChild()->setData(join(" ",@values));
-				}
-			    }
+			}
+			# Update the values in the parameter.
+			if ( $value->isSameNode($parameter) ) {
+			    $value->setAttribute('value',join(" ",@values));
+			} else {
+			    $value->firstChild()->setData(join(" ",@values));
 			}
 		    }
 		}
 	    }
 	}
     }
-
+	
     # Put subparameters into their host parameter.
     for my $parameter ( $parameters->getChildrenByTagName("*") ) {
 	if ( $parameter->nodeName() =~ m/(.+)\-\-(.+)/ ) {
@@ -413,9 +269,10 @@ sub Translate {
 		if ( $hostName =~ m/\..+\./ ) {
 		    ($defaultValue = $hostName) =~ s/.*\.(.+)\./$1/;
 		} else {
+		    my @defaults = grep {$_->{'parameter'} eq $hostLeafName} @{$migrations->{'default'}};
 		    die('parametersMigrate.pl: attempting to insert a "'.$hostLeafName.'" element, but no default value is known')
-			unless ( exists($knownDefaults{$hostLeafName}) );
-		    $defaultValue = $knownDefaults{$hostLeafName};
+		    	unless ( scalar(@defaults) == 1 );
+		    $defaultValue = $defaults[0]->{'value'};
 		}
 		my $parameterNode = $input->createElement($hostLeafName);
 		$parameterNode->setAttribute('value',$defaultValue);
@@ -442,7 +299,7 @@ sub Translate {
 	(
 	 mergerTreeOperatorMethod => "sequence"
 	);
-   for my $parameter ( $parameters->getChildrenByTagName("*") ) {
+    for my $parameter ( $parameters->getChildrenByTagName("*") ) {
 	my $nodeName = $parameter->nodeName();
 	my $duplicates = $parameters->getChildrenByTagName($nodeName);
 	if ( $duplicates->size() > 1 && exists($duplicates{$nodeName}) ) {
@@ -465,6 +322,7 @@ sub radiationFieldIntergalacticBackgroundCMB {
     my $parameters = shift();
     # Look for "radiationFieldIntergalacticBackground" parameters.
     foreach my $node ( $parameters->findnodes("//radiationFieldIntergalacticBackground[\@value]")->get_nodelist() ) {
+	print "   translate special '//radiationFieldIntergalacticBackground[\@value]'\n";
 	# Construct new summation and CMB nodes, and a copy of the original node.
 	my $summationNode = $input->createElement("radiationFieldIntergalacticBackground");
 	my $cmbNode	  = $input->createElement("radiationField"                       );

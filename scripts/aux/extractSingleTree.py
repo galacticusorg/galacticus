@@ -62,8 +62,8 @@ for name, h5obj in fromFile[halosName].items():
     if name == "particleIndexStart" or name == "particleIndexCount":
         continue
     print("   "+name)
-    dataset    = fromFile[halosName][name][:]
-    toFile["forestHalos"].create_dataset(name,data=dataset[start[0]:end[0],...])
+    dataset    = fromFile[halosName][name][start[0]:end[0],...]
+    toFile["forestHalos"].create_dataset(name,data=dataset)
 print("...done")
 
 # Create the forestIndex group.

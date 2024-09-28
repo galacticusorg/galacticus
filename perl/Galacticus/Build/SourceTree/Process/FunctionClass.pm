@@ -370,7 +370,7 @@ sub Process_FunctionClass {
 						    # Direct read into an element of the object being constructed.
 						    $name = $element;
 						} else {
-						    # Read of some other derived-type component. Use the name of the derioved type
+						    # Read of some other derived-type component. Use the name of the derived type
 						    # variable in case it is of a type that we can handle.
 						    $name = $object;
 						}

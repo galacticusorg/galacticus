@@ -134,14 +134,15 @@ subroutine xermsg(a,b,c,i,j)
   !!{
   Error message function required by {\normalfont \ttfamily dotbvabs}.
   !!}
+  use, intrinsic :: ISO_Fortran_Env, only : output_unit
   use :: Error, only : Error_Report
   implicit none
   character(len=*), intent(in   ) :: a, b, c
   integer         , intent(in   ) :: i, j
 
-  write (0,*) a
-  write (0,*) b
-  write (0,*) c
+  write (output_unit,*) a
+  write (output_unit,*) b
+  write (output_unit,*) c
   call Error_Report('error thrown by XSpec functions'//{introspection:location})
   return
 end subroutine xermsg
