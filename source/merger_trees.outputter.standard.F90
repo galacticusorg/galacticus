@@ -995,10 +995,10 @@ contains
        self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(time)
     class is (nodePropertyExtractorList         )
        ! List property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE??? 
+       self%doublePropertyCount =self%doublePropertyCount +1
     class is (nodePropertyExtractorList2D       )
        ! 2D list property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE???
+       self%doublePropertyCount =self%doublePropertyCount +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - simply increment the integer property output count by one.
        self%integerPropertyCount=self%integerPropertyCount+1
@@ -1007,7 +1007,7 @@ contains
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(time)
     class is (nodePropertyExtractorIntegerList  )
        ! Integer list property extractor - simply increment the integer property output count by one.
-       self%integerPropertyCount=self%integerPropertyCount+1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE???
+       self%integerPropertyCount=self%integerPropertyCount+1
     class is (nodePropertyExtractorMulti        )
        ! Multi property extractor - increment double and integer property output counts.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
