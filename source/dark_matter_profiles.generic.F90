@@ -354,7 +354,7 @@ contains
        genericEnclosedMassDifferenceNumerical       =+exp(self%genericEnclosedMass                   %interpolate(log(radiusUpper)))
        if (radiusLower > 0.0d0)                                                                                                      &
             & genericEnclosedMassDifferenceNumerical=+         genericEnclosedMassDifferenceNumerical                                &
-            &                                        +exp(self%genericEnclosedMass                   %interpolate(log(radiusLower)))
+            &                                        -exp(self%genericEnclosedMass                   %interpolate(log(radiusLower)))
     else
        ! Fully-destroyed profile.
        genericEnclosedMassDifferenceNumerical=0.0d0
