@@ -427,14 +427,19 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
+    double precision                                              :: radiusUndepleted, massUndepleted
 
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     if (radius <= 0.0d0) then
        decayingEnclosedMass=0.0d0
-    else if (radius < self%radiusUndepleted) then
+    else if (radius <= self%radiusUndepleted) then
        ! Within the undepleted radius the mass is unchanged.
-       decayingEnclosedMass=self%darkMatterProfileDMO_%enclosedMass         (node,radius)
+       decayingEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,                 radius)
     else
-       decayingEnclosedMass=self                      %enclosedMassNumerical(node,radius)
+       radiusUndepleted    =+self                      %radiusUndepleted
+       massUndepleted      =+self                      %massUndepleted
+       decayingEnclosedMass=+self                      %enclosedMassDifferenceNumerical(node,radiusUndepleted,radius) &
+            &               +                           massUndepleted
     end if
     return
   end function decayingEnclosedMass
