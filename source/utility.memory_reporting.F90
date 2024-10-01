@@ -32,16 +32,19 @@ module Memory_Reporting
   use, intrinsic :: ISO_C_Binding, only : c_size_t    , c_int
   implicit none
   private
-  public :: reportMemoryUsage
+  public :: reportMemoryUsage, outputMemoryUsageMaximum
 
   ! Code memory size initialization status.
-  logical           :: codeMemoryUsageInitialized=.false.
+  logical           :: codeMemoryUsageInitialized =.false.
 
   ! Count of number of successive decreases in memory usage.
-  integer           :: successiveDecreaseCount=0
+  integer           :: successiveDecreaseCount    =0
 
   ! Record of memory usage at the last time it was reported.
-  integer(c_size_t) :: memoryUsageAtPreviousReport  =0
+  integer(c_size_t) :: memoryUsageAtPreviousReport=0
+
+  ! Record of maximum memory usage.
+  integer(c_size_t) :: memoryUsageMaximum         =0
 
   ! Record of code size and available memory.
   integer(c_size_t) :: memoryUsageCode                   , memoryAvailable
@@ -94,6 +97,9 @@ contains
     ! Get the current memory usage.
     memoryUsage=+memoryUsageCode   &
          &      +mallinfo2_C    ()
+    ! Record the maximum memory usage.
+    !$omp atomic
+    memoryUsageMaximum=max(memoryUsageMaximum,memoryUsage)
     ! Decide whether to report.
     issueNewReport=.false.
     if (memoryUsageAtPreviousReport <= 0) then ! First call, so always report memory usage.
@@ -261,5 +267,28 @@ contains
     end if
     return
   end subroutine codeUsageGet
+  
+  !![
+  <hdfPreCloseTask>
+   <unitName>outputMemoryUsageMaximum</unitName>
+  </hdfPreCloseTask>
+  !!]
+  subroutine outputMemoryUsageMaximum()
+    !!{
+    Output maximum memory usage information to the main output file.
+    !!}
+    use :: IO_HDF5    , only : hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: Output_HDF5, only : outputFile
+    implicit none
+    type(hdf5Object) :: versionGroup
+
+    !$ call hdf5Access%set()
+    versionGroup=outputFile%openGroup('Version')
+    call versionGroup%writeAttribute(memoryUsageMaximum,'memoryUsageMaximum')
+    call versionGroup%close         (                                       )
+    !$ call hdf5Access%unset()
+    return
+  end subroutine outputMemoryUsageMaximum
 
 end module Memory_Reporting
