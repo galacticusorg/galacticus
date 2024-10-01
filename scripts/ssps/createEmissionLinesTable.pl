@@ -75,7 +75,12 @@ my $micron                   = pdl 1.0000000000000e-06; # μm
 my $angstroms                = pdl 1.0000000000000e-10; # m
 my $luminositySolar          = pdl 3.8390000000000e+26; # W
 my $wavelengthLymanContinuum = pdl 9.1176000000000e+02; # Å
+my $massSolar                = pdl 1.9900000000000e+30; # M☉
+my $one                      = pdl 1.0000000000000e+00;
 my $hecto                    = pdl 1.0000000000000e+02;
+my $mega                     = pdl 1.0000000000000e+06;
+my $joulesPerErg             = pdl 1.0000000000000e-07;
+my $secondsPerGyr            = pdl 3.1557600000000e-16;
 
 # Specify abundances and depletion model. This is based upon the work by Gutkin, Charlot & Bruzual (2016;
 # https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).
@@ -1028,23 +1033,23 @@ sub outputSSP {
     $tableFile->dataset('age'                                 )->    set(               $grid->{'ages'}                                                 );
     $tableFile->dataset('age'                                 )->attrSet(description => "Age of the stellar population."                                );
     $tableFile->dataset('age'                                 )->attrSet(units       => "Gyr"                                                           );
-    $tableFile->dataset('age'                                 )->attrSet(unitsInSI   => 3.15576e16                                                      );
+    $tableFile->dataset('age'                                 )->attrSet(unitsInSI   => $secondsPerGyr                                                  );
     $tableFile->dataset('metallicity'                         )->    set(               10.0**$grid->{'logMetallicities'}                               );
     $tableFile->dataset('metallicity'                         )->attrSet(description => "Metallicity relative to Solar."                                );
     $tableFile->dataset('ionizingLuminosityHydrogen'          )->    set(               10.0**$grid->{'logHydrogenLuminosities'}                        );
     $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(description => "Hydrogen ionizing photon emission rate."                       );
     $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(units       => "photons s¯¹"                                                   );
-    $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(unitsInSI   => 1.0                                                             );
+    $tableFile->dataset('ionizingLuminosityHydrogen'          )->attrSet(unitsInSI   => $one                                                            );
     $tableFile->dataset('densityHydrogen'                     )->    set(               10.0**$grid->{'logHydrogenDensities'}                           );
     $tableFile->dataset('densityHydrogen'                     )->attrSet(description => "Hydrogen density."                                             );
     $tableFile->dataset('densityHydrogen'                     )->attrSet(units       => "cm¯³"                                                          );
-    $tableFile->dataset('densityHydrogen'                     )->attrSet(unitsInSI   => 1.0e6                                                           );
+    $tableFile->dataset('densityHydrogen'                     )->attrSet(unitsInSI   => $mega                                                           );
     
     # Write table of ionizing rates per unit mass of stars formed.
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->    set(               $grid->{'ionizingLuminosityPerMass'}                            );
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(description => "Hydrogen ionizing photon emission rate per unit mass of stars.");
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(units       => "photons s¯¹ M☉¯¹"                                              );
-    $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(unitsInSI   => 5.025125628140704e-31                                           );
+    $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(unitsInSI   => 1.0/$massSolar                                                  );
     
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
@@ -1055,7 +1060,7 @@ sub outputSSP {
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
 	$lineGroup->dataset($lineName)->attrSet(description => "Luminosity of the line."                       );
 	$lineGroup->dataset($lineName)->attrSet(units       => "erg s¯¹"                                       );
-	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => 1.0e-7                                          );
+	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => $joulesPerErg                                   );
 	$lineGroup->dataset($lineName)->attrSet(wavelength  => $grid->{'lineData'}->{$lineName}->{'wavelength'});
     }
 }
@@ -1076,7 +1081,7 @@ sub outputAGN {
     $tableFile->dataset('densityHydrogen'    )->    set(               10.0**$grid->{'logHydrogenDensities'}                );
     $tableFile->dataset('densityHydrogen'    )->attrSet(description => "Hydrogen density."                                  );
     $tableFile->dataset('densityHydrogen'    )->attrSet(units       => "cm¯³"                                               );
-    $tableFile->dataset('densityHydrogen'    )->attrSet(unitsInSI   => 1.0e6                                                );
+    $tableFile->dataset('densityHydrogen'    )->attrSet(unitsInSI   => $mega                                                );
 
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
@@ -1087,7 +1092,7 @@ sub outputAGN {
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
 	$lineGroup->dataset($lineName)->attrSet(description => "Luminosity of the line."                       );
 	$lineGroup->dataset($lineName)->attrSet(units       => "erg s¯¹"                                       );
-	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => 1.0e-7                                          );
+	$lineGroup->dataset($lineName)->attrSet(unitsInSI   => $joulesPerErg                                   );
 	$lineGroup->dataset($lineName)->attrSet(wavelength  => $grid->{'lineData'}->{$lineName}->{'wavelength'});
     }
 }

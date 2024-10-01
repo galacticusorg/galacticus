@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <!-- Parameter file for building merger tree files for the Millennium Simulation. -->
 <parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+
   <task value="mergerTreeFileBuilder">
 
     <inputFileName value="testSuite/data/mergerTrees/millenniumTestTrees.csv"/>

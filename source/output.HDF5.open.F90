@@ -49,7 +49,7 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : IO_HDF5_Set_Defaults
     use :: ISO_Varying_String, only : var_str             , char                , operator(//)        , extract               , &
-         &                            len                 , operator(==)
+         &                            len                 , operator(==)        , adjustl             , trim
     use :: Input_Parameters  , only : inputParameters     , inputParameter
 #ifdef USEMPI
     use :: MPI_Utilities     , only : mpiSelf
@@ -67,6 +67,7 @@ contains
     integer(hsize_t        )                :: chunkSize
     integer                                 :: sieveBufferSize
     integer(size_t         )                :: cacheElementsCount, cacheSizeBytes
+    type   (varying_string )                :: outputFileName_   , outputScratchFileName_
 #ifdef USEMPI
     type   (varying_string )                :: fileNamePrefix
 #endif
@@ -75,13 +76,15 @@ contains
        !![
        <inputParameter>
          <name>outputFileName</name>
+         <variable>outputFileName_</variable>
          <defaultValue>var_str('galacticus.hdf5')</defaultValue>
          <description>The name of the file to which \glc\ results will be written.</description>
          <source>parameters</source>
        </inputParameter>
        <inputParameter>
          <name>outputScratchFileName</name>
-         <defaultValue>outputFileName</defaultValue>
+         <variable>outputScratchFileName_</variable>
+         <defaultValue>outputFileName_</defaultValue>
          <description>The name of the file to which \glc\ results will be written temporarily during runs.</description>
          <source>parameters</source>
        </inputParameter>
@@ -120,6 +123,9 @@ contains
        </inputParameter>
        !!]
        hdf5CacheSizeBytes=cacheSizeBytes
+       ! Remove leadimg and trailing spaces.
+       outputFileName       =trim(adjustl(outputFileName_       ))
+       outputScratchFileName=trim(adjustl(outputScratchFileName_))
        ! Modify the file name on a per-process basis if running under MPI.
 #ifdef USEMPI
        if (extract(outputFileName       ,len(outputFileName       )-4,len(outputFileName       )) == ".hdf5") then

@@ -123,9 +123,9 @@ contains
     !!{
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
+    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentSatellite
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    use :: Vectors, only : Vector_Magnitude
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (galacticFilterStreamImpact), intent(inout)          :: self
     type            (treeNode                  ), intent(inout), target  :: node
@@ -134,7 +134,7 @@ contains
     type            (treeNode                  )               , pointer :: nodeWork
     double precision                            , dimension(3)           :: position         , velocity
     double precision                                                     :: timeImpactMinimum, timeImpactMaximum, &
-         &                                                                  speed
+         &                                                                  speed            , timeOutputNext
 
     if (node%isSatellite()) then
        ! Find the position and velocity of the subhalo relative to its final host.
@@ -151,11 +151,15 @@ contains
        speed            =Vector_Magnitude(velocity)
        timeImpactMinimum=(-speed*self%radiusOrbitalStream-Dot_Product(velocity,position))/speed**2*Mpc_per_km_per_s_To_Gyr
        timeImpactMaximum=(+speed*self%radiusOrbitalStream-Dot_Product(velocity,position))/speed**2*Mpc_per_km_per_s_To_Gyr
-       ! Determine if the node passes. Note that the impact times computed above are relative to the current time, so we must include that offset here.
-       basic  => node%basic()
-       passes =   timeImpactMinimum < self%outputTimes_%timeNext(basic%time())-basic%time() &
-            &    .and.                                                                      &
-            &     timeImpactMaximum > 0.0d0
+       ! Determine if the node passes. Note that the impact times computed above are relative to the current time, so we must
+       ! include that offset here.
+       basic          => node             %basic   (            )
+       timeOutputNext =  self%outputTimes_%timeNext(basic%time())
+       passes         =  timeOutputNext    > 0.0d0                       & ! Negative next output time indicates no more outputs,
+            &           .and.                                            & ! so no stream impact can occur.
+            &            timeImpactMinimum < timeOutputNext-basic%time() &
+            &           .and.                                            &
+            &            timeImpactMaximum > 0.0d0
     else
        ! Non-subhalos are always passed.
        passes=.true.

@@ -37,15 +37,19 @@ contains
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : output_unit
     use            :: Display        , only : displayVerbosity, verbosityLevelSilent
-    use            :: System_Output  , only : stdOutIsATTY
 #ifdef USEMPI
     use            :: MPI_Utilities  , only : mpiSelf
+#else
+    use            :: System_Output  , only : stdOutIsATTY
 #endif
     implicit none
 #ifdef USEMPI
     if (mpiSelf%rank() == 0) then
 #endif
        if (displayVerbosity() > verbosityLevelSilent) then
+          ! Display the logo only if not compiled using MPI. MPI intercepts `stdout` making it impossible for us to know if we are
+          ! outputting to a `TTY` or not
+#ifndef USEMPI
           if (stdOutIsATTY()) then
              ! Display our ASCII art logo. This was created using the `px2ansi` tool (https://github.com/Nellousan/px2ansi) from
              ! https://github.com/galacticusorg/galacticus/blob/master/doc/New_Logo_Galaxy_192_Transparent.png after reducing to
@@ -84,6 +88,7 @@ contains
              write (output_unit,*) "[0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m"
              write (output_unit,*) ""
           end if
+#endif
           write (output_unit,*) '             ##                                     '
           write (output_unit,*) '  ####        #                  #                  '
           write (output_unit,*) ' #   #        #             #                       '

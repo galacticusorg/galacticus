@@ -105,21 +105,21 @@ contains
     return
   end function efstathiou1982TidalConstructorParameters
 
-  function efstathiou1982TidalConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained_,massThresholdHarrassment,satelliteTidalField_) result(self)
+  function efstathiou1982TidalConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk_,fractionAngularMomentumRetainedSpheroid_,massThresholdHarrassment,satelliteTidalField_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982Tidal)                        :: self
-    double precision                                                   , intent(in   )         :: stabilityThresholdStellar, stabilityThresholdGaseous       , &
-         &                                                                                        timescaleMinimum         , fractionAngularMomentumRetained_, &
-         &                                                                                        massThresholdHarrassment
+    double precision                                                   , intent(in   )         :: stabilityThresholdStellar, stabilityThresholdGaseous               , &
+         &                                                                                        timescaleMinimum         , fractionAngularMomentumRetainedDisk_    , &
+         &                                                                                        massThresholdHarrassment , fractionAngularMomentumRetainedSpheroid_
     class           (satelliteTidalFieldClass                         ), intent(in   ), target :: satelliteTidalField_
     !![
     <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
     !!]
 
-    self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained_)
+    self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk_,fractionAngularMomentumRetainedSpheroid_)
     return
   end function efstathiou1982TidalConstructorInternal
 
@@ -136,7 +136,7 @@ contains
     return
   end subroutine efstathiou1982Destructor
 
-  subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
+  subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
     !!{
     Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     \cite{efstathiou_stability_1982}.
@@ -145,11 +145,11 @@ contains
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
-    double precision                                                   , intent(  out) :: externalDrivingSpecificTorque  , timescale, &
-         &                                                                                fractionAngularMomentumRetained
+    double precision                                                   , intent(  out) :: externalDrivingSpecificTorque      , timescale                              , &
+         &                                                                                fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid
     class           (nodeComponentSpheroid                            ), pointer       :: spheroid
 
-    call self%galacticDynamicsBarInstabilityEfstathiou1982%timescale(node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
+    call self%galacticDynamicsBarInstabilityEfstathiou1982%timescale(node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
     ! Compute the external torque.
     if (timescale > 0.0d0) then
        spheroid                      =>  node    %spheroid         (    )

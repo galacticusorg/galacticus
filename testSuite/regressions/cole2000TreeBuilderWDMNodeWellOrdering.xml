@@ -2,7 +2,7 @@
 <!-- Triggers the "nodes are not well-ordered in time" error in the Cole2000 merger tree builder (Issue #49) -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
 
   <!-- Verbosity -->
   <verbosityLevel value="warn"/>

@@ -2,7 +2,7 @@
 <!-- Parameter file used for testing orbit calculations. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
   <componentBasic             value="standard"/>
   <componentDarkMatterProfile value="null"    />
   <componentBlackHole         value="null"    />
