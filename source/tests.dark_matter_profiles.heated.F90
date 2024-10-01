@@ -39,7 +39,7 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOHeated                                    , darkMatterProfileDMOHeatedMonotonic, darkMatterProfileDMOIsothermal, darkMatterProfileHeatingTidal, &
        &                                          darkMatterProfileDMOClass
-  use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversFallThrough
+  use :: Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversNumerical
   use :: Display                         , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize       , nodeComponentBasic             , nodeComponentSatellite      , &
@@ -60,8 +60,10 @@ program Test_Dark_Matter_Profiles_Heated
   double precision                                                                , parameter    :: toleranceRelativePotential                  = 1.0d-03
   double precision                                                                , parameter    :: fractionRadiusFinalSmall                    = 1.0d-03
   logical                                                                         , parameter    :: velocityDispersionApproximate               =.true.
-  logical            , parameter    :: tolerateVelocityMaximumFailure              =.false.
-  logical            , parameter    :: toleratePotentialIntegrationFailure          =.false.
+  logical                                                                         , parameter    :: tolerateEnclosedMassIntegrationFailure      =.false.
+  logical                                                                         , parameter    :: tolerateVelocityDispersionFailure           =.false.
+  logical                                                                         , parameter    :: tolerateVelocityMaximumFailure              =.false.
+  logical                                                                         , parameter    :: toleratePotentialIntegrationFailure         =.false.
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentSatellite                                        ), pointer      :: satellite
   double precision                                                                , dimension(3) :: radiusVirialFractional                      =[0.1d0,0.5d0,1.0d0]
@@ -83,7 +85,10 @@ program Test_Dark_Matter_Profiles_Heated
        &                                                                                            density                                                         , densityAnalytic      , &
        &                                                                                            radiusInitial                                                   , radiusInitialAnalytic, &
        &                                                                                            massEnclosed                                                    , massEnclosedAnalytic , &
-       &                                                                                            radius                                                          , toleranceRelative
+       &                                                                                            potential                                                       , potentialAnalytic         , &
+       &                                                                                            potentialZeroPoint                                              , potentialAnalyticZeroPoint, &
+       &                                                                                            radius                                                          , toleranceRelative    , &
+       &                                                                                            toleranceRelativePotentialDifference
   integer                                                                                        :: i                                                               , profileType
   character       (len=5                                                         )               :: radiusLabel
   character       (len=128                                                       )               :: profileName
@@ -149,8 +154,8 @@ program Test_Dark_Matter_Profiles_Heated
   !!]
   darkMatterProfileHeatingTidal_      =darkMatterProfileHeatingTidal      (coefficientSecondOrder       ,coefficientSecondOrder       ,coefficientSecondOrder                                                                                   ,correlationVelocityRadius                                                          )
   darkMatterProfileDMOIsothermal_     =darkMatterProfileDMOIsothermal     (                                                                                                                                                                                                      darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversFallThrough,velocityDispersionApproximate,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
-  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversFallThrough                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeated_         =darkMatterProfileDMOHeated         (nonAnalyticSolversNumerical,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential                           ,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterProfileDMOHeatedMonotonic_=darkMatterProfileDMOHeatedMonotonic(nonAnalyticSolversNumerical                              ,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)
@@ -165,13 +170,15 @@ program Test_Dark_Matter_Profiles_Heated
   do profileType=1,2
      select case (profileType)
      case (1)
-        darkMatterProfileDMO_ => darkMatterProfileDMOHeated_
-        profileName           =  "no shell crossing"
-        toleranceRelative     =  1.0d-6
+        darkMatterProfileDMO_                => darkMatterProfileDMOHeated_
+        profileName                          =  "no shell crossing"
+        toleranceRelative                    =  1.0d-6
+        toleranceRelativePotentialDifference =  5.0d-3
      case (2)
-        darkMatterProfileDMO_ => darkMatterProfileDMOHeatedMonotonic_
-        profileName           =  "monotonic perturbation"
-        toleranceRelative     =  7.0d-2
+        darkMatterProfileDMO_                => darkMatterProfileDMOHeatedMonotonic_
+        profileName                          =  "monotonic perturbation"
+        toleranceRelative                    =  7.0d-2
+        toleranceRelativePotentialDifference =  5.0d-3
      end select
      call Unit_Tests_Begin_Group("Heated dark matter profiles ("//trim(profileName)//")")
      ! Compute initial radius, enclosed mass, and density for a variety of radii and compare to the analytic solutions.
@@ -187,6 +194,7 @@ program Test_Dark_Matter_Profiles_Heated
         end select
         massEnclosed         =+darkMatterProfileDMO_%enclosedMass          (node,radius)
         density              =+darkMatterProfileDMO_%density               (node,radius)
+        potential            =+darkMatterProfileDMO_%potential             (node,radius)
         radiusInitialAnalytic=+sqrt(                            &
              &                      +  radiusHeated         **4 &
              &                      /4.0d0                      &
@@ -218,10 +226,47 @@ program Test_Dark_Matter_Profiles_Heated
              &                  /2.0d0                          &
              &                  /      radius               **2 &
              &                 )
+        ! Evaluate the expression for the potential. Note that the atanh() term gives a complex result. However, the imaginary
+        ! component of this is independent of radius and so cancels when finding potential differences. As such, we simply discard
+        ! it here.
+        potentialAnalytic=real(                                                                                                                  &
+             &                 +gravitationalConstantGalacticus                                                                                  &
+             &                 *massVirial                                                                                                       &
+             &                 /4.0d0                                                                                                            &
+             &                 /radiusVirial                                                                                                     &
+             &                 *(                                                                                                                &
+             &                   + radiusHeated**2                                                                                               &
+             &                   -                               sqrt(4.0d0*radiusHeated**2+     radiusHeated**4/radius**2)*radius            )  &
+             &                   *                               sqrt(      radiusHeated**2+4.0d0               *radius**2                    )  &
+             &                   *(radiusHeated    +             sqrt(      radiusHeated**2+4.0d0               *radius**2                    )) &
+             &                 *(                                                                                                                &
+             &                   + radiusHeated                                                                                                  &
+             &                   +(radiusHeated    +             sqrt(       radiusHeated**2+4.0d0              *radius**2                    )) &
+             &                   *                  atanh(dcmplx(sqrt(       radiusHeated**2+4.0d0              *radius**2)/radiusHeated,0.0d0)) &
+             &                  )                                                                                                                &
+             &                 /   radiusHeated                                                                                                  &
+             &                 /                                                                                 radius**2                       &
+             &                 /(                                                                                                                &
+             &                   +                                                          4.0d0               *radius**2                       &
+             &                   + radiusHeated                                                                                                  &
+             &                   *(radiusHeated                 +sqrt(      radiusHeated**2+4.0d0               *radius**2                    )) &
+             &                  )                                                                                                                &
+             &                )
+        if (i == 1) then
+           ! Compute potential zero points at our first radius - we compare only potential differences.
+           potentialZeroPoint        =potential
+           potentialAnalyticZeroPoint=potentialAnalytic
+        end if
+        potential        =+potential                  &
+             &            -potentialZeroPoint
+        potentialAnalytic=+potentialAnalytic          &
+             &            -potentialAnalyticZeroPoint
+        
         if (profileType == 1) &
-             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius',radiusInitial,radiusInitialAnalytic,relTol=toleranceRelative)
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass' ,massEnclosed ,massEnclosedAnalytic ,relTol=toleranceRelative)
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'       ,density      ,densityAnalytic      ,relTol=toleranceRelative)
+             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius',radiusInitial,radiusInitialAnalytic,relTol=toleranceRelative                   )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass' ,massEnclosed ,massEnclosedAnalytic ,relTol=toleranceRelative                   )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'       ,density      ,densityAnalytic      ,relTol=toleranceRelative                   )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; potential'     ,potential    ,potentialAnalytic    ,relTol=toleranceRelativePotentialDifference)
      end do
      call Unit_Tests_End_Group()
   end do

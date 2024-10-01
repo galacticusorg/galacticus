@@ -86,6 +86,8 @@
      procedure :: radialVelocityDispersion          => heatedRadialVelocityDispersion
      procedure :: jeansEquationIntegrand            => heatedJeansEquationIntegrand
      procedure :: jeansEquationRadius               => heatedJeansEquationRadius
+     procedure :: potentialSolverIntegrand          => heatedPotentialSolverIntegrand
+     procedure :: potentialSolverRadius             => heatedPotentialSolverRadius
      procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => heatedRotationNormalization
      procedure :: energy                            => heatedEnergy
@@ -756,6 +758,84 @@ contains
     heatedJeansEquationRadius=self%radiusInitial(node,radius)
     return
   end function heatedJeansEquationRadius
+
+  double precision function heatedPotentialSolverIntegrand(self,node,radius) result(integrand)
+    !!{
+    Integrand for generic dark matter profile Jeans equation. Here we do the integration with respect to the
+    initial radius $r_i$.
+    \begin{eqnarray}
+     \phi(r) &=& -\int_r^{r^{\mathrm{max}}} \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
+             &=& -\int_{r_i}^{r_{i}^{\mathrm{max}}}\frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^2 \frac{\mathrm{d}r}{\mathrm{d}r_\mathrm{i}}  \mathrm{d} r_i.
+    \end{eqnarray}
+    Here $r$ can be written as a function of $r_i$
+    \begin{equation}
+     r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))},
+    \end{equation}
+    such that
+     \begin{equation}
+     \frac{\mathrm{d}r}{\mathrm{d}r_i} = \left[ \left(\frac{r}{r_\mathrm{i}}\right)^2 + \frac{2 r^2}{\mathrm{G} M(r_\mathrm{i})} \left( \epsilon^\prime(r_\matrm{i}) - \frac{4 \pi r_\mathrm{i}^2 \rho_\mathrm{i}(r_\mathrm{i}) \epsilon(r_\mathrm{i})}{M(r_\mathrm{i})} \right) \right]^{-1}.
+    \end{equation}
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+    double precision                                            :: radiusFinal   , massEnclosed          , &
+         &                                                         energySpecific, energySpecificGradient, &
+         &                                                         density       , jacobian
+
+    massEnclosed          =+self%darkMatterProfileDMO_    %enclosedMass          (node,radius                           )
+    energySpecific        =+self%darkMatterProfileHeating_%specificEnergy        (node,radius,self%darkMatterProfileDMO_)
+    energySpecificGradient=+self%darkMatterProfileHeating_%specificEnergyGradient(node,radius,self%darkMatterProfileDMO_)
+    radiusFinal           =+1.0d0                                                               &
+         &                 /(                                                                   &
+         &                   +1.0d0/radius                                                      &
+         &                   -2.0d0*energySpecific/gravitationalConstantGalacticus/massEnclosed &
+         &                  )
+    if (radiusFinal > 0.0d0) then
+       density            =+self%darkMatterProfileDMO_    %density               (node,radius                           )
+       jacobian           =+(                                  &
+               &             +radiusFinal                      &
+               &             /radius                           &
+               &            )                              **2 &
+               &           +2.0d0                              &
+               &           *radiusFinal                    **2 &
+               &           /gravitationalConstantGalacticus    &
+               &           /massEnclosed                       &
+               &           *(                                  &
+               &             +energySpecificGradient           &
+               &             -4.0d0                            &
+               &             *Pi                               &
+               &             *radius                       **2 &
+               &             *density                          &
+               &             *energySpecific                   &
+               &             /massEnclosed                     &
+               &            )
+       integrand          =-gravitationalConstantGalacticus    &
+            &              *massEnclosed                       &
+            &              / radius             **2            &
+            &              *(radius/radiusFinal)**2            &
+            &              *jacobian
+    else
+       integrand=+0.0d0
+    end if
+    return
+  end function heatedPotentialSolverIntegrand
+
+  double precision function heatedPotentialSolverRadius(self,node,radius)
+    !!{
+    Return the radius variable used in computing the potential that corresponds to a given physical radius.
+    Here we do the integration with respect to the initial radius, so return the initial radius.
+    !!}
+    implicit none
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+
+    heatedPotentialSolverRadius=self%radiusInitial(node,radius)
+    return
+  end function heatedPotentialSolverRadius
 
   double precision function heatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !!{

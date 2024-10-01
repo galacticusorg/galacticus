@@ -98,6 +98,8 @@ module Dark_Matter_Profiles_Generic
        <method description="Reset generic profile memoized calculations." method="calculationResetGeneric"/>
        <method description="Integrand for dark matter profile Jeans equation." method="jeansEquationIntegrand"/>
        <method description="Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius." method="jeansEquationRadius"/>
+       <method description="Integrand for dark matter profile potential." method="potentialSolverIntegrand"/>
+       <method description="Return the radius variable used in solving the potential that corresponds to a given physical radius." method="potentialSolverRadius"/>
      </methods>
      !!]
      procedure(genericDensityInterface     ), deferred :: density
@@ -110,6 +112,8 @@ module Dark_Matter_Profiles_Generic
      procedure                                         :: radialVelocityDispersionNumerical          => genericRadialVelocityDispersionNumerical
      procedure                                         :: jeansEquationIntegrand                     => genericJeansEquationIntegrand
      procedure                                         :: jeansEquationRadius                        => genericJeansEquationRadius
+     procedure                                         :: potentialSolverIntegrand                   => genericPotentialSolverIntegrand
+     procedure                                         :: potentialSolverRadius                      => genericPotentialSolverRadius
      procedure                                         :: radialMomentNumerical                      => genericRadialMomentNumerical
      procedure                                         :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
      procedure                                         :: kSpaceNumerical                            => genericKSpaceNumerical
@@ -396,21 +400,24 @@ contains
     type            (treeNode                         ), intent(inout), target      :: node
     double precision                                   , intent(in   )              :: radius
     type            (enumerationStructureErrorCodeType), intent(  out), optional    :: status
-    double precision                                   , dimension(:) , allocatable :: potentials                       , radii
+    double precision                                   , dimension(:) , allocatable :: potentials                       , radii               , &
+         &                                                                             potentials_                      , radii_
     double precision                                   , parameter                  :: radiusMaximumFactor      =1.0d+02
     double precision                                   , parameter                  :: countPointsPerOctave     =4.0d+00
     double precision                                   , parameter                  :: radiusVirialFractionSmall=1.0d-12
     type            (integrator                       ), save                       :: integrator_
     logical                                            , save                       :: initialized              =.false.
     !$omp threadprivate(integrator_,initialized)
-    integer         (c_size_t                )                                      :: countRadii                       , iMinimum          , &
-         &                                                                             iMaximum                         , i
+    integer         (c_size_t                )                                      :: countRadii                       , iMinimum            , &
+         &                                                                             iMaximum                         , iPrevious           , &
+         &                                                                             i
     logical                                                                         :: remakeTable
-    double precision                                                                :: radiusMaximum                    , radiusMinimum     , &
-         &                                                                             radiusVirial                     , potentialZeroPoint, &
-         &                                                                             massRadiusMaximum
+    double precision                                                                :: radiusMaximum                    , radiusMinimum       , &
+         &                                                                             radiusVirial                     , potentialZeroPoint  , &
+         &                                                                             massRadiusMaximum                , radiusLowerPotential, &
+         &                                                                             radiusUpperPotential
     integer                                                                         :: status_
-
+    
     if (present(status)) status=structureErrorCodeSuccess
     radiusVirial =+self%darkMatterHaloScale_%radiusVirial       (node)
     radiusMaximum=+                          radiusMaximumFactor       &
@@ -473,7 +480,9 @@ contains
                 ! Skip cases for which we have a pre-existing solution.
                 if (i >= iMinimum .and. i <= iMaximum) cycle  
                 ! Evaluate the integral.
-                potentials(i)=-integrator_%integrate(radii(i),radiusMaximum,status_) &
+                radiusLowerPotential=self%potentialSolverRadius(node,radii        (i))
+                radiusUpperPotential=self%potentialSolverRadius(node,radiusMaximum   )
+                potentials(i)=-integrator_%integrate(radiusLowerPotential,radiusUpperPotential,status_) &
                      &        -potentialZeroPoint
                 if (status_ /= errorStatusSuccess .and. .not.self%toleratePotentialIntegrationFailure) &
                      & call Error_Report('potential integration failed'//{introspection:location})
@@ -481,19 +490,75 @@ contains
              call self%solverUnset()
              ! Build the interpolator.
              if (allocated(self%genericPotential)) deallocate(self%genericPotential)
-             allocate(self%genericPotential)
-             self%genericPotential=interpolator(log(radii),log(potentials),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
-             ! Store the current results for future re-use.
-             if (allocated(self%genericPotentialRadius   )) deallocate(self%genericPotentialRadius   )
-             if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
-             allocate(self%genericPotentialRadius   (countRadii))
-             allocate(self%genericPotentialPotential(countRadii))
-             self%genericPotentialRadius       =radii
-             self%genericPotentialPotential    =potentials
-             self%genericPotentialRadiusMinimum=radiusMinimum
-             self%genericPotentialRadiusMaximum=radiusMaximum
+             if (all(potentials > 0.0d0)) then
+                radii_     =radii
+                potentials_=potentials
+             else if (all(potentials <= 0.0d0)) then
+                ! A fully-destroyed profile.
+                allocate(radii_     (0))
+                allocate(potentials_(0))
+             else
+                !  We have a partial profile. Attempt to work with this by selecting out the physically-reasonable values.
+                countRadii=+0_c_size_t
+                iPrevious =-1_c_size_t
+                do i=size(potentials),1,-1
+                   if     (                                          &
+                        &     potentials(i) >  0.0d0                 &
+                        &  .and.                                     &
+                        &   (                                        &
+                        &     iPrevious     <= 0_c_size_t            &
+                        &    .or.                                    &
+                        &     potentials(i) >  potentials(iPrevious) &
+                        &   )                                        &
+                        & ) then
+                      countRadii=countRadii+1_c_size_t
+                      iPrevious =           i
+                   end if
+                end do
+                if (countRadii > 1) then
+                   allocate(radii_     (countRadii))
+                   allocate(potentials_(countRadii))
+                   iPrevious=-1_c_size_t
+                   do i=size(potentials),1,-1
+                      if     (                                          &
+                           &     potentials(i) >  0.0d0                 &
+                           &  .and.                                     &
+                           &   (                                        &
+                           &     iPrevious     <= 0_c_size_t            &
+                           &    .or.                                    &
+                           &     potentials(i) >  potentials(iPrevious) &
+                           &   )                                        &
+                           & ) then
+                         radii_     (countRadii)=radii     (i)
+                         potentials_(countRadii)=potentials(i)
+                         iPrevious              =           i
+                         countRadii             =countRadii-1_c_size_t
+                      end if
+                   end do
+                else
+                   ! Only one point is available - can not make an interpolator.
+                   allocate(radii_     (0))
+                   allocate(potentials_(0))
+                end if
+             end if
+             if (size(radii_) > 0) then
+                allocate(self%genericPotential)
+                self%genericPotential=interpolator(log(radii_),log(potentials_),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
+                ! Store the current results for future re-use.
+                if (allocated(self%genericPotentialRadius   )) deallocate(self%genericPotentialRadius   )
+                if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
+                allocate(self%genericPotentialRadius   (countRadii))
+                allocate(self%genericPotentialPotential(countRadii))
+                self%genericPotentialRadius       =radii_
+                self%genericPotentialPotential    =potentials_
+                self%genericPotentialRadiusMinimum=radiusMinimum
+                self%genericPotentialRadiusMaximum=radiusMaximum
+             else
+                ! The profile is undefined. Leave the table unallocated.
+                if (allocated(self%genericPotential)) deallocate(self%genericPotential)
+             end if
           else
-             ! The profile contains no mass. Leave the table unallocated.
+             ! The profile is undefined. Leave the table unallocated.
              if (allocated(self%genericPotential)) deallocate(self%genericPotential)
           end if
        end if
@@ -524,19 +589,22 @@ contains
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target   :: self
     type            (treeNode                ), intent(inout), pointer  :: node
-    double precision                          , intent(in   )           :: radiusLower        , radiusUpper
+    double precision                          , intent(in   )           :: radiusLower                 , radiusUpper
     type            (integrator              ), save                    :: integrator_
-    logical                                   , save                    :: initialized=.false.
+    logical                                   , save                    :: initialized         =.false.
     !$omp threadprivate(integrator_,initialized)
+    double precision                                                    :: radiusLowerPotential        , radiusUpperPotential
  
     if (.not.initialized) then
        integrator_=  integrator(integrandPotential,toleranceRelative=1.0d-6)
        initialized=.true.
     end if
     call self%solverSet  (node)
-    genericPotentialDifferenceNumerical=integrator_%integrate(             &
-         &                                                    radiusLower, &
-         &                                                    radiusUpper  &
+    radiusLowerPotential=self%potentialSolverRadius(node,radiusLower)
+    radiusUpperPotential=self%potentialSolverRadius(node,radiusUpper)
+    genericPotentialDifferenceNumerical=integrator_%integrate(                      &
+         &                                                    radiusLowerPotential, &
+         &                                                    radiusUpperPotential  &
          &                                                   )
     call self%solverUnset(   )
     return
@@ -546,19 +614,48 @@ contains
     !!{
     Integrand for gravitational potential in a generic dark matter profile.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
 
-    if (radius > 0.0d0) then
-       integrandPotential=-gravitationalConstantGalacticus                                               &
-            &             *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
-            &             /                                                                   radius **2
-    else
-       integrandPotential=0.0d0
-    end if
+    integrandPotential=solvers(solversCount)%self%potentialSolverIntegrand(solvers(solversCount)%node,radius)
     return
   end function integrandPotential
+
+  double precision function genericPotentialSolverIntegrand(self,node,radius)
+    !!{
+    Integrand for gravitational potential in a generic dark matter profile.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (darkMatterProfileGeneric), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radius
+
+    if (radius > 0.0d0) then
+       genericPotentialSolverIntegrand=-gravitationalConstantGalacticus   &
+            &                          *self%enclosedMass(node,radius)    &
+            &                          /                       radius **2
+    else
+       genericPotentialSolverIntegrand=+0.0d0
+    end if
+    return
+  end function genericPotentialSolverIntegrand
+
+  double precision function genericPotentialSolverRadius(self,node,radius)
+    !!{
+    Return the radius variable used in computing the potential that corresponds to a given physical radius.
+    In some cases, it is easier to do the integration with respect to another variable which is a function of
+    the physical radius.
+    !!}
+    implicit none
+    class           (darkMatterProfileGeneric), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: radius
+    !$GLC attributes unused :: self, node
+
+    genericPotentialSolverRadius=radius
+    return
+  end function genericPotentialSolverRadius
 
   double precision function genericCircularVelocityNumerical(self,node,radius)
     !!{
