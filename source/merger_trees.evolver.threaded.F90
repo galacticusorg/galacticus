@@ -30,6 +30,7 @@
      class(mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_    => null()
      class(mergerTreeEvolveProfilerClass), pointer :: mergerTreeEvolveProfiler_ => null()
      class(galacticStructureSolverClass ), pointer :: galacticStructureSolver_  => null()
+     class(metaTreeProcessingTimeClass  ), pointer :: metaTreeProcessingTime_   => null()
   end type worker
 
   ! Linked list used for storing nodes to be evolved/post-processed.
@@ -92,6 +93,7 @@ contains
     class           (mergerTreeInitializorClass      ), pointer               :: mergerTreeInitializor_
     class           (mergerTreeEvolveProfilerClass   ), pointer               :: mergerTreeEvolveProfiler_
     class           (mergerTreeEvolveConcurrencyClass), pointer               :: mergerTreeEvolveConcurrency_
+    class           (metaTreeProcessingTimeClass     ), pointer               :: metaTreeProcessingTime_
     type            (inputParameters                 ), pointer               :: parameters_
     logical                                                                   :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
          &                                                                       profileSteps                    , reportTiming
@@ -153,13 +155,14 @@ contains
     <objectBuilder class="mergerTreeInitializor"       name="mergerTreeInitializor_"       source="parameters"/>
     <objectBuilder class="mergerTreeEvolveProfiler"    name="mergerTreeEvolveProfiler_"    source="parameters"/>
     <objectBuilder class="mergerTreeEvolveConcurrency" name="mergerTreeEvolveConcurrency_" source="parameters"/>
+    <objectBuilder class="metaTreeProcessingTime"      name="metaTreeProcessingTime_"      source="parameters"/>
     !!]
     if (associated(parameters%parent)) then
        parameters_ => parameters%parent
     else
        parameters_ => parameters
     end if
-    self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
+    self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"         />
@@ -169,11 +172,12 @@ contains
     <objectDestructor name="mergerTreeInitializor_"      />
     <objectDestructor name="mergerTreeEvolveProfiler_"   />
     <objectDestructor name="mergerTreeEvolveConcurrency_"/>
+    <objectDestructor name="metaTreeProcessingTime_"     />
     !!]
     return
   end function threadedConstructorParameters
 
-  function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
+  function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily threaded} merger tree evolver class.
     !!}
@@ -186,13 +190,14 @@ contains
     class           (mergerTreeInitializorClass      ), intent(in   ), target :: mergerTreeInitializor_
     class           (mergerTreeEvolveProfilerClass   ), intent(in   ), target :: mergerTreeEvolveProfiler_
     class           (mergerTreeEvolveConcurrencyClass), intent(in   ), target :: mergerTreeEvolveConcurrency_
+    class           (metaTreeProcessingTimeClass     ), intent(in   ), target :: metaTreeProcessingTime_
     logical                                           , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
          &                                                                       profileSteps                    , reportTiming
     double precision                                  , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                       fractionTimestepSatelliteMinimum
     type            (inputParameters                 ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, profileSteps, reportTiming, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *mergerTreeEvolveConcurrency_, *galacticStructureSolver_, *mergerTreeEvolveProfiler_, *parameters"/>
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, profileSteps, reportTiming, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *mergerTreeEvolveConcurrency_, *metaTreeProcessingTime_, *galacticStructureSolver_, *mergerTreeEvolveProfiler_, *parameters"/>
     !!]
 
     self%deadlockHeadNode   => null()
@@ -213,6 +218,7 @@ contains
 
     !![
     <objectDestructor name="self%mergerTreeEvolveConcurrency_"/>
+    <objectDestructor name="self%metaTreeProcessingTime_"     />
     !!]
     if (self%workersInitialized) then
        do i=lbound(self%workers,dim=1),ubound(self%workers,dim=1)
@@ -222,6 +228,7 @@ contains
 	  <objectDestructor name="self%workers(i)%mergerTreeNodeEvolver_"   />
 	  <objectDestructor name="self%workers(i)%mergerTreeEvolveProfiler_"/>
 	  <objectDestructor name="self%workers(i)%galacticStructureSolver_" />
+          <objectDestructor name="self%workers(i)%metaTreeProcessingTime_"  />
           !!]
        end do
     end if
@@ -318,8 +325,9 @@ contains
     double precision                               , save                                 :: timeWaitEvolve_                               , timeEvolve_             , &
          &                                                                                   timeThreadInitialize_                         , timeThreadUninitialize_ , &
          &                                                                                   timeEvolveListLock_                           , timePostProcessListLock_, &
-         &                                                                                   timeBuildEvolveList_                          , timePostProcess_
-    !$omp threadprivate(timeWaitEvolve_,timeEvolve_,timeThreadInitialize_,timeThreadUninitialize_,timeEvolveListLock_,timePostProcessListLock_,timeBuildEvolveList_,timePostProcess_)
+         &                                                                                   timeBuildEvolveList_                          , timePostProcess_        , &
+         &                                                                                   timeRemaining
+    !$omp threadprivate(timeWaitEvolve_,timeEvolve_,timeThreadInitialize_,timeThreadUninitialize_,timeEvolveListLock_,timePostProcessListLock_,timeBuildEvolveList_,timePostProcess_,timeRemaining)
     character       (len=5                        )                                       :: percentBuildEvolveList                        , percentEvolve           , &
          &                                                                                   percentWaitEvolve                             , percentPostProcess      , &
          &                                                                                   percentPostProcessListLock                    , percentInitialize       , &
@@ -371,15 +379,17 @@ contains
           allocate(self%workers(numberWorker)%mergerTreeNodeEvolver_   ,mold=self%mergerTreeNodeEvolver_   )
           allocate(self%workers(numberWorker)%mergerTreeEvolveProfiler_,mold=self%mergerTreeEvolveProfiler_)
           allocate(self%workers(numberWorker)%galacticStructureSolver_ ,mold=self%galacticStructureSolver_ )
+          allocate(self%workers(numberWorker)%metaTreeProcessingTime_  ,mold=self%metaTreeProcessingTime_  )
           !$omp critical(mergerTreeEvolverThreadedDeepCopy)
           !![
-	  <deepCopyReset variables="self%cosmologyFunctions_ self%mergerTreeEvolveTimestep_ self%mergerTreeNodeEvolver_ self%mergerTreeEvolveProfiler_ self%galacticStructureSolver_"/>
+	  <deepCopyReset variables="self%cosmologyFunctions_ self%mergerTreeEvolveTimestep_ self%mergerTreeNodeEvolver_ self%mergerTreeEvolveProfiler_ self%galacticStructureSolver_ self%metaTreeProcessingTime_"/>
 	  <deepCopy source="self%cosmologyFunctions_"       destination="self%workers(numberWorker)%cosmologyFunctions_"      />
 	  <deepCopy source="self%mergerTreeEvolveTimestep_" destination="self%workers(numberWorker)%mergerTreeEvolveTimestep_"/>
 	  <deepCopy source="self%mergerTreeNodeEvolver_"    destination="self%workers(numberWorker)%mergerTreeNodeEvolver_"   />
 	  <deepCopy source="self%mergerTreeEvolveProfiler_" destination="self%workers(numberWorker)%mergerTreeEvolveProfiler_"/>
 	  <deepCopy source="self%galacticStructureSolver_"  destination="self%workers(numberWorker)%galacticStructureSolver_" />
-	  <deepCopyFinalize variables="self%workers(numberWorker)%cosmologyFunctions_ self%workers(numberWorker)%mergerTreeEvolveTimestep_ self%workers(numberWorker)%mergerTreeNodeEvolver_ self%workers(numberWorker)%mergerTreeEvolveProfiler_ self%workers(numberWorker)%galacticStructureSolver_"/>  
+	  <deepCopy source="self%metaTreeProcessingTime_"   destination="self%workers(numberWorker)%metaTreeProcessingTime_"  />
+	  <deepCopyFinalize variables="self%workers(numberWorker)%cosmologyFunctions_ self%workers(numberWorker)%mergerTreeEvolveTimestep_ self%workers(numberWorker)%mergerTreeNodeEvolver_ self%workers(numberWorker)%mergerTreeEvolveProfiler_ self%workers(numberWorker)%galacticStructureSolver_ self%workers(numberWorker)%metaTreeProcessingTime_"/>  
           !!]
           !$omp end critical(mergerTreeEvolverThreadedDeepCopy)
           call eventsHooksFutureThread()
@@ -414,8 +424,10 @@ contains
             &                    timeThreadInitialize_  &
             &                   )
     end if
-    ! Initialize evolution state and locks.
     !$omp single
+    ! Initialize remaining time calculations.
+    timeRemaining=self%metaTreeProcessingTime_%timeRemaining(tree,timeEnd)
+    ! Initialize evolution state and locks.
     didEvolve                  =.true.
     treeWalkCount              =0
     treeWalkCountPreviousOutput=0
@@ -735,6 +747,12 @@ contains
                 !$omp barrier
                 if (evolutionExiting) exit
                 !$omp single
+                ! Estimate remaining time to process the tree.
+                timeRemaining=self%metaTreeProcessingTime_%timeRemaining(tree,timeEnd)
+                if (timeRemaining > 0.0d0) then
+                   write (label,'(i16)') int(timeRemaining)
+                   call displayMessage("Estimated time remaining to process tree: "//trim(adjustl(label))//"s")
+                end if
                 ! Output tree progress information.
                 if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
                    if (displayVerbosity() >= verbosityLevel) then

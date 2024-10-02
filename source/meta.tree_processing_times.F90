@@ -25,6 +25,7 @@ module Meta_Tree_Compute_Times
   !!{
   Provides a class for calculations of the time taken to process merger trees.
   !!}
+  use :: Galacticus_Nodes, only : mergerTree
   implicit none
   private
 
@@ -33,12 +34,29 @@ module Meta_Tree_Compute_Times
    <name>metaTreeProcessingTime</name>
    <descriptiveName>Merger Tree Processing Times</descriptiveName>
    <description>Class providing estimates of processing times for merger trees.</description>
-   <default>file</default>
+   <default>null</default>
    <method name="time" >
     <description>Return an estimate of the time needed to process a tree of the given mass.</description>
     <type>double precision</type>
     <argument>double precision, intent(in   ) :: massTree</argument>
     <pass>yes</pass>
+    <code>
+      ! Return a negative value indicating that no estimate is available.
+      !$GLC attributes unused :: self, massTree
+      metaTreeProcessingTimeTime=-1.0d0
+    </code>
+   </method>
+   <method name="timeRemaining" >
+    <description>Return an estimate of the remaining time needed to process a given tree.</description>
+    <type>double precision</type>
+    <argument>type(mergerTree), intent(inout) :: tree     </argument>
+    <argument>double precision, intent(in   ) :: timeFinal</argument>
+    <pass>yes</pass>
+    <code>
+      ! Return a negative value indicating that no estimate is available.
+      !$GLC attributes unused :: self, tree, timeFinal
+      metaTreeProcessingTimeTimeRemaining=-1.0d0
+    </code>
    </method>
   </functionClass>
   !!]

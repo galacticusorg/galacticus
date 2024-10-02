@@ -21,14 +21,15 @@
   Implements the standard class for evolving merger trees.
   !!}
 
-  use :: Cosmology_Functions         , only : cosmologyFunctions        , cosmologyFunctionsClass
-  use :: Galactic_Structure_Solvers  , only : galacticStructureSolver   , galacticStructureSolverClass
+  use :: Cosmology_Functions         , only : cosmologyFunctions           , cosmologyFunctionsClass
+  use :: Galactic_Structure_Solvers  , only : galacticStructureSolver      , galacticStructureSolverClass
   use :: Galacticus_Nodes            , only : treeNode
   use :: Kind_Numbers                , only : kind_int8
   use :: Merger_Tree_Evolve_Profilers, only : mergerTreeEvolveProfilerClass
   use :: Merger_Tree_Initialization  , only : mergerTreeInitializorClass
-  use :: Merger_Tree_Timesteps       , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
-  use :: Merger_Trees_Evolve_Node    , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
+  use :: Merger_Tree_Timesteps       , only : mergerTreeEvolveTimestep     , mergerTreeEvolveTimestepClass
+  use :: Merger_Trees_Evolve_Node    , only : mergerTreeNodeEvolver        , mergerTreeNodeEvolverClass
+  use :: Meta_Tree_Compute_Times     , only : metaTreeProcessingTimeClass
   use :: Galactic_Structure          , only : galacticStructureClass
 
   ! Structure used to store list of nodes for deadlock reporting.
@@ -124,6 +125,7 @@
      class           (mergerTreeInitializorClass   ), pointer :: mergerTreeInitializor_           => null()
      class           (galacticStructureClass       ), pointer :: galacticStructure_               => null()
      class           (mergerTreeEvolveProfilerClass), pointer :: mergerTreeEvolveProfiler_        => null()
+     class           (metaTreeProcessingTimeClass  ), pointer :: metaTreeProcessingTime_          => null()
      logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
           &                                                      backtrackToSatellites                     , profileSteps
      double precision                                         :: timestepHostAbsolute                      , timestepHostRelative , &
@@ -173,6 +175,7 @@ contains
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
     class           (galacticStructureClass       ), pointer       :: galacticStructure_
     class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
+    class           (metaTreeProcessingTimeClass  ), pointer       :: metaTreeProcessingTime_
     logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
          &                                                            backtrackToSatellites           , profileSteps
     double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
@@ -233,8 +236,9 @@ contains
     <objectBuilder class="mergerTreeInitializor"    name="mergerTreeInitializor_"    source="parameters"/>
     <objectBuilder class="galacticStructure"        name="galacticStructure_"        source="parameters"/>
     <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
+    <objectBuilder class="metaTreeProcessingTime"   name="metaTreeProcessingTime_"   source="parameters"/>
     !!]
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_)
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -244,11 +248,12 @@ contains
     <objectDestructor name="mergerTreeInitializor_"   />
     <objectDestructor name="galacticStructure_"       />
     <objectDestructor name="mergerTreeEvolveProfiler_"/>
+    <objectDestructor name="metaTreeProcessingTime_"  />
     !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     !!}
@@ -261,12 +266,13 @@ contains
     class           (mergerTreeInitializorClass   ), intent(in   ), target :: mergerTreeInitializor_
     class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
     class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
+    class           (metaTreeProcessingTimeClass  ), intent(in   ), target :: metaTreeProcessingTime_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
          &                                                                    backtrackToSatellites           , profileSteps
     double precision                               , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                    fractionTimestepSatelliteMinimum
     !![
-    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *galacticStructure_, *mergerTreeEvolveProfiler_"/>
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *galacticStructure_, *mergerTreeEvolveProfiler_, *mergerTreeEvolveProfiler_, *metaTreeProcessingTime_"/>
     !!]
 
     self%deadlockHeadNode => null()
@@ -288,6 +294,7 @@ contains
     <objectDestructor name="self%mergerTreeInitializor_"   />
     <objectDestructor name="self%galacticStructure_"       />
     <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
+    <objectDestructor name="self%metaTreeProcessingTime_"  />
     !!]
     return
   end subroutine standardDestructor
@@ -333,7 +340,7 @@ contains
     integer                                                                            :: treeWalkCountPreviousOutput                    , nodesEvolvedCount, &
          &                                                                                nodesTotalCount                                , treeWalkCount
     double precision                                                                   :: earliestTimeInTree                             , timeEndThisNode  , &
-         &                                                                                finalTimeInTree
+         &                                                                                finalTimeInTree                                , timeRemaining
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                                       , vMessage
@@ -352,6 +359,8 @@ contains
        treeDidEvolve=.true.
        return
     end if
+    ! Initialize remaining time calculations.
+    timeRemaining=self%metaTreeProcessingTime_%timeRemaining(tree,timeEnd)
     ! Outer loop: This causes the tree to be repeatedly walked and evolved until it has been evolved all the way to the specified
     ! end time. We stop when no nodes were evolved, which indicates that no further evolution is possible.
     didEvolve                  =.true.
@@ -569,6 +578,12 @@ contains
                    end if
                    node => nodeNext
                 end do treeWalkLoop
+                ! Estimate remaining time to process the tree.
+                timeRemaining=self%metaTreeProcessingTime_%timeRemaining(tree,timeEnd)
+                if (timeRemaining > 0.0d0) then
+                   write (label,'(i16)') int(timeRemaining)
+                   call displayMessage("Estimated time remaining to process tree: "//trim(adjustl(label))//"s")
+                end if
                 ! Output tree progress information.
                 if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
                    if (displayVerbosity() >= verbosityLevel) then
@@ -977,8 +992,14 @@ contains
              evolveToTime          =basicParent%time()
              isLimitedByTimestepper=.false.
           end if
+          if (report) then
+             if (node%isPrimaryProgenitor()) then
+                call Evolve_To_Time_Report("promotion limit: " ,evolveToTime,node%parent%index())
+             else
+                call Evolve_To_Time_Report("node merge limit: ",evolveToTime,node%parent%index())
+             end if
+          end if
        end if
-       if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
     case (.true.)
        ! Do not let satellite evolve too far beyond parent.
        if (associated(node%parent%parent)) then
