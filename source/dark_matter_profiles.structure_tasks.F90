@@ -30,13 +30,42 @@ module Dark_Matter_Profile_Structure_Tasks
   public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task        , Dark_Matter_Profile_Potential_Task               , &
        &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task          , Dark_Matter_Profile_Chandrasekhar_Integral_Task  , &
        &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore, &
-       &    Dark_Matter_Profile_Density_Spherical_Average_Task   , Dark_Matter_Profile_Radius_Enclosing_Mass
+       &    Dark_Matter_Profile_Density_Spherical_Average_Task   , Dark_Matter_Profile_Radius_Enclosing_Mass              , Dark_Matter_Profile_Structure_Tasks_Initialize
 
   class(darkMatterProfileClass), pointer  :: darkMatterProfile_
   !$omp threadprivate(darkMatterProfile_)
 
+  logical :: darkMatterChandrasekharIntegralComputeVelocityDispersion
+  
 contains
 
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_Initialize(parameters)
+    !!{
+    Initialize the module.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    
+    !![
+    <inputParameter>
+      <name>darkMatterChandrasekharIntegralComputeVelocityDispersion</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+	If true, the Chandrasekhar integral is computed using the velocity dispersion, $\sigma_mathrm{r}(r)$. Otherwise, the
+	velocity dispersion is approximated as $V_\mathrm{c}(r)/\sqrt{2}$.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_Initialize
+  
   !![
   <nodeComponentThreadInitializationTask>
    <unitName>Dark_Matter_Profile_Structure_Tasks_Thread_Initialize</unitName>
@@ -181,7 +210,11 @@ contains
     positionSpherical =[radius,0.0d0,0.0d0]
     density           =Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
     if (density  <= 0.0d0) return
-    velocityDispersion=darkMatterProfile_%radialVelocityDispersion(node,radius)
+    if (darkMatterChandrasekharIntegralComputeVelocityDispersion) then
+       velocityDispersion=darkMatterProfile_%radialVelocityDispersion(node,radius)
+    else
+       velocityDispersion=darkMatterProfile_%circularVelocity        (node,radius)/sqrt(2.0d0)
+    end if
     if (velocityDispersion > 0.0d0) then    
        xV     =+velocity           &
             &  /velocityDispersion &
