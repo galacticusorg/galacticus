@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727836375973,
+  "lastUpdate": 1727898356348,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "738907272e8bedcc3d1c8a688abdd98d93bf258d",
-          "message": "Merge pull request #529 from galacticusorg/featReuseableWorkflows\n\nMake use of reuseable workflows to simplify GitHub Actions workflow files",
-          "timestamp": "2024-01-20T20:06:59Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/738907272e8bedcc3d1c8a688abdd98d93bf258d"
-        },
-        "date": 1705871795052,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.605,
-            "unit": "seconds",
-            "range": 0.0205548047903122
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8692,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20520.2387742383,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "577e939fa7317dfbd3bff04028b2ace201c27310",
+          "message": "Merge pull request #712 from galacticusorg/featOutputMaximumMemory\n\nOutput the maximum memory usage",
+          "timestamp": "2024-10-02T13:07:34Z",
+          "tree_id": "3f9b44d66c354f198e48a29b61e01b2835eb53b4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
+        },
+        "date": 1727898354515,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.435,
+            "unit": "seconds",
+            "range": 0.0576931538411121
           }
         ]
       }
