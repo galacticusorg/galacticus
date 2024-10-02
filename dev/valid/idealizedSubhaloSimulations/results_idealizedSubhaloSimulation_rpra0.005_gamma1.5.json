@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "b27a1a226fa7ac24d0e27c822e0b9c979c784133",
-        "message": "fix: Remove debugging comments\n",
-        "timestamp": "2024-10-01 08:27:04-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b27a1a226fa7ac24d0e27c822e0b9c979c784133"
+        "id": "577e939fa7317dfbd3bff04028b2ace201c27310",
+        "message": "Merge pull request #712 from galacticusorg/featOutputMaximumMemory\n\nOutput the maximum memory usage\n",
+        "timestamp": "2024-10-02 13:07:34+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
     },
     "results": [
         {

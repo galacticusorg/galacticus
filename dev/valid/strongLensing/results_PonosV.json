@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageBelow" : 58.3333333333333,
+      "target" : 0.85,
+      "percentageAbove" : 41.6666666666667
+   },
+   "commit" : {
+      "id" : "577e939fa7317dfbd3bff04028b2ace201c27310",
+      "message" : "Merge pull request #712 from galacticusorg/featOutputMaximumMemory",
+      "timestamp" : "Wed, 2 Oct 2024 13:07:34 +0000",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      },
+      "url" : "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "surfaceDensity" : {
-      "percentageBelow" : 46.875,
-      "target" : 0.006,
-      "percentageAbove" : 53.125
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "author" : {
-         "email" : "abenson@obs.carnegiescience.edu",
-         "name" : "Andrew Benson"
-      },
-      "id" : "b27a1a226fa7ac24d0e27c822e0b9c979c784133",
-      "message" : "fix: Remove debugging comments",
-      "timestamp" : "Tue, 1 Oct 2024 08:27:04 -0700",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/b27a1a226fa7ac24d0e27c822e0b9c979c784133"
-   },
-   "slope" : {
-      "percentageBelow" : 69.2307692307692,
-      "target" : 0.85,
-      "percentageAbove" : 30.7692307692308
+      "percentageBelow" : 50,
+      "percentageAbove" : 50,
+      "target" : 0.006
    }
 }
