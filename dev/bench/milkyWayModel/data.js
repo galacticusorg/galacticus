@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727836380791,
+  "lastUpdate": 1727898360437,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "38eb56e63706ddadc6d5d8041c73d21137c8cf6a",
-          "message": "Merge pull request #532 from galacticusorg/fixZeroStellarHistories\n\nEnsure stellar histories are zeroed when zeroing stellar mass due to ODE solver failure",
-          "timestamp": "2024-01-18T15:20:03Z",
-          "tree_id": "052cbacc96846aa8dd513d1abd956fec1d04b0f9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/38eb56e63706ddadc6d5d8041c73d21137c8cf6a"
-        },
-        "date": 1705607256175,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 141.753,
-            "unit": "seconds",
-            "range": 0.163878308509935
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10634,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0280719223914,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "577e939fa7317dfbd3bff04028b2ace201c27310",
+          "message": "Merge pull request #712 from galacticusorg/featOutputMaximumMemory\n\nOutput the maximum memory usage",
+          "timestamp": "2024-10-02T13:07:34Z",
+          "tree_id": "3f9b44d66c354f198e48a29b61e01b2835eb53b4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
+        },
+        "date": 1727898359596,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 409.537,
+            "unit": "seconds",
+            "range": 0.504521654638132
           }
         ]
       }
