@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "a11ac6ab603648f4ab70ab8c91756ec8e3fec9b9",
-        "message": "Merge pull request #710 from galacticusorg/featDiskInstabilityRetainedFractions\n\nAllow different fractions of angular momentum to be retained in disk and spheroid during disk instabilities\n",
-        "timestamp": "2024-09-27 13:58:28+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/a11ac6ab603648f4ab70ab8c91756ec8e3fec9b9"
+        "id": "b27a1a226fa7ac24d0e27c822e0b9c979c784133",
+        "message": "fix: Remove debugging comments\n",
+        "timestamp": "2024-10-01 08:27:04-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b27a1a226fa7ac24d0e27c822e0b9c979c784133"
     },
     "results": [
         {
