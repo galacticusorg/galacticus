@@ -222,6 +222,7 @@ galacticus.hdf5
  +-> Version                                  Group
       |
       +-> buildTime                           Attribute {1}
+      +-> memoryUsageMaximum                  Attribute {1}
       +-> runStartTime                        Attribute {1}
       +-> runEndTime                          Attribute {1}
       +-> runDuration                         Attribute {1}
@@ -277,7 +278,7 @@ The {\normalfont \ttfamily Parameters} group contains a record of all parameter 
 
 \subsection{Version}
 
-The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the times at which the model run started and eneded are stored as {\normalfont \ttfamily runStartTime} and {\normalfont \ttfamily runEndTime}, with the duration of the run (in seconds) stored as {\normalfont \ttfamily runDuration}. If the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
+The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the times at which the model run started and eneded are stored as {\normalfont \ttfamily runStartTime} and {\normalfont \ttfamily runEndTime}, with the duration of the run (in seconds) stored as {\normalfont \ttfamily runDuration}, and the maximum memory used by the model (in bytes) is stored as {\normalfont \ttfamily memoryUsageMaximum}. If the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
 
 \subsection{Outputs}
 

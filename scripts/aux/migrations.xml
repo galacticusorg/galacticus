@@ -199,6 +199,11 @@
   <migration commit="7030a7dab187c4e0aa5112681b3273647595bbde">
     <translation function="radiationFieldIntergalacticBackgroundCMB"/>
   </migration>
+  <migration commit="bdcfda39270bcb782937b8106034dd32144f44cd">
+    <translation xpath="//galacticDynamicsBarInstability[@value='efstathiou1982' or @value='efstathiou1982Tidal' or @value='fixedTimescale']/fractionAngularMomentumRetained[@value]">
+      <name new="fractionAngularMomentumRetainedDisk"/>
+    </translation>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

@@ -452,15 +452,21 @@ contains
     !!{
     Return the ANSI escape code for red text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayRed
 
+#ifdef USEMPI
+    displayRed=""
+#else
     if (stdOutIsATTY()) then
        displayRed=ESC//"[31m"
     else
        displayRed=""
     end if
+#endif
     return
   end function displayRed
 
@@ -468,15 +474,21 @@ contains
     !!{
     Return the ANSI escape code for blue text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayBlue
 
+#ifdef USEMPI
+    displayBlue=""
+#else
     if (stdOutIsATTY()) then
        displayBlue=ESC//"[34m"
     else
        displayBlue=""
     end if
+#endif
     return
   end function displayBlue
   
@@ -484,15 +496,21 @@ contains
     !!{
     Return the ANSI escape code for yellow text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayYellow
 
+#ifdef USEMPI
+    displayYellow=""
+#else
     if (stdOutIsATTY()) then
        displayYellow=ESC//"[33m"
     else
        displayYellow=""
     end if
+#endif
     return
   end function displayYellow
   
@@ -500,15 +518,21 @@ contains
     !!{
     Return the ANSI escape code for magenta text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayMagenta
 
+#ifdef USEMPI
+    displayMagenta=""
+#else
     if (stdOutIsATTY()) then
        displayMagenta=ESC//"[35m"
     else
        displayMagenta=""
     end if
+#endif
     return
   end function displayMagenta
   
@@ -516,15 +540,21 @@ contains
     !!{
     Return the ANSI escape code for green text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayGreen
 
+#ifdef USEMPI
+    displayGreen=""
+#else
     if (stdOutIsATTY()) then
        displayGreen=ESC//"[32m"
     else
        displayGreen=""
     end if
+#endif
     return
   end function displayGreen
   
@@ -532,15 +562,21 @@ contains
     !!{
     Return the ANSI escape code for bold text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayBold
 
+#ifdef USEMPI
+    displayBold=""
+#else
     if (stdOutIsATTY()) then
        displayBold=ESC//"[1m"
     else
        displayBold=""
     end if
+#endif
     return
   end function displayBold
   
@@ -548,15 +584,21 @@ contains
     !!{
     Return the ANSI escape code to reset text.
     !!}
+#ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
+#endif
     implicit none
     character(len=:), allocatable :: displayReset
 
+#ifdef USEMPI
+    displayReset=""
+#else
     if (stdOutIsATTY()) then
        displayReset=ESC//"[0m"
     else
        displayReset=""
     end if
+#endif
     return
   end function displayReset
   
