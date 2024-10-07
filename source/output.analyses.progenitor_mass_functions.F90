@@ -485,7 +485,7 @@ contains
     type            (outputAnalysisPropertyOperatorIdentity          ), pointer                                 :: outputAnalysisPropertyIdentity_
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
     !![
-    <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_"/>
+    <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
 
     ! Initialize state.

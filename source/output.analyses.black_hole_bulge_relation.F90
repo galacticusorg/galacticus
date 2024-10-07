@@ -160,7 +160,7 @@ contains
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_"/>
     !!]
     
     !$ call hdf5Access%set()

@@ -174,7 +174,7 @@ contains
     type            (varying_string                                     )                                :: targetLabel
     type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, toleranceRelative, *darkMatterHaloScale_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
     !!]
     
     !$ call hdf5Access%set()

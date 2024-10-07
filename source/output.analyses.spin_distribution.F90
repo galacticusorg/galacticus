@@ -433,7 +433,7 @@ contains
     double precision                                                   , parameter                                  :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
     !![
-    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
     !!]
     
     ! Build grid of spins.
