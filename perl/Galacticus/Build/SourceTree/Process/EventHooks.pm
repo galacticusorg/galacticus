@@ -395,6 +395,7 @@ CODE
    {$name}EventBackups => {$name}EventBackups%next
    select type (eventHook_ => eventHookBackup%eventHook_)
    type is (eventHook{$interfaceType})
+      if (allocated({$name}Event%hooks_)) deallocate({$name}Event%hooks_)
       {$name}Event        =  eventHook_
    class default
       call Error_Report('eventHook has incorrect class'//{$location})
