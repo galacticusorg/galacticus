@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
-      "percentageBelow" : 58.3333333333333,
+      "percentageBelow" : 69.2307692307692,
       "target" : 0.85,
-      "percentageAbove" : 41.6666666666667
+      "percentageAbove" : 30.7692307692308
    },
    "commit" : {
-      "id" : "577e939fa7317dfbd3bff04028b2ace201c27310",
-      "message" : "Merge pull request #712 from galacticusorg/featOutputMaximumMemory",
-      "timestamp" : "Wed, 2 Oct 2024 13:07:34 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/b5b68023ef964b251e13a79791ce095afb0dd7a5",
+      "timestamp" : "Mon, 7 Oct 2024 07:52:35 -0700",
+      "id" : "b5b68023ef964b251e13a79791ce095afb0dd7a5",
+      "message" : "feat: Add a `galacticFilter` that filters on maximum depth in the subhalo hierarchy",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
+         "email" : "abenson@carnegiescience.edu"
+      }
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageBelow" : 50,
-      "percentageAbove" : 50,
-      "target" : 0.006
+      "target" : 0.006,
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875
    }
 }

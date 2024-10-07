@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "577e939fa7317dfbd3bff04028b2ace201c27310",
-        "message": "Merge pull request #712 from galacticusorg/featOutputMaximumMemory\n\nOutput the maximum memory usage\n",
-        "timestamp": "2024-10-02 13:07:34+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
+        "id": "b5b68023ef964b251e13a79791ce095afb0dd7a5",
+        "message": "feat: Add a `galacticFilter` that filters on maximum depth in the subhalo hierarchy\n",
+        "timestamp": "2024-10-07 07:52:35-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b5b68023ef964b251e13a79791ce095afb0dd7a5"
     },
     "results": [
         {
