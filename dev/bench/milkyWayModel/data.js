@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727898368190,
+  "lastUpdate": 1728337912386,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "738907272e8bedcc3d1c8a688abdd98d93bf258d",
-          "message": "Merge pull request #529 from galacticusorg/featReuseableWorkflows\n\nMake use of reuseable workflows to simplify GitHub Actions workflow files",
-          "timestamp": "2024-01-20T20:06:59Z",
-          "tree_id": "146720a7231dc2c5d78c9c8b9783bbfbc4242b64",
-          "url": "https://github.com/galacticusorg/galacticus/commit/738907272e8bedcc3d1c8a688abdd98d93bf258d"
-        },
-        "date": 1705792183271,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 164.417,
-            "unit": "seconds",
-            "range": 1.35993312335617
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10634,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9674538387378,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b5b68023ef964b251e13a79791ce095afb0dd7a5",
+          "message": "feat: Add a `galacticFilter` that filters on maximum depth in the subhalo hierarchy",
+          "timestamp": "2024-10-07T07:52:35-07:00",
+          "tree_id": "96e119c4357ca70d68b68f7896c8cfb1326c48e6",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b5b68023ef964b251e13a79791ce095afb0dd7a5"
+        },
+        "date": 1728337911204,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 391.619,
+            "unit": "seconds",
+            "range": 0.426174729430792
           }
         ]
       }
