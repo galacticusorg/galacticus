@@ -58,12 +58,13 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : trim
-    use :: Numerical_Constants_Astronomical, only : megaParsec               , massSolar
+    use :: Numerical_Constants_Astronomical, only : megaParsec                  , massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Kepler_Orbits                   , only : keplerOrbitMasses        , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta            , &
-         &                                          keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter  , &
-         &                                          keplerOrbitVelocityRadial, keplerOrbitVelocityTangential , keplerOrbitEnergy          , keplerOrbitAngularMomentum  , &
-         &                                          keplerOrbitEccentricity  , keplerOrbitSemiMajorAxis      , keplerOrbitMassHost        , enumerationKeplerOrbitEncode
+    use :: Kepler_Orbits                   , only : keplerOrbitMasses           , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta            , &
+         &                                          keplerOrbitPhi              , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter  , &
+         &                                          keplerOrbitVelocityRadial   , keplerOrbitVelocityTangential , keplerOrbitEnergy          , keplerOrbitAngularMomentum  , &
+         &                                          keplerOrbitEccentricity     , keplerOrbitSemiMajorAxis      , keplerOrbitMassHost        , keplerOrbitMassSatellite    , &
+         &                                          enumerationKeplerOrbitEncode
     implicit none
     class    (nodePropertyExtractorKeplerOrbit), intent(inout)               :: self
     type     (varying_string                  ), intent(in   ), dimension(:) :: properties
@@ -86,6 +87,10 @@ contains
        case (keplerOrbitMassHost           %ID)
           self%names_       (i)=prefix//'HostMass'
           self%descriptions_(i)='The mass of the host system [M☉].'
+          self%unitsInSI_   (i)=massSolar
+       case (keplerOrbitMassSatellite      %ID)
+          self%names_       (i)=prefix//'SatelliteMass'
+          self%descriptions_(i)='The mass of the satellite system [M☉].'
           self%unitsInSI_   (i)=massSolar
        case (keplerOrbitSpecificReducedMass%ID)
           self%names_       (i)=prefix//'SpecificReducedMass'
@@ -166,7 +171,7 @@ contains
     use :: Kepler_Orbits, only : keplerOrbitMassHost      , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta          , &
          &                       keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter, &
          &                       keplerOrbitVelocityRadial, keplerOrbitVelocityTangential , keplerOrbitEnergy          , keplerOrbitAngularMomentum, &
-         &                       keplerOrbitEccentricity  , keplerOrbitSemiMajorAxis
+         &                       keplerOrbitEccentricity  , keplerOrbitSemiMajorAxis      , keplerOrbitMassSatellite
     implicit none
     double precision                                  , dimension(:) , allocatable :: keplerOrbitExtractFromOrbit
     class           (nodePropertyExtractorKeplerOrbit), intent(inout), target      :: self
@@ -180,6 +185,8 @@ contains
           select case (self%propertyIDs(i)%ID)
           case (keplerOrbitMassHost           %ID)
              keplerOrbitExtractFromOrbit(i)=orbit%massHost           ()
+          case (keplerOrbitMassSatellite      %ID)
+             keplerOrbitExtractFromOrbit(i)=orbit%massSatellite      ()
           case (keplerOrbitSpecificReducedMass%ID)
              keplerOrbitExtractFromOrbit(i)=orbit%specificReducedMass()
           case (keplerOrbitRadius             %ID)
