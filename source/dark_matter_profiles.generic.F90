@@ -65,7 +65,8 @@ module Dark_Matter_Profiles_Generic
      type            (interpolator            ), allocatable               :: genericEnclosedMass
      ! Memoized solutions for the potential.
      double precision                          , allocatable, dimension(:) :: genericPotentialPotential                              , genericPotentialRadius
-     double precision                                                      :: genericPotentialRadiusMinimum                          , genericPotentialRadiusMaximum
+     double precision                                                      :: genericPotentialRadiusMinimum                          , genericPotentialRadiusMaximum                      , &
+          &                                                                   genericPotentialRadiusMinimum_
      type            (interpolator            ), allocatable               :: genericPotential
      ! Options controlling tolerance of failures.
      logical                                                               :: tolerateEnclosedMassIntegrationFailure       =  .false., tolerateVelocityMaximumFailure             =.false., &
@@ -549,10 +550,11 @@ contains
                 if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
                 allocate(self%genericPotentialRadius   (countRadii))
                 allocate(self%genericPotentialPotential(countRadii))
-                self%genericPotentialRadius       =radii_
-                self%genericPotentialPotential    =potentials_
-                self%genericPotentialRadiusMinimum=radiusMinimum
-                self%genericPotentialRadiusMaximum=radiusMaximum
+                self%genericPotentialRadius        =radii_
+                self%genericPotentialPotential     =potentials_
+                self%genericPotentialRadiusMinimum =radiusMinimum
+                self%genericPotentialRadiusMinimum_=radii_       (1)
+                self%genericPotentialRadiusMaximum =radiusMaximum
              else
                 ! The profile is undefined. Leave the table unallocated.
                 if (allocated(self%genericPotential)) deallocate(self%genericPotential)
@@ -563,7 +565,7 @@ contains
           end if
        end if
        if (allocated(self%genericPotential)) then
-          genericPotentialNumerical=-exp(self%genericPotential%interpolate(log(max(radius,self%genericPotentialRadiusMinimum))))
+          genericPotentialNumerical=-exp(self%genericPotential%interpolate(log(max(radius,self%genericPotentialRadiusMinimum_))))
        else
           genericPotentialNumerical=+0.0d0
        end if
