@@ -16,6 +16,10 @@ sub ReadFile {
     my $fileName  = shift();
     my (%options) = @_;
     my $code      = slurp($fileName);
+    # Ensure that there is a newline character on the last line of the file. (Some editors do not add this automatically.)
+    $code .= "\n"
+	if (substr($code,-1) ne "\n");
+    my $str = substr($code,-1);
     $code         = &Instrument($code)
 	unless ( exists($options{'instrument'}) && ! $options{'instrument'} );
     return $code;
