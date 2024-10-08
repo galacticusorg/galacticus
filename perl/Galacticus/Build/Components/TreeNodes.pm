@@ -123,7 +123,7 @@ sub Build_Tree_Node_Class {
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "isPrimaryProgenitor"                                                                                             ,
-	     function    => "Tree_Node_Is_Primary_Progenitor"                                                                                 ,
+	     function    => "treeNodeIsPrimaryProgenitor"                                                                                 ,
 	     description => "Return true if this node is the primary progenitor of its descendant, false otherwise."                          ,
 	     returnType  => "\\logicalzero"                                                                                                   ,
 	     arguments   => ""

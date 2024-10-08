@@ -1051,6 +1051,7 @@ jobs:
                 test-branchSubsampling.pl,
                 test-CGM-mass-cooled.pl,
                 test-concentration-Ludlow2016.pl,
+                test-concentration-Johnson2021.pl,
                 test-tidallyTruncatedNFWFit.pl,
                 test-constraint-deterministic-spins.pl,
                 test-constraint-mass-function.pl,

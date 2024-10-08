@@ -343,12 +343,12 @@ contains
     call state_(stateCount)%darkMatterProfile%scaleSet(radiusCore)
     call Calculations_Reset(state_(stateCount)%nodeWork)
     ! Find the non-alt density.
-    densityOuter=+state_(stateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          state_(stateCount)%basic%time()) &
-         &       *state_(stateCount)%self%virialDensityContrast_%densityContrast     (state_(stateCount)%basic%mass(),state_(stateCount)%basic%time())
+    densityOuter=+state_(stateCount)%self%cosmologyFunctions_           %matterDensityEpochal  (                                state_(stateCount)%basic%time()) &
+         &       *state_(stateCount)%self%virialDensityContrast_        %densityContrast       (state_(stateCount)%basic%mass(),state_(stateCount)%basic%time())
     ! Solve for radius which encloses required non-alt density.
-    radiusOuter=state_(stateCount)%self%darkMatterProfileDMODefinition%radiusEnclosingDensity(state_(stateCount)%nodeWork,densityOuter)
+    radiusOuter =+state_(stateCount)%self%darkMatterProfileDMODefinition%radiusEnclosingDensity(state_(stateCount)%nodeWork    ,densityOuter)
     ! Get the mass within this radius.
-    massOuter  =state_(stateCount)%self%darkMatterProfileDMODefinition%enclosedMass          (state_(stateCount)%nodeWork, radiusOuter)
+    massOuter   =+state_(stateCount)%self%darkMatterProfileDMODefinition%enclosedMass          (state_(stateCount)%nodeWork    , radiusOuter)
     ! Return root function.
     concentrationMassRoot=massOuter-state_(stateCount)%mass
     return
