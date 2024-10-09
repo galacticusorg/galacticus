@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728337922277,
+  "lastUpdate": 1728452706254,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "738907272e8bedcc3d1c8a688abdd98d93bf258d",
-          "message": "Merge pull request #529 from galacticusorg/featReuseableWorkflows\n\nMake use of reuseable workflows to simplify GitHub Actions workflow files",
-          "timestamp": "2024-01-20T20:06:59Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/738907272e8bedcc3d1c8a688abdd98d93bf258d"
-        },
-        "date": 1705871798969,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 168.784,
-            "unit": "seconds",
-            "range": 0.351557107734947
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10636,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0301099315058,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1d9bd33ff24f246ef6308c5db0c18f6b69ae5278",
+          "message": "Merge pull request #714 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.2.5",
+          "timestamp": "2024-10-08T23:31:20Z",
+          "tree_id": "5f8854e1cb78c48be87c7e375468c128f7ca8607",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1d9bd33ff24f246ef6308c5db0c18f6b69ae5278"
+        },
+        "date": 1728452705160,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 505.364,
+            "unit": "seconds",
+            "range": 0.284102798305375
           }
         ]
       }
