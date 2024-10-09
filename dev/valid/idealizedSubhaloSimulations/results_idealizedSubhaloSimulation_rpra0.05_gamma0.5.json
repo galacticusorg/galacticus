@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "b5b68023ef964b251e13a79791ce095afb0dd7a5",
-        "message": "feat: Add a `galacticFilter` that filters on maximum depth in the subhalo hierarchy\n",
-        "timestamp": "2024-10-07 07:52:35-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b5b68023ef964b251e13a79791ce095afb0dd7a5"
+        "id": "1d9bd33ff24f246ef6308c5db0c18f6b69ae5278",
+        "message": "Merge pull request #714 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.2.5\n",
+        "timestamp": "2024-10-08 23:31:20+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/1d9bd33ff24f246ef6308c5db0c18f6b69ae5278"
     },
     "results": [
         {
