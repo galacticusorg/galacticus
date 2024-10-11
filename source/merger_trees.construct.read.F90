@@ -1607,9 +1607,11 @@ contains
     !!{
     Scan for cases where a subhalo stops being a subhalo and so must be promoted.
     !!}
-    use :: Galacticus_Nodes          , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
+    use :: Galacticus_Nodes            , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList, &
+         &                                      nodeComponentSatellite
+    use :: Merger_Tree_Read_Importers  , only : nodeData
+    use :: Node_Subhalo_Promotions     , only : nodeSubhaloPromotionPerform
+    use :: Satellite_Merging_Timescales, only : satelliteMergeTimeInfinite
     implicit none
     class           (mergerTreeConstructorRead), intent(inout)                              :: self
     class           (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
@@ -1619,6 +1621,7 @@ contains
     type            (treeNode                 ), pointer                                    :: promotionNode           , node             , &
          &                                                                                     nodeNew
     class           (nodeComponentBasic       ), pointer                                    :: basic
+    class           (nodeComponentSatellite   ), pointer                                    :: satellite
     integer         (c_size_t                 )                                             :: iNode
     integer                                                                                 :: i
     logical                                                                                 :: isolatedProgenitorExists, nodeIsMostMassive, &
@@ -1698,6 +1701,18 @@ contains
                       timeSubhaloPromotion =  descendantNode                                  %nodeTime
                    end if
                    node                    => nodeList      (nodes(iNode)  %isolatedNodeIndex)%node
+                   ! If the node being promoted has a merging time set we unset it now. This was a subhalo which was flagged for
+                   ! merging, but we are now promoting it as the primary progenitor of the current node, so it can no longer
+                   ! merge.
+                   satellite => node%satellite()
+                   if (satellite%timeOfMerging() < satelliteMergeTimeInfinite) then
+                      call satellite%timeOfMergingSet(satelliteMergeTimeInfinite)
+                      if (associated(node%mergeTarget)) then
+                         call node%removeFromMergee()
+                         nullify(node%mergeTarget)
+                      end if
+                   end if
+                   ! Create the event.
                    allocate(nodeEventSubhaloPromotion ::  newEvent)
                    allocate(nodeEventSubhaloPromotion :: pairEvent)
                    call          node%attachEvent( newEvent)
@@ -2816,7 +2831,6 @@ contains
              currentHost    => readLastHostDescendant(nodes(iNode))
              ! Add a jump if the tree ends before the descendant time.
              if (currentHost%nodeTime <= nodes(iNode)%descendant%nodeTime) then
-                timeOfJump     =  currentHost%nodeTime
                 jumpToHost     => nodes(iNode)%descendant%host
                 do while (jumpToHost%isSubhalo)
                    if (.not.self%warningNestedHierarchyIssued) then
@@ -2829,6 +2843,7 @@ contains
                    end if
                    jumpToHost => jumpToHost%host
                 end do
+                timeOfJump=jumpToHost%nodeTime
                 call readCreateBranchJumpEvent(                                                    &
                      &                        nodeList(iIsolatedNode                      )%node, &
                      &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
@@ -2924,9 +2939,9 @@ contains
              end if
              ! If a jump was detected, create an event.
              if (subhaloJumps) then
-                if (timeOfJump < 0.0d0)                   &
-                     & timeOfJump=descendantNode%nodeTime
                 jumpToHost => descendantNode%descendant%host
+                if (timeOfJump < 0.0d0)                   &
+                     & timeOfJump=jumpToHost%nodeTime
                 ! Find an isolated host.
                 do while (jumpToHost%isSubhalo)
                    jumpToHost => jumpToHost%host
