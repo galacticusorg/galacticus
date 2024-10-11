@@ -67,8 +67,8 @@
      Type used for tracing nodes through their positional history. 
      !!}
      double precision                     :: time
-     type            (treeNode ), pointer :: node       , nodeHost
-     type            (nodeTrace), pointer :: next
+     type            (treeNode ), pointer :: node        => null(), nodeHost => null()
+     type            (nodeTrace), pointer :: next        => null()
      logical                              :: isSatellite
      integer         (c_size_t )          :: iHistory
   end type nodeTrace
