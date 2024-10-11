@@ -830,8 +830,8 @@ contains
        call disk%stellarPropertiesHistoryScale  (                                            stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=disk%starFormationHistory()
-       call starFormationHistory_%scales        (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
-       call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                            )
+       call starFormationHistory_%scales        (stellarPopulationHistoryScales,node,disk%massStellar(),disk%abundancesStellar())
+       call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                                 )
        call stellarPopulationHistoryScales%destroy()
     end select
     return
@@ -871,6 +871,7 @@ contains
     use :: Histories                       , only : history
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
+    use :: Kind_NUmbers, only : kind_int8
     implicit none
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -959,12 +960,11 @@ contains
           ! Also add star formation histories.
           historyNode=disk    %starFormationHistory    ()
           historyHost=diskHost%starFormationHistory    ()
-          call historyHost%increment              (historyNode,autoExtend  =.true. )
-          call historyNode%reset                  (                                )
-          call diskHost   %starFormationHistorySet(historyHost                     )
-          call disk       %starFormationHistorySet(historyNode                     )
-          call historyNode%destroy                (                                )
-          call historyHost%destroy                (                                )
+          call starFormationHistory_%move                   (nodeHost,node,historyHost,historyNode)
+          call diskHost             %starFormationHistorySet(              historyHost            )
+          call disk                 %starFormationHistorySet(                          historyNode)
+          call historyNode          %destroy                (                                     )
+          call historyHost          %destroy                (                                     )
        case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
@@ -979,7 +979,7 @@ contains
                &                                            +disk        %luminositiesStellar()                         &
                &                                           )
           ! Also add stellar properties histories.
-          historyNode=disk    %stellarPropertiesHistory()
+          historyNode=disk        %stellarPropertiesHistory()
           historyHost=spheroidHost%stellarPropertiesHistory()
           call historyHost %interpolatedIncrement      (historyNode)
           call historyNode %reset                      (           )
@@ -988,12 +988,11 @@ contains
           ! Also add star formation histories.
           historyNode=disk        %starFormationHistory    ()
           historyHost=spheroidHost%starFormationHistory    ()
-          call historyHost %increment              (historyNode,autoExtend  =.true. )
-          call historyNode %reset                  (                                )
-          call spheroidHost%starFormationHistorySet(historyHost                     )
-          call disk        %starFormationHistorySet(historyNode                     )
-          call historyNode %destroy                (                                )
-          call historyHost %destroy                (                                )
+          call starFormationHistory_%move                   (nodeHost,node,historyHost,historyNode)
+          call spheroidHost         %starFormationHistorySet(              historyHost            )
+          call disk                 %starFormationHistorySet(                          historyNode)
+          call historyNode          %destroy                (                                     )
+          call historyHost          %destroy                (                                     )
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select

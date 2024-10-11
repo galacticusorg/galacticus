@@ -83,15 +83,15 @@
      double precision                  , allocatable, dimension(:) :: metallicityTable
      type            (timeIntervals   ), allocatable, dimension(:) :: intervals
    contains
-     final     ::                                adaptiveDestructor
-     procedure :: create                      => adaptiveCreate
-     procedure :: update                      => adaptiveUpdate
-     procedure :: rate                        => adaptiveRate
-     procedure :: scales                      => adaptiveScales
-     procedure :: times                       => adaptiveTimes
-     procedure :: metallicityBoundaries       => adaptiveMetallicityBoundaries
-     procedure :: perOutputTabulationIsStatic => adaptivePerOutputTabulationIsStatic
-     procedure :: descriptor                  => adaptiveDescriptor
+     final     ::                          adaptiveDestructor
+     procedure :: create                => adaptiveCreate
+     procedure :: update                => adaptiveUpdate
+     procedure :: rate                  => adaptiveRate
+     procedure :: scales                => adaptiveScales
+     procedure :: times                 => adaptiveTimes
+     procedure :: metallicityBoundaries => adaptiveMetallicityBoundaries
+     procedure :: ageDistribution       => adaptiveAgeDistribution
+     procedure :: descriptor            => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
   interface starFormationHistoryAdaptive
@@ -404,7 +404,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout)           :: self
-    type            (treeNode                    ), intent(inout)           :: node
+    type            (treeNode                    ), intent(inout), target   :: node
     type            (history                     ), intent(inout)           :: historyStarFormation
     double precision                              , intent(in   )           :: timeBegin
     double precision                              , intent(in   ), optional :: timeEnd
@@ -511,7 +511,7 @@ contains
     return
   end subroutine adaptiveUpdate
 
-  subroutine adaptiveScales(self,historyStarFormation,massStellar,abundancesStellar)
+  subroutine adaptiveScales(self,historyStarFormation,node,massStellar,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
@@ -520,15 +520,18 @@ contains
     double precision                              , intent(in   )               :: massStellar
     type            (abundances                  ), intent(in   )               :: abundancesStellar
     type            (history                     ), intent(inout)               :: historyStarFormation
+    type            (treeNode                    ), intent(inout)               :: node
     double precision                              , parameter                   :: massStellarMinimum  =1.0d0
     double precision                              , allocatable  , dimension(:) :: timeSteps
     integer         (c_size_t                    )                              :: iMetallicity
-    !$GLC attributes unused :: abundancesStellar
+    !$GLC attributes unused :: abundancesStellar, node
 
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
-       historyStarFormation%data(:,iMetallicity)=max(massStellar,massStellarMinimum)/timeSteps
+       historyStarFormation%data(:,iMetallicity)=+max(massStellar,massStellarMinimum)                             &
+            &                                    *                     timeSteps                                  &
+            &                                    /historyStarFormation%time     (size(historyStarFormation%time))
     end forall
     deallocate(timeSteps)
     return
@@ -547,15 +550,23 @@ contains
     return
   end function adaptiveMetallicityBoundaries
 
-  function adaptiveTimes(self,indexOutput) result(times)
+  function adaptiveTimes(self,node,indexOutput,starFormationHistory,allowTruncation,timeStart) result(times)
     !!{
     Return the times used in this tabulation.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     double precision                              , allocatable  , dimension(:) :: times
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
-    integer         (c_size_t                    ), intent(in   )               :: indexOutput
-
+    type            (treeNode                    ), intent(inout), optional     :: node
+    integer         (c_size_t                    ), intent(in   ), optional     :: indexOutput
+    type            (history                     ), intent(in   ), optional     :: starFormationHistory
+    logical                                       , intent(in   ), optional     :: allowTruncation
+    double precision                              , intent(  out), optional     :: timeStart
+    !$GLC attributes unused :: allowTruncation
+    
+    if (     present(node       ).or.present(starFormationHistory)) call Error_Report('`node` is not supported'  //{introspection:location})
+    if (.not.present(indexOutput)                                 ) call Error_Report('`indexOutput` is required'//{introspection:location})
     ! Set the times. These are just our tabulated intervals, except for the final time which is pinned to the output time. This is
     ! because our final interval may extend past the output time due to the finite size of our minimum interval. Pinning to the
     ! output time gives a better estimate of the effective size of the bin (since, by definition, no star formation can have
@@ -563,19 +574,22 @@ contains
     allocate(times(size(self%intervals(indexOutput)%time)))
     times             =self%intervals   (indexOutput)%time
     times(size(times))=self%outputTimes_             %time(indexOutput)
+    ! Set the start time.
+    if (present(timeStart)) timeStart=0.0d0
     return
   end function adaptiveTimes
 
-  logical function adaptivePerOutputTabulationIsStatic(self)
+  function adaptiveAgeDistribution(self) result(ageDistribution)
     !!{
-    Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    Indicate the star formation history ages are fixed per output.
     !!}
     implicit none
-    class(starFormationHistoryAdaptive), intent(inout) :: self
+    type (enumerationStarFormationHistoryAgesType)                :: ageDistribution
+    class(starFormationHistoryAdaptive           ), intent(inout) :: self
 
-    adaptivePerOutputTabulationIsStatic=.true.
+    ageDistribution=starFormationHistoryAgesFixedPerOutput
     return
-  end function adaptivePerOutputTabulationIsStatic
+  end function adaptiveAgeDistribution
 
   subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{

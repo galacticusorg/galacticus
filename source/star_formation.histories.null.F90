@@ -69,7 +69,7 @@ contains
     !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout)           :: self
-    type            (treeNode                ), intent(inout)           :: node
+    type            (treeNode                ), intent(inout), target   :: node
     type            (history                 ), intent(inout)           :: historyStarFormation
     double precision                          , intent(in   )           :: timeBegin
     double precision                          , intent(in   ), optional :: timeEnd
@@ -96,7 +96,7 @@ contains
     return
   end subroutine nullRate
 
-  subroutine nullScales(self,historyStarFormation,massStellar,abundancesStellar)
+  subroutine nullScales(self,historyStarFormation,node,massStellar,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
@@ -105,7 +105,8 @@ contains
     double precision                          , intent(in   ) :: massStellar
     type            (abundances              ), intent(in   ) :: abundancesStellar
     type            (history                 ), intent(inout) :: historyStarFormation
-    !$GLC attributes unused :: self, historyStarFormation, massStellar, abundancesStellar
+    type            (treeNode                ), intent(inout) :: node
+    !$GLC attributes unused :: self, historyStarFormation, node, massStellar, abundancesStellar
 
     ! Do nothing.
     return
