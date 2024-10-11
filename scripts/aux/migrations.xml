@@ -204,6 +204,14 @@
       <name new="fractionAngularMomentumRetainedDisk"/>
     </translation>
   </migration>
+  <migration commit="165490f4968c699f7e5bb73ef60bcb7e626f51e6">
+    <translation xpath="//starFormationHistory[@value='adaptive']/countOutputBuffer[@value]">
+      <remove/>
+    </translation>
+     <translation xpath="//starFormationHistory[@value='inSitu']/countOutputBuffer[@value]">
+      <remove/>
+    </translation>
+ </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
