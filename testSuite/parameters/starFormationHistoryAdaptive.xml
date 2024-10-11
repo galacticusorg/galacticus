@@ -119,7 +119,6 @@
     <timeStepMinimum value="0.001"/>
     <countTimeStepsMaximum value="300"/>
     <countMetallicities value="20"/>
-    <countOutputBuffer value=" 3"/>
   </starFormationHistory>
 
   <!-- Output options -->

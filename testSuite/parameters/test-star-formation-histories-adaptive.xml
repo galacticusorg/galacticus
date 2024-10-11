@@ -287,7 +287,6 @@
   <!-- Star formation history -->
   <starFormationHistory value="adaptive">
     <countTimeStepsMaximum value="30"/>
-    <countOutputBuffer value=" 3"/>
   </starFormationHistory>
 
 </parameters>

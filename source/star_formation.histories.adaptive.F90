@@ -76,15 +76,12 @@
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
-     class           (outputTimesClass), pointer                         :: outputTimes_               => null()
-     double precision                                                    :: timeStepMinimum                     , metallicityMaximum, &
-          &                                                                 metallicityMinimum
-     integer         (c_size_t        )                                  :: countTimeStepsMaximum               , countMetallicities, &
-          &                                                                 countOutputBuffer
-     double precision                  , allocatable, dimension(:      ) :: metallicityTable
-     type            (timeIntervals   ), allocatable, dimension(:      ) :: intervals
-     double precision                  , allocatable, dimension(:,:,:,:) :: starFormationHistoryBuffer
-     integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
+     class           (outputTimesClass), pointer                   :: outputTimes_          => null()
+     double precision                                              :: timeStepMinimum                , metallicityMaximum, &
+          &                                                           metallicityMinimum
+     integer         (c_size_t        )                            :: countTimeStepsMaximum          , countMetallicities
+     double precision                  , allocatable, dimension(:) :: metallicityTable
+     type            (timeIntervals   ), allocatable, dimension(:) :: intervals
    contains
      final     ::                                adaptiveDestructor
      procedure :: create                      => adaptiveCreate
@@ -122,8 +119,7 @@ contains
     double precision                              , allocatable  , dimension(:) :: metallicityBoundaries
     double precision                                                            :: timeStepMinimum      , metallicityMinimum   , &
          &                                                                         metallicityMaximum
-    integer         (c_size_t)                                                  :: countMetallicities   , countTimeStepsMaximum, &
-          &                                                                        countOutputBuffer
+    integer         (c_size_t)                                                  :: countMetallicities   , countTimeStepsMaximum
 
     !![
     <inputParameter>
@@ -176,15 +172,9 @@ contains
        !!]
     end if
     !![
-    <inputParameter>
-      <name>countOutputBuffer</name>
-      <defaultValue>100_c_size_t</defaultValue>
-      <description>The number of galaxies to hold in the output buffer.</description>
-      <source>parameters</source>
-    </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     <conditionalCall>
-     <call>self=starFormationHistoryAdaptive(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
+     <call>self=starFormationHistoryAdaptive(outputTimes_,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
      <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
      <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
      <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
@@ -196,7 +186,7 @@ contains
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
+  function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
     Internal constructor for the ``adaptive'' star formation history class.
     !!}
@@ -213,7 +203,7 @@ contains
     double precision                              , intent(in   ), dimension(:), optional :: metallicityBoundaries
     double precision                              , intent(in   )              , optional :: metallicityMinimum   , metallicityMaximum
     double precision                              , intent(in   )                         :: timeStepMinimum
-    integer         (c_size_t                    ), intent(in   )                         :: countTimeStepsMaximum, countOutputBuffer
+    integer         (c_size_t                    ), intent(in   )                         :: countTimeStepsMaximum
     integer         (c_size_t                    ), intent(in   )              , optional :: countMetallicities
     class           (outputTimesClass            ), intent(in   ), target                 :: outputTimes_
     double precision                              , allocatable  , dimension(:)           :: timesNew             , timesNewTmp
@@ -229,7 +219,7 @@ contains
     type            (lockDescriptor              )                                        :: fileLock
     character       (len=16                      )                                        :: name
     !![
-    <constructorAssign variables="countOutputBuffer, timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
+    <constructorAssign variables="timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
     !!]
 
     ! Validate metallicity argument and construct the table of metallicities.
@@ -391,12 +381,6 @@ contains
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
-    ! Construct output buffers.
-    allocate(self%starFormationHistoryBuffer(self%countTimeStepsMaximum,size(self%metallicityTable),self%countOutputBuffer,componentTypeMin:componentTypeMax))
-    allocate(self%         indexOutputBuffer(                                                                              componentTypeMin:componentTypeMax))
-    allocate(self%         indexOutput      (                                                                              componentTypeMin:componentTypeMax))
-    self%indexOutput      =-1_c_size_t
-    self%indexOutputBuffer= 0_c_size_t
     return
   end function adaptiveConstructorInternal
 
@@ -614,8 +598,6 @@ contains
     call parameters%addParameter('timeStepMinimum'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(i17)   ') self%countTimeStepsMaximum
     call parameters%addParameter('countTimeStepsMaximum',trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(i17)   ') self%countOutputBuffer
-    call parameters%addParameter('countOutputBuffer'    ,trim(adjustl(parameterLabel)))
     metallicityBoundariesLabel=""
     do i=1,size(self%metallicityTable)
        write (parameterLabel,'(e17.10)') self%metallicityTable(i)
