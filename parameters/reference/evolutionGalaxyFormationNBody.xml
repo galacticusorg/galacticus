@@ -207,7 +207,8 @@
     </nodeOperator>
     <!-- Position interpolation -->
     <nodeOperator value="positionInterpolated">
-      <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
+      <wrapPeriodic value="false"/>	<!-- Do not wrap interpolated positions back into the box - this is not needed as we replicate the box. -->
+      <lengthBox    value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
     </nodeOperator>
     <!-- Heuristic analysis -->
     <nodeOperator value="assemblyHistoryHeuristics">
