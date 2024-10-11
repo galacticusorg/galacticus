@@ -124,12 +124,13 @@ module Input_Parameters
      type   (node           ), pointer, public :: document               => null()
      type   (node           ), pointer         :: rootNode               => null()
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
-     type   (inputParameter ), pointer         :: parameters             => null()
+     type   (inputParameter ), pointer, public         :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
-          &                                       isNull                 =  .false.
+          &                                       isNull                 =  .false., warnedVersion            =.false.
      type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        ), pointer         :: lock                   => null()
+     type   (varying_string )                  :: fileName
    contains
      !![
      <methods>
@@ -393,11 +394,12 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
     !!}
+    use :: ISO_Varying_String, only : char
     implicit none
     type (inputParameters)                :: self
     type (inputParameters), intent(in   ) :: parameters
 
-    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,fileName=char(parameters%fileName))
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     if (allocated(parameters%warnedDefaults)) then
@@ -467,6 +469,7 @@ contains
     self%parent         => null            (              )
     self%warnedDefaults =  integerHash     (              )
     self%lock           =  ompLock         (              )
+    if (present(fileName)) self%fileName=fileName
     !$omp critical (FoX_DOM_Access)
     self%document       => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
@@ -524,8 +527,9 @@ contains
           commitHashParameters =  getTextContent  (revisionNode               )//c_null_char
        end if
        !$omp end critical (FoX_DOM_Access)
-       if (hasRevision) then
+       if (hasRevision.and..not.self%warnedVersion) then
           ! A revision was available in the parameter file.
+          self%warnedVersion=.true.
           !! Build an array of known migration commit hashes.
           !![
 	  <parameterMigration/>
@@ -542,9 +546,8 @@ contains
              call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
           else if (any(isAncestorOfParameters == 0)) then
              ! Parameter file is missing migrations - issue a warning.
-             message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider running:"//char(10)//char(10)//"./scripts/aux/parametersMigrate.pl "
+             message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "
              if (present(fileName)) message=message//trim(fileName)//" newParameterFile.xml "
-             message=message//char(10)//char(10)//"to update your parameter file"
              call displayMessage(message)
           end if
           isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
