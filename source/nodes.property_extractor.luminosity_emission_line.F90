@@ -578,7 +578,7 @@ contains
     type            (multiCounter                               )                                :: state
     type            (ompLock                                    )                                :: stateLock
     !$omp threadprivate(iLine,integratorTime,integratorMetallicity,interpolatorTime,interpolatorMetallicity,timeMinimum,timeMaximum,age,metallicity_)
-    !$GLC attributes unused :: masses
+    !$GLC attributes initialized :: masses
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
