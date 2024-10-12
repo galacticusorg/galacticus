@@ -698,6 +698,7 @@ contains
     type            (ompLock                                   )                                :: stateLock
     type            (timer                                     )                                :: timer_
     !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift)
+    !$GLC attributes unused :: masses
     !![
     <optionalArgument name="parallelize" defaultsTo=".false." />
     !!]
