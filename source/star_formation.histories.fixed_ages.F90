@@ -31,8 +31,8 @@
      A star formation histories class which records star formation in logarithmically-sized time bins of fixed age and split by
      metallicity. The minimum age is specified via the {\normalfont \ttfamily [ageMinimum]} parameter (the maximum age is always
      the age of the universe), with the number of ages specified via {\normalfont \ttfamily [countAges]}. (One additional bin, at
-     age zero, is always addded.) This class is intended for use with lightcone output where the lightcone crossing times for each
-     node can be comptued in advance. One star formation history is computed for each lightcone crossing.
+     age zero, is always added.) This class is intended for use with lightcone output where the lightcone crossing times for each
+     node can be computed in advance. One star formation history is computed for each lightcone crossing.
      
      The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
      minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
@@ -300,7 +300,7 @@ contains
     integer                                                                     :: i
     !$GLC attributes unused :: timeBegin, timeEnd
 
-    ! Call the resursive copy if necessary.
+    ! Call the recursive copy if necessary.
     if (self%isRecursive) then
        call self%recursiveSelf%create(node,historyStarFormation,timeBegin,timeEnd)
        return
@@ -313,7 +313,7 @@ contains
     timesNodeCrossingPrevious =  basic                   %floatRank1MetaPropertyGet(self%timesCrossingID                                            )
     if (size(timesNodeCrossingPrevious) > 0) then
        ! Rounding errors can lead to tiny shifts in crossing times which can (very occasionally) lead to a previously-found
-       ! crossing time being missed if the node is now very close to that crossing time. Check for such occurences here and add
+       ! crossing time being missed if the node is now very close to that crossing time. Check for such occurrences here and add
        ! the crossing time back into the list.
        if (size(timesNodeCrossing) == size(timesNodeCrossingPrevious)-1) then
           if (Values_Agree(basic%time(),timesNodeCrossingPrevious(1),absTol=toleranceAbsolute) .and. basic%time() <= timesNodeCrossingPrevious(1)) then
@@ -607,7 +607,7 @@ contains
     ! Get the set of crossing times for this node.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
-    ! Compute suitable scales for all star formation hsitory bins.
+    ! Compute suitable scales for all star formation history bins.
     call historyStarFormation%timeSteps(timeSteps)
     if (size(timesCrossing) > 0) then
        do i=1,size(timesCrossing)
