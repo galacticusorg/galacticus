@@ -1858,7 +1858,7 @@ CODE
             }
 	    # Detect recursive builds if any class member allows it.
 	    if ( $allowRecursion ) {
-		$modulePostContains->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."',requireValue=.true.)\n";
+		$modulePostContains->{'content'} .= "        parameterNode => parameters%node(char(parameterName_),requireValue=.true.)\n";
 		$modulePostContains->{'content'} .= "        if (associated(parameterNode,".$directive->{'name'}."RecursiveBuildNode)) then\n";
 		foreach my $class ( @nonAbstractClasses ) {
 		    next
