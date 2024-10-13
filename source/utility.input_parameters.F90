@@ -430,8 +430,9 @@ contains
 #else
     use            :: Error             , only : Warn
 #endif
-    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
-    use            :: String_Handling   , only : String_Strip,String_C_To_Fortran
+    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=), &
+         &                                       var_str
+    use            :: String_Handling   , only : String_Strip,String_C_To_Fortran , operator(//)
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use            :: Display           , only : displayMessage
     use            :: IO_HDF5           , only : ioHDF5AccessInitialize
@@ -543,7 +544,7 @@ contains
              isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
           end do
           if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
-             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
+             call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")")
           else if (any(isAncestorOfParameters == 0)) then
              ! Parameter file is missing migrations - issue a warning.
              message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "
@@ -552,7 +553,7 @@ contains
           end if
           isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
           if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
-             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
+             call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")")
           else if (isAncestorOfSelf == 0_c_int) then
              ! Parameters are more recent than the executable - issue a warning.
              call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus")
