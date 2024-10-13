@@ -830,7 +830,7 @@ contains
        call disk%stellarPropertiesHistoryScale  (                                            stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=disk%starFormationHistory()
-       call starFormationHistory_%scales        (stellarPopulationHistoryScales,node,disk%massStellar(),disk%abundancesStellar())
+       call starFormationHistory_%scales        (stellarPopulationHistoryScales,node,disk%massStellar(),disk%massGas(),disk%abundancesStellar())
        call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                                 )
        call stellarPopulationHistoryScales%destroy()
     end select

@@ -355,17 +355,17 @@ contains
     return
   end subroutine metallicitySplitUpdate
 
-  subroutine metallicitySplitScales(self,historyStarFormation,node,massStellar,abundancesStellar)
+  subroutine metallicitySplitScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)               :: self
-    double precision                                      , intent(in   )               :: massStellar
+    double precision                                      , intent(in   )               :: massStellar                , massGas    
     type            (abundances                          ), intent(in   )               :: abundancesStellar
     type            (history                             ), intent(inout)               :: historyStarFormation
     type            (treeNode                            ), intent(inout)               :: node
-    double precision                                      , parameter                   :: massStellarMinimum  =1.0d0
+    double precision                                      , parameter                   :: massMinimum          =1.0d0
     double precision                                      , allocatable  , dimension(:) :: timeSteps
     integer                                                                             :: iMetallicity
     !$GLC attributes unused :: abundancesStellar, node
@@ -373,7 +373,7 @@ contains
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
-       historyStarFormation%data(:,iMetallicity)=+max(massStellar,massStellarMinimum)                             &
+       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,massMinimum)                            &
             &                                    *                     timeSteps                                  &
             &                                    /historyStarFormation%time     (size(historyStarFormation%time))
     end forall

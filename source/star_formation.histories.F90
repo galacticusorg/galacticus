@@ -70,7 +70,7 @@ module Star_Formation_Histories
     <pass>yes</pass>
     <argument>type            (history   ), intent(inout) :: historyStarFormation</argument>
     <argument>type            (treeNode  ), intent(inout) :: node</argument>
-    <argument>double precision            , intent(in   ) :: massStellar</argument>
+    <argument>double precision            , intent(in   ) :: massStellar, massGas</argument>
     <argument>type            (abundances), intent(in   ) :: abundancesStellar</argument>
    </method>
    <method name="rate" >

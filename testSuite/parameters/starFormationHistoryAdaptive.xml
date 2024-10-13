@@ -98,8 +98,8 @@
   
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="1.0e-6"/>
-    <odeToleranceRelative value="1.0e-6"/>
+    <odeToleranceAbsolute value="1.0e-7"/>
+    <odeToleranceRelative value="1.0e-7"/>
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">

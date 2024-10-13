@@ -581,26 +581,26 @@ contains
     return
   end subroutine fixedAgesMove
   
-  subroutine fixedAgesScales(self,historyStarFormation,node,massStellar,abundancesStellar)
+  subroutine fixedAgesScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationHistoryFixedAges), intent(inout)               :: self
-    double precision                               , intent(in   )               :: massStellar
+    double precision                               , intent(in   )               :: massStellar               , massGas
     type            (abundances                   ), intent(in   )               :: abundancesStellar
     type            (history                      ), intent(inout)               :: historyStarFormation
     type            (treeNode                     ), intent(inout)               :: node
     class           (nodeComponentBasic           ), pointer                     :: basic
-    double precision                               , parameter                   :: massStellarMinimum  =1.0d0
+    double precision                               , parameter                   :: massMinimum         =1.0d0
     double precision                               , allocatable  , dimension(:) :: timeSteps                 , timesCrossing
     integer         (c_size_t                     )                              :: i                         , j
     !$GLC attributes unused :: abundancesStellar
 
     ! Call the recursive copy if needed.
     if (self%isRecursive) then
-       call self%recursiveSelf%scales(historyStarFormation,node,massStellar,abundancesStellar)
+       call self%recursiveSelf%scales(historyStarFormation,node,massStellar,massGas,abundancesStellar)
        return
     end if
     if (.not.historyStarFormation%exists()) return
@@ -614,8 +614,8 @@ contains
           do j=1,self%countMetallicities+1
              ! The scale is set to a representative stellar mass scale multiplied by the fraction of the total history time in
              ! each time bin.
-             historyStarFormation%data(:,(i-1)*(self%countMetallicities+1)+j)=+max(massStellar,massStellarMinimum) &
-                  &                                                           *timeSteps                           &
+             historyStarFormation%data(:,(i-1)*(self%countMetallicities+1)+j)=+max(massStellar+massGas,massMinimum) &
+                  &                                                           *timeSteps                            &
                   &                                                           /timesCrossing(i)
           end do
        end do

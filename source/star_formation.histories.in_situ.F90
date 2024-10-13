@@ -206,13 +206,13 @@ contains
     return
   end subroutine inSituUpdate
 
-  subroutine inSituScales(self,historyStarFormation,node,massStellar,abundancesStellar)
+  subroutine inSituScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
-    double precision                            , intent(in   ) :: massStellar
+    double precision                            , intent(in   ) :: massStellar         , massGas
     type            (abundances                ), intent(in   ) :: abundancesStellar
     type            (history                   ), intent(inout) :: historyStarFormation
     type            (treeNode                  ), intent(inout) :: node
@@ -223,7 +223,7 @@ contains
     history_%rangeType=historyStarFormation%rangeType
     history_%time     =historyStarFormation%time
     history_%data=historyStarFormation%data(:,1:size(historyStarFormation%data,dim=2)/2)
-    call self%starFormationHistory_%scales(history_,node,massStellar,abundancesStellar)
+    call self%starFormationHistory_%scales(history_,node,massStellar,massGas,abundancesStellar)
     historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)=history_%data
     historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )=history_%data
     return

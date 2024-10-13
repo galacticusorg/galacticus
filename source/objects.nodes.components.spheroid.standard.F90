@@ -861,7 +861,7 @@ contains
        call spheroid%stellarPropertiesHistoryScale(                                                    stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=spheroid%starFormationHistory()
-       call starFormationHistory_%scales          (stellarPopulationHistoryScales,node,spheroid%massStellar(),spheroid%abundancesStellar())
+       call starFormationHistory_%scales          (stellarPopulationHistoryScales,node,spheroid%massStellar(),spheroid%massGas(),spheroid%abundancesStellar())
        call spheroid%starFormationHistoryScale    (stellarPopulationHistoryScales                                                         )
        call stellarPopulationHistoryScales%destroy()
     end select

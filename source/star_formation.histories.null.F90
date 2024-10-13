@@ -96,17 +96,17 @@ contains
     return
   end subroutine nullRate
 
-  subroutine nullScales(self,historyStarFormation,node,massStellar,abundancesStellar)
+  subroutine nullScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
-    double precision                          , intent(in   ) :: massStellar
+    double precision                          , intent(in   ) :: massStellar         , massGas
     type            (abundances              ), intent(in   ) :: abundancesStellar
     type            (history                 ), intent(inout) :: historyStarFormation
     type            (treeNode                ), intent(inout) :: node
-    !$GLC attributes unused :: self, historyStarFormation, node, massStellar, abundancesStellar
+    !$GLC attributes unused :: self, historyStarFormation, node, massStellar, massGas, abundancesStellar
 
     ! Do nothing.
     return
