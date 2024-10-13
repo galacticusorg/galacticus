@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728452715950,
+  "lastUpdate": 1728800251037,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "a7a30ec3c7ae4ec5df033cab4bcaeb0dee7899fb",
-          "message": "fix: Merge branch 'featReuseableWorkflows'",
-          "timestamp": "2024-01-21T22:47:59Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a7a30ec3c7ae4ec5df033cab4bcaeb0dee7899fb"
-        },
-        "date": 1705891064675,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 168.653,
-            "unit": "seconds",
-            "range": 0.184309793555423
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10668,6 +10640,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9527386981306,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "429b2f2ad82cd83b9033ebbc939de7d21f37e682",
+          "message": "Merge pull request #718 from galacticusorg/featModelReportState\n\nAdd options to report the base parameter file name and sampling state from the `posteriorSampleLikelihoodBaseParameters` class",
+          "timestamp": "2024-10-12T23:13:47Z",
+          "tree_id": "a652bc99765a83e04f82a1519576e8d08ebda588",
+          "url": "https://github.com/galacticusorg/galacticus/commit/429b2f2ad82cd83b9033ebbc939de7d21f37e682"
+        },
+        "date": 1728800250297,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 494.645,
+            "unit": "seconds",
+            "range": 0.322732861670665
           }
         ]
       }
