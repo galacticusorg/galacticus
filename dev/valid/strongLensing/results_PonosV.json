@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "commit" : {
+      "id" : "429b2f2ad82cd83b9033ebbc939de7d21f37e682",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/429b2f2ad82cd83b9033ebbc939de7d21f37e682",
+      "message" : "Merge pull request #718 from galacticusorg/featModelReportState",
+      "timestamp" : "Sat, 12 Oct 2024 23:13:47 +0000",
+      "author" : {
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
+      }
+   },
    "slope" : {
-      "target" : 0.85,
       "percentageAbove" : 30.7692307692308,
+      "target" : 0.85,
       "percentageBelow" : 69.2307692307692
    },
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageBelow" : 46.875,
-      "percentageAbove" : 53.125
-   },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/1d9bd33ff24f246ef6308c5db0c18f6b69ae5278",
-      "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
-      },
-      "id" : "1d9bd33ff24f246ef6308c5db0c18f6b69ae5278",
-      "message" : "Merge pull request #714 from galacticusorg/depup/lesgourg/class_public",
-      "timestamp" : "Tue, 8 Oct 2024 23:31:20 +0000"
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageBelow" : 50,
+      "target" : 0.006,
+      "percentageAbove" : 50
    }
 }
