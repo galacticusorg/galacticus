@@ -195,7 +195,7 @@ contains
     return
   end subroutine percolationDestructor
 
-  subroutine percolationTabulate(self,mass,time,mustRetabulate)
+  subroutine percolationTabulate(self,mass,time)
     !!{
     Tabulate virial density contrast as a function of mass and time for the {\normalfont \ttfamily percolation} density contrast class.
     !!}
@@ -204,13 +204,12 @@ contains
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
     use :: Error           , only : Error_Report
     implicit none
-    class           (virialDensityContrastPercolation), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass          , time
-    logical                                           , intent(  out), optional :: mustRetabulate
-    integer                                                                     :: iMass         , iTime    , &
-         &                                                                         iCount
-    logical                                                                     :: makeTable
-    double precision                                                            :: tableMass     , tableTime
+    class           (virialDensityContrastPercolation), intent(inout) :: self
+    double precision                                  , intent(in   ) :: mass     , time
+    integer                                                           :: iMass    , iTime    , &
+         &                                                               iCount
+    logical                                                           :: makeTable
+    double precision                                                  :: tableMass, tableTime
 
     ! Always check if we need to make the table.
     makeTable=.true.
@@ -240,11 +239,6 @@ contains
           makeTable=.true.
           self%densityContrastTableTimeMinimum=min(self%densityContrastTableTimeMinimum,0.5d0*time)
           self%densityContrastTableTimeMaximum=max(self%densityContrastTableTimeMaximum,2.0d0*time)
-       end if
-       ! If we are just being asked to determine remake status, return that now.
-       if (present(mustRetabulate)) then
-          mustRetabulate=makeTable
-          return
        end if
        ! Remake the table is necessary.
        if (makeTable) then
@@ -335,7 +329,6 @@ contains
     double precision                                  , intent(in   ) , optional :: time          , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
-    logical                                                                      :: mustRetabulate
 
     ! Call the recursive copy if necessary.
     if (self%isRecursive) then
