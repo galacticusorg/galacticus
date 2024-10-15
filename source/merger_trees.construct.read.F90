@@ -2831,6 +2831,7 @@ contains
              currentHost    => readLastHostDescendant(nodes(iNode))
              ! Add a jump if the tree ends before the descendant time.
              if (currentHost%nodeTime <= nodes(iNode)%descendant%nodeTime) then
+                timeOfJump     =  currentHost%nodeTime
                 jumpToHost     => nodes(iNode)%descendant%host
                 do while (jumpToHost%isSubhalo)
                    if (.not.self%warningNestedHierarchyIssued) then
@@ -2843,7 +2844,6 @@ contains
                    end if
                    jumpToHost => jumpToHost%host
                 end do
-                timeOfJump=jumpToHost%nodeTime
                 call readCreateBranchJumpEvent(                                                    &
                      &                        nodeList(iIsolatedNode                      )%node, &
                      &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
@@ -2939,18 +2939,18 @@ contains
              end if
              ! If a jump was detected, create an event.
              if (subhaloJumps) then
-                jumpToHost => descendantNode%descendant%host
                 if (timeOfJump < 0.0d0)                   &
-                     & timeOfJump=jumpToHost%nodeTime
+                     & timeOfJump=descendantNode%nodeTime
+                 jumpToHost => descendantNode%descendant%host
                 ! Find an isolated host.
                 do while (jumpToHost%isSubhalo)
                    jumpToHost => jumpToHost%host
                 end do
                 call readCreateBranchJumpEvent(                                                    &
-                     &                        nodeList(iIsolatedNode                      )%node, &
-                     &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
-                     &                        timeOfJump                                          &
-                     &                       )
+                     &                         nodeList(iIsolatedNode                      )%node, &
+                     &                         nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
+                     &                         timeOfJump                                          &
+                     &                        )
              end if
              ! Move to the descendant.
              previousNode   => descendantNode
