@@ -84,7 +84,8 @@ module Input_Parameters
      type   (genericObjectList), allocatable, dimension(:,:) :: objects
      type   (varying_string   )                              :: contentOriginal
      logical                                                 :: created         =  .false., removed    =  .false., &
-          &                                                     evaluated       =  .false.
+          &                                                     evaluated       =  .false., active     =  .true. , &
+          &                                                     activeEvaluated =  .false.
    contains
      !![
      <methods>
@@ -135,6 +136,7 @@ module Input_Parameters
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
+       <method description="Evaluate conditionals in the tree of {\normalfont \ttfamily inputParameter} objects." method="evaluateConditionals" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
@@ -144,6 +146,7 @@ module Input_Parameters
        <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="copiesCount" />
        <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="count" />
        <method description="Return the set of subparameters of the named parameter." method="subParameters" />
+       <method description="Return the parent parameters given the path to a parameter" method="findParent"/>
        <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
        <method description="Serialize input parameters to a string." method="serializeToString" />
        <method description="Serialize input parameters to an XML file." method="serializeToXML" />
@@ -154,29 +157,31 @@ module Input_Parameters
        <method description="Reinitialize lock." method="lockReinitialize" />
      </methods>
      !!]
-     final     ::                        inputParametersFinalize
-     procedure :: buildTree           => inputParametersBuildTree
-     procedure :: resolveReferences   => inputParametersResolveReferences
-     procedure :: destroy             => inputParametersDestroy
-     procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
-     procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
-     procedure :: validateName        => inputParametersValidateName
-     procedure :: checkParameters     => inputParametersCheckParameters
-     procedure :: node                => inputParametersNode
-     procedure :: isPresent           => inputParametersIsPresent
-     procedure :: copiesCount         => inputParametersCopiesCount
-     procedure :: count               => inputParametersCount
-     procedure :: subParameters       => inputParametersSubParameters
-     procedure ::                        inputParametersValueName{Type¦label}
-     procedure ::                        inputParametersValueNode{Type¦label}
-     generic   :: value               => inputParametersValueName{Type¦label}
-     generic   :: value               => inputParametersValueNode{Type¦label}
-     procedure :: serializeToString   => inputParametersSerializeToString
-     procedure :: serializeToXML      => inputParametersSerializeToXML
-     procedure :: addParameter        => inputParametersAddParameter
-     procedure :: reset               => inputParametersReset
-     procedure :: path                => inputParametersPath
-     procedure :: lockReinitialize    => inputParametersLockReinitialize
+     final     ::                         inputParametersFinalize
+     procedure :: buildTree            => inputParametersBuildTree
+     procedure :: resolveReferences    => inputParametersResolveReferences
+     procedure :: evaluateConditionals => inputParametersEvaluateConditionals
+     procedure :: destroy              => inputParametersDestroy
+     procedure :: parametersGroupOpen  => inputParametersParametersGroupOpen
+     procedure :: parametersGroupCopy  => inputParametersParametersGroupCopy
+     procedure :: validateName         => inputParametersValidateName
+     procedure :: checkParameters      => inputParametersCheckParameters
+     procedure :: node                 => inputParametersNode
+     procedure :: isPresent            => inputParametersIsPresent
+     procedure :: copiesCount          => inputParametersCopiesCount
+     procedure :: count                => inputParametersCount
+     procedure :: subParameters        => inputParametersSubParameters
+     procedure :: findParent           => inputParametersFindParent
+     procedure ::                         inputParametersValueName{Type¦label}
+     procedure ::                         inputParametersValueNode{Type¦label}
+     generic   :: value                => inputParametersValueName{Type¦label}
+     generic   :: value                => inputParametersValueNode{Type¦label}
+     procedure :: serializeToString    => inputParametersSerializeToString
+     procedure :: serializeToXML       => inputParametersSerializeToXML
+     procedure :: addParameter         => inputParametersAddParameter
+     procedure :: reset                => inputParametersReset
+     procedure :: path                 => inputParametersPath
+     procedure :: lockReinitialize     => inputParametersLockReinitialize
   end type inputParameters
 
   interface inputParameters
@@ -470,6 +475,7 @@ contains
     !$omp critical (FoX_DOM_Access)
     self%document       => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
+    !$omp end critical (FoX_DOM_Access)
     if (.not.noBuild_) then
        allocate(self%parameters)
        self%parameters%content    => null()
@@ -477,10 +483,12 @@ contains
        self%parameters%firstChild => null()
        self%parameters%sibling    => null()
        self%parameters%referenced => null()
-       call self%buildTree        (self%parameters,parametersNode)
-       call self%resolveReferences(                              )
+       !$omp critical (FoX_DOM_Access)
+       call self%buildTree           (self%parameters,parametersNode)
+       call self%resolveReferences   (                              )
+       !$omp end critical (FoX_DOM_Access)
+       call self%evaluateConditionals(                              )
     end if
-    !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
        !$ call hdf5Access%  set()
@@ -604,7 +612,7 @@ contains
 
   subroutine inputParametersResolveReferences(self)
     !!{
-    Build a tree representation of the input parameter file.
+    Resolve references in a parameter tree.
     !!}
     use :: FoX_dom           , only : DOMException , ELEMENT_NODE  , getAttributeNode, getNodeName, &
           &                           getNodeType  , getTextContent, hasAttribute    , inException
@@ -666,6 +674,139 @@ contains
     end do
     return
   end subroutine inputParametersResolveReferences
+
+  subroutine inputParametersEvaluateConditionals(self)
+    !!{
+    Evaluate conditionals in a parameter tree.
+    !!}
+    use :: FoX_dom           , only : DOMException      , ELEMENT_NODE      , getAttributeNode, inException, &
+         &                            getNodeType       , getTextContent    , hasAttribute    , node       , &
+         &                            getNodeName
+    use :: ISO_Varying_String, only : assignment(=)     , operator(==)      , char            , extract    , &
+         &                            index             , adjustl           , trim
+    use :: Error             , only : Error_Report
+    use :: String_Handling   , only : String_Count_Words, String_Split_Words
+    use :: IO_XML            , only : XML_Path_Exists
+    implicit none
+    class    (inputParameters           ), intent(inout)              :: self
+    type     (inputParameter            ), pointer                    :: currentParameter
+    type     (node                      ), pointer                    :: conditionNode 
+    type     (inputParameter            ), pointer                    :: parameterTest
+    type     (node                      ), pointer                    :: node_
+    character(len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
+    type     (varying_string            )                             :: condition
+    type     (DOMException              )                             :: exception
+    character(len=parameterLengthMaximum)                             :: parameterName   , parameterLeafName, &
+         &                                                               valueTest       , valueParameter
+    logical                                                           :: operatorEquals  , matches          , &
+         &                                                               allEvaluated    , didEvaluate
+    integer                                                           :: countNames      , i
+
+    ! Iterate until all parameters are evaluated.
+    didEvaluate=.true.
+    do while (didEvaluate)
+       allEvaluated=.true.
+       didEvaluate =.false.
+       ! Begin walking the parameter tree.
+       currentParameter => inputParametersWalkTree(self%parameters)
+       do while (associated(currentParameter))
+          ! Find parameters with conditionals.
+          if     (                                                                 &
+               &   getNodeType (currentParameter%content         ) == ELEMENT_NODE &
+               &  .and.                                                            &
+               &   hasAttribute(currentParameter%content,'active')                 &
+               & ) then
+             ! Extract the condition.
+             conditionNode => getAttributeNode(currentParameter%content,   'active' )
+             condition     =  getTextContent  (conditionNode           ,ex=exception)
+             if (inException(exception)) call Error_Report('unable to parse conditional'//{introspection:location})
+             ! Parse the condition.
+             !! Extract the name of the parameter being conditioned upon.
+             if (extract(condition,1,1) == "[" .and. index(condition,"]") > 2) then
+                parameterName=extract(condition,2,index(condition,"]")-1)
+                condition    =adjustl(extract(condition,index(condition,"]")+1))
+             else
+                call Error_Report("unable to parse parameter name in conditional"//{introspection:location})
+             end if
+             !! Extract the operator (currently only `==` and `!=` are supported).
+             if      (extract(condition,1,2) == "==") then
+                operatorEquals=.true.
+             else if (extract(condition,1,2) == "!=") then
+                operatorEquals=.false.
+             else
+                operatorEquals=.true.
+                call Error_Report("unable to parse operator in conditional"//{introspection:location})
+             end if
+             condition=adjustl(extract(condition,3))
+             !! Extract the string being compared to.
+             valueTest=trim(condition)
+             ! Get the value of the parameter.
+             countNames=String_Count_Words(parameterName,":")
+             allocate(parameterNames(countNames))
+             call String_Split_Words(parameterNames,parameterName,":")
+             parameterLeafName=parameterNames(countNames)
+             parameterTest => currentParameter
+             if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
+                ! Path is absolute - move to the root parameter.
+                do while (associated(parameterTest%parent))
+                   parameterTest => parameterTest%parent
+                end do
+             end if
+             do i=1,countNames
+                if (trim(parameterNames(i)) == ".") then
+                   ! Self - no need to move.
+                else if (trim(parameterNames(i)) == "..") then
+                   ! Move to the parent parameter.
+                   if (.not.associated(parameterTest%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+                   parameterTest => parameterTest%parent
+                else
+                   ! Move to the named parameter.
+                   parameterTest => parameterTest%firstChild
+                   do while (associated(parameterTest))
+                      node_ => parameterTest%content
+                      !$omp critical (FoX_DOM_Access)
+                      matches= parameterTest%active                          &
+                           &  .and.                                          &
+                           &   getNodeType(node_) == ELEMENT_NODE            &
+                           &  .and.                                          &
+                           &   (                                             &
+                           &        hasAttribute(node_,'value')              &
+                           &    .or.                                         &
+                           &     XML_Path_Exists(node_,"value")              &
+                           &    .or.                                         &
+                           &        hasAttribute(node_,"idRef")              &
+                           &   )                                             &
+                           &  .and.                                          &
+                           &   trim(parameterNames(i)) == getNodeName(node_)
+                      !$omp end critical (FoX_DOM_Access)
+                      if (matches) exit
+                      parameterTest => parameterTest%sibling
+                   end do
+                   if (.not.associated(parameterTest)) call Error_Report('no child parameter exists'//{introspection:location})
+                end if
+             end do
+             if (parameterTest%activeEvaluated) then
+                valueParameter=parameterTest%get()
+                ! Perform the test and set parameter active state.
+                currentParameter%active         =(trim(valueParameter) == trim(valueTest)) .eqv. operatorEquals
+                currentParameter%activeEvaluated=.true.
+                didEvaluate                     =.true.
+             else
+                allEvaluated                    =.false.
+             end if
+             deallocate(parameterNames)
+          else
+             currentParameter%activeEvaluated=.true.
+             didEvaluate                     =.true.
+          end if
+          ! Walk to next node.
+          currentParameter => inputParametersWalkTree(currentParameter)
+       end do
+       if (.not.didEvaluate) call Error_Report('failed to evaluate parameter active statuses'//{introspection:location})
+       if (allEvaluated) exit
+    end do
+    return
+  end subroutine inputParametersEvaluateConditionals
 
   function inputParametersWalkTree(currentNode) result(nextNode)
     !!{
@@ -953,6 +1094,9 @@ contains
           call self%set(self%contentOriginal)
        end if
     end if
+    ! Reset parameter active state.
+    self%activeEvaluated=.false.
+    self%active         =.true.
     ! Clean up children if requested.
     if (children_) then
        ! Remove if this parameter was created.
@@ -1081,7 +1225,7 @@ contains
     if (associated(self%parameters)) then
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
-          if (currentParameter%isParameter()) then
+          if (currentParameter%isParameter() .and. currentParameter%active) then
              node_ => currentParameter%content
              ! Attempt to read the parameter value.
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.,evaluate=.false.)
@@ -1307,7 +1451,7 @@ contains
     inputParametersNode => self%parameters%firstChild
     skipInstances=copyInstance_-1
     do while (associated(inputParametersNode))
-       if (.not.inputParametersNode%removed) then
+       if (.not.inputParametersNode%removed.and.inputParametersNode%active) then
           node_ => inputParametersNode%content
           if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
              if     (                                  &
@@ -1365,7 +1509,7 @@ contains
     do while (associated(currentParent))
        currentParameter => currentParent%firstChild
        do while (associated(currentParameter))
-          if (.not.currentParameter%removed) then
+          if (.not.currentParameter%removed.and.currentParameter%active) then
              node_ => currentParameter%content
              if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
                 if     (                                  &
@@ -1423,7 +1567,7 @@ contains
        !$omp critical (FoX_DOM_Access)
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
-          if (.not.currentParameter%removed) then
+          if (.not.currentParameter%removed.and.currentParameter%active) then
              node_ => currentParameter%content
              if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
                 if     (                                    &
@@ -1485,6 +1629,77 @@ contains
     end if
     return
   end function inputParametersCount
+
+  subroutine inputParametersFindParent(self,parameterPath,parent,parameterName)
+    !!{
+    Return the parent containing the specified parameter path.
+    !!}
+    use :: Error          , only : Error_Report
+    use :: String_Handling, only : String_Count_Words, String_Split_Words
+    implicit none
+    class    (inputParameters           ), intent(in   ), target      :: self
+    character(len=*                     ), intent(in   )              :: parameterPath
+    type     (inputParameters           ), intent(  out), pointer     :: parent
+    character(len=parameterLengthMaximum), intent(  out)              :: parameterName
+    type     (inputParameters           )               , pointer     :: rootParameters   , subParameters, &
+         &                                                               subParametersNext
+    character(len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
+    integer                                                           :: countNames       , i
+    
+    countNames=String_Count_Words(parameterPath,":")
+    allocate(parameterNames(countNames))
+    call String_Split_Words(parameterNames,parameterPath,":")
+    parameterName  =  parameterNames(countNames)
+    rootParameters => self
+    subParameters  => null          (          )
+    if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
+       ! Path is absolute - move to the root parameter.
+       do while (associated(rootParameters%parent))
+          rootParameters => rootParameters%parent
+       end do
+    end if
+    do i=1,countNames-1
+       if (trim(parameterNames(i)) == ".") then
+          ! Self - no need to move.
+          if (i == 1) then
+             allocate(subParameters)
+             subParameters=inputParameters(rootParameters)
+          end if
+       else if (trim(parameterNames(i)) == "..") then
+          ! Move to the parent parameter.
+          if (i == 1) then
+             if (.not.associated(rootParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+             allocate(subParameters)
+             subParameters=inputParameters(rootParameters%parent)
+          else
+             if (.not.associated( subParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
+             allocate(subParametersNext)
+             subParametersNext=inputParameters(subParameters%parent)
+             deallocate(subParameters)
+             subParameters => subParametersNext
+          end if
+       else
+          ! Move to the named parameter.
+          if (i == 1) then
+             allocate(subParameters)
+             subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+          else
+             allocate(subParametersNext)
+             subParametersNext=subParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
+             deallocate(subParameters)
+             subParameters => subParametersNext
+          end if
+       end if
+    end do
+    allocate(parent)
+    if (countNames == 1) then
+       parent=inputParameters(rootParameters)
+    else
+       parent=inputParameters( subParameters)
+       if (associated(subParameters)) deallocate(subParameters)
+    end if
+    return
+  end subroutine inputParametersFindParent
 
   function inputParametersSubParameters(self,parameterName,requireValue,requirePresent,copyInstance)
     !!{
@@ -1622,37 +1837,35 @@ contains
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use            :: HDF5_Access       , only : hdf5Access
     implicit none
-    class           (inputParameters                         ), intent(inout), target      :: self
-    type            (inputParameter                          ), intent(inout), target      :: parameterNode
-    {Type¦intrinsic}                                          , intent(  out)              :: parameterValue
-    type            (enumerationInputParameterErrorStatusType), intent(  out), optional    :: errorStatus
-    logical                                                   , intent(in   ), optional    :: writeOutput        , evaluate
+    class           (inputParameters                         ), intent(inout), target   :: self
+    type            (inputParameter                          ), intent(inout), target   :: parameterNode
+    {Type¦intrinsic}                                          , intent(  out)           :: parameterValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
+    logical                                                   , intent(in   ), optional :: writeOutput        , evaluate
 #ifdef MATHEVALAVAIL
-    integer         (c_int64_t                               )                             :: evaluator
+    integer         (c_int64_t                               )                          :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (c_int64_t                               ), external                   :: Evaluator_Create_
-    double precision                                          , external                   :: Evaluator_Evaluate_
-    external                                                                               :: Evaluator_Destroy_
+    integer         (c_int64_t                               ), external                :: Evaluator_Create_
+    double precision                                          , external                :: Evaluator_Evaluate_
+    external                                                                            :: Evaluator_Destroy_
 #endif
-    type            (inputParameter                          )               , pointer     :: sibling
-    type            (node                                    )               , pointer     :: valueElement
-    type            (inputParameters                         )               , pointer     :: rootParameters     , subParameters  , &
-         &                                                                                    subParametersNext
-    character       (len=parameterLengthMaximum              ), dimension(:) , allocatable :: parameterNames
-    type            (DOMException                            )                             :: exception
-    integer                                                                                :: status             , i              , &
-         &                                                                                    countNames         , copyCount      , &
-         &                                                                                    copyInstance
-    logical                                                                                :: hasValueAttribute  , hasValueElement, &
-         &                                                                                    isException        , isPresent      , &
-         &                                                                                    isDouble           , isText
-    character       (len=parameterLengthMaximum              )                             :: expression         , parameterName  , &
-         &                                                                                    workText           , content        , &
-         &                                                                                    workValueText      , formatSpecifier
-    type            (varying_string                          )                             :: attributeName      , nodeName
-    double precision                                                                       :: workValueDouble
-    integer         (c_size_t                                )                             :: workValueInteger
-    type            (enumerationInputParameterTypeType       )                             :: parameterType
+    type            (inputParameter                          )               , pointer  :: sibling
+    type            (node                                    )               , pointer  :: valueElement
+    type            (inputParameters                         )               , pointer  :: parentParameters
+    type            (DOMException                            )                          :: exception
+    integer                                                                             :: copyInstance       , copyCount       , &
+         &                                                                                 status
+    logical                                                                             :: hasValueAttribute  , hasValueElement , &
+         &                                                                                 isException        , isPresent       , &
+         &                                                                                 isDouble           , isText
+    character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
+         &                                                                                 workText           , content         , &
+         &                                                                                 workValueText      , formatSpecifier , &
+         &                                                                                 parameterLeafName
+    type            (varying_string                          )                          :: attributeName      , nodeName
+    double precision                                                                    :: workValueDouble
+    integer         (c_size_t                                )                          :: workValueInteger
+    type            (enumerationInputParameterTypeType       )                          :: parameterType
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !![
@@ -1736,80 +1949,24 @@ contains
                          call Error_Report('inserted parameters must have a format specifier'//{introspection:location})
                       end if
                    end if
-                   countNames=String_Count_Words(parameterName,":")
-                   allocate(parameterNames(countNames))
-                   call String_Split_Words(parameterNames,parameterName,":")
-                   rootParameters => self
-                   if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
-                      ! Path is absolute - move to the root parameter.
-                      do while (associated(rootParameters%parent))
-                         rootParameters => rootParameters%parent
-                      end do
-                   end if
-                   do i=1,countNames-1
-                      if (trim(parameterNames(i)) == ".") then
-                         ! Self - no need to move.
-                         if (i == 1) then
-                            allocate(subParameters)
-                            subParameters=inputParameters(rootParameters)
-                         end if
-                      else if (trim(parameterNames(i)) == "..") then
-                         ! Move to the parent parameter.
-                         if (i == 1) then
-                            if (.not.associated(rootParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
-                            allocate(subParameters)
-                            subParameters=inputParameters(rootParameters%parent)
-                         else
-                            if (.not.associated( subParameters%parent)) call Error_Report('no parent parameter exists'//{introspection:location})
-                            allocate(subParametersNext)
-                            subParametersNext=inputParameters(subParameters%parent)
-                            deallocate(subParameters)
-                            subParameters => subParametersNext
-                         end if
-                      else
-                         ! Move to the named parameter.
-                         if (i == 1) then
-                            allocate(subParameters)
-                            subParameters    =rootParameters%subParameters(trim(parameterNames(i)),requireValue=.false.)
-                         else
-                            allocate(subParametersNext)
-                            subParametersNext=subParameters %subParameters(trim(parameterNames(i)),requireValue=.false.)
-                            deallocate(subParameters)
-                            subParameters => subParametersNext
-                         end if
+                   !! Find the named parameter's parent and extract the value from it.
+                   call self%findParent(parameterName,parentParameters,parameterLeafName)
+                   isPresent=parentParameters%isPresent(trim(parameterLeafName))
+                   if (isPresent) then
+                      if      (parameterType == inputParameterTypeDouble ) then
+                         call parentParameters%value(trim(parameterLeafName),workValueDouble )
+                      else if (parameterType == inputParameterTypeInteger) then
+                         call parentParameters%value(trim(parameterLeafName),workValueInteger)
+                      else if (parameterType == inputParameterTypeText   ) then
+                         call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
-                   end do
-                   if (countNames == 1) then
-                      isPresent=rootParameters%isPresent(trim(parameterNames(countNames)))
-                      if (isPresent) then
-                         if      (parameterType == inputParameterTypeDouble ) then
-                            call rootParameters%value(trim(parameterNames(countNames)),workValueDouble )
-                         else if (parameterType == inputParameterTypeInteger) then
-                            call rootParameters%value(trim(parameterNames(countNames)),workValueInteger)
-                         else if (parameterType == inputParameterTypeText   ) then
-                            call rootParameters%value(trim(parameterNames(countNames)),workValueText   )
-                         end if
-                      end if
+                      deallocate(parentParameters)
                    else
-                      isPresent= subParameters%isPresent(trim(parameterNames(countNames)))
-                      if (isPresent) then
-                         if      (parameterType == inputParameterTypeDouble ) then
-                            call subParameters %value(trim(parameterNames(countNames)),workValueDouble)
-                         else if (parameterType == inputParameterTypeInteger) then
-                            call rootParameters%value(trim(parameterNames(countNames)),workValueInteger)
-                         else if (parameterType == inputParameterTypeText   ) then
-                            call rootParameters%value(trim(parameterNames(countNames)),workValueText   )
-                         end if
-                      end if
-                      deallocate(subParameters)
-                   end if
-                   if (.not.isPresent) then
                       !$omp critical (FoX_DOM_Access)
                       expression=getTextContent(valueElement)
                       !$omp end critical (FoX_DOM_Access)
                       call Error_Report('parameter `'//trim(parameterName)//'` referenced in expression `'//trim(expression)//'` does not exist'//{introspection:location})
                    end if
-                   deallocate(parameterNames)
                    if (isDouble) then
                       write (workText,'(e24.16)') workValueDouble
                    else if (isText) then
@@ -2109,6 +2266,7 @@ contains
        currentParameter%evaluated  =  .false.
     end if
     currentParameter%removed=.false.
+    currentParameter%active =.true.
     return
   end subroutine inputParametersAddParameter
 
