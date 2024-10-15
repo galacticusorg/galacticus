@@ -159,7 +159,8 @@ contains
     !!}
     use :: Error                              , only : Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
-    use :: Galacticus_Nodes                   , only :  nodeComponentBasic
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic
+    use :: Numerical_Comparison               , only : Values_Agree
     implicit none
     class(*                            ), intent(inout)          :: self
     type (mergerTree                   ), intent(in   )          :: tree
@@ -171,7 +172,12 @@ contains
     select type (self)
     class is (mergerTreeEvolveTimestepLightconeCrossing)
        basic => node%basic()
-       if (basic%time() == self%timeCrossing) then
+       ! Only output this node if evolution actually reached the time of lightcone crossing. Allow some small tolerance here -
+       ! this is necessary as a node's evolution could be stopped very close to (but not quite at) the crossing time, and in some
+       ! cases the crossing time would then not be rediscovered on the next time step (due to numerical precision). Using an
+       ! absolute tolerance of 1.0e-9 Gyr means that we at most get the position of the galaxy on the lightcone wrong by 1 light
+       ! year - a tiny amount.
+       if (Values_Agree(basic%time(),self%timeCrossing,absTol=1.0d-9)) then
           call self%mergerTreeOutputter_%outputNode(node,1_c_size_t)
           ! The tree was changed, so mark that it is not deadlocked.
           deadlockStatus=deadlockStatusIsNotDeadlocked
