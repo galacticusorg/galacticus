@@ -28,7 +28,8 @@
     <efficiencyStrippingOutflow  value="0.1"  />
     <trackStrippedGas            value="true" />
   </componentHotHalo>
-  <componentPosition          value="cartesian"/>
+  <componentPosition          value="null"      active="[mergerTreeConstructor] == build"/>
+  <componentPosition          value="cartesian" active="[mergerTreeConstructor] == read" />
   <componentSatellite         value="preset"   />
   <componentSpheroid          value="standard" >
     <ratioAngularMomentumScaleRadius value="0.5"   />
@@ -206,11 +207,11 @@
       <fractionMassFormation value="0.5"/>
     </nodeOperator>
     <!-- Position interpolation -->
-    <nodeOperator value="positionInterpolated">
+    <nodeOperator value="positionInterpolated" active="[componentPosition] == cartesian">
       <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
     </nodeOperator>
     <!-- Heuristic analysis -->
-    <nodeOperator value="assemblyHistoryHeuristics">
+    <nodeOperator value="assemblyHistoryHeuristics" active="[mergerTreeConstructor] == read">
       <exponentGrowth value="100.0"/>
       <sigmaThreshold value="5.0"/>
       <nbodyHaloMassError value="trenti2010">
