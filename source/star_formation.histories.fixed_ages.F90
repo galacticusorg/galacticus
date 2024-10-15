@@ -327,21 +327,21 @@ contains
        ! Validate consistency in the lightcone crossing times.
        if (size(timesNodeCrossing) /= size(timesNodeCrossingPrevious)) then
           write (label,'(e16.10)') basic%time()
-          call displayIndent(var_str("number of crossing times has changed for node ")//node%index()//' at time '//trim(adjustl(label))//' Gye')
+          call displayIndent(var_str("number of crossing times has changed for node ")//node%index()//' at time '//trim(adjustl(label))//' Gyr')
           call displayMessage("times (new | old) are:")
           do i=1,max(size(timesNodeCrossing),size(timesNodeCrossingPrevious))
              if (i <= size(timesNodeCrossing)) then
                 write (label,'(e16.10)') timesNodeCrossing        (i)
                 message=         label
              else
-                message=         "            "
+                message=         "              "
              end if
              message=message//" | "
              if (i <= size(timesNodeCrossingPrevious)) then
                 write (label,'(e16.10)') timesNodeCrossingPrevious(i)
                 message=message//label
              else
-                message=message//"            "
+                message=message//"              "
              end if
              call displayMessage(message)
           end do
@@ -650,6 +650,8 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
+    use :: ISO_Varying_String  , only : varying_string    , assignment(=), operator(//)
+    use :: String_Handling     , only : operator(//)
     implicit none
     double precision                               , allocatable  , dimension(:) :: times
     class           (starFormationHistoryFixedAges), intent(inout)               :: self
@@ -660,6 +662,8 @@ contains
     double precision                               , intent(  out), optional     :: timeStart
     double precision                               , allocatable  , dimension(:) :: timesCrossing       , times_
     class           (nodeComponentBasic           ), pointer                     :: basic
+    type            (varying_string               )                              :: message
+    character       (len=16                       )                              :: label
     !![
     <optionalArgument name="allowTruncation" defaultsTo=".false."/>
     !!]
@@ -672,7 +676,13 @@ contains
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
-    if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) call Error_Report("time does not match expected time"//{introspection:location})
+    if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) then
+       write (label,'(e16.10)') basic%time         ( )
+       message="time ("//label//") "
+       write (label,'(e16.10)')       timesCrossing(1)
+       message=message//"does not match expected time ("//label//") for node "//node%index()
+       call Error_Report(message//{introspection:location})
+    end if
     ! Set the times for this output. Note that the times stored in the history object are relative to t=0, so we increment them by
     ! the actual crossing time.
     if (allowTruncation_) then
@@ -700,6 +710,8 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
+    use :: ISO_Varying_String  , only : varying_string    , assignment(=), operator(//)
+    use :: String_Handling     , only : operator(//)
     implicit none
     double precision                               , allocatable  , dimension(:,:) :: masses
     class           (starFormationHistoryFixedAges), intent(inout)                 :: self
@@ -708,7 +720,9 @@ contains
     logical                                        , intent(in   ), optional       :: allowTruncation
     double precision                               , allocatable  , dimension(:  ) :: timesCrossing       , times_
     class           (nodeComponentBasic           ), pointer                       :: basic
-    !![
+    type            (varying_string               )                                :: message
+    character       (len=16                       )                                :: label
+     !![
     <optionalArgument name="allowTruncation" defaultsTo=".false."/>
     !!]
     
@@ -720,7 +734,13 @@ contains
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
-    if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) call Error_Report("time does not match expected time"//{introspection:location})
+    if (.not.Values_Agree(basic%time(),timesCrossing(1),relTol=1.0d-6)) then
+       write (label,'(e16.10)') basic%time         ( )
+       message="time ("//label//") "
+       write (label,'(e16.10)')       timesCrossing(1)
+       message=message//"does not match expected time ("//label//") for node "//node%index()
+       call Error_Report(message//{introspection:location})
+    end if
     ! Set the times for this output. Note that the times stored in the history object are relative to t=0, so we increment them by
     ! the actual crossing time.
     if (allowTruncation_) then
