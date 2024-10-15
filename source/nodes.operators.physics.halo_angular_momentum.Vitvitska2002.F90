@@ -314,8 +314,11 @@ contains
        angularMomentumRootVariance=+sqrt(                                      &
             &                            +self%angularMomentumVarianceSpecific &
             &                            *(                                    &
-            &                              +angularMomentumScale       **2     &
-            &                              -angularMomentumScaleChild  **2     &
+            &                              +max(                               &
+            &                                   +angularMomentumScale     **2  &
+            &                                   -angularMomentumScaleChild**2, &
+            &                                   +0.0d0                         &
+            &                                  )                               &
             &                              *(                                  &
             &                                +basic   %mass          ()        &
             &                                -         massUnresolved          &
