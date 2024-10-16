@@ -244,7 +244,7 @@ jobs:
         continue-on-error: true
         uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: warnings.md
+          file-path: warnings.md
   # Spell check LaTeX files
   Spell-Check-LaTeX:
     runs-on: ubuntu-latest
@@ -288,4 +288,4 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: warnings.md
+          file-path: warnings.md
