@@ -476,27 +476,20 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Remove_Paired_Event
 
-  logical function Tree_Node_Is_Primary_Progenitor(self)
+  logical function treeNodeIsPrimaryProgenitor(self) result(isPrimaryProgenitor)
     !!{
     Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
     !!}
-    use :: Error, only : Error_Report
     implicit none
-    class(treeNode), intent(inout) :: self
+    class(treeNode), intent(inout), target:: self
 
-    select type (self)
-    type is (treeNode)
-       if (associated(self%parent)) then
-          Tree_Node_Is_Primary_Progenitor=associated(self%parent%firstChild,self)
-       else
-          Tree_Node_Is_Primary_Progenitor=.false.
-       end if
-    class default
-       Tree_Node_Is_Primary_Progenitor=.false.
-       call Error_Report('treeNode is of unknown class'//{introspection:location})
-    end select
+    if (associated(self%parent)) then
+       isPrimaryProgenitor=associated(self%parent%firstChild,self)
+    else
+       isPrimaryProgenitor=.false.
+    end if
     return
-  end function Tree_Node_Is_Primary_Progenitor
+  end function treeNodeIsPrimaryProgenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
     !!{

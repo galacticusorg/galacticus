@@ -28,6 +28,7 @@
     <efficiencyStrippingOutflow  value="0.1"  />
     <trackStrippedGas            value="true" />
   </componentHotHalo>
+  <componentPosition          value="null"    />
   <componentSatellite         value="orbiting"/>
   <componentSpheroid          value="standard" >
     <ratioAngularMomentumScaleRadius value="0.5"   />
