@@ -3480,19 +3480,38 @@ contains
     use :: Vectors      , only : Vector_Magnitude, Vector_Product
     implicit none
     type            (keplerOrbit)                              :: orbit
-    double precision                           , intent(in   ) :: mass1   , mass2
-    double precision             , dimension(3), intent(in   ) :: position, velocity
+    double precision                           , intent(in   ) :: mass1             , mass2
+    double precision             , dimension(3), intent(in   ) :: position          , velocity
+    double precision             , dimension(3)                :: velocityTangential, velocityRadial  , &
+         &                                                        vectorEpsilon1    , vectorEpsilon2  , &
+         &                                                        vectorRadial 
+    double precision                                           :: positionMagnitude , velocityEpsilon1, &
+         &                                                        velocityEpsilon2
 
+    positionMagnitude =Vector_Magnitude(position)
+    vectorRadial      =+position          &
+         &             /positionMagnitude
+    velocityRadial    =+Dot_Product(velocity,position) &
+         &             *vectorRadial
+    velocityTangential=+velocity       &
+         &             -velocityRadial
+    vectorEpsilon1    =Vector_Product(vectorRadial  ,[0.0d0,0.0d0,1.0d0])
+    vectorEpsilon2    =Vector_Product(vectorEpsilon1,vectorRadial       )
+    vectorEpsilon1    =vectorEpsilon1/Vector_Magnitude(vectorEpsilon1)
+    vectorEpsilon2    =vectorEpsilon2/Vector_Magnitude(vectorEpsilon2)
+    velocityEpsilon1  =Dot_Product(velocityTangential,vectorEpsilon1)
+    velocityEpsilon2  =Dot_Product(velocityTangential,vectorEpsilon2)
     call orbit%reset()
     call orbit%massesSet            (       &
          &                           mass1, &
          &                           mass2  &
          &                          )
-    call orbit%radiusSet            (                                                   Vector_Magnitude(position))
-    call orbit%velocityRadialSet    (                    Dot_Product(velocity,position)/Vector_Magnitude(position))
-    call orbit%velocityTangentialSet(Vector_Magnitude(Vector_Product(velocity,position)/Vector_Magnitude(position)))
-    call orbit%thetaSet             (acos (position(3)/sqrt(sum(position**2))            ))
-    call orbit%phiSet               (atan2(position(2)                       ,position(1)))
+    call orbit%radiusSet            (                                     positionMagnitude)
+    call orbit%velocityRadialSet    (Dot_Product     (velocity,position )/positionMagnitude)
+    call orbit%velocityTangentialSet(Vector_Magnitude(velocityTangential)                  )
+    call orbit%thetaSet             (acos (position        (3)/positionMagnitude                    ))
+    call orbit%phiSet               (atan2(position        (2)                  ,position        (1)))
+    call orbit%epsilonSet           (atan2(velocityEpsilon2                     ,velocityEpsilon1   ))
     return
   end function readOrbitConstruct
 
