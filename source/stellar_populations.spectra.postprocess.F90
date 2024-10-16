@@ -42,6 +42,15 @@ module Stellar_Population_Spectra_Postprocess
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength, age, redshift</argument>
    </method>
+   <method name="isRedshiftDependent" >
+    <description>Return true if the postprocessor is redshift dependent.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      stellarPopulationSpectraPostprocessorIsRedshiftDependent=.true.
+    </code>
+   </method>
   </functionClass>
   !!]
 

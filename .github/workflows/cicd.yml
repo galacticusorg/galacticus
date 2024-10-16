@@ -1078,6 +1078,7 @@ jobs:
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
+                test-star-formation-histories-fixedAge.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
                 test-lightcone-crossing.py,
                 test-massProfileSatelliteBoundMass.py,

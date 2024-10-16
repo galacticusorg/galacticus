@@ -2,7 +2,7 @@
 <!-- Reference dark matter halo structure model -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Dark matter profile scale radii model -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">
@@ -21,7 +21,7 @@
   <haloSpinDistribution value="bett2007">
     <!-- For leaf nodes in the tree we fall back to drawing spins from the distribution function given by -->
     <!-- Benson (2017; MNRAS; 471; 2871; http://adsabs.harvard.edu/abs/2017MNRAS.471.2871B).              -->
-    <!-- Best fit paramter values are taken from that paper.                                              -->
+    <!-- Best fit parameter values are taken from that paper.                                             -->
     <alpha   value="1.7091800"/>
     <lambda0 value="0.0420190"/>
   </haloSpinDistribution>

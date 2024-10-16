@@ -183,27 +183,22 @@
     
 contains
 
-  recursive function adiabaticGnedin2004ConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
+  recursive function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Functions_Global, only : galacticStructureConstruct_, galacticStructureDestruct_
     implicit none
-    type            (darkMatterProfileAdiabaticGnedin2004)                          :: self
-    type            (inputParameters                     ), intent(inout)           :: parameters
-    logical                                               , intent(in   ), optional :: recursiveConstruct
-    class           (darkMatterProfileClass              ), intent(in   ), optional :: recursiveSelf
-    class           (cosmologyParametersClass            ), pointer                 :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass           ), pointer                 :: darkMatterProfileDMO_
-    class           (*                                   ), pointer                 :: galacticStructure_
-    type            (varying_string                      )                          :: nonAnalyticSolver
-    double precision                                                                :: A                    , omega            , &
-          &                                                                            radiusFractionalPivot, toleranceRelative
-    !![
-    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
-    !!]
+    type            (darkMatterProfileAdiabaticGnedin2004)                :: self
+    type            (inputParameters                     ), intent(inout) :: parameters
+    class           (cosmologyParametersClass            ), pointer       :: cosmologyParameters_
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass           ), pointer       :: darkMatterProfileDMO_
+    class           (*                                   ), pointer       :: galacticStructure_
+    type            (varying_string                      )                :: nonAnalyticSolver
+    double precision                                                      :: A                    , omega            , &
+          &                                                                  radiusFractionalPivot, toleranceRelative
     
     !![
     <inputParameter>
@@ -243,12 +238,8 @@ contains
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    if (recursiveConstruct_) then
-       galacticStructure_ => null()
-    else
-       call galacticStructureConstruct_(parameters,galacticStructure_)
-    end if
-    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf)
+    call galacticStructureConstruct_(parameters,galacticStructure_)
+    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters" extraAllowedNames="galacticStructure"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -259,24 +250,21 @@ contains
     return
   end function adiabaticGnedin2004ConstructorParameters
 
-  function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,recursiveConstruct,recursiveSelf) result(self)
+  recursive function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Generic constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (darkMatterProfileAdiabaticGnedin2004)                                  :: self
-    double precision                                      , intent(in   )                   :: A                    , omega            , &
-         &                                                                                     radiusFractionalPivot, toleranceRelative
-    class           (cosmologyParametersClass            ), intent(in   ), target           :: cosmologyParameters_
-    class           (darkMatterProfileDMOClass           ), intent(in   ), target           :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass            ), intent(in   ), target           :: darkMatterHaloScale_
-    class           (*                                   ), intent(in   ), target           :: galacticStructure_
-    type            (enumerationNonAnalyticSolversType   ), intent(in   )                   :: nonAnalyticSolver
-    logical                                               , intent(in   )        , optional :: recursiveConstruct
-    class           (darkMatterProfileClass              ), intent(in   ), target, optional :: recursiveSelf
+    type            (darkMatterProfileAdiabaticGnedin2004)                        :: self
+    double precision                                      , intent(in   )         :: A                    , omega            , &
+         &                                                                           radiusFractionalPivot, toleranceRelative
+    class           (cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
+    class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
+    class           (*                                   ), intent(in   ), target :: galacticStructure_
+    type            (enumerationNonAnalyticSolversType   ), intent(in   )         :: nonAnalyticSolver
     !![
-    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
     <constructorAssign variables="A, omega, radiusFractionalPivot, toleranceRelative, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
     
@@ -297,17 +285,8 @@ contains
          &                 toleranceAbsolute=toleranceAbsolute        , &
          &                 toleranceRelative=toleranceRelative          &
          &                )
-    ! Handle recursive construction.
-    self%isRecursive=recursiveConstruct_
-    if (recursiveConstruct_) then
-       if (.not.present(recursiveSelf)) call Error_Report('recursiveSelf not present'//{introspection:location})
-       select type (recursiveSelf)
-       class is (darkMatterProfileAdiabaticGnedin2004)
-          self%recursiveSelf => recursiveSelf
-       class default
-          call Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
-       end select
-    end if
+    ! Set recursive properties.
+    self%isRecursive   =.false.
     self%parentDeferred=.false.
     return
   end function adiabaticGnedin2004ConstructorInternal

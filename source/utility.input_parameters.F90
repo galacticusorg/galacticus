@@ -125,12 +125,13 @@ module Input_Parameters
      type   (node           ), pointer, public :: document               => null()
      type   (node           ), pointer         :: rootNode               => null()
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
-     type   (inputParameter ), pointer         :: parameters             => null()
+     type   (inputParameter ), pointer, public         :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
-          &                                       isNull                 =  .false.
+          &                                       isNull                 =  .false., warnedVersion            =.false.
      type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        ), pointer         :: lock                   => null()
+     type   (varying_string )                  :: fileName
    contains
      !![
      <methods>
@@ -398,11 +399,12 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
     !!}
+    use :: ISO_Varying_String, only : char
     implicit none
     type (inputParameters)                :: self
     type (inputParameters), intent(in   ) :: parameters
 
-    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,fileName=char(parameters%fileName))
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     if (allocated(parameters%warnedDefaults)) then
@@ -433,8 +435,9 @@ contains
 #else
     use            :: Error             , only : Warn
 #endif
-    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
-    use            :: String_Handling   , only : String_Strip,String_C_To_Fortran
+    use            :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=), &
+         &                                       var_str
+    use            :: String_Handling   , only : String_Strip,String_C_To_Fortran , operator(//)
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use            :: Display           , only : displayMessage
     use            :: IO_HDF5           , only : ioHDF5AccessInitialize
@@ -472,6 +475,7 @@ contains
     self%parent         => null            (              )
     self%warnedDefaults =  integerHash     (              )
     self%lock           =  ompLock         (              )
+    if (present(fileName)) self%fileName=fileName
     !$omp critical (FoX_DOM_Access)
     self%document       => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
@@ -532,8 +536,9 @@ contains
           commitHashParameters =  getTextContent  (revisionNode               )//c_null_char
        end if
        !$omp end critical (FoX_DOM_Access)
-       if (hasRevision) then
+       if (hasRevision.and..not.self%warnedVersion) then
           ! A revision was available in the parameter file.
+          self%warnedVersion=.true.
           !! Build an array of known migration commit hashes.
           !![
 	  <parameterMigration/>
@@ -547,17 +552,16 @@ contains
              isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
           end do
           if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
-             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
+             call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")")
           else if (any(isAncestorOfParameters == 0)) then
              ! Parameter file is missing migrations - issue a warning.
-             message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider running:"//char(10)//char(10)//"./scripts/aux/parametersMigrate.pl "
+             message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "
              if (present(fileName)) message=message//trim(fileName)//" newParameterFile.xml "
-             message=message//char(10)//char(10)//"to update your parameter file"
              call displayMessage(message)
           end if
           isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
           if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
-             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed")
+             call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")")
           else if (isAncestorOfSelf == 0_c_int) then
              ! Parameters are more recent than the executable - issue a warning.
              call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus")

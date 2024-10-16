@@ -54,6 +54,7 @@
      procedure :: differentialEvolution               => multiDifferentialEvolution
      procedure :: differentialEvolutionScales         => multiDifferentialEvolutionScales
      procedure :: differentialEvolutionAnalytics      => multiDifferentialEvolutionAnalytics
+     procedure :: predeterminedSolveAnalytics         => multiPredeterminedSolveAnalytics
      procedure :: differentialEvolutionSolveAnalytics => multiDifferentialEvolutionSolveAnalytics
      procedure :: differentialEvolutionInactives      => multiDifferentialEvolutionInactives
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
@@ -346,6 +347,25 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionSolveAnalytics
+
+  subroutine multiPredeterminedSolveAnalytics(self,node,time)
+    !!{
+    Set the pre-determined values of analytically-solvable properties of a node.
+    !!}
+    implicit none
+    class           (nodeOperatorMulti), intent(inout) :: self
+    type            (treeNode         ), intent(inout) :: node
+    double precision                   , intent(in   ) :: time
+    type            (multiProcessList ), pointer       :: process_
+
+    if (.not.self%isActive(node)) return
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%predeterminedSolveAnalytics(node,time)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiPredeterminedSolveAnalytics
 
   subroutine multiDifferentialEvolutionStepFinalState(self,node)
     !!{

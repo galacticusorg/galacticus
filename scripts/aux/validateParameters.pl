@@ -45,6 +45,8 @@ if ( $format == 1 ) {
     ++$names{$_->{'name'}}
         foreach ( &List::ExtraUtils::as_array($parameters->{'parameter'}) );
     foreach ( keys(%names) ) {
+	next
+	    if ( $_ eq "xi:include" );
 	if ( $names{$_} > 1 ) {
 	    $valid = 1;
 	    print "Parameter '".$_."' appears ".$names{$_}." times - should appear only once\n";
@@ -66,7 +68,7 @@ if ( $format == 1 ) {
 	} elsif ( $element->{'name'} eq 'lastModified' ) {
 	    $hasLastModified = 1;
 	} elsif ( reftype($element->{'node'}) eq "ARRAY" ) {
-	    if ( $element->{'name'} =~ m/\-\>/ ) { # Duplicates are allowed only in subparameters.
+	    if ( $element->{'name'} eq "xi:include" || $element->{'name'} =~ m/\-\>/ ) { # Duplicates are allowed only in subparameters or xi:include.
 		foreach my $node ( @{$element->{'node'}} ) {
 		    if ( ! exists($node->{'value'}) ) {
 			unless ( %{$node} ) {

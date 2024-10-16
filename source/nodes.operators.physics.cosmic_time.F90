@@ -35,7 +35,8 @@
      private
    contains
      procedure :: differentialEvolutionAnalytics      => cosmicTimeDifferentialEvolutionAnalytics
-     procedure :: differentialEvolutionSolveAnalytics => cosmicTimeDifferentialEvolutionSolveAnalytics
+     procedure :: preDeterminedSolveAnalytics         => cosmicTimeSolveAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => cosmicTimeSolveAnalytics
      procedure :: nodesMerge                          => cosmicTimeNodesMerge
   end type nodeOperatorCosmicTime
   
@@ -79,7 +80,7 @@ contains
     return
   end subroutine cosmicTimeDifferentialEvolutionAnalytics
 
-  subroutine cosmicTimeDifferentialEvolutionSolveAnalytics(self,node,time)
+  subroutine cosmicTimeSolveAnalytics(self,node,time)
     !!{
     Set values of analytically-solvable properties.
     !!}
@@ -94,7 +95,7 @@ contains
     basic => node%basic()
     call basic%timeSet(time)
     return
-  end subroutine cosmicTimeDifferentialEvolutionSolveAnalytics
+  end subroutine cosmicTimeSolveAnalytics
 
   subroutine cosmicTimeNodesMerge(self,node)
     !!{

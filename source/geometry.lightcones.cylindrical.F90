@@ -74,6 +74,7 @@
      !!]
      final     ::                              cylindricalDestructor
      procedure :: timeMinimum               => cylindricalTimeMinimum
+     procedure :: timeMaximum               => cylindricalTimeMaximum
      procedure :: isInLightcone             => cylindricalIsInLightcone
      procedure :: replicationCount          => cylindricalReplicationCount
      procedure :: solidAngle                => cylindricalSolidAngle
@@ -498,6 +499,17 @@ contains
     return
   end function cylindricalTimeMinimum
 
+  double precision function cylindricalTimeMaximum(self)
+    !!{
+    Return the minimum time in the lightcone.
+    !!}
+    implicit none
+    class(geometryLightconeCylindrical), intent(inout) :: self
+
+    cylindricalTimeMaximum=self%outputTimes_%time(self%outputTimes_%count())
+    return
+  end function cylindricalTimeMaximum
+
   logical function cylindricalIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
     Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
@@ -614,16 +626,17 @@ contains
     return
   end function cylindricalVelocity
 
-  double precision function cylindricalTimeLightconeCrossing(self,node,timeStart,timeEnd)
+  double precision function cylindricalTimeLightconeCrossing(self,node,timeStart,timeEnd,timesCrossing)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (geometryLightconeCylindrical), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: timeStart, timeEnd
-    !$GLC attributes unused :: self, node, timeStart, timeEnd
+    class           (geometryLightconeCylindrical), intent(inout)                                      :: self
+    type            (treeNode                    ), intent(inout)                                      :: node
+    double precision                              , intent(in   )                                      :: timeStart    , timeEnd
+    double precision                              , intent(inout), dimension(:), allocatable, optional :: timesCrossing
+   !$GLC attributes unused :: self, node, timeStart, timeEnd, timesCrossing
 
     cylindricalTimeLightconeCrossing=0.0d0
     call Error_Report('not implemented'//{introspection:location})

@@ -2,7 +2,7 @@
 <!-- Model which triggered a floating point exception in the Efstathiou et al. disk instability class -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
@@ -419,7 +419,6 @@
     <timeStepMinimum value="0.01"/>
     <countTimeStepsMaximum value="390"/>
     <countMetallicities value="0"/>
-    <countOutputBuffer value="100"/>
   </starFormationHistory>
   
   <!-- Numerical tolerances -->

@@ -26,8 +26,8 @@ module Nodes_Operators_Utilities
   Provides globally-accessible functions supporting the \refClass{nodeOperatorClass} class.
   !!}
   private
-  public :: nodeOperatorConstruct       , nodeOperatorDestruct    , nodeOperatorDeepCopy  , nodeOperatorDeepCopyReset , &
-       &    nodeOperatorDeepCopyFinalize, nodeOperatorStateRestore, nodeOperatorStateStore, nodeOperatorSolveAnalytics
+  public :: nodeOperatorConstruct       , nodeOperatorDestruct    , nodeOperatorDeepCopy  , nodeOperatorDeepCopyReset              , &
+       &    nodeOperatorDeepCopyFinalize, nodeOperatorStateRestore, nodeOperatorStateStore, nodeOperatorPredeterminedSolveAnalytics
 
   ! Module-scope pointer to our task object. This is used for reference counting so that debugging information is consistent
   ! between the increments and decrements.
@@ -79,7 +79,7 @@ contains
 
   !![
   <functionGlobal>
-   <unitName>nodeOperatorSolveAnalytics</unitName>
+   <unitName>nodeOperatorPredeterminedSolveAnalytics</unitName>
    <type>void</type>
    <module>Galacticus_Nodes, only : treeNode</module>
    <arguments>class           (*       ), intent(inout) :: nodeOperator_</arguments>
@@ -87,13 +87,13 @@ contains
    <arguments>double precision          , intent(in   ) :: time         </arguments>
   </functionGlobal>
   !!]
-  subroutine nodeOperatorSolveAnalytics(nodeOperator_,node,time)
+  subroutine nodeOperatorPredeterminedSolveAnalytics(nodeOperator_,node,time)
     !!{
-    Evaluate analytic properties using a {\normalfont \ttfamily nodeOperator} object passed to us as an unlimited polymorphic object.
+    Evaluate analytic ppre-determined roperties using a {\normalfont \ttfamily nodeOperator} object passed to us as an unlimited polymorphic object.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Nodes_Operators , only : nodeOperatorClass
-    use :: Galacticus_Nodes, only : treeNode
+    use :: Error             , only : Error_Report
+    use :: Nodes_Operators   , only : nodeOperatorClass
+    use :: Galacticus_Nodes  , only : treeNode
     use :: ISO_Varying_String, only : char
     implicit none
     class           (*       ), intent(inout) :: nodeOperator_
@@ -102,12 +102,12 @@ contains
     
     select type (nodeOperator_)
     class is (nodeOperatorClass)
-       call nodeOperator_%differentialEvolutionSolveAnalytics(node,time)
+       call nodeOperator_%predeterminedSolveAnalytics(node,time)
     class default
        call Error_Report('unexpected class'//{introspection:location})
     end select
     return
-  end subroutine nodeOperatorSolveAnalytics
+  end subroutine nodeOperatorPredeterminedSolveAnalytics
   
   !![
   <functionGlobal>
