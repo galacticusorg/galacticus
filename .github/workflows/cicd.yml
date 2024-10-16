@@ -406,7 +406,7 @@ jobs:
   ## MacOS
   ### Static executable
   Build-Executable-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -472,7 +472,7 @@ jobs:
           path: 'debugSymbolsMacOS-M1.zip'
   ## Library
   Build-Library-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -504,7 +504,7 @@ jobs:
           path: 'libgalacticusMacOS.zip'
   ### Tools
   Build-Tools-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -1343,13 +1343,13 @@ jobs:
         executable: [ tests.hashes.cryptographic.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
-      runner: macos-12
+      runner: macos-13
       executable: ${{ matrix.executable }}
       artifact: test-execs-MacOS
     secrets: inherit
   ### Test Python Interface
   Python-Interface-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
