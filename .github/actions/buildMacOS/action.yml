@@ -103,8 +103,13 @@ runs:
       run: |
         curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
         tar -vxzf hdf5-1.8.20.tar.gz 
-        cd hdf5-1.8.20 
-        CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+        cd hdf5-1.8.20
+        if [[ "${OS_VER}" -eq 13 ]]; then
+           # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
+           CC=gcc-11 CXX=g++-11 FC=gfortran-11 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-production
+        else
+           CC=gcc-11 CXX=g++-11 FC=gfortran-11                         ./configure --prefix=/usr/local --enable-fortran --enable-production
+        fi
         make -j3
         sudo make install
         cd ..
