@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.400000"/>
+    <OmegaMatter     value=" 0.272000"/>
+    <OmegaDarkEnergy value=" 0.728000"/>
+    <OmegaBaryon     value=" 0.0000000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction        value="CAMB"     >
+    <cosmologyParameters value="simple">
+      <HubbleConstant  value="70.400000"/>
+      <OmegaMatter     value=" 0.272000"/>
+      <OmegaDarkEnergy value=" 0.728000"/>
+      <OmegaBaryon     value=" 0.044550"/>
+      <temperatureCMB  value=" 2.725480"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw" >
+    <index               value="0.967"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.81"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="shethTormen">
+    <a             value="+0.791"/>
+    <p             value="+0.218"/>
+    <normalization value="+0.302"/>
+  </haloMassFunction>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.01"/>
+    <mergeProbability value="0.1"/>
+    <branchIntervalStep value="true"/>
+    <redshiftMaximum    value="12.0"/>
+    <toleranceTimeEarliest value="1.0e-5"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="PCHPlus">
+    <!-- Merger tree branching rates are computed using the PCH+ algorithm, with parameters constrained to match progenitor -->
+    <!-- mass functions in the MDPL simulation suite.                                                                       -->
+    <!-- See: https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-progenitor-halo-mass-functions      -->
+    <!-- CDM assumptions are used here to speed up tree construction.                                                       -->
+    <G0                 value="+1.1425468378985500"/>
+    <gamma1             value="-0.3273597030267590"/>
+    <gamma2             value="+0.0587448775510245"/>
+    <gamma3             value="+0.6456170934757410"/>
+    <accuracyFirstOrder value="+0.1000000000000000"/>
+    <cdmAssumptions     value="true"               />
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e9"/>
+    <massTreeMaximum value="18.0e9"/>
+    <treesPerDecade value="3000"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e6"/>
+  </mergerTreeMassResolution>
+  <mergerTreeBuildController value="subsample">
+    <massThreshold               value="1.0e7"/>
+    <subsamplingRateAtThreshold  value="1.0"  />
+    <exponent                    value="1.0"  />
+    <destroyStubs                value="sideBranchesOnly"/>
+    <factorMassGrowthConsolidate value="0.01" />
+  </mergerTreeBuildController>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="diemerJoyce2019">
+    <scatter value="0.16"/>
+  </darkMatterProfileConcentration>
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="filtered">
+      <galacticFilter value="mainBranch"/>
+      <nodeOperator value="darkMatterProfileScaleSet">
+	<factorReset value="1.0"/>
+	<darkMatterProfileScaleRadius value="concentrationLimiter">
+	  <concentrationMinimum value="  2.0"/>
+	  <concentrationMaximum value="100.0"/>
+	  <darkMatterProfileScaleRadius value="johnson2021">
+	    <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33;
+		 http://adsabs.harvard.edu/abs/2021ApJ...908...33J). Best-fit values of the parameters are taken from that
+		 paper. -->
+	    <energyBoost      value="0.673"/>
+	    <massExponent     value="1.518"/>
+	    <unresolvedEnergy value="0.550"/>
+	    <darkMatterProfileScaleRadius value="concentration"/>
+	  </darkMatterProfileScaleRadius>
+	</darkMatterProfileScaleRadius>
+      </nodeOperator>
+    </nodeOperator>
+    <nodeOperator value="filtered">
+      <galacticFilter value="not">
+	<galacticFilter value="mainBranch"/>
+      </galacticFilter>
+      <nodeOperator value="darkMatterProfileScaleSet">
+	<factorReset value="2.0"/>
+	<darkMatterProfileScaleRadius value="concentrationLimiter">
+	  <concentrationMinimum value="  2.0"/>
+	  <concentrationMaximum value="100.0"/>
+	  <darkMatterProfileScaleRadius value="concentration"/>
+	</darkMatterProfileScaleRadius>
+      </nodeOperator>
+    </nodeOperator>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+    <!-- Clean up subsampled branch stubs -->
+    <nodeOperator value="cleanSubsampleStubs">
+      <factorMassGrowthConsolidate value="0.01"/>
+    </nodeOperator>
+  </nodeOperator>
+  
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Evolvers -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/concentrationDistributionJohnson2021Subsample1e7.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="massHalo">
+      <virialDensityContrastDefinition value="fixed">
+	<densityContrastValue value="200"/>
+	<densityType value="critical"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="concentration">
+      <virialDensityContrastDefinition value="fixed">
+	<densityContrastValue value="200"/>
+	<densityType value="critical"/>
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+ 
+</parameters>
