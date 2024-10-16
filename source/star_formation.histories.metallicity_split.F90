@@ -75,6 +75,8 @@ Contains a module which implements a star formation histories class which record
      procedure :: scales                => metallicitySplitScales
      procedure :: make                  => metallicitySplitMake
      procedure :: metallicityBoundaries => metallicitySplitMetallicityBoundaries
+     procedure :: rangeIsSufficient     => metallicitySplitRangeIsSufficient
+     procedure :: extend                => metallicitySplitExtend
   end type starFormationHistoryMetallicitySplit
 
   interface starFormationHistoryMetallicitySplit
@@ -261,7 +263,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)           :: self
-    type            (treeNode                            ), intent(inout)           :: node
+    type            (treeNode                            ), intent(inout), target   :: node
     type            (history                             ), intent(inout)           :: historyStarFormation
     double precision                                      , intent(in   )           :: timeBegin
     double precision                                      , intent(in   ), optional :: timeEnd
@@ -353,24 +355,27 @@ contains
     return
   end subroutine metallicitySplitUpdate
 
-  subroutine metallicitySplitScales(self,historyStarFormation,massStellar,abundancesStellar)
+  subroutine metallicitySplitScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)               :: self
-    double precision                                      , intent(in   )               :: massStellar
+    double precision                                      , intent(in   )               :: massStellar                , massGas    
     type            (abundances                          ), intent(in   )               :: abundancesStellar
     type            (history                             ), intent(inout)               :: historyStarFormation
-    double precision                                      , parameter                   :: massStellarMinimum  =1.0d0
+    type            (treeNode                            ), intent(inout)               :: node
+    double precision                                      , parameter                   :: massMinimum          =1.0d0
     double precision                                      , allocatable  , dimension(:) :: timeSteps
     integer                                                                             :: iMetallicity
-    !$GLC attributes unused :: abundancesStellar
+    !$GLC attributes unused :: abundancesStellar, node
 
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
-       historyStarFormation%data(:,iMetallicity)=max(massStellar,massStellarMinimum)/timeSteps
+       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,massMinimum)                            &
+            &                                    *                     timeSteps                                  &
+            &                                    /historyStarFormation%time     (size(historyStarFormation%time))
     end forall
     deallocate(timeSteps)
     return
@@ -528,3 +533,37 @@ contains
     metallicitySplitMetallicityBoundaries(0:size(self%metallicityTable)-1)=self%metallicityTable(1:size(self%metallicityTable))
     return
   end function metallicitySplitMetallicityBoundaries
+
+  logical function metallicitySplitRangeIsSufficient(self,starFormationHistory,rangeHistory) result(rangeIsSufficient)
+    !!{
+    Return true if the range of this history is sufficient.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(starFormationHistoryMetallicitySplit), intent(inout) :: self
+    type (history                             ), intent(in   ) :: starFormationHistory, rangeHistory
+    !$GLC attributes unused :: self
+
+    if (.not.starFormationHistory%exists())                                             &
+         & call Error_Report(                                                           &
+         &                   'no star formation history has been created in spheroid'// &
+         &                   {introspection:location}                                   &
+         &                  )
+   rangeIsSufficient= rangeHistory%time(                      1) >= starFormationHistory%time(                              1) &
+        &            .and.                                                                                                     &
+        &             rangeHistory%time(size(rangeHistory%time)) <= starFormationHistory%time(size(starFormationHistory%time))
+   return
+  end function metallicitySplitRangeIsSufficient
+
+  subroutine metallicitySplitExtend(self,starFormationHistory,times)
+    !!{
+    Extend this history to span a sufficient range.
+    !!}
+    implicit none
+    class           (starFormationHistoryMetallicitySplit), intent(inout)               :: self
+    type            (history                             ), intent(inout)               :: starFormationHistory
+    double precision                                      , intent(in   ), dimension(:) :: times
+    
+    call starFormationHistory%extend(times=times)
+    return
+  end subroutine metallicitySplitExtend

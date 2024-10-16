@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Baryonic suppression validation model - reference IGM evolution. -->
 <parameters>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <formatVersion>2</formatVersion>
   <verbosityLevel value="working"/>
 

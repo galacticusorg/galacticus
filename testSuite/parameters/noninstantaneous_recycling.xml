@@ -4,7 +4,7 @@
 <!-- 30-November-2020                                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
 
 <verbosityLevel value="working"/>
@@ -423,7 +423,6 @@
     <timeStepMinimum value="0.01"/>
     <countTimeStepsMaximum value="390"/>
     <countMetallicities value="0"/>
-    <countOutputBuffer value="100"/>
   </starFormationHistory>
   
   <!-- Numerical tolerances -->

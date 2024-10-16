@@ -37,15 +37,17 @@ Implements a star formation histories class which records \emph{in situ} star fo
      private
      class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
    contains
-     final     ::                                inSituDestructor
-     procedure :: create                      => inSituCreate
-     procedure :: rate                        => inSituRate
-     procedure :: update                      => inSituUpdate
-     procedure :: scales                      => inSituScales
-     procedure :: autoHook                    => inSituAutoHook
-     procedure :: times                       => inSituTimes
-     procedure :: metallicityBoundaries       => inSituMetallicityBoundaries
-     procedure :: perOutputTabulationIsStatic => inSituPerOutputTabulationIsStatic
+     final     ::                          inSituDestructor
+     procedure :: create                => inSituCreate
+     procedure :: rate                  => inSituRate
+     procedure :: update                => inSituUpdate
+     procedure :: scales                => inSituScales
+     procedure :: autoHook              => inSituAutoHook
+     procedure :: times                 => inSituTimes
+     procedure :: metallicityBoundaries => inSituMetallicityBoundaries
+     procedure :: ageDistribution       => inSituAgeDistribution
+     procedure :: rangeIsSufficient     => inSituRangeIsSufficient
+     procedure :: extend                => inSituExtend
   end type starFormationHistoryInSitu
 
   interface starFormationHistoryInSitu
@@ -124,7 +126,7 @@ contains
     !!}
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)           :: self
-    type            (treeNode                  ), intent(inout)           :: node
+    type            (treeNode                  ), intent(inout), target   :: node
     type            (history                   ), intent(inout)           :: historyStarFormation
     double precision                            , intent(in   )           :: timeBegin
     double precision                            , intent(in   ), optional :: timeEnd
@@ -204,15 +206,16 @@ contains
     return
   end subroutine inSituUpdate
 
-  subroutine inSituScales(self,historyStarFormation,massStellar,abundancesStellar)
+  subroutine inSituScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
-    double precision                            , intent(in   ) :: massStellar
+    double precision                            , intent(in   ) :: massStellar         , massGas
     type            (abundances                ), intent(in   ) :: abundancesStellar
     type            (history                   ), intent(inout) :: historyStarFormation
+    type            (treeNode                  ), intent(inout) :: node
     type            (history                   )                :: history_
 
     allocate(history_%time(size(historyStarFormation%data,dim=1)                                        ))
@@ -220,7 +223,7 @@ contains
     history_%rangeType=historyStarFormation%rangeType
     history_%time     =historyStarFormation%time
     history_%data=historyStarFormation%data(:,1:size(historyStarFormation%data,dim=2)/2)
-    call self%starFormationHistory_%scales(history_,massStellar,abundancesStellar)
+    call self%starFormationHistory_%scales(history_,node,massStellar,massGas,abundancesStellar)
     historyStarFormation%data(:,1                                        :size(historyStarFormation%data,dim=2)/2)=history_%data
     historyStarFormation%data(:,1+size(historyStarFormation%data,dim=2)/2:size(historyStarFormation%data,dim=2)  )=history_%data
     return
@@ -271,26 +274,74 @@ contains
     return
   end function inSituMetallicityBoundaries
 
-  logical function inSituPerOutputTabulationIsStatic(self)
+  function inSituAgeDistribution(self) result(ageDistribution)
     !!{
     Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
     !!}
     implicit none
-    class(starFormationHistoryInSitu), intent(inout) :: self
+    type (enumerationStarFormationHistoryAgesType)                :: ageDistribution
+    class(starFormationHistoryInSitu             ), intent(inout) :: self
 
-    inSituPerOutputTabulationIsStatic=self%starFormationHistory_%perOutputTabulationIsStatic()
+    ageDistribution=self%starFormationHistory_%ageDistribution()
     return
-  end function inSituPerOutputTabulationIsStatic
+  end function inSituAgeDistribution
 
-  function inSituTimes(self,indexOutput)
+  function inSituTimes(self,node,indexOutput,starFormationHistory,allowTruncation,timeStart)
     !!{
     Return the times used in this tabulation.
     !!}
     implicit none
     double precision                            , allocatable  , dimension(:) :: inSituTimes
     class           (starFormationHistoryInSitu), intent(inout)               :: self
-    integer         (c_size_t                  ), intent(in   )               :: indexOutput
+    type            (treeNode                  ), intent(inout), optional     :: node
+    integer         (c_size_t                  ), intent(in   ), optional     :: indexOutput
+    type            (history                   ), intent(in   ), optional     :: starFormationHistory
+    logical                                     , intent(in   ), optional     :: allowTruncation
+    double precision                            , intent(  out), optional     :: timeStart
 
-    inSituTimes=self%starFormationHistory_%times(indexOutput)
+    inSituTimes=self%starFormationHistory_%times(node,indexOutput,starFormationHistory,allowTruncation,timeStart)
     return
   end function inSituTimes
+
+  logical function inSituRangeIsSufficient(self,starFormationHistory,rangeHistory) result(rangeIsSufficient)
+    !!{
+    Return true if the range of this history is sufficient.
+    !!}
+    implicit none
+    class(starFormationHistoryInSitu), intent(inout) :: self
+    type (history                   ), intent(in   ) :: starFormationHistory, rangeHistory
+
+    rangeIsSufficient=self%starFormationHistory_%rangeIsSufficient(starFormationHistory,rangeHistory)
+    return
+  end function inSituRangeIsSufficient
+
+  subroutine inSituExtend(self,starFormationHistory,times)
+    !!{
+    Extend this history to span a sufficient range.
+    !!}
+    implicit none
+    class           (starFormationHistoryInSitu), intent(inout)               :: self
+    type            (history                   ), intent(inout)               :: starFormationHistory
+    double precision                            , intent(in   ), dimension(:) :: times
+    type            (history                   )                              :: historyOriginal     , historyInSitu
+
+    allocate(historyOriginal%time(size(starFormationHistory%data,dim=1)                                        ))
+    allocate(historyInsitu  %time(size(starFormationHistory%data,dim=1)                                        ))
+    allocate(historyOriginal%data(size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)/2))
+    allocate(historyInsitu  %data(size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)/2))
+    historyOriginal%rangeType=starFormationHistory%rangeType
+    historyInsitu  %rangeType=starFormationHistory%rangeType
+    historyOriginal%time     =starFormationHistory%time
+    historyInsitu  %time     =starFormationHistory%time
+    historyOriginal%data     =starFormationHistory%data     (:,1:size(starFormationHistory%data,dim=2)/2)
+    historyInsitu  %data     =starFormationHistory%data     (:,1:size(starFormationHistory%data,dim=2)/2)
+    call self%starFormationHistory_%extend(historyOriginal,times)
+    call self%starFormationHistory_%extend(historyInsitu  ,times)
+    call starFormationHistory%destroy()
+    allocate(starFormationHistory%time(size(historyOriginal%data,dim=1)                                   ))
+    allocate(starFormationHistory%data(size(historyOriginal%data,dim=1),size(historyOriginal%data,dim=2)*2))
+    starFormationHistory%time                                                                                     =historyOriginal%time
+    starFormationHistory%data(:,1                                        :size(starFormationHistory%data,dim=2)/2)=historyOriginal%data
+    starFormationHistory%data(:,1+size(starFormationHistory%data,dim=2)/2:size(starFormationHistory%data,dim=2)  )=historyInsitu  %data
+    return
+  end subroutine inSituExtend

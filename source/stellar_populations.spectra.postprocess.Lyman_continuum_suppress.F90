@@ -34,7 +34,8 @@
      !!}
      private
    contains
-     procedure :: multiplier => lycSuppressMultiplier
+     procedure :: multiplier          => lycSuppressMultiplier
+     procedure :: isRedshiftDependent => lycSuppressIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorLycSuppress
 
   interface stellarPopulationSpectraPostprocessorLycSuppress
@@ -80,3 +81,15 @@ contains
     end if
     return
   end function lycSuppressMultiplier
+
+  logical function lycSuppressIsRedshiftDependent(self) result(isRedshiftDependent)
+    !!{
+    Return false indicating that the postprocessor is redshift independent.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isRedshiftDependent=.false.
+    return
+  end function lycSuppressIsRedshiftDependent

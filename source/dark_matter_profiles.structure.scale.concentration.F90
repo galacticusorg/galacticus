@@ -345,7 +345,7 @@ contains
     call state_(stateCount)%darkMatterProfile%scaleSet(radiusCore)
     call Calculations_Reset(state_(stateCount)%nodeWork)
     ! Find the non-alt density.
-    densityOuter=+state_(stateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          state_(stateCount)%basic%time()) &
+    densityOuter=+state_(stateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                state_(stateCount)%basic%time()) &
          &       *state_(stateCount)%self%virialDensityContrast_%densityContrast     (state_(stateCount)%basic%mass(),state_(stateCount)%basic%time())
     ! Get the current mass distribution.
     massDistribution_ => state_(stateCount)%self%darkMatterProfileDMODefinition%get(state_(stateCount)%nodeWork)

@@ -370,7 +370,7 @@ sub Process_FunctionClass {
 						    # Direct read into an element of the object being constructed.
 						    $name = $element;
 						} else {
-						    # Read of some other derived-type component. Use the name of the derioved type
+						    # Read of some other derived-type component. Use the name of the derived type
 						    # variable in case it is of a type that we can handle.
 						    $name = $object;
 						}
@@ -1791,27 +1791,24 @@ CODE
 	    # performing recursive build of the default object from a parameter list.
 	    my $allowRecursion = grep {exists($_->{'recursive'}) && $_->{'recursive'} eq "yes"} @classes;
 	    if ( $allowRecursion ) {
-                (my $class) = grep {$_->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'})} @nonAbstractClasses;
-		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
-		    $modulePreContains->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."DefaultBuildNode => null()\n";
-		    $modulePreContains->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."DefaultBuildObject => null()\n";
-		    $modulePreContains->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultBuildNode,".$directive->{'name'}."DefaultBuildObject)\n\n";
-		    my $usesNode =
+		$modulePreContains->{'content'} .= "   type(inputParameter), pointer :: ".$directive->{'name'}."RecursiveBuildNode => null()\n";
+		$modulePreContains->{'content'} .= "   class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."RecursiveBuildObject => null()\n";
+		$modulePreContains->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."RecursiveBuildNode,".$directive->{'name'}."RecursiveBuildObject)\n\n";
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
 		    {
-			type      => "moduleUse",
-			moduleUse =>
+			Input_Parameters =>
 			{
-			    Input_Parameters =>
-			    {
-				intrinsic => 0,
-				all       => 1
-			    }
-			},
-			source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
-			line       => 1
-		    };
-		    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
-                }
+			    intrinsic => 0,
+			    all       => 1
+			}
+		    },
+		    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		    line       => 1
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
  	    }
 	    # Add method name parameter.
 	    if ( $tree->{'type'} eq "file" ) {
@@ -1873,8 +1870,8 @@ CODE
 		$modulePostContains->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
 		$modulePostContains->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: self)\n";
 		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => parameterNode\n";
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => self\n";
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildNode   => parameterNode\n";
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildObject => self\n";
 		}
 		$modulePostContains->{'content'} .= "        select type (self)\n";
 		$modulePostContains->{'content'} .= "          type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
@@ -1885,28 +1882,34 @@ CODE
 		    if ( $debugging );
 		$modulePostContains->{'content'} .= "         end select\n";
 		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => null()\n";
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildNode   => null()\n";
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildObject => null()\n";
 		}
                 $modulePostContains->{'content'} .= "         call parameterNode%objectSet(self)\n";
                 $modulePostContains->{'content'} .= "      else\n";
-                if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" && $class->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'}) ) {
-		    $modulePostContains->{'content'} .= "         parameterNode => parameters%node('".$directive->{'name'}."',requireValue=.true.)\n";
-		    $modulePostContains->{'content'} .= "        if (associated(parameterNode,".$directive->{'name'}."DefaultBuildNode)) then\n";
-		    $modulePostContains->{'content'} .= "           allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: self)\n";
-		    $modulePostContains->{'content'} .= "           select type (self)\n";
-		    $modulePostContains->{'content'} .= "           type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
-		    $modulePostContains->{'content'} .= "              self%isRecursive=.true.\n";
-		    $modulePostContains->{'content'} .= "              select type (".$directive->{'name'}."DefaultBuildObject)\n";
-		    $modulePostContains->{'content'} .= "              type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
-		    $modulePostContains->{'content'} .= "                 self%recursiveSelf => ".$directive->{'name'}."DefaultBuildObject\n";
+            }
+	    # Detect recursive builds if any class member allows it.
+	    if ( $allowRecursion ) {
+		$modulePostContains->{'content'} .= "        parameterNode => parameters%node(char(parameterName_),requireValue=.true.)\n";
+		$modulePostContains->{'content'} .= "        if (associated(parameterNode,".$directive->{'name'}."RecursiveBuildNode)) then\n";
+		foreach my $class ( @nonAbstractClasses ) {
+		    next
+			unless ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" );
+		    $modulePostContains->{'content'} .= "           select type (".$directive->{'name'}."RecursiveBuildObject)\n";
+		    $modulePostContains->{'content'} .= "              type is (".$class->{'name'}.")\n";
+		    $modulePostContains->{'content'} .= "              allocate(".$class->{'name'}." :: self)\n";
+		    $modulePostContains->{'content'} .= "              select type (self)\n";
+		    $modulePostContains->{'content'} .= "              type is (".$class->{'name'}.")\n";
+		    $modulePostContains->{'content'} .= "                 self%isRecursive=.true.\n";
+		    $modulePostContains->{'content'} .= "                 self%recursiveSelf => ".$directive->{'name'}."RecursiveBuildObject\n";
 		    $modulePostContains->{'content'} .= "              end select\n";
 		    $modulePostContains->{'content'} .= "           end select\n";
-		    $modulePostContains->{'content'} .= "           if (needLock) call addLock%unset()\n";
-		    $modulePostContains->{'content'} .= "           return\n";
-		    $modulePostContains->{'content'} .= "        end if\n";
-                }
-            }
+		}
+		$modulePostContains->{'content'} .= "           if (needLock) call addLock%unset()\n";
+		$modulePostContains->{'content'} .= "           return\n";
+		$modulePostContains->{'content'} .= "        end if\n";
+	    }
+	    # Build the object.
 	    $modulePostContains->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance_)\n";
 	    $modulePostContains->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance_)\n";
 	    $modulePostContains->{'content'} .= "      select case (char(instanceName))\n";
@@ -1916,9 +1919,9 @@ CODE
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$modulePostContains->{'content'} .= "     case ('".$name."')\n";
 		$modulePostContains->{'content'} .= "        allocate(".$class->{'name'}." :: self)\n";
-		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" && $class->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'}) ) {
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => parameterNode\n";
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => self\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildNode   => parameterNode\n";
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildObject => self\n";
 		}
 		$modulePostContains->{'content'} .= "        select type (self)\n";
 		$modulePostContains->{'content'} .= "          type is (".$class->{'name'}.")\n";
@@ -1928,9 +1931,9 @@ CODE
 		$modulePostContains->{'content'} .= "            call debugStackPop()\n"
 		    if ( $debugging );
 		$modulePostContains->{'content'} .= "         end select\n";
-		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" && $class->{'name'} eq $directive->{'name'}.ucfirst($directive->{'default'}) ) {
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildNode   => null()\n";
-		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."DefaultBuildObject => null()\n";
+		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildNode   => null()\n";
+		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildObject => null()\n";
 		}
 	    }
 	    $modulePostContains->{'content'} .= "      case default\n";

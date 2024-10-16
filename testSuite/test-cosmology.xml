@@ -16,7 +16,7 @@
   </pbs>
   <parameters>
     <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
+    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
     <cosmologyParameters value="simple">
       <OmegaMatter value="0.25"/>
       <OmegaDarkEnergy value="0.75"/>
@@ -25,7 +25,7 @@
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
+    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
     <cosmologyParameters value="simple">
       <OmegaMatter value="1.00"/>
       <OmegaMatter value="1.25"/>

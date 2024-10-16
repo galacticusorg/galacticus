@@ -1163,55 +1163,56 @@ contains
       !!{
       Report debugging information.
       !!}
+      use, intrinsic :: ISO_Fortran_Env, only : output_unit
       implicit none
       
       ! Debugging output. Writes the initial state for this failed case in a format that be directly pasted into the
       ! relevant test suite code.
       select type (properties)
       type is (radiativeTransferPropertiesMatterAtomic)
-         write    (0,'(a,i1)'         ) "properties            %iterationCount             = "    ,1
-         write    (0,'(a,e23.16)'     ) "properties            %volume                     = "    ,properties%volume
-         write    (0,'(a,e23.16)'     ) "properties            %temperature                = "    ,temperatureReference
+         write    (output_unit,'(a,i1)'         ) "properties            %iterationCount             = "    ,1
+         write    (output_unit,'(a,e23.16)'     ) "properties            %volume                     = "    ,properties%volume
+         write    (output_unit,'(a,e23.16)'     ) "properties            %temperature                = "    ,temperatureReference
          do i=1,self%countElements
-            write (0,'(a,i1,a,e23.16)') "properties%elements(",i,")%densityNumber              = ",properties%elements(i)%densityNumber     
-            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%ionizationStateFraction    =["
+            write (output_unit,'(a,i1,a,e23.16)') "properties%elements(",i,")%densityNumber              = ",properties%elements(i)%densityNumber     
+            write (output_unit,'(a,i1,a,$)'     ) "properties%elements(",i,")%ionizationStateFraction    =["
             do j=0,self%elementAtomicNumbers(i)
                if (j < self%elementAtomicNumbers(i)) then
-                  write (0,'(e23.16,a,$)') elementsReference(i)%ionizationStateFraction    (j),','
+                  write (output_unit,'(e23.16,a,$)') elementsReference(i)%ionizationStateFraction    (j),','
                else
-                  write (0,'(e23.16,a)'  ) elementsReference(i)%ionizationStateFraction    (j),']'
+                  write (output_unit,'(e23.16,a)'  ) elementsReference(i)%ionizationStateFraction    (j),']'
                end if
             end do
-            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRate        =["
+            write (output_unit,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRate        =["
             do j=0,self%elementAtomicNumbers(i)-1
                if (j < self%elementAtomicNumbers(i)-1) then
-                  write (0,'(e23.16,a,$)') elementsReference(i)%photoIonizationRate        (j),','
+                  write (output_unit,'(e23.16,a,$)') elementsReference(i)%photoIonizationRate        (j),','
                else
-                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRate        (j),']'
+                  write (output_unit,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRate        (j),']'
                end if
             end do
-            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRate           =["
+            write (output_unit,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRate           =["
             do j=0,self%elementAtomicNumbers(i)-1
                if (j < self%elementAtomicNumbers(i)-1) then
-                  write (0,'(e23.16,a,$)') elementsReference(i)%photoHeatingRate           (j),','
+                  write (output_unit,'(e23.16,a,$)') elementsReference(i)%photoHeatingRate           (j),','
                else
-                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRate           (j),']'
+                  write (output_unit,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRate           (j),']'
                end if
             end do
-            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRatePrevious=["
+            write (output_unit,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoIonizationRatePrevious=["
             do j=0,self%elementAtomicNumbers(i)-1
                if (j < self%elementAtomicNumbers(i)-1) then
-                  write (0,'(e23.16,a,$)') elementsReference(i)%photoIonizationRatePrevious(j),','
+                  write (output_unit,'(e23.16,a,$)') elementsReference(i)%photoIonizationRatePrevious(j),','
                else
-                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRatePrevious(j),']'
+                  write (output_unit,'(e23.16,a)'  ) elementsReference(i)%photoIonizationRatePrevious(j),']'
                end if
             end do
-            write (0,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRatePrevious   =["
+            write (output_unit,'(a,i1,a,$)'     ) "properties%elements(",i,")%photoHeatingRatePrevious   =["
             do j=0,self%elementAtomicNumbers(i)-1
                if (j < self%elementAtomicNumbers(i)-1) then
-                  write (0,'(e23.16,a,$)') elementsReference(i)%photoHeatingRatePrevious   (j),','
+                  write (output_unit,'(e23.16,a,$)') elementsReference(i)%photoHeatingRatePrevious   (j),','
                else
-                  write (0,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRatePrevious   (j),']'
+                  write (output_unit,'(e23.16,a)'  ) elementsReference(i)%photoHeatingRatePrevious   (j),']'
                end if
             end do
          end do

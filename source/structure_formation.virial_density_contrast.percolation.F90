@@ -57,7 +57,6 @@
      logical                                                     :: isRecursive                               , parentDeferred
      class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_             => null()
-     integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
      double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
      double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
@@ -104,13 +103,9 @@
   double precision                       :: densityContrastCurrent                 =-1.0d0
   !$omp threadprivate(densityContrastCurrent,solving)
 
-  ! Unique ID used to identify parent-child recursive relationships.
-  integer         (kind_int8)            :: ID                                     =0_kind_int8, IDRecursive=-1_kind_int8
-  !$omp threadprivate(IDRecursive)
-
 contains
 
-  recursive function percolationConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
+  recursive function percolationConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
@@ -118,16 +113,11 @@ contains
     use :: Functions_Global   , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use :: Input_Parameters   , only : inputParameter                                          , inputParameters
     implicit none
-    type            (virialDensityContrastPercolation)                          :: self
-    type            (inputParameters                 ), intent(inout)           :: parameters
-    logical                                           , intent(in   ), optional :: recursiveConstruct
-    class           (virialDensityContrastClass      ), intent(in   ), optional :: recursiveSelf
-    class           (cosmologyFunctionsClass         ), pointer                 :: cosmologyFunctions_
-    class           (*                               ), pointer                 :: percolationObjects_
-    double precision                                                            :: linkingLength
-    !![
-    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
-    !!]
+    type            (virialDensityContrastPercolation)                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class           (*                               ), pointer       :: percolationObjects_
+    double precision                                                  :: linkingLength
 
     !![
     <inputParameter>
@@ -138,16 +128,9 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    ! Build a pointer to a container object which stores all objects needed by the percolation density solver. If this construct
-    ! has been called recursively, then instead set this to null - recursive construction can happen as some objects used in
-    ! solving for percolation density (e.g. dark matter profiles) themselves require a virial density contrast object. By setting
-    ! this pointer to null we avoid circular dependencies between functionClass objects which lead to memory leaks.
-    if (recursiveConstruct_) then
-       percolationObjects_ => null()
-    else
-       percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    end if
-    self=virialDensityContrastPercolation(linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf)
+    ! Build a pointer to a container object which stores all objects needed by the percolation density solver.
+    percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
+    self=virialDensityContrastPercolation(linkingLength,cosmologyFunctions_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -156,7 +139,7 @@ contains
     return
   end function percolationConstructorParameters
 
-  recursive  function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf) result(self)
+  recursive function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
     !!}
@@ -165,11 +148,10 @@ contains
     use :: ISO_Varying_String, only : operator(//)
     use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
-    type            (virialDensityContrastPercolation)                                  :: self
-    double precision                                  , intent(in   )                   :: linkingLength
-    class           (cosmologyFunctionsClass         ), intent(in   ), target           :: cosmologyFunctions_
-    class           (*                               ), intent(in   ), target           :: percolationObjects_
-    class           (virialDensityContrastClass      ), intent(in   ), target, optional :: recursiveSelf
+    type            (virialDensityContrastPercolation)                        :: self
+    double precision                                  , intent(in   )         :: linkingLength
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    class           (*                               ), intent(in   ), target :: percolationObjects_
     !![
     <constructorAssign variables="linkingLength, *cosmologyFunctions_, *percolationObjects_"/>
     !!]
@@ -190,41 +172,8 @@ contains
     self%densityContrastTableRemakeCount= 0
     self%densityContrastLockInitialized =.true.
     !$ call OMP_Init_Lock(self%densityContrastTableLock)
-    ! Check if we have been given a percolation objects container. If not, we expect that we are being built recursively, in which
-    ! case we require a pointer to the originating object under construction.
-    if (.not.associated(self%percolationObjects_)) then
-       if (.not.present(recursiveSelf)) call Error_Report('for recursive construction a pointer to the originating object is required'//{introspection:location})
-       select type (recursiveSelf)
-       class is (virialDensityContrastPercolation)
-          self%recursiveSelf => recursiveSelf
-          self%isRecursive   =  .true.
-       class default
-          call Error_Report('originating object is of incorrect class'//{introspection:location})
-       end select
-       ! Generate a new ID.
-       !$omp critical (percolationIDIncrement)
-       ID                =ID+1_kind_int8
-       self                  %selfID=ID
-       if (ID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
-       !$omp end critical (percolationIDIncrement)
-       IDRecursive       =self%selfID
-    else
-       self%recursiveSelf => null()
-       self%isRecursive   =  .false.
-       ! Get a unique ID.
-       if (IDRecursive == -1_kind_int8) then
-          ! Generate a new ID.
-          !$omp critical (percolationIDIncrement)
-          ID                =ID+1_kind_int8
-          self                  %selfID=ID
-          if (ID == -1_kind_int8) call Error_Report('ran out of IDs for percolation class'//{introspection:location})
-          !$omp end critical (percolationIDIncrement)
-       else
-          ! An ID was already set during recursive construction.
-          self                  %selfID=IDRecursive
-          IDRecursive       =-1_kind_int8
-       end if
-    end if
+    ! Set recursive properties.
+    self%isRecursive   =.false.
     self%parentDeferred=.false.
     return
   end function percolationConstructorInternal
@@ -246,7 +195,7 @@ contains
     return
   end subroutine percolationDestructor
 
-  subroutine percolationTabulate(self,mass,time,mustRetabulate)
+  subroutine percolationTabulate(self,mass,time)
     !!{
     Tabulate virial density contrast as a function of mass and time for the {\normalfont \ttfamily percolation} density contrast class.
     !!}
@@ -255,13 +204,12 @@ contains
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
     use :: Error           , only : Error_Report
     implicit none
-    class           (virialDensityContrastPercolation), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass          , time
-    logical                                           , intent(  out), optional :: mustRetabulate
-    integer                                                                     :: iMass         , iTime    , &
-         &                                                                         iCount
-    logical                                                                     :: makeTable
-    double precision                                                            :: tableMass     , tableTime
+    class           (virialDensityContrastPercolation), intent(inout) :: self
+    double precision                                  , intent(in   ) :: mass     , time
+    integer                                                           :: iMass    , iTime    , &
+         &                                                               iCount
+    logical                                                           :: makeTable
+    double precision                                                  :: tableMass, tableTime
 
     ! Always check if we need to make the table.
     makeTable=.true.
@@ -291,11 +239,6 @@ contains
           makeTable=.true.
           self%densityContrastTableTimeMinimum=min(self%densityContrastTableTimeMinimum,0.5d0*time)
           self%densityContrastTableTimeMaximum=max(self%densityContrastTableTimeMaximum,2.0d0*time)
-       end if
-       ! If we are just being asked to determine remake status, return that now.
-       if (present(mustRetabulate)) then
-          mustRetabulate=makeTable
-          return
        end if
        ! Remake the table is necessary.
        if (makeTable) then
@@ -346,58 +289,30 @@ contains
     !!{
     Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
     double precision                                  , intent(in   )            :: mass
-    double precision                                  , intent(in   ) , optional :: time            , expansionFactor
+    double precision                                  , intent(in   ) , optional :: time      , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
-    logical                                                                      :: useSolverCurrent, useTable       , &
-         &                                                                          mustRetabulate
 
+    ! Call the recursive copy if necessary.
+    if (self%isRecursive) then
+       percolationDensityContrast=self%recursiveSelf%densityContrast(mass,time,expansionFactor,collapsing)
+       return
+    end if
     ! Get the time to use.
     if (.not.solving) timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
-    ! Initialize choices for how we will compute the density contrast.
-    useSolverCurrent=.false.
-    useTable        =.false.
     ! Determine how to compute density contrast.
-    if (self%isRecursive) then
-       if (solving) then
-          ! Currently solving for solutions - return the current guess.
-          if (self%selfID /= self%recursiveSelf%selfID) call Error_Report('recursively-constructed percolation class object ID does not match that of actively solving object'//{introspection:location})
-          useSolverCurrent=.true.
-       else
-          ! Not solving for solutions - if our table is sufficient (ensure it is up to date first), use it, otherwise request that
-          ! the parent self performs the calculation (in which case it will update its table, and we can later copy it).
-          call percolationCopyTable(self)
-          !$ call OMP_Set_Lock(self%densityContrastTableLock)
-          call self%tabulate(mass,timeActual,mustRetabulate)
-          !$ call OMP_Unset_Lock(self%densityContrastTableLock)
-          if (mustRetabulate) then
-             percolationDensityContrast=self%recursiveSelf%densityContrast(mass,time,expansionFactor,collapsing)
-             return
-          else
-             useTable=.true.
-          end if
-       end if
-    else if (solving) then
+    if (solving) then
        ! Currently solving for solutions - return the current guess.
-       useSolverCurrent=.true.
+       percolationDensityContrast=densityContrastCurrent
     else
        ! Use our tabulated solution.
-       useTable        =.true.
-    end if
-    ! Provide a result based on the chosen method.
-    if (useSolverCurrent) then
-       percolationDensityContrast=densityContrastCurrent
-    else if (useTable) then
        !$ call OMP_Set_Lock(self%densityContrastTableLock)
        call self%tabulate(mass,timeActual)
        percolationDensityContrast=self%densityContrastTable%interpolate(mass,timeActual)
        !$ call OMP_Unset_Lock(self%densityContrastTableLock)
-    else
-       call Error_Report('no method selected to compute density contrast'//{introspection:location})
     end if
     return
   end function percolationDensityContrast
@@ -414,23 +329,14 @@ contains
     double precision                                  , intent(in   ) , optional :: time          , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
-    logical                                                                      :: mustRetabulate
 
+    ! Call the recursive copy if necessary.
+    if (self%isRecursive) then
+       percolationDensityContrastRateOfChange=self%recursiveSelf%densityContrastRateOfChange(mass,time,expansionFactor,collapsing)
+       return
+    end if
     ! Get the time to use.
     timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
-    ! Determine how to compute density contrast.
-    if (self%isRecursive) then
-       call percolationCopyTable (self)
-       ! If our table is sufficient, use it, otherwise request that the parent self performs the calculation (in which case it
-       ! will update its table, and we can later copy it).
-       !$ call OMP_Set_Lock(self%densityContrastTableLock)
-       call self%tabulate(mass,timeActual,mustRetabulate)
-       !$ call OMP_Unset_Lock(self%densityContrastTableLock)
-       if (mustRetabulate) then
-          percolationDensityContrastRateOfChange=self%recursiveSelf%densityContrastRateOfChange(mass,time,expansionFactor,collapsing)
-          return
-       end if
-    end if
     ! Compute the solution.
     !$ call OMP_Set_Lock(self%densityContrastTableLock)
     call self%tabulate(mass,timeActual)
@@ -520,7 +426,6 @@ contains
        destination%densityContrastTableInitialized=self%densityContrastTableInitialized
        destination%densityContrastTable           =self%densityContrastTable
        destination%densityContrastTableRemakeCount=self%densityContrastTableRemakeCount
-       destination%selfID                         =self%selfID
        destination%parentDeferred                 =.false.
        if (self%isRecursive) then
           if (associated(self%recursiveSelf%recursiveSelf)) then

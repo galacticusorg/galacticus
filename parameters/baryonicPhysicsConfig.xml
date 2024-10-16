@@ -3,7 +3,7 @@
   <!-- Posterior sampling simulation parameter file for search of Galacticus model parameter space -->
   <!-- Andrew Benson (29-April-2020) -->  
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <verbosityLevel value="standard"/>
 
@@ -132,7 +132,7 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="active">
-       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::fractionAngularMomentumRetained"/>
+       <name value="nodeOperator::nodeOperator[4]::galacticDynamicsBarInstability::fractionAngularMomentumRetainedDisk"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="0.0"/>
 	 <limitUpper value="1.0"/>

@@ -66,6 +66,11 @@ program Test_Parameters
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
   call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVariance'),1                    )
   call Unit_Tests_End_Group()
+  ! Test conditionals.
+  call Unit_Tests_Begin_Group("Parameter evaluation")
+  call testParameters%value('active1',valueNumerical)
+  call Assert('conditional value',valueNumerical,0.2d0,absTol=1.0d-6)
+  call Unit_Tests_End_Group()
   ! Test adding, retrieving, resetting, reading a parameter.
   call Unit_Tests_Begin_Group("Parameter adding")
   call testParameters%addParameter('addedParameter','qwertyuiop'  )
@@ -91,6 +96,8 @@ program Test_Parameters
   call Assert('derived value [min function]',valueNumerical,+1.000000000d0,absTol=1.0d-6)
   call testParameters%value('derivedValue7',valueNumerical)
   call Assert('derived value [max function]',valueNumerical,+2.000000000d0,absTol=1.0d-6)
+  call testParameters%value('derivedText1' ,parameterValue)
+  call Assert('derived value [text]'       ,parameterValue,var_str('mouse_filteredPower_1.00_0.200000E+01_0006'))
   allocate(wrapper1)
   allocate(wrapper2)
   wrapper1=testParameters%subParameters('wrapper1')

@@ -130,6 +130,7 @@ contains
     !!}
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Vectors               , only : Vector_Magnitude
     implicit none
     class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout), target       :: self
     type            (treeNode                                 ), intent(inout), target       :: node
@@ -181,17 +182,20 @@ contains
              angularMomentumVector(i)=+angularMomentumVector(i)                                              &
                   &                   +sqrt(                                                                 &
                   &                         +self%angularMomentumVarianceSpecific                            &
-                  &                         *(                                                               &
-                  &                           +angularMomentumCurrent **2                                    &
-                  &                           -angularMomentumPrevious**2                                    &
-                  &                          )                                                               &
+                  &                         *max(                                                            &
+                  &                              +angularMomentumCurrent **2                                 &
+                  &                              -angularMomentumPrevious**2,                                &
+                  &                              +0.0d0                                                      &
+                  &                             )                                                            &
                   &                        )                                                                 &
                   &                   *nodeProgenitor%hostTree%randomNumberGenerator_%standardNormalSample()
           end do
           ! Store the scalar angular momentum.
-          call spinProgenitor%angularMomentumSet(sqrt(sum(angularMomentumVector**2)))
+          call        spinProgenitor%angularMomentumSet      (Vector_Magnitude(angularMomentumVector))
+          if (spinProgenitor%angularMomentumVectorIsSettable())                                        &
+               & call spinProgenitor%angularMomentumVectorSet(                 angularMomentumVector )
           ! Store the current characteristic angular momentum.
-          angularMomentumPrevious=angularMomentumCurrent
+          angularMomentumPrevious=max(angularMomentumPrevious,angularMomentumCurrent)
           ! Move to the next descendant halo.
           if (nodeProgenitor%isPrimaryProgenitor()) then
              nodeProgenitor  => nodeProgenitor%parent

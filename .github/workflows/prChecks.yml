@@ -242,9 +242,9 @@ jobs:
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true'
         continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: warnings.md
+          file-path: warnings.md
   # Spell check LaTeX files
   Spell-Check-LaTeX:
     runs-on: ubuntu-latest
@@ -286,6 +286,6 @@ jobs:
           files: warnings.md
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true'
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
-          filePath: warnings.md
+          file-path: warnings.md

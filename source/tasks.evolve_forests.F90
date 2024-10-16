@@ -656,6 +656,7 @@ contains
              currentTree  => tree
              do while (associated(currentTree))
                 ! Skip empty trees.
+                removeTree=.false.
                 if (associated(currentTree%nodeBase)) then
                    basicNodeBase => currentTree%nodeBase%basic()
                    removeTree    =   .not.associated(currentTree%nodeBase%firstChild) &

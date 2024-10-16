@@ -31,7 +31,8 @@
      Implementation of a simple model for galactic disk bar instability in which the timescale is fixed.
      !!}
      private
-     double precision :: timescale_, fractionAngularMomentumRetained
+     double precision :: fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid, &
+          &              timescale_
    contains
      procedure :: timescale => fixedTimescaleTimescale
   end type galacticDynamicsBarInstabilityFixedTimescale
@@ -55,7 +56,8 @@ contains
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
-    double precision                                                              :: timescale , fractionAngularMomentumRetained
+    double precision                                                              :: fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid, &
+         &                                                                           timescale
 
     !![
     <inputParameter>
@@ -65,46 +67,54 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>fractionAngularMomentumRetained</name>
+      <name>fractionAngularMomentumRetainedDisk</name>
       <defaultValue>1.0d0</defaultValue>
       <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>fractionAngularMomentumRetainedSpheroid</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the spheroid.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=galacticDynamicsBarInstabilityFixedTimescale(timescale,fractionAngularMomentumRetained)
+    self=galacticDynamicsBarInstabilityFixedTimescale(timescale,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function fixedTimescaleConstructorParameters
 
-  function fixedTimescaleConstructorInternal(timescale_,fractionAngularMomentumRetained) result(self)
+  function fixedTimescaleConstructorInternal(timescale_,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixedTimescale} model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self
-    double precision                                              , intent(in   ) :: timescale_, fractionAngularMomentumRetained
+    double precision                                              , intent(in   ) :: fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid, &
+         &                                                                           timescale_
     !![
-    <constructorAssign variables="timescale_, fractionAngularMomentumRetained"/>
+    <constructorAssign variables="timescale_, fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid"/>
     !!]
 
     return
   end function fixedTimescaleConstructorInternal
 
-  subroutine fixedTimescaleTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
+  subroutine fixedTimescaleTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
     !!{
     Assume a constant timescale for depletion of a disk to a pseudo-bulge via bar instability.
     !!}
     implicit none
     class           (galacticDynamicsBarInstabilityFixedTimescale), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
-    double precision                                              , intent(  out) :: externalDrivingSpecificTorque  , timescale, &
-         &                                                                           fractionAngularMomentumRetained
+    double precision                                              , intent(  out) :: externalDrivingSpecificTorque      , timescale                              , &
+         &                                                                           fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid
     !$GLC attributes unused :: node
 
-    timescale                      =self%timescale_
-    fractionAngularMomentumRetained=self%fractionAngularMomentumRetained
-    externalDrivingSpecificTorque  =0.0d0
+    timescale                              =self%timescale_
+    fractionAngularMomentumRetainedDisk    =self%fractionAngularMomentumRetainedDisk
+    fractionAngularMomentumRetainedSpheroid=self%fractionAngularMomentumRetainedSpheroid
+    externalDrivingSpecificTorque          =0.0d0
     return
   end subroutine fixedTimescaleTimescale

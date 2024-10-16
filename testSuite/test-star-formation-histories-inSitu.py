@@ -62,5 +62,3 @@ for output in outputs.keys():
     statusSpheroid = "FAILED" if any(nodesSFHIntegratedSpheroidInSitu > nodesSFHIntegratedSpheroid) else "SUCCESS"
     print(" -> "+statusDisk    +": in-situ disk stellar mass"    )
     print(" -> "+statusSpheroid+": in-situ spheroid stellar mass")
-    print(nodesSFHIntegratedSpheroidInSitu)
-    print(nodesSFHIntegratedSpheroid)

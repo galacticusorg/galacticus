@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Definitions of parameter file migrations -->
+<!-- Andrew Benson (18-September-2024)        -->
+<migrations>
+  <!-- Define translations.                                                              -->
+  <!-- These enumerate the parameter changes that occurred at each revision commit hash. -->
+  <!-- Matching is done via XPath specifications.                                        -->
+  <migration commit="f27a00e1de9bb8e77359c754fae445ea8788513c">
+    <translation xpath="//nodePropertyExtractor[@value]">
+      <value old="descendents" new="descendants"/>
+    </translation>
+  </migration>
+  <migration commit="ba10db0db7b0828b7e55bea0d2dd5113503fa971">
+    <translation xpath="galacticFilter[@value]">
+      <value old="descendentNode" new="descendantNode"/>
+    </translation>
+    <translation xpath="nodePropertyExtractor[@value]">
+      <value old="descendentNode" new="descendantNode"/>
+    </translation>
+  </migration>
+  <migration commit="beab8e9234f4f7e986ec2d90b85bf4ec7dd8580b">
+    <translation xpath="//nodePropertyExtractor[@value]">
+      <value old="radiusHalfMass" new="radiusHalfMassStellar"/>
+    </translation>
+  </migration>
+  <migration commit="6eab8997cd73cb0a474228ade542d133890ad138">
+    <translation xpath="/parameters/spheroidVerySimpleTrackAbundances[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="/parameters/spheroidVerySimpleTrackLuminosities[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="/parameters/bondiHoyleAccretionEnhancementSpheroid[@value]">
+      <name new="componentBlackHole--bondiHoyleAccretionEnhancementSpheroid"/>
+    </translation>
+    <translation xpath="/parameters/bondiHoyleAccretionEnhancementHotHalo[@value]">
+      <name new="componentBlackHole--bondiHoyleAccretionEnhancementHotHalo"/>
+    </translation>
+    <translation xpath="/parameters/bondiHoyleAccretionHotModeOnly[@value]">
+      <name new="componentBlackHole--bondiHoyleAccretionHotModeOnly"/>
+    </translation>
+    <translation xpath="/parameters/bondiHoyleAccretionTemperatureSpheroid[@value]">
+      <name new="componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleSeedMass[@value]">
+      <name new="componentBlackHole--massSeed"/>
+    </translation>
+    <translation xpath="/parameters/tripleBlackHoleInteraction[@value]">
+      <name new="componentBlackHole--tripleInteraction"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleToSpheroidStellarGrowthRatio[@value]">
+      <name new="componentBlackHole--growthRatioToStellarSpheroid"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleHeatsHotHalo[@value]">
+      <name new="componentBlackHole--heatsHotHalo"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleHeatingEfficiency[@value]">
+      <name new="componentBlackHole--efficiencyHeating"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleRadioModeFeedbackEfficiency[@value]">
+      <name new="componentBlackHole--efficiencyRadioMode"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleWindEfficiency[@value]">
+      <name new="componentBlackHole--efficiencyWind"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleWindEfficiencyScalesWithRadiativeEfficiency[@value]">
+      <name new="componentBlackHole--efficiencyWindScalesWithEfficiencyRadiative"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleOutputAccretion[@value]">
+      <name new="componentBlackHole--outputAccretion"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleOutputData[@value]">
+      <name new="componentBlackHole--outputData"/>
+    </translation>
+    <translation xpath="/parameters/blackHoleOutputMergers[@value]">
+      <name new="componentBlackHole--outputMergers"/>
+    </translation>
+    <translation xpath="/parameters/spheroidEnergeticOutflowMassRate[@value]">
+      <name new="componentSpheroid--efficiencyEnergeticOutflow"/>
+    </translation>
+    <translation xpath="/parameters/spheroidMetallicityTolerance[@value]">
+      <name new="componentSpheroid--toleranceRelativeMetallicity"/>
+    </translation>
+    <translation xpath="/parameters/spheroidMassToleranceAbsolute[@value]">
+      <name new="componentSpheroid--toleranceAbsoluteMass"/>
+    </translation>
+    <translation xpath="/parameters/spheroidLuminositiesStellarInactive[@value]">
+      <name new="componentSpheroid--inactiveLuminositiesStellar"/>
+    </translation>
+    <translation xpath="/parameters/spheroidAngularMomentumAtScaleRadius[@value]">
+      <name new="componentSpheroid--ratioAngularMomentumScaleRadius"/>
+    </translation>
+    <translation xpath="/parameters/spheroidVerySimpleMassScaleAbsolute[@value]">
+      <name new="componentSpheroid--scaleAbsoluteMass"/>
+    </translation>
+    <translation xpath="/parameters/diskMassToleranceAbsolute[@value]">
+      <name new="componentDisk--toleranceAbsoluteMass"/>
+    </translation>
+    <translation xpath="/parameters/diskMetallicityTolerance[@value]">
+      <name new="componentDisk--toleranceRelativeMetallicity"/>
+    </translation>
+    <translation xpath="/parameters/diskStructureSolverRadius[@value]">
+      <name new="componentDisk--radiusStructureSolver"/>
+    </translation>
+    <translation xpath="/parameters/diskRadiusSolverCole2000Method[@value]">
+      <name new="componentDisk--structureSolverUseCole2000Method"/>
+    </translation>
+    <translation xpath="/parameters/diskLuminositiesStellarInactive[@value]">
+      <name new="componentDisk--inactiveLuminositiesStellar"/>
+    </translation>
+    <translation xpath="/parameters/diskVerySimpleMassScaleAbsolute[@value]">
+      <name new="componentDisk--scaleAbsoluteMass"/>
+    </translation>
+    <translation xpath="/parameters/diskVerySimpleTrackAbundances[@value]">
+      <name new="componentDisk--trackAbundances"/>
+    </translation>
+    <translation xpath="/parameters/diskVerySimpleTrackLuminosities[@value]">
+      <name new="componentDisk--trackLuminosities"/>
+    </translation>
+    <translation xpath="/parameters/diskVerySimpleUseAnalyticSolver[@value]">
+      <name new="componentDisk--useAnalyticSolver"/>
+    </translation>
+    <translation xpath="/parameters/diskVerySimpleAnalyticSolverPruneMassGas[@value]">
+      <name new="componentDisk--pruneMassGas"/>
+    </translation>
+    <translation xpath="/parameters/diskVerySimpleAnalyticSolverPruneMassStars[@value]">
+      <name new="componentDisk--pruneMassStars"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloOutflowToColdMode[@value]">
+      <name new="componentHotHalo--outflowToColdMode"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloVerySimpleDelayedMassScaleRelative[@value]">
+      <name new="componentHotHalo--scaleRelativeMass"/>
+    </translation>
+    <translation xpath="/parameters/starveSatellites[@value]">
+      <name new="componentHotHalo--starveSatellites"/>
+    </translation>
+    <translation xpath="/parameters/starveSatellitesOutflowed[@value]">
+      <name new="componentHotHalo--starveSatellitesOutflowed"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloTrackStrippedGas[@value]">
+      <name new="componentHotHalo--trackStrippedGas"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloOutflowReturnOnFormation[@value]">
+      <name new="componentHotHalo--outflowReturnOnFormation"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloAngularMomentumAlwaysGrows[@value]">
+      <name new="componentHotHalo--angularMomentumAlwaysGrows"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloCoolingFromNode[@value]">
+      <name new="componentHotHalo--coolingFromNode"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloOutflowStrippingEfficiency[@value]">
+      <name new="componentHotHalo--efficiencyStrippingOutflow"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloExpulsionRateMaximum[@value]">
+      <name new="componentHotHalo--rateMaximumExpulsion"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloAngularMomentumLossFraction[@value]">
+      <name new="componentHotHalo--fractionLossAngularMomentum"/>
+    </translation>
+    <translation xpath="/parameters/hotHaloNodeMergerLimitBaryonFraction[@value]">
+      <name new="componentHotHalo--fractionBaryonLimitInNodeMerger"/>
+    </translation>
+    <translation xpath="/parameters/satelliteBoundMassIsInactive[@value]">
+      <name new="componentSatellite--inactiveBoundMass"/>
+    </translation>
+    <translation xpath="/parameters/satelliteBoundMassInitializeType[@value]">
+      <name new="componentSatellite--initializationTypeMassBound"/>
+    </translation>
+    <translation xpath="/parameters/satelliteMaximumRadiusOverVirialRadius[@value]">
+      <name new="componentSatellite--radiusMaximumOverRadiusVirial"/>
+    </translation>
+    <translation xpath="/parameters/satelliteDensityContrast[@value]">
+      <name new="componentSatellite--densityContrastMassBound"/>
+    </translation>
+  </migration>
+  <migration commit="0ab22d1b3959fc9242ee6314f3e199cd99600406">
+    <translation xpath="/parameters/diskMassDistribution[@value]">
+      <name new="componentDisk--massDistributionDisk"/>
+    </translation>
+    <translation xpath="/parameters/spheroidMassDistribution[@value]">
+      <name new="componentSpheroid--massDistributionSpheroid"/>
+    </translation>
+  </migration>
+  <migration commit="fc8f417cd8ccf5f80b4d3606779790caeda489cb">
+    <translation xpath="//nodeOperator[@value='satelliteDestructionMassThreshold']/massDestruction[@value]">
+      <name new="massDestructionAbsolute"/>
+    </translation>
+    <translation xpath="//nodeOperator[@value='satelliteDestructionMassThreshold']/massDestructionFractional[@value]">
+      <name new="massDestructionMassInfallFraction"/>
+    </translation>
+  </migration>
+  <migration commit="50628ba20834080556274c4afc11bdf794a3e8b3">
+    <translation xpath="//transferFunction[@value='axionCAMB']/axionCambCountPerDecade[@value]">
+      <name new="countPerDecade"/>
+    </translation>
+  </migration>
+  <migration commit="7030a7dab187c4e0aa5112681b3273647595bbde">
+    <translation function="radiationFieldIntergalacticBackgroundCMB"/>
+  </migration>
+  <migration commit="bdcfda39270bcb782937b8106034dd32144f44cd">
+    <translation xpath="//galacticDynamicsBarInstability[@value='efstathiou1982' or @value='efstathiou1982Tidal' or @value='fixedTimescale']/fractionAngularMomentumRetained[@value]">
+      <name new="fractionAngularMomentumRetainedDisk"/>
+    </translation>
+  </migration>
+  <migration commit="165490f4968c699f7e5bb73ef60bcb7e626f51e6">
+    <translation xpath="//starFormationHistory[@value='adaptive']/countOutputBuffer[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//starFormationHistory[@value='inSitu']/countOutputBuffer[@value]">
+      <remove/>
+    </translation>
+  </migration>
+  <migration commit="e77271d6b878035b124c22fed8169ec844a72316">
+    <translation xpath="//galacticStructure[@value='standard']">
+      <remove/>
+    </translation>
+  </migration>
+  <migration commit="e2cfe28923c9be574d334dd2f6dbe8b2e086a926">
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/assumeMonotonicSurfaceDensity[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']//assumeExponentialDisk[@value]">
+      <remove/>
+    </translation>
+  </migration>
+
+  <!-- Known default values for parameters -->
+  <default parameter="componentBlackHole"             value="standard"        />
+  <default parameter="componentDisk"                  value="standard"        />
+  <default parameter="componentHotHalo"               value="standard"        />
+  <default parameter="componentSpheroid"              value="standard"        />
+  <default parameter="cosmologyParameters"            value="simple"          />
+  <default parameter="mergerTreeBuilder"              value="cole2000"        />
+  <default parameter="cosmologicalMassVariance"       value="filteredPower"   />
+  <default parameter="cosmologyParameters"            value="simple"          />
+  <default parameter="darkMatterProfileConcentration" value="gao2008"         />
+  <default parameter="powerSpectrumPrimordial"        value="powerLaw"        />
+  <default parameter="haloMassFunction"               value="tinker2008"      />
+  <default parameter="satelliteMergingTimescales"     value="jiang2008"       />
+  <default parameter="starFormationHistory"           value="metallicitySplit"/>
+</migrations>

@@ -31,7 +31,8 @@
      private
      double precision :: ageMinimum, ageMaximum
    contains
-     procedure :: multiplier => ageWindowMultiplier
+     procedure :: multiplier          => ageWindowMultiplier
+     procedure :: isRedshiftDependent => ageWindowIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorAgeWindow
 
   interface stellarPopulationSpectraPostprocessorAgeWindow
@@ -99,3 +100,15 @@ contains
     end if
     return
   end function ageWindowMultiplier
+
+  logical function ageWindowIsRedshiftDependent(self) result(isRedshiftDependent)
+    !!{
+    Return false indicating that the postprocessor is redshift independent.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorAgeWindow), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isRedshiftDependent=.false.
+    return
+  end function ageWindowIsRedshiftDependent

@@ -93,26 +93,24 @@
 
 contains
 
-  recursive function virialDensityContrastDefinitionParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
+  recursive function virialDensityContrastDefinitionParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (darkMatterHaloScaleVirialDensityContrastDefinition), target                  :: self
-    type   (inputParameters                                   ), intent(inout)           :: parameters
-    logical                                                    , intent(in   ), optional :: recursiveConstruct
-    class  (darkMatterHaloScaleClass                          ), intent(in   ), optional :: recursiveSelf
-    class  (cosmologyParametersClass                          ), pointer                 :: cosmologyParameters_
-    class  (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
-    class  (virialDensityContrastClass                        ), pointer                 :: virialDensityContrast_
+    type   (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: self
+    type   (inputParameters                                   ), intent(inout) :: parameters
+    class  (cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
+    class  (virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
 
     !![
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf)
+    self=darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"  />
@@ -122,20 +120,17 @@ contains
     return
   end function virialDensityContrastDefinitionParameters
 
-  recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf) result(self)
+  recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type   (darkMatterHaloScaleVirialDensityContrastDefinition)                                  :: self
-    class  (cosmologyParametersClass                          ), intent(in   ), target           :: cosmologyParameters_
-    class  (cosmologyFunctionsClass                           ), intent(in   ), target           :: cosmologyFunctions_
-    class  (virialDensityContrastClass                        ), intent(in   ), target           :: virialDensityContrast_
-    logical                                                    , intent(in   )        , optional :: recursiveConstruct
-    class  (darkMatterHaloScaleClass                          ), intent(in   ), target, optional :: recursiveSelf
+    type   (darkMatterHaloScaleVirialDensityContrastDefinition)                        :: self
+    class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
+    class  (virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrast_
     !![
-    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
     <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
     !!]
 
@@ -148,17 +143,8 @@ contains
     self%densityMeanTimeMinimum    =-1.0d0
     self%timePrevious              =-1.0d0
     self%massPrevious              =-1.0d0
-    self%isRecursive               =recursiveConstruct_
-    if (recursiveConstruct_) then
-       if (.not.present(recursiveSelf)) call Error_Report('recursiveSelf not present'//{introspection:location})
-       select type (recursiveSelf)
-       class is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          self%recursiveSelf => recursiveSelf
-       class default
-          call Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
-       end select
-    end if
-    self%parentDeferred=.false.
+    self%isRecursive               =.false.
+    self%parentDeferred            =.false.
     return
   end function virialDensityContrastDefinitionInternal
 
