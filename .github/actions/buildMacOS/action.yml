@@ -18,7 +18,7 @@ runs:
         echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
         echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
-        if [[ "${OS_VER}" -eq 13 ]]; then
+        if [[ "${ver[0]}" -eq 13 ]]; then
           # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib -Wl,-ld_classic" >> $GITHUB_ENV
         else
