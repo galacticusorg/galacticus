@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729124138377,
+  "lastUpdate": 1729131068107,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c8bcf117d43a0d03576a6fa1ca4bb43be11abd09",
-          "message": "Merge pull request #546 from galacticusorg/fixSubhaloPromotion\n\nFix subhalo promotion",
-          "timestamp": "2024-01-30T05:36:55Z",
-          "tree_id": "fbcda48fe6b54707b05014d67d062b3566d8af2a",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c8bcf117d43a0d03576a6fa1ca4bb43be11abd09"
-        },
-        "date": 1706604147263,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.851,
-            "unit": "seconds",
-            "range": 0.0427656404141486
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8724,6 +8694,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20606.3086697345,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "266dcd638e9ebca2e8ab3d57dd49aa4d3843e223",
+          "message": "fix: Merge branch 'master' into massDistributions",
+          "timestamp": "2024-10-16T16:48:55Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/266dcd638e9ebca2e8ab3d57dd49aa4d3843e223"
+        },
+        "date": 1729131066181,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.618,
+            "unit": "seconds",
+            "range": 0.0420903789474292
           }
         ]
       }
