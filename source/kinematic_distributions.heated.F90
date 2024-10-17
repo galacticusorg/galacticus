@@ -169,7 +169,7 @@ contains
           end if
        class default
           velocityDispersion               =+0.0d0
-          call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class'//{introspection:location})
+          call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class but found `'//char(massDistributionEmbedding%objectType())//'`'//{introspection:location})
        end select
     else
        ! Our heated distribution is embedded in another distribution. We must compute the velocity dispersion numerically. We set
