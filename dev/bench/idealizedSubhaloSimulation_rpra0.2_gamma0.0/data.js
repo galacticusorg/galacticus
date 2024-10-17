@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729124181788,
+  "lastUpdate": 1729131099128,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -3594,6 +3594,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": "5.0008631128237795",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "266dcd638e9ebca2e8ab3d57dd49aa4d3843e223",
+          "message": "fix: Merge branch 'master' into massDistributions",
+          "timestamp": "2024-10-16T16:48:55Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/266dcd638e9ebca2e8ab3d57dd49aa4d3843e223"
+        },
+        "date": 1729131098439,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931453284628232",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553744936933258",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.00086310866404",
             "unit": "-logℒ"
           }
         ]
