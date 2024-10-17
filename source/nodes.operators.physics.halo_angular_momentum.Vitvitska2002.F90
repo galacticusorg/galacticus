@@ -137,6 +137,8 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily haloAngularMomentumVitvitska2002} node operator class.
     !!}
+    use :: Error           , only : Component_List      , Error_Report
+    use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type            (nodeOperatorHaloAngularMomentumVitvitska2002)                        :: self
     class           (haloSpinDistributionClass                   ), intent(in   ), target :: haloSpinDistribution_
@@ -150,6 +152,24 @@ contains
     <constructorAssign variables="exponentMass, angularMomentumVarianceSpecific, *darkMatterProfileScaleRadius_, *haloSpinDistribution_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *virialOrbit_, *mergerTreeMassResolution_"/>
     !!]
 
+    ! Ensure that the spin component supports vector angular momentum.
+    if     (                                                                                                                               &
+         &  .not.                                                                                                                          &
+         &   (                                                                                                                             &
+         &     defaultSpinComponent%angularMomentumVectorIsGettable()                                                                      &
+         &    .and.                                                                                                                        &
+         &     defaultSpinComponent%angularMomentumVectorIsSettable()                                                                      &
+         &   )                                                                                                                             &
+         & )                                                                                                                               &
+         & call Error_Report                                                                                                               &
+         &      (                                                                                                                          &
+         &       'method requires a spin component that provides a gettable and settable "angularMomentumVector" property.'             // &
+         &       Component_List(                                                                                                           &
+         &                      'spin'                                                                                                  ,  &
+         &                       defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.,requireSettable=.true.)   &
+         &                     )                                                                                                        // &
+         &       {introspection:location}                                                                                                  &
+         &      )
     return
   end function haloAngularMomentumVitvitska2002ConstructorInternal
 
@@ -294,8 +314,11 @@ contains
        angularMomentumRootVariance=+sqrt(                                      &
             &                            +self%angularMomentumVarianceSpecific &
             &                            *(                                    &
-            &                              +angularMomentumScale       **2     &
-            &                              -angularMomentumScaleChild  **2     &
+            &                              +max(                               &
+            &                                   +angularMomentumScale     **2  &
+            &                                   -angularMomentumScaleChild**2, &
+            &                                   +0.0d0                         &
+            &                                  )                               &
             &                              *(                                  &
             &                                +basic   %mass          ()        &
             &                                -         massUnresolved          &

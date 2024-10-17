@@ -466,8 +466,16 @@ contains
                             end if
                          end if
                          ! Check for interrupt.
-                         if (interrupted) then
-                            ! If an interrupt occurred call the specified procedure to handle it.
+                         if     (                                                         &
+                              &   interrupted                                             & ! An interrupt occured.
+                              &  .and.                                                    &
+                              &   (                                                       &
+                              &    basic%time() < timeEndThisNode                         & ! The end of the timestep was not reached.
+                              &    .or.                                                   &
+                              &     .not.(associated(timestepTask_).and.associated(node)) & ! No end of timestep task is possible.
+                              &   )                                                       &
+                              & ) then
+                              ! If an interrupt occurred call the specified procedure to handle it.
                             call interruptProcedure(node,timeEnd)
                             ! Something happened so the tree is not deadlocked.
                             statusDeadlock=deadlockStatusIsNotDeadlocked

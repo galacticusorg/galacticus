@@ -346,8 +346,8 @@ sub Get_Fortran_Line {
 	if ( $tmpLine !~ m/!/ ) {
 	    ## This regex tests for the possible existance of any comment. If no "!" is present there can be no comment, and most lines don't contain comments, so we can quickly ignored them.
 	    $commentPosition = -1;
-	} elsif ( $tmpLine =~ m/^([^'"\{]+)![^\$]/ ) {
-	    ## This regex checks for a "!" prior to any of "'{, and not followed by a "$" (which indicates an OpenMP directive). If found, this must be the start of a comment.
+	} elsif ( $tmpLine =~ m/^([^'"\{]+?)![^\$]/ ) {
+	    ## This regex checks for the first "!" prior to any of "'{, and not followed by a "$" (which indicates an OpenMP directive). If found, this must be the start of a comment.
 	    $commentPosition = length($1);
 	} else {
 	    # General case. Comments begin with a "!" symbol, but not if it is found inside a string literal, or inside braces, "{}".

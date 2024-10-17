@@ -36,7 +36,8 @@
      private
      double precision :: timeLimit
    contains
-     procedure :: multiplier => recentMultiplier
+     procedure :: multiplier          => recentMultiplier
+     procedure :: isRedshiftDependent => recentIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorRecent
 
   interface stellarPopulationSpectraPostprocessorRecent
@@ -105,3 +106,15 @@ contains
     end if
     return
   end function recentMultiplier
+
+  logical function recentIsRedshiftDependent(self) result(isRedshiftDependent)
+    !!{
+    Return false indicating that the postprocessor is redshift independent.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorRecent), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isRedshiftDependent=.false.
+    return
+  end function recentIsRedshiftDependent

@@ -118,6 +118,7 @@
      !!]
      final     ::                              squareDestructor
      procedure :: timeMinimum               => squareTimeMinimum
+     procedure :: timeMaximum               => squareTimeMaximum
      procedure :: isInLightcone             => squareIsInLightcone
      procedure :: replicationCount          => squareReplicationCount
      procedure :: solidAngle                => squareSolidAngle
@@ -334,6 +335,8 @@ contains
     end do
     ! Normalize unit vectors.
     do i=1,3
+       if (Vector_Magnitude(self%unitVector(:,i)) == 0.0d0) &
+            & call Error_Report('null unit vector is not permitted'//{introspection:location})
        self%unitVector(:,i)=+                 self%unitVector(:,i)  &
             &               /Vector_Magnitude(self%unitVector(:,i))
     end do
@@ -481,6 +484,17 @@ contains
     squareTimeMinimum=self%outputTimes(1)
     return
   end function squareTimeMinimum
+
+  double precision function squareTimeMaximum(self)
+    !!{
+    Return the minimum time in the lightcone.
+    !!}
+    implicit none
+    class(geometryLightconeSquare), intent(inout) :: self
+
+    squareTimeMaximum=self%outputTimes(size(self%outputTimes))
+    return
+  end function squareTimeMaximum
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
@@ -845,7 +859,7 @@ contains
     return
   end function squarePositionAtOutput
 
-  double precision function squareTimeLightconeCrossing(self,node,timeStart,timeEnd)
+  double precision function squareTimeLightconeCrossing(self,node,timeStart,timeEnd,timesCrossing)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
@@ -854,34 +868,41 @@ contains
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Vectors                         , only : Vector_Magnitude
     use :: Root_Finder                     , only : rootFinder
+    use :: Sorting                         , only : sort
+    use :: Functions_Global                , only : nodeOperatorPredeterminedSolveAnalytics_
     implicit none
-    class           (geometryLightconeSquare), intent(inout)  :: self
-    type            (treeNode               ), intent(inout)  :: node
-    double precision                         , intent(in   )  :: timeStart                   , timeEnd
-    integer                                  , dimension(3,2) :: periodicRange
-    class           (nodeComponentBasic     ), pointer        :: basic
-    class           (nodeComponentPosition  ), pointer        :: position
-    double precision                         , dimension(3  ) :: positionReference           , nodePositionStart , &
-         &                                                       nodePositionEnd
-    double precision                         , parameter      :: speedMaximum         =2000.0 ! Maximum plausible physical speed for any node.
-    double precision                         , parameter      :: toleranceTimeRelative=1.0d-6
-    double precision                                          :: distanceMinimum             , distanceMaximum   , &
-         &                                                       distanceNodeStart           , distanceNodeEnd   , &
-         &                                                       radiusBuffer                , timeCrossing      , &
-         &                                                       timeTolerance
-    logical                                                   :: isInFieldOfViewStart        , isInFieldOfViewEnd
-    integer                                                   :: i                           , j                 , &
-         &                                                       k
-    type            (rootFinder             )                 :: finder
- 
-    basic                       => node    %basic                               (                           )
-    position                    => node    %position                            (                           )
-    positionReference           =  position%position                            (                           )
-    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(    timeEnd                )
-    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(max(timeStart,basic%time()))
+    class           (geometryLightconeSquare), intent(inout)                                        :: self
+    type            (treeNode               ), intent(inout)                                        :: node
+    double precision                         , intent(in   )                                        :: timeStart                   , timeEnd
+    double precision                         , intent(inout), dimension(:  ), allocatable, optional :: timesCrossing
+    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp
+    integer                                                 , dimension(3,2)                        :: periodicRange
+    class           (nodeComponentBasic     ), pointer                                              :: basic
+    class           (nodeComponentPosition  ), pointer                                              :: position
+    double precision                                        , dimension(3  )                        :: positionReference           , nodePositionStart , &
+         &                                                                                             nodePositionEnd
+    double precision                         , parameter                                            :: speedMaximum         =2000.0 ! Maximum plausible physical speed for any node.
+    double precision                         , parameter                                            :: toleranceTimeRelative=1.0d-6
+    double precision                                                                                :: distanceMinimum             , distanceMaximum   , &
+         &                                                                                             distanceNodeStart           , distanceNodeEnd   , &
+         &                                                                                             radiusBuffer                , timeCrossing      , &
+         &                                                                                             timeTolerance               , timeOriginal      , &
+         &                                                                                             timeStart_
+    logical                                                                                         :: isInFieldOfViewStart        , isInFieldOfViewEnd
+    integer                                                                                         :: i                           , j                 , &
+         &                                                                                             k
+    type            (rootFinder             )                                                       :: finder
+
+    basic                       => node    %basic                               (          )
+    position                    => node    %position                            (          ) 
+    positionReference           =  position%position                            (          )
+    timeOriginal                =  basic   %time                                (          )
+    timeStart_                  =  max(timeStart,timeOriginal)
+    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(timeEnd   )
+    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(timeStart_)
     radiusBuffer                =  +(                       &
-         &                           +      timeEnd         &
-         &                           -basic%time   ()       &
+         &                           +timeEnd               &
+         &                           -timeStart_            &
          &                          )                       &
          &                         *speedMaximum            &
          &                         /Mpc_per_km_per_s_To_Gyr
@@ -894,8 +915,8 @@ contains
        do j=periodicRange(2,1),periodicRange(2,2)
           do k=periodicRange(3,1),periodicRange(3,2)
              ! Compute position of node in lightcone coordinate system.
-             nodePositionStart=self%nodePositionReplicant(node,basic%time   (),self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
-             nodePositionEnd  =self%nodePositionReplicant(node,      timeEnd  ,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+             nodePositionStart=self%nodePositionReplicant(node,timeStart_,self%origin,[i,j,k],setTime=.true.)
+             nodePositionEnd  =self%nodePositionReplicant(node,timeEnd   ,self%origin,[i,j,k],setTime=.true.)
              isInFieldOfViewStart=                                                                                &
                   &                abs(atan2(nodePositionStart(2),nodePositionStart(1))) < 0.5d0*self%angularsize &
                   &               .and.                                                                           &
@@ -918,38 +939,61 @@ contains
                   &   )                                    &
                   & ) then
                 ! Find the precise time of lightcone crossing.
-                timeCrossing=finder%find(rootRange=[basic%time(),timeEnd])
+                timeCrossing=finder%find(rootRange=[timeStart_,timeEnd])
                 ! Check that the node is in the field of view at this time, that this is the earliest crossing, and that the
                 ! crossing occurs at least some small time after the current time of the node. (This last condition is to ensure
                 ! that a node which was stopped at precisely the time of lightcone crossing is not marked to be crossing the
                 ! lightcone again at that same time.)
-                nodePositionStart   =self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+                nodePositionStart   =self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.)
                 isInFieldOfViewStart=                                                                                &
                      &                abs(atan2(nodePositionStart(2),nodePositionStart(1))) < 0.5d0*self%angularsize &
                      &               .and.                                                                           &
                      &                abs(atan2(nodePositionStart(3),nodePositionStart(1))) < 0.5d0*self%angularsize
                 timeTolerance       =+toleranceTimeRelative                                                          &
-                     &               *self%cosmologyFunctions_%expansionFactor(basic%time())                         &
+                     &               *self%cosmologyFunctions_%expansionFactor(timeStart_)                           &
                      &               *self%lengthReplication                                                         &
                      &               *megaParsec                                                                     &
                      &               /speedLight                                                                     &
                      &               /gigaYear
                 if   (                                            &
-                   &   timeCrossing < squareTimeLightconeCrossing &
-                   &  .and.                                       &
-                   &   timeCrossing > basic%time()+timeTolerance  &
+                   &   timeCrossing > timeStart_+timeTolerance  &
                    &  .and.                                       &
                    &   isInFieldOfViewStart                       &
                    & ) then
-                   squareTimeLightconeCrossing                     =timeCrossing
-                   self                       %nodeUniqueIDCrossing=node%uniqueID()
-                   self                       %nodePositionCrossing=self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
-                   self                       %nodeVelocityCrossing=self%nodeVelocityReplicant(node,timeCrossing            ,[i,j,k],setTime=.true.                                            )
+                   ! Only set this crossing as the result if it is the earliest crossing time found so far.
+                   if (timeCrossing < squareTimeLightconeCrossing) then
+                      squareTimeLightconeCrossing                     =timeCrossing
+                      self                       %nodeUniqueIDCrossing=node%uniqueID()
+                      self                       %nodePositionCrossing=self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.)
+                      self                       %nodeVelocityCrossing=self%nodeVelocityReplicant(node,timeCrossing            ,[i,j,k],setTime=.true.)
+                   end if
+                   if (present(timesCrossing)) then
+                      ! Append this crossing time to the list of all crossing times.
+                      if (allocated(timesCrossing)) then
+                         call move_alloc(timesCrossing,timesCrossingTmp)
+                         allocate(timesCrossing(size(timesCrossingTmp)+1))
+                         timesCrossing(1:size(timesCrossingTmp))=timesCrossingTmp
+                         deallocate(timesCrossingTmp)
+                      else
+                         allocate(timesCrossing(1))
+                      end if
+                      timesCrossing(size(timesCrossing))=timeCrossing
+                   end if
                 end if
              end if
           end do
        end do
     end do
+    ! Must reset position and velocity as these can be used in the pre-determined solution.
+    call nodeOperatorPredeterminedSolveAnalytics_(self%nodeOperator_,node,timeOriginal)
+    ! Sort crossing times if necessary.
+    if (present(timesCrossing)) then
+       if (allocated(timesCrossing)) then
+          if (size(timesCrossing) > 1) call sort(timesCrossing)
+       else
+          allocate(timesCrossing(0))
+       end if
+    end if
     return
 
   contains
@@ -962,8 +1006,8 @@ contains
       double precision, intent(in   ) :: time
       double precision, dimension(3)  :: positionNode
       double precision                :: distanceNode
-      
-      positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+
+      positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.)
       distanceNode    =Vector_Magnitude(positionNode)
       timeCrossingRoot=+                         distanceNode           &
            &           -self%cosmologyFunctions_%distanceComoving(time)
@@ -1086,24 +1130,23 @@ contains
     return
   end function squarePeriodicRange
 
-  function squareNodePositionReplicant(self,node,time,origin,replicant,setTime,positionPeriodicReference)
+  function squareNodePositionReplicant(self,node,time,origin,replicant,setTime)
     !!{
     Compute the comoving position of the given node in the given replicant.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic         , nodeComponentPosition
-    use :: Functions_Global, only : nodeOperatorSolveAnalytics_
+    use :: Galacticus_Nodes, only : nodeComponentBasic                      , nodeComponentPosition
+    use :: Functions_Global, only : nodeOperatorPredeterminedSolveAnalytics_
     implicit none
     double precision                                        , dimension(3)           :: squareNodePositionReplicant
     class           (geometryLightconeSquare), intent(inout)                         :: self
     type            (treeNode               ), intent(inout)                         :: node
     double precision                         , intent(in   )                         :: time
     double precision                         , intent(in   ), dimension(3)           :: origin
-    double precision                         , intent(in   ), dimension(3), optional :: positionPeriodicReference
     integer                                  , intent(in   ), dimension(3)           :: replicant
     logical                                  , intent(in   )              , optional :: setTime
     class           (nodeComponentBasic     ), pointer                               :: basic
     class           (nodeComponentPosition  ), pointer                               :: position
-    double precision                                        , dimension(3)           :: positionComovingNode       , positionComovingReference
+    double precision                                        , dimension(3)           :: positionComovingNode
     integer                                                                          :: i
     double precision                                                                 :: timeOriginal               , expansionFactor
     !![
@@ -1113,24 +1156,16 @@ contains
     if (setTime_) then
        basic        => node %basic()
        timeOriginal =  basic%time ()
-       call nodeOperatorSolveAnalytics_(self%nodeOperator_,node,time)
+       call nodeOperatorPredeterminedSolveAnalytics_(self%nodeOperator_,node,time)
     end if
     position             =>  node    %position                           (    )
     expansionFactor      =  +self    %cosmologyFunctions_%expansionFactor(time)
     positionComovingNode =  +position%position                           (    ) &
          &                  /                             expansionFactor
-    if (present(positionPeriodicReference)) then
-       positionComovingReference=+positionPeriodicReference &
-            &                    /expansionFactor
-       do i=1,3
-          if (positionComovingNode(i) > positionComovingReference(i)+0.5d0*self%lengthReplication) positionComovingNode(i)=positionComovingNode(i)-self%lengthReplication
-          if (positionComovingNode(i) < positionComovingReference(i)-0.5d0*self%lengthReplication) positionComovingNode(i)=positionComovingNode(i)+self%lengthReplication
-       end do
-    end if
     do i=1,3
        squareNodePositionReplicant(i)=Dot_Product(positionComovingNode-origin+self%lengthReplication*dble(replicant),self%unitVector(:,i))
     end do
-    if (setTime_) call nodeOperatorSolveAnalytics_(self%nodeOperator_,node,timeOriginal)
+    if (setTime_) call nodeOperatorPredeterminedSolveAnalytics_(self%nodeOperator_,node,timeOriginal)
     return
   end function squareNodePositionReplicant
 

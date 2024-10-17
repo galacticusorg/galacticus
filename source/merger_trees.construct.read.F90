@@ -1607,9 +1607,11 @@ contains
     !!{
     Scan for cases where a subhalo stops being a subhalo and so must be promoted.
     !!}
-    use :: Galacticus_Nodes          , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
+    use :: Galacticus_Nodes            , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList, &
+         &                                      nodeComponentSatellite
+    use :: Merger_Tree_Read_Importers  , only : nodeData
+    use :: Node_Subhalo_Promotions     , only : nodeSubhaloPromotionPerform
+    use :: Satellite_Merging_Timescales, only : satelliteMergeTimeInfinite
     implicit none
     class           (mergerTreeConstructorRead), intent(inout)                              :: self
     class           (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
@@ -1619,6 +1621,7 @@ contains
     type            (treeNode                 ), pointer                                    :: promotionNode           , node             , &
          &                                                                                     nodeNew
     class           (nodeComponentBasic       ), pointer                                    :: basic
+    class           (nodeComponentSatellite   ), pointer                                    :: satellite
     integer         (c_size_t                 )                                             :: iNode
     integer                                                                                 :: i
     logical                                                                                 :: isolatedProgenitorExists, nodeIsMostMassive, &
@@ -1698,6 +1701,18 @@ contains
                       timeSubhaloPromotion =  descendantNode                                  %nodeTime
                    end if
                    node                    => nodeList      (nodes(iNode)  %isolatedNodeIndex)%node
+                   ! If the node being promoted has a merging time set we unset it now. This was a subhalo which was flagged for
+                   ! merging, but we are now promoting it as the primary progenitor of the current node, so it can no longer
+                   ! merge.
+                   satellite => node%satellite()
+                   if (satellite%timeOfMerging() < satelliteMergeTimeInfinite) then
+                      call satellite%timeOfMergingSet(satelliteMergeTimeInfinite)
+                      if (associated(node%mergeTarget)) then
+                         call node%removeFromMergee()
+                         nullify(node%mergeTarget)
+                      end if
+                   end if
+                   ! Create the event.
                    allocate(nodeEventSubhaloPromotion ::  newEvent)
                    allocate(nodeEventSubhaloPromotion :: pairEvent)
                    call          node%attachEvent( newEvent)
@@ -2926,16 +2941,16 @@ contains
              if (subhaloJumps) then
                 if (timeOfJump < 0.0d0)                   &
                      & timeOfJump=descendantNode%nodeTime
-                jumpToHost => descendantNode%descendant%host
+                 jumpToHost => descendantNode%descendant%host
                 ! Find an isolated host.
                 do while (jumpToHost%isSubhalo)
                    jumpToHost => jumpToHost%host
                 end do
                 call readCreateBranchJumpEvent(                                                    &
-                     &                        nodeList(iIsolatedNode                      )%node, &
-                     &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
-                     &                        timeOfJump                                          &
-                     &                       )
+                     &                         nodeList(iIsolatedNode                      )%node, &
+                     &                         nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
+                     &                         timeOfJump                                          &
+                     &                        )
              end if
              ! Move to the descendant.
              previousNode   => descendantNode
@@ -3480,19 +3495,38 @@ contains
     use :: Vectors      , only : Vector_Magnitude, Vector_Product
     implicit none
     type            (keplerOrbit)                              :: orbit
-    double precision                           , intent(in   ) :: mass1   , mass2
-    double precision             , dimension(3), intent(in   ) :: position, velocity
+    double precision                           , intent(in   ) :: mass1             , mass2
+    double precision             , dimension(3), intent(in   ) :: position          , velocity
+    double precision             , dimension(3)                :: velocityTangential, velocityRadial  , &
+         &                                                        vectorEpsilon1    , vectorEpsilon2  , &
+         &                                                        vectorRadial 
+    double precision                                           :: positionMagnitude , velocityEpsilon1, &
+         &                                                        velocityEpsilon2
 
+    positionMagnitude =Vector_Magnitude(position)
+    vectorRadial      =+position          &
+         &             /positionMagnitude
+    velocityRadial    =+Dot_Product(velocity,position) &
+         &             *vectorRadial
+    velocityTangential=+velocity       &
+         &             -velocityRadial
+    vectorEpsilon1    =Vector_Product(vectorRadial  ,[0.0d0,0.0d0,1.0d0])
+    vectorEpsilon2    =Vector_Product(vectorEpsilon1,vectorRadial       )
+    vectorEpsilon1    =vectorEpsilon1/Vector_Magnitude(vectorEpsilon1)
+    vectorEpsilon2    =vectorEpsilon2/Vector_Magnitude(vectorEpsilon2)
+    velocityEpsilon1  =Dot_Product(velocityTangential,vectorEpsilon1)
+    velocityEpsilon2  =Dot_Product(velocityTangential,vectorEpsilon2)
     call orbit%reset()
     call orbit%massesSet            (       &
          &                           mass1, &
          &                           mass2  &
          &                          )
-    call orbit%radiusSet            (                                                   Vector_Magnitude(position))
-    call orbit%velocityRadialSet    (                    Dot_Product(velocity,position)/Vector_Magnitude(position))
-    call orbit%velocityTangentialSet(Vector_Magnitude(Vector_Product(velocity,position)/Vector_Magnitude(position)))
-    call orbit%thetaSet             (acos (position(3)/sqrt(sum(position**2))            ))
-    call orbit%phiSet               (atan2(position(2)                       ,position(1)))
+    call orbit%radiusSet            (                                     positionMagnitude)
+    call orbit%velocityRadialSet    (Dot_Product     (velocity,position )/positionMagnitude)
+    call orbit%velocityTangentialSet(Vector_Magnitude(velocityTangential)                  )
+    call orbit%thetaSet             (acos (position        (3)/positionMagnitude                    ))
+    call orbit%phiSet               (atan2(position        (2)                  ,position        (1)))
+    call orbit%epsilonSet           (atan2(velocityEpsilon2                     ,velocityEpsilon1   ))
     return
   end function readOrbitConstruct
 

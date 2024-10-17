@@ -103,7 +103,7 @@ contains
     !!{
     Display an error message.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
     use               :: MPI               , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -131,9 +131,10 @@ contains
     !$    write (error_unit,*) " => Error occurred in master thread"
     !$ end if
     write (error_unit,*) " => Command line was: ",char(commandLine())
-    call BackTrace             ( )
-    call Warn_Review           ( )
-    call Flush                 (0)
+    call BackTrace  (           )
+    call Warn_Review(           )
+    call Flush      (output_unit)
+    call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -145,7 +146,8 @@ contains
        call hostnm(hostName)
        write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
+       call Flush(output_unit)
+       call Flush( error_unit)
        call Sleep(errorWaitTime)
     end if
 #endif
@@ -205,7 +207,7 @@ contains
     !!{
     Review any warning messages emitted during the run.
     !!}
-    use, intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use, intrinsic :: ISO_Fortran_Env   , only : error_unit, output_unit
     use            :: ISO_Varying_String, only : char
     implicit none
     type(warning), pointer :: warning_
@@ -249,7 +251,7 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
     use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -278,9 +280,10 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call Warn_Review( )
-    call BackTrace  ( )
-    call Flush      (0)
+    call BackTrace  (           )
+    call Warn_Review(           )
+    call Flush      (output_unit)
+    call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -291,7 +294,8 @@ contains
        call hostnm(hostName)
        write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
+       call Flush(output_unit)
+       call Flush( error_unit)
        call Sleep(errorWaitTime)
     end if
 #endif
@@ -304,7 +308,7 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
     use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -333,9 +337,10 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call Warn_Review( )
-    call BackTrace  ( )
-    call Flush      (0)
+    call BackTrace  (           )
+    call Warn_Review(           )
+    call Flush      (output_unit)
+    call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -346,7 +351,8 @@ contains
        call hostnm(hostName)
        write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
+       call Flush(output_unit)
+       call Flush( error_unit)
        call Sleep(errorWaitTime)
     end if
 #endif
@@ -359,7 +365,7 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
     use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -388,9 +394,10 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call Warn_Review( )
-    call BackTrace  ( )
-    call Flush      (0)
+    call BackTrace  (           )
+    call Warn_Review(           )
+    call Flush      (output_unit)
+    call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -401,7 +408,8 @@ contains
        call hostnm(hostName)
        write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
+       call Flush(output_unit)
+       call Flush( error_unit)
        call Sleep(errorWaitTime)
     end if
 #endif
@@ -414,7 +422,7 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
     use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -443,9 +451,10 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call Warn_Review( )
-    call BackTrace  ( )
-    call Flush      (0)
+    call BackTrace  (           )
+    call Warn_Review(           )
+    call Flush      (output_unit)
+    call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -456,7 +465,8 @@ contains
        call hostnm(hostName)
        write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
+       call Flush(output_unit)
+       call Flush( error_unit)
        call Sleep(errorWaitTime)
     end if
 #endif
@@ -469,7 +479,7 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
     use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -498,9 +508,10 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call Warn_Review( )
-    call BackTrace  ( )
-    call Flush      (0)
+    call BackTrace  (           )
+    call Warn_Review(           )
+    call Flush      (output_unit)
+    call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -511,7 +522,8 @@ contains
        call hostnm(hostName)
        write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
+       call Flush(output_unit)
+       call Flush( error_unit)
        call Sleep(errorWaitTime)
     end if
 #endif
@@ -524,8 +536,8 @@ contains
     !!{
     Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
     !!}
-    use, intrinsic :: ISO_Fortran_Env, only : error_unit
-    use            :: Display        , only : displayBold , displayRed, displayReset
+    use, intrinsic :: ISO_Fortran_Env, only : error_unit  , output_unit
+    use            :: Display        , only : displayBold , displayRed , displayReset
     use            :: System_Output  , only : stdOutIsATTY
     implicit none
 
@@ -534,7 +546,8 @@ contains
     else
        write (error_unit,*)                              'Galacticus exceeded available CPU time - will try to flush data before exiting.'
     end if
-    call Flush(0)
+    call Flush(output_unit)
+    call Flush( error_unit)
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
@@ -546,7 +559,7 @@ contains
     !!{
     Handle errors from the GSL library, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit
+    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit         , output_unit
     use   , intrinsic :: ISO_C_Binding     , only : c_char
     use               :: ISO_Varying_String, only : char
 #ifdef USEMPI
@@ -581,9 +594,10 @@ contains
 #ifndef UNCLEANEXIT
        call closeHDF5()
 #endif
-       call Warn_Review( )
-       call BackTrace  ( )
-       call Flush      (0)
+       call BackTrace  (           )
+       call Warn_Review(           )
+       call Flush      (output_unit)
+       call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
        call Exit(1)
 #else
@@ -594,7 +608,8 @@ contains
           call hostnm(hostName)
           write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
           write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-          call Flush(0)
+          call Flush(output_unit)
+          call Flush( error_unit)
           call Sleep(errorWaitTime)
        end if
 #endif
