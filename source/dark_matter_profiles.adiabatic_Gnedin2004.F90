@@ -171,19 +171,18 @@ contains
     !!{
     Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic         , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical, kinematicsDistributionClass, &
-         &                                    sphericalAdiabaticGnedin2004Initializor
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic             , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical    , kinematicsDistributionClass, &
+         &                                    sphericalAdiabaticGnedin2004Initializor     , kinematicsDistributionUndecorator  , nonAnalyticSolversFallThrough
     implicit none
     class           (massDistributionClass                  ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionCollisionless    ), pointer                 :: kinematicsDistribution_
-    type            (kinematicsDistributionClass            ), pointer                 :: kinematicsDistribution__
+    class           (kinematicsDistributionClass            ), pointer                 :: kinematicsDistribution_      , kinematicsDistribution__
     class           (darkMatterProfileAdiabaticGnedin2004   ), intent(inout), target   :: self
     type            (treeNode                               ), intent(inout), target   :: node
     type            (enumerationWeightByType                ), intent(in   ), optional :: weightBy
     integer                                                  , intent(in   ), optional :: weightIndex
     class           (massDistributionClass                  ), pointer                 :: massDistributionDecorated    , massDistributionBaryonic
-    double precision                                                                   :: massBaryonicSelfTotal        , massBaryonicTotal       , &
+    double precision                                                                   :: massBaryonicSelfTotal        , massBaryonicTotal        , &
          &                                                                                darkMatterDistributedFraction, initialMassFraction
     procedure       (sphericalAdiabaticGnedin2004Initializor), pointer                 :: initializationFunction
     class           (*                                      ), pointer                 :: initializationSelf           , initializationArgument
@@ -235,15 +234,32 @@ contains
 	    </constructor>
           </referenceConstruct>
           !!]
-          allocate(kinematicsDistribution_)
           kinematicsDistribution__ => massDistributionDecorated%kinematicsDistribution()
-          !![
-	  <referenceConstruct object="kinematicsDistribution_">
-	    <constructor>
-              kinematicsDistributionCollisionless(kinematicsDistribution__)
-	    </constructor>
-	  </referenceConstruct>
-          !!]
+          if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+             allocate(kinematicsDistributionUndecorator :: kinematicsDistribution_)
+             select type (kinematicsDistribution_)
+             type is (kinematicsDistributionUndecorator  )
+                !![
+		<referenceConstruct object="kinematicsDistribution_">
+		  <constructor>
+		    kinematicsDistributionUndecorator(kinematicsDistribution__)
+		  </constructor>
+		</referenceConstruct>
+             !!]
+             end select
+          else
+             allocate(kinematicsDistributionCollisionless :: kinematicsDistribution_)
+             select type (kinematicsDistribution_)
+             type is (kinematicsDistributionCollisionless)
+                !![
+		<referenceConstruct object="kinematicsDistribution_">
+		  <constructor>
+		    kinematicsDistributionCollisionless(kinematicsDistribution__)
+		  </constructor>
+		</referenceConstruct>
+                !!]
+             end select
+          end if
           call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
           !![
 	  <objectDestructor name="kinematicsDistribution_"  />
