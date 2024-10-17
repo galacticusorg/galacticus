@@ -550,8 +550,8 @@ contains
                 if (allocated(self%genericPotentialPotential)) deallocate(self%genericPotentialPotential)
                 allocate(self%genericPotentialRadius   (countRadii))
                 allocate(self%genericPotentialPotential(countRadii))
-                self%genericPotentialRadius        =radii_
-                self%genericPotentialPotential     =potentials_
+                self%genericPotentialRadius        =radii
+                self%genericPotentialPotential     =potentials
                 self%genericPotentialRadiusMinimum =radiusMinimum
                 self%genericPotentialRadiusMinimum_=radii_       (1)
                 self%genericPotentialRadiusMaximum =radiusMaximum
