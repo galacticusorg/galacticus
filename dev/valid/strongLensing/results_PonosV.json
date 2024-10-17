@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "target" : 0.85,
+      "percentageBelow" : 69.2307692307692,
+      "percentageAbove" : 30.7692307692308
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "surfaceDensity" : {
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875,
+      "target" : 0.006
+   },
    "commit" : {
-      "id" : "429b2f2ad82cd83b9033ebbc939de7d21f37e682",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/429b2f2ad82cd83b9033ebbc939de7d21f37e682",
-      "message" : "Merge pull request #718 from galacticusorg/featModelReportState",
-      "timestamp" : "Sat, 12 Oct 2024 23:13:47 +0000",
+      "id" : "4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
+      "timestamp" : "Wed, 16 Oct 2024 15:05:13 +0000",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abensonca@gmail.com"
-      }
-   },
-   "slope" : {
-      "percentageAbove" : 30.7692307692308,
-      "target" : 0.85,
-      "percentageBelow" : 69.2307692307692
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "percentageBelow" : 50,
-      "target" : 0.006,
-      "percentageAbove" : 50
+      },
+      "message" : "Merge pull request #717 from galacticusorg/featSFHFixedAges"
    }
 }
