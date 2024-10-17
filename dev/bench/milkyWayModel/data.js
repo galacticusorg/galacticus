@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728800258068,
+  "lastUpdate": 1729124132772,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "426d47542279966670f16b52132911ffe1777496",
-          "message": "Merge pull request #535 from galacticusorg/featFormationHalos\n\nAdd a `stellarFeedbackOutflows` class that uses the formation halo properties",
-          "timestamp": "2024-01-26T06:09:08Z",
-          "tree_id": "f93b656986590f5805ea143b9bfe76e911ec9ff4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/426d47542279966670f16b52132911ffe1777496"
-        },
-        "date": 1706260196258,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 169.002,
-            "unit": "seconds",
-            "range": 0.249250075225373
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10672,6 +10642,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 13.0132155959646,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
+          "message": "Merge pull request #717 from galacticusorg/featSFHFixedAges\n\nImplement a star formation history class that provides a tabulation at fixed ages for lightcone output",
+          "timestamp": "2024-10-16T15:05:13Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db"
+        },
+        "date": 1729124131533,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 427.734,
+            "unit": "seconds",
+            "range": 0.246557092774666
           }
         ]
       }
