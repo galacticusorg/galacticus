@@ -871,7 +871,7 @@ contains
   
   function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
     !!{
-    Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a composite mass distribution.
     !!}
     implicit none
     double precision                              , dimension(3)  :: compositeChandrasekharIntegral
@@ -880,6 +880,7 @@ contains
     double precision                              , intent(in   ) :: massPerturber
     class           (coordinate                  ), intent(in   ) :: coordinates                   , velocity
     type            (massDistributionList        ), pointer       :: massDistribution_
+    !$GLC attributes unused :: massDistributionEmbedding
 
     compositeChandrasekharIntegral=0.0d0
     if (associated(self%massDistributions)) then
