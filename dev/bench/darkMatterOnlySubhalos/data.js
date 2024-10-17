@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728800254573,
+  "lastUpdate": 1729124127109,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "74c5285047ac77fa4398d9fe601da30c6427f868",
-          "message": "Merge pull request #544 from galacticusorg/featPowerSpectrumNormalization\n\nAdd functionality to normalize the power spectrum via the $A_\\mathrm{s}$ parameter",
-          "timestamp": "2024-01-27T02:45:59Z",
-          "tree_id": "70c701f7ffed6f95139fc6eda794733aff851317",
-          "url": "https://github.com/galacticusorg/galacticus/commit/74c5285047ac77fa4398d9fe601da30c6427f868"
-        },
-        "date": 1706334495728,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.941,
-            "unit": "seconds",
-            "range": 0.063426335223842
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8728,6 +8698,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20528.8599070366,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
+          "message": "Merge pull request #717 from galacticusorg/featSFHFixedAges\n\nImplement a star formation history class that provides a tabulation at fixed ages for lightcone output",
+          "timestamp": "2024-10-16T15:05:13Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db"
+        },
+        "date": 1729124124068,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.386,
+            "unit": "seconds",
+            "range": 0.0771388358739186
           }
         ]
       }
