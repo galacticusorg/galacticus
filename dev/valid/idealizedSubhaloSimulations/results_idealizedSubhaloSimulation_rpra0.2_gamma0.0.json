@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
-        "message": "Merge pull request #717 from galacticusorg/featSFHFixedAges\n\nImplement a star formation history class that provides a tabulation at fixed ages for lightcone output\n",
-        "timestamp": "2024-10-16 15:05:13+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db"
+        "id": "266dcd638e9ebca2e8ab3d57dd49aa4d3843e223",
+        "message": "fix: Merge branch 'master' into massDistributions\n",
+        "timestamp": "2024-10-16 09:48:55-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/266dcd638e9ebca2e8ab3d57dd49aa4d3843e223"
     },
     "results": [
         {
@@ -21,7 +21,7 @@ window.ANALYSES_DATA = {
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
                 "description": "Satellite bound mass fraction vs. time.",
-                "logLikelihood": "13.931453287519465",
+                "logLikelihood": "13.931453284628232",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionBoundMass",
@@ -36,9 +36,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.14637271926404924,
-                    0.049221450061615275,
-                    0.014803777891378645
+                    0.1463727192018819,
+                    0.04922145039017398,
+                    0.014803777906773272
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -57,7 +57,7 @@ window.ANALYSES_DATA = {
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
-                "logLikelihood": "6.553744936818157",
+                "logLikelihood": "6.553744936933258",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionRadiusVelocityMaximum",
@@ -72,9 +72,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.5356830063391598,
-                    0.4316192874260603,
-                    0.40519443981878106
+                    0.5356830063683717,
+                    0.43161928744310113,
+                    0.4051944398158523
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -93,7 +93,7 @@ window.ANALYSES_DATA = {
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
-                "logLikelihood": "5.0008631128237795",
+                "logLikelihood": "5.00086310866404",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionVelocityMaximum",
@@ -108,9 +108,9 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.7182180956056743,
-                    0.49958346434794293,
-                    0.3224158935679856
+                    0.7182180956476809,
+                    0.49958346440837986,
+                    0.32241589363653256
                 ],
                 "yDatasetTarget": [
                     1.0,
