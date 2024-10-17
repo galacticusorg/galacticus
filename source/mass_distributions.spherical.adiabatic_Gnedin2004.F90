@@ -91,24 +91,24 @@
      An adiabatically-contracted spherical mass distribution.
      !!}
      private
-     class           (massDistributionClass                  ), pointer                                                  :: massDistributionBaryonic => null()
+     class           (massDistributionClass                  ), pointer                                                  :: massDistributionBaryonic      => null()
      type            (rootFinder                             )                                                           :: finder
      ! Parameters of the adiabatic contraction algorithm.
-     double precision                                                                                                    :: A                                 , omega                               , &
+     double precision                                                                                                    :: A                                      , omega                               , &
           &                                                                                                                 radiusFractionalPivot
      ! Stored solutions for reuse.
-     integer                                                                                                             :: radiusPreviousIndex               , radiusPreviousIndexMaximum
-     double precision                                         , dimension(sphericalAdiabaticGnedin2004StoreCount)        :: radiusPrevious                    , radiusInitialPrevious
+     integer                                                                                                             :: radiusPreviousIndex                    , radiusPreviousIndexMaximum
+     double precision                                         , dimension(sphericalAdiabaticGnedin2004StoreCount)        :: radiusPrevious                         , radiusInitialPrevious
      ! Quantities used in solving the initial radius root function.
-     double precision                                                                                                    :: baryonicFinalTerm                 , baryonicFinalTermDerivative         , &
-          &                                                                                                                 darkMatterDistributedFraction     , massFractionInitial                 , &
-          &                                                                                                                 radiusFinal                       , radiusFinalMean            ,          &
-          &                                                                                                                 darkMatterFraction                , radiusVirial                        , &
-          &                                                                                                                 toleranceRelative                 , massTotal_
+     double precision                                                                                                    :: baryonicFinalTerm                      , baryonicFinalTermDerivative         , &
+          &                                                                                                                 darkMatterDistributedFraction          , massFractionInitial                 , &
+          &                                                                                                                 radiusFinal                            , radiusFinalMean            ,          &
+          &                                                                                                                 darkMatterFraction                     , radiusVirial                        , &
+          &                                                                                                                 toleranceRelative                      , massTotal_
      ! Call-back function and arguments used for as-needed initialization of the baryonic component.
      logical                                                                                                              :: initialized
      procedure       (sphericalAdiabaticGnedin2004Initializor), pointer                                          , nopass :: initializationFunction
-     class           (*                                      ), pointer                                                   :: initializationSelf      => null(), initializationArgument      => null()
+     class           (*                                      ), pointer                                                   :: initializationSelf           => null(), initializationArgument      => null()
    contains
      !![
      <methods>
