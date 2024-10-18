@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729131079675,
+  "lastUpdate": 1729214783242,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "74c5285047ac77fa4398d9fe601da30c6427f868",
-          "message": "Merge pull request #544 from galacticusorg/featPowerSpectrumNormalization\n\nAdd functionality to normalize the power spectrum via the $A_\\mathrm{s}$ parameter",
-          "timestamp": "2024-01-27T02:45:59Z",
-          "tree_id": "70c701f7ffed6f95139fc6eda794733aff851317",
-          "url": "https://github.com/galacticusorg/galacticus/commit/74c5285047ac77fa4398d9fe601da30c6427f868"
-        },
-        "date": 1706334500607,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 180.959,
-            "unit": "seconds",
-            "range": 0.172113044249081
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10664,6 +10634,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 20.5045097740385,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "aaf545c06c3c182c6fda4607d4c01214658408e0",
+          "message": "fix: Remove obsoleted parameters from test parameter file",
+          "timestamp": "2024-10-17T21:12:10Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/aaf545c06c3c182c6fda4607d4c01214658408e0"
+        },
+        "date": 1729214782144,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 24.38,
+            "unit": "seconds",
+            "range": 0.0654369925958493
           }
         ]
       }
