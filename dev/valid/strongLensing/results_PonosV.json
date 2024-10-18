@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 23.0769230769231,
-      "percentageBelow" : 76.9230769230769
-   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "timestamp" : "Wed, 16 Oct 2024 09:48:55 -0700",
-      "message" : "fix: Merge branch 'master' into massDistributions",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/266dcd638e9ebca2e8ab3d57dd49aa4d3843e223",
+      "timestamp" : "Thu, 17 Oct 2024 11:41:01 -0700",
+      "message" : "feat: Allow option to fall through to the decorated kinematics distribution",
       "author" : {
          "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "id" : "266dcd638e9ebca2e8ab3d57dd49aa4d3843e223"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/42273da9e5a595bc579c6c3526517708b6aca012",
+      "id" : "42273da9e5a595bc579c6c3526517708b6aca012"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageBelow" : 43.75,
-      "percentageAbove" : 56.25,
-      "target" : 0.006
+      "percentageBelow" : 46.875,
+      "target" : 0.006,
+      "percentageAbove" : 53.125
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
+   "slope" : {
+      "percentageBelow" : 76.9230769230769,
+      "target" : 0.85,
+      "percentageAbove" : 23.0769230769231
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }

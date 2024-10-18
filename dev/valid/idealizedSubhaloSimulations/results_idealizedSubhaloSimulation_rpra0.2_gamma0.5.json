@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@carnegiescience.edu"
         },
-        "id": "266dcd638e9ebca2e8ab3d57dd49aa4d3843e223",
-        "message": "fix: Merge branch 'master' into massDistributions\n",
-        "timestamp": "2024-10-16 09:48:55-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/266dcd638e9ebca2e8ab3d57dd49aa4d3843e223"
+        "id": "42273da9e5a595bc579c6c3526517708b6aca012",
+        "message": "feat: Allow option to fall through to the decorated kinematics distribution\n",
+        "timestamp": "2024-10-17 11:41:01-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/42273da9e5a595bc579c6c3526517708b6aca012"
     },
     "results": [
         {
