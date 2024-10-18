@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729131075973,
+  "lastUpdate": 1729214778382,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "970b8cf5439ec2ea0b846c9c8faa9735e170e6e9",
-          "message": "fix: Ensure a host tree is set for unresolved halos in the `darkMatterProfileScaleRadiusJohnson2021` class\n\nThis is needed to allow access to random number generators attached to trees (for example, by a concentration class that wants to include some random scatter).",
-          "timestamp": "2024-02-01T14:40:47-08:00",
-          "tree_id": "eb4984ebdba10a91844d9e70bf96a10cc9d8ef6f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/970b8cf5439ec2ea0b846c9c8faa9735e170e6e9"
-        },
-        "date": 1706838421683,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.604,
-            "unit": "seconds",
-            "range": 0.0951125648898196
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8720,6 +8690,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 21218.7302670628,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "aaf545c06c3c182c6fda4607d4c01214658408e0",
+          "message": "fix: Remove obsoleted parameters from test parameter file",
+          "timestamp": "2024-10-17T21:12:10Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/aaf545c06c3c182c6fda4607d4c01214658408e0"
+        },
+        "date": 1729214776237,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.237,
+            "unit": "seconds",
+            "range": 0.0505381044365836
           }
         ]
       }
