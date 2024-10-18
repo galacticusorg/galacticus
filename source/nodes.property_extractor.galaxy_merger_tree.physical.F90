@@ -95,7 +95,7 @@ contains
     Implement a galaxyMergerTreePhysical output extractor.
     !!}
     use :: Galacticus_Nodes                           , only : nodeComponentBasic
-    use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
+    use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount
     implicit none
     double precision                                               , dimension(:,:), allocatable :: galaxyMergerTree
     class           (nodePropertyExtractorGalaxyMergerTreePhysical), intent(inout)               :: self
