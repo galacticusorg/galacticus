@@ -78,13 +78,17 @@ contains
     type            (multiCounter                        ), intent(inout), optional :: instance
     class           (nodeComponentSatellite              )               , pointer  :: satellite
     class           (massDistributionClass               )               , pointer  :: massDistribution_
+    double precision                                      , parameter               :: toleranceRelative=1.0d-6
     double precision                                                                :: massTotal
     !$GLC attributes unused :: instance
 
-    satellite              => node             %satellite           (                                            )
-    massDistribution_      => node             %massDistribution    (                                            )
-    massTotal              =  massDistribution_%massEnclosedBySphere(radius=                          radiusLarge)
-    radiusBoundMassExtract =  massDistribution_%radiusEnclosingMass (mass  =min(satellite%boundMass(),massTotal  ))
+    ! Find the radius enclosing the bound mass. Limit the bound mass to that enclosed within some very large radius. Additionally,
+    ! seek the radius enclosing a fraction 1-10⁻⁶ of the bound mass to avoid problems with numerical precision when solving
+    ! numerically for this radius.
+    satellite              => node             %satellite           (                                                                      )
+    massDistribution_      => node             %massDistribution    (                                                                      )
+    massTotal              =  massDistribution_%massEnclosedBySphere(radius=                                                    radiusLarge)
+    radiusBoundMassExtract =  massDistribution_%radiusEnclosingMass (mass  =(1.0d0-toleranceRelative)*min(satellite%boundMass(),massTotal  ))
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
