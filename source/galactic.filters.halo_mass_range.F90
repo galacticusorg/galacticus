@@ -21,10 +21,9 @@
 Contains a module which implements a galactic filter for halo mass under a given definition.
 !!}
 
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
   <galacticFilter name="galacticFilterHaloMassRange">
@@ -39,7 +38,6 @@ Contains a module which implements a galactic filter for halo mass under a given
      !!}
      private
      double precision                                      :: massLow                         , massHigh
-     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
      class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
      class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
@@ -68,7 +66,6 @@ contains
     type            (inputParameters            ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass    ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass   ), pointer       :: cosmologyParameters_
-    class           (darkMatterProfileDMOClass  ), pointer       :: darkMatterProfileDMO_
     class           (virialDensityContrastClass ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
     double precision                                             :: massLow               , massHigh
 
@@ -86,23 +83,21 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
-    self=galacticFilterHaloMassRange(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
+    self=galacticFilterHaloMassRange(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"             />
     <objectDestructor name="cosmologyParameters_"            />
-    <objectDestructor name="darkMatterProfileDMO_"           />
     <objectDestructor name="virialDensityContrast_"          />
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function haloMassRangeConstructorParameters
 
-  function haloMassRangeConstructorInternal(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
+  function haloMassRangeConstructorInternal(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Internal constructor for the ``haloMassRange'' galactic filter class.
     !!}
@@ -112,9 +107,8 @@ contains
     class           (cosmologyParametersClass   ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass    ), intent(in   ), target :: cosmologyFunctions_
     class           (virialDensityContrastClass ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
-    class           (darkMatterProfileDMOClass  ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="massLow, massHigh, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
+    <constructorAssign variables="massLow, massHigh, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     return
@@ -131,7 +125,6 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"             />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%cosmologyParameters_"            />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
@@ -158,7 +151,6 @@ contains
          &                                                                                                                                 )             , &
          &                                                     cosmologyParameters_  =self%cosmologyParameters_                                          , &
          &                                                     cosmologyFunctions_   =self%cosmologyFunctions_                                           , &
-         &                                                     darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                         , &
          &                                                     virialDensityContrast_=self%virialDensityContrast_                                          &
          &                                                    ) 
     haloMassRangePasses =  massHalo >= self%massLow  &

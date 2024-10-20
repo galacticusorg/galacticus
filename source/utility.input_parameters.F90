@@ -125,13 +125,12 @@ module Input_Parameters
      type   (node           ), pointer, public :: document               => null()
      type   (node           ), pointer         :: rootNode               => null()
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
-     type   (inputParameter ), pointer, public         :: parameters             => null()
+     type   (inputParameter ), pointer, public :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
-          &                                       isNull                 =  .false., warnedVersion            =.false.
+          &                                       isNull                 =  .false.
      type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        ), pointer         :: lock                   => null()
-     type   (varying_string )                  :: fileName
    contains
      !![
      <methods>
@@ -404,9 +403,9 @@ contains
     type (inputParameters)                :: self
     type (inputParameters), intent(in   ) :: parameters
 
-    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,fileName=char(parameters%fileName))
-    self%parameters =>                 parameters%parameters
-    self%parent     =>                 parameters%parent
+    self               =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self%parameters    =>                 parameters%parameters
+    self%parent        =>                 parameters%parent
     if (allocated(parameters%warnedDefaults)) then
        if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
        allocate(self%warnedDefaults)
@@ -424,9 +423,11 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     !!}
-    use            :: Display           , only : displayGreen                     , displayMessage , displayMagenta  , displayReset
+    use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
+         &                                       verbosityLevelSilent
     use            :: File_Utilities    , only : File_Name_Temporary
-    use            :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists, getTextContent, hasAttribute, getAttributeNode
+    use            :: FoX_dom           , only : getOwnerDocument                 , node            , setLiveNodeLists, getTextContent, &
+         &                                       hasAttribute                     , getAttributeNode
     use            :: Error             , only : Error_Report
 #ifdef GIT2AVAIL
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
@@ -461,7 +462,6 @@ contains
 #endif
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)
-    !$GLC attributes unused :: fileName
     !![
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
@@ -475,7 +475,6 @@ contains
     self%parent         => null            (              )
     self%warnedDefaults =  integerHash     (              )
     self%lock           =  ompLock         (              )
-    if (present(fileName)) self%fileName=fileName
     !$omp critical (FoX_DOM_Access)
     self%document       => getOwnerDocument(parametersNode)
     call setLiveNodeLists(self%document,.false.)
@@ -525,51 +524,51 @@ contains
     if (.not.allocated(allowedParameterNamesGlobal)) &
          & call knownParameterNames(allowedParameterNamesGlobal)
     ! Check for migration information.
-    if (XML_Path_Exists(self%rootNode,"lastModified")) then
+    if (present(fileName)) then
+       if (XML_Path_Exists(self%rootNode,"lastModified")) then
 #ifdef GIT2AVAIL
-       ! Look for a "lastModified" element in the parameter file.
-       !$omp critical (FoX_DOM_Access)
-       lastModifiedNode => XML_Get_First_Element_By_Tag_Name(self%rootNode        ,'lastModified')
-       hasRevision      =  hasAttribute                     (     lastModifiedNode,'revision'    )
-       if (hasRevision) then
-          revisionNode         => getAttributeNode(lastModifiedNode,'revision')
-          commitHashParameters =  getTextContent  (revisionNode               )//c_null_char
-       end if
-       !$omp end critical (FoX_DOM_Access)
-       if (hasRevision.and..not.self%warnedVersion) then
-          ! A revision was available in the parameter file.
-          self%warnedVersion=.true.
-          !! Build an array of known migration commit hashes.
-          !![
-	  <parameterMigration/>
-          !!]
-          !! Extract the commit hash at which Galacticus was built.
-          call Version(commitHashSelf_)
-          commitHashSelf=trim(commitHashSelf_)//c_null_char
-          !! Iterate over known migration commit hashes and check if they are ancestors.
-          allocate(isAncestorOfParameters(size(commitHash)))
-          do i=1,size(commitHash)
-             isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
-          end do
-          if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
-             call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")")
-          else if (any(isAncestorOfParameters == 0)) then
-             ! Parameter file is missing migrations - issue a warning.
-             message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "
-             if (present(fileName)) message=message//trim(fileName)//" newParameterFile.xml "
-             call displayMessage(message)
+          ! Look for a "lastModified" element in the parameter file.
+          !$omp critical (FoX_DOM_Access)
+          lastModifiedNode => XML_Get_First_Element_By_Tag_Name(self%rootNode        ,'lastModified')
+          hasRevision      =  hasAttribute                     (     lastModifiedNode,'revision'    )
+          if (hasRevision) then
+             revisionNode         => getAttributeNode(lastModifiedNode,'revision')
+             commitHashParameters =  getTextContent  (revisionNode               )//c_null_char
           end if
-          isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
-          if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
-             call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")")
-          else if (isAncestorOfSelf == 0_c_int) then
-             ! Parameters are more recent than the executable - issue a warning.
-             call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus")
+          !$omp end critical (FoX_DOM_Access)
+          if (hasRevision) then
+             ! A revision was available in the parameter file.
+             !! Build an array of known migration commit hashes.
+             !![
+	     <parameterMigration/>
+             !!]
+             !! Extract the commit hash at which Galacticus was built.
+             call Version(commitHashSelf_)
+             commitHashSelf=trim(commitHashSelf_)//c_null_char
+             !! Iterate over known migration commit hashes and check if they are ancestors.
+             allocate(isAncestorOfParameters(size(commitHash)))
+             do i=1,size(commitHash)
+                isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
+             end do
+             if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
+                call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")")
+             else if (any(isAncestorOfParameters == 0)) then
+                ! Parameter file is missing migrations - issue a warning.
+                message=displayMagenta()//"WARNING:"//displayReset()//" parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "//trim(fileName)//" newParameterFile.xml"
+                call displayMessage(message//char(10),verbosityLevelSilent)
+             end if
+             isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
+             if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
+                call displayMessage(var_str(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")")
+             else if (isAncestorOfSelf == 0_c_int) then
+                ! Parameters are more recent than the executable - issue a warning.
+                call displayMessage(displayMagenta()//"WARNING:"//displayReset()//" parameter file revision is newer than this executable - consider updating your copy of Galacticus",verbosityLevelSilent)
+             end if
           end if
-       end if
 #else
-       call Warn(displayMagenta()//"WARNING:"//displayReset()//" can not check if parameter file is up to date (`libgit` is not available)")
+          call Warn(displayMagenta()//"WARNING:"//displayReset()//" can not check if parameter file is up to date (`libgit` is not available)")
 #endif
+       end if
     end if
     ! Check parameters.
     call self%checkParameters(allowedParameterNamesGlobal=allowedParameterNamesGlobal,allowedParameterNames=allowedParameterNames)
@@ -1743,7 +1742,7 @@ contains
        inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode
     end if
-    inputParametersSubParameters%parent => self
+    inputParametersSubParameters%parent        => self
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) then
        groupName=parameterName

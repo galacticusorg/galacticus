@@ -22,9 +22,8 @@
   proportion to specific angular momentum).
   !!}
 
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
   
   !![
   <enumeration>
@@ -60,7 +59,6 @@
      double precision                                      :: factor
      type            (enumerationRadiusFixedType)          :: radiusFixed
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
-     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::             fixedDestructor
@@ -89,7 +87,6 @@ contains
     type            (galacticStructureSolverFixed)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
     class           (virialDensityContrastClass  ), pointer       :: virialDensityContrast_
     double precision                                              :: factor
     type            (varying_string              )                :: radiusFixed
@@ -109,20 +106,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_)
+    self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
-    <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
     !!}
@@ -132,10 +127,9 @@ contains
     double precision                              , intent(in   )         :: factor
     type            (enumerationRadiusFixedType  ), intent(in   )         :: radiusFixed
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (virialDensityContrastClass  ), intent(in   ), target :: virialDensityContrast_
     !![
-    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *virialDensityContrast_"/>
     !!]
 
     if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Error_Report('invalid radiusFixed'//{introspection:location})
@@ -170,7 +164,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"  />
-    <objectDestructor name="self%darkMatterProfileDMO_" />
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]
     if (  preDerivativeEvent%isAttached(self,fixedSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
@@ -254,35 +247,42 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
-      use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
-      use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
+      use :: Dark_Matter_Halo_Spins    , only : Dark_Matter_Halo_Angular_Momentum_Scale
+      use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
+      use :: Mass_Distributions        , only : massDistributionClass
+      use :: Galactic_Structure_Options, only : componentTypeDarkMatterOnly            , massTypeDark
       implicit none
-      type            (treeNode          ), intent(inout)          :: node
-      double precision                    , intent(in   )          :: specificAngularMomentum
-      procedure       (solverGet         ), intent(in   ), pointer :: radiusGet              , velocityGet
-      procedure       (solverSet         ), intent(in   ), pointer :: radiusSet              , velocitySet
-      class           (nodeComponentSpin )               , pointer :: spin
-      class           (nodeComponentBasic)               , pointer :: basic
-      double precision                                             :: radius                 , velocity
+      type            (treeNode             ), intent(inout)          :: node
+      double precision                       , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet            ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet            ), intent(in   ), pointer :: radiusSet              , velocitySet
+      class           (nodeComponentSpin    )               , pointer :: spin
+      class           (nodeComponentBasic   )               , pointer :: basic
+      class           (massDistributionClass)               , pointer :: massDistribution_
+      double precision                                                :: radius                 , velocity
       !$GLC attributes unused :: radiusGet, velocityGet, specificAngularMomentum
 
       ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
       spin => node%spin()
       select case (self%radiusFixed%ID)
       case (radiusFixedVirial    %ID)
-         velocity             =  +self %darkMatterHaloScale_ %velocityVirial                (node                                           )
-         radius               =  +self %darkMatterHaloScale_ %radiusVirial             (     node                                           ) &
-              &                  *self                       %factor                                                                          &
-              &                  *spin                       %angularMomentum          (                                                    ) &
-              &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node         ,     self %darkMatterProfileDMO_ )
+         velocity          =  +self             %darkMatterHaloScale_  %velocityVirial              (     node                                                          )
+         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                                          ) &
+              &               *self                                    %factor                                                                                            &
+              &               *spin                                    %angularMomentum             (                                                                   ) &
+              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node                       ,     self %darkMatterHaloScale_   )
       case (radiusFixedTurnaround%ID)
-         basic                =>  node                       %basic                    (                                                    )
-         velocity             =  +self%darkMatterProfileDMO_ %circularVelocityMaximum  (     node                                           )
-         radius               =  +self%darkMatterHaloScale_  %radiusVirial             (     node                                           ) &
-              &                  *self%virialDensityContrast_%turnAroundOverVirialRadii(mass=basic%mass(),time=basic%timeLastIsolated     ()) &
-              &                  *self                       %factor                                                                          &
-              &                  *spin                       %angularMomentum          (                                                    ) &
-              &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node        ,     self %darkMatterProfileDMO_  )
+         massDistribution_ =>  node                                    %massDistribution            (     componentTypeDarkMatterOnly,           massTypeDark           )
+         basic             =>  node                                    %basic                       (                                                                   )
+         velocity          =  +massDistribution_                       %velocityRotationCurveMaximum(                                                                   )
+         radius            =  +self             %darkMatterHaloScale_  %radiusVirial                (     node                                                          ) &
+              &               *self             %virialDensityContrast_%turnAroundOverVirialRadii   (mass=basic%mass()               ,time=basic%timeLastIsolated     ()) &
+              &               *self                                    %factor                                                                                            &
+              &               *spin                                    %angularMomentum             (                                                                   ) &
+              &               /Dark_Matter_Halo_Angular_Momentum_Scale                              (     node                       ,     self %darkMatterHaloScale_   )
+         !![
+	 <objectDestructor name="massDistribution_"/>
+         !!]
       end select
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )

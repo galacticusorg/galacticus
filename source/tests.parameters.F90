@@ -120,6 +120,7 @@ program Test_Parameters
   call Assert('derived value [recursive; post-reset]',valueNumerical,-1.344442852d2,absTol=1.0d-6)
   call Unit_Tests_End_Group()
   ! End unit tests.
+  call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Close down.
   call testParameters%destroy()

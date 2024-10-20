@@ -67,9 +67,6 @@
           <gamma value="0.0"/>
         </darkMatterProfileDMO>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="0.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMO>
       <nonAnalyticSolver                   value="numerical"/>
@@ -211,9 +208,6 @@
           <gamma value="0.0"/>
         </darkMatterProfileDMO>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="0.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMOUnheated>
     </outputAnalysis>
@@ -227,9 +221,6 @@
           <gamma value="0.0"/>
         </darkMatterProfileDMO>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="0.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMOUnheated>
     </outputAnalysis> 

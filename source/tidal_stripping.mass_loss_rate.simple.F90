@@ -22,7 +22,6 @@
   !!}
 
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
-  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <tidalStripping name="tidalStrippingSimple">
@@ -52,7 +51,6 @@
      !!}
      private
      class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_  => null()
-     class           (galacticStructureClass  ), pointer :: galacticStructure_    => null()
      double precision                                    :: rateFractionalMaximum          , beta
    contains
      final     ::                 simpleDestructor
@@ -78,7 +76,6 @@ contains
     type            (tidalStrippingSimple    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (satelliteTidalFieldClass), pointer       :: satelliteTidalField_
-    class           (galacticStructureClass  ), pointer       :: galacticStructure_
     double precision                                          :: rateFractionalMaximum, beta
 
     !![
@@ -95,18 +92,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=tidalStrippingSimple(rateFractionalMaximum,beta,satelliteTidalField_,galacticStructure_)
+    self=tidalStrippingSimple(rateFractionalMaximum,beta,satelliteTidalField_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalField_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_,galacticStructure_) result(self)
+  function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} model of tidal stripping class.
     !!}
@@ -114,9 +109,8 @@ contains
     type            (tidalStrippingSimple    )                        :: self
     double precision                          , intent(in   )         :: rateFractionalMaximum, beta
     class           (satelliteTidalFieldClass), intent(in   ), target :: satelliteTidalField_
-    class           (galacticStructureClass  ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="rateFractionalMaximum, beta, *satelliteTidalField_, *galacticStructure_"/>
+    <constructorAssign variables="rateFractionalMaximum, beta, *satelliteTidalField_"/>
     !!]
 
     return
@@ -131,7 +125,6 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalField_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine simpleDestructor
@@ -140,19 +133,21 @@ contains
     !!{
     Computes the mass loss rate due to tidal stripping assuming a simple model.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear         , megaParsec
+    use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Mass_Distributions              , only : massDistributionClass
     implicit none
-    class           (tidalStrippingSimple), intent(inout) :: self
-    class           (nodeComponent       ), intent(inout) :: component
-    type            (treeNode            ), pointer       :: node
-    double precision                                      :: forceGravitational    , forceTidal    , &
-         &                                                   rateMassLossFractional, radiusHalfMass, &
-         &                                                   tidalTensorRadial     , timeDynamical , &
-         &                                                   velocityRotation      , velocity      , &
-         &                                                   massGas               , massStellar   , &
-         &                                                   radius
+    class           (tidalStrippingSimple ), intent(inout) :: self
+    class           (nodeComponent        ), intent(inout) :: component
+    type            (treeNode             ), pointer       :: node
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: forceGravitational    , forceTidal    , &
+         &                                                    rateMassLossFractional, radiusHalfMass, &
+         &                                                    tidalTensorRadial     , timeDynamical , &
+         &                                                    velocityRotation      , velocity      , &
+         &                                                    massGas               , massStellar   , &
+         &                                                    radius
 
     ! Assume no mass loss rate due to tidal by default.
     simpleRateMassLoss=0.0d0
@@ -189,10 +184,11 @@ contains
     ! Return if the tidal field is compressive.
     if (forceTidal <= 0.0d0) return
     ! Compute the rotation curve.
-    velocityRotation=self%galacticStructure_%velocityRotation(                &
-         &                                                    node          , &
-         &                                                    radiusHalfMass  &
-         &                                                   )
+    massDistribution_ => node             %massDistribution(              )
+    velocityRotation  =  massDistribution_%rotationCurve   (radiusHalfMass)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute the gravitational restoring force at the half-mass radius.
     forceGravitational=+velocityRotation**2 &
          &             /radiusHalfMass

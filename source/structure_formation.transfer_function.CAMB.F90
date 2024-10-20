@@ -146,11 +146,13 @@ contains
     self%transferFunctionReferenceAvailable =  .false.
     self%transferFunctionReference          => null()
     ! Set the epoch time for this transfer function.
-    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    self%time                               =   self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
-    self%wavenumberMaximum=+wavenumberMaximumLimit                                             &
-         &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
-    self%wavenumberMaximumReached=.false.
+    self%wavenumberMaximum                  =  +wavenumberMaximumLimit                                             &
+         &                                     *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
+    self%wavenumberMaximumReached           =  .false.
+    ! Set an empty file name - this will be generated when we run CAMB,
+    self%fileName                           =  ""
     return
   end function cambConstructorInternal
 

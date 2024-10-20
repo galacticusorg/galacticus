@@ -22,7 +22,7 @@
   host halo.
   !!}
 
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <virialOrbit name="virialOrbitSpinCorrelated">
@@ -35,8 +35,8 @@
      !!}
      private
      double precision                                     :: alpha
-     class           (virialOrbitClass         ), pointer :: virialOrbit_          => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (virialOrbitClass         ), pointer :: virialOrbit_         => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                                    spinCorrelatedDestructor
      procedure :: orbit                           => spinCorrelatedOrbit
@@ -69,7 +69,7 @@ contains
     type            (virialOrbitSpinCorrelated)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
     class           (virialOrbitClass         ), pointer       :: virialOrbit_
-    class           (darkMatterProfileDMOClass), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
     double precision                                           :: alpha
 
     !![
@@ -80,18 +80,18 @@ contains
       <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
     </inputParameter>
     <objectBuilder class="virialOrbit"          name="virialOrbit_"          source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=virialOrbitSpinCorrelated(alpha,virialOrbit_,darkMatterProfileDMO_)
+    self=virialOrbitSpinCorrelated(alpha,virialOrbit_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="virialOrbit_"         />
-    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="virialOrbit_"        />
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function spinCorrelatedConstructorParameters
 
-  function spinCorrelatedConstructorInternal(alpha,virialOrbit_,darkMatterProfileDMO_) result(self)
+  function spinCorrelatedConstructorInternal(alpha,virialOrbit_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
     !!}
@@ -101,9 +101,9 @@ contains
     type            (virialOrbitSpinCorrelated)                        :: self
     double precision                           , intent(in   )         :: alpha
     class           (virialOrbitClass         ), intent(in   ), target :: virialOrbit_
-    class           (darkMatterProfileDMOClass), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="alpha, *virialOrbit_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="alpha, *virialOrbit_, *darkMatterHaloScale_"/>
     !!]
 
     if (.not.defaultSpinComponent%angularMomentumVectorIsGettable())                                                             &
@@ -127,8 +127,8 @@ contains
     type(virialOrbitSpinCorrelated), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%virialOrbit_"         />
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%virialOrbit_"        />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine spinCorrelatedDestructor
@@ -174,7 +174,7 @@ contains
        ! Compute the cosine of the angle between the angular momentum of this orbit and the spin of the host halo.
        spinHost  =>  host                   %spin  ()
        spinVector               =  +spinHost%angularMomentumVector() &
-            &                      /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterProfileDMO_)
+            &                      /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterHaloScale_)
        coordinates              =   spinCorrelatedOrbit%position  ()
        position                 =   coordinates
        coordinates              =   spinCorrelatedOrbit%velocity  ()
@@ -234,10 +234,10 @@ contains
     class           (nodeComponentSpin        ), pointer       :: spinHost
 
     spinHost                                   =>  host                   %spin            (         )
-    spinCorrelatedVelocityTangentialVectorMean =  +self    %alpha                                                           &
-         &                                        *self    %velocityTangentialMagnitudeMean(node,host)                      &
-         &                                        *spinHost%angularMomentumVector          (         )                      &
-         &                                        /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterProfileDMO_) &
+    spinCorrelatedVelocityTangentialVectorMean =  +self    %alpha                                                          &
+         &                                        *self    %velocityTangentialMagnitudeMean(node,host)                     &
+         &                                        *spinHost%angularMomentumVector          (         )                     &
+         &                                        /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterHaloScale_) &
          &                                        /3.0d0
     return
   end function spinCorrelatedVelocityTangentialVectorMean
@@ -267,10 +267,10 @@ contains
     class           (nodeComponentSpin        ), pointer       :: spinHost
 
     spinHost                                =>  host    %spin                        (         )
-    spinCorrelatedAngularMomentumVectorMean =  +self    %alpha                                                           &
-         &                                     *self    %angularMomentumMagnitudeMean(node,host)                         &
-         &                                     *spinHost%angularMomentumVector       (         )                         &
-         &                                     /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterProfileDMO_) &
+    spinCorrelatedAngularMomentumVectorMean =  +self    %alpha                                                          &
+         &                                     *self    %angularMomentumMagnitudeMean(node,host)                        &
+         &                                     *spinHost%angularMomentumVector       (         )                        &
+         &                                     /Dark_Matter_Halo_Angular_Momentum_Scale(host,self%darkMatterHaloScale_) &
          &                                     /3.0d0
     return
   end function spinCorrelatedAngularMomentumVectorMean

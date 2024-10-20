@@ -21,8 +21,8 @@
 Contains a module which implements a spin parameter output analysis property extractor class.
 !!}
   
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
-  
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpin">
    <description>A spin parameter output analysis property extractor class.</description>
@@ -33,7 +33,7 @@ Contains a module which implements a spin parameter output analysis property ext
      A spin parameter property extractor output analysis class.
      !!}
      private
-     class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                spinDestructor
      procedure :: extract     => spinExtract
@@ -60,29 +60,29 @@ contains
     implicit none
     type (nodePropertyExtractorSpin)                :: self
     type (inputParameters          ), intent(inout) :: parameters
-    class(darkMatterProfileDMOClass), pointer       :: darkMatterProfileDMO_
+    class(darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
     !$GLC attributes unused :: parameters
 
     !![
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorSpin(darkMatterProfileDMO_)
+    self=nodePropertyExtractorSpin(darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function spinConstructorParameters
 
-  function spinConstructorInternal(darkMatterProfileDMO_) result(self)
+  function spinConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily spin} output analysis property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSpin)                        :: self
-    class(darkMatterProfileDMOClass), intent(in   ), target :: darkMatterProfileDMO_
+    class(darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="*darkMatterProfileDMO_"/>
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
 
     return
@@ -96,7 +96,7 @@ contains
     type(nodePropertyExtractorSpin), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine spinDestructor
@@ -115,8 +115,8 @@ contains
     !$GLC attributes unused :: self, instance
 
     spin        =>  node               %spin()
-    spinExtract =  +spin%angularMomentum    ()                                               &
-         &         /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+    spinExtract =  +spin%angularMomentum    ()                                              &
+         &         /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkmatterHaloScale_)
     return
   end function spinExtract
 

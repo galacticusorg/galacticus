@@ -276,12 +276,11 @@
 
   <!-- Stellar populations options -->
   <stellarPopulationProperties value="noninstantaneous">
-    <countHistoryTimes value="30"/>
+    <countHistoryTimes value="100"/>
   </stellarPopulationProperties>
   <stellarPopulationSpectra value="FSPS"/>
   <stellarPopulationSelector value="fixed"/>
   <initialMassFunction value="chabrier2001"/>
-    <!-- <elementsToTrack    value="O"    /> -->
  
 
   <!-- AGN feedback options -->

@@ -25,7 +25,6 @@
   use :: Cosmology_Functions              , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-  use :: Dark_Matter_Profiles_DMO         , only : darkMatterProfileDMOClass
   use :: Halo_Mass_Functions              , only : haloMassFunctionClass
   use :: Root_Finder                      , only : rootFinder
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
@@ -49,7 +48,6 @@
      class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
      class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
      class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
-     class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
      type            (rootFinder                       )                              :: finder
      double precision                                                                 :: massParticle                           , time       , &
@@ -113,7 +111,6 @@ contains
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class           (haloMassFunctionClass            ), pointer       :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     double precision                                                   :: massParticle                 , redshift                          , &
          &                                                                time                         , energyEstimateParticleCountMaximum, &
@@ -154,7 +151,6 @@ contains
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     !!]
     ! Find the time corresponding to the given redshift.
@@ -175,7 +171,6 @@ contains
          &                              cosmologyFunctions_               , &
          &                              haloMassFunction_                 , &
          &                              darkMatterHaloScale_              , &
-         &                              darkMatterProfileDMO_             , &
          &                              darkMatterProfileScaleRadius_       &
          &                             )
     !![
@@ -185,13 +180,12 @@ contains
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="haloMassFunction_"            />
     <objectDestructor name="darkMatterHaloScale_"         />
-    <objectDestructor name="darkMatterProfileDMO_"        />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
     !!]
     return
   end function nbodyErrorsConstructorParameters
 
-  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,cosmologyFunctions_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
+  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,cosmologyFunctions_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
     !!}
@@ -203,13 +197,12 @@ contains
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class           (haloMassFunctionClass            ), intent(in   ), target :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
     double precision                                   , intent(in   )         :: massParticle                      , time          , &
          &                                                                        energyEstimateParticleCountMaximum, logNormalRange
     integer                                            , intent(in   )         :: particleCountMinimum
     !![
-    <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *cosmologyFunctions_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
+    <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *cosmologyFunctions_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_"/>
     !!]
 
     ! Store the redshift.
@@ -456,57 +449,67 @@ contains
       !!{
       Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
       !!}
-      use :: Display                 , only : displayMagenta , displayReset
-      use :: Error                   , only : Error_Report   , Warn        , errorStatusFail, errorStatusSuccess
-      use :: Input_Parameters        , only : inputParameters
-      use :: Numerical_Constants_Math, only : Pi
+      use :: Display                   , only : displayMagenta             , displayReset
+      use :: Error                     , only : Error_Report               , Warn         , errorStatusFail, errorStatusSuccess
+      use :: Input_Parameters          , only : inputParameters
+      use :: Numerical_Constants_Math  , only : Pi
+      use :: Mass_Distributions        , only : massDistributionClass
+      use :: Galactic_Structure_Options, only : componentTypeDarkMatterOnly, massTypeDark
+      use :: Coordinates               , only : coordinateSpherical        , assignment(=)
       implicit none
-      double precision                , intent(in   ) :: massIntrinsic
-      double precision                , parameter     :: rangeIntegration                                           =1.0000d1 ! Range of integration in units of error.
-      double precision                , parameter     :: radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum=0.4175d0 ! Ratio of mean velocity dispersion-radius product to "spin" angular
-                                                                                                                              ! momentum (i.e. the normalizing angular momentum appearing in the definition of
-                                                                                                                              ! halo spin): γ = Mσⱼ/Jₛ, Jₛ = GM²˙⁵/|E⁰˙⁵|. This parameter corresponds to γ.
-      integer                                         :: errorStatus
-      double precision                                :: logSpinMinimum, logSpinMaximum      , &
-           &                                             errorMaximum  , scaleAbsolute       , &
-           &                                             tolerance     , massSpinIntegralMass
-      character       (len=8          )               :: label         , labelMass           , &
-           &                                             labelSpin
-      type            (inputParameters)               :: descriptor
+      double precision                       , intent(in   ) :: massIntrinsic
+      class           (massDistributionClass), pointer       :: massDistribution_
+      double precision                       , parameter     :: rangeIntegration                                           =1.0000d1 ! Range of integration in units of error.
+      double precision                       , parameter     :: radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum=0.4175d0 ! Ratio of mean velocity dispersion-radius product to "spin" angular
+                                                                                                                                     ! momentum (i.e. the normalizing angular momentum appearing in the definition of
+                                                                                                                                     ! halo spin): γ = Mσⱼ/Jₛ, Jₛ = GM²˙⁵/|E⁰˙⁵|. This parameter corresponds to γ.
+      integer                                                :: errorStatus
+      double precision                                       :: logSpinMinimum , logSpinMaximum      , &
+           &                                                    errorMaximum   , scaleAbsolute       , &
+           &                                                    tolerance      , massSpinIntegralMass
+      character       (len=8                )                :: label          , labelMass           , &
+           &                                                    labelSpin
+      type            (inputParameters      )                :: descriptor
+      type            (coordinateSpherical  )                :: coordinatesHalo
 
       ! Evaluate the halo mass part of the integrand, unless evaluating the distribution at a fixed point.
       if (self%fixedPoint) then
-         massSpinIntegralMass      =1.0d0
+         massSpinIntegralMass       =  1.0d0
       else
-         massSpinIntegralMass      =massIntegral(massIntrinsic)
+         massSpinIntegralMass       =  massIntegral(massIntrinsic)
       end if
       ! Compute the particle number.
-      particleNumber               =massIntrinsic /self%massParticle
+      particleNumber                =  massIntrinsic /self%massParticle
       ! Evaluate the root-variance of the spin-independent error term which arises from the random walk in angular momentum
       ! space. Note that the root-variance that goes into non-central χ-square distribution is the width of the Gaussian for a
       ! single dimension, leading to a factor of √3 in the following.
-      errorSpinIndependent         =+radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum &
-           &                        /sqrt(particleNumber)
-      errorSpinIndependent1D       =+errorSpinIndependent                                        &
-           &                        /sqrt(3.0d0)
+      errorSpinIndependent          =  +radiusVelocityDispersionMeanOverSpinSpecificAngularMomentum &
+           &                           /sqrt(particleNumber)
+      errorSpinIndependent1D        =  +errorSpinIndependent                                        &
+           &                           /sqrt(3.0d0)
       ! Get the outer radius of the halo.
-      radiusHalo                   =+self%darkMatterHaloScale_ %radiusVirial(node           )
+      radiusHalo                    =  +self%darkMatterHaloScale_ %radiusVirial(node)
+      coordinatesHalo               =   [radiusHalo,0.0d0,0.0d0]
       ! Get the density at the edge of the halo.
-      densityOuterRadius           =+self%darkMatterProfileDMO_%density     (node,radiusHalo)
+      massDistribution_             =>  node             %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
+      densityOuterRadius            =  +massDistribution_%density         (coordinatesHalo                         )
+      !![
+      <objectDestructor name="massDistribution_"/>
+      !!]
       ! Find the ratio of the mean interior density in the halo to the density at the halo outer radius.
-      densityRatioInternalToSurface=+3.0d0                 &
-           &                        *massIntrinsic         &
-           &                        /4.0d0                 &
-           &                        /Pi                    &
-           &                        /radiusHalo        **3 &
-           &                        /densityOuterRadius
+      densityRatioInternalToSurface =  +3.0d0                 &
+           &                           *massIntrinsic         &
+           &                           /4.0d0                 &
+           &                           /Pi                    &
+           &                           /radiusHalo        **3 &
+           &                           /densityOuterRadius
       ! Evaluate the distribution.
       if (self%fixedPoint) then
          massSpinIntegral=spinErrorIntegral(spinFixed)
       else
          ! Evaluate an estimate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
          ! integration.
-         call nodeSpin%angularMomentumSet(spinMeasured*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
+         call nodeSpin%angularMomentumSet(spinMeasured*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_))
          call Calculations_Reset(node)
          scaleAbsolute=self%distributionIntrinsic%distribution(node)
          ! Evaluate the integral over the spin distribution. We integrate from ±ασ around the measured spin, with σ being the larger
@@ -578,7 +581,7 @@ contains
       ! Compute intrinsic spin.
       spinIntrinsic=exp(logSpinIntrinsic)
       ! Set the intrinsic spin.
-      call nodeSpin%angularMomentumSet(spinIntrinsic*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
+      call nodeSpin%angularMomentumSet(spinIntrinsic*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_))
       call Calculations_Reset(node)
       ! Compute the integrand.
       spinIntegral=+self%distributionIntrinsic%distribution(node         ) & ! Weight by the intrinsic spin distribution.
@@ -795,7 +798,6 @@ contains
     <objectDestructor name="self%nbodyHaloMassError_"          />
     <objectDestructor name="self%haloMassFunction_"            />
     <objectDestructor name="self%darkMatterHaloScale_"         />
-    <objectDestructor name="self%darkMatterProfileDMO_"        />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     !!]
     return
@@ -836,8 +838,8 @@ contains
     nodeBasic =>  node     %basic          ()
     nodeSpin  =>  node     %spin           ()
     mass      =   nodeBasic%mass           ()
-    spin      =  +nodeSpin %angularMomentum()                                              &
-         &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+    spin      =  +nodeSpin %angularMomentum()                                             &
+         &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_)
     ! Ensure the table has sufficient extent.
     call self%tabulate(massRequired=mass,spinRequired=spin,tree=node%hostTree)
     ! Find the interpolating factors.
@@ -878,8 +880,8 @@ contains
     nodeBasic =>  node     %basic          ()
     nodeSpin  =>  node     %spin           ()
     mass      =   nodeBasic%mass           ()
-    spin      =  +nodeSpin %angularMomentum()                                              &
-         &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
+    spin      =  +nodeSpin %angularMomentum()                                             &
+         &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterHaloScale_)
     ! Ensure the table has sufficient extent.
     call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasuredMinimum=spinMeasuredMinimum,spinFixedMeasuredMaximum=spinMeasuredMaximum,tree=node%hostTree)
     ! Find the interpolating factors.

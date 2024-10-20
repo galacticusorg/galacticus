@@ -22,7 +22,6 @@
   !!}
 
   use :: Black_Hole_Binary_Separations, only : blackHoleBinarySeparationGrowthRateClass
-  use :: Galactic_Structure           , only : galacticStructureClass
   use :: Accretion_Disks              , only : accretionDisksClass
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
   use :: Cooling_Radii                , only : coolingRadiusClass
@@ -40,7 +39,6 @@
      The standard black hole accretion rate calculation.      
      !!}
      private
-     class           (galacticStructureClass                  ), pointer :: galacticStructure_                     => null()
      class           (blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_   => null()
      class           (accretionDisksClass                     ), pointer :: accretionDisks_                        => null()
      class           (hotHaloTemperatureProfileClass          ), pointer :: hotHaloTemperatureProfile_             => null()
@@ -83,7 +81,6 @@ contains
     implicit none
     type            (blackHoleAccretionRateStandard          )                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
-    class           (galacticStructureClass                  ), pointer       :: galacticStructure_
     class           (blackHoleBinarySeparationGrowthRateClass), pointer       :: blackHoleBinarySeparationGrowthRate_
     class           (accretionDisksClass                     ), pointer       :: accretionDisks_
     class           (hotHaloTemperatureProfileClass          ), pointer       :: hotHaloTemperatureProfile_
@@ -119,17 +116,15 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters"/>
-    <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="parameters"/>
     <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters"/>
     <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="parameters"/>
     <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
     !!]
-    self=blackHoleAccretionRateStandard(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionHotModeOnly,galacticStructure_,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
+    self=blackHoleAccretionRateStandard(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="accretionDisks_"                     />
-    <objectDestructor name="galacticStructure_"                  />
     <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
     <objectDestructor name="hotHaloTemperatureProfile_"          />
     <objectDestructor name="coolingRadius_"                      />
@@ -138,14 +133,13 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionHotModeOnly,galacticStructure_,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
+  function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (blackHoleAccretionRateStandard          )                        :: self
-    class           (galacticStructureClass                  ), target, intent(in   ) :: galacticStructure_
     class           (blackHoleBinarySeparationGrowthRateClass), target, intent(in   ) :: blackHoleBinarySeparationGrowthRate_
     class           (accretionDisksClass                     ), target, intent(in   ) :: accretionDisks_
     class           (hotHaloTemperatureProfileClass          ), target, intent(in   ) :: hotHaloTemperatureProfile_
@@ -155,7 +149,7 @@ contains
          &                                                                               bondiHoyleAccretionTemperatureSpheroid
     logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly
     !![
-    <constructorAssign variables="bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionHotModeOnly, *galacticStructure_, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
     !!]
 
     ! Check if cold mode is explicitly tracked.
@@ -172,7 +166,6 @@ contains
     
     !![
     <objectDestructor name="self%accretionDisks_"                     />
-    <objectDestructor name="self%galacticStructure_"                  />
     <objectDestructor name="self%blackHoleBinarySeparationGrowthRate_"/>
     <objectDestructor name="self%hotHaloTemperatureProfile_"          />
     <objectDestructor name="self%coolingRadius_"                      />
@@ -193,16 +186,21 @@ contains
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Jeans_Length                , Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr               , gigaYear                            , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Mass_Distributions              , only : massDistributionClass                 , kinematicsDistributionClass
+    use :: Coordinates                     , only : coordinateSpherical                   , assignment(=)
     implicit none
     class           (blackHoleAccretionRateStandard), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
-    double precision                                , intent(  out) :: rateMassAccretionSpheroid      ,rateMassAccretionHotHalo
+    double precision                                , intent(  out) :: rateMassAccretionSpheroid      , rateMassAccretionHotHalo
     type            (treeNode                      ), pointer       :: node
     class           (nodeComponentSpheroid         ), pointer       :: spheroid
     class           (nodeComponentHotHalo          ), pointer       :: hotHalo
+    class           (massDistributionClass         ), pointer       :: massDistributionSpheroid_      , massDistributionHotHalo_, &
+         &                                                             massDistributionColdHalo_
+    class           (kinematicsDistributionClass   ), pointer       :: kinematicsDistribution_
+    type            (coordinateSpherical           )                :: coordinates
     ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M☉/Mpc³).
     double precision                                , parameter     :: densityGasMinimum        =1.0d0
-    double precision                                , dimension(3)  :: position
     double precision                                                :: radiusAccretion                , rateAccretionMaximum    , &
          &                                                             massBlackHole                  , densityGas              , &
          &                                                             temperatureHotHalo             , fractionHotMode         , &
@@ -227,9 +225,10 @@ contains
             &              ,blackHole%radialPosition()                                                                        &
             &             )
        ! Set the position.
-       position=[radiusAccretion,0.0d0,0.0d0]
+       coordinates               =  [radiusAccretion,0.0d0,0.0d0]
        ! Get density of gas at the galactic center.
-       densityGas=self%galacticStructure_%density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeSpheroid,massType =massTypeGaseous)
+       massDistributionSpheroid_ => node                     %massDistribution(componentTypeSpheroid,massTypeGaseous)
+       densityGas                =  massDistributionSpheroid_%density         (coordinates                          )
        ! Check if we have a non-negligible gas density.
        if (densityGas > densityGasMinimum) then
           ! Get the spheroid component.
@@ -242,9 +241,9 @@ contains
           ! radius, as the gas should be smoothly distributed on scales below the Jeans length.
           if (lengthJeans > radiusAccretion) then
              ! Set the position.
-             position=[lengthJeans,0.0d0,0.0d0]
+             coordinates=[lengthJeans,0.0d0,0.0d0]
              ! Get density of gas at the galactic center.
-             densityGas=self%galacticStructure_%density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeSpheroid,massType=massTypeGaseous)
+             densityGas =massDistributionSpheroid_%density(coordinates)
           end if
           ! Compute the accretion rate.
           rateMassAccretionSpheroid=max(                                                                                                                              &
@@ -264,12 +263,15 @@ contains
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
        ! Get halo gas temperature.
-       temperatureHotHalo=self%hotHaloTemperatureProfile_%temperature(node,radius=0.0d0)
+       massDistributionHotHalo_ => node                    %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
+       kinematicsDistribution_  => massDistributionHotHalo_%kinematicsDistribution(                                                           )
+       coordinates              =  [0.0d0,0.0d0,0.0d0]
+       temperatureHotHalo       =  kinematicsDistribution_%temperature(coordinates)
        ! Get the accretion radius.
        radiusAccretion=Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,temperatureHotHalo)
        radiusAccretion=min(radiusAccretion,hotHalo%outerRadius())
        ! Set the position.
-       position=[radiusAccretion,0.0d0,0.0d0]
+       coordinates=[radiusAccretion,0.0d0,0.0d0]
        ! Find the fraction of gas in the halo which is in the hot mode. Set this to unity if hot/cold mode is not to be
        ! considered.
        select case (self%bondiHoyleAccretionHotModeOnly)
@@ -289,24 +291,17 @@ contains
           end if
        end select
        ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
-       densityGas       =+fractionHotMode                                                               &
-            &            *self%galacticStructure_%density(                                              &
-            &                                                              node                       , &
-            &                                                              position                   , &
-            &                                             coordinateSystem=coordinateSystemCylindrical, &
-            &                                             componentType   =componentTypeHotHalo       , &
-            &                                             massType        =massTypeGaseous              &
-            &                                            )
-       if (self%coldModeTracked.and.fractionColdMode > 0.0d0)                                           &
-            & densityGas=+densityGas                                                                    &
-            &            +fractionColdMode                                                              &
-            &            *self%galacticStructure_%density(                                              &
-            &                                                              node                       , &
-            &                                                              position                   , &
-            &                                             coordinateSystem=coordinateSystemCylindrical, &
-            &                                             componentType   =componentTypeColdHalo      , &
-            &                                             massType        =massTypeGaseous              &
-            &                                            )
+       densityGas                   =  +fractionHotMode                                                                   &
+            &                          *massDistributionHotHalo_%density          (coordinates                          )
+       if (self%coldModeTracked.and.fractionColdMode > 0.0d0) then
+          massDistributionColdHalo_ =>  node                     %massDistribution(componentTypeColdHalo,massTypeGaseous)
+          densityGas                =  +densityGas                                                                        &
+            &                          +fractionColdMode                                                                  &
+            &                          *massDistributionColdHalo_%density         (coordinates                          )
+          !![
+          <objectDestructor name="massDistributionColdHalo_"/>
+          !!]
+       end if
        ! Check if we have a non-zero gas density.
        if (densityGas > densityGasMinimum) then
           ! Compute the accretion rate.
@@ -339,6 +334,11 @@ contains
           ! No gas density, so zero accretion rate.
           rateMassAccretionHotHalo=0.0d0
        end if
+       !![
+       <objectDestructor name="massDistributionSpheroid_"/>
+       <objectDestructor name="massDistributionHotHalo_" />
+       <objectDestructor name="kinematicsDistribution_"  />
+       !!]
     else
        rateMassAccretionSpheroid=0.0d0
        rateMassAccretionHotHalo =0.0d0

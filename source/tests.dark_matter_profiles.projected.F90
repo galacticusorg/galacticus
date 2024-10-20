@@ -31,10 +31,8 @@ program Test_Dark_Matter_Profiles_Projected
   use            :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use            :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use            :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use            :: Dark_Matter_Profiles      , only : darkMatterProfileDarkMatterOnly
   use            :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use            :: Node_Property_Extractors  , only : nodePropertyExtractorProjectedMass                            , nodePropertyExtractorProjectedDensity
-  use            :: Galactic_Structure        , only : galacticStructureStandard
   use            :: Display                   , only : displayMessage                                                , displayVerbositySet                  , verbosityLevelStandard
   use            :: Events_Hooks              , only : eventsHooksInitialize
   use            :: Functions_Global_Utilities, only : Functions_Global_Set
@@ -51,8 +49,6 @@ program Test_Dark_Matter_Profiles_Projected
   type            (cosmologyParametersSimple                                     )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                )                          :: cosmologyFunctions_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrast_
-  type            (darkMatterProfileDarkMatterOnly                               )                          :: darkMatterProfile_
-  type            (galacticStructureStandard                                     )                          :: galacticStructure_
   type            (darkMatterProfileDMONFW                                       )                          :: darkMatterProfileDMO_
   type            (nodePropertyExtractorProjectedMass                            )                          :: nodePropertyExtractorProjectedMass_
   type            (nodePropertyExtractorProjectedDensity                         )                          :: nodePropertyExtractorProjectedDensity_
@@ -68,7 +64,7 @@ program Test_Dark_Matter_Profiles_Projected
   type            (multiCounter                                                  )                          :: instance
   
   call displayVerbositySet(verbosityLevelStandard)
-  call Unit_Tests_Begin_Group("Tidal track dark matter profiles")
+  call Unit_Tests_Begin_Group("Projected dark matter profiles")
   parameters=inputParameters(var_str('testSuite/parameters/darkMatterProfilesProjected.xml'))
   call eventsHooksInitialize()
   call Functions_Global_Set             (          )
@@ -134,32 +130,13 @@ program Test_Dark_Matter_Profiles_Projected
      &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
-   </referenceConstruct>
-   <referenceConstruct object="darkMatterProfile_"                 >
-   <constructor>
-    darkMatterProfileDarkMatterOnly      (                                                            &amp;
-     &amp;                                cosmologyParameters_                =cosmologyParameters_ , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                darkMatterProfileDMO_               =darkMatterProfileDMO_  &amp;
-     &amp;                               )
-   </constructor>
   </referenceConstruct>
-   <referenceConstruct object="galacticStructure_"                 >
-   <constructor>
-    galacticStructureStandard            (                                                            &amp;
-     &amp;                                cosmologyFunctions_                 =cosmologyFunctions_  , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                darkMatterProfile_                  =darkMatterProfile_     &amp;
-     &amp;                               )
-   </constructor>
-  </referenceConstruct>
- <referenceConstruct object="nodePropertyExtractorProjectedMass_"  >
+  <referenceConstruct object="nodePropertyExtractorProjectedMass_"  >
    <constructor>
     nodePropertyExtractorProjectedMass   (                                                            &amp;
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                galacticStructure_                  =galacticStructure_     &amp;
+     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
   </referenceConstruct>
@@ -168,14 +145,12 @@ program Test_Dark_Matter_Profiles_Projected
     nodePropertyExtractorProjectedDensity(                                                            &amp;
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
-     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_ , &amp;
-     &amp;                                galacticStructure_                  =galacticStructure_     &amp;
+     &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>
   </referenceConstruct>
   !!]
   ! Begin tests.
-  call Unit_Tests_Begin_Group("Projected density"    )
   instance        =multiCounter([1_c_size_t])
   densityProjected=nodePropertyExtractorProjectedDensity_%extract(node__,basic__%time(),instance)
   massProjected   =nodePropertyExtractorProjectedMass_   %extract(node__,basic__%time(),instance)  

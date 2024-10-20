@@ -160,7 +160,7 @@ contains
     select type (spin)
     class is (nodeComponentSpinVector)
        ! Set scale for spin.
-       call spin%angularMomentumVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_=darkMatterHaloScale_,useBullockDefinition=.true.)))
+       call spin%angularMomentumVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_,useBullockDefinition=.true.)))
     end select
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set

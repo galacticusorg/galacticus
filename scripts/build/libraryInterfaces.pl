@@ -65,6 +65,40 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 	    $functionClass->{'methods'}                                               = $node->{'directive'}->{'method'};	
 	}
 	$functionClass->{'moduleUses'} = \@moduleUses;
+	# Find the parent-child class dependencies.
+	my $extensions;
+	my $moduleUsesImplementations;
+	foreach my $fileNameImplementation ( &List::ExtraUtils::as_array($directiveLocations->{$functionClass->{'name'}}->{'file'}) ) {
+	    my $treeImplementation     = &Galacticus::Build::SourceTree::ParseFile($fileNameImplementation);
+	    my $depthImplementation    = 0;
+	    my $nodeImplementation     = $treeImplementation;
+	    my $nameImplementation;
+	    my @moduleUsesImplementation;
+	    while ( $nodeImplementation ) {
+		if ( $nodeImplementation->{'type'} eq $functionClass->{'name'} ) {
+		    # Find the name of the implementation.
+		    $nameImplementation = $nodeImplementation->{'directive'}->{'name'};
+		} elsif ( $nodeImplementation->{'type'} eq "type" && $nodeImplementation->{'name'} eq $nameImplementation ) {
+		    # Find the extended class.
+		    if ( $nodeImplementation->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+			$extensions->{$nodeImplementation->{'name'}} = $1;
+		    }
+		} elsif ( $nodeImplementation->{'type'} eq "moduleUse" ) {
+		    # Module use statements, extract for later reference.
+		    push(@moduleUsesImplementation,$nodeImplementation->{'moduleUse'});
+		}
+		
+		$nodeImplementation = &Galacticus::Build::SourceTree::Walk_Tree($nodeImplementation,\$depthImplementation);
+	    }
+	    @{$moduleUsesImplementations->{$nameImplementation}} = @moduleUsesImplementation
+		unless (
+		    exists($functionClass->{$nameImplementation}                      )
+		    &&
+		    exists($functionClass->{$nameImplementation}->{'exclude'}         )
+		    &&
+		           $functionClass->{$nameImplementation}->{'exclude'} eq "yes"
+		);
+	}	
 	# Find all implementations of this class.
 	my $classID = 0;
 	foreach my $fileNameImplementation ( &List::ExtraUtils::as_array($directiveLocations->{$functionClass->{'name'}}->{'file'}) ) {
@@ -139,18 +173,28 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 		@{$functionClass->{'implementations'}},
 		$implementation
 		)
-		unless ( $abstractImplementation );
+		unless (
+		    $abstractImplementation
+		    ||
+		    (
+		     exists($functionClass->{$nameImplementation}                      )
+		     &&
+		     exists($functionClass->{$nameImplementation}->{'exclude'}         )
+		     &&
+		            $functionClass->{$nameImplementation}->{'exclude'} eq "yes"
+		    )
+		);
 	}
 	# Add Python parent class.
-	&interfacesPythonClasses(      $python,$functionClass                        );	
+	&interfacesPythonClasses(      $python,$functionClass                                                               );	
 	# Add pointer get functions.
-	&interfacesPointerGet   ($code        ,$functionClass                        );
+	&interfacesPointerGet   ($code        ,$functionClass                                                               );
 	# Add constructors.
-	&interfacesConstructors ($code,$python,$functionClass,$libraryFunctionClasses);
+	&interfacesConstructors ($code,$python,$functionClass,$libraryFunctionClasses,$extensions,$moduleUsesImplementations);
 	# Add interfaces to all methods.
-	&interfacesMethods      ($code,$python,$functionClass                        );
+	&interfacesMethods      ($code,$python,$functionClass                        ,$extensions,$moduleUsesImplementations);
 	# Add a destructor.
-	&interfacesDestructor   ($code,$python,$functionClass                        );
+	&interfacesDestructor   ($code,$python,$functionClass                                                               );
     }
 }
 
@@ -272,17 +316,19 @@ CODE
 
 sub interfacesConstructors {
     # Build interfaces to constructors.
-    my $code                   = shift();
-    my $python                 = shift();
-    $ext::functionClass        = shift();
-    my $libraryFunctionClasses = shift();
+    my $code                      = shift();
+    my $python                    = shift();
+    $ext::functionClass           = shift();
+    my $libraryFunctionClasses    = shift();
+    my $extensions                = shift();
+    my $moduleUsesImplementations = shift();
     foreach $ext::implementation ( @{$ext::functionClass->{'implementations'}} ) {
 	# Extract the list of arguments and process to determine how interfaces should be built.
 	my @argumentList = @{$ext::implementation->{'arguments'}};
-	@argumentList    = &assignCTypes             (\@argumentList                                         );
-	@argumentList    = &assignCAttributes        (\@argumentList                                         );
-	@argumentList    = &buildPythonReassignments (\@argumentList                                         );
-	@argumentList    = &buildFortranReassignments(\@argumentList,$ext::functionClass,$ext::implementation);
+	@argumentList    = &assignCTypes             (\@argumentList                                                                                );
+	@argumentList    = &assignCAttributes        (\@argumentList                                                                                );
+	@argumentList    = &buildPythonReassignments (\@argumentList                                                                                );
+	@argumentList    = &buildFortranReassignments(\@argumentList,$ext::functionClass,$ext::implementation,$extensions,$moduleUsesImplementations);
 	# Construct pre- and post-arguments content for the call from Fortran to Galacticus.
 	my $preArguments  .= fill_in_string(<<'CODE', PACKAGE => 'ext');
   !![
@@ -408,6 +454,8 @@ sub interfacesMethods {
     my $code            = shift();
     my $python          = shift();
     $ext::functionClass = shift();
+    my $extensions                = shift();
+    my $moduleUsesImplementations = shift();
     foreach $ext::method ( &List::ExtraUtils::hashList($ext::functionClass->{'methods'},keyAs => 'name') ) {
 	# Construct function declaration.
 	my %isoCBindingSymbols;
@@ -429,7 +477,9 @@ sub interfacesMethods {
 	} elsif ( $ext::method->{'type'} eq "void" ) {
 	    	$ext::procedure = "subroutine";
 	} else {
-	    die("unsupported type '".$ext::method->{'type'}."'");
+	    print "unsupported type '".$ext::method->{'type'}."'\n";
+	    delete($ext::functionClass->{'methods'}->{$ext::method});
+	    next;
 	}
 	$ext::functionDeclaration  = $ext::method->{'type'} eq "void" ? "" : $functionCType." :: ".$ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."L\n";
 	# Create a list of arguments.
@@ -464,10 +514,10 @@ sub interfacesMethods {
 	    }
 	}
 	# Process argument list.
-	@argumentList    = &assignCTypes             (\@argumentList                            );
-	@argumentList    = &assignCAttributes        (\@argumentList                            );
-	@argumentList    = &buildPythonReassignments (\@argumentList                            );
-	@argumentList    = &buildFortranReassignments(\@argumentList,$ext::functionClass,undef());
+	@argumentList    = &assignCTypes             (\@argumentList                                                                   );
+	@argumentList    = &assignCAttributes        (\@argumentList                                                                   );
+	@argumentList    = &buildPythonReassignments (\@argumentList                                                                   );
+	@argumentList    = &buildFortranReassignments(\@argumentList,$ext::functionClass,undef(),$extensions,$moduleUsesImplementations);
 	# Generate the pre- and post-arguments content of the function call.
 	my $preArguments  = ($ext::method->{'type'} eq "void" ? "call " : $ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."L=").$ext::resultConversionOpen."self_%".$ext::method->{'name'}."( &\n";
 	my $postArguments = "& )".$ext::resultConversionClose."\n";
@@ -749,9 +799,11 @@ CODE
 
 sub buildFortranReassignments {
     # Geneate reassignments of Fortran arguments to allow passing between languages.
-    my @argumentList   = @{shift()};
-    my $functionClass  =   shift() ;
-    my $implementation =   shift() ;
+    my @argumentList              = @{shift()};
+    my $functionClass             =   shift() ;
+    my $implementation            =   shift() ;
+    my $extensions                =   shift() ;
+    my $moduleUsesImplementations =   shift() ;
     my @argumentListNew;
     while ( @argumentList ) {
 	# Get the next argument from the list.
@@ -780,12 +832,17 @@ sub buildFortranReassignments {
 		# Search for any module import of this enumeration type.
 		my $importModule;
 		if ( defined($implementation) ) {
-		    foreach my $useBlock ( @{$implementation->{'moduleUses'}} ) {
-			foreach my $module ( keys(%{$useBlock}) ) {
-			    if ( grep {$_ eq $argument->{'type'}} keys(%{$useBlock->{$module}->{'only'}}) ) {
-				$importModule = $module;
+
+		    my $className = $implementation->{'name'};
+		    while ( defined($className) && ! defined($importModule) ) {
+			foreach my $useBlock ( @{$moduleUsesImplementations->{$className}} ) {
+			    foreach my $module ( keys(%{$useBlock}) ) {
+				if ( grep {$_ eq $argument->{'type'}} keys(%{$useBlock->{$module}->{'only'}}) ) {
+				    $importModule = $module;
+				}
 			    }
 			}
+			$className = exists($extensions->{$className}) ? $extensions->{$className} : undef();
 		    }
 		}
 		unless ( defined($importModule) ) {

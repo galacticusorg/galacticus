@@ -439,7 +439,8 @@ sub Process_ObjectBuilder {
             $destructorCode .= "   else\n";
             $destructorCode .= "      ! Nullify the pointer.\n";
 	    $destructorCode .= $debugMessage;
-            $destructorCode .= "      nullify(".$node->{'directive'}->{'name'}.")\n";
+            $destructorCode .= "      nullify(".$node->{'directive'}->{'name'}.")\n"
+		unless ( exists($node->{'directive'}->{'nullify'}) && $node->{'directive'}->{'nullify'} eq "no" );
             $destructorCode .= "   end if\n";
 	    $destructorCode .= "end if\n";
 	    # Build a code node.

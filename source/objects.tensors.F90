@@ -64,6 +64,7 @@ module Tensors
    contains
      !![
      <methods>
+       <method description="Return the enumerated element." method="element" />
        <method description="Return true if a tensor object is zero." method="isZero" />
        <method description="Destroy a tensor object." method="destroy" />
        <method description="Multiply a tensor by a scalar." method="operator(*)" />
@@ -101,6 +102,7 @@ module Tensors
      generic           :: operator(/)     => Tensor_R2_D3_Sym_Scalar_Divide
      generic           :: operator(==)    => Tensor_R2_D3_Sym_Matrix_Equality
      procedure         :: nonStaticSizeOf => Tensor_R2_D3_Sym_Non_Static_Size_Of
+     procedure         :: element         => Tensor_R2_D3_Sym_Element
      procedure         :: isZero          => Tensor_R2_D3_Sym_Is_Zero
      procedure         :: destroy         => Tensor_R2_D3_Sym_Destroy
      procedure         :: setToIdentity   => Tensor_R2_D3_Sym_Set_To_Identity
@@ -201,6 +203,13 @@ module Tensors
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout) :: self
      end subroutine Tensor_R2_D3_Sym_Set_To_Identity
+     module double precision function Tensor_R2_D3_Sym_Element(self,i,j)
+       !!{
+       Return the enumeration element of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+       !!}
+       class  (tensorRank2Dimension3Symmetric), intent(in) :: self
+       integer                                , intent(in) :: i   , j
+     end function Tensor_R2_D3_Sym_Element
      module logical function Tensor_R2_D3_Sym_Is_Zero(self)
        !!{
        Test whether a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object is zero.

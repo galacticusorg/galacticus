@@ -61,7 +61,6 @@ contains
     class           (outputTimesClass                              ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_
     class           (virialDensityContrastClass                    ), pointer       :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
     integer                                                                         :: distributionNumber
     double precision                                                                :: rootVarianceFractionalMinimum
     
@@ -79,12 +78,11 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/>
     !!]
-    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,darkMatterProfileDMO_,virialDensityContrast_)
+    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
@@ -92,19 +90,17 @@ contains
     <objectDestructor name="outputTimes_"          />
     <objectDestructor name="nbodyHaloMassError_"   />
     <objectDestructor name="virialDensityContrast_"/>
-    <objectDestructor name="darkMatterProfileDMO_" />
     !!]
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 
-  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
     !!}
     use :: Error                            , only : Error_Report
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters             , only : cosmologyParametersClass
-    use :: Dark_Matter_Profiles_DMO         , only : darkMatterProfileDMOClass
     use :: Input_Paths                      , only : inputPath                , pathTypeDataStatic
     use :: Output_Times                     , only : outputTimesClass
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
@@ -115,7 +111,6 @@ contains
     class           (cosmologyParametersClass                      ), target   , intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), target   , intent(inout) :: cosmologyFunctions_
     class           (virialDensityContrastClass                    ), target   , intent(in   ) :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass                     ), target   , intent(in   ) :: darkMatterProfileDMO_
     class           (outputTimesClass                              ), target   , intent(inout) :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), target   , intent(in   ) :: nbodyHaloMassError_
     integer                                                                    , intent(in   ) :: distributionNumber
@@ -151,7 +146,6 @@ contains
          &                                                                               cosmologyParameters_                                                                                              , &
          &                                                                               cosmologyFunctions_                                                                                               , &
          &                                                                               nbodyHaloMassError_                                                                                               , &
-         &                                                                               darkMatterProfileDMO_                                                                                             , &
          &                                                                               virialDensityContrast_                                                                                            , &
          &                                                                               virialDensityContrastDefinition_                                                                                  , &
          &                                                                               outputTimes_                                                                                                        &

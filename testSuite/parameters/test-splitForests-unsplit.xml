@@ -25,7 +25,7 @@
     <bondiHoyleAccretionTemperatureSpheroid value="100"/>
     <bondiHoyleAccretionHotModeOnly value="true"/>
   </componentBlackHole>
-  <componentDarkMatterProfile value="null"/>
+  <componentDarkMatterProfile value="scaleFree"/>
   <componentDisk value="null">
     <toleranceAbsoluteMass value="1.0e-6"/>
   </componentDisk>
@@ -215,9 +215,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
-    <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"/>
-    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Halo positions -->

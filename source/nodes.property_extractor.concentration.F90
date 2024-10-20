@@ -21,10 +21,9 @@
 Contains a module which implements a concentration output analysis property extractor class.
 !!}
 
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorConcentration">
@@ -42,7 +41,6 @@ Contains a module which implements a concentration output analysis property extr
      private
      class  (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
      class  (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
-     class  (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class  (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
      logical                                      :: useLastIsolatedTime
    contains
@@ -73,7 +71,6 @@ contains
     type   (inputParameters                   ), intent(inout) :: parameters
     class  (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
     class  (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
-    class  (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class  (virialDensityContrastClass        ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
     logical                                                    :: useLastIsolatedTime
 
@@ -86,23 +83,21 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
-    self=nodePropertyExtractorConcentration(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
+    self=nodePropertyExtractorConcentration(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"            />
     <objectDestructor name="cosmologyFunctions_"             />
-    <objectDestructor name="darkMatterProfileDMO_"           />
     <objectDestructor name="virialDensityContrast_"          />
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function concentrationConstructorParameters
 
-  function concentrationConstructorInternal(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
+  function concentrationConstructorInternal(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Internal constructor for the ``concentration'' output analysis property extractor class.
     !!}
@@ -110,11 +105,10 @@ contains
     type   (nodePropertyExtractorConcentration)                        :: self
     class  (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
-    class  (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class  (virialDensityContrastClass        ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
     logical                                    , intent(in   )         :: useLastIsolatedTime
     !![
-    <constructorAssign variables="useLastIsolatedTime, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
+    <constructorAssign variables="useLastIsolatedTime, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     return
@@ -130,7 +124,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyParameters_"            />
     <objectDestructor name="self%cosmologyFunctions_"             />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
@@ -166,7 +159,6 @@ contains
          &                                                       radius                =     radiusHalo                                                         , &
          &                                                       cosmologyParameters_  =self%cosmologyParameters_                                               , &
          &                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                , &
-         &                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                              , &
          &                                                       virialDensityContrast_=self%virialDensityContrast_                                             , &
          &                                                       useLastIsolatedTime   =self%useLastIsolatedTime                                                  &
          &                                                      )

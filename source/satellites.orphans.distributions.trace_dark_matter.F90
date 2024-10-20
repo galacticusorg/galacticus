@@ -23,7 +23,6 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <satelliteOrphanDistribution name="satelliteOrphanDistributionTraceDarkMatter">
@@ -35,7 +34,6 @@
      An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.
      !!}
      private
-     class(galacticStructureClass  ), pointer :: galacticStructure_   => null()
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                                        traceDarkMatterDestructor
@@ -64,32 +62,28 @@ contains
     type (satelliteOrphanDistributionTraceDarkMatter)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
-    class(galacticStructureClass                    ), pointer       :: galacticStructure_
 
     ! Check and read parameters.
     !![
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_,galacticStructure_)
+    self=satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function traceDarkMatterConstructorParameters
 
-  function traceDarkMatterConstructorInternal(darkMatterHaloScale_,galacticStructure_) result(self)
+  function traceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
     !!}
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                        :: self
     class(darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
-    class(galacticStructureClass                    ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
 
     call self%initialize()
@@ -105,7 +99,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine traceDarkMatterDestructor
@@ -128,21 +121,23 @@ contains
     !!{
     Return the radial coordinate within which the given {\normalfont \ttfamily fraction} of orphan satellites are found.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, massTypeDark
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeDark
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: fraction
     type            (treeNode                                  ), pointer       :: nodeHost
-    !$GLC attributes unused :: self
+    class           (massDistributionClass                     ), pointer       :: massDistribution_
+    double precision                                                            :: massEnclosed
 
-    nodeHost                        => node%parent
-    traceDarkMatterInverseCMFRadial =  self%galacticStructure_%radiusEnclosingMass(                                 &
-         &                                                                         nodeHost                       , &
-         &                                                                         massFractional=fraction        , &
-         &                                                                         componentType =componentTypeAll, &
-         &                                                                         massType      =massTypeDark      &
-         &                                                                        )
+    nodeHost                        => node             %parent
+    massDistribution_               => nodeHost         %massDistribution    (componentType=componentTypeAll                     ,massType=massTypeDark)
+    massEnclosed                    =  massDistribution_%massEnclosedBySphere(radius       =+         self%extent      (nodeHost)                      )
+    traceDarkMatterInverseCMFRadial =  massDistribution_%radiusEnclosingMass (mass         =+fraction*     massEnclosed                                )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]    
     return
   end function traceDarkMatterInverseCMFRadial
 

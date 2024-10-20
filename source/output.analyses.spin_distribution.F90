@@ -39,7 +39,6 @@
      class           (nbodyHaloMassErrorClass          ), pointer :: nbodyHaloMassError_           => null()
      class           (haloMassFunctionClass            ), pointer :: haloMassFunction_             => null()
      class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_          => null()
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null(), virialDensityContrastDefinition_   => null()
      double precision                                             :: timeRecent                             , logNormalRange                              , &
@@ -82,7 +81,6 @@ contains
     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_
     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass       ), pointer                     :: virialDensityContrast_       , virialDensityContrastDefinition_
     double precision                                   , dimension(:  ), allocatable :: functionValueTarget          , functionCovarianceTarget1D
@@ -118,7 +116,6 @@ contains
     <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"              source="parameters"                                                />
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"                source="parameters"                                                />
     <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"             source="parameters"                                                />
-    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_"    source="parameters"                                                />
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
@@ -142,7 +139,7 @@ contains
          <description>A label for this analysis.</description>
        </inputParameter>
        !!]
-       self=outputAnalysisSpinDistribution(char(fileName),label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_)
+       self=outputAnalysisSpinDistribution(char(fileName),label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_)
     else
        !![
        <inputParameter>
@@ -269,7 +266,6 @@ contains
           &amp;                              nbodyHaloMassError_               , &amp;
           &amp;                              haloMassFunction_                 , &amp;
           &amp;                              darkMatterHaloScale_              , &amp;
-          &amp;                              darkMatterProfileDMO_             , &amp;
           &amp;                              darkMatterProfileScaleRadius_     , &amp;
           &amp;                              outputTimes_                      , &amp;
           &amp;                              virialDensityContrast_            , &amp;
@@ -289,7 +285,6 @@ contains
     <objectDestructor name="nbodyHaloMassError_"             />
     <objectDestructor name="haloMassFunction_"               />
     <objectDestructor name="darkMatterHaloScale_"            />
-    <objectDestructor name="darkMatterProfileDMO_"           />
     <objectDestructor name="darkMatterProfileScaleRadius_"   />
     <objectDestructor name="virialDensityContrast_"          />
     <objectDestructor name="virialDensityContrastDefinition_"/>
@@ -299,7 +294,7 @@ contains
     return
   end function spinDistributionConstructorParameters
 
-  function spinDistributionConstructorFile(fileName,label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
+  function spinDistributionConstructorFile(fileName,label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     !!}
@@ -321,7 +316,6 @@ contains
     class           (nbodyHaloMassErrorClass          ), intent(in   )                 :: nbodyHaloMassError_
     class           (haloMassFunctionClass            ), intent(in   )                 :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), intent(in   )                 :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass        ), intent(in   )                 :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), intent(in   )                 :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass       ), intent(in   )                 :: virialDensityContrast_       , virialDensityContrastDefinition_
     double precision                                   , allocatable  , dimension(:  ) :: functionValueTarget          , spin
@@ -365,11 +359,11 @@ contains
     ! Convert redshift to time.
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Build the object.
-    self=outputAnalysisSpinDistribution(label,comment,time,massMinimum,massMaximum,spin(1),spin(size(spin)),size(spin,kind=c_size_t),timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self=outputAnalysisSpinDistribution(label,comment,time,massMinimum,massMaximum,spin(1),spin(size(spin)),size(spin,kind=c_size_t),timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget)
     return
   end function spinDistributionConstructorFile
 
-  function spinDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,spinMinimum,spinMaximum,countSpins,timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function spinDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,spinMinimum,spinMaximum,countSpins,timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
     Internal constructor for the ``spinDistribution'' output analysis class.
     !!}
@@ -408,7 +402,6 @@ contains
     class           (nbodyHaloMassErrorClass                          ), target                     , intent(in   ) :: nbodyHaloMassError_
     class           (haloMassFunctionClass                            ), target                     , intent(in   ) :: haloMassFunction_
     class           (darkMatterHaloScaleClass                         ), target                     , intent(in   ) :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                        ), target                     , intent(in   ) :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass                ), target                     , intent(in   ) :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass                       ), target                     , intent(in   ) :: virialDensityContrast_                           , virialDensityContrastDefinition_
     type            (varying_string                                   ), optional                   , intent(in   ) :: targetLabel
@@ -440,7 +433,7 @@ contains
     double precision                                                   , parameter                                  :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
     !![
-    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
     !!]
     
     ! Build grid of spins.
@@ -477,7 +470,6 @@ contains
         &amp;                           cosmologyFunctions_               =cosmologyFunctions_               , &amp;
         &amp;                           haloMassFunction_                 =haloMassFunction_                 , &amp;
         &amp;                           darkMatterHaloScale_              =darkMatterHaloScale_              , &amp;
-        &amp;                           darkMatterProfileDMO_             =darkMatterProfileDMO_             , &amp;
         &amp;                           darkMatterProfileScaleRadius_     =darkMatterProfileScaleRadius_       &amp;
         &amp;                          )
      </constructor>
@@ -486,7 +478,7 @@ contains
     ! Create a spin parameter property extractor.
     allocate(nodePropertyExtractor_        )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                   constructor="nodePropertyExtractorSpin                        (darkMatterProfileDMO_                                                  )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                   constructor="nodePropertyExtractorSpin                        (darkMatterHaloScale_                                                   )"/>
     !!]
     ! Create a log10 property operator.
     allocate(outputAnalysisPropertyOperator_         )
@@ -515,7 +507,7 @@ contains
     !!]
     allocate(galacticFilterHaloMassRange_            )
     !![
-    <referenceConstruct object="galacticFilterHaloMassRange_"             constructor="galacticFilterHaloMassRange                      (massMinimum                         ,massMaximum,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
+    <referenceConstruct object="galacticFilterHaloMassRange_"             constructor="galacticFilterHaloMassRange                      (massMinimum                         ,massMaximum,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     allocate(galacticFilterNodeMajorMergerRecent_    )
     !![
@@ -694,7 +686,6 @@ contains
     <objectDestructor name="self%nbodyHaloMassError_"             />
     <objectDestructor name="self%haloMassFunction_"               />
     <objectDestructor name="self%darkMatterHaloScale_"            />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"   />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>

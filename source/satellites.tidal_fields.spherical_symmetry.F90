@@ -21,7 +21,7 @@
   Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry">
@@ -43,7 +43,7 @@
      Implementation of a satellite tidal friction class which assumes spherical symmetry.
      !!}
      private
-     class           (galacticStructureClass  ), pointer :: galacticStructure_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: factorBoost
    contains
      final     ::                      sphericalSymmetryDestructor
@@ -68,7 +68,7 @@ contains
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
-    class           (galacticStructureClass              ), pointer       :: galacticStructure_
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
     double precision                                                      :: factorBoost
 
     !![
@@ -78,26 +78,26 @@ contains
       <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field class.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=satelliteTidalFieldSphericalSymmetry(factorBoost,galacticStructure_)
+    self=satelliteTidalFieldSphericalSymmetry(factorBoost,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function sphericalSymmetryConstructorParameters
 
-  function sphericalSymmetryConstructorInternal(factorBoost,galacticStructure_) result(self)
+  function sphericalSymmetryConstructorInternal(factorBoost,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class.
     !!}
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                        :: self
-    class           (galacticStructureClass              ), intent(in   ), target :: galacticStructure_
+    class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                      , intent(in   )         :: factorBoost
     !![
-    <constructorAssign variables="factorBoost, *galacticStructure_"/>
+    <constructorAssign variables="factorBoost, *darkMatterHaloScale_"/>
     !!]
 
     return
@@ -111,7 +111,7 @@ contains
     type(satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
     
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine sphericalSymmetryDestructor
@@ -120,9 +120,10 @@ contains
     !!{
     Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
     !!}
-    use :: Galactic_Structure_Options      , only : coordinateSystemCylindrical
+    use :: Coordinates                     , only : coordinateCylindrical                           , assignment(=)
     use :: Galacticus_Nodes                , only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits                   , only : keplerOrbit
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Satellite_Orbits                , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
@@ -131,9 +132,11 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     type            (treeNode                            ), pointer       :: nodeHost
     class           (nodeComponentSatellite              ), pointer       :: satellite
+    class           (massDistributionClass               ), pointer       :: massDistribution_
     type            (keplerOrbit                         )                :: orbit
-    double precision                                                      :: densityHost  , enclosedMassHost, &
-         &                                                                   radiusOrbital, velocityOrbital
+    double precision                                                      :: densityHost       , enclosedMassHost, &
+         &                                                                   radiusOrbital     , velocityOrbital
+    type            (coordinateCylindrical               )                :: coordinatesOrbital
 
     ! For isolated halos, always return zero tidal field.
     if (node%isSatellite()) then
@@ -144,17 +147,15 @@ contains
        ! Get the orbit for this node.
        orbit     =  satellite%virialOrbit()
        ! Get the orbital radius and velocity at pericenter.
-       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%galacticStructure_)
+       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%darkMatterHaloScale_)
        ! Find the mass and density of the host halo at pericenter.
-       densityHost     =self%galacticStructure_%density     (                                              &
-            &                                                nodeHost                                    , &
-            &                                                [radiusOrbital,0.0d0,0.0d0]                 , &
-            &                                                coordinateSystem=coordinateSystemCylindrical  &
-            &                                               )
-       enclosedMassHost=self%galacticStructure_%massEnclosed(                                              &
-            &                                                nodeHost                                    , &
-            &                                                radiusOrbital                                 &
-            &                                               )
+       coordinatesOrbital =  [radiusOrbital,0.0d0,0.0d0]
+       massDistribution_  => nodeHost         %massDistribution    (                  )
+       densityHost        =  massDistribution_%density             (coordinatesOrbital)
+       enclosedMassHost   =  massDistribution_%massEnclosedBySphere(     radiusOrbital)
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! Compute the tidal field.
        sphericalSymmetryTidalTensorRadial=+         gravitationalConstantGalacticus*enclosedMassHost/                 radiusOrbital **3 &
             &                             -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &

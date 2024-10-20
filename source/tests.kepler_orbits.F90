@@ -22,27 +22,19 @@ program Tests_Kepler_Orbits
   Tests for orbital parameter conversions.
   !!}
   use :: Display                         , only : displayVerbositySet            , verbosityLevelStandard
-  use :: ISO_Varying_String              , only : assignment(=)                  , varying_string
-  use :: Input_Parameters                , only : inputParameters
   use :: Kepler_Orbits                   , only : keplerOrbit
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Math        , only : Pi
   use :: Unit_Tests                      , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                       compareEquals
   implicit none
-  type            (varying_string ) :: parameterFile
-  type            (keplerOrbit    ) :: orbit
-  double precision                  :: valueActual  , valueExpected, velocityScale
-  type            (inputParameters) :: parameters
+  type            (keplerOrbit) :: orbit
+  double precision              :: valueActual, valueExpected, velocityScale
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Orbital parameter conversions")
-
-  ! Open the parameter file.
-  parameterFile='parameters.xml'
-  parameters=inputParameters(parameterFile)
 
   ! Compute velocity scale for unit mass and radius.
   velocityScale=sqrt(gravitationalConstantGalacticus)

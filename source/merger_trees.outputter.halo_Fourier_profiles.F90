@@ -22,6 +22,7 @@
   !!}
   
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Galactic_Filters        , only : galacticFilterClass
   use :: IO_HDF5                 , only : hdf5Object
@@ -63,6 +64,7 @@
      !!}
      private
      class           (cosmologyFunctionsClass  ), pointer                   :: cosmologyFunctions_       => null()
+     class           (darkMatterHaloScaleClass ), pointer                   :: darkMatterHaloScale_      => null()
      class           (darkMatterProfileDMOClass), pointer                   :: darkMatterProfileDMO_     => null()
      class           (galacticFilterClass      ), pointer                   :: galacticFilter_           => null()
      integer                                                                :: wavenumberPointsPerDecade          , wavenumberCount
@@ -96,6 +98,7 @@ contains
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     class           (galacticFilterClass                   ), pointer       :: galacticFilter_
     double precision                                                        :: wavenumberMinimum        , wavenumberMaximum
     integer                                                                 :: wavenumberPointsPerDecade
@@ -122,18 +125,20 @@ contains
     <objectBuilder class="galacticFilter"       name="galacticFilter_"       source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=mergerTreeOutputterHaloFourierProfiles(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterProfileDMO_,galacticFilter_)
+    self=mergerTreeOutputterHaloFourierProfiles(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticFilter_"      />
     <objectDestructor name="cosmologyFunctions_"  />
+    <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function haloFourierProfilesConstructorParameters
 
-  function haloFourierProfilesConstructorInternal(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterProfileDMO_,galacticFilter_) result(self)
+  function haloFourierProfilesConstructorInternal(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticFilter_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily haloFourierProfiles} merger tree outputter class.
     !!}
@@ -141,12 +146,13 @@ contains
     implicit none
     type            (mergerTreeOutputterHaloFourierProfiles)                        :: self
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
     class           (galacticFilterClass                   ), intent(in   ), target :: galacticFilter_
     double precision                                        , intent(in   )         :: wavenumberMinimum        , wavenumberMaximum
     integer                                                 , intent(in   )         :: wavenumberPointsPerDecade
     !![
-    <constructorAssign variables="wavenumberPointsPerDecade, wavenumberMinimum, wavenumberMaximum, *cosmologyFunctions_, *darkMatterProfileDMO_, *galacticFilter_"/>
+    <constructorAssign variables="wavenumberPointsPerDecade, wavenumberMinimum, wavenumberMaximum, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticFilter_"/>
     !!]
     
     ! Build a grid of wavenumbers.
@@ -167,6 +173,7 @@ contains
     !![
     <objectDestructor name="self%galacticFilter_"      />
     <objectDestructor name="self%cosmologyFunctions_"  />
+    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     return
@@ -194,6 +201,7 @@ contains
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
     !$ use :: HDF5_Access                     , only : hdf5Access
     use    :: ISO_Varying_String              , only : var_str
+    use    :: Mass_Distributions              , only : massDistributionClass
     use    :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use    :: Numerical_Constants_Astronomical, only : megaParsec
     use    :: String_Handling                 , only : operator(//)
@@ -204,12 +212,13 @@ contains
     double precision                                        , intent(in   )               :: time
     type            (treeNode                              )               , pointer      :: node
     class           (nodeComponentBasic                    )               , pointer      :: basic
+    class           (massDistributionClass                 )               , pointer      :: massDistribution_
     double precision                                        , allocatable  , dimension(:) :: fourierProfile
     type            (mergerTreeWalkerAllNodes              )                              :: treeWalker
-    type            (hdf5Object                            )                              :: outputGroup      , treeGroup, &
+    type            (hdf5Object                            )                              :: outputGroup      , treeGroup   , &
          &                                                                                   dataset
     integer         (c_size_t                              )                              :: treeIndexPrevious
-    double precision                                                                      :: expansionFactor
+    double precision                                                                      :: expansionFactor  , radiusVirial
     integer                                                                               :: i
     !$GLC attributes unused :: time
     
@@ -236,11 +245,16 @@ contains
        end if
        basic           => node%basic                              (            )
        expansionFactor =  self%cosmologyFunctions_%expansionFactor(basic%time())
-      ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physical coordinates before passing them to
+       ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physical coordinates before passing them to
        ! the dark matter profile k-space routine.)
+       massDistribution_ => self%darkMatterProfileDMO_%get         (node)
+       radiusVirial      =  self%darkMatterHaloScale_ %radiusVirial(node)
        do i=1,self%waveNumberCount
-          fourierProfile(i)=self%darkMatterProfileDMO_%kSpace(node,self%wavenumber(i)/expansionFactor)
+          fourierProfile(i)=massDistribution_%fourierTransform(radiusVirial,self%wavenumber(i)/expansionFactor)
        end do
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        !$ call hdf5Access%set  ()
        call treeGroup%writeDataset(fourierProfile,char(var_str('node')//node%index()),"The Fourier-space density profile.")
        !$ call hdf5Access%unset()

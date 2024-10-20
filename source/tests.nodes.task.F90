@@ -39,14 +39,12 @@ contains
     Implements simple tests of mapping functions over all components in a \gls{node}.
     !!}
     use :: Display         , only : displayVerbositySet, verbosityLevelStandard
-    use :: Galacticus_Nodes, only : nodeComponent      , nodeComponentBlackHole, reductionSummation, treeNode
+    use :: Galacticus_Nodes, only : nodeComponent      , nodeComponentBlackHole, treeNode
     use :: Unit_Tests      , only : Assert
     implicit none
-    type            (treeNode       ), intent(inout) :: node
-    procedure       (testVoidFunc   ), pointer       :: myFuncVoid    => testVoidFunc
-    procedure       (testFuncDouble0), pointer       :: myFuncDouble0 => testFuncDouble0
-    class           (nodeComponent  ), pointer       :: component
-    double precision                                 :: mapResult
+    type            (treeNode     ), intent(inout) :: node
+    procedure       (testVoidFunc ), pointer       :: myFuncVoid => testVoidFunc
+    class           (nodeComponent), pointer       :: component
 
     ! Set verbosity level.
     call displayVerbositySet(verbosityLevelStandard)
@@ -57,13 +55,6 @@ contains
     ! Map a void function (subroutine) over all components.
     call node%mapVoid(myFuncVoid)
     call Assert('Map void function over all components',all([componentBasicStandardSeen,componentBlackHoleStandardSeen]),.true.)
-
-    ! Map a scalar double function over all components, with summation reduction
-    mapResult=node%mapDouble0(myFuncDouble0,reduction=reductionSummation)
-    select type (component)
-    class is (nodeComponentBlackHole)
-       call Assert('Summation reduction map over all components',component%mass(),mapResult)
-    end select
     return
   end subroutine Test_Node_Task
 
@@ -80,20 +71,5 @@ contains
     if (component%type() == "nodeComponent:blackHole:standard") componentBlackHoleStandardSeen=.true.
     return
   end subroutine testVoidFunc
-
-  double precision function testFuncDouble0(component)
-    !!{
-    A simple test function which returns the enclosed mass for a component. Used in testing mapping over a function over all
-    components.
-    !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, massTypeAll, radiusLarge, weightByMass, &
-          &                                   weightIndexNull
-    use :: Galacticus_Nodes          , only : nodeComponent
-    implicit none
-    class(nodeComponent), intent(inout) :: component
-
-    testFuncDouble0=component%enclosedMass(radiusLarge,componentTypeAll,massTypeAll,weightByMass,weightIndexNull)
-    return
-  end function testFuncDouble0
 
 end module Test_Nodes_Tasks

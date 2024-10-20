@@ -23,7 +23,7 @@
   Implements a class for black hole binary initial separation based on tidal disruption of the satellite galaxy.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Mass_Distributions, only : massDistributionClass
   use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
 
   !![
@@ -46,10 +46,8 @@
      A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
-     type (rootFinder            )          :: finder
+     type (rootFinder) :: finder
   contains
-    final     ::                      tidalRadiusDestructor
     procedure :: separationInitial => tidalRadiusSeparationInitial
   end type blackHoleBinaryInitialSeparationTidalRadius
 
@@ -62,10 +60,9 @@
   end interface blackHoleBinaryInitialSeparationTidalRadius
 
   ! Module-scope variables used in root finding.
-  double precision                                                       :: massHalf, radiusMassHalf
-  type            (treeNode                                   ), pointer :: node_
-  class           (blackHoleBinaryInitialSeparationTidalRadius), pointer :: self_
-  !$omp threadprivate(radiusMassHalf,massHalf,node_,self_)
+  class           (massDistributionClass), pointer :: massDistribution_
+  double precision                                 :: massHalf         , radiusMassHalf
+  !$omp threadprivate(radiusMassHalf,massHalf,massDistribution_)
 
 contains
 
@@ -78,29 +75,20 @@ contains
     implicit none
     type (blackHoleBinaryInitialSeparationTidalRadius)                :: self
     type (inputParameters                            ), intent(inout) :: parameters
-    class(galacticStructureClass                     ), pointer       :: galacticStructure_
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=blackHoleBinaryInitialSeparationTidalRadius(galacticStructure_)
+    self=blackHoleBinaryInitialSeparationTidalRadius()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function tidalRadiusConstructorParameters
 
-  function tidalRadiusConstructorInternal(galacticStructure_) result(self)
+  function tidalRadiusConstructorInternal() result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class.
     !!}
     implicit none
-    type (blackHoleBinaryInitialSeparationTidalRadius)                        :: self
-    class(galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
+    type (blackHoleBinaryInitialSeparationTidalRadius) :: self
 
     self%finder=rootFinder(                                                             &
             &              rootFunction=tidalRadiusRoot                               , &
@@ -115,25 +103,12 @@ contains
      return
   end function tidalRadiusConstructorInternal
 
-  subroutine tidalRadiusDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily tidalRadius} black hole binary recoil class.
-    !!}
-    implicit none
-    type(blackHoleBinaryInitialSeparationTidalRadius), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine tidalRadiusDestructor
-
   double precision function tidalRadiusSeparationInitial(self,node,nodeHost)
     !!{
     Returns an initial separation for a binary black holes through tidal disruption.
     !!}
     use :: Galactic_Structure_Options, only : massTypeGalactic
-    use :: Galacticus_Nodes          , only : nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes          , only : nodeComponentBlackHole
     implicit none
     class(blackHoleBinaryInitialSeparationTidalRadius), intent(inout), target :: self
     type (treeNode                                   ), intent(inout), target :: nodeHost , node
@@ -146,22 +121,23 @@ contains
     blackHole => node%blackHole(instance=1)
     ! If the primary black hole has zero mass (i.e. has been ejected), then return immediately.
     if (blackHole%mass() <= 0.0d0) return
+    ! Get the mass distribution.
+    massDistribution_ => node%massDistribution(massType=massTypeGalactic)
     ! Get the half-mass radius of the satellite galaxy.
-    radiusMassHalf=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0         ,massType=massTypeGalactic)
+    radiusMassHalf=massDistribution_%radiusEnclosingMass (massFractional=0.5d0         )
     ! Get the mass within the half-mass radius.
-    massHalf      =self%galacticStructure_%massEnclosed       (node,               radiusMassHalf,massType=massTypeGalactic)
-    ! Return zero radius for massless galaxy.
-    if (radiusMassHalf <= 0.0d0 .or. massHalf <= 0.0d0) return
+    massHalf      =massDistribution_%massEnclosedBySphere(               radiusMassHalf)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Solve for the radius around the host at which the satellite gets disrupted.
-    self_                        => self
-    node_                        => nodeHost
-    tidalRadiusSeparationInitial =  self%finder%find(                                                                                 &
-         &                                           rootGuess=self%galacticStructure_%radiusEnclosingMass(                           &
-         &                                                                                                 nodeHost                 , &
-         &                                                                                                 massFractional=0.5d0     , &
-         &                                                                                                 massType=massTypeGalactic  &
-         &                                                                                                )                           &
-         &                                          )
+    if (radiusMassHalf > 0.0d0 .and. massHalf > 0.0d0) then
+       massDistribution_            => nodeHost       %massDistribution(massType =massTypeGalactic                                           )
+       tidalRadiusSeparationInitial =  self    %finder%find            (rootGuess=massDistribution_%radiusEnclosingMass(massFractional=0.5d0))
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
+    end if
     return
   end function tidalRadiusSeparationInitial
 
@@ -174,11 +150,11 @@ contains
     double precision, intent(in   ) :: radius
 
     ! Evaluate the root function.
-    tidalRadiusRoot=+self_%galacticStructure_%massEnclosed(node_,radius,massType=massTypeGalactic) &
-         &          /massHalf                                                                      &
-         &          -(                                                                             &
-         &            +radius                                                                      &
-         &            /radiusMassHalf                                                              &
+    tidalRadiusRoot=+massDistribution_%massEnclosedBySphere(radius) &
+         &          /massHalf                                       &
+         &          -(                                              &
+         &            +radius                                       &
+         &            /radiusMassHalf                               &
          &           )**3
     return
   end function tidalRadiusRoot

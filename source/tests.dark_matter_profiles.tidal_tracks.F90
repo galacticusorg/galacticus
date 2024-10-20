@@ -26,6 +26,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   Test calculations for tidal track dark matter profiles.
   !!}
   use :: Calculations_Resets       , only : Calculations_Reset
+  use :: Coordinates               , only : coordinateSpherical                                           , assignment(=)
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -38,6 +39,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
           &                                 treeNode                                                      , nodeComponentSatellite
   use :: Input_Parameters          , only : inputParameters
   use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Mass_Distributions        , only : massDistributionClass
   use :: Unit_Tests                , only : Assert                                                        , Skip                             , Unit_Tests_Begin_Group             , Unit_Tests_End_Group          , &
           &                                 Unit_Tests_Finish
   implicit none
@@ -51,14 +53,16 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   class           (nodeComponentBasic                                            ), pointer   :: basic_
   class           (nodeComponentDarkMatterProfile                                ), pointer   :: darkMatterProfile_
   class           (nodeComponentSatellite                                        ), pointer   :: satellite_
-  double precision                                                                , parameter :: concentration                   =+8.0d0, massVirial             =+1.0d12, &
-       &                                                                                         muRadius                        =-0.3d0, etaRadius              =+0.4d-0, &
-       &                                                                                         muVelocity                      =+0.4d0, etaVelocity            =+0.3d-0
+  class           (massDistributionClass                                         ), pointer   :: massDistributionNFW_                   , massDistributionPenarrubia2010_
+  double precision                                                                , parameter :: concentration                   =+8.0d0, massVirial                     =+1.0d12, &
+       &                                                                                         muRadius                        =-0.3d0, etaRadius                      =+0.4d-0, &
+       &                                                                                         muVelocity                      =+0.4d0, etaVelocity                    =+0.3d-0
   type            (inputParameters                                               )            :: parameters
-  double precision                                                                            :: radiusScale                            , radiusVirial                   , &
-       &                                                                                         velocityMaximumInitial                 , radiusMaximumInitial           , &
-       &                                                                                         velocityMaximumTidalTrack              , radiusMaximumTidalTrack        , &
+  double precision                                                                            :: radiusScale                            , radiusVirial                           , &
+       &                                                                                         velocityMaximumInitial                 , radiusMaximumInitial                   , &
+       &                                                                                         velocityMaximumTidalTrack              , radiusMaximumTidalTrack                , &
        &                                                                                         fractionMassBound
+  type            (coordinateSpherical                                           )            :: coordinatesScale                       , coordinatesVirial
 
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Tidal track dark matter profiles")
@@ -139,36 +143,56 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   radiusVirial =+darkMatterHaloScale_%radiusVirial(node_)
   radiusScale  =+radiusVirial &
        &        /concentration
+  coordinatesScale =[radiusScale ,0.0d0,0.0d0]
+  coordinatesVirial=[radiusVirial,0.0d0,0.0d0]
   call darkMatterProfile_%scaleSet(radiusScale)
   call Calculations_Reset(node_)
   ! Store the initial values of rmax and Vmax.
-  radiusMaximumInitial  =darkMatterProfileNFW_%radiusCircularVelocityMaximum(node_)
-  velocityMaximumInitial=darkMatterProfileNFW_%      circularVelocityMaximum(node_)
+  massDistributionNFW_            => darkMatterProfileNFW_           %get                         (node_)
+  massDistributionPenarrubia2010_ => darkMatterProfilePenarrubia2010_%get                         (node_)
+  radiusMaximumInitial            =  massDistributionNFW_            %  radiusRotationCurveMaximum(     )
+  velocityMaximumInitial          =  massDistributionNFW_            %velocityRotationCurveMaximum(     )
   ! Begin tests.
   call Unit_Tests_Begin_Group("Unstripped profile matches NFW"    )
-  call Assert("Density at scale radius" ,darkMatterProfileNFW_%density(node_,radius=radiusVirial),darkMatterProfilePenarrubia2010_%density(node_,radius=radiusVirial),relTol=1.0d-6)
-  call Assert("Density at virial radius",darkMatterProfileNFW_%density(node_,radius=radiusVirial),darkMatterProfilePenarrubia2010_%density(node_,radius=radiusVirial),relTol=1.0d-6)
+  call Assert("Density at scale radius" ,massDistributionNFW_%density(coordinates=coordinatesScale ),massDistributionPenarrubia2010_%density(coordinates=coordinatesScale ),relTol=1.0d-6)
+  call Assert("Density at virial radius",massDistributionNFW_%density(coordinates=coordinatesVirial),massDistributionPenarrubia2010_%density(coordinates=coordinatesVirial),relTol=1.0d-6)
   call Unit_Tests_End_Group  (                                )
+  !![
+  <objectDestructor name="massDistributionNFW_"           />
+  <objectDestructor name="massDistributionPenarrubia2010_"/>
+  !!]
   call Unit_Tests_Begin_Group("Stripped profile (95%) tidal track")
   call satellite_%boundMassSet(0.95d0*massVirial)
   call Calculations_Reset(node_)
+  massDistributionNFW_            => darkMatterProfileNFW_           %get                         (node_)
+  massDistributionPenarrubia2010_ => darkMatterProfilePenarrubia2010_%get                         (node_)
   fractionMassBound        =+satellite_%boundMass() &
        &                    /basic_    %     mass()
   velocityMaximumTidalTrack=velocityMaximumInitial*2.0d0**muVelocity*fractionMassBound**etaVelocity/(1.0d0+fractionMassBound)**muVelocity
   radiusMaximumTidalTrack  =  radiusMaximumInitial*2.0d0**muRadius  *fractionMassBound**etaRadius  /(1.0d0+fractionMassBound)**muRadius
-  call Assert("Tidal track rmax",radiusMaximumTidalTrack  ,darkMatterProfilePenarrubia2010_%radiusCircularVelocityMaximum(node_),relTol=1.0d-6)
-  call Assert("Tidal track Vmax",velocityMaximumTidalTrack,darkMatterProfilePenarrubia2010_%      circularVelocityMaximum(node_),relTol=1.0d-6)
+  call Assert("Tidal track rmax",radiusMaximumTidalTrack  ,massDistributionPenarrubia2010_%  radiusRotationCurveMaximum(),relTol=1.0d-6)
+  call Assert("Tidal track Vmax",velocityMaximumTidalTrack,massDistributionPenarrubia2010_%velocityRotationCurveMaximum(),relTol=1.0d-6)
   call Unit_Tests_End_Group               ()
+  !![
+  <objectDestructor name="massDistributionNFW_"           />
+  <objectDestructor name="massDistributionPenarrubia2010_"/>
+  !!]
   call Unit_Tests_Begin_Group("Stripped profile (30%) tidal track")
   call satellite_%boundMassSet(0.30d0*massVirial)
   call Calculations_Reset(node_)
+  massDistributionNFW_            => darkMatterProfileNFW_           %get                         (node_)
+  massDistributionPenarrubia2010_ => darkMatterProfilePenarrubia2010_%get                         (node_)
   fractionMassBound        =+satellite_%boundMass() &
        &                    /basic_    %     mass()
   velocityMaximumTidalTrack=velocityMaximumInitial*2.0d0**muVelocity*fractionMassBound**etaVelocity/(1.0d0+fractionMassBound)**muVelocity
   radiusMaximumTidalTrack  =  radiusMaximumInitial*2.0d0**muRadius  *fractionMassBound**etaRadius  /(1.0d0+fractionMassBound)**muRadius
-  call Assert("Tidal track rmax",radiusMaximumTidalTrack  ,darkMatterProfilePenarrubia2010_%radiusCircularVelocityMaximum(node_),relTol=1.0d-6)
-  call Assert("Tidal track Vmax",velocityMaximumTidalTrack,darkMatterProfilePenarrubia2010_%      circularVelocityMaximum(node_),relTol=1.0d-6)
+  call Assert("Tidal track rmax",radiusMaximumTidalTrack  ,massDistributionPenarrubia2010_%  radiusRotationCurveMaximum(),relTol=1.0d-6)
+  call Assert("Tidal track Vmax",velocityMaximumTidalTrack,massDistributionPenarrubia2010_%velocityRotationCurveMaximum(),relTol=1.0d-6)
   call Unit_Tests_End_Group               ()
+  !![
+  <objectDestructor name="massDistributionNFW_"           />
+  <objectDestructor name="massDistributionPenarrubia2010_"/>
+  !!]
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

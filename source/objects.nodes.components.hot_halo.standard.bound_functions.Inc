@@ -45,3 +45,14 @@ double precision function Node_Component_Hot_Halo_Standard_Mass_Total(self)
   return
 end function Node_Component_Hot_Halo_Standard_Mass_Total
 
+double precision function Node_Component_Hot_Halo_Standard_Mass_Baryonic(self) result(massBaryonic)
+  !!{
+  Return the baryonic mass for the hot halo standard component.
+  !!}
+  implicit none
+  class(nodeComponentHotHaloStandard), intent(inout) :: self
+
+  massBaryonic=+max(0.0d0,self%mass         ()) &
+       &       +max(0.0d0,self%outflowedMass())
+  return
+end function Node_Component_Hot_Halo_Standard_Mass_Baryonic

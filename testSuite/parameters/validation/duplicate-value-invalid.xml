@@ -39,10 +39,10 @@
       <dimensionless value="true"/>
     </massDistributionSpheroid>
   </componentSpheroid>
-  <treeNodeMethodSpin>
+  <componentSpin>
     <value>random</value>
     <value>random</value>
-  </treeNodeMethodSpin>
+  </componentSpin>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>

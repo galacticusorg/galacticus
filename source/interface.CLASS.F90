@@ -594,7 +594,7 @@ contains
        write (classParameterFile,'(a)'                ) ''
        close(classParameterFile)
        ! Run CLASS.
-       call System_Command_Do(classPath//"class "//parameterFile//" >& "//workPath//"/class.log")
+       call System_Command_Do(classPath//"class "//parameterFile//" > "//workPath//"/class.log")
        ! Read the CLASS output.
        found=.false.
        open(newUnit=classLog,file=char(workPath)//"/class.log",form="formatted",status="old",iostat=status)

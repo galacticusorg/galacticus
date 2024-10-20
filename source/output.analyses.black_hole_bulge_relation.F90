@@ -21,8 +21,6 @@
   Contains a module which implements a black hole-bulge mass relation analysis class.
   !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
    <description>A black hole-bulge mass relation output analysis class.</description>
@@ -33,7 +31,6 @@
      A black hole-bulge mass relation output analysis class.
      !!}
      private
-     class           (galacticStructureClass ), pointer                     :: galacticStructure_                   => null()
      class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_                  => null()
      double precision                         , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
      double precision                                                       :: randomErrorMinimum                            , randomErrorMaximum
@@ -63,7 +60,6 @@ contains
     double precision                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
-    class           (galacticStructureClass              ), pointer                     :: galacticStructure_
     double precision                                                                    :: randomErrorMinimum                  , randomErrorMaximum
 
 
@@ -101,20 +97,18 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
-    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,galacticStructure_)
+    self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="outputTimes_"       />
-    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function blackHoleBulgeRelationConstructorParameters
 
-  function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,galacticStructure_) result (self)
+  function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !!{
     Constructor for the ``blackHoleBulgeRelation'' output analysis class for internal use.
     !!}
@@ -140,7 +134,6 @@ contains
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                             ), intent(inout), target         :: galacticStructure_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses                                                  , functionValueTarget                     , &
@@ -167,7 +160,7 @@ contains
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, *galacticStructure_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_"/>
     !!]
     
     !$ call hdf5Access%set()
@@ -285,7 +278,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellarSpheroid       (galacticStructure_                                                        )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellarSpheroid       (                                                                          )"/>
     !!]
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
@@ -360,7 +353,6 @@ contains
     type(outputAnalysisBlackHoleBulgeRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_" />
     <objectDestructor name="self%cosmologyFunctions_"/>
     !!]
     return

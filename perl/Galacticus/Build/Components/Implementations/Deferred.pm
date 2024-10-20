@@ -38,13 +38,18 @@ sub Implementation_Deferred_Binding_Pointers {
 	# Skip non-deferred bindings.
 	next
 	    unless ( $binding->{'isDeferred'} );
+	# Determine the name of the procedure template.
+	my $baseMember = $member;
+	while ( exists($baseMember->{'extends'}) && grep {$_->{'method'} eq $binding->{'method'}} @{$baseMember->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
+	    $baseMember = $baseMember->{'extends'};
+	}
 	# Create a pointer at the implementation level.
 	my $componentFunctionName = $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'});
 	push(
 	    @{$build->{'variables'}},
 	    {
 		intrinsic  => "procedure",
-		type       => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'}),
+		type       => $class->{'name'}.ucfirst($baseMember->{'name'}).ucfirst($binding->{'method'}),
 		attributes => [ "pointer" ],
 		variables  => [ $componentFunctionName."Deferred" ]
 	    },
@@ -65,17 +70,22 @@ sub Implementation_Deferred_Binding_Attachers {
     foreach my $binding ( grep {$_->{'isDeferred'}} @{$member->{'bindings'}->{'binding'}} ) {
 	# Create the name of the function.
 	$code::memberFunctionName = $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'});
+	# Determine the name of the procedure template.
+	my $baseMember = $member;
+	while ( exists($baseMember->{'extends'}) && grep {$_->{'method'} eq $binding->{'method'}} @{$baseMember->{'extends'}->{'implementation'}->{'bindings'}->{'binding'}} ) {
+	    $baseMember = $baseMember->{'extends'};
+	}
 	# Create the function.
 	my $function =
 	{
 	    type        => "void",
-	    name        => $code::memberFunctionName."DeferredFunctionSet",
+	    name        => $code::memberFunctionName."DfrrdFnctnSet",
 	    description => "Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
 	    variables   =>
 		[
 		 {
 		     intrinsic  => "procedure",
-		     type       => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($binding->{'method'}),
+		     type       => $class->{'name'}.ucfirst($baseMember->{'name'}).ucfirst($binding->{'method'}),
 		     isArgument => 1,
 		     variables  => [ "deferredFunction" ]
 		 }
@@ -138,12 +148,16 @@ sub Implementation_Deferred_Binding_Wrappers {
     # Iterate over deferred bindings which bind at the class level.
     foreach $code::binding ( grep {$_->{'isDeferred'}} @{$code::member->{'bindings'}->{'binding'}} ) {
 	# Create the name of the function.
-	$code::memberFunctionName = $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::binding->{'method'});
-	$code::returnName         = $code::memberFunctionName;
+	$code::memberFunctionName  = $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::binding->{'method'});
+	$code::returnName          = $code::memberFunctionName;
+	my $specificType           = $code::binding->{'interface'}->{'type'} ne "void" && ! exists($intrinsicTypes{$code::binding->{'interface'}->{'type'}});
+	my $isPointer              = $specificType && $code::binding->{'interface'}->{'type'} =~ m/,\s*pointer/;
+	$code::returnName         .="_"
+	    if ( $specificType );
 	# Create the function.
 	my $function =
 	{
-	    type        => $code::binding->{'interface'}->{'type'} eq "void" ? "void" : $intrinsicTypes{$code::binding->{'interface'}->{'type'}},
+	    type        => $code::binding->{'interface'}->{'type'} eq "void" ? "void" : ($specificType ? $code::binding->{'interface'}->{'type'}." => ".$code::returnName : $intrinsicTypes{$code::binding->{'interface'}->{'type'}}),
 	    name        => $code::memberFunctionName,
 	    description => "Call the deferred function for the {\\normalfont \\ttfamily ".$code::binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class if it has been set.",
 	    modules     =>
@@ -151,6 +165,8 @@ sub Implementation_Deferred_Binding_Wrappers {
 		 "Error"
 		]
 	};
+	push(@{$function->{'modules'}},&List::ExtraUtils::as_array($code::binding->{'interface'}->{'module'}))
+	    if ( exists($code::binding->{'interface'}->{'module'}) );
 	# Handle any rank/shape.
 	if      ( exists($code::binding->{'interface'}->{'rank'}) && $code::binding->{'interface'}->{'rank'} > 0 ) {
 	    die('can not specify both "rank" and "shape"')
@@ -193,8 +209,9 @@ CODE
       call {$memberFunctionName}Deferred({join(",",@arguments)})
 CODE
 	} else {
+	    $code::assigner = $isPointer ? " => " : "=";
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$returnName}={$memberFunctionName}Deferred({join(",",@arguments)})
+      {$returnName}{$assigner}{$memberFunctionName}Deferred({join(",",@arguments)})
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -212,8 +229,9 @@ CODE
       call self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
 CODE
 	    } else {
+		$code::assigner = $isPointer ? " => " : "=";
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      {$returnName}=self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
+      {$returnName}{$assigner}self%{$parentType}%{$binding->{'method'}}({join(",",grep {$_ ne "self"} @arguments)})
 CODE
 	    }
 	} else {

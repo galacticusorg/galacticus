@@ -24,7 +24,6 @@
   !!}
 
   use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
-  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalHeating">
@@ -37,7 +36,6 @@
      !!}
      private
      class           (satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
-     class           (galacticStructureClass        ), pointer :: galacticStructure_         => null()
      double precision                                          :: efficiencyDecay
      logical                                                   :: applyPreInfall
    contains
@@ -65,7 +63,6 @@ contains
     type            (nodeOperatorSatelliteTidalHeating)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
-    class           (galacticStructureClass           ), pointer       :: galacticStructure_
     double precision                                                   :: efficiencyDecay
     logical                                                            :: applyPreInfall
 
@@ -83,29 +80,26 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
-    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_)
+    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalHeatingRate_"/>
-    <objectDestructor name="galacticStructure_"        />
     !!]
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
-  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_) result(self)
+  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
     class           (satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
-    class           (galacticStructureClass           ), intent(in   ), target :: galacticStructure_
     double precision                                   , intent(in   )         :: efficiencyDecay
     logical                                            , intent(in   )         :: applyPreInfall
     !![
-    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *galacticStructure_"/>
+    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_"/>
     !!]
 
     return
@@ -120,7 +114,6 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalHeatingRate_"/>
-    <objectDestructor name="self%galacticStructure_"        />
     !!]
     return
   end subroutine satelliteTidalHeatingRateDestructor
@@ -129,7 +122,9 @@ contains
     !!{
     Perform mass loss from a satellite due to tidal stripping.
     !!}
+    use :: Coordinates                     , only : coordinateCartesian   , assignment(=)
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -144,10 +139,12 @@ contains
     class           (nodeComponentBasic               )               , pointer :: basic             , basicHost
     class           (nodeComponentSatellite           )               , pointer :: satellite
     type            (treeNode                         )               , pointer :: nodeHost
+    class           (massDistributionClass            )               , pointer :: massDistribution_
     double precision                                   , dimension(3)           :: position          , velocity
     double precision                                                            :: radius            , orbitalPeriod            , &
          &                                                                         radialFrequency   , angularFrequency
     type            (tensorRank2Dimension3Symmetric)                            :: tidalTensor       , tidalTensorPathIntegrated
+    type            (coordinateCartesian           )                            :: coordinates
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.self%applyPreInfall.and..not.node%isSatellite()) return
@@ -178,7 +175,12 @@ contains
     radius                    =  Vector_Magnitude                   (position)
     if (radius <= 0.0d0) return ! Do not compute rates at zero radius.
     ! Calculate tidal tensor and rate of change of integrated tidal tensor.
-    tidalTensor               =  self%galacticStructure_%tidalTensor(nodeHost,position)             
+    coordinates       =  position
+    massDistribution_ => nodeHost         %massDistribution(           )
+    tidalTensor       =  massDistribution_%tidalTensor     (coordinates)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute the orbital period.
     angularFrequency=+Vector_Magnitude(Vector_Product(position,velocity)) &
          &           /radius**2                                           &

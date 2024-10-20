@@ -33,17 +33,18 @@
      !!{
      The S\'ersic density profile.
      !!}
-     double precision                                               :: densityNormalization         , mass              , &
-          &                                                            radiusHalfMass_              , index_
+     double precision                                               :: densityNormalization                  , mass              , &
+          &                                                            radiusHalfMass_                       , index_
      ! Tabulation of the Sérsic profile.
-     double precision                                               :: coefficient                  , radiusStart
-     logical                                                        :: tableInitialized     =.false.
+     double precision                                               :: coefficient                           , radiusStart
+     logical                                                        :: tableInitialized              =.false.
      integer                                                        :: tableCount
-     double precision                                               :: tableRadiusMaximum           , tableRadiusMinimum
+     double precision                                               :: tableRadiusMaximum                    , tableRadiusMinimum
      double precision                                               :: table3dRadiusHalfMass
      double precision                                               :: table2dRadiusHalfMass
-     double precision                   , allocatable, dimension(:) :: tableDensity                 , tableEnclosedMass , &
-          &                                                            tablePotential               , tableRadius
+     double precision                                               :: gradientLogarithmicMassCentral
+     double precision                   , allocatable, dimension(:) :: tableDensity                          , tableEnclosedMass , &
+          &                                                            tablePotential                        , tableRadius
      type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
@@ -58,6 +59,7 @@
      procedure :: densityRadialMoment     => sersicDensityRadialMoment
      procedure :: massEnclosedBySphere    => sersicMassEnclosedBySphere
      procedure :: massTotal               => sersicMassTotal
+     procedure :: potentialIsAnalytic     => sersicPotentialIsAnalytic
      procedure :: potential               => sersicPotential
      procedure :: radiusHalfMass          => sersicRadiusHalfMass
      procedure :: radiusHalfMassProjected => sersicRadiusHalfMassProjected
@@ -199,23 +201,17 @@ contains
     return
   end function sersicConstructorInternal
 
-  double precision function sersicDensity(self,coordinates,componentType,massType)
+  double precision function sersicDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
-    class           (massDistributionSersic      ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
-    double precision                                                        :: r
+    class           (massDistributionSersic), intent(inout) :: self
+    class           (coordinate            ), intent(in   ) :: coordinates
+    type            (coordinateSpherical   )                :: position
+    double precision                                        :: r
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicDensity=0.0d0
-       return
-    end if
     ! Get position in spherical coordinate system.
     position= coordinates
     ! Compute the density at this position.
@@ -230,26 +226,20 @@ contains
     return
   end function sersicDensity
 
-  double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Returns a radial density moment for the S\'ersic mass distribution.
     !!}
     implicit none
-    class           (massDistributionSersic      ), intent(inout)           :: self
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum          , radiusMaximum
-    logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    integer                                                                 :: iRadius
-    double precision                                                        :: deltaRadius            , integrand              , &
-         &                                                                     previousIntegrand      , fractionalRadiusMinimum, &
-         &                                                                     fractionalRadiusMaximum
+    class           (massDistributionSersic), intent(inout)           :: self
+    double precision                        , intent(in   )           :: moment
+    double precision                        , intent(in   ), optional :: radiusMinimum          , radiusMaximum
+    logical                                 , intent(  out), optional :: isInfinite
+    integer                                                           :: iRadius
+    double precision                                                  :: deltaRadius            , integrand              , &
+         &                                                               previousIntegrand      , fractionalRadiusMinimum, &
+         &                                                               fractionalRadiusMaximum
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicDensityRadialMoment=0.0d0
-       return
-    end if
     isInfinite               =.false.
     sersicDensityRadialMoment=0.0d0
     !$ call OMP_Set_Lock(self%tableLock)
@@ -291,38 +281,26 @@ contains
     return
   end function sersicDensityRadialMoment
 
-  double precision function sersicMassTotal(self,componentType,massType)
+  double precision function sersicMassTotal(self)
     !!{
     Computes the total mass for S\'ersic mass distributions.
     !!}
     implicit none
-    class(massDistributionSersic      ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionSersic), intent(inout) :: self
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicMassTotal=0.0d0
-       return
-    end if
     sersicMassTotal=self%mass
     return
   end function sersicMassTotal
   
-  double precision function sersicMassEnclosedBySphere(self,radius,componentType,massType)
+  double precision function sersicMassEnclosedBySphere(self,radius)
     !!{
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
     !!}
     implicit none
-    class           (massDistributionSersic      ), intent(inout), target   :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: fractionalRadius
+    class           (massDistributionSersic), intent(inout), target :: self
+    double precision                        , intent(in   )         :: radius
+    double precision                                                :: fractionalRadius
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicMassEnclosedBySphere=0.0d0
-       return
-    end if
     if (radius <= 0.0d0) then
        sersicMassEnclosedBySphere=0.0d0
     else
@@ -341,37 +319,59 @@ contains
     return
   end function sersicMassEnclosedBySphere
 
-  double precision function sersicPotential(self,coordinates,componentType,massType)
+  logical function sersicPotentialIsAnalytic(self) result(isAnalytic)
+    !!{
+    Return that the potential has an analytic form.
+    !!}
+    implicit none
+    class(massDistributionSersic), intent(inout) :: self
+
+    isAnalytic=.true.
+    return
+  end function sersicPotentialIsAnalytic
+
+  double precision function sersicPotential(self,coordinates,status)
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Error                           , only : Error_Report
+    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (massDistributionSersic      ), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateSpherical         )                          :: position
-    double precision                                                        :: r
+    class           (massDistributionSersic           ), intent(inout), target   :: self
+    class           (coordinate                       ), intent(in   )           :: coordinates
+    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
+    type            (coordinateSpherical              )                          :: position
+    double precision                                                             :: r
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicPotential=0.0d0
-       return
-    end if
+    if (present(status)) status=structureErrorCodeSuccess
     ! Get position in spherical coordinate system.
     position=coordinates
-    ! Compute the potential at this position.
     !$ call OMP_Set_Lock(self%tableLock)
-    r       =+position%r             () &
-         &   /self    %radiusHalfMass_
-    call self%tabulate(r)
-    if (r < self%tableRadius(self%tableCount)) then
-       sersicPotential=+self%mass                                                 &
-            &          /self%radiusHalfMass_                                      &
-            &          *self%tableInterpolator%interpolate(r,self%tablePotential)
+    ! For small radii, use a simple power-law extrapolation.
+    if (position%r() < self%tableRadiusMinimum) then
+       if (position%r() <= 0.0d0 .and. self%gradientLogarithmicMassCentral <= 1.0d0) call Error_Report('potential is divergent at r=0'//{introspection:location})
+       sersicPotential=+self%tablePotential   (1)                                                         &
+            &          -self%tableEnclosedMass(1)                                                         &
+            &          /self%tableRadius      (1)                                                         &
+            &          *(                                                                                 &
+            &            +1.0d0                                                                           &
+            &            -(position%r()/self%tableRadius(1))**(self%gradientLogarithmicMassCentral-1.0d0) &
+            &           )                                                                                 &
+            &          /                                      (self%gradientLogarithmicMassCentral-1.0d0)
     else
-       sersicPotential=0.0d0
+       ! Compute the potential at this position.
+       r       =+position%r             () &
+            &   /self    %radiusHalfMass_
+       call self%tabulate(r)
+       if (r < self%tableRadius(self%tableCount)) then
+          sersicPotential=+self%mass                                                 &
+               &          /self%radiusHalfMass_                                      &
+               &          *self%tableInterpolator%interpolate(r,self%tablePotential)
+       else
+          sersicPotential=0.0d0
+       end if
     end if
     !$ call OMP_Unset_Lock(self%tableLock)
     if (.not.self%isDimensionless()) sersicPotential=+gravitationalConstantGalacticus &
@@ -379,38 +379,26 @@ contains
     return
   end function sersicPotential
 
-  double precision function sersicRadiusHalfMass(self,componentType,massType)
+  double precision function sersicRadiusHalfMass(self)
     !!{
     Return the half-mass radius of a S\'ersic mass distribution.
     !!}
     implicit none
-    class(massDistributionSersic      ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionSersic), intent(inout) :: self
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicRadiusHalfMass=0.0d0
-       return
-    end if
     !$ call OMP_Set_Lock(self%tableLock)
     sersicRadiusHalfMass=+self%radiusHalfMass_
     !$ call OMP_Unset_Lock(self%tableLock)
     return
   end function sersicRadiusHalfMass
 
-  double precision function sersicRadiusHalfMassProjected(self,componentType,massType)
+  double precision function sersicRadiusHalfMassProjected(self)
     !!{
     Return the half-mass radius in projection of a S\'ersic mass distribution.
     !!}
     implicit none
-    class(massDistributionSersic      ), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionSersic), intent(inout) :: self
 
-    if (.not.self%matches(componentType,massType)) then
-       sersicRadiusHalfMassProjected=0.0d0
-       return
-    end if
     sersicRadiusHalfMassProjected=+self%radiusHalfMass_        &
          &                        *self%table2dRadiusHalfMass
     return
@@ -418,7 +406,7 @@ contains
 
   subroutine sersicTabulate(self,radius)
     !!{
-    Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
+    Tabulate the density enclosed mass, and potential in a dimensionless S\'ersic profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -554,6 +542,9 @@ contains
                &                    .and.                                    &
                &                   (radiusActual <= self%tableRadiusMaximum)
        end do
+       ! Determine the central slope of the mass profile.
+       self%gradientLogarithmicMassCentral=+log(self%tableEnclosedMass(2)/self%tableEnclosedMass(1)) &
+            &                              /log(self%tableRadius      (2)/self%tableRadius      (1))
        ! Build the interpolator.
        self%tableInterpolator=interpolator(self%tableRadius,extrapolationType=extrapolationTypeExtrapolate)
        ! Flag that the table is initialized.
