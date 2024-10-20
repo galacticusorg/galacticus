@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729382774022,
+  "lastUpdate": 1729419890356,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "970b8cf5439ec2ea0b846c9c8faa9735e170e6e9",
-          "message": "fix: Ensure a host tree is set for unresolved halos in the `darkMatterProfileScaleRadiusJohnson2021` class\n\nThis is needed to allow access to random number generators attached to trees (for example, by a concentration class that wants to include some random scatter).",
-          "timestamp": "2024-02-01T14:40:47-08:00",
-          "tree_id": "eb4984ebdba10a91844d9e70bf96a10cc9d8ef6f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/970b8cf5439ec2ea0b846c9c8faa9735e170e6e9"
-        },
-        "date": 1706838425686,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 200.129,
-            "unit": "seconds",
-            "range": 0.492754401300353
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10660,6 +10630,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 19.6734657376861,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9caa7c7d42304bbc9a5631e33267f10de814a7c1",
+          "message": "Merge pull request #724 from galacticusorg/massDistributions\n\nRefactor how mass distributions are handled",
+          "timestamp": "2024-10-20T04:11:11Z",
+          "tree_id": "7575aad885c6765e0f497b8292fa650c9f494a8c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9caa7c7d42304bbc9a5631e33267f10de814a7c1"
+        },
+        "date": 1729419889230,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 45.083,
+            "unit": "seconds",
+            "range": 0.0546818068462027
           }
         ]
       }
