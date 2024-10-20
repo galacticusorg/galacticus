@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "percentageAbove" : 56.25,
+      "percentageBelow" : 43.75,
+      "target" : 0.006
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/a4ac3d9e62a99aa02b20ef550c04ebf749c33957",
+      "timestamp" : "Sun, 20 Oct 2024 04:11:11 +0000",
       "author" : {
          "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "timestamp" : "Sat, 19 Oct 2024 16:39:37 +0000",
-      "message" : "Merge pull request #723 from galacticusorg/featGalaxyMergerTrees",
-      "id" : "a4ac3d9e62a99aa02b20ef550c04ebf749c33957"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/9caa7c7d42304bbc9a5631e33267f10de814a7c1",
+      "id" : "9caa7c7d42304bbc9a5631e33267f10de814a7c1",
+      "message" : "Merge pull request #724 from galacticusorg/massDistributions"
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 42.8571428571429,
-      "percentageBelow" : 57.1428571428571
-   },
-   "surfaceDensity" : {
-      "percentageBelow" : 46.875,
-      "percentageAbove" : 53.125,
-      "target" : 0.006
+      "percentageBelow" : 76.9230769230769,
+      "percentageAbove" : 23.0769230769231,
+      "target" : 0.85
    }
 }
