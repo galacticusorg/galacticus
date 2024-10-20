@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
-      "timestamp" : "Thu, 17 Oct 2024 11:41:01 -0700",
-      "message" : "feat: Allow option to fall through to the decorated kinematics distribution",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/a4ac3d9e62a99aa02b20ef550c04ebf749c33957",
       "author" : {
-         "email" : "abenson@carnegiescience.edu",
+         "email" : "abensonca@gmail.com",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/42273da9e5a595bc579c6c3526517708b6aca012",
-      "id" : "42273da9e5a595bc579c6c3526517708b6aca012"
+      "timestamp" : "Sat, 19 Oct 2024 16:39:37 +0000",
+      "message" : "Merge pull request #723 from galacticusorg/featGalaxyMergerTrees",
+      "id" : "a4ac3d9e62a99aa02b20ef550c04ebf749c33957"
+   },
+   "slope" : {
+      "target" : 0.85,
+      "percentageAbove" : 42.8571428571429,
+      "percentageBelow" : 57.1428571428571
    },
    "surfaceDensity" : {
       "percentageBelow" : 46.875,
-      "target" : 0.006,
-      "percentageAbove" : 53.125
-   },
-   "slope" : {
-      "percentageBelow" : 76.9230769230769,
-      "target" : 0.85,
-      "percentageAbove" : 23.0769230769231
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+      "percentageAbove" : 53.125,
+      "target" : 0.006
+   }
 }
