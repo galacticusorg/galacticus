@@ -27,13 +27,13 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
   !![
   <hotHaloColdModeMassDistribution name="hotHaloColdModeMassDistributionBetaProfile">
    <description>
-    A hot halo cold mod mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
+    A hot halo cold mode mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
     halo. Specifically,
     \begin{equation}
      \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
     \end{equation}
     where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-    \refPhysics{hotHaloColdModeMassDistributionCoreRadius}). The value of $\beta$ is specified by the {\normalfont
+    \refPhysics{hotHaloColdModeCoreRadii}). The value of $\beta$ is specified by the {\normalfont
     \ttfamily [beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
     within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
    </description>
