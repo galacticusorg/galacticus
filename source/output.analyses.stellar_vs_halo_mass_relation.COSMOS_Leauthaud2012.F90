@@ -21,7 +21,8 @@
   Contains a module which implements a stellar vs halo mass relation analysis class.
   !!}
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
   <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012">
@@ -36,6 +37,7 @@
      class           (outputAnalysisClass       ), pointer                   :: outputAnalysis_                      => null()
      class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_                 => null()
      class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_                  => null()
+     class           (darkMatterProfileDMOClass ), pointer                   :: darkMatterProfileDMO_                => null()
      class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_               => null()
      class           (outputTimesClass          ), pointer                   :: outputTimes_                         => null()
      logical                                                                 :: computeScatter
@@ -67,7 +69,6 @@ contains
     !!}
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
-    use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     use :: Virial_Density_Contrast , only : virialDensityContrastClass
     use :: Input_Parameters        , only : inputParameters
     implicit none
@@ -76,6 +77,7 @@ contains
     double precision                                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient
     class           (cosmologyParametersClass                            ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass                           ), pointer                     :: darkMatterProfileDMO_
     class           (virialDensityContrastClass                          ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
@@ -135,28 +137,29 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
     <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
     <objectDestructor name="outputTimes_"          />
     !!]
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
-    use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
     use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
@@ -185,6 +188,7 @@ contains
     double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                          , systematicErrorMassHaloPolynomialCoefficient
     class           (cosmologyParametersClass                            ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass                           ), intent(inout), target         :: darkMatterProfileDMO_
     class           (virialDensityContrastClass                          ), intent(in   ), target         :: virialDensityContrast_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
@@ -230,7 +234,7 @@ contains
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     !![
-    <constructorAssign variables="redshiftInterval, likelihoodBins, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="redshiftInterval, likelihoodBins, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Construct survey geometry.
@@ -430,34 +434,34 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                          )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                        constructor="nodePropertyExtractorMassStellar                      (                                                                                                        )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                        constructor="nodePropertyExtractorMassStellar                      (                                                                                                                              )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                         constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                      )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                         constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                            )"/>
     !!]
    allocate(outputAnalysisWeightPropertyOperatorNormalized_                  )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorNormalized_"               constructor="outputAnalysisPropertyOperatorSequence                (propertyOperatorsNormalized_                                                                            )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorNormalized_"               constructor="outputAnalysisPropertyOperatorSequence                (propertyOperatorsNormalized_                                                                                                  )"/>
     !!]
     ! Build weight operator.
     allocate   (outputAnalysisWeightOperator_                                )
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"                                 constructor="outputAnalysisWeightOperatorProperty                  (outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperatorNormalized_                  )"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_"                                 constructor="outputAnalysisWeightOperatorProperty                  (outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperatorNormalized_                                        )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                               )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                             constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                        )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                             constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                              )"/>
     !!]
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrastDefinition_                                )
     !![
-    <referenceConstruct object="virialDensityContrastDefinition_"                              constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                             )"/>
+    <referenceConstruct object="virialDensityContrastDefinition_"                              constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                                                   )"/>
     !!]
     allocate(nodePropertyExtractor_                                          )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                        constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                        constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Build the object.
     if (computeScatter) then
@@ -622,6 +626,7 @@ contains
     <objectDestructor name="self%outputAnalysis_"       />
     <objectDestructor name="self%cosmologyParameters_"  />
     <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
     <objectDestructor name="self%virialDensityContrast_"/>
     <objectDestructor name="self%outputTimes_"          />
     !!]
