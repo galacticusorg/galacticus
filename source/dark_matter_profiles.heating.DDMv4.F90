@@ -44,7 +44,8 @@
           &                                                 gamma_                          , velocityKick
      integer         (kind_int8               )          :: lastUniqueID
      logical                                             :: energySpecificComputed          , energySpecificGradientComputed, &
-          &                                                 factorsComputed                 , potentialEscapeComputed
+          &                                                 factorsComputed                 , potentialEscapeComputed       , &
+          &                                                 massEnclosedComputed
      double precision                                    :: radius                          , massEnclosed                  , &
           &                                                 fractionRetained                , energyRetained                , &
           &                                                 velocityDispersion              , velocityEscape                , &
@@ -138,6 +139,7 @@ contains
     self%lastUniqueID                  =-1_kind_int8
     self%radius                        =-huge(0.0d0)
     self%factorsComputed               =.false.
+    self%massEnclosedComputed          =.false.
     self%energySpecificComputed        =.false.
     self%energySpecificGradientComputed=.false.
     return
@@ -167,6 +169,7 @@ contains
     self%lastUniqueID                  =uniqueID
     self%radius                        =-huge(0.0d0)
     self%factorsComputed               =.false.
+    self%massEnclosedComputed          =.false.
     self%energySpecificComputed        =.false.
     self%energySpecificGradientComputed=.false.
     self%potentialEscapeComputed       =.false.
@@ -213,6 +216,7 @@ contains
     else if (radius /= self%radius) then
        self%radius                        =-huge(0.0d0)
        self%factorsComputed               =.false.
+       self%massEnclosedComputed          =.false.
        self%energySpecificComputed        =.false.
        self%energySpecificGradientComputed=.false.       
     end if
@@ -220,6 +224,13 @@ contains
        ! Compute the gravitational potential corresponding to escape (i.e. at some large radius).
        self%potentialEscape        =darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node))
        self%potentialEscapeComputed=.true.
+    end if
+    if (.not.self%massEnclosedComputed) then
+       ! Enclosed mass is needed if mass loss is to be accounted for, or if computing gradients.
+       if (self%massLoss_.or.gradientRequired) then
+          self%massEnclosed        =darkMatterProfileDMO_%enclosedMass(node,radius)
+          self%massEnclosedComputed=.true.
+       end if
     end if
     if (.not.self%factorsComputed) then
        ! Find the fraction of particles that have decayed by this time.
@@ -231,7 +242,6 @@ contains
             &                      )
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
        if (self%massLoss_) then
-          self%massEnclosed  =darkMatterProfileDMO_%enclosedMass(node,radius)
           if (radius <= 0.0d0) then
              self%massLossEnergy=+0.0d0
           else
