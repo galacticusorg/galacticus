@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "surfaceDensity" : {
-      "percentageAbove" : 56.25,
-      "percentageBelow" : 43.75,
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875,
       "target" : 0.006
    },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "slope" : {
+      "percentageAbove" : 23.0769230769231,
+      "percentageBelow" : 76.9230769230769,
+      "target" : 0.85
+   },
    "commit" : {
-      "timestamp" : "Sun, 20 Oct 2024 04:11:11 +0000",
+      "message" : "fix: Update reference",
+      "id" : "e5f6a393ac9fa768a4b0f26dd6a5e2ea343d361d",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/e5f6a393ac9fa768a4b0f26dd6a5e2ea343d361d",
       "author" : {
-         "email" : "abensonca@gmail.com",
+         "email" : "abenson@obs.carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/9caa7c7d42304bbc9a5631e33267f10de814a7c1",
-      "id" : "9caa7c7d42304bbc9a5631e33267f10de814a7c1",
-      "message" : "Merge pull request #724 from galacticusorg/massDistributions"
+      "timestamp" : "Sun, 20 Oct 2024 10:19:39 -0700"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "percentageBelow" : 76.9230769230769,
-      "percentageAbove" : 23.0769230769231,
-      "target" : 0.85
-   }
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }
