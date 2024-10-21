@@ -186,7 +186,6 @@
       <timescaleMultiplier value="1.0"/>
     </satelliteMergingTimescales>
   </satelliteMergingTimescales>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Disable all baryonic physics -->
   <hotHaloMassDistribution value="null"/>

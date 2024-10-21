@@ -78,7 +78,6 @@
   <virialOrbit value="isotropic">
     <virialOrbit value="benson2005"/>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy mergers -->
   <mergerMassMovements            value="null"/>
