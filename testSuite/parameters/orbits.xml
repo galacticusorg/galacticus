@@ -2,9 +2,9 @@
 <!-- Parameter file used for testing orbit calculations. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <componentBasic             value="standard"/>
-  <componentDarkMatterProfile value="null"    />
+  <componentDarkMatterProfile value="scale"   />
   <componentBlackHole         value="null"    />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
@@ -31,7 +31,5 @@
 
   <darkMatterProfileDMO       value="isothermal"       />
   <darkMatterProfile          value="darkMatterOnly"/>
-
-  <galacticStructure value="standard"/>
 
 </parameters>

@@ -767,40 +767,41 @@ contains
              end if
           end select
           if (.not.rangeChanged) then
-             message='unable to expand range to bracket root'
-             write (label,'(e12.6,a1,e12.6)') xLow ,":",self%finderFunction(xLow )
-             message=message//char(10)//'xLow :f(xLow )='//trim(label)
-             write (label,'(e12.6,a1,e12.6)') xHigh,":",self%finderFunction(xHigh)
-             message=message//char(10)//'xHigh:f(xHigh)='//trim(label)
-             if (self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
-                if (rangeLowerAsExpected) then
-                   message=message//char(10)//"f(xLow ) has expected sign"
-                else
-                   message=message//char(10)//"f(xLow ) does not have expected sign"
-                end if
-             end if
-             if (self%rangeExpandUpwardSignExpect   /= rangeExpandSignExpectNone) then
-                if (rangeUpperAsExpected) then
-                   message=message//char(10)//"f(xHigh) has expected sign"
-                else
-                   message=message//char(10)//"f(xHigh) does not have expected sign"
-                end if
-             end if
-             if (self%rangeDownwardLimitSet) then
-                write (label,'(e12.6)') self%rangeDownwardLimit
-                message=message//char(10)//"xLow  > "//trim(label)//" being enforced"
-             end if
-             if (self%rangeUpwardLimitSet  ) then
-                write (label,'(e12.6)') self%rangeUpwardLimit
-                message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
-             end if
+             rootFinderFind=0.0d0
              if (present(status)) then
-                call displayMessage(message,verbosityLevelWarn)
                 status=errorStatusOutOfRange
                 currentFinderIndex=currentFinderIndex-1
                 return
              else
-                rootFinderFind=0.0d0
+                fLow =self%finderFunction(xLow )
+                fHigh=self%finderFunction(xHigh)
+                message='unable to expand range to bracket root'
+                write (label,'(e12.6,a1,e12.6)') xLow ,":",fLow
+                message=message//char(10)//'xLow :f(xLow )='//trim(label)
+                write (label,'(e12.6,a1,e12.6)') xHigh,":",fHigh
+                message=message//char(10)//'xHigh:f(xHigh)='//trim(label)
+                if (self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
+                   if (rangeLowerAsExpected) then
+                      message=message//char(10)//"f(xLow ) has expected sign"
+                   else
+                      message=message//char(10)//"f(xLow ) does not have expected sign"
+                   end if
+                end if
+                if (self%rangeExpandUpwardSignExpect   /= rangeExpandSignExpectNone) then
+                   if (rangeUpperAsExpected) then
+                      message=message//char(10)//"f(xHigh) has expected sign"
+                   else
+                      message=message//char(10)//"f(xHigh) does not have expected sign"
+                   end if
+                end if
+                if (self%rangeDownwardLimitSet) then
+                   write (label,'(e12.6)') self%rangeDownwardLimit
+                   message=message//char(10)//"xLow  > "//trim(label)//" being enforced"
+                end if
+                if (self%rangeUpwardLimitSet  ) then
+                   write (label,'(e12.6)') self%rangeUpwardLimit
+                   message=message//char(10)//"xHigh < "//trim(label)//" being enforced"
+                end if
                 call Error_Report(message//{introspection:location})
              end if
           end if

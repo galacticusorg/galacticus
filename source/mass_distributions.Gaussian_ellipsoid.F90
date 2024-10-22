@@ -266,26 +266,20 @@ contains
     return
   end subroutine gaussianEllipsoidInitialize
   
-  double precision function gaussianEllipsoidDensity(self,coordinates,componentType,massType)
+  double precision function gaussianEllipsoidDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
     !!}
     use :: Coordinates   , only : assignment(=), coordinateCartesian
     use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
     implicit none
-    class           (massDistributionGaussianEllipsoid), intent(inout)           :: self
-    class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    type            (coordinateCartesian              )                          :: position
-    double precision                                   , dimension(3)            :: positionComponents
-    double precision                                                             :: mSquared
-    type           (vector                            )                          :: positionVectorUnrotated, positionVector
+    class           (massDistributionGaussianEllipsoid), intent(inout) :: self
+    class           (coordinate                       ), intent(in   ) :: coordinates
+    type            (coordinateCartesian              )                :: position
+    double precision                                   , dimension(3)  :: positionComponents
+    double precision                                                   :: mSquared
+    type           (vector                            )                :: positionVectorUnrotated, positionVector
 
-    if (.not.self%matches(componentType,massType)) then
-       gaussianEllipsoidDensity=0.0d0
-       return
-    end if
     ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
     positionComponents      = position
@@ -319,7 +313,7 @@ contains
     return
   end function gaussianEllipsoidDensityEllipsoidal
 
-  function gaussianEllipsoidAcceleration(self,coordinates,componentType,massType)
+  function gaussianEllipsoidAcceleration(self,coordinates)
     !!{
     Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
     !!}
@@ -327,22 +321,16 @@ contains
     use :: Linear_Algebra                  , only : assignment(=)                  , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    double precision                                   , dimension(3  )          :: gaussianEllipsoidAcceleration
-    class           (massDistributionGaussianEllipsoid), intent(inout)           :: self
-    class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    type            (coordinateCartesian              )                          :: coordinatesCartesian
-    double precision                                   , dimension(3)            :: positionCartesian            , positionCartesianScaleFree , &
-         &                                                                          accelerationScaleFree
-    integer                                                                      :: i
-    type            (vector                            )                         :: positionVector               , positionVectorUnrotated    , &
-         &                                                                          accelerationVector           , accelerationVectorUnrotated
+    double precision                                   , dimension(3)  :: gaussianEllipsoidAcceleration
+    class           (massDistributionGaussianEllipsoid), intent(inout) :: self
+    class           (coordinate                       ), intent(in   ) :: coordinates
+    type            (coordinateCartesian              )                :: coordinatesCartesian
+    double precision                                   , dimension(3)  :: positionCartesian            , positionCartesianScaleFree , &
+         &                                                                accelerationScaleFree
+    integer                                                            :: i
+    type            (vector                            )               :: positionVector               , positionVectorUnrotated    , &
+         &                                                                accelerationVector           , accelerationVectorUnrotated
     
-    if (.not.self%matches(componentType,massType)) then
-       gaussianEllipsoidAcceleration=0.0d0
-       return
-    end if
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.

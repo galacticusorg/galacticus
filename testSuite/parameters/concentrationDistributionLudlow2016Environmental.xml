@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -19,29 +19,37 @@
     <HubbleConstant  value="70.400000"/>
     <OmegaMatter     value=" 0.272000"/>
     <OmegaDarkEnergy value=" 0.728000"/>
-    <OmegaBaryon     value=" 0.044550"/>
+    <OmegaBaryon     value=" 0.000000"/>
     <temperatureCMB  value=" 2.725480"/>
   </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <transferFunctionMethod        value="CAMB"    />
-  <powerSpectrumPrimordialMethod value="powerLaw" >
+  <transferFunction        value="CAMB"     >
+    <cosmologyParameters value="simple">
+      <HubbleConstant  value="70.400000"/>
+      <OmegaMatter     value=" 0.272000"/>
+      <OmegaDarkEnergy value=" 0.728000"/>
+      <OmegaBaryon     value=" 0.044550"/>
+      <temperatureCMB  value=" 2.725480"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw" >
     <index               value="0.967"/>
     <wavenumberReference value="1.000"/>
     <running             value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
   <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.81"/>
   </cosmologicalMassVariance>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>
-  <haloMassFunctionMethod value="shethTormen">
+  <haloMassFunction value="shethTormen">
     <a             value="+0.791"/>
     <p             value="+0.218"/>
     <normalization value="+0.302"/>
-  </haloMassFunctionMethod>
+  </haloMassFunction>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <haloEnvironment value="normal">

@@ -18,17 +18,21 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of Jiang et al. (2022).
+  An implementation of a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
   !!}
 
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
-
+  use :: Dark_Matter_Particles  , only : darkMatterParticleClass
+  use :: Dark_Matter_Halo_Scales, only : darkmatterHaloScaleClass
+  
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMCoreNFW">
-   <description>Cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of Jiang et al. (2022).</description>
+    <description>
+      Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}
+      are built via \refClass{} objects.
+    </description>
   </darkMatterProfileDMO>
   !!]
-  type, extends(darkMatterProfileDMOSIDM) :: darkMatterProfileDMOSIDMCoreNFW
+  type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMCoreNFW
      !!{
      A dark matter halo profile class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based
      on the model of Jiang et al. (2022). The profile is defined by the enclosed mass, with (Jiang et al. 2022):
@@ -39,35 +43,13 @@
      $\alpha = ${\normalfont \ttfamily [factorRadiusCore]}.
      !!}
      private
-     double precision :: factorRadiusCore
+     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     double precision                                     :: factorRadiusCore
    contains
-     !![
-     <methods>
-       <method method="radiusCore"       description="Computes the core radius of halo."/>
-       <method method="calculationReset" description="Reset memoized calculations."     />
-     </methods>
-     !!]
-     final     ::                                      sidmCoreNFWDestructor
-     procedure :: autoHook                          => sidmCoreNFWAutoHook
-     procedure :: calculationReset                  => sidmCoreNFWCalculationReset
-     procedure :: radiusCore                        => sidmCoreNFWRadiusCore
-     procedure :: density                           => sidmCoreNFWDensity
-     procedure :: densityLogSlope                   => sidmCoreNFWDensityLogSlope
-     procedure :: radiusEnclosingDensity            => sidmCoreNFWRadiusEnclosingDensity
-     procedure :: radiusEnclosingMass               => sidmCoreNFWRadiusEnclosingMass
-     procedure :: radialMoment                      => sidmCoreNFWRadialMoment
-     procedure :: enclosedMass                      => sidmCoreNFWEnclosedMass
-     procedure :: potential                         => sidmCoreNFWPotential
-     procedure :: circularVelocity                  => sidmCoreNFWCircularVelocity
-     procedure :: circularVelocityMaximum           => sidmCoreNFWCircularVelocityMaximum
-     procedure :: radiusCircularVelocityMaximum     => sidmCoreNFWRadiusCircularVelocityMaximum
-     procedure :: radialVelocityDispersion          => sidmCoreNFWRadialVelocityDispersion
-     procedure :: radiusFromSpecificAngularMomentum => sidmCoreNFWRadiusFromSpecificAngularMomentum
-     procedure :: rotationNormalization             => sidmCoreNFWRotationNormalization
-     procedure :: energy                            => sidmCoreNFWEnergy
-     procedure :: kSpace                            => sidmCoreNFWKSpace
-     procedure :: freefallRadius                    => sidmCoreNFWFreefallRadius
-     procedure :: freefallRadiusIncreaseRate        => sidmCoreNFWFreefallRadiusIncreaseRate
+     final     ::        sidmCoreNFWDestructor
+     procedure :: get => sidmCoreNFWGet
   end type darkMatterProfileDMOSIDMCoreNFW
 
   interface darkMatterProfileDMOSIDMCoreNFW
@@ -88,8 +70,8 @@ contains
     implicit none
     type            (darkMatterProfileDMOSIDMCoreNFW)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
-    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
     class           (darkMatterParticleClass        ), pointer       :: darkMatterParticle_
+    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
     double precision                                                 :: factorRadiusCore
 
     !![
@@ -100,14 +82,14 @@ contains
       <source>parameters</source>
       <description>The factor $\alpha$ appearing in the definition of the core radius, $r_\mathrm{c}=\alpha r_1$ where $r_1$ is the radius at which an SIDM particle has had, on average, 1 interaction.</description>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
     self=darkMatterProfileDMOSIDMCoreNFW(factorRadiusCore,darkMatterHaloScale_,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="darkMatterParticle_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function sidmCoreNFWConstructorParameters
@@ -119,8 +101,8 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
     type            (darkMatterProfileDMOSIDMCoreNFW)                        :: self
-    class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterParticleClass        ), intent(in   ), target :: darkMatterParticle_
+    class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                 , intent(in   )         :: factorRadiusCore
     !![
     <constructorAssign variables="factorRadiusCore, *darkMatterHaloScale_, *darkMatterParticle_"/>
@@ -148,403 +130,90 @@ contains
        </referenceConstruct>
        !!]
     end select
-    self%genericLastUniqueID =-1_kind_int8
-    self%uniqueIDPreviousSIDM=-1_kind_int8
     return
   end function sidmCoreNFWConstructorInternal
-
-  subroutine sidmCoreNFWAutoHook(self)
-    !!{
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
-    implicit none
-    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,sidmCoreNFWCalculationReset,openMPThreadBindingAllLevels,label='darkMatterProfileDMOSIDMCoreNFW')
-    return
-  end subroutine sidmCoreNFWAutoHook
 
   subroutine sidmCoreNFWDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily sidmCoreNFW} dark matter halo profile class.
     !!}
-    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
 
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterParticle_"  />
+    <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
-    if (calculationResetEvent%isAttached(self,sidmCoreNFWCalculationReset)) call calculationResetEvent%detach(self,sidmCoreNFWCalculationReset)
     return
   end subroutine sidmCoreNFWDestructor
 
-  subroutine sidmCoreNFWCalculationReset(self,node,uniqueID)
+  function sidmCoreNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Reset the dark matter profile calculation.
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Kind_Numbers, only : kind_int8
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass
+    use :: Mass_Distributions        , only : massDistributionSphericalSIDMCoreNFW, kinematicsDistributionCollisionless, massDistributionNFW, nonAnalyticSolversNumerical
     implicit none
-    class  (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type   (treeNode                       ), intent(inout) :: node
-    integer(kind_int8                      ), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
+    class           (massDistributionClass              ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOSIDMCoreNFW    ), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
+    type            (enumerationWeightByType            ), intent(in   ), optional :: weightBy
+    integer                                              , intent(in   ), optional :: weightIndex
+    class           (massDistributionClass              ), pointer                 :: massDistributionDecorated
+    class           (nodeComponentBasic                 ), pointer                 :: basic
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
 
-    self%genericLastUniqueID                         =uniqueID
-    self%uniqueIDPreviousSIDM                        =uniqueID
-    self%radiusInteractivePrevious                   =-1.0d0
-    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
-    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
-    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
-    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
-    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
-    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
-    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
-    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalSIDMCoreNFW :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalSIDMCoreNFW)
+       massDistributionDecorated => self%darkMatterProfileDMO_%get  (node,weightBy,weightIndex)
+       basic                     => node                      %basic(                         )
+       select type (massDistributionDecorated)
+       class is (massDistributionNFW)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalSIDMCoreNFW(                                                         &amp;
+	      &amp;                                factorRadiusCore   =self %factorRadiusCore             , &amp;
+	      &amp;                                timeAge            =basic%time                       (), &amp;
+	      &amp;                                nonAnalyticSolver  =      nonAnalyticSolversNumerical  , &amp;
+	      &amp;                                massDistribution_  =      massDistributionDecorated    , &amp;
+	      &amp;                                darkMatterParticle_=self %darkMatterParticle_          , &amp;
+              &amp;                                componentType      =      componentTypeDarkHalo        , &amp;
+              &amp;                                massType           =      massTypeDark                   &amp;
+              &amp;                               )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+       !![
+       <objectDestructor name="massDistributionDecorated"/>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionCollisionless( &amp;
+	 &amp;                             )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
     return
-  end subroutine sidmCoreNFWCalculationReset
-
-  double precision function sidmCoreNFWRadiusCore(self,node)
-    !!{
-    Returns the core radius (in Mpc) of the ``coreNFW'' approximation to the self-interacting dark matter profile of {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
-
-    sidmCoreNFWRadiusCore=+self%factorRadiusCore        &
-         &                *self%radiusInteraction(node)
-    return
-  end function sidmCoreNFWRadiusCore
-
-  double precision function sidmCoreNFWDensity(self,node,radius)
-    !!{
-    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-    double precision                                 , parameter     :: radiusFractionalLarge=10.0d0
-    double precision                                                 :: radiusFractional            , radiusCore
-
-    radiusCore      =+self%radiusCore(node)
-    radiusFractional=+     radius           &
-         &            /    radiusCore
-    if (radiusFractional < radiusFractionalLarge) then
-       ! Use the full solution for sufficiently small radii.
-       sidmCoreNFWDensity=+self%darkMatterProfileDMO_%density(node,radius)      &
-            &             *tanh(                                                &
-            &                   +radiusFractional                               &
-            &                  )                                                &
-            &             +self%darkMatterProfileDMO_%enclosedMass(node,radius) &
-            &             /4.0d0                                                &
-            &             /Pi                                                   &
-            &             /      radiusFractional**2                            &
-            &             /      radiusCore      **3                            &
-            &             /cosh(                                                &
-            &                   +radiusFractional                               &
-            &             )**2
-    else
-       ! For large fractional radii avoid floating point overflow by approximating cosh(x) ~ 1/2/exp(-x).
-       sidmCoreNFWDensity=+self%darkMatterProfileDMO_%density(node,radius)      &
-            &             *tanh(                                                &
-            &                   +radiusFractional                               &
-            &                  )                                                &
-            &             +self%darkMatterProfileDMO_%enclosedMass(node,radius) &
-            &             /4.0d0                                                &
-            &             /Pi                                                   &
-            &             /      radiusFractional**2                            &
-            &             /      radiusCore      **3                            &
-            &             *4.0d0                                                &
-            &             *exp(                                                 &
-            &                  -2.0d0                                           &
-            &                  * radiusFractional                               &
-            &                 )
-    end if
-    return
-  end function sidmCoreNFWDensity
-
-  double precision function sidmCoreNFWDensityLogSlope(self,node,radius)
-    !!{
-    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-    double precision                                                 :: radiusCore, massEnclosedNFW   , &
-         &                                                              densityNFW, densityLogSlopeNFW
-
-    radiusCore                =+self%radiusCore                           (node       )
-    massEnclosedNFW           =+self%darkMatterProfileDMO_%enclosedMass   (node,radius)
-    densityNFW                =+self%darkMatterProfileDMO_%density        (node,radius)
-    densityLogSlopeNFW        =+self%darkMatterProfileDMO_%densityLogSlope(node,radius)
-    sidmCoreNFWDensityLogSlope=+(                                     &
-         &                       -2.0d0                               &
-         &                       *massEnclosedNFW                     &
-         &                       *(                                   &
-         &                         +radiusCore                        &
-         &                         +radius                            &
-         &                         *tanh(                             &
-         &                               +radius                      &
-         &                               /radiusCore                  &
-         &                              )                             &
-         &                        )                                   &
-         &                       +radiusCore*radius                   &
-         &                       *(                                   &
-         &                         +4.0d0                             &
-         &                         *Pi                                &
-         &                         *radius**2                         &
-         &                         *densityNFW                        &
-         &                         +2.0d0                             &
-         &                         *Pi                                &
-         &                         *radius**2                         &
-         &                         *(                                 &
-         &                           +2.0d0                           &
-         &                           *densityNFW                      &
-         &                           +(                               &
-         &                             +radiusCore                    &
-         &                             *sinh(                         &
-         &                                   +2.0d0                   &
-         &                                   *radius                  &
-         &                                   /radiusCore              &
-         &                                 )                          &
-         &                             *densityLogSlopeNFW*densityNFW &
-         &                            )                               &
-         &                         /radius                            &
-         &                        )                                   &
-         &                       )                                    &
-         &                      )                                     &
-         &                     /(                                     &
-         &                       +radiusCore                          &
-         &                       *(                                   &
-         &                         +massEnclosedNFW                   &
-         &                         +2.0d0                             &
-         &                         *Pi                                &
-         &                         *radiusCore                        &
-         &                         *radius    **2                     &
-         &                         *sinh(                             &
-         &                              +2.0d0                        &
-         &                              *radius                       &
-         &                              /radiusCore                   &
-         &                        )                                   &
-         &                       *densityNFW                          &
-         &                      )                                     &
-         &                     )
-    return
-  end function sidmCoreNFWDensityLogSlope
-
-  double precision function sidmCoreNFWEnclosedMass(self,node,radius)
-    !!{
-    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-
-    sidmCoreNFWEnclosedMass=+      self%darkMatterProfileDMO_%enclosedMass(node,radius) &
-         &                  *tanh(                                                      &
-         &                        +                                             radius  &
-         &                        /self%radiusCore                        (node       ) &
-         &                       )
-    return
-  end function sidmCoreNFWEnclosedMass
-
-  double precision function sidmCoreNFWRadiusEnclosingDensity(self,node,density)
-    !!{
-    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: density
-    
-    sidmCoreNFWRadiusEnclosingDensity=self%radiusEnclosingDensityNumerical(node,density)
-    return
-  end function sidmCoreNFWRadiusEnclosingDensity
-
-  double precision function sidmCoreNFWRadiusEnclosingMass(self,node,mass)
-    !!{
-    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: mass
-
-    sidmCoreNFWRadiusEnclosingMass=self%radiusEnclosingMassNumerical(node,mass)
-    return
-  end function sidmCoreNFWRadiusEnclosingMass
-
-  double precision function sidmCoreNFWRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !!{
-    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout)           :: node
-    double precision                                 , intent(in   )           :: moment
-    double precision                                 , intent(in   ), optional :: radiusMinimum, radiusMaximum
-
-    sidmCoreNFWRadialMoment=self%radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
-    return
-  end function sidmCoreNFWRadialMoment
-
-  double precision function sidmCoreNFWPotential(self,node,radius,status)
-    !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW  ), intent(inout)           :: self
-    type            (treeNode                         ), intent(inout), target   :: node
-    double precision                                   , intent(in   )           :: radius
-    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-
-    sidmCoreNFWPotential=self%potentialNumerical(node,radius,status)
-    return
-  end function sidmCoreNFWPotential
-
-  double precision function sidmCoreNFWCircularVelocity(self,node,radius)
-    !!{
-    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-
-    sidmCoreNFWCircularVelocity=self%circularVelocityNumerical(node,radius)
-    return
-  end function sidmCoreNFWCircularVelocity
-
-  double precision function sidmCoreNFWCircularVelocityMaximum(self,node)
-    !!{
-    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
-
-    sidmCoreNFWCircularVelocityMaximum=self%circularVelocityMaximumNumerical(node)
-    return
-  end function sidmCoreNFWCircularVelocityMaximum
-
-  double precision function sidmCoreNFWRadiusCircularVelocityMaximum(self,node)
-    !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
-
-    sidmCoreNFWRadiusCircularVelocityMaximum=self%radiusCircularVelocityMaximumNumerical(node)
-    return
-  end function sidmCoreNFWRadiusCircularVelocityMaximum
-
-  double precision function sidmCoreNFWRadialVelocityDispersion(self,node,radius)
-    !!{
-    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-
-    sidmCoreNFWRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
-    return
-  end function sidmCoreNFWRadialVelocityDispersion
-
-  double precision function sidmCoreNFWRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !!{
-    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    in units of km s$^{-1}$ Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: specificAngularMomentum
-
-    sidmCoreNFWRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(node,specificAngularMomentum)
-    return
-  end function sidmCoreNFWRadiusFromSpecificAngularMomentum
-
-  double precision function sidmCoreNFWRotationNormalization(self,node)
-    !!{
-    Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
-
-    sidmCoreNFWRotationNormalization=self%rotationNormalizationNumerical(node)
-    return
-  end function sidmCoreNFWRotationNormalization
-
-  double precision function sidmCoreNFWEnergy(self,node)
-    !!{
-    Return the energy of a sidmCoreNFW halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
-    type (treeNode                       ), intent(inout) :: node
-
-    sidmCoreNFWEnergy=self%energyNumerical(node)
-    return
-  end function sidmCoreNFWEnergy
-
-  double precision function sidmCoreNFWKSpace(self,node,waveNumber)
-    !!{
-    Returns the Fourier transform of the sidmCoreNFW density profile at the specified {\normalfont \ttfamily waveNumber}
-    (given in Mpc$^{-1}$).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout)         :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: waveNumber
-
-    sidmCoreNFWKSpace=self%kSpaceNumerical(node,waveNumber)
-    return
-  end function sidmCoreNFWKSpace
-
-  double precision function sidmCoreNFWFreefallRadius(self,node,time)
-    !!{
-    Returns the freefall radius in the sidmCoreNFW density profile at the specified {\normalfont \ttfamily time} (given in
-    Gyr).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: time
-
-    sidmCoreNFWFreefallRadius=self%freefallRadiusNumerical(node,time)
-    return
-  end function sidmCoreNFWFreefallRadius
-
-  double precision function sidmCoreNFWFreefallRadiusIncreaseRate(self,node,time)
-    !!{
-    Returns the rate of increase of the freefall radius in the sidmCoreNFW density profile at the specified {\normalfont
-    \ttfamily time} (given in Gyr).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOSIDMCoreNFW), intent(inout), target :: self
-    type            (treeNode                       ), intent(inout), target :: node
-    double precision                                 , intent(in   )         :: time
-
-    sidmCoreNFWFreefallRadiusIncreaseRate=self%freefallRadiusIncreaseRateNumerical(node,time)
-    return
-  end function sidmCoreNFWFreefallRadiusIncreaseRate
+  end function sidmCoreNFWGet

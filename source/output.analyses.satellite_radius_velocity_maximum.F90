@@ -179,17 +179,26 @@ contains
     Analyze the maximum velocity tidal track.
     !!}
     use    :: Numerical_Constants_Math, only : Pi
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock, OMP_Unset_Lock
+    use    :: Mass_Distributions      , only : massDistributionClass
+    !$ use :: OMP_Lib                 , only : OMP_Set_Lock         , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     integer         (c_size_t                                    ), intent(in   ) :: iOutput
+    class           (massDistributionClass                       ), pointer       :: massDistributionUnheated_    , massDistribution_
     double precision                                                              :: fractionRadiusVelocityMaximum, varianceFractionRadiusVelocityMaximum
 
     ! Skip non-satellites.
     if (.not.node%isSatellite()) return
     ! Extract the maximum circular velocity fraction.
-    fractionRadiusVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum(node)/self%darkMatterProfileDMOUnheated%radiusCircularVelocityMaximum(node)
+    massDistribution_         => self%darkMatterProfileDMO_       %get(node)
+    massDistributionUnheated_ => self%darkMatterProfileDMOUnheated%get(node)
+    fractionRadiusVelocityMaximum=+massDistribution_        %radiusRotationCurveMaximum() &
+         &                        /massDistributionUnheated_%radiusRotationCurveMaximum()
+    !![
+    <objectDestructor name="massDistribution_"        />
+    <objectDestructor name="massDistributionUnheated_"/>
+    !!]
     !$ call OMP_Set_Lock(self%accumulateLock)
     self%fractionRadiusVelocityMaximum(iOutput)=fractionRadiusVelocityMaximum
     ! Add model uncertainty.
@@ -234,7 +243,7 @@ contains
     return
   end subroutine satelliteRadiusVelocityMaximumReduce
 
-  subroutine satelliteRadiusVelocityMaximumFinalize(self)
+  subroutine satelliteRadiusVelocityMaximumFinalize(self,groupName)
     !!{
     Output results of the maximum velocity tidal track output analysis.
     !!}
@@ -246,9 +255,11 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
-    class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
-    type (hdf5Object                                  )                :: analysesGroup, analysisGroup, &
-         &                                                                dataset
+    class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout)           :: self
+    type (varying_string                              ), intent(in   ), optional :: groupName
+    type (hdf5Object                                  )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                                  )               , pointer  :: inGroup
+    type (hdf5Object                                  )                          :: analysisGroup, dataset
 
 #ifdef USEMPI
     ! If running under MPI, accumulate tracks across all processes.
@@ -256,8 +267,13 @@ contains
     self%logLikelihood_               =mpiSelf%sum(self%logLikelihood_               )
 #endif
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                                                             )
-    analysisGroup=analysesGroup%openGroup('satelliteRadiusVelocityMaximum','Analysis of the satellite maximum circular velocity radius vs. time.')
+    analysesGroup =  outputFile   %openGroup('analyses'                         )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName)                    )
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('satelliteRadiusVelocityMaximum','Analysis of the satellite maximum circular velocity radius vs. time.')
     ! Write metadata describing this analysis.
     call analysisGroup%writeAttribute('Satellite maximum circular velocity radius fraction vs. time.','description'                              )
     call analysisGroup%writeAttribute("function1D"                                                   ,'type'                                     )

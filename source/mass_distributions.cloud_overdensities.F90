@@ -210,25 +210,19 @@ contains
     return
   end subroutine cloudOverdensitiesDestructor
 
-  double precision function cloudOverdensitiesDensity(self,coordinates,componentType,massType)
+  double precision function cloudOverdensitiesDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
     !!}
     use :: Coordinates  , only : assignment(=), coordinateCartesian
     implicit none
-    class           (massDistributionCloudOverdensities), intent(inout)           :: self
-    class           (coordinate                        ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType      ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType           ), intent(in   ), optional :: massType
-    type            (coordinateCartesian               )                          :: position
-    double precision                                    , dimension(3)            :: positionComponents
-    double precision                                                              :: densityContrast
-    integer                                                                       :: neighborCount
+    class           (massDistributionCloudOverdensities), intent(inout) :: self
+    class           (coordinate                        ), intent(in   ) :: coordinates
+    type            (coordinateCartesian               )                :: position
+    double precision                                    , dimension(3)  :: positionComponents
+    double precision                                                    :: densityContrast
+    integer                                                             :: neighborCount
     
-    if (.not.self%matches(componentType,massType)) then
-       cloudOverdensitiesDensity=0.0d0
-       return
-    end if
     ! Extract the position.
     position          =coordinates
     positionComponents=position

@@ -21,13 +21,12 @@
   An implementation of virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.
   !!}
 
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Root_Finder             , only : rootFinder
-  use :: Tables                  , only : table1DLinearLinear
-  use :: Virial_Density_Contrast , only : virialDensityContrastClass, virialDensityContrastFixed
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Root_Finder            , only : rootFinder
+  use :: Tables                 , only : table1DLinearLinear
+  use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastFixed
 
   !![
   <virialOrbit name="virialOrbitJiang2014">
@@ -53,7 +52,6 @@
      class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_              => null()
      class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_              => null()
      class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_               => null()
-     class           (darkMatterProfileDMOClass ), pointer        :: darkMatterProfileDMO_             => null()
      class           (virialDensityContrastClass), pointer        :: virialDensityContrast_            => null()
      type            (virialDensityContrastFixed), pointer        :: virialDensityContrastDefinition_  => null()
      double precision                            , dimension(3,3) :: B                                          , gamma                                         , &
@@ -111,7 +109,6 @@ contains
     class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
     class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
     class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
     double precision                            , dimension(3)  :: bRatioLow             , bRatioIntermediate    , bRatioHigh    , &
          &                                                         gammaRatioLow         , gammaRatioIntermediate, gammaRatioHigh, &
@@ -194,22 +191,20 @@ contains
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_)
+    self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
     <objectDestructor name="cosmologyParameters_"  />
     <objectDestructor name="cosmologyFunctions_"   />
-    <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function jiang2014ConstructorParameters
 
-  function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     !!}
@@ -233,21 +228,21 @@ contains
     class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ), target         :: cosmologyFunctions_
     class           (virialDensityContrastClass  ), intent(in   ), target         :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass   ), intent(in   ), target         :: darkMatterProfileDMO_
     integer                                       , parameter                     :: tableCount                 =1000
-    integer                                                                       :: i                                  , j                                    , k
+    integer                                                                       :: i                                  , j                                    , k                   , &
+         &                                                                           attempt
     type            (distributionFunction1DVoight)                                :: voightDistribution
     double precision                              , parameter                     :: toleranceAbsolute           =0.0d+0, toleranceRelative             =1.0d-3
     double precision                              , allocatable  , dimension(:,:) :: distribution_
     double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum,  &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
-    logical                                                                       :: limitFound
+    logical                                                                       :: limitFound                         , success
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     type            (varying_string              )                                :: fileName
     type            (hdf5Object                  )                                :: file
     type            (lockDescriptor              )                                :: fileLock
      !![
-    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh"/>
     !!]
 
     ! Assign parameters of the distribution.
@@ -272,98 +267,104 @@ contains
          &   '.hdf5'
     call Directory_Make(char(File_Path(char(fileName))))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
-    if (File_Exists(fileName)) then
-       !$ call hdf5Access%set()
-       file=hdf5Object            (char(fileName)                                                   )
-       call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
-       call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
-       call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
-       call file%readDatasetStatic('velocityTotalRootMeanSquared',self%velocityTotalRootMeanSquared_)
-       do i=1,3
-          do j=1,3
-             call file%readDataset(char(var_str('distribution_')//i//'_'//j) , distribution_)
-             call self%voightDistributions(i,j)%create  (limitLower        ,limitUpper,tableCount)
-             call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
-          end do
-       end do
-       !$ call hdf5Access%unset()
-    else
-       ! Tabulate Voight distribution functions for speed.
-       integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
-       integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
-       ! Build the distribution function for total velocity.
-       do i=1,3
-          do j=1,3
-             ! Build the distribution.
-             ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
-             ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
-             ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
-             ! half-maximum is estimated using the approximation of Olivero (1977; Journal of Quantitative Spectroscopy and
-             ! Radiative Transfer; 17; 233; http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
-             fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
-             fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
-             halfWidthHalfMaximum          =+0.5d0                                     &
-                  &                         *(                                         &
-                  &                           +      0.5346d0                          &
-                  &                           *      fullWidthHalfMaximumLorentzian    &
-                  &                           +sqrt(                                   &
-                  &                                 +0.2166d0                          &
-                  &                                 *fullWidthHalfMaximumLorentzian**2 &
-                  &                                 +fullWidthHalfMaximumGaussian  **2 &
-                  &                                )                                   &
-                  &                          )
-             limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
-             limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
-             voightDistribution=distributionFunction1DVoight(                        &
-                  &                                          self%gamma(i,j)       , &
-                  &                                          self%mu   (i,j)       , &
-                  &                                          self%sigma(i,j)       , &
-                  &                                          limitLower            , &
-                  &                                          limitUpper              &
-                  &                                         )
-             ! Tabulate the cumulative distribution.
-             call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
-             !$omp parallel do
-             do k=2,tableCount-1
-                call self%voightDistributions(i,j)%populate(min(1.0d0,max(0.0d0,voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)))),k)
+    success=.false.
+    do attempt=0,1
+       call File_Lock(char(fileName),fileLock,lockIsShared=attempt == 0)
+       if (File_Exists(fileName)) then
+          !$ call hdf5Access%set()
+          file=hdf5Object            (char(fileName)                                                   )
+          call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
+          call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
+          call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
+          call file%readDatasetStatic('velocityTotalRootMeanSquared',self%velocityTotalRootMeanSquared_)
+          do i=1,3
+             do j=1,3
+                call file%readDataset(char(var_str('distribution_')//i//'_'//j) , distribution_)
+                call self%voightDistributions(i,j)%create  (limitLower        ,limitUpper,tableCount)
+                call self%voightDistributions(i,j)%populate(distribution_(:,1)                      )
              end do
-             !$omp end parallel do
-             ! Ensure tabulation starts at 0 and reaches 1.
-             call self%voightDistributions(i,j)%populate(0.0d0,         1)
-             call self%voightDistributions(i,j)%populate(1.0d0,tableCount)
-             ! Ensure that 0 and 1 are unique within the table, by making any duplicated table entries slightly beyond these
-             ! values. This ensures that when seeking values in this table we do not exceed the plausible range.
-             limitFound=.false.
-             do k=1,tableCount
-                if (limitFound)  call self%voightDistributions(i,j)%populate(1.0d0+1.0d-6,k)
-                if (self%voightDistributions(i,j)%y(k) >= 1.0d0) limitFound=.true.
-             end do
-             limitFound=.false.
-             do k=tableCount,1,-1
-                if (limitFound) call self%voightDistributions(i,j)%populate(0.0d0-1.0d-6,k)
-                if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
-             end do
-             ! Compute the mean magnitude of tangential velocity.
-             self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
-             ! Compute the root mean squared total velocity.
-             self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
           end do
-       end do
-       !$ call hdf5Access%set()
-       file=hdf5Object         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
-       call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
-       call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
-       call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
-       call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
-       do i=1,3
-          do j=1,3
-             call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
+          !$ call hdf5Access%unset()
+          success=.true.
+       else if (attempt == 1) then
+          ! Tabulate Voight distribution functions for speed.
+          integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+          integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+          ! Build the distribution function for total velocity.
+          do i=1,3
+             do j=1,3
+                ! Build the distribution.
+                ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
+                ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
+                ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
+                ! half-maximum is estimated using the approximation of Olivero (1977; Journal of Quantitative Spectroscopy and
+                ! Radiative Transfer; 17; 233; http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
+                fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
+                fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
+                halfWidthHalfMaximum          =+0.5d0                                     &
+                     &                         *(                                         &
+                     &                           +      0.5346d0                          &
+                     &                           *      fullWidthHalfMaximumLorentzian    &
+                     &                           +sqrt(                                   &
+                     &                                 +0.2166d0                          &
+                     &                                 *fullWidthHalfMaximumLorentzian**2 &
+                     &                                 +fullWidthHalfMaximumGaussian  **2 &
+                     &                                )                                   &
+                     &                          )
+                limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
+                limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
+                voightDistribution=distributionFunction1DVoight(                        &
+                     &                                          self%gamma(i,j)       , &
+                     &                                          self%mu   (i,j)       , &
+                     &                                          self%sigma(i,j)       , &
+                     &                                          limitLower            , &
+                     &                                          limitUpper              &
+                     &                                         )
+                ! Tabulate the cumulative distribution.
+                call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
+                !$omp parallel do
+                do k=2,tableCount-1
+                   call self%voightDistributions(i,j)%populate(min(1.0d0,max(0.0d0,voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)))),k)
+                end do
+                !$omp end parallel do
+                ! Ensure tabulation starts at 0 and reaches 1.
+                call self%voightDistributions(i,j)%populate(0.0d0,         1)
+                call self%voightDistributions(i,j)%populate(1.0d0,tableCount)
+                ! Ensure that 0 and 1 are unique within the table, by making any duplicated table entries slightly beyond these
+                ! values. This ensures that when seeking values in this table we do not exceed the plausible range.
+                limitFound=.false.
+                do k=1,tableCount
+                   if (limitFound)  call self%voightDistributions(i,j)%populate(1.0d0+1.0d-6,k)
+                   if (self%voightDistributions(i,j)%y(k) >= 1.0d0) limitFound=.true.
+                end do
+                limitFound=.false.
+                do k=tableCount,1,-1
+                   if (limitFound) call self%voightDistributions(i,j)%populate(0.0d0-1.0d-6,k)
+                   if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
+                end do
+                ! Compute the mean magnitude of tangential velocity.
+                self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
+                ! Compute the root mean squared total velocity.
+                self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
+             end do
           end do
-       end do
-       !$ call hdf5Access%unset()
-    end if
-    call File_Unlock(fileLock)
+          !$ call hdf5Access%set()
+          file=hdf5Object         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
+          call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
+          call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
+          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
+          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
+          do i=1,3
+             do j=1,3
+                call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))
+             end do
+          end do
+          !$ call hdf5Access%unset()
+          success=.true.
+       end if
+       call File_Unlock(fileLock,sync=attempt == 1)
+       if (success) exit
+    end do
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrastDefinition_)
     !![
@@ -446,7 +447,6 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"            />
     <objectDestructor name="self%cosmologyParameters_"            />
     <objectDestructor name="self%cosmologyFunctions_"             />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
@@ -494,7 +494,6 @@ contains
          &                                                                   velocityHost                                                                                   , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
-         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
          &                                            virialDensityContrast_=self%virialDensityContrast_                                                                      &
          &                                           )
     massSatellite=Dark_Matter_Profile_Mass_Definition(                                                                                                                        &
@@ -502,7 +501,6 @@ contains
          &                                                                   virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
-         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
          &                                            virialDensityContrast_=self%virialDensityContrast_                                                                      &
          &                                           )
     !![
@@ -636,7 +634,6 @@ contains
          &                                                                      velocityHost                                                                                   , &
          &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
          &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
-         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
          &                                               virialDensityContrast_=self%virialDensityContrast_                                                                      &
          &                                              )
     massSatellite =  Dark_Matter_Profile_Mass_Definition(                                                                                                                        &
@@ -644,7 +641,6 @@ contains
          &                                                                      virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
          &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                      , &
          &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                       , &
-         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                     , &
          &                                               virialDensityContrast_=self%virialDensityContrast_                                                                      &
          &                                              )
     !![
@@ -694,7 +690,6 @@ contains
          &                                                                                              velocityHost                                                                                        , &
          &                                                                       cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                                       virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                                                      )
     jiang2014AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
@@ -750,7 +745,6 @@ contains
          &                                                                      velocityHost                                                                                        , &
          &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                               virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                              )
     massSatellite =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
@@ -758,7 +752,6 @@ contains
          &                                                                      self%virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
          &                                               cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                               cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                               darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                               virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                              )
     !![
@@ -793,7 +786,6 @@ contains
          &                                                                             velocityHost                                                                                        , &
          &                                                      cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                      cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                      darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                      virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                                     )
     jiang2014EnergyMean =  +0.5d0                                           &

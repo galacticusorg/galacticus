@@ -33,7 +33,8 @@
      private
      double precision :: timescale
    contains
-     procedure :: multiplier => unescapedMultiplier
+     procedure :: multiplier          => unescapedMultiplier
+     procedure :: isRedshiftDependent => unescapedIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorUnescaped
 
   interface stellarPopulationSpectraPostprocessorUnescaped
@@ -98,3 +99,15 @@ contains
     unescapedMultiplier=exp(-age/self%timescale)
     return
   end function unescapedMultiplier
+
+  logical function unescapedIsRedshiftDependent(self) result(isRedshiftDependent)
+    !!{
+    Return false indicating that the postprocessor is redshift independent.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorUnescaped), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isRedshiftDependent=.false.
+    return
+  end function unescapedIsRedshiftDependent

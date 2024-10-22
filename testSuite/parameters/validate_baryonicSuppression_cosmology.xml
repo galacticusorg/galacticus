@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Cosmological parameters for the baryonic suppression validation model.
+     Taken from Zheng et al. (2024; https://ui.adsabs.harvard.edu/abs/2024arXiv240317044Z) -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="67.77000"/>
+    <OmegaMatter     value=" 0.30700"/>
+    <OmegaDarkEnergy value=" 0.69300"/>
+    <OmegaBaryon     value=" 0.04825"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <tolerance                   value="1.0e-2"/>
+    <toleranceTopHat             value="1.0e-2"/>
+    <nonMonotonicIsFatal         value="false" />
+    <monotonicInterpolation      value="true"  />
+    <powerSpectrumWindowFunction value="topHat"/>
+    <wavenumberReference         value="1.0d0" />
+    <reference>
+      <cosmologicalMassVariance value="filteredPower">
+	<sigma_8                     value="0.8288"/>
+	<tolerance                   value="1.0e-2"/>
+	<toleranceTopHat             value="1.0e-2"/>
+	<nonMonotonicIsFatal         value="false" />
+	<monotonicInterpolation      value="true"  />
+	<powerSpectrumWindowFunction value="topHat"/>
+      </cosmologicalMassVariance>
+      <powerSpectrumPrimordialTransferred value="simple"/>
+      <powerSpectrumPrimordial value="powerLaw">
+	<index               value="0.9611"/>
+	<wavenumberReference value="1.0000"/>
+	<running             value="0.0000"/>
+      </powerSpectrumPrimordial>
+      <linearGrowth          value="collisionlessMatter"/>
+    </reference>
+  </cosmologicalMassVariance>
+  <transferFunction value="CAMB">
+    <redshift value="100.0"/>  
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.9611"/>
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+</parameters>

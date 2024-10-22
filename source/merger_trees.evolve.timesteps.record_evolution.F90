@@ -23,7 +23,6 @@ main branch galaxy.
 !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctions, cosmologyFunctionsClass
-  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Numerical_Interpolation, only : interpolator
   use :: Output_Times           , only : outputTimes       , outputTimesClass
 
@@ -58,7 +57,6 @@ main branch galaxy.
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_    => null()
      class           (outputTimesClass       ), pointer                   :: outputTimes_           => null()
-     class           (galacticStructureClass ), pointer                   :: galacticStructure_     => null()
      logical                                                              :: oneTimeDatasetsWritten
      integer                                                              :: countSteps
      double precision                                                     :: timeBegin                       , timeEnd
@@ -97,7 +95,6 @@ contains
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                       ), pointer       :: outputTimes_
-    class           (galacticStructureClass                 ), pointer       :: galacticStructure_
     double precision                                                         :: timeBegin          , timeEnd, &
          &                                                                      ageUniverse
     integer                                                                  :: countSteps
@@ -105,7 +102,6 @@ contains
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
-    <objectBuilder class="galacticStructure"  name="galacticStructure_"  source="parameters"/>
     !!]
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !![
@@ -128,17 +124,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_,galacticStructure_)
+    self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="outputTimes_"       />
-    <objectDestructor name="galacticStructure_" />
     !!]
     return
   end function recordEvolutionConstructorParameters
 
-  function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_,galacticStructure_) result(self)
+  function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
     !!}
@@ -148,12 +143,11 @@ contains
     type            (mergerTreeEvolveTimestepRecordEvolution)                        :: self
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_
-    class           (galacticStructureClass                 ), intent(in   ), target :: galacticStructure_
     double precision                                         , intent(in   )         :: timeBegin          , timeEnd
     integer                                                  , intent(in   )         :: countSteps
     integer         (c_size_t                               )                        :: timeIndex
     !![
-    <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_, *galacticStructure_"/>
+    <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_"/>
     !!]
 
     allocate(self%time           (self%countSteps))
@@ -193,7 +187,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
     <objectDestructor name="self%outputTimes_"       />
-    <objectDestructor name="self%galacticStructure_" />
     !!]
     if (mergerTreeExtraOutputEvent%isAttached(self,recordEvolutionOutput)) call mergerTreeExtraOutputEvent%detach(self,recordEvolutionOutput)
     return
@@ -246,9 +239,10 @@ contains
     !!{
     Store properties of the main progenitor galaxy.
     !!}
-    use            :: Galactic_Structure_Options, only : massTypeGalactic, massTypeStellar
+    use            :: Galactic_Structure_Options, only : massTypeGalactic     , massTypeStellar
     use            :: Error                     , only : Error_Report
-    use            :: Galacticus_Nodes          , only : mergerTree      , nodeComponentBasic, treeNode
+    use            :: Galacticus_Nodes          , only : mergerTree           , nodeComponentBasic, treeNode
+    use            :: Mass_Distributions        , only : massDistributionClass
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
     class           (*                            ), intent(inout)          :: self
@@ -256,6 +250,7 @@ contains
     type            (treeNode                     ), intent(inout), pointer :: node
     type            (enumerationDeadlockStatusType), intent(inout)          :: deadlockStatus
     class           (nodeComponentBasic           )               , pointer :: basic
+    class           (massDistributionClass        )               , pointer :: massDistributionGalactic, massDistributionStellar
     integer         (c_size_t                     )                         :: indexTime
     double precision                                                        :: time
     !$GLC attributes unused :: deadlockStatus, tree
@@ -269,8 +264,14 @@ contains
        else
           indexTime=self%interpolator_%locate(time)
        end if
-       self%massStellar(indexTime)=self%galacticStructure_%massEnclosed(node,massType=massTypeStellar )
-       self%massTotal  (indexTime)=self%galacticStructure_%massEnclosed(node,massType=massTypeGalactic)
+       massDistributionStellar             => node                    %massDistribution(massType=massTypeStellar )
+       massDistributionGalactic            => node                    %massDistribution(massType=massTypeGalactic)
+       self%massStellar        (indexTime) =  massDistributionStellar %massTotal       (                         )
+       self%massTotal          (indexTime) =  massDistributionGalactic%massTotal       (                         )
+       !![
+       <objectDestructor name="massDistributionStellar" />
+       <objectDestructor name="massDistributionGalactic"/>
+       !!]
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

@@ -21,9 +21,8 @@
   Implements a node operator class that initializes halo angular momenta using a random walk in angular momentum.
   !!}
 
-  use :: Halo_Spin_Distributions , only : haloSpinDistributionClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <nodeOperator name="nodeOperatorHaloAngularMomentumRandomWalk">
@@ -47,7 +46,6 @@
      !!}
      private
      class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_           => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_           => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_            => null()
      double precision                                     :: angularMomentumVarianceSpecific
    contains
@@ -74,7 +72,6 @@ contains
     type            (nodeOperatorHaloAngularMomentumRandomWalk)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (haloSpinDistributionClass                ), pointer       :: haloSpinDistribution_
-    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
     double precision                                                           :: angularMomentumVarianceSpecific
      
@@ -86,31 +83,28 @@ contains
       <defaultValue>0.0029d0</defaultValue>
     </inputParameter>
     <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=nodeOperatorHaloAngularMomentumRandomWalk(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=nodeOperatorHaloAngularMomentumRandomWalk(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloSpinDistribution_"/>
-    <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function haloAngularMomentumRandomWalkConstructorParameters
 
-  function haloAngularMomentumRandomWalkConstructorInternal(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function haloAngularMomentumRandomWalkConstructorInternal(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandomWalk)                        :: self
     class           (haloSpinDistributionClass                ), intent(in   ), target :: haloSpinDistribution_
-    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                           , intent(in   )         :: angularMomentumVarianceSpecific
     !![
-    <constructorAssign variables="angularMomentumVarianceSpecific, *haloSpinDistribution_, *darkMatterProfileDMO_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="angularMomentumVarianceSpecific, *haloSpinDistribution_, *darkMatterHaloScale_"/>
     !!]
 
     return
@@ -125,7 +119,6 @@ contains
 
     !![
     <objectDestructor name="self%haloSpinDistribution_"/>
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
     return
@@ -137,6 +130,7 @@ contains
     !!}
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Vectors               , only : Vector_Magnitude
     implicit none
     class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout), target       :: self
     type            (treeNode                                 ), intent(inout), target       :: node
@@ -160,8 +154,8 @@ contains
        ! Select a angular momentum for the initial halo using the spin distribution function.
        basicProgenitor       =>  nodeProgenitor                      %basic (                         )
        spinProgenitor        =>  nodeProgenitor                      %spin  (autoCreate=.true.        )
-       angularMomentumScalar =  +self          %haloSpinDistribution_%sample(           nodeProgenitor)             &
-            &                   *Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterProfileDMO_)
+       angularMomentumScalar =  +self          %haloSpinDistribution_%sample(           nodeProgenitor)            &
+            &                   *Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterHaloScale_)
        call spinProgenitor%angularMomentumSet(angularMomentumScalar)
        ! Compute the initial angular momentum vector. We choose this to be aligned along the x-axis. As we only care about the
        ! magnitude of the angular momentum any choice of initial vector direction is equivalent.
@@ -188,17 +182,20 @@ contains
              angularMomentumVector(i)=+angularMomentumVector(i)                                              &
                   &                   +sqrt(                                                                 &
                   &                         +self%angularMomentumVarianceSpecific                            &
-                  &                         *(                                                               &
-                  &                           +angularMomentumCurrent **2                                    &
-                  &                           -angularMomentumPrevious**2                                    &
-                  &                          )                                                               &
+                  &                         *max(                                                            &
+                  &                              +angularMomentumCurrent **2                                 &
+                  &                              -angularMomentumPrevious**2,                                &
+                  &                              +0.0d0                                                      &
+                  &                             )                                                            &
                   &                        )                                                                 &
                   &                   *nodeProgenitor%hostTree%randomNumberGenerator_%standardNormalSample()
           end do
           ! Store the scalar angular momentum.
-          call spinProgenitor%angularMomentumSet(sqrt(sum(angularMomentumVector**2)))
+          call        spinProgenitor%angularMomentumSet      (Vector_Magnitude(angularMomentumVector))
+          if (spinProgenitor%angularMomentumVectorIsSettable())                                        &
+               & call spinProgenitor%angularMomentumVectorSet(                 angularMomentumVector )
           ! Store the current characteristic angular momentum.
-          angularMomentumPrevious=angularMomentumCurrent
+          angularMomentumPrevious=max(angularMomentumPrevious,angularMomentumCurrent)
           ! Move to the next descendant halo.
           if (nodeProgenitor%isPrimaryProgenitor()) then
              nodeProgenitor  => nodeProgenitor%parent

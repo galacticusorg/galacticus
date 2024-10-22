@@ -15,7 +15,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
+    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -100,6 +100,7 @@
       <branchIntervalStep value="true"/>
       <mergeProbability value="0.1"/>
       <redshiftMaximum value="10.0"/>
+    <toleranceTimeEarliest value="4.0e-6"/>
     </mergerTreeBuilder>
     <mergerTreeConstructor value="build"/>
     <mergerTreeBuildMasses value="sampledDistributionUniform">

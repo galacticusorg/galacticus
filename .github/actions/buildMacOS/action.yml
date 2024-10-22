@@ -6,6 +6,9 @@ runs:
     - name: "Set environmental variables"
       shell: bash
       run: |
+        os_ver=$(sw_vers -productVersion)
+        IFS='.' read -r -a ver <<< "$os_ver"
+        echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
         echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
         echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
         echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
@@ -15,12 +18,23 @@ runs:
         echo "CCOMPILER=gcc-11" >> $GITHUB_ENV
         echo "CPPCOMPILER=g++-11" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
-        echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
-        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include" >> $GITHUB_ENV
-        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp" >> $GITHUB_ENV
-        os_ver=$(sw_vers -productVersion)
-        IFS='.' read -r -a ver <<< "$os_ver"
-        echo "OS_VER=${ver[0]}" >> $GITHUB_ENV
+        if [[ "${ver[0]}" -eq 13 ]]; then
+          # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib -Wl,-ld_classic" >> $GITHUB_ENV
+        else
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib" >> $GITHUB_ENV
+        fi
+        echo "GALACTICUS_CFLAGS=-I/usr/local/include -I/opt/local/include -I/opt/local/include/guile-1.8" >> $GITHUB_ENV
+        echo "GALACTICUS_CPPFLAGS=-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp -I/opt/local/include/guile-1.8" >> $GITHUB_ENV
+    - name: Fix broken Apple include file
+      shell: bash
+      run: |
+        # This removes syntax not supported by the GCC compiler prior to version 13.3.
+        # It should be possible to remove this once a later version of GCC is used.
+        # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114007
+        if [[ "${OS_VER}" -eq 14 ]]; then
+           sudo sed -E -i~ s/"clang::"/"clang"/g /Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk/usr/include/sys/cdefs.h
+        fi
     - name: Install MacPorts
       shell: bash
       run: |
@@ -43,9 +57,17 @@ runs:
         curl -L https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
         sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
         rm ./MacPorts-${macportsbase}.pkg
+    - name: Install GCC
+      shell: bash
+      run: brew install gcc@11
     - name: Install guile
       shell: bash
-      run: sudo port install guile18
+      run: |
+        sudo port install guile-1.8
+        sudo port select --set guile guile-1.8
+    - name: Install libgit2
+      shell: bash
+      run: sudo port install libgit2
     - name: Install libmatheval
       shell: bash
       run: |
@@ -54,10 +76,8 @@ runs:
         cd libmatheval-1.1.12
         # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
         sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
-        sed -E -i~ s/"-lguile"/"-lguile18"/ configure
-        sed -E -i~ s/"libguile.h"/"libguile18.h"/g configure tests/matheval.c
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
-        CC=gcc-11 GUILE=/opt/local/bin/guile18 GUILE_CONFIG=/opt/local/bin/guile18-config GUILE_TOOLS=/opt/local/bin/guile18-tools ./configure --prefix=/usr/local
+        CC=gcc-11 GUILE=/opt/local/bin/guile-1.8 GUILE_CONFIG=/opt/local/bin/guile-config-1.8 GUILE_TOOLS=/opt/local/bin/guile-tools-1.8 ./configure --prefix=/usr/local || (cat config.log && false)
         make -j3
         sudo make install
         cd ..
@@ -88,8 +108,13 @@ runs:
       run: |
         curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
         tar -vxzf hdf5-1.8.20.tar.gz 
-        cd hdf5-1.8.20 
-        CC=gcc-11 CXX=g++-11 FC=gfortran-11 ./configure --prefix=/usr/local --enable-fortran --enable-production 
+        cd hdf5-1.8.20
+        if [[ "${OS_VER}" -eq 13 ]]; then
+           # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
+           CC=gcc-11 CXX=g++-11 FC=gfortran-11 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-production
+        else
+           CC=gcc-11 CXX=g++-11 FC=gfortran-11                         ./configure --prefix=/usr/local --enable-fortran --enable-production
+        fi
         make -j3
         sudo make install
         cd ..
@@ -179,8 +204,8 @@ runs:
         if [[ "${OS_VER}" -ge 12 ]]; then
            # For OS versions 12 and above we need to ensure that the ParserDetails.ini is set up.
            sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
-           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()" 
-           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" 
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()" || true
+           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" || true
         fi
         sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
         sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'

@@ -3,7 +3,7 @@
 <!-- No baryonic physics is included - a purely dark matter universe is assumed. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Set verbosity to show when background work is being performed -->
   <verbosityLevel value="working"/>
@@ -311,9 +311,7 @@
   <!-- Star formation rate options -->
   <starFormationRateDisks value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006">
-    <assumeMonotonicSurfaceDensity value="true"/>
-    <assumeExponentialDisk         value="true"/>
-    <useTabulation                 value="false"/>
+    <useTabulation value="false"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">

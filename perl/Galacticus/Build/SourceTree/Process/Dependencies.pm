@@ -31,7 +31,7 @@ sub Process_Dependencies {
 	    }
 	    close($dependencyFile);
 	    # Generate code.
-	    my $code = join("\n",map {"call dependencies_%set(var_str('".$_."'),var_str('".$dependencies{$_}."'))"} keys(%dependencies))."\n";
+	    my $code = join("\n",map {"call dependencies_%set(var_str('".$_."'),var_str('".$dependencies{$_}."'))"} sort(keys(%dependencies)))."\n";
 	    # Insert our code.
 	    my $initializationNode =
 	    {

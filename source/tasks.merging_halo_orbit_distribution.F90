@@ -17,14 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScaleClass
-  use :: Virial_Orbits                     , only : virialOrbitClass
-  use :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
-  use :: Spherical_Collapse_Accretion_Flows, only : accretionFlowsClass
-  use :: Merger_Tree_Branching             , only : mergerTreeBranchingProbabilityClass
-  use :: Cosmological_Density_Field        , only : criticalOverdensityClass           , cosmologicalMassVarianceClass
-  use :: Halo_Mass_Functions               , only : haloMassFunctionClass
-  use :: Cosmology_Functions               , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass
+  use :: Virial_Orbits             , only : virialOrbitClass
+  use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
+  use :: Merger_Tree_Branching     , only : mergerTreeBranchingProbabilityClass
+  use :: Cosmological_Density_Field, only : criticalOverdensityClass           , cosmologicalMassVarianceClass
+  use :: Halo_Mass_Functions       , only : haloMassFunctionClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
 
   !![
   <task name="taskMergingHaloOrbitDistribution">
@@ -39,7 +39,7 @@
      class           (darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
      class           (virialOrbitClass                   ), pointer :: virialOrbit_                    => null()
      class           (randomNumberGeneratorClass         ), pointer :: randomNumberGenerator_          => null()
-     class           (accretionFlowsClass                ), pointer :: accretionFlows_                 => null()
+     class           (darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_           => null()
      class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
      class           (criticalOverdensityClass           ), pointer :: criticalOverdensity_            => null()
      class           (cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_       => null()
@@ -78,8 +78,8 @@ contains
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class           (virialOrbitClass                   ), pointer       :: virialOrbit_
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     class           (randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
-    class           (accretionFlowsClass                ), pointer       :: accretionFlows_
     class           (mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
     class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), pointer       :: cosmologicalMassVariance_
@@ -156,24 +156,24 @@ contains
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
-    <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"/>
-    <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"/>
-    <objectBuilder class="accretionFlows"                 name="accretionFlows_"                 source="parameters"/>
-    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
-    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
-    <objectBuilder class="haloMassFunction"               name="haloMassFunction_"               source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                  />
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                  />
+    <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                  />
+    <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                  />
+    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters" parameterName="darkMatterProfileDMOAccretionFlow"/>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"                                                  />
+    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"                                                  />
+    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"                                                  />
+    <objectBuilder class="haloMassFunction"               name="haloMassFunction_"               source="parameters"                                                  />
     !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
-    self=taskMergingHaloOrbitDistribution(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,accretionFlows_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_)
+    self=taskMergingHaloOrbitDistribution(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"            />
     <objectDestructor name="virialOrbit_"                   />
     <objectDestructor name="randomNumberGenerator_"         />
-    <objectDestructor name="accretionFlows_"                />
+    <objectDestructor name="darkMatterProfileDMO_"          />
     <objectDestructor name="darkMatterHaloScale_"           />
     <objectDestructor name="mergerTreeBranchingProbability_"/>
     <objectDestructor name="criticalOverdensity_"           />
@@ -183,7 +183,7 @@ contains
     return
   end function mergingHaloOrbitDistributionConstructorParameters
 
-  function mergingHaloOrbitDistributionConstructorInternal(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,accretionFlows_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_) result(self)
+  function mergingHaloOrbitDistributionConstructorInternal(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
     !!}
@@ -192,7 +192,7 @@ contains
     class           (virialOrbitClass                   ), intent(in   ), target :: virialOrbit_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
-    class           (accretionFlowsClass                ), intent(in   ), target :: accretionFlows_
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
@@ -203,7 +203,7 @@ contains
          &                                                                          time
     integer                                              , intent(in   )         :: countMassesPerDecade           , countVelocitiesPerUnit
     !![
-    <constructorAssign variables="time, velocityMinimum, velocityMaximum, countVelocitiesPerUnit, massMinimum, massMaximum, countMassesPerDecade, *virialOrbit_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionFlows_, *mergerTreeBranchingProbability_, *criticalOverdensity_, *cosmologicalMassVariance_, *haloMassFunction_, *randomNumberGenerator_"/>
+    <constructorAssign variables="time, velocityMinimum, velocityMaximum, countVelocitiesPerUnit, massMinimum, massMaximum, countMassesPerDecade, *virialOrbit_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *mergerTreeBranchingProbability_, *criticalOverdensity_, *cosmologicalMassVariance_, *haloMassFunction_, *randomNumberGenerator_"/>
     !!]
 
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
@@ -223,7 +223,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"            />
     <objectDestructor name="self%darkMatterHaloScale_"           />
     <objectDestructor name="self%randomNumberGenerator_"         />
-    <objectDestructor name="self%accretionFlows_"                />
+    <objectDestructor name="self%darkMatterProfileDMO_"          />
     <objectDestructor name="self%mergerTreeBranchingProbability_"/>
     <objectDestructor name="self%criticalOverdensity_"           />
     <objectDestructor name="self%cosmologicalMassVariance_"      />
@@ -248,12 +248,15 @@ contains
     use :: HDF5_Access        , only : hdf5Access
     use :: IO_HDF5            , only : hdf5Object
     use :: Numerical_Ranges   , only : Make_Range           , rangeTypeLogarithmic, rangeTypeLinear
+    use :: Mass_Distributions , only : massDistributionClass
+    use :: Coordinates        , only : coordinateSpherical  , assignment(=)
     implicit none
     class           (taskMergingHaloOrbitDistribution), intent(inout)     , target      :: self
     integer                                           , intent(  out)     , optional    :: status
     type            (treeNode                        )                    , pointer     :: nodeHost                        , nodeSatellite
     class           (nodeComponentBasic              )                    , pointer     :: basicHost                       , basicSatellite
     type            (mergerTree                      )                    , pointer     :: tree
+    class           (massDistributionClass           )                    , pointer     :: massDistribution_
     double precision                                  , dimension(:      ), allocatable :: mass                            , velocity                            , &
          &                                                                                 separation                      , density                             , &
          &                                                                                 haloMassFunction
@@ -272,7 +275,8 @@ contains
          &                                                                                 velocityWidthBin                , overdensityCriticalGrowthRate       , &
          &                                                                                 overdensityCritical             , rootVarianceLogarithmicGrowthRate   , &
          &                                                                                 barrierEffectiveGrowthRate
-    
+    type            (coordinateSpherical             )                                  :: coordinates
+
     call displayIndent('Begin task: merging halo orbit distribution')
     ! Build range of velocities.
     countVelocities=int(     (self%velocityMaximum-self%velocityMinimum)*dble(self%countVelocitiesPerUnit))+1    
@@ -326,9 +330,14 @@ contains
        call Calculations_Reset           (     nodeHost)
        ! Compute the separation of the merging pairs (i.e. the virial radius of the primary halo), the density of the
        ! accretion flow at that separation, and the halo mass function.
-       separation      (iHost)=self%darkMatterHaloScale_%radiusVirial(nodeHost                   )
-       density         (iHost)=self%accretionFlows_     %density     (nodeHost ,separation(iHost))
-       haloMassFunction(iHost)=self%haloMassFunction_   %differential(self%time,massHost,nodeHost)
+       massDistribution_        => self             %darkMatterProfileDMO_%get         (                      nodeHost)
+       separation       (iHost) =  self             %darkMatterHaloScale_ %radiusVirial(                      nodeHost)
+       coordinates              =  [separation(iHost),0.0d0,0.0d0]
+       density          (iHost) =  massDistribution_                      %density     (          coordinates         )
+       haloMassFunction (iHost) =  self             %haloMassFunction_    %differential(self%time,massHost   ,nodeHost)
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
        ! Iterate over satellite masses.
        do iSatellite=1,countMasses
           ! Only consider satellites less (or equally) massive than their host.

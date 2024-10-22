@@ -36,22 +36,28 @@ module Kepler_Orbits
   <enumeration>
    <name>keplerOrbit</name>
    <description>Properties of Kepler orbit objects.</description>
+   <indexing>1</indexing>
+   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
-   <entry label="masses"             />
-   <entry label="massHost"           />
-   <entry label="specificReducedMass"/>
-   <entry label="radius"             />
-   <entry label="theta"              />
-   <entry label="phi"                />
-   <entry label="epsilon"            />
-   <entry label="radiusPericenter"   />
-   <entry label="radiusApocenter"    />
-   <entry label="velocityRadial"     />
-   <entry label="velocityTangential" />
-   <entry label="energy"             />
-   <entry label="angularMomentum"    />
-   <entry label="eccentricity"       />
-   <entry label="semiMajorAxis"      />
+   <decodeFunction>yes</decodeFunction>
+   <entry label="masses"              description="The masses of the orbiting bodies."                           />
+   <entry label="massSatellite"       description="The mass of the satellite body."                              />
+   <entry label="massHost"            description="The mass of the host body."                                   />
+   <entry label="specificReducedMass" description="The specific reduced mass of the orbiting body."              />
+   <entry label="radius"              description="The initial radius of the orbit."                             />
+   <entry label="theta"               description="The initial polar angle, theta, of the orbit."                />
+   <entry label="phi"                 description="The initial azimuthal angle, phi, of the orbit."              />
+   <entry label="epsilon"             description="The initial rotation angle, epsilon, of the orbital velocity."/>
+   <entry label="radiusPericenter"    description="The orbital pericenter radius."                               />
+   <entry label="radiusApocenter"     description="The orbital apocenter radius."                                />
+   <entry label="velocityRadial"      description="The initial radial velocity of the orbit."                    />
+   <entry label="velocityTangential"  description="The initial tangential velocity of the orbit."                />
+   <entry label="energy"              description="The orbital energy."                                          />
+   <entry label="angularMomentum"     description="The orbital angular momentum"                                 />
+   <entry label="eccentricity"        description="The orbital eccentricity."                                    />
+   <entry label="semiMajorAxis"       description="The semi-major axis of the orbit."                            />
+   <entry label="timeInitial"         description="The time at which the orbit was initialized."                 />
+   <entry label="timeCurrent"         description="The current time for the orbit."                              />
   </enumeration>
   !!]
 
@@ -65,13 +71,13 @@ module Kepler_Orbits
      velocities and the radius. If it can obtain these, any other parameter can be computed. Getting these three parameters
      relies on having known conversions from other possible combinations of parameters. The position of the object is described
      by $(r,\theta,\phi)$ in standard spherical coordinates. The direction of the tangential component is velocity is taken to
-     be the direction of the vector $\mathbf{r} \times \mathbf{e}_\mathrm{\hat{z}}$, rotated by an angle $\epsilon$ around the
+     be the direction of the vector $\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}$, rotated by an angle $\epsilon$ around the
      vector $\mathbf{r}$.
      !!}
      private
      double precision :: massHostValue        , specificReducedMassValue
      double precision :: radiusApocenterValue , radiusPericenterValue   , &
-          &              radiusValue
+          &              radiusValue          , massSatelliteValue
      double precision :: velocityRadialValue  , velocityTangentialValue
      double precision :: thetaValue           , phiValue                , &
           &              epsilonValue
@@ -117,6 +123,7 @@ module Kepler_Orbits
        <method description="Sets the angular momentum of an orbit." method="angularMomentumSet" />
        <method description="Sets the semi-major axis of an orbit." method="semiMajorAxisSet" />
        <method description="Returns the host mass of an orbit." method="massHost" />
+       <method description="Returns the satellite mass of an orbit." method="massSatellite" />
        <method description="Returns the velocity scale of an orbit." method="velocityScale" />
        <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
        <method description="Returns the radius of an orbit." method="radius" />
@@ -162,6 +169,7 @@ module Kepler_Orbits
      procedure :: semiMajorAxisSet      => Kepler_Orbits_Semi_Major_Axis_Set
      procedure :: specificReducedMass   => Kepler_Orbits_Specific_Reduced_Mass
      procedure :: massHost              => Kepler_Orbits_Host_Mass
+     procedure :: massSatellite         => Kepler_Orbits_Satellite_Mass
      procedure :: velocityScale         => Kepler_Orbits_Velocity_Scale
      procedure :: radius                => Kepler_Orbits_Radius
      procedure :: theta                 => Kepler_Orbits_Theta
@@ -187,7 +195,7 @@ module Kepler_Orbits
   end interface keplerOrbit
 
   ! A null orbit.
-  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
+  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
 
 contains
 
@@ -432,6 +440,7 @@ contains
     ! Set the mass factor and flag that is set.
     orbit%specificReducedMassValue=1.0d0/(1.0d0+massSatellite/massHost)
     orbit%massHostValue           =massHost
+    orbit%massSatelliteValue      =massSatellite
     orbit%massesIsSet             =.true.
     return
   end subroutine Kepler_Orbits_Masses_Set
@@ -655,6 +664,19 @@ contains
     Kepler_Orbits_Specific_Reduced_Mass=orbit%specificReducedMassValue
     return
   end function Kepler_Orbits_Specific_Reduced_Mass
+
+  double precision function Kepler_Orbits_Satellite_Mass(orbit)
+    !!{
+    Return the mass for this orbit.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(keplerOrbit), intent(inout) :: orbit
+
+    if (.not.orbit%massesIsSet) call Error_Report('satellite mass has not been set for this orbit'//{introspection:location})
+    Kepler_Orbits_Satellite_Mass=orbit%massSatelliteValue
+    return
+  end function Kepler_Orbits_Satellite_Mass
 
   double precision function Kepler_Orbits_Host_Mass(orbit)
     !!{
@@ -929,20 +951,31 @@ contains
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Vectors                         , only : Vector_Magnitude               , Vector_Product
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit
     double precision             , intent(in   )           :: newRadius
     logical                      , intent(in   ), optional :: infalling
-    double precision                                       :: angularMomentum      , energy, newVelocityRadial, &
-         &                                                    newVelocityTangential
+    double precision             , dimension(3)            :: position             , positionNew          , &
+         &                                                    velocity             , velocityNew          , &
+         &                                                    vectorEpsilon1       , vectorEpsilon2       , &
+         &                                                    vectorNormal         , vectorPlane          , &
+         &                                                    vectorRadial         , vectorRadialNew      , &
+         &                                                    vectorTangential1    , vectorTangential2    , &
+         &                                                    velocityTangentialNew
+    double precision                                       :: angularMomentum      , energy               , &
+         &                                                    newVelocityRadial    , newVelocityTangential, &
+         &                                                    eccentricity         , semiMajorAxis        , &
+         &                                                    thetaInitial         , thetaFinal           , &
+         &                                                    velocityEpsilon1     , velocityEpsilon2
 
     ! Assert that the orbit is defined.
     call orbit%assertIsDefined()
     ! Check that the radius is within the allowed range.
-    if     (                                                                                                               &
-         &    newRadius < orbit%radiusPericenter()                                                                         &
-         &  .or.                                                                                                           &
-         &   (newRadius > orbit%radiusApocenter () .and. orbit%radiusApocenter() > 0.0d0)                                  &
+    if     (                                                                                                    &
+         &    newRadius < orbit%radiusPericenter()                                                              &
+         &  .or.                                                                                                &
+         &   (newRadius > orbit%radiusApocenter () .and. orbit%radiusApocenter() > 0.0d0)                       &
          & ) call Error_Report('radius lies outside of allowed range for this orbit'//{introspection:location})
     ! Get the energy and angular momentum
     energy         =orbit%energy         ()
@@ -954,14 +987,72 @@ contains
     if (present(infalling)) then
        if (infalling) newVelocityRadial=-newVelocityRadial
     end if
+    ! If position information is set, propagate that also.
+    if     (                    &
+         &   orbit%  thetaIsSet &
+         &  .and.               &
+         &   orbit%    phiIsSet &
+         &  .and.               &
+         &   orbit%epsilonIsSet &
+         & ) then
+       ! Get orbital eccentricity and semi-major axis.
+       eccentricity =orbit%eccentricity ()
+       semiMajorAxis=orbit%semiMajorAxis()
+       ! Get initial position and velocity.
+       vectorRadial     = [sin(orbit%theta())*cos(orbit%phi()),sin(orbit%theta())*sin(orbit%phi()),cos(orbit%theta())]
+       vectorTangential1= Vector_Product(vectorRadial     ,[0.0d0,0.0d0,1.0d0])
+       vectorTangential2= Vector_Product(vectorTangential1,vectorRadial       )
+       vectorTangential1= vectorTangential1/Vector_Magnitude(vectorTangential1)
+       vectorTangential2= vectorTangential2/Vector_Magnitude(vectorTangential2)
+       position         =+  orbit%radius            ()             &
+            &            *  vectorRadial
+       velocity         =+  orbit%velocityRadial    ()             &
+            &            *  vectorRadial                           &
+            &            +  orbit%velocityTangential()             &
+            &            *(                                        &
+            &              +vectorTangential1*cos(orbit%epsilon()) &
+            &              +vectorTangential2*sin(orbit%epsilon()) &
+            &             )
+       ! Find the vector defining the orbital plane.
+       vectorNormal=+Vector_Product  (position,velocity)
+       vectorNormal=+vectorNormal                        &
+            &       /Vector_Magnitude(vectorNormal)
+       ! Find the orbital angle corresponding to the initial position.
+       thetaInitial=acos(max(-1.0d0,min(1.0d0,((1.0d0-eccentricity**2)*semiMajorAxis/orbit%radius    ()-1.0d0)/eccentricity)))
+       if (orbit%velocityRadial() < 0.0d0) thetaInitial=-thetaInitial
+       ! Find the orbital angle corresponding to the new position.
+       thetaFinal  =acos(max(-1.0d0,min(1.0d0,((1.0d0-eccentricity**2)*semiMajorAxis/       newRadius  -1.0d0)/eccentricity)))
+       if (newVelocityRadial      < 0.0d0) thetaFinal  =-thetaFinal
+       ! Rotate the radial vector around the normal vector by the difference in angle.
+       vectorPlane    = Vector_Product(vectorRadial,vectorNormal)
+       vectorRadialNew=+vectorRadial*cos(thetaFinal-thetaInitial) &
+            &          +vectorPlane* sin(thetaFinal-thetaInitial)
+       ! Find the new position.
+       positionNew=vectorRadialNew*newRadius
+       ! Construct the new velocity.
+       velocityTangentialNew=newVelocityTangential*vectorPlane
+       velocityNew          =vectorRadialNew*newVelocityRadial+velocityTangentialNew
+       ! Construct epsilon vectors.
+       vectorEpsilon1  =Vector_Product(vectorRadialNew,[0.0d0,0.0d0,1.0d0])
+       vectorEpsilon2  =Vector_Product(vectorEpsilon1 ,vectorRadialNew    )
+       vectorEpsilon1  =vectorEpsilon1/Vector_Magnitude(vectorEpsilon1)
+       vectorEpsilon2  =vectorEpsilon2/Vector_Magnitude(vectorEpsilon2)
+       velocityEpsilon1=Dot_Product(velocityTangentialNew,vectorEpsilon1)
+       velocityEpsilon2=Dot_Product(velocityTangentialNew,vectorEpsilon2)
+       ! Set new angles.
+       call orbit%thetaSet  (acos (positionNew        (3)/newRadius                    ))
+       call orbit%phiSet    (atan2(positionNew        (2)          ,positionNew     (1)))
+       call orbit%epsilonSet(atan2(velocityEpsilon2                ,velocityEpsilon1   ))
+    else
+       ! Incomplete position information present - mark position as unset.
+       orbit%  thetaIsSet=.false.
+       orbit%    phiIsSet=.false.
+       orbit%epsilonIsSet=.false.
+    end if
     ! Set new values for the state vector.
     call orbit%radiusSet            (newRadius            )
     call orbit%velocityTangentialSet(newVelocityTangential)
     call orbit%velocityRadialSet    (newVelocityRadial    )
-    ! Propagation of positional information is not yet supported.
-    orbit%  thetaIsSet=.false.
-    orbit%    phiIsSet=.false.
-    orbit%epsilonIsSet=.false.
     return
   end subroutine Kepler_Orbits_Propagate
 

@@ -54,9 +54,16 @@
      class           (cosmologicalMassVarianceClass      ), pointer :: referenceCosmologicalMassVariance => null(), cosmologicalMassVariance_ => null()
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
-  contains
+   contains
+     !![
+     <methods>
+     <method method="concentrationCompute" description="Compute the concentration for the given {\normalfont \ttfamily node}"/>
+     </methods>
+     !!]
     final     ::                                   schneider2015Destructor
     procedure :: concentration                  => schneider2015Concentration
+    procedure :: concentrationMean              => schneider2015ConcentrationMean
+    procedure :: concentrationCompute           => schneider2015ConcentrationCompute
     procedure :: densityContrastDefinition      => schneider2015DensityContrastDefinition
     procedure :: darkMatterProfileDMODefinition => schneider2015DarkMatterProfileDefinition
  end type darkMatterProfileConcentrationSchneider2015
@@ -179,7 +186,33 @@ contains
     return
   end subroutine schneider2015Destructor
 
-  double precision function schneider2015Concentration(self,node)
+  double precision function schneider2015Concentration(self,node) result(concentration)
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
+    \cite{schneider_structure_2015}.
+    !!}
+    implicit none
+    class(darkMatterProfileConcentrationSchneider2015), intent(inout), target :: self
+    type (treeNode                                   ), intent(inout), target :: node
+
+    concentration=self%concentrationCompute(node,mean=.false.)
+    return
+  end function schneider2015Concentration
+  
+  double precision function schneider2015ConcentrationMean(self,node) result(concentration)
+    !!{
+    Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
+    \cite{schneider_structure_2015}.
+    !!}
+    implicit none
+    class(darkMatterProfileConcentrationSchneider2015), intent(inout)         :: self
+    type (treeNode                                   ), intent(inout), target :: node
+
+    concentration=self%concentrationCompute(node,mean=.true.)
+    return
+  end function schneider2015ConcentrationMean
+  
+  double precision function schneider2015ConcentrationCompute(self,node,mean) result(concentration)
     !!{
     Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
     \cite{schneider_structure_2015}.
@@ -190,6 +223,7 @@ contains
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
+    logical                                                      , intent(in   )          :: mean
     class           (nodeComponentBasic                         )               , pointer :: basic
     integer                                                                               :: status
     double precision                                                                      :: mass                                     , &
@@ -240,10 +274,14 @@ contains
     end if
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
-    schneider2015Concentration=self%referenceConcentration%concentration(node)
+    if (mean) then
+       concentration=self%referenceConcentration%concentrationMean(node)
+    else
+       concentration=self%referenceConcentration%concentration    (node)
+    end if
     call basic%massSet(mass         )
     return
-  end function schneider2015Concentration
+  end function schneider2015ConcentrationCompute
 
   double precision function schneider2015ReferenceCollapseMassRoot(massReference)
     !!{

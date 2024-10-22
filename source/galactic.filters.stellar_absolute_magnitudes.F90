@@ -20,8 +20,6 @@
 !!{
 Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
 !!}
-  
-  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes">
@@ -36,10 +34,8 @@ Contains a module which implements a galactic low-pass (i.e. bright-pass) filter
      A galactic low-pass (i.e. bright pass) filter class for stellar absolute magnitudes.
      !!}
      private
-     class           (galacticStructureClass), pointer                   :: galacticStructure_         => null()
-     double precision                        , allocatable, dimension(:) :: absoluteMagnitudeThreshold
+     double precision, allocatable, dimension(:) :: absoluteMagnitudeThreshold
    contains
-     final     ::           stellarAbsoluteMagnitudesDestructor
      procedure :: passes => stellarAbsoluteMagnitudesPasses
   end type galacticFilterStellarAbsoluteMagnitudes
 
@@ -64,7 +60,6 @@ contains
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
     double precision                                         , allocatable  , dimension(:) :: absoluteMagnitudeThreshold
-    class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
 
     ! Check and read parameters.
     if (parameters%count('absoluteMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.))            &
@@ -79,17 +74,15 @@ contains
       <source>parameters</source>
       <description>The parameter $M_0$ appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.</description>
     </inputParameter>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold,galacticStructure_)
+    self=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function stellarAbsoluteMagnitudesConstructorParameters
 
-  function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold,galacticStructure_) result(self)
+  function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold) result(self)
     !!{
     Internal constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
     !!}
@@ -97,10 +90,9 @@ contains
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: self
-    class           (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
     double precision                                         , intent(in   ), dimension(:) :: absoluteMagnitudeThreshold
     !![
-    <constructorAssign variables="absoluteMagnitudeThreshold, *galacticStructure_"/>
+    <constructorAssign variables="absoluteMagnitudeThreshold"/>
     !!]
 
     if (size(absoluteMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                          &
@@ -113,31 +105,20 @@ contains
     return
   end function stellarAbsoluteMagnitudesConstructorInternal
 
-  subroutine stellarAbsoluteMagnitudesDestructor(self)
-    !!{
-    Destructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
-    !!}
-    implicit none
-    type(galacticFilterStellarAbsoluteMagnitudes), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine stellarAbsoluteMagnitudesDestructor
-
   logical function stellarAbsoluteMagnitudesPasses(self,node)
     !!{
     Implement a stellar absolute magnitude low-pass galactic filter.
     !!}
     use :: Galactic_Structure_Options    , only : massTypeStellar        , weightByLuminosity
-    use :: Galacticus_Nodes              , only : nodeComponentBasic     , treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentBasic
+    use :: Mass_Distributions            , only : massDistributionClass
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     class           (galacticFilterStellarAbsoluteMagnitudes), intent(inout)         :: self
     type            (treeNode                               ), intent(inout), target :: node
     class           (nodeComponentBasic                     ), pointer               :: basic
-    double precision                                                                 :: time       , luminosity, &
+    class           (massDistributionClass                  ), pointer               :: massDistribution_
+    double precision                                                                 :: time             , luminosity, &
          &                                                                              abMagnitude
     integer                                                                          :: iLuminosity
 
@@ -150,7 +131,11 @@ contains
        ! Only check those luminosities which are being output at this output time.
        if (unitStellarLuminosities%isOutput(iLuminosity,time)) then
           ! Get the total stellar luminosity of the galaxy.
-          luminosity=self%galacticStructure_%massEnclosed(node,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=iLuminosity)
+          massDistribution_ => node             %massDistribution(massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=iLuminosity)
+          luminosity        =  massDistribution_%massTotal       (                                                                            )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
           ! Test only if the luminosity is greater than zero.
           if (luminosity > 0.0d0) then
              ! Convert to absolute magnitude.

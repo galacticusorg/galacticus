@@ -2,7 +2,7 @@
 <!-- Parameter file used for testing the node object model. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <componentBasic value="standard"/>
   <componentSpheroid value="standard"/>
   <componentBlackHole value="standard"/>

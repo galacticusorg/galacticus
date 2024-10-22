@@ -2,7 +2,7 @@
 <!-- Build tools required by Galacticus -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <task value="multi">
     <task value="buildToolFSPS"/>
@@ -11,6 +11,7 @@
     <task value="buildToolCLASS"/>
     <task value="buildToolRecFast"/>
     <task value="buildToolCloudy"/>
+    <task value="buildToolMangle"/>
   </task>
 
 </parameters>

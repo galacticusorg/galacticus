@@ -23,7 +23,6 @@ Contains a module which implements a stellar mass output analysis property extra
 
   use :: ISO_Varying_String, only : varying_string
   use :: Output_Times      , only : outputTimesClass
-  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
@@ -35,13 +34,12 @@ Contains a module which implements a stellar mass output analysis property extra
      A stellar luminosity output analysis property extractor class.
      !!}
      private
-     type            (varying_string        )                            :: filterName                  , filterType, &
-          &                                                                 postprocessChain            , name_     , &
-          &                                                                 description_
-     double precision                                                    :: redshiftBand
-     integer                                 , allocatable, dimension(:) :: luminosityIndex
-     class           (outputTimesClass      ), pointer                   :: outputTimes_       => null()
-     class           (galacticStructureClass), pointer                   :: galacticStructure_ => null()
+     type            (varying_string  )                            :: filterName                , filterType, &
+          &                                                           postprocessChain          , name_     , &
+          &                                                           description_
+     double precision                                              :: redshiftBand
+     integer                           , allocatable, dimension(:) :: luminosityIndex
+     class           (outputTimesClass), pointer                   :: outputTimes_     => null()
    contains
      final     ::                luminosityStellarDestructor
      procedure :: extract     => luminosityStellarExtract
@@ -70,7 +68,6 @@ contains
     type            (nodePropertyExtractorLuminosityStellar)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (outputTimesClass                      ), pointer       :: outputTimes_
-    class           (galacticStructureClass                ), pointer       :: galacticStructure_
     type            (varying_string                        )                :: filterName           , filterType               , &
          &                                                                     postprocessChain
     double precision                                                        :: redshiftBand
@@ -109,31 +106,29 @@ contains
        !!]
     end if
     !![
-    <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
     if (redshiftBandIsPresent) then
        if (postprocessChainIsPresent) then
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,galacticStructure_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
        else
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,galacticStructure_,redshiftBand=redshiftBand                                        )
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand                                        )
        end if
     else
        if (postprocessChainIsPresent) then
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,galacticStructure_,                          postprocessChain=char(postprocessChain))
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,                          postprocessChain=char(postprocessChain))
        else
-          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,galacticStructure_                                                                  )
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_                                                                  )
        end if
     end if
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="outputTimes_"      />
-    <objectDestructor name="galacticStructure_"/>
+    <objectDestructor name="outputTimes_"/>
     !!]
     return
   end function luminosityStellarConstructorParameters
 
-  function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,galacticStructure_,redshiftBand,postprocessChain,outputMask) result(self)
+  function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !!{
     Internal constructor for the ``luminosityStellar'' output analysis property extractor class.
     !!}
@@ -143,14 +138,13 @@ contains
     type            (nodePropertyExtractorLuminosityStellar)                                        :: self
     character       (len=*                                 ), intent(in   )                         :: filterName      , filterType
     class           (outputTimesClass                      ), intent(in   ), target                 :: outputTimes_
-    class           (galacticStructureClass                ), intent(in   ), target                 :: galacticStructure_
     character       (len=*                                 ), intent(in   ), optional               :: postprocessChain
     double precision                                        , intent(in   ), optional               :: redshiftBand
     logical                                                 , intent(in   ), dimension(:), optional :: outputMask
     integer         (c_size_t                              )                                        :: i
     character       (len=7                                 )                                        :: label
     !![
-    <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain, *outputTimes_, *galacticStructure_"/>
+    <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain, *outputTimes_"/>
     !!]
 
     allocate(self%luminosityIndex(self%outputTimes_%count()))
@@ -183,8 +177,7 @@ contains
     type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputTimes_"      />
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%outputTimes_"/>
     !!]
     return
   end subroutine luminosityStellarDestructor
@@ -193,20 +186,26 @@ contains
     !!{
     Implement a stellar luminosity output analysis property extractor.
     !!}
-    use            :: Galactic_Structure_Options, only : massTypeStellar   , radiusLarge, weightByLuminosity
-    use            :: Galacticus_Nodes          , only : nodeComponentBasic, treeNode
+    use            :: Galactic_Structure_Options, only : massTypeStellar      , weightByLuminosity
+    use            :: Galacticus_Nodes          , only : nodeComponentBasic   , treeNode
+    use            :: Mass_Distributions        , only : massDistributionClass
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
     class  (nodePropertyExtractorLuminosityStellar), intent(inout), target   :: self
     type   (treeNode                              ), intent(inout), target   :: node
     type   (multiCounter                          ), intent(inout), optional :: instance
+    class  (massDistributionClass                 )               , pointer  :: massDistribution_
     class  (nodeComponentBasic                    ), pointer                 :: basic
     integer(c_size_t                              )                          :: i
     !$GLC attributes unused :: instance
 
-    basic                    => node                   %basic       (                                                                                                                             )
-    i                        =  self%outputTimes_      %index       (basic%time(),findClosest=.true.                                                                                              )
-    luminosityStellarExtract =  self%galacticStructure_%massEnclosed(node        ,            radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
+    basic                    => node             %basic           (                                                                                        )
+    i                        =  self%outputTimes_%index           (basic%time(),findClosest=.true.                                                         )
+    massDistribution_        => node             %massDistribution(massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
+    luminosityStellarExtract =  massDistribution_%massTotal       (                                                                                        )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function luminosityStellarExtract
 

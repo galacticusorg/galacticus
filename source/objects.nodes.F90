@@ -28,7 +28,7 @@ module Galacticus_Nodes
   !!}
   use            :: Abundances_Structure               , only : abundances
   use            :: Chemical_Abundances_Structure      , only : chemicalAbundances
-  use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType
+  use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType       , enumerationWeightByType
   use            :: Hashes                             , only : doubleHash                   , genericHash
   use            :: Histories                          , only : history                      , longIntegerHistory
   use            :: IO_HDF5                            , only : hdf5Object
@@ -36,15 +36,17 @@ module Galacticus_Nodes
   use            :: ISO_Varying_String                 , only : varying_string
   use            :: Kepler_Orbits                      , only : keplerOrbit
   use            :: Kind_Numbers                       , only : kind_int8
+  use            :: Mass_Distributions                 , only : massDistributionClass
   use            :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
-  use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar, megaParsec
+  use            :: Numerical_Constants_Astronomical   , only : gigaYear                     , luminosityZeroPointAB         , massSolar             , megaParsec
   use            :: Numerical_Constants_Prefixes       , only : kilo
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorClass
   use            :: Stellar_Luminosities_Structure     , only : stellarLuminosities
   use            :: Tensors                            , only : tensorNullR2D3Sym            , tensorRank2Dimension3Symmetric
   private
-  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
-       &    nodeEventBuildFromRaw       , propertyEvaluate          , propertyActive                , propertyInactive
+  public :: nodeClassHierarchyInitialize    , nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
+       &    nodeEventBuildFromRaw           , propertyEvaluate          , propertyActive                , propertyInactive, &
+       &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy
   
   type, public :: treeNodeList
      !!{
@@ -203,6 +205,13 @@ module Galacticus_Nodes
      integer, allocatable, dimension(:) :: values
   end type integerRank1MetaProperty
   
+  type :: longIntegerRank1MetaProperty
+     !!{
+     Type used to store long integer rank-1 meta-properties.
+     !!}
+     integer(kind_int8), allocatable, dimension(:) :: values
+  end type longIntegerRank1MetaProperty
+  
   ! Zero dimension arrays to be returned as defaults.
   double precision                                   , dimension(0) :: nullDouble1d
 
@@ -234,6 +243,21 @@ module Galacticus_Nodes
   integer           , public :: rateComputeState    =propertyTypeActive
   !$omp threadprivate(rateComputeState)
 
+  ! Memoized massDistributions
+  type :: massDistributionArray
+     private
+     integer(kind_int8                   )          :: uniqueID          =  -huge(kind_int8)
+     type   (enumerationComponentTypeType)          :: componentType
+     type   (enumerationMassTypeType     )          :: massType
+     type   (enumerationWeightByType     )          :: weightBy
+     integer                                        :: weightIndex
+     class  (massDistributionClass       ), pointer :: massDistribution_ =>  null(         )
+  end type massDistributionArray
+  integer                       , parameter                         :: massDistributionsCount=20
+  integer                                                           :: massDistributionsLast = 0
+  type   (massDistributionArray), dimension(massDistributionsCount) :: massDistributions__
+  !$omp threadprivate(massDistributions__,massDistributionsLast)
+  
   ! Define a constructor for treeNodes.
   interface treeNode
      module procedure Tree_Node_Constructor
@@ -469,27 +493,20 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Remove_Paired_Event
 
-  logical function Tree_Node_Is_Primary_Progenitor(self)
+  logical function treeNodeIsPrimaryProgenitor(self) result(isPrimaryProgenitor)
     !!{
     Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
     !!}
-    use :: Error, only : Error_Report
     implicit none
-    class(treeNode), intent(inout) :: self
+    class(treeNode), intent(inout), target:: self
 
-    select type (self)
-    type is (treeNode)
-       if (associated(self%parent)) then
-          Tree_Node_Is_Primary_Progenitor=associated(self%parent%firstChild,self)
-       else
-          Tree_Node_Is_Primary_Progenitor=.false.
-       end if
-    class default
-       Tree_Node_Is_Primary_Progenitor=.false.
-       call Error_Report('treeNode is of unknown class'//{introspection:location})
-    end select
+    if (associated(self%parent)) then
+       isPrimaryProgenitor=associated(self%parent%firstChild,self)
+    else
+       isPrimaryProgenitor=.false.
+    end if
     return
-  end function Tree_Node_Is_Primary_Progenitor
+  end function treeNodeIsPrimaryProgenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
     !!{
@@ -629,6 +646,21 @@ module Galacticus_Nodes
     end select
     return
   end function Tree_Node_Is_Satellite
+
+  function Tree_Node_Get_Isolated_Parent(self) result (isolatedNode)
+    !!{
+    Returns a pointer to the isolated parent node of {\normalfont \ttfamily self}.
+    !!}
+    implicit none
+    class(treeNode), intent(in   ), target  :: self
+    type (treeNode)               , pointer :: isolatedNode
+
+    isolatedNode => self
+    do while (isolatedNode%isSatellite())
+       isolatedNode => isolatedNode%parent
+    end do
+    return
+  end function Tree_Node_Get_Isolated_Parent
 
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
     !!{
@@ -1059,6 +1091,23 @@ module Galacticus_Nodes
     return
   end function Node_Component_Generic_Add_Integer_Rank1_Meta_Property
   
+  integer function Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a longinteger meta-property to a node component.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property=-1
+    call Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property
+  
   !![
   <metaPropertyDatabase/>
   !!]
@@ -1286,75 +1335,35 @@ module Galacticus_Nodes
     return
   end function Node_Component_Null_TensorR2D3_InOut
 
-  double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex)
+  function Node_Component_Mass_Distribution_Null(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
     !!{
-    A null implementation of the enclosed mass in a component. Always returns zero.
+    A null implementation of the mass distribution factory for a component. Always returns null.
     !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
+    use :: Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    class           (nodeComponent               ), intent(inout) :: self
-    type            (enumerationComponentTypeType), intent(in   ) :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ) :: massType
-    type            (enumerationWeightByType     ), intent(in   ) :: weightBy
-    integer                                       , intent(in   ) :: weightIndex
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, radius, componentType, massType, weightBy, weightIndex
+    class  (massDistributionClass       ), pointer                 :: massDistribution_
+    class  (nodeComponent               ), intent(inout)           :: self
+    type   (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type   (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    type   (enumerationWeightByType     ), intent(in   ), optional :: weightBy
+    integer                              , intent(in   ), optional :: weightIndex
+    !$GLC attributes unused :: self, componentType, massType, weightBy, weightIndex
 
-    Node_Component_Enclosed_Mass_Null=0.0d0
+    massDistribution_ => null()
     return
-  end function Node_Component_Enclosed_Mass_Null
+  end function Node_Component_Mass_Distribution_Null
 
-  function Node_Component_Acceleration_Null(self,positionCartesian,componentType,massType)
+  double precision function Node_Component_Mass_Baryonic_Null(self)
     !!{
-    A null implementation of the acceleration due to a component. Always returns zero.
+    A null implementation of the total baryonic mass distribution. Always returns zero.
     !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
     implicit none
-    double precision                              , dimension(3)                :: Node_Component_Acceleration_Null
-    class           (nodeComponent               )              , intent(inout) :: self
-    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
-    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
-    double precision                              , dimension(3), intent(in   ) :: positionCartesian
-    !$GLC attributes unused :: self, positionCartesian, componentType, massType
+    class(nodeComponent), intent(inout):: self
+    !$GLC attributes unused :: self
 
-    Node_Component_Acceleration_Null=0.0d0
+    Node_Component_Mass_Baryonic_Null=0.0d0
     return
-  end function Node_Component_Acceleration_Null
-
-  function Node_Component_Chandrasekhar_Integral_Null(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
-    !!{
-    A null implementation of the acceleration due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    double precision                              , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
-    class           (nodeComponent               )              , intent(inout) :: self
-    type            (treeNode                    )              , intent(inout) :: nodeSatellite
-    type            (enumerationComponentTypeType)              , intent(in   ) :: componentType
-    type            (enumerationMassTypeType     )              , intent(in   ) :: massType
-    double precision                              , dimension(3), intent(in   ) :: positionCartesian                         , velocityCartesian
-    !$GLC attributes unused :: self, nodeSatellite, positionCartesian, velocityCartesian, componentType, massType
-
-    Node_Component_Chandrasekhar_Integral_Null=0.0d0
-    return
-  end function Node_Component_Chandrasekhar_Integral_Null
-
-  function Node_Component_Tidal_Tensor_Null(self,positionCartesian,componentType,massType)
-    !!{
-    A null implementation of the tidal tensor due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Tidal_Tensor_Null
-    class           (nodeComponent                 )              , intent(inout) :: self
-    type            (enumerationComponentTypeType  )              , intent(in   ) :: componentType
-    type            (enumerationMassTypeType       )              , intent(in   ) :: massType
-    double precision                                , dimension(3), intent(in   ) :: positionCartesian
-    !$GLC attributes unused :: self, positionCartesian, componentType, massType
-
-    Node_Component_Tidal_Tensor_Null=tensorNullR2D3Sym
-    return
-  end function Node_Component_Tidal_Tensor_Null
+  end function Node_Component_Mass_Baryonic_Null
 
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
     !!{
@@ -1409,55 +1418,6 @@ module Galacticus_Nodes
     Node_Component_Surface_Density_Null=0.0d0
     return
   end function Node_Component_Surface_Density_Null
-
-  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,status)
-    !!{
-    A null implementation of the gravitational potential in a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationStructureErrorCodeType
-    implicit none
-    class           (nodeComponent                    ), intent(inout)           :: self
-    type            (enumerationComponentTypeType     ), intent(in   )           :: componentType
-    type            (enumerationMassTypeType          ), intent(in   )           :: massType
-    double precision                                   , intent(in   )           :: radius
-    type            (enumerationStructureErrorCodeType), intent(inout), optional :: status
-    !$GLC attributes unused :: self, radius, componentType, massType, status
-
-    Node_Component_Potential_Null=0.0d0
-    return
-  end function Node_Component_Potential_Null
-
-  double precision function Node_Component_Rotation_Curve_Null(self,radius,componentType,massType)
-    !!{
-    A null implementation of the rotation curve due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    class           (nodeComponent               ), intent(inout) :: self
-    type            (enumerationComponentTypeType), intent(in   ) :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ) :: massType
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, radius, componentType, massType
-
-    Node_Component_Rotation_Curve_Null=0.0d0
-    return
-  end function Node_Component_Rotation_Curve_Null
-
-  double precision function Node_Component_Rotation_Curve_Gradient_Null(self,radius,componentType,massType)
-    !!{
-    A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType
-    implicit none
-    class           (nodeComponent               ), intent(inout) :: self
-    type            (enumerationComponentTypeType), intent(in   ) :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ) :: massType
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, radius, componentType, massType
-
-    Node_Component_Rotation_Curve_Gradient_Null=0.0d0
-    return
-  end function Node_Component_Rotation_Curve_Gradient_Null
 
   ! Simple Boolean functions.
   logical function Boolean_False()
@@ -1895,5 +1855,40 @@ module Galacticus_Nodes
          &            (propertyType == propertyTypeInactive .and.      propertyIsInactive)
     return
   end function propertyEvaluate
+
+  subroutine massDistributionCalculationReset(massDistributionsLast,node,uniqueID)
+    !!{
+    Reset the memoized {\normalfont \ttfamily massDistribution} due to a {\normalfont \ttfamily calculationReset} event.
+    !!}
+    implicit none
+    integer           , intent(inout) :: massDistributionsLast
+    type   (treeNode ), intent(inout) :: node
+    integer(kind_int8), intent(in   ) :: uniqueID
+    integer                           :: i
+    !$GLC attributes unused :: massDistributionsLast, node, uniqueID
+    
+    do i=1,massDistributionsCount
+       !![
+       <objectDestructor name="massDistributions__(i)%massDistribution_"/>
+       !!]
+       massDistributions__(i)%uniqueID=-huge(kind_int8)
+    end do
+    return
+  end subroutine massDistributionCalculationReset
+  
+  subroutine massDistributionsDestroy()
+    !!{
+    Destroy memoized {\normalfont \ttfamily massDistributions}.
+    !!}
+    implicit none    
+    integer :: i
+
+    do i=1,massDistributionsCount
+       !![
+       <objectDestructor name="massDistributions__(i)%massDistribution_"/>
+       !!]
+    end do
+    return
+  end subroutine massDistributionsDestroy
   
 end module Galacticus_Nodes

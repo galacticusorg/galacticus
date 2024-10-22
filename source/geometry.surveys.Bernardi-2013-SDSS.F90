@@ -29,7 +29,7 @@ Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
     
     For the angular mask, we make use of the \gls{mangle} polygon file provided by the \gls{mangle}
     project\footnote{Specifically,
-    \href{http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz}{http://space.mit.edu/~molly/mangle/download/data/sdss\_dr72safe0\_res6d.pol.gz}.}
+    \href{https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz}{https://zenodo.org/records/10998446/files/sdss\_dr72safe0\_res6d.pol.gz}.}
     The solid angle of this mask, computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command is
     2.232262776405~sr.
     
@@ -122,20 +122,29 @@ contains
     return
   end function bernardi2013SDSSFieldCount
 
-  double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
+  double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
     !!{
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
-    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
+    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, &
+         &                                                                       luminosity     , starFormationRate
     integer                                         , intent(in   ), optional :: field
-    double precision                                                          :: logarithmicMass
-    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
+    double precision                                                          :: logarithmicMass,
+    !$GLC attributes unused :: self, field
 
+    ! Validate arguments.
+    if (present(magnitudeAbsolute)) call Error_Report('`magnitudeAbsolute` is not supported'//{introspection:location})
+    if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
+    if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
-    logarithmicMass=min(log10(mass),12.5d0)
+    if (present(mass)) then
+       logarithmicMass=min(log10(mass),12.5d0)
+    else
+       logarithmicMass=                12.5d0
+    end if
     bernardi2013SDSSDistanceMaximum                                                         &
          &                         =10.0d0**(                                               &
          &                                                         +1282.1065495948200000d0 &
@@ -169,13 +178,13 @@ contains
     !!{
     Return the path to the directory containing \gls{mangle} files.
     !!}
-    use :: Input_Paths, only : inputPath, pathTypeDataStatic
+    use :: Input_Paths, only : inputPath, pathTypeDataDynamic
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
     !$GLC attributes unused :: self
 
-    bernardi2013SDSSMangleDirectory=inputPath(pathTypeDataStatic)//"surveyGeometry/SDSS/"
+    bernardi2013SDSSMangleDirectory=inputPath(pathTypeDataDynamic)//"surveyGeometry/SDSS/"
     return
   end function bernardi2013SDSSMangleDirectory
 
@@ -183,7 +192,8 @@ contains
     !!{
     Return a list of \gls{mangle} files.
     !!}
-    use :: File_Utilities , only : File_Exists      , File_Lock, File_Unlock, lockDescriptor
+    use :: File_Utilities , only : File_Exists      , File_Lock, File_Unlock, lockDescriptor, &
+         &                         Directory_Make
     use :: Error          , only : Error_Report
     use :: System_Download, only : download
     use :: System_Command , only : System_Command_Do
@@ -199,9 +209,10 @@ contains
          &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &
          &      ]
     if (.not.File_Exists(mangleFiles(1))) then
+       call Directory_Make(self%mangleDirectory())
        call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)
        if (.not.File_Exists(mangleFiles(1))) then
-          call download("http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status=status)
+          call download("https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz",char(mangleFiles(1))//".gz",status=status)
           if (status /= 0 .or. .not.File_Exists(char(mangleFiles(1))//".gz")) &
                & call Error_Report('failed to download mangle polygon file'//{introspection:location})
           call System_Command_Do("gunzip "//mangleFiles(1)//".gz",status)

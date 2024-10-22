@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Millennium simulation cosmological model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="73.00000"/>
+    <OmegaMatter     value=" 0.25000"/>
+    <OmegaDarkEnergy value=" 0.75000"/>
+    <OmegaBaryon     value=" 0.04500"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+</parameters>

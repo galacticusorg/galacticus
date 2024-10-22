@@ -28,7 +28,8 @@ module Dilogarithms
   !!{
   Implements dilogarithms.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_double
+  use, intrinsic :: ISO_C_Binding, only : c_double, c_int
+  use            :: Interface_GSL, only : gsl_sf_result
   implicit none
   private
   public :: Dilogarithm
@@ -42,19 +43,51 @@ module Dilogarithms
        real(c_double)        :: gsl_sf_dilog
        real(c_double), value :: x
      end function gsl_sf_dilog
+
+     function gsl_sf_complex_dilog_e(x,y,a,b) bind(c,name='gsl_sf_complex_dilog_e')
+       !!{
+       Template for the GSL complex dilogarithm C function.
+       !!}
+       import
+       integer(c_int        )        :: gsl_sf_complex_dilog_e
+       real   (c_double     ), value :: x                     , y
+       type   (gsl_sf_result)        :: a                     , b
+     end function gsl_sf_complex_dilog_e
   end interface
   
+  interface Dilogarithm
+     module procedure Dilogarithm_Real
+     module procedure Dilogarithm_Complex
+  end interface Dilogarithm
+
 contains
 
-  double precision function Dilogarithm(x)
+  double precision function Dilogarithm_Real(x)
     !!{
     Evaluate the $\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t$ sine integral.
     !!}
     implicit none
     double precision, intent(in   ) :: x
 
-    Dilogarithm=GSL_SF_Dilog(x)
+    Dilogarithm_Real=GSL_SF_Dilog(x)
     return
-  end function Dilogarithm
+  end function Dilogarithm_Real
+
+  double complex function Dilogarithm_Complex(x)
+    !!{
+    Evaluate the dilogarithm for complex argument.
+    !!}
+    implicit none
+    double complex               , intent(in   ) :: x
+    type          (gsl_sf_result)                :: a     , b
+    real          (c_double     )                :: r     , theta
+    integer       (c_int        )                :: status
+
+    r                  =sqrt (imag(x)**2+real(x)**2)
+    theta              =atan2(imag(x)   ,real(x)   )
+    status             =GSL_SF_Complex_Dilog_E(r,theta,a,b)
+    Dilogarithm_Complex=dcmplx(a%val,b%val)
+    return
+  end function Dilogarithm_Complex
 
 end module Dilogarithms

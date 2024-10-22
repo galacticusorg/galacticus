@@ -69,7 +69,7 @@ contains
     return
   end function ludlow2014ConstructorParameters
 
-  function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
     !!}
@@ -80,10 +80,9 @@ contains
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
     class           (virialDensityContrastClass            ), intent(in   ), target :: virialDensityContrast_
 
-    self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,virialDensityContrast_)
+    self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_)
     return
   end function ludlow2014ConstructorInternal
 
@@ -146,7 +145,6 @@ contains
                         &                                                                      *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicSibling%time())**3, &
                         &                                               cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                            , &
                         &                                               cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                             , &
-                        &                                               darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                                                           , &
                         &                                               virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                            &
                         &                                              )
                    nodeSibling  =>  nodeSibling %sibling
@@ -162,7 +160,6 @@ contains
                      &                                                                          *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicBranch%time())**3, &
                      &                                                   cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                           , &
                      &                                                   cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                            , &
-                     &                                                   darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                                                          , &
                      &                                                   virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                           &
                      &                                                  )                                                                                                                             &
                      &              -massSiblings                                                                                                                                                     &
@@ -181,7 +178,6 @@ contains
                      &                                                                        *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicChild%time())**3, &
                      &                                                 cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                          , &
                      &                                                 cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                           , &
-                     &                                                 darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                                                         , &
                      &                                                 virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                          &
                      &                                                )                                                                                                                               &
                      &            +massAccretionRate                                                                                                                                                  &
@@ -206,7 +202,6 @@ contains
                &                                                                    *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicBranch%time())**3, &
                &                                             cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                           , &
                &                                             cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                            , &
-               &                                             darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                                                          , &
                &                                             virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                           &
                &                                            )
           if (massProgenitor >= states(stateCount)%massLimit) &

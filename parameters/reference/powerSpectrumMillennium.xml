@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Millennium simulation power spectrum model -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8                           value="0.9"   />
+    <tolerance                         value="3.0e-4"/>
+    <toleranceTopHat                   value="3.0e-4"/>
+    <nonMonotonicIsFatal               value="false" />
+    <monotonicInterpolation            value="true"  />
+    <powerSpectrumWindowFunction value="topHat"/>
+  </cosmologicalMassVariance>
+  <transferFunction                   value="CAMB"     >
+    <redshift value="100.0"/>
+    <!-- Include cosmological model explicitly here so that baryons are included in the transfer function even for dark matter-only models. -->
+    <xi:include href="cosmologyMillennium.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  </transferFunction>
+  <powerSpectrumPrimordial            value="powerLaw" >
+    <index               value="1.0"/>
+    <wavenumberReference value="1.0"/>
+    <running             value="0.0"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"  />
+
+</parameters>

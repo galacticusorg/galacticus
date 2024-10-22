@@ -5,7 +5,7 @@
 <!-- 01-February-2011 -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <cosmologyParameters value="simple">
     <OmegaMatter value="0.2725"/>
     <OmegaBaryon value="0.0455"/>

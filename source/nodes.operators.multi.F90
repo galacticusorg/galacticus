@@ -39,6 +39,11 @@
      private
      type(multiProcessList), pointer :: processes => null()
    contains
+     !![
+     <methods>
+	<method method="isActive" description="Return true if the operators are active for the given {\normalfont \ttfamily node}."/>
+     </methods>
+     !!]
      final     ::                                        multiDestructor
      procedure :: nodeTreeInitialize                  => multiNodeTreeInitialize
      procedure :: nodeInitialize                      => multiNodeInitialize
@@ -49,11 +54,13 @@
      procedure :: differentialEvolution               => multiDifferentialEvolution
      procedure :: differentialEvolutionScales         => multiDifferentialEvolutionScales
      procedure :: differentialEvolutionAnalytics      => multiDifferentialEvolutionAnalytics
+     procedure :: predeterminedSolveAnalytics         => multiPredeterminedSolveAnalytics
      procedure :: differentialEvolutionSolveAnalytics => multiDifferentialEvolutionSolveAnalytics
      procedure :: differentialEvolutionInactives      => multiDifferentialEvolutionInactives
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
      procedure :: differentialEvolutionPostStep       => multiDifferentialEvolutionPostStep
+     procedure :: isActive                            => multiIsActive
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
@@ -78,7 +85,7 @@ contains
     integer                                   :: i
 
     self    %processes => null()
-    process_          => null()
+    process_           => null()
     do i=1,parameters%copiesCount('nodeOperator',zeroIfNotPresent=.true.)
        if (associated(process_)) then
           allocate(process_%next)
@@ -148,6 +155,7 @@ contains
     type (treeNode         ), intent(inout), target  :: node
     type (multiProcessList )               , pointer :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%nodeTreeInitialize(node)
@@ -165,6 +173,7 @@ contains
     type (treeNode         ), intent(inout), target  :: node
     type (multiProcessList )               , pointer :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%nodeInitialize(node)
@@ -182,6 +191,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%nodesMerge(node)
@@ -199,6 +209,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%nodePromote(node)
@@ -216,6 +227,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%galaxiesMerge(node)
@@ -233,6 +245,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionPre(node)
@@ -250,6 +263,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionScales(node)
@@ -267,6 +281,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionAnalytics(node)
@@ -284,6 +299,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionInactives(node)
@@ -304,6 +320,7 @@ contains
     integer                     , intent(in   )          :: propertyType
     type     (multiProcessList )               , pointer :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
@@ -322,6 +339,7 @@ contains
     double precision                   , intent(in   ) :: time
     type            (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionSolveAnalytics(node,time)
@@ -329,6 +347,25 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionSolveAnalytics
+
+  subroutine multiPredeterminedSolveAnalytics(self,node,time)
+    !!{
+    Set the pre-determined values of analytically-solvable properties of a node.
+    !!}
+    implicit none
+    class           (nodeOperatorMulti), intent(inout) :: self
+    type            (treeNode         ), intent(inout) :: node
+    double precision                   , intent(in   ) :: time
+    type            (multiProcessList ), pointer       :: process_
+
+    if (.not.self%isActive(node)) return
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%predeterminedSolveAnalytics(node,time)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiPredeterminedSolveAnalytics
 
   subroutine multiDifferentialEvolutionStepFinalState(self,node)
     !!{
@@ -339,6 +376,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionStepFinalState(node)
@@ -356,6 +394,7 @@ contains
     type (treeNode         ), intent(inout) :: node
     type (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionPost(node)
@@ -374,6 +413,7 @@ contains
     integer                   , intent(inout) :: status
     type   (multiProcessList ), pointer       :: process_
 
+    if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
        call process_%process_%differentialEvolutionPostStep(node,status)
@@ -381,3 +421,16 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionPostStep
+
+  logical function multiIsActive(self,node) result(isActive)
+    !!{
+    Return true if the operators are active for the given {\normalfont \ttfamily node}.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    !$GLC attributes unused :: self, node
+    
+    isActive=.true.
+    return
+  end function multiIsActive

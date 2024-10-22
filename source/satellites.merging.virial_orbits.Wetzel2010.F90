@@ -65,7 +65,6 @@
      class  (cosmologyParametersClass             ), pointer     :: cosmologyParameters_             => null()
      class  (cosmologyFunctionsClass              ), pointer     :: cosmologyFunctions_              => null()
      class  (criticalOverdensityClass             ), pointer     :: criticalOverdensity_             => null()
-     class  (darkMatterProfileDMOClass            ), pointer     :: darkMatterProfileDMO_            => null()
      class  (virialDensityContrastClass           ), pointer     :: virialDensityContrast_           => null()
      type   (virialDensityContrastFriendsOfFriends), pointer     :: virialDensityContrastDefinition_ => null()
    contains
@@ -119,7 +118,6 @@ contains
     class(cosmologyParametersClass  ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     class(criticalOverdensityClass  ), pointer       :: criticalOverdensity_
-    class(darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
     class(virialDensityContrastClass), pointer       :: virialDensityContrast_
 
     !![
@@ -127,10 +125,9 @@ contains
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="criticalOverdensity"   name="criticalOverdensity_"   source="parameters"/>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=virialOrbitWetzel2010(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_)
+    self=virialOrbitWetzel2010(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_,cosmologyParameters_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"  />
@@ -138,13 +135,12 @@ contains
     <objectDestructor name="criticalOverdensity_"  />
     <objectDestructor name="darkMatterHaloScale_"  />
     <objectDestructor name="cosmologyParameters_"  />
-    <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function wetzel2010ConstructorParameters
 
-  function wetzel2010ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
+  function wetzel2010ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_,cosmologyParameters_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
     !!}
@@ -155,14 +151,13 @@ contains
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
     class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass ), intent(in   ), target :: darkMatterProfileDMO_
     class           (criticalOverdensityClass  ), intent(in   ), target :: criticalOverdensity_
     double precision                            , parameter             :: toleranceAbsolute     =0.0d0, toleranceRelative                 =1.0d-2
     integer                                                             :: iRadius
     double precision                                                    :: x                           , xGamma2                                  , &
          &                                                                 probabilityCumulative       , probabilityCumulativeNormalization
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologyParameters_, *virialDensityContrast_"/>
     !!]
 
     ! Initialize root finder.
@@ -219,7 +214,6 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"             />
     <objectDestructor name="self%criticalOverdensity_"            />
     <objectDestructor name="self%cosmologyParameters_"            />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
@@ -268,7 +262,6 @@ contains
          &                                                                   velocityHost                                                                                        , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                            virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                           )
     massSatellite=Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
@@ -276,7 +269,6 @@ contains
          &                                                                   self%virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                            virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                           )
     !![
@@ -427,7 +419,6 @@ contains
          &                                                                                                velocityHost                                                                                        , &
          &                                                                         cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                                         cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                                         darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                                         virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                                                        )
     wetzel2010AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
@@ -494,7 +485,6 @@ contains
          &                                                                              velocityHost                                                                                        , &
          &                                                       cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                       virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                                      )
     wetzel2010EnergyMean =  +0.5d0                                           &

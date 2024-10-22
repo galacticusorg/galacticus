@@ -68,7 +68,8 @@ contains
     Perform per-thread initialization tasks for node components.
     !!}
     use :: Input_Parameters, only : inputParameters
-    use :: Events_Hooks    , only : eventsHooksAtLevelToAllLevels
+    use :: Events_Hooks    , only : eventsHooksAtLevelToAllLevels   , calculationResetEvent   , openMPThreadBindingAllLevels
+    use :: Galacticus_Nodes, only : massDistributionCalculationReset, massDistributionsDestroy, massDistributionsLast
     !![
     <include directive="nodeComponentThreadInitializationTask" type="moduleUse">
     !!]
@@ -91,6 +92,10 @@ contains
        !![
        </include>
        !!]
+       ! Attach to an event that will be used to reset massDistributions of treeNodes during evolution.
+       call calculationResetEvent%attach(massDistributionsLast,massDistributionCalculationReset,openMPThreadBindingAllLevels,label='massDistribution')
+       call massDistributionsDestroy()
+       ! Restore event hooking to standard behavior.
        call eventsHooksAtLevelToAllLevels(.false.)
     end if
     initializationThreadCount=initializationThreadCount+1
@@ -118,6 +123,8 @@ contains
     !![
     </include>
     !!]
+    use :: Events_Hooks    , only : calculationResetEvent
+    use :: Galacticus_Nodes, only : massDistributionCalculationReset, massDistributionsLast
     implicit none
 
     initializationThreadCount=initializationThreadCount-1
@@ -129,6 +136,7 @@ contains
        !![
        </include>
        !!]
+       if (calculationResetEvent%isAttached(massDistributionsLast,massDistributionCalculationReset)) call calculationResetEvent%detach(massDistributionsLast,massDistributionCalculationReset)
     end if
     return
   end subroutine Node_Components_Thread_Uninitialize

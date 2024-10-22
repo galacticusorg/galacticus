@@ -81,7 +81,7 @@ sub Launch {
 	print $slurmFile "#!/bin/bash\n";
 	print $slurmFile "#SBATCH -J Galacticus_".$job->{'label'}."\n";
 	my $currentDirectory = cwd();
-	print $slurmFile "#SBATCH --workdir=".$currentDirectory."\n";
+	print $slurmFile "#SBATCH --chdir=".$currentDirectory."\n";
 	if ( exists($launchScript->{'config'}->{'contact'}->{'email'}) ) {
 	    if ( $launchScript->{'config'}->{'contact'}->{'email'} =~ m/\@/ && exists($launchScript->{'emailReport'}) && $launchScript->{'emailReport'} eq "yes" ) {
 		print $slurmFile "#SBATCH --mail-user=".$launchScript->{'config'}->{'contact'}->{'email'}."\n";
@@ -110,6 +110,11 @@ sub Launch {
 	if ( exists($launchScript->{'slurm'}->{'environment'}) ) {
 	    foreach my $environment ( @{$launchScript->{'slurm'}->{'environment'}} ) {
 		print $slurmFile "export ".$environment."\n";
+	    }
+	}
+	if ( exists($launchScript->{'slurm'}->{'module'}) ) {
+	    foreach my $module ( @{$launchScript->{'slurm'}->{'module'}} ) {
+		print $slurmFile "module load ".$module."\n";
 	    }
 	}
 	my $coreDump = "no";
@@ -341,8 +346,10 @@ sub SubmitJobs {
 		print $scriptFile "if [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
 		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
 		print $scriptFile "fi\n";
-		print $scriptFile "export ".$_."\n"
+		print $scriptFile "export "     .$_."\n"
 		    foreach ( &List::ExtraUtils::as_array($slurmConfig->{'environment'}) );
+		print $scriptFile "module load ".$_."\n"
+		    foreach ( &List::ExtraUtils::as_array($slurmConfig->{'module'     }) );
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
 		print $scriptFile "export OMP_NUM_THREADS=".$ompThreads."\n";

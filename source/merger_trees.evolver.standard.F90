@@ -29,7 +29,6 @@
   use :: Merger_Tree_Initialization  , only : mergerTreeInitializorClass
   use :: Merger_Tree_Timesteps       , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
   use :: Merger_Trees_Evolve_Node    , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
-  use :: Galactic_Structure          , only : galacticStructureClass
 
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
@@ -122,7 +121,6 @@
      class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_         => null()
      class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_           => null()
      class           (mergerTreeInitializorClass   ), pointer :: mergerTreeInitializor_           => null()
-     class           (galacticStructureClass       ), pointer :: galacticStructure_               => null()
      class           (mergerTreeEvolveProfilerClass), pointer :: mergerTreeEvolveProfiler_        => null()
      logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
           &                                                      backtrackToSatellites                     , profileSteps
@@ -171,7 +169,6 @@ contains
     class           (galacticStructureSolverClass ), pointer       :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
-    class           (galacticStructureClass       ), pointer       :: galacticStructure_
     class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
     logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
          &                                                            backtrackToSatellites           , profileSteps
@@ -222,19 +219,14 @@ contains
       <description>Specifies whether or not to profile the ODE evolver.</description>
       <source>parameters</source>
     </inputParameter>
-    !!]
-    ! A galacticStructureSolver is built here. Even though this is not called explicitly by this mergerTreeEvolver, the
-    ! galacticStructureSolver is expected to hook itself to any events which will trigger a change in galactic structure.
-    !![
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
     <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
     <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
     <objectBuilder class="mergerTreeInitializor"    name="mergerTreeInitializor_"    source="parameters"/>
-    <objectBuilder class="galacticStructure"        name="galacticStructure_"        source="parameters"/>
     <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
     !!]
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_)
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -242,13 +234,12 @@ contains
     <objectDestructor name="mergerTreeNodeEvolver_"   />
     <objectDestructor name="galacticStructureSolver_" />
     <objectDestructor name="mergerTreeInitializor_"   />
-    <objectDestructor name="galacticStructure_"       />
     <objectDestructor name="mergerTreeEvolveProfiler_"/>
     !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,galacticStructure_,mergerTreeEvolveProfiler_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     !!}
@@ -259,14 +250,13 @@ contains
     class           (galacticStructureSolverClass ), intent(in   ), target :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), intent(in   ), target :: mergerTreeNodeEvolver_
     class           (mergerTreeInitializorClass   ), intent(in   ), target :: mergerTreeInitializor_
-    class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
     class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
          &                                                                    backtrackToSatellites           , profileSteps
     double precision                               , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                    fractionTimestepSatelliteMinimum
     !![
-    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *galacticStructure_, *mergerTreeEvolveProfiler_"/>
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *mergerTreeEvolveProfiler_"/>
     !!]
 
     self%deadlockHeadNode => null()
@@ -286,7 +276,6 @@ contains
     <objectDestructor name="self%galacticStructureSolver_" />
     <objectDestructor name="self%mergerTreeNodeEvolver_"   />
     <objectDestructor name="self%mergerTreeInitializor_"   />
-    <objectDestructor name="self%galacticStructure_"       />
     <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
     !!]
     return
@@ -457,8 +446,16 @@ contains
                             end if
                          end if
                          ! Check for interrupt.
-                         if (interrupted) then
-                            ! If an interrupt occurred call the specified procedure to handle it.
+                         if     (                                                         &
+                              &   interrupted                                             & ! An interrupt occured.
+                              &  .and.                                                    &
+                              &   (                                                       &
+                              &    basic%time() < timeEndThisNode                         & ! The end of the timestep was not reached.
+                              &    .or.                                                   &
+                              &     .not.(associated(timestepTask_).and.associated(node)) & ! No end of timestep task is possible.
+                              &   )                                                       &
+                              & ) then
+                              ! If an interrupt occurred call the specified procedure to handle it.
                             call interruptProcedure(node,timeEnd)
                             ! Something happened so the tree is not deadlocked.
                             statusDeadlock=deadlockStatusIsNotDeadlocked

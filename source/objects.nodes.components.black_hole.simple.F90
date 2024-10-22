@@ -58,9 +58,8 @@ module Node_Component_Black_Hole_Simple
     </property>
    </properties>
    <bindings>
-      <binding method="enclosedMass" function="Node_Component_Black_Hole_Simple_Enclosed_Mass" bindsTo="component" />
-      <binding method="acceleration" function="Node_Component_Black_Hole_Simple_Acceleration"  bindsTo="component" />
-      <binding method="tidalTensor"  function="Node_Component_Black_Hole_Simple_Tidal_Tensor"  bindsTo="component" />
+     <binding method="massDistribution" function="Node_Component_Black_Hole_Simple_Mass_Distribution" bindsTo="component"/>
+     <binding method="massBaryonic"     function="Node_Component_Black_Hole_Simple_Mass_Baryonic"     bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   </component>
@@ -226,7 +225,7 @@ contains
     if (.not.defaultBlackHoleComponent%simpleIsActive()) return
     ! Get the black hole component.
     blackHole => node%blackHole()
-    ! Ensure that it is of the standard class.
+    ! Ensure that it is of the simple class.
     select type (blackHole)
     class is (nodeComponentBlackHoleSimple)
        ! Get the spheroid component.

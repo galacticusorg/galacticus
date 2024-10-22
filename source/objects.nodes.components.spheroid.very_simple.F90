@@ -111,7 +111,7 @@ module Node_Component_Spheroid_Very_Simple
     </property>
    </properties>
    <bindings>
-    <binding method="enclosedMass" function="Node_Component_Spheroid_Very_Simple_Enclosed_Mass" bindsTo="component" />
+    <binding method="massBaryonic" function="Node_Component_Spheroid_Very_Simple_Mass_Baryonic" bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.spheroid.very_simple.bound_functions.inc</functions>
   </component>

@@ -2,7 +2,7 @@
 <!-- Parameter file for bug #1066052: "Crash due to zero-size spheroids" test case -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <verbosityLevel value="working"/>
   <mergerRemnantSize value="cole2000"/>
   <mergerTreeConstructor value="read">
@@ -81,6 +81,8 @@
       <factorReset value="2.0"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

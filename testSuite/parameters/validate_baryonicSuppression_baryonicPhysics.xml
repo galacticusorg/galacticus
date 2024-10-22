@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Baryonic parameters for the baryonic suppression validation model. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+
+  <!-- Intergalactic background radiation -->
+  <radiationFieldIntergalacticBackground value="summation">
+    <radiationField value="cosmicMicrowaveBackground"/>
+    <radiationField value="intergalacticBackgroundFile">
+      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.hdf5"/>
+    </radiationField>
+  </radiationFieldIntergalacticBackground>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="naozBarkana2007">
+    <rateAdjust value="3.0"/>
+  </accretionHalo>
+
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistribution           value="betaProfile"       />
+  <hotHaloTemperatureProfile         value="virial"            />
+  <hotHaloMassDistributionCoreRadius value="virialFraction"     >
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <coolingSpecificAngularMomentum     value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation       value="hotGas"/>
+  </coolingSpecificAngularMomentum>
+  <coolingFunction value="atomicCIECloudy"/>
+  <coolingRadius value="simple"/>
+  <coolingTime value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  <coolingTimeAvailable value="whiteFrenk1991">
+    <ageFactor value="0.0"/>
+  </coolingTimeAvailable>
+  
+  <!-- Hot halo ram pressure stripping options -->
+  <hotHaloRamPressureStripping value="font2008">
+    <solverFailureIsFatal value="false"/>
+  </hotHaloRamPressureStripping>
+  <hotHaloRamPressureForce     value="font2008       "        />
+  <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
+  
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver value="equilibrium"/>
+  <darkMatterProfile value="adiabaticGnedin2004">
+    <A     value="0.73"/>
+    <omega value="0.70"/>
+  </darkMatterProfile>
+  
+  <!-- Galaxy merger options -->
+  <mergerMassMovements value="simple">
+    <destinationGasMinorMerger value="disk"/>
+    <massRatioMajorMerger      value="2.0" />
+  </mergerMassMovements>
+  <mergerRemnantSize value="cole2000">
+    <energyOrbital value="1.0"/>
+  </mergerRemnantSize>
+  
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Spins are computed using the angular momentum random walk model of Benson, Behrens, & Lu     -->
+    <!-- (2020; MNRAS; 496; 3371; http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B).                 -->
+    <!-- The best fit-value for the mass exponent is taken from here                                  -->
+    <!-- https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations. -->
+    <!-- and is offset for fix to Keplerian orbit propagation                                         -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002">
+      <exponentMass                    value="1.92527794238468"/>
+      <angularMomentumVarianceSpecific value="0.00100000000000"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+  </nodeOperator>
+
+  <!-- Merger tree evolution -->
+  <mergerTreeEvolver value="standard">
+    <!-- Standard merger tree evolver with parameters chosen to (somewhat) optimize the evolution. -->
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.10"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <!-- Standard node evolve with parameters chosen to (somewhat) optimize the evolution. -->
+    <odeToleranceAbsolute value="0.01" />
+    <odeToleranceRelative value="0.01" />
+    <reuseODEStepSize     value="false"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <!-- Standard time-stepping rules -->
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.100"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite">
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard"/>
+  <outputTimes value="list">
+    <redshifts value="0.00 3.06 5.72 9.27"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="indicesTree"/>
+    <nodePropertyExtractor value="treeWeight" />
+    <nodePropertyExtractor value="massHalo"    >
+      <virialDensityContrastDefinition value="fixed">
+	<densityContrastValue value="200.0"/>
+	<densityType          value="mean" />
+      </virialDensityContrastDefinition>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+</parameters>

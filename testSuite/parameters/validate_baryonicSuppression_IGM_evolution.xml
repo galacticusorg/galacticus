@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Baryonic suppression validation model - reference IGM evolution. -->
+<parameters>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <formatVersion>2</formatVersion>
+  <verbosityLevel value="working"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="standard"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="67.36000"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaMatter value=" 0.31530"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaDarkEnergy value=" 0.68470"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <OmegaBaryon value=" 0.04930"/>	<!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8                           value="0.8111"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <tolerance                         value="3.0e-4"/>
+    <toleranceTopHat                   value="3.0e-4"/>
+    <nonMonotonicIsFatal               value="false" />
+    <monotonicInterpolation            value="true"  />
+    <powerSpectrumWindowFunction value="topHat"/>
+  </cosmologicalMassVariance>
+  <transferFunction                   value="CAMB"     >
+    <redshift value="100.0"/>
+  </transferFunction>
+  <powerSpectrumPrimordial            value="powerLaw" >
+    <index               value="0.9649"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"  />
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloMassFunction      value="shethTormen"                           >
+    <a             value="0.791"/> <!-- Best fit values from Benson, Ludlow, & Cole (2019). -->
+    <normalization value="0.302"/>
+    <p             value="0.218"/>
+  </haloMassFunction>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeConstructor value="build">
+    <redshiftBase value="0.0"/>
+  </mergerTreeConstructor>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="  0.1"/>
+    <mergeProbability value="  0.1"/>
+    <redshiftMaximum value="100.0"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree value="1.0e10"/>
+    <treeCount value="1"/>
+  </mergerTreeBuildMasses>
+
+  <!-- Halo mass resolution -->
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e9"/>
+  </mergerTreeMassResolution>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileScaleRadius value="concentration">
+    <correctForConcentrationDefinition value="true"/>
+    <darkMatterProfileConcentration value="diemerJoyce2019"/>
+  </darkMatterProfileScaleRadius>
+ 
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistribution value="betaProfile"/>
+  <hotHaloTemperatureProfile value="virial"/>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <coolingFunction value="atomicCIECloudy"/>
+  <coolingRadius value="simple"/>
+  <coolingRate value="whiteFrenk1991">
+    <velocityCutOff value="10000"/>
+  </coolingRate>
+  <coolingTime value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  <coolingTimeAvailable value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailable>
+  <hotHaloRamPressureStripping value="virialRadius"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  </nodeOperator>
+
+  <!-- Numerical tolerances -->
+  <!-- Tree evolution -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+    <reuseODEStepSize value="false"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="simple">
+    <timeStepAbsolute value="1.000"/>
+    <timeStepRelative value="0.100"/>
+  </mergerTreeEvolveTimestep>
+  
+  <!-- Include reionization -->
+  <!-- IGM evolver -->
+  <intergalacticMediumState value="internal"/>
+  <universeOperator value="intergalacticMediumStateEvolve">
+    <timeCountPerDecade value=" 30  "/>
+    <redshiftMaximum    value="150.0"/>
+  </universeOperator>    
+
+  <!-- Background radiation -->
+  <radiationFieldIntergalacticBackground value="switchOn">
+    <redshiftSwitchOn value="6.0"/>
+    <radiationField value="intergalacticBackgroundFile">
+      <fileName value="%DATASTATICPATH%/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.hdf5"/>
+    </radiationField>
+  </radiationFieldIntergalacticBackground>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="naozBarkana2007"/>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/validate_baryonicSuppression_IGM_evolution.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>

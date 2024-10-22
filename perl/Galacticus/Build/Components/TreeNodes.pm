@@ -123,7 +123,7 @@ sub Build_Tree_Node_Class {
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "isPrimaryProgenitor"                                                                                             ,
-	     function    => "Tree_Node_Is_Primary_Progenitor"                                                                                 ,
+	     function    => "treeNodeIsPrimaryProgenitor"                                                                                 ,
 	     description => "Return true if this node is the primary progenitor of its descendant, false otherwise."                          ,
 	     returnType  => "\\logicalzero"                                                                                                   ,
 	     arguments   => ""
@@ -174,6 +174,14 @@ sub Build_Tree_Node_Class {
 	     function    => "Tree_Node_Is_Satellite"                                                                                          ,
 	     description => "Return true if this node is a satellite, false otherwise."                                                       ,
 	     returnType  => "\\logicalzero"                                                                                                   ,
+	     arguments   => ""
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "isolatedParent"                                                                                                  ,
+	     function    => "Tree_Node_Get_Isolated_Parent"                                                                                   ,
+	     description => "Return a pointer to the isolated parent node of this node."                                                      ,
+	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
 	     arguments   => ""
 	 },
 	 {

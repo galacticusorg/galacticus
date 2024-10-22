@@ -34,7 +34,6 @@
      private
      class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                                 => null()
      class           (outputTimesClass           ), pointer                     :: outputTimes_                                    => null()
-     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                              => null()
      double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                         , systematicErrorPolynomialCoefficient, &
           &                                                                        massStellarSystematicErrorPolynomialCoefficient
      integer                                                                    :: covarianceBinomialBinsPerDecade
@@ -64,7 +63,6 @@ contains
     Constructor for the ``localGroupOccupationFraction'' output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
-    use :: Galactic_Structure          , only : galacticStructureClass
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
     use :: Galactic_Filters            , only : enumerationPositionTypeEncode
     use :: Models_Likelihoods_Constants, only : logImprobable
@@ -72,7 +70,6 @@ contains
     type            (outputAnalysisLocalGroupOccupationFraction)                              :: self
     type            (inputParameters                           ), intent(inout)               :: parameters
     class           (outputTimesClass                          ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                    ), pointer                     :: galacticStructure_
     double precision                                            , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient               , systematicErrorPolynomialCoefficient, &
          &                                                                                       massStellarSystematicErrorPolynomialCoefficient
     integer                                                                                   :: covarianceBinomialBinsPerDecade
@@ -147,10 +144,9 @@ contains
       <defaultValue>var_str('orbital')</defaultValue>
       <description>The type of position to use in survey geometry filters.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupOccupationFraction(outputTimes_,galacticStructure_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupOccupationFraction(outputTimes_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -158,7 +154,7 @@ contains
     return
   end function localGroupOccupationFractionConstructorParameters
 
-  function localGroupOccupationFractionConstructorInternal(outputTimes_,galacticStructure_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupOccupationFractionConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``localGroupOccupationFraction'' output analysis class for internal use.
     !!}
@@ -188,7 +184,6 @@ contains
          &                                                                                                  massStellarSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassBasic                     )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar                   )               , pointer        :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_           , outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
@@ -218,7 +213,7 @@ contains
     integer         (c_size_t                                           )                                :: i                                                           , bufferCount
     type            (hdf5Object                                         )                                :: fileData
     !![
-    <constructorAssign variables="*galacticStructure_, *outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
     
     ! Construct the target distribution.
@@ -242,7 +237,7 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                 )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (                                                                                   )"/>
     !!]
     ! Build a size weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
@@ -427,6 +422,7 @@ contains
     <objectDestructor name="outputAnalysisDistributionOperator_"                   />
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
+    <objectDestructor name="galacticFilterSurveyGeometry_"                         />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]
@@ -444,9 +440,8 @@ contains
     type(outputAnalysisLocalGroupOccupationFraction), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"   />
-    <objectDestructor name="self%outputTimes_"      />
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputTimes_"   />
     !!]
     return
   end subroutine localGroupOccupationFractionDestructor
@@ -482,7 +477,7 @@ contains
     return
   end subroutine localGroupOccupationFractionReduce
 
-  subroutine localGroupOccupationFractionFinalize(self)
+  subroutine localGroupOccupationFractionFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupOccupationFraction} output analysis finalization.
     !!}
@@ -490,14 +485,22 @@ contains
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    class(outputAnalysisLocalGroupOccupationFraction), intent(inout) :: self
-    type (hdf5Object                                )                :: analysesGroup, analysisGroup
+    class(outputAnalysisLocalGroupOccupationFraction), intent(inout)           :: self
+    type (varying_string                            ), intent(in   ), optional :: groupName
+    type (hdf5Object                                )               , target   :: analysesGroup, subGroup
+    type (hdf5Object                                )               , pointer  :: inGroup
+    type (hdf5Object                                )                          :: analysisGroup
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     ! Overwrite log-likelihood with our own calculation.
     !$ call hdf5Access%set()
-    analysesGroup=outputFile   %openGroup('analyses'                                                                            )
-    analysisGroup=analysesGroup%openGroup('localGroupOccupationFraction','Subhalo occupation fraction of Local Group satellites')
+    analysesGroup =  outputFile   %openGroup('analyses'                         )
+    inGroup       => analysesGroup
+    if (present(groupName)) then
+       subGroup   =  analysesGroup%openGroup(char(groupName)                    )
+       inGroup    => subGroup
+    end if
+    analysisGroup=inGroup%openGroup('localGroupOccupationFraction','Subhalo occupation fraction of Local Group satellites')
     call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
     !$ call hdf5Access%unset()
     return

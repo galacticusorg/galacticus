@@ -184,8 +184,10 @@ sub function1DPlot {
     if ( $attributes->{'yAxisIsLog'} ) {
 	my $negativeY                      = which($yLower       <= 1.0e-10*$data->{'yDataset'      });
 	my $negativeYTarget                = which($yLowerTarget <= 1.0e-10*$data->{'yDatasetTarget'});
-	$yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      );
-	$yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget);
+	$yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      )
+	    if ( nelem($negativeY      ) > 0 );
+	$yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget)
+	    if ( nelem($negativeYTarget) > 0 );
     }
     my $yUpperBoth   = $yUpper->($nonZero)->append($yUpperTarget->($nonZeroTarget));
     my $yLowerBoth   = $yLower->($nonZero)->append($yLowerTarget->($nonZeroTarget));

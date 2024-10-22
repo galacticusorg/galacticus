@@ -34,7 +34,6 @@
      private
      class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                                        => null()
      class           (outputTimesClass           ), pointer                     :: outputTimes_                                           => null()
-     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                                     => null()
      class           (darkMatterHaloScaleClass   ), pointer                     :: darkMatterHaloScale_                                   => null()
      double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                                , systematicErrorPolynomialCoefficient, &
           &                                                                        velocityDispersionSystematicErrorPolynomialCoefficient
@@ -65,7 +64,6 @@ contains
     Constructor for the ``localGroupMassVelocityDispersionRelation'' output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
-    use :: Galactic_Structure          , only : galacticStructureClass
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
     use :: Galactic_Filters            , only : enumerationPositionTypeEncode
     use :: Models_Likelihoods_Constants, only : logImprobable
@@ -73,7 +71,6 @@ contains
     type            (outputAnalysisLocalGroupMassVelocityDispersionRelation)                              :: self
     type            (inputParameters                                       ), intent(inout)               :: parameters
     class           (outputTimesClass                                      ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                                ), pointer                     :: galacticStructure_
     class           (darkMatterHaloScaleClass                              ), pointer                     :: darkMatterHaloScale_
     double precision                                                        , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                      , systematicErrorPolynomialCoefficient, &
          &                                                                                                   velocityDispersionSystematicErrorPolynomialCoefficient
@@ -150,20 +147,18 @@ contains
       <description>The type of position to use in survey geometry filters.</description>
     </inputParameter>
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupMassVelocityDispersionRelation(outputTimes_,galacticStructure_,darkMatterHaloScale_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,velocityDispersionSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupMassVelocityDispersionRelation(outputTimes_,darkMatterHaloScale_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,velocityDispersionSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"        />
-    <objectDestructor name="galacticStructure_"  />
     <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function localGroupMassVelocityDispersionRelationConstructorParameters
 
-  function localGroupMassVelocityDispersionRelationConstructorInternal(outputTimes_,galacticStructure_,darkMatterHaloScale_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,velocityDispersionSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupMassVelocityDispersionRelationConstructorInternal(outputTimes_,darkMatterHaloScale_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,velocityDispersionSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``localGroupMassVelocityDispersionRelation'' output analysis class for internal use.
     !!}
@@ -193,7 +188,6 @@ contains
          &                                                                                                     velocityDispersionSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
     class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     class           (darkMatterHaloScaleClass                              ), intent(in   ), target         :: darkMatterHaloScale_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorScalarizer                       )               , pointer        :: outputAnalysisWeightPropertyScalarizer_
@@ -234,8 +228,9 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
+    type            (varying_string                                        )               , dimension(1)   :: radiusSpecifier
     !![
-    <constructorAssign variables="*outputTimes_, *galacticStructure_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    <constructorAssign variables="*outputTimes_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
 
     ! Construct mass bins.
@@ -320,25 +315,26 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                                                                          )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar               (                                                                                                 )"/>
     !!]
     ! Create a velocity dispersion weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
+    radiusSpecifier(1)=var_str('stellarMassFraction{0.5}:all:galactic:lineOfSight:1.0')
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorVelocityDispersion        ([var_str('stellarMassFraction{0.5}:all:galactic:lineOfSight:1.0')],.false.,.false.,toleranceRelative,darkMatterHaloScale_,galacticStructure_)"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorVelocityDispersion        (radiusSpecifier,.false.,.false.,toleranceRelative,darkMatterHaloScale_                           )"/>
     !!]
     allocate(outputAnalysisWeightPropertyScalarizer_               )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyScalarizer_"                 constructor="nodePropertyExtractorScalarizer               (1,1,outputAnalysisWeightPropertyExtractor_                                                                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyScalarizer_"                 constructor="nodePropertyExtractorScalarizer               (1,1,outputAnalysisWeightPropertyExtractor_                                                        )"/>
     !!]
     ! Build a size weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(velocityDispersionErrorPolynomialZeroPoint,velocityDispersionSystematicErrorPolynomialCoefficient                                           )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(velocityDispersionErrorPolynomialZeroPoint,velocityDispersionSystematicErrorPolynomialCoefficient )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                                            )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                  )"/>
     !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
@@ -346,16 +342,16 @@ contains
     weightPropertyOperators_%next%operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                                                                   )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                         )"/>
     !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"                   constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                                           )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"                   constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                 )"/>
     !!]
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"       constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint              ,systematicErrorPolynomialCoefficient                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"       constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint              ,systematicErrorPolynomialCoefficient                                )"/>
     !!]
     allocate(operators_     )
     allocate(operators_%next)
@@ -363,7 +359,7 @@ contains
     operators_%next%operator_ => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_"                        constructor="outputAnalysisPropertyOperatorSequence         (operators_                                                                                                                                 )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                        constructor="outputAnalysisPropertyOperatorSequence         (operators_                                                                                       )"/>
     !!]
     allocate(outputAnalysisPropertyUnoperator_               )
     !![
@@ -516,6 +512,7 @@ contains
     <objectDestructor name="galacticFilterHaloNotIsolated_"                        />
     <objectDestructor name="galacticFilterHostMassRange_"                          />
     <objectDestructor name="galacticFilterHighPass_"                               />
+    <objectDestructor name="galacticFilterSurveyGeometry_"                         />
     <objectDestructor name="galacticFilter_"                                       />
     <objectDestructor name="surveyGeometry_"                                       />
     !!]
@@ -535,7 +532,6 @@ contains
     !![
     <objectDestructor name="self%outputAnalysis_"     />
     <objectDestructor name="self%outputTimes_"        />
-    <objectDestructor name="self%galacticStructure_"  />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
@@ -572,14 +568,15 @@ contains
     return
   end subroutine localGroupMassVelocityDispersionRelationReduce
 
-  subroutine localGroupMassVelocityDispersionRelationFinalize(self)
+  subroutine localGroupMassVelocityDispersionRelationFinalize(self,groupName)
     !!{
     Implement a {\normalfont \ttfamily localGroupMassVelocityDispersionRelation} output analysis finalization.
     !!}
     implicit none
-    class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self
+    class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout)           :: self
+    type (varying_string                                        ), intent(in   ), optional :: groupName
 
-    call self%outputAnalysis_%finalize()
+    call self%outputAnalysis_%finalize(groupName)
     return
   end subroutine localGroupMassVelocityDispersionRelationFinalize
 

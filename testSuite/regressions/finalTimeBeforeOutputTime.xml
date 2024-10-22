@@ -3,8 +3,8 @@
 <!-- Should not result in a deadlock.                                                   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
-  <componentDarkMatterProfile value="null"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <componentDarkMatterProfile value="scaleFree"/>
   <satelliteMergingTimescales value="jiang2008">
     <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescales>
@@ -24,6 +24,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
     <!-- Star formation -->

@@ -510,7 +510,7 @@ contains
        zCount=size(z)
        allocate(z0(zCount))
        z0=z
-       call self%integrator%integrandSet (zCount,integrandsWrapper)
+       call self%integrator%integrandSet(zCount,integrandsWrapper)
        latentIntegrator_=C_FunLoc(latentIntegrator)
     else
        allocate(z0(0))

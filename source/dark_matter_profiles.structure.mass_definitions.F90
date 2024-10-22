@@ -30,19 +30,20 @@ module Dark_Matter_Profile_Mass_Definitions
 
 contains
 
-  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,useLastIsolatedTime) result(massHalo)
+  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,useLastIsolatedTime) result(massHalo)
     !!{
     Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParametersClass
-    use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Math_Exponentiation             , only : cubeRoot
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Virial_Density_Contrast         , only : virialDensityContrastClass
+    use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly    , massTypeDark
     implicit none
     double precision                                                      :: massHalo
     type            (treeNode                  )          , intent(inout) :: node
@@ -51,8 +52,8 @@ contains
     logical                                     , optional, intent(in   ) :: useLastIsolatedTime
     class           (cosmologyParametersClass  )          , intent(inout) :: cosmologyParameters_
     class           (cosmologyFunctionsClass   )          , intent(inout) :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass )          , intent(inout) :: darkMatterProfileDMO_
     class           (virialDensityContrastClass)          , intent(inout) :: virialDensityContrast_
+    class           (massDistributionClass     ), pointer                 :: massDistribution_
     class           (nodeComponentBasic        ), pointer                 :: basic
     double precision                                                      :: radiusHalo            , density , &
          &                                                                   time
@@ -94,7 +95,11 @@ contains
     else
        ! Mismatched density contrast definitions - compute the mass directly.
        ! Get the radius in the halo enclosing this density.
-       radiusHalo=+darkMatterProfileDMO_%radiusEnclosingDensity(node,density)
+       massDistribution_ => node             %massDistribution      (componentTypeDarkMatterOnly,massTypeDark)
+       radiusHalo        =  massDistribution_%radiusEnclosingDensity(density                                 )
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]       
        ! Find the mass within that radius - this is computable directly from the mean density and the radius enclosing that mean
        ! density.
        massHalo  =+4.0d0         &

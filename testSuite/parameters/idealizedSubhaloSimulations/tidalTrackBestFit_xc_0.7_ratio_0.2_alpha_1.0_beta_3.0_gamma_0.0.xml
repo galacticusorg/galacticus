@@ -2,7 +2,7 @@
 <!-- Orbiting subhalo model described in Du et al. (2024) -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
@@ -67,9 +67,6 @@
           <gamma value="0.0"/>
         </darkMatterProfileDMO>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="0.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMO>
       <nonAnalyticSolver                   value="numerical"/>
@@ -119,7 +116,7 @@
   </satelliteTidalHeatingRate>
   <satelliteTidalStripping    value="zentner2005"      >
     <useDynamicalTimeScale value="true"    />
-    <efficiency            value="1.16711" />
+    <efficiency            value="2.38868" />
   </satelliteTidalStripping>
   <satelliteTidalStrippingRadius value="king1962">
     <efficiencyCentrifugal value="0.0"     />
@@ -207,9 +204,6 @@
           <gamma value="0.0"/>
         </darkMatterProfileDMO>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="0.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMOUnheated>
     </outputAnalysis>
@@ -223,9 +217,6 @@
           <gamma value="0.0"/>
         </darkMatterProfileDMO>
         <radiusFractionalDecay value="0.1"/>
-        <alpha value="1.0"/>
-        <beta  value="3.0"/>
-        <gamma value="0.0"/>
         <nonAnalyticSolver value="numerical"/>
       </darkMatterProfileDMOUnheated>
     </outputAnalysis> 

@@ -59,11 +59,63 @@ The linear growth function object requires knowledge about the cosmological para
 
 Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute. Such parameters are targets for pointers elsewhere in the file, and as such are inactive (i.e. they will be ignored by \glc\ except as targets for pointers). A pointer to a target is created by specifying an element with the same parameter name and an ``{\normalfont \ttfamily idRef}'' element with a value equal to that of the {\normalfont \ttfamily id} element of the target. The pointer then acts as a regular parameter, adopting the value and subparameters of the target. Targets can be targeted by multiple pointers. This allows for a single object to be shared between multiple other objects.
 
-Lastly, a parameter value can be given by a math expression\footnote{This functionality requires that {\normalfont \ttfamily libmatheval} is installed.}. In the above example {\normalfont \ttfamily parameter5Name} has a value of ``{\normalfont \ttfamily =10.0*[parameter4Name::subParameter1Name]}''. The initial ``{\normalfont \ttfamily =}'' indicates that this is a math expression which should be evaluated. In this case, the expression is ten times value value of ``{\normalfont \ttfamily [parameter4Name::subParameter1Name]}'', which refers to the value of the sub-parameter {\normalfont \ttfamily subParameter1Name} of parameter {\normalfont \ttfamily parameter4Name}. In this way the values of parameters can be derived from those of other parameters.
+It is possible to make a parameter conditional upon the value of another parameter. This can be useful, for example, if you want to include a specific \refClass{nodeOperatorClass} only if merger trees are being read from file, and not if trees are being constructed internally. This is achieved using the {\normalfont \ttfamily active} attribute of a parameter. For example:
+\begin{verbatim}
+    <nodeOperator value="assemblyHistoryHeuristics" active="[mergerTreeConstructor] == read">
+\end{verbatim}
+which will result in the {\normalfont \ttfamily assemblyHistoryHeuristics} {\normalfont \ttfamily nodeOperator} being active only if the {\normalfont \ttfamily mergerTreeConstructor} is set to {\normalfont \ttfamily new}. The content of the {\normalfont \ttfamily active} element must be a parameter name enclosed in {\normalfont \ttfamily []}, followed by an operator ({\normalfont \ttfamily ==} or {\normalfont \ttfamily !=}), followed by the text to match. The parameter name can include a full path as described below. Note that, while numerical parameters can be used in {\normalfont \ttfamily active} elements, the comparison is always textual, not numerical.
+
+A parameter value can be given by a math expression\footnote{This functionality requires that {\normalfont \ttfamily libmatheval} is installed.}. In the above example {\normalfont \ttfamily parameter5Name} has a value of ``{\normalfont \ttfamily =10.0*[parameter4Name:subParameter1Name]}''. The initial ``{\normalfont \ttfamily =}'' indicates that this is a math expression which should be evaluated. In this case, the expression is ten times value value of ``{\normalfont \ttfamily [parameter4Name:subParameter1Name]}'', which refers to the value of the sub-parameter {\normalfont \ttfamily subParameter1Name} of parameter {\normalfont \ttfamily parameter4Name}. In this way the values of parameters can be derived from those of other parameters.
+
+Lastly, a text parameter can also be evaluated by starting it with an initial ``{\normalfont \ttfamily =}''. For text parameters, other parameters can be referenced and their values are simply inserted. So, for example:
+\begin{verbatim}
+<outputFileName value="=myFile_m[%5.2f|darkMatterParticle::mass]keV.hdf5"/>
+\end{verbatim}
+would set the output file name by replacing ``{\normalfont \ttfamily [\%5.2f|darkMatterParticle::mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifer must be given---in this case ``{\normalfont \ttfamily \%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \ref{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the {\normalfont \ttfamily s}, {\normalfont \ttfamily d}, {\normalfont \ttfamily f}, and{\normalfont \ttfamily e} specifiers are supported.
 
 The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc.
 
 All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\normalfont \ttfamily Parameters} group within the \glc\ output file. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
+
+\subsection{Extracting Parameter Files From Outputs}\index{parameters!extracting from outputs}
+
+The values of all parameters (including those set to defaults) are stored to the Galacticus output file in the {\normalfont \ttfamily Parameters} group (see \S\ref{sec:outputFile:parametersGroup}). These parameter settings can be extracted back to an XML file using the {\normalfont \ttfamily parametersExtract.py} script: 
+\begin{verbatim}
+./scripts/parameters/parametersExtract.py galacticus.hdf5 extractedParameters.xml
+\end{verbatim}
+In this example, all parameters that were used to run the {\normalfont \ttfamily galacticus.hdf5} model and that were stored in that file will be extracted and output to the {\normalfont \ttfamily extractedParameters.xml} file.
+
+\subsection{Differencing Parameter Files}\index{parameters!differences}
+
+The differences between two parameter files can be shown using the {\normalfont \ttfamily parametersDiff.py} script. For example: 
+\begin{verbatim}
+./scripts/parameters/parametersDiff.py parameters1.xml parameters2.xml
+\end{verbatim}
+will show the differences between {\normalfont \ttfamily parameters1.xml} and {\normalfont \ttfamily parameters2.xml}.
+
+By default, the \emph{order} of differently-named parameters is ignored when looking for differences---the order of differently-named parametersmakes no difference to \glc. However, this involves re-ordering parameters alphabetically to allow differences to be seen, which can make it more difficult for the user to identify where in the files the differences occur. By adding the option {\normalfont \ttfamily --respectOrder} the order of parameters is preserved. This may result in more differences being shown, but with more useful context for finding them in the parameter files. 
+
+Differences are detected via a textual comparison. Consequently, parameters:
+\begin{verbatim}
+<myParameter value="0.001"/>
+\end{verbatim}
+and
+\begin{verbatim}
+<myParameter value="1.0e-3"/>
+\end{verbatim}
+will be identified as a difference, even though they are numerically identical. To avoid such false differences, numerical values in parameters can be put into a canonical form using the {\normalfont \ttfamily --canonicalizeValues} option with a standard Python \href{https://docs.python.org/3/library/string.html#formatstrings}{format string}. For example:
+\begin{verbatim}
+./scripts/parameters/parametersDiff.py --canonicalizeValues .4f parameters1.xml parameters2.xml
+\end{verbatim}
+will convert all numerical values into floating point numbers with 4 digits of provision. So, in the above example the parameters would be rewritten as:/
+\begin{verbatim}
+<myParameter value="0.0010"/>
+\end{verbatim}
+and
+\begin{verbatim}
+<myParameter value="0.0010"/>
+\end{verbatim}
+and so would be seen as identical.
 
 \subsection{Validating Parameter Files}\index{parameters!validating}
 
@@ -176,9 +228,13 @@ galacticus.hdf5
  +-> Version                                  Group
       |
       +-> buildTime                           Attribute {1}
-      +-> runTime                             Attribute {1}
+      +-> memoryUsageMaximum                  Attribute {1}
+      +-> runStartTime                        Attribute {1}
+      +-> runEndTime                          Attribute {1}
+      +-> runDuration                         Attribute {1}
       +-> gitBranch                           Attribute {1}
       +-> gitHash                             Attribute {1}
+      +-> gitHashDatasets                     Attribute {1}
       +-> runByName                           Attribute {1}
       +-> runByEmail                          Attribute {1}
 \end{verbatim}
@@ -222,13 +278,13 @@ For each broadband filter used in the \glc\ model run an entry is added to the d
 \item[{\normalfont \ttfamily wavelengthEffective}] The effective wavelength, $\lambda_\mathrm{eff}$ (defined as $\lambda_\mathrm{eff}=\left. \int_0^\infty \lambda R(\lambda) \mathrm{d}\lambda \right/ \int_0^\infty R(\lambda) \mathrm{d}\lambda$, where $R(\lambda)$ is the filter response) of the filter in \AA.
 \end{description}
 
-\subsection{Parameters}
+\subsection{Parameters}\label{sec:outputFile:parametersGroup}
 
 The {\normalfont \ttfamily Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of attributes, each attribute named for the corresponding parameter and with a single entry giving the value of that parameter. If a parameter has subparameters, a group is created having the same name as the parameter, which will contain attributes corresponding to each subparameter. In cases where a parameter appears more than once in a given node of the parameter tree,it will be output with ``{\normalfont \ttfamily [N]}'' appended to its name, where ``{\normalfont \ttfamily N}'' is an integer indicating the instance of the parameter.
 
 \subsection{Version}
 
-The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\normalfont \scshape Git} branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered). Additionally, the time at which the model was run is stored and, if the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
+The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the {\normalfont \scshape Git} commit branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered) in the attributes {\normalfont \ttfamily gitBranch} and {\normalfont \ttfamily gitHash} respectively, along with the time at which the executable was built as {\normalfont \ttfamily buildTime}. If the {\normalfont \ttfamily datasets} path is a {\normalfont \scshape Git} repo then the hash of the checked-out commit is stored as {\normalfont \ttfamily gitHashDatasets} (if {\normalfont \ttfamily datasets} is not a {\normalfont \scshape Git} repo then a value of ``{\normalfont \ttfamily unknown}'' is entered instead). Additionally, the times at which the model run started and eneded are stored as {\normalfont \ttfamily runStartTime} and {\normalfont \ttfamily runEndTime}, with the duration of the run (in seconds) stored as {\normalfont \ttfamily runDuration}, and the maximum memory used by the model (in bytes) is stored as {\normalfont \ttfamily memoryUsageMaximum}. If the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model are stored as {\normalfont \ttfamily runByName} and {\normalfont \ttfamily runByEmail} respectively.
 
 \subsection{Outputs}
 
@@ -321,7 +377,7 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 
 \section{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{http://www.cs.wisc.edu/condor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
  ./scripts/aux/launch.pl <runFile>
 \end{verbatim}
@@ -516,8 +572,7 @@ This configuration file should have the following structure:
   </email>
 </config>
 \end{verbatim}
-The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
-setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed.
 
 \section{Writing Data To a Temporary File}\index{output!temporary}
 

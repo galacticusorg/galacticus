@@ -20,9 +20,9 @@ sub Process_ForEach {
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
-	if ( $node->{'type'} eq "forEach" && ! $node->{'processed'} ) {
+	if ( $node->{'type'} eq "forEach" && ! $node->{'directive'}->{'processed'} ) {
 	    # Record that node is processed.
-	    $node->{'processed'} = 1;
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Get the declaration and determine rank.
 	    my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$node->{'directive'}->{'variable'});
 	    my $rank = 0;
@@ -48,11 +48,15 @@ sub Process_ForEach {
 	    for(my $i=1;$i<=$rank;++$i) {
 		$iterator .= "do foreach__".$i."=1,size(".$node->{'directive'}->{'variable'}.",dim=".$i.")\n";
 	    }
-	    my $indexesFormat = $rank == 0 ? "a1"  : "a1,".join(",",map {"i1"} 1..$rank).",a1";
-	    my $indexes       = $rank == 0 ? "'.'" : "'[',".join(",",map {"foreach__".$_} 1..$rank).",']'";
+	    my $indexesFormat = $rank == 0 ? "'(a1)'"  : "indexesFormat__";
+	    my $indexes       = $rank == 0 ? "'.'" :     join(",",map {"foreach__".$_} 1..$rank)    ;
 	    my $indexer       = $rank == 0 ? ""    : "(".join(",",map {"foreach__".$_} 1..$rank).")";
+	    my $needFormat    = 0;
 	    open(my $code,"<",\$node->{'directive'}->{'content'});
 	    while ( my $line = <$code> ) {
+		if ( $line =~ m/%index%/ ) {
+		    $needFormat = 1;
+		}
 		$line      =~ s/%index%/$indexesFormat/g;
 		$line      =~ s/\{\{index\}\}/$indexes/g;
 		$line      =~ s/\{index\}/$indexer/g;
@@ -61,7 +65,64 @@ sub Process_ForEach {
 	    for(my $i=1;$i<=$rank;++$i) {
 		$iterator .= "end do\n";
 	    }
-	    $iterator   .= "! End auto-generated iteration over elements\n";
+	    # Add formatter if needed.
+	    if ( $needFormat && $rank > 0 ) {
+		my @indexesFormatVariables =
+		    (
+		     {
+			 intrinsic => "character",
+			 type => "len=5+".$rank."*(7+int(log10(dble(huge(0_c_size_t)))))",
+			 openMP => 0,
+			 variables => ["indexesFormat__"],
+			 attributes => []
+		     },
+		     {
+			 intrinsic => "character",
+			 type => "len=12",
+			 openMP => 0,
+			 variables => ["indexesFormatMeta_"],
+			 attributes => []
+		     },
+		     {
+			 intrinsic => "character",
+			 type => "len=5+".$rank."*(6+int(log10(dble(huge(0_c_size_t)))))",
+			 openMP => 0,
+			 variables => ["indexesFormatMeta__"],
+			 attributes => []
+		     }
+		     );
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@indexesFormatVariables);
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			ISO_C_Binding =>
+			{
+			    intrinsic => 1,
+			    only      => {c_size_t => 1}
+			}
+		    },
+		    source     => "Galacticus::Build::SourceTree::Process::ForEach::Process_ForEach()",
+		    line       => 1
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+
+		my $format;
+		$format .= "write (indexesFormatMeta_,'(\"(\"\"i\"\",i\",i2.2,\".\",i2.2,\")\")') 1+int(log10(dble(huge(0_c_size_t)))),1+int(log10(dble(huge(0_c_size_t))))\n";
+		$format .= "indexesFormat__='(\"[\",'\n";
+		for(my $i=1;$i<=$rank;++$i) {
+		    $format .= "write (indexesFormatMeta__,indexesFormatMeta_) 1+int(log10(dble(size(".$node->{'directive'}->{'variable'}.",dim=".$i."))))\n";
+		    $format .= "indexesFormat__=trim(indexesFormat__)//trim(indexesFormatMeta__)".($i < $rank ? "//',\",\",'" : "")."\n";
+		}
+		$format .= "indexesFormat__=trim(indexesFormat__)//',\"]\")'\n";
+		
+		$iterator = $format.$iterator;
+	    }
+	    # Add start and end comments.
+	    $iterator   = "! Auto-generated iteration over elements\n"    .
+		          $iterator                                       .
+	    	          "! End auto-generated iteration over elements\n";
 	    # Create a new node.
 	    my $iteratorNode =
 	    {

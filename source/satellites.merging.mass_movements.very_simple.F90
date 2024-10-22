@@ -21,8 +21,7 @@
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
-  use :: Kind_Numbers      , only : kind_int8
-  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Kind_Numbers, only : kind_int8
 
   !![
   <mergerMassMovements name="mergerMassMovementsVerySimple">
@@ -37,10 +36,9 @@
      A merger mass movements class which uses a simple calculation.
      !!}
      private
-     class           (galacticStructureClass), pointer :: galacticStructure_   => null()
-     double precision                                  :: massRatioMajorMerger
-     integer         (kind=kind_int8        )          :: lastUniqueID
-     logical                                           :: mergerIsMajor                 , movementsCalculated
+     double precision                          :: massRatioMajorMerger
+     integer         (kind=kind_int8)          :: lastUniqueID
+     logical                                   :: mergerIsMajor       , movementsCalculated
    contains
      final     ::             verySimpleDestructor
      procedure :: autoHook => verySimpleAutoHook
@@ -65,7 +63,6 @@ contains
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
-    class           (galacticStructureClass       ), pointer       :: galacticStructure_
     double precision                                               :: massRatioMajorMerger
 
     !![
@@ -75,26 +72,23 @@ contains
       <description>The mass ratio above which mergers are considered to be ``major''.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=mergerMassMovementsVerySimple(massRatioMajorMerger,galacticStructure_)
+    self=mergerMassMovementsVerySimple(massRatioMajorMerger)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function verySimpleConstructorParameters
 
-  function verySimpleConstructorInternal(massRatioMajorMerger,galacticStructure_) result(self)
+  function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily verySimple} merger mass movements.
     !!}
     implicit none
-    type            (mergerMassMovementsVerySimple)                        :: self
-    class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
-    double precision                               , intent(in   )         :: massRatioMajorMerger
+    type            (mergerMassMovementsVerySimple)                :: self
+    double precision                               , intent(in   ) :: massRatioMajorMerger
     !![
-    <constructorAssign variables="massRatioMajorMerger, *galacticStructure_"/>
+    <constructorAssign variables="massRatioMajorMerger"/>
     !!]
 
     self%lastUniqueID       =-huge(0_kind_int8)
@@ -126,9 +120,6 @@ contains
 
     if (calculationResetEvent%isAttached(self,verySimpleCalculationReset)) call calculationResetEvent%detach(self,verySimpleCalculationReset)
     if (satelliteMergerEvent %isAttached(self,verySimpleGetHook         )) call satelliteMergerEvent %detach(self,verySimpleGetHook         )
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
     return
   end subroutine verySimpleDestructor
 
@@ -180,14 +171,16 @@ contains
     Determine where stars and gas move as the result of a merger event using a very simple algorithm.
     !!}
     use :: Galactic_Structure_Options, only : massTypeGalactic
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (mergerMassMovementsVerySimple   ), intent(inout)         :: self
     type            (treeNode                        ), intent(inout), target :: node
-    type            (enumerationDestinationMergerType), intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
-         &                                                                       destinationStarsHost   , destinationStarsSatellite
+    type            (enumerationDestinationMergerType), intent(  out)         :: destinationGasSatellite  , destinationGasHost       , &
+         &                                                                       destinationStarsHost     , destinationStarsSatellite
     logical                                           , intent(  out)         :: mergerIsMajor
     type            (treeNode                        ), pointer               :: nodeHost
-    double precision                                                          :: massHost               , massSatellite
+    class           (massDistributionClass           ), pointer               :: massDistributionSatellite, massDistributionHost
+    double precision                                                          :: massHost                 , massSatellite
     
     ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
     ! the results are determined by the properties of the merge target prior to any modification that will occur as node
@@ -200,10 +193,16 @@ contains
        else if (self%massRatioMajorMerger >  1.0d0) then
           self%mergerIsMajor=.false.
        else
-          nodeHost           => node%mergesWith()
-          massSatellite      =  self%galacticStructure_%massEnclosed(node    ,massType=massTypeGalactic)
-          massHost           =  self%galacticStructure_%massEnclosed(nodeHost,massType=massTypeGalactic)
-          self%mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
+          nodeHost                  => node                     %mergesWith      (                         )
+          massDistributionHost      => nodeHost                 %massDistribution(massType=massTypeGalactic)
+          massDistributionSatellite => node                     %massDistribution(massType=massTypeGalactic)
+          massSatellite             =  massDistributionSatellite%massTotal       (                         )
+          massHost                  =  massDistributionHost     %massTotal       (                         )
+          self%mergerIsMajor        =  massSatellite >= self%massRatioMajorMerger*massHost
+          !![
+	  <objectDestructor name="massDistributionHost"     />
+	  <objectDestructor name="massDistributionSatellite"/>
+	  !!]
        end if
     end if
     mergerIsMajor            =self%mergerIsMajor

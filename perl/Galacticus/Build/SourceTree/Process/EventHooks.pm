@@ -49,7 +49,7 @@ sub Process_EventHooks {
 		    open(my $declarations,"<",\$hook->{'interface'});
 		    while ( ! eof($declarations) ) {
 			&Fortran::Utils::Get_Fortran_Line($declarations,my $rawLine, my $processedLine, my $bufferedComments);
-			foreach my $declarator ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+			foreach my $declarator ( sort(keys(%Fortran::Utils::intrinsicDeclarations)) ) {
 			    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$declarator}->{'regEx'} ) ) {
 				push(@code::arguments,&Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$declarator}->{'variables'}],keepQualifiers => 0));
 				last;
@@ -395,6 +395,7 @@ CODE
    {$name}EventBackups => {$name}EventBackups%next
    select type (eventHook_ => eventHookBackup%eventHook_)
    type is (eventHook{$interfaceType})
+      if (allocated({$name}Event%hooks_)) deallocate({$name}Event%hooks_)
       {$name}Event        =  eventHook_
    class default
       call Error_Report('eventHook has incorrect class'//{$location})
@@ -495,7 +496,7 @@ CODE
 	    my $waitTimeWriter           = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventsHooksWaitTimes()
 #ifdef OMPPROFILE
-    use :: Galacticus_HDF5   , only : galacticusOutputFile
+    use :: Output_HDF5       , only : outputFile
     use :: IO_HDF5           , only : hdf5Object
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : varying_string      , var_str
@@ -517,7 +518,7 @@ CODE
 	    $waitTimeWriter .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Open output group.
     !$ call hdf5Access%set()
-    metaDataGroup=galacticusOutputFile%openGroup('metaData','Galacticus meta data.'           )
+    metaDataGroup=outputFile%openGroup('metaData','Galacticus meta data.'           )
     waitTimeGroup=metaDataGroup       %openGroup('openMP'  ,'Meta-data on OpenMP performance.')
     ! Write wait time data.
     call waitTimeGroup%writeDataset(eventHookNames         ,"eventHookNames"         ,"Names of event hooks"                                                              )

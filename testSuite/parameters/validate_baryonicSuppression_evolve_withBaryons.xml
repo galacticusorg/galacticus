@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Baryonic suppression validation model - case including baryonic suppression. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <verbosityLevel value="working"/>
+
+  <!-- Include cosmological parameters -->
+  <xi:include href="validate_baryonicSuppression_cosmology.xml"       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Include merger tree parameters -->
+  <xi:include href="validate_baryonicSuppression_mergerTrees.xml"     xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Include baryonic physics parameters -->
+  <xi:include href="validate_baryonicSuppression_baryonicPhysics.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="baryonsDarkMatter" >
+    <cambCountPerDecade                   value="100"   />
+    <!-- Use pure dark matter initial conditions as used in the target hydro simulation -->
+    <darkMatterOnlyInitialConditions      value="true"  />
+    <!-- Use a small baryon fraction here to approximate pure dark matter initial conditions as used in the target hydro simulation -->
+    <cosmologyParametersInitialConditions value="simple" >
+      <HubbleConstant  value="67.77000"/>
+      <OmegaMatter     value=" 0.30700"/>
+      <OmegaDarkEnergy value=" 0.69300"/>
+      <OmegaBaryon     value=" 0.01000"/>
+      <temperatureCMB  value=" 2.72548"/>
+    </cosmologyParametersInitialConditions>
+  </linearGrowth>
+  <criticalOverdensity   value="sphericalCollapseBrynsDrkMttrDrkEnrgy">
+    <tablePointsPerOctave value="100"/>
+  </criticalOverdensity>
+  <virialDensityContrast value="sphericalCollapseBrynsDrkMttrDrkEnrgy">
+    <tablePointsPerOctave value="100"/>
+  </virialDensityContrast>
+  <haloMassFunction      value="shethTormen"                           >
+    <a             value="0.791"/> <!-- Best fit values from Benson, Ludlow, & Cole (2019). -->
+    <normalization value="0.302"/>
+    <p             value="0.218"/>
+  </haloMassFunction>
+
+  <!-- Intergalactic medium evolution -->
+  <intergalacticMediumFilteringMass value="gnedin2000">
+    <timeTooEarlyIsFatal value="false"/>
+  </intergalacticMediumFilteringMass>
+  <intergalacticMediumState value="file">
+    <fileName value="testSuite/outputs/validate_baryonicSuppression_IGM.hdf5"/>
+  </intergalacticMediumState>
+
+  <!-- Cooling rate -->
+  <coolingRate value="multiplier">
+    <multiplier  value="0.5"           />
+    <coolingRate value="whiteFrenk1991" >
+      <velocityCutOff value="10000"/>
+    </coolingRate>
+  </coolingRate>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/validate_baryonicSuppression_evolve_withBaryons.hdf5"/>
+
+</parameters>

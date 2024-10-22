@@ -16,7 +16,7 @@
   </pbs>
   <parameters>
     <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
+    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
     <mergerTreeConstructor value="build">
       <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>

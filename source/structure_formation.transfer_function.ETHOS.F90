@@ -537,7 +537,7 @@ contains
     class           (transferFunctionETHOSDM), intent(inout), target   :: self
     double precision                         , intent(in   )           :: fraction
     integer                                  , intent(  out), optional :: status
-    double precision                                                   :: matterDensity, wavenumberQuarterMode
+    double precision                                                   :: matterDensity, wavenumberFractionMode
     type            (rootFinder             )                          :: finder
 
     ! There is no analytic solution for the fraction-mode mass so we resort to numerical root finding. This is complicated by the fact
@@ -553,17 +553,19 @@ contains
          &                                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                                )
     self_                   =>  self
-    modeTarget              =  +fraction
-    wavenumberQuarterMode   =   finder%find(rootGuess=1.0d-2/self%alpha)
+    modeTarget              =  +                         fraction        &
+         &                     *self                    %value   (0.0d0) &
+         &                     /self%transferFunctionCDM%value   (0.0d0)
+    wavenumberFractionMode  =   finder%find(rootGuess=1.0d-2/self%alpha)
     matterDensity           =  +self%cosmologyParameters_%OmegaMatter    () &
          &                     *self%cosmologyParameters_%densityCritical()
-    ETHOSDMFractionModeMass =  +4.0d0                &
-         &                     *Pi                   &
-         &                     /3.0d0                &
-         &                     *matterDensity        &
-         &                     *(                    &
-         &                       +Pi                 &
-         &                       /wavenumberQuarterMode &
+    ETHOSDMFractionModeMass =  +4.0d0                    &
+         &                     *Pi                       &
+         &                     /3.0d0                    &
+         &                     *matterDensity            &
+         &                     *(                        &
+         &                       +Pi                     &
+         &                       /wavenumberFractionMode &
          &                      )**3
     if (present(status)) status=errorStatusSuccess
     return
@@ -576,8 +578,9 @@ contains
     implicit none
     double precision, intent(in   ) :: wavenumber
   
-    modeSolver=+self_%value     (wavenumber) &
-         &     -      modeTarget
+    modeSolver=+self_                    %value     (wavenumber) &
+         &     /self_%transferFunctionCDM%value     (wavenumber) &
+         &     -                           modeTarget
     return
   end function modeSolver
   

@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <parameters>
   <!-- Radiative transfer atomic state solver -->
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <elementsToTrack value="O C Si Fe"/>
 

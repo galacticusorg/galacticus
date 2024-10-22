@@ -108,10 +108,11 @@ contains
     class           (nodePropertyExtractorTimescaleBarInstability), intent(inout), target   :: self
     type            (treeNode                                    ), intent(inout), target   :: node
     type            (multiCounter                                ), intent(inout), optional :: instance
-    double precision                                                                        :: torqueSpecificExternal, fractionAngularMomentumRetained
+    double precision                                                                        :: fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid, &
+         &                                                                                     torqueSpecificExternal
     !$GLC attributes unused :: instance
 
-    call self%galacticDynamicsBarInstability_%timescale(node,timescaleBarInstabilityExtract,torqueSpecificExternal,fractionAngularMomentumRetained)
+    call self%galacticDynamicsBarInstability_%timescale(node,timescaleBarInstabilityExtract,torqueSpecificExternal,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
     return
   end function timescaleBarInstabilityExtract
 

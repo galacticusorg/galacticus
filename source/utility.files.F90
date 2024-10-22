@@ -229,7 +229,8 @@ contains
     character(len=*            ), intent(in   ) :: fileName
     character(len=len(fileName))                :: parentName
     integer                                     :: lengthParent
-
+    !$GLC attributes initialized ::  parentName
+    
     ! Find the name of the parent directory.
     parentName  =      fileName
     lengthParent=len(parentName)

@@ -26,6 +26,8 @@ sub Lock_IO {
     }
     return
 	unless ( $lock );
+    # Detect if we should add reporting on lock acquire/release.
+    my $report = exists($ENV{'GALACTICUS_REPORT_THREADSAFEIO'}) && $ENV{'GALACTICUS_REPORT_THREADSAFEIO'} eq "yes";
     # Do not apply thread locking inside error reporting functions. These can be triggered from anywhere in the code - including
     # within another I/O critical section which would then lead to deadlocking. Since at this point we are in an error condition
     # anyway, we can just take our chances with thread race conditions.
@@ -45,19 +47,45 @@ sub Lock_IO {
 	    my $newContent    ;
 	    my $inIO       = 0;
 	    my $inCritical = 0;
+	    my $ignoreLine = 0;
 	    open(my $content,"<",\$node->{'content'});
 	    while ( ! eof($content) ) {
 		&Fortran::Utils::Get_Fortran_Line($content,my $rawLine, my $processedLine, my $bufferedComments);
 		# Detect entry and exit to existing critical sections - we don't want to add locks inside such a section as that
 		# would result in deadlocks.
-		$inCritical = 1
-		    if ( $processedLine =~ m/^\s*!\$omp\s+critical\s*\(gfortranInternalIO\)\s*$/ );
-		$inCritical = 0
-		    if ( $processedLine =~ m/^\s*!\$omp\s+end\s+critical\s*\(gfortranInternalIO\)\s*$/ );
-		# Convert "FoX_DOM_Access" critical sections to "gfortranInternalIO". This still prevents multi-threaded access to
+		if ( $processedLine =~ m/^\s*!\$omp\s+critical\s*\(gfortranInternalIO(_)??\)\s*$/ ) {
+		    my $isExplicit = ! defined($1);
+		    $processedLine =~ s/\(gfortranInternalIO\)/(gfortranInternalIO_)/;
+		    if ( $report && $isExplicit ) {
+			$processedLine = $processedLine."    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n"               ;
+			$ignoreLine    = 1;
+			&addUse($node);
+		    }
+		    $inCritical = 1;
+		}
+		if ( $processedLine =~ m/^\s*!\$omp\s+end\s+critical\s*\(gfortranInternalIO(_)??\)\s*$/ ) {
+		    my $isExplicit = ! defined($1);
+		    $processedLine =~ s/\(gfortranInternalIO\)/(gfortranInternalIO_)/;
+		    if ( $report && $isExplicit ) {
+			$processedLine =                "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n".$processedLine;
+			$ignoreLine    = 1;
+			&addUse($node);
+		    }
+		    $inCritical = 0;
+		}
+		# Convert "FoX_DOM_Access" critical sections to "gfortranInternalIO_". This still prevents multi-threaded access to
 		# the FoX library, but also restricts access to gfortran internal IO within the FoX library.
-		$rawLine =~ s/FoX_DOM_Access/gfortranInternalIO/
-		    if ( $rawLine =~ m/^\s*!\$omp\s+(end\s+)??critical\s*\(FoX_DOM_Access\)\s*$/ );
+		if ( $rawLine =~ m/^\s*!\$omp\s+(end\s+)??critical\s*\(FoX_DOM_Access\)\s*$/ ) {
+		    $rawLine =~ s/FoX_DOM_Access/gfortranInternalIO_/;
+		    if ( $report ) {
+			&addUse($node);
+			if ( defined($1) ) {
+			    $rawLine =          "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n".$rawLine;
+			} else {
+			    $rawLine = $rawLine."    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n"         ;
+			}
+		    }
+		}
 		# Detect IO statements and lock if not already in a critical section.
 		my $isIO = 0;
 		foreach my $ioStatement ( @ioStatements ) {
@@ -68,23 +96,71 @@ sub Lock_IO {
 		}
 		$isIO = 1
 		    if ( $processedLine =~ m/^\s*(!\$)??\s*call\s+flush\s*\(/i );
-		if ( $isIO && ! $inIO && ! $inCritical ) {
+		if ( $isIO && ! $inIO && ! $inCritical && ! $ignoreLine ) {
 		    $inIO        = 1;
-		    $newContent .= "    !\$omp critical(gfortranInternalIO)\n";
+		    $newContent .= "    !\$omp critical(gfortranInternalIO_)\n";
+		    if ( $report ) {
+			$newContent  .= "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' acquired the ''gfortranInternalIO'' lock'\n";
+			&addUse($node);
+		    }
 		}
-		if ( ! $isIO && $inIO && ! $inCritical ) {
+		if ( ! $isIO && $inIO && ! $inCritical && ! $ignoreLine ) {
 		    $inIO        = 0;
-		    $newContent .= "    !\$omp end critical(gfortranInternalIO)\n";
+		    if ( $report ) {
+			$newContent  .= "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n";
+			&addUse($node);
+		    }
+		    $newContent .= "    !\$omp end critical(gfortranInternalIO_)\n";
 		}
 		$newContent .= $rawLine;
 	    }
 	    close($content);
-	    $newContent .= "    !\$omp end critical(gfortranInternalIO)\n"
-		if ( $inIO && ! $inCritical );
+	    if ( $inIO && ! $inCritical && ! $ignoreLine ) {
+		if ( $report ) {
+		    $newContent  .= "    write (output_unit,*) '*** thread ',OMP_Get_Thread_Num(),' released the ''gfortranInternalIO'' lock'\n";
+		    &addUse($node);
+		}
+		$newContent .= "    !\$omp end critical(gfortranInternalIO_)\n";		
+	    }
 	    $node->{'content'} = $newContent;
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
+}
+
+sub addUse {
+    my $node      = shift();
+    my $container = $node;
+    while ( defined($container) ) {
+	last
+	    if (
+		$container->{'type'} eq "function"
+		||
+		$container->{'type'} eq "subroutine"
+		||
+		$container->{'type'} eq "moduleProcedure"
+		||
+		$container->{'type'} eq "module"
+		||
+		$container->{'type'} eq "program"
+	    );
+	$container = $container->{'parent'};
+    }
+    # Add use of the OpenMP function.
+    my $usesNode =
+    {
+	type      => "moduleUse",
+	moduleUse =>
+	{
+	    "OMP_Lib"   =>
+	    {
+		openMP    => 1,
+		intrinsic => 0,
+		only      => {OMP_Get_Thread_Num => 1}
+	    }
+	}
+    };
+    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($container,$usesNode);
 }
 
 1;

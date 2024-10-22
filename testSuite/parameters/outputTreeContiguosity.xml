@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <verbosityLevel value="working"/>
 
@@ -316,7 +316,6 @@
   <starFormationHistory value="adaptive">
     <timeStepMinimum value="0.01"/>
     <countTimeStepsMaximum value="30"/>
-    <countOutputBuffer value="3"/>
   </starFormationHistory>
 
 </parameters>

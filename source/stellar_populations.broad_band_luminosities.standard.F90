@@ -304,20 +304,21 @@ contains
     !!{
     Tabulate stellar population luminosity in the given filters.
     !!}
-    use            :: Abundances_Structure            , only : logMetallicityZero , metallicityTypeLogarithmicByMassSolar
-    use            :: Display                         , only : displayCounter     , displayCounterClear                  , displayGreen            , displayIndent        , &
-          &                                                    displayMagenta     , displayReset                         , displayUnindent         , verbosityLevelWorking
-    use            :: File_Utilities                  , only : File_Exists        , File_Lock                            , File_Unlock             , lockDescriptor
-    use            :: Error                           , only : Error_Report       , Warn                                 , errorStatusFail         , errorStatusSuccess
+    use            :: Abundances_Structure            , only : logMetallicityZero          , metallicityTypeLogarithmicByMassSolar
+    use            :: Display                         , only : displayCounter              , displayCounterClear                  , displayGreen            , displayIndent        , &
+          &                                                    displayMagenta              , displayReset                         , displayUnindent         , verbosityLevelWorking
+    use            :: File_Utilities                  , only : File_Exists                 , File_Lock                            , File_Unlock             , lockDescriptor
+    use            :: Error                           , only : Error_Report                , Warn                                 , errorStatusFail         , errorStatusSuccess
     use            :: HDF5_Access                     , only : hdf5Access
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : assignment(=)      , char                                 , operator(//)            , var_str
+    use            :: ISO_Varying_String              , only : assignment(=)               , char                                 , operator(//)            , var_str
     use            :: Input_Parameters                , only : inputParameters
-    use            :: Instruments_Filters             , only : Filter_Extent      , Filter_Name                          , Filter_Response_Function
+    use            :: Instruments_Filters             , only : Filter_Extent               , Filter_Name                          , Filter_Response_Function
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
-    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15  , integrator
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15           , integrator
     use            :: String_Handling                 , only : operator(//)
+    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
     class           (stellarPopulationBroadBandLuminositiesStandard), intent(inout)                   :: self
     integer                                                         , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
@@ -417,8 +418,8 @@ contains
                    self%luminosityTables(populationID)%metallicity=logMetallicityZero
                 end where
                 allocate(self%luminosityTables(populationID)%luminosity(luminosityIndexMaximum,self%luminosityTables(populationID)%agesCount,self%luminosityTables(populationID)%metallicitiesCount))
-                self%luminosityTables(populationID)%interpolatorAge        =interpolator(self%luminosityTables(populationID)%age        )
-                self%luminosityTables(populationID)%interpolatorMetallicity=interpolator(self%luminosityTables(populationID)%metallicity)
+                self%luminosityTables(populationID)%interpolatorAge        =interpolator(self%luminosityTables(populationID)%age        ,extrapolationType=extrapolationTypeExtrapolate)
+                self%luminosityTables(populationID)%interpolatorMetallicity=interpolator(self%luminosityTables(populationID)%metallicity,extrapolationType=extrapolationTypeExtrapolate)
                 computeTable=.true.
              end if
              !$omp end single

@@ -76,6 +76,7 @@ contains
   end function tinyStepsConstructorParameters
 
   function tinyStepsConstructorInternal(timeStepTiny) result(self)
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type            (mergerTreeEvolveProfilerTinySteps)                :: self
     double precision                                   , intent(in   ) :: timeStepTiny
@@ -84,6 +85,7 @@ contains
     !!]
 
     self%timeStepMinimum=huge(0.0d0)
+    self%stepDescriptor_="unknown"
     return
   end function tinyStepsConstructorInternal
 
