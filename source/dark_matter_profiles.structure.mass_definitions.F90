@@ -30,12 +30,13 @@ module Dark_Matter_Profile_Mass_Definitions
 
 contains
 
-  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,useLastIsolatedTime) result(massHalo)
+  function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,useLastIsolatedTime) result(massHalo)
     !!{
     Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParametersClass
+    use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Math_Exponentiation             , only : cubeRoot
@@ -53,6 +54,7 @@ contains
     class           (cosmologyParametersClass  )          , intent(inout) :: cosmologyParameters_
     class           (cosmologyFunctionsClass   )          , intent(inout) :: cosmologyFunctions_
     class           (virialDensityContrastClass)          , intent(inout) :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass ), optional, intent(inout) :: darkMatterProfileDMO_
     class           (massDistributionClass     ), pointer                 :: massDistribution_
     class           (nodeComponentBasic        ), pointer                 :: basic
     double precision                                                      :: radiusHalo            , density , &
@@ -95,8 +97,12 @@ contains
     else
        ! Mismatched density contrast definitions - compute the mass directly.
        ! Get the radius in the halo enclosing this density.
-       massDistribution_ => node             %massDistribution      (componentTypeDarkMatterOnly,massTypeDark)
-       radiusHalo        =  massDistribution_%radiusEnclosingDensity(density                                 )
+       if (present(darkMatterProfileDMO_)) then
+          massDistribution_ => darkMatterProfileDMO_%get                   (node                                    )
+       else
+          massDistribution_ => node                 %massDistribution      (componentTypeDarkMatterOnly,massTypeDark)
+       end if
+       radiusHalo           =  massDistribution_    %radiusEnclosingDensity(density                                 )
        !![
        <objectDestructor name="massDistribution_"/>
        !!]       

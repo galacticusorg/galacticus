@@ -21,7 +21,8 @@
   Contains a module which implements an HI vs halo mass relation analysis class.
   !!}
 
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
   <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
@@ -37,6 +38,7 @@
      class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_                  => null()
      class           (outputAnalysisMolecularRatioClass), pointer                     :: outputAnalysisMolecularRatio_        => null()
      class           (virialDensityContrastClass       ), pointer                     :: virialDensityContrast_               => null()
+     class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_                => null()
      double precision                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
      integer         (c_size_t                         )                              :: likelihoodBin
    contains
@@ -71,6 +73,7 @@ contains
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
     class           (virialDensityContrastClass                       ), pointer                     :: virialDensityContrast_
     class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
+    class           (darkMatterProfileDMOClass                        ), pointer                     :: darkMatterProfileDMO_
     class           (*                                                ), pointer                     :: percolationObjects_
     integer         (c_size_t                                         )                              :: likelihoodBin
 
@@ -98,22 +101,24 @@ contains
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
     !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"         />
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="outputTimes_"                 />
+    <objectDestructor name="darkMatterProfileDMO_"        />
     <objectDestructor name="outputAnalysisMolecularRatio_"/>
     <objectDestructor name="virialDensityContrast_"       />
     !!]
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
-  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
+  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
     !!{
     Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
     !!}
@@ -146,6 +151,7 @@ contains
     class           (virialDensityContrastClass                        ), intent(in   ), target         :: virialDensityContrast_
     class           (outputTimesClass                                  ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target         :: outputAnalysisMolecularRatio_
+    class           (darkMatterProfileDMOClass                         ), intent(inout), target         :: darkMatterProfileDMO_
     class           (*                                                 ), intent(in   ), target         :: percolationObjects_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                                         =26
     double precision                                                    , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                                     =1.0d15
@@ -193,7 +199,7 @@ contains
          &                                                                                                 jacobianVelocity0                                                    , jacobianVelocity1
     integer         (c_size_t                                          )                                :: iBin
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *outputAnalysisMolecularRatio_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputAnalysisMolecularRatio_"/>
     !!]
     
     ! Construct survey geometry.
@@ -306,28 +312,28 @@ contains
     propertyOperators_%next%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                             )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                  )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                               )"/>
     !!]
     ! Create an HI mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                  )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                                                               )"/>
     !!]
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
     allocate(virialDensityContrastDefinition_                                )
     !![
-    <referenceConstruct object="virialDensityContrastDefinition_"                       constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
+    <referenceConstruct object="virialDensityContrastDefinition_"                       constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_                                                  )"/>
     !!]
-    allocate(nodePropertyExtractor_                      )
+    allocate(nodePropertyExtractor_                       )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
     ! virial density contrast definition. However (Padmanabhan, private communication), they assume it gives the density contrast
@@ -475,6 +481,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"         />
     <objectDestructor name="self%cosmologyFunctions_"          />
     <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
     <objectDestructor name="self%virialDensityContrast_"       />
     !!]
     return

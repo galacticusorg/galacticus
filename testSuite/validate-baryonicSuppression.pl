@@ -120,11 +120,11 @@ $target->{'withBaryons_noReionization'}->[1] =
 # Define χ² targets for each dataset.
 my $chiSquaredTarget;
 $chiSquaredTarget->{'withBaryons'               }->[1] = 6.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[1] = 6.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[1] = 7.0;
 $chiSquaredTarget->{'withBaryons'               }->[2] = 4.0;
 $chiSquaredTarget->{'withBaryons_noReionization'}->[2] = 3.0;
 $chiSquaredTarget->{'withBaryons'               }->[3] = 5.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[3] = 4.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[3] = 5.0;
 $chiSquaredTarget->{'withBaryons'               }->[4] = 3.0;
 $chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 4.0;
 

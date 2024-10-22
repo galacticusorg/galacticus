@@ -105,7 +105,6 @@
       <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy mergers -->
   <mergerMassMovements            value="null"/>
