@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729470114218,
+  "lastUpdate": 1729665379701,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
@@ -3770,6 +3770,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/e5f6a393ac9fa768a4b0f26dd6a5e2ea343d361d"
         },
         "date": 1729470113104,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": "40.86036012142033",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "22.39624572839595",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "20.390676881038928",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1c6506aa5a4e23582702dc035a789fedc6bc828a",
+          "message": "Merge pull request #725 from galacticusorg/fixReinstateDMO\n\nReintroduce optional `darkMatterProfileDMO` argument to the halo mass definition conversion function",
+          "timestamp": "2024-10-22T23:26:33Z",
+          "tree_id": "7aa9014ce1e49185c36431fb7b1171a7fa185598",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1c6506aa5a4e23582702dc035a789fedc6bc828a"
+        },
+        "date": 1729665379025,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
