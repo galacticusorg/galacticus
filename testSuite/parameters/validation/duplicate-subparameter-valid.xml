@@ -187,7 +187,7 @@
   </accretionDisks>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <!-- Galaxy merger options -->
   <virialOrbits value="Benson2005"/>
   <satelliteMergingTimescales value="jiang2008">

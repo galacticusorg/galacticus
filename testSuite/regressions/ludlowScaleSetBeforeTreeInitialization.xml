@@ -298,7 +298,7 @@
     </accretionDisksADAF>
   </accretionDisks>
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <!-- Satellite orbit options -->
   <!-- Galaxy merger options -->
   <virialOrbit value="isotropic">

@@ -332,7 +332,7 @@
   </accretionDisks>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <!-- Galaxy merger options -->
   <mergerMassMovements value="simple">
     <destinationGasMinorMerger value="spheroid"/>

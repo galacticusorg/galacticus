@@ -208,7 +208,7 @@
   </accretionDisks>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   
   <!-- Satellite orbit options -->
 
