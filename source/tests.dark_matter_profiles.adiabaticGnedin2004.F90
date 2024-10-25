@@ -25,26 +25,25 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   !!{
   Tests the implementation of the \cite{gnedin_response_2004} dark matter profile.
   !!}
-  use :: Calculations_Resets         , only : Calculations_Reset
-  use :: Cosmology_Parameters        , only : cosmologyParametersSimple
-  use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMONFW
-  use :: Dark_Matter_Profiles        , only : darkMatterProfileAdiabaticGnedin2004
-  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
-  use :: File_Utilities              , only : Count_Lines_in_File
-  use :: Galactic_Structure          , only : galacticStructureStandard
-  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Events_Hooks                , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Display                     , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-          &                                   treeNode                                                      , nodeComponentSPheroid
-  use :: Input_Parameters            , only : inputParameters
-  use :: Input_Paths                 , only : inputPath                                                     , pathTypeExec
-  use :: ISO_Varying_String          , only : varying_string                                                , assignment(=)                    , char, var_str
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Calculations_Resets       , only : Calculations_Reset
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Dark_Matter_Profiles      , only : darkMatterProfileAdiabaticGnedin2004
+  use :: Mass_Distributions        , only : nonAnalyticSolversNumerical                                   , massDistributionClass            , massDistributionSphericalAdiabaticGnedin2004
+  use :: File_Utilities            , only : Count_Lines_in_File
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                          , nodeComponentDarkMatterProfile, &
+          &                                 treeNode                                                      , nodeComponentSPheroid
+  use :: Input_Parameters          , only : inputParameters
+  use :: Input_Paths               , only : inputPath                                                     , pathTypeExec
+  use :: ISO_Varying_String        , only : varying_string                                                , assignment(=)                    , char, var_str
+  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize         , Node_Components_Uninitialize
+  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                        , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      ), pointer                   :: node
   class           (nodeComponentBasic                                            ), pointer                   :: basic
@@ -54,11 +53,11 @@ program Test_Dark_Matter_Profiles_Gnedin2004
        &                                                                                                         fractionBaryons                      =0.15d0, radiusFractionalBaryons =0.03d0
   type            (darkMatterProfileDMONFW                                       ), pointer                   :: darkMatterProfileDMONFW_
   type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer                   :: darkMatterProfileAdiabaticGnedin2004_
-  type            (galacticStructureStandard                                     ), pointer                   :: galacticStructureStandard_
   type            (cosmologyParametersSimple                                     ), pointer                   :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer                   :: cosmologyFunctions_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer                   :: darkMatterHaloScale_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                   :: virialDensityContrast_
+  class           (massDistributionClass                                         ), pointer                   :: massDistribution_
   type            (inputParameters                                               )                            :: parameters
   double precision                                                                                            :: radiusScale                                  , radiusVirial                  , &
        &                                                                                                         radiusFractionalFinalContra
@@ -81,7 +80,6 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   allocate(cosmologyParameters_                 )
   allocate(cosmologyFunctions_                  )
   allocate(virialDensityContrast_               )
-  allocate(galacticStructureStandard_           )
   allocate(darkMatterHaloScale_                 )
   allocate(darkMatterProfileDMONFW_             )
   allocate(darkMatterProfileAdiabaticGnedin2004_)
@@ -121,15 +119,6 @@ program Test_Dark_Matter_Profiles_Gnedin2004
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="galacticStructureStandard_"           >
-   <constructor>
-    galacticStructureStandard                                     (                                                                            &amp;
-     &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_                  , &amp;
-     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_                 , &amp;
-     &amp;                                                         darkMatterProfile_                  =darkMatterProfileAdiabaticGnedin2004_  &amp;
-     &amp;                                                        )
-   </constructor>
-  </referenceConstruct>
   <referenceConstruct object="darkMatterProfileDMONFW_"             >
    <constructor>
     darkMatterProfileDMONFW                                       (                                                                            &amp;
@@ -148,8 +137,7 @@ program Test_Dark_Matter_Profiles_Gnedin2004
      &amp;                                                         nonAnalyticSolver                   =nonAnalyticSolversNumerical          , &amp;
      &amp;                                                         cosmologyParameters_                =cosmologyParameters_                 , &amp;
      &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_                 , &amp;
-     &amp;                                                         darkMatterProfileDMO_               =darkMatterProfileDMONFW_             , &amp;
-     &amp;                                                         galacticStructure_                  =galacticStructureStandard_             &amp;
+     &amp;                                                         darkMatterProfileDMO_               =darkMatterProfileDMONFW_               &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
@@ -172,6 +160,8 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   ! Construct spheroid.
   call spheroid%massStellarSet(fractionBaryons        *massVirial  )
   call spheroid%radiusSet     (radiusFractionalBaryons*radiusVirial)
+  ! Get the mass distribution.
+  massDistribution_ => darkMatterProfileAdiabaticGnedin2004_%get(node)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group('Gnedin et al. (2004) dark matter profile')
   ! Read data from the reference "contra" file.
@@ -184,13 +174,19 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   do i=1,(countLines-countRadii)
      read (fileUnit,*)
   end do
-  do i=1,countRadii
-     read (fileUnit,*) radiusFractionalInitialContra(i),radiusFractionalFinalContra
-     ! Evaluate the initial radius corresponding to this final radius.
-     radiusFractionalInitial(i)=+darkMatterProfileAdiabaticGnedin2004_%radiusInitial(node,radiusFractionalFinalContra*radiusVirial) &
-          &                     /                                      radiusVirial
-  end do
+  select type (massDistribution_)
+  type is (massDistributionSphericalAdiabaticGnedin2004)
+     do i=1,countRadii
+        read (fileUnit,*) radiusFractionalInitialContra(i),radiusFractionalFinalContra
+        ! Evaluate the initial radius corresponding to this final radius.
+        radiusFractionalInitial(i)=+massDistribution_%radiusInitial(radiusFractionalFinalContra*radiusVirial) &
+             &                     /                                radiusVirial
+     end do
+  end select
   close(fileUnit)
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
   ! Use a tolerance of 2% in the assertion, as our solver for the initial radius uses a tolerance of 1%.
   call Assert('initial radii',radiusFractionalInitialContra,radiusFractionalInitial,relTol=2.0d-2)
   ! End unit tests.
@@ -207,6 +203,5 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   <objectDestructor name="virialDensityContrast_"    />
   <objectDestructor name="darkMatterHaloScale_"      />
   <objectDestructor name="darkMatterProfileDMONFW_"  />
-  <objectDestructor name="galacticStructureStandard_"/>
   !!]
 end program Test_Dark_Matter_Profiles_Gnedin2004

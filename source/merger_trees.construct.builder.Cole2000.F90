@@ -29,6 +29,7 @@
   use :: Merger_Tree_Build_Controllers     , only : mergerTreeBuildControllerClass
   use :: Merger_Tree_Walkers               , only : mergerTreeWalkerTreeConstruction
   use :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
+  use :: Kind_Numbers                      , only : kind_int8
 
   ! Structure used to hold worker copies of objects.
   type :: mergerTreeBuilderCole2000Worker
@@ -105,6 +106,8 @@
      class           (mergerTreeBuildControllerClass           ), pointer                   :: mergerTreeBuildController_               => null()
      type            (mergerTreeBuilderCole2000Worker          ), allocatable, dimension(:) :: workers
      logical                                                                                :: timeParameterIsMassDependent
+     ! Node index counter.
+     integer         (kind=kind_int8                           )                            :: nodeIndex
      ! Variables controlling merger tree accuracy.
      double precision                                                                       :: accretionLimit                                    , timeEarliest                    , &
           &                                                                                    mergeProbability                                  , timeNow                         , &
@@ -347,7 +350,6 @@ contains
     use :: Events_Hooks       , only : eventsHooksFutureThread
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: ISO_Varying_String , only : varying_string
-    use :: Kind_Numbers       , only : kind_int8
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
     class           (mergerTreeBuilderCole2000    ), intent(inout), target :: self
@@ -355,16 +357,15 @@ contains
     type            (treeNode                     ), pointer               :: node                    , nodeChild
     class           (nodeComponentBasic           ), pointer               :: basic                   , basicChild
     type            (mergerTreeWalkerIsolatedNodes)                        :: treeWalkerIsolated
-    integer         (kind=kind_int8               )                        :: nodeIndex
     double precision                                                       :: timeNodeBase            , deltaCritical , &
          &                                                                    deltaCriticalEarliest   , massResolution, &
          &                                                                    rootVarianceGrowthFactor           
       
     ! Begin construction.
-    self_     => self
-    nodeIndex =  1               ! Initialize the node index counter to unity.
-    node      => tree%nodeBase   ! Point to the base node.
-    basic     => node%basic   () ! Get the basic component of the node.
+    self_          => self
+    self%nodeIndex =  1               ! Initialize the node index counter to unity.
+    node           => tree%nodeBase   ! Point to the base node.
+    basic          => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
        ! Note that we use a unit rate - we will scale the results to the actual rate required.
        self%branchingIntervalDistribution           =distributionFunction1DNegativeExponential(1.0d0)
@@ -431,7 +432,7 @@ contains
     allocate(treeWalker_)
     treeWalker_=mergerTreeWalkerTreeConstruction(tree)
     do while (treeWalker_%next(node))
-       call self%buildBranch(tree,massResolution,nodeIndex,node)
+       call self%buildBranch(tree,massResolution,node)
     end do
     deallocate(treeWalker_)
     ! Walk the tree and convert w to time.
@@ -470,7 +471,7 @@ contains
     return
   end subroutine cole2000Build
   
-  recursive subroutine cole2000BuildBranch(tree,massResolution,nodeIndex,nodeTip)
+  recursive subroutine cole2000BuildBranch(tree,massResolution,nodeTip)
     !!{
     Build a single branch of the merger tree.
     !!}
@@ -483,7 +484,6 @@ contains
     implicit none
     type            (mergerTree                         ), intent(in   )           :: tree
     double precision                                     , intent(in   )           :: massResolution
-    integer         (kind_int8                          ), intent(inout)           :: nodeIndex
     type            (treeNode                           ), intent(inout), pointer  :: nodeTip
     type            (treeNode                           )               , pointer  :: nodeNew1                              , nodeNew2                   , &
          &                                                                            nodeCurrent
@@ -575,11 +575,11 @@ contains
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
                 !$omp atomic
-                nodeIndex      =  nodeIndex+1
-                nodeNew1       => treeNode(nodeIndex,tree)
-                basicNew1      => nodeNew1%basic(autoCreate=.true.)
+                self_%nodeIndex =  self_%nodeIndex+1
+                nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                basicNew1       => nodeNew1%basic(autoCreate=.true.)
                 ! Compute new mass accounting for sub-resolution accretion.
-                nodeMass1      =  basic_%mass()*(1.0d0-accretionFractionCumulative)
+                nodeMass1       =  basic_%mass()*(1.0d0-accretionFractionCumulative)
                 call basicNew1%massSet(nodeMass1     )
                 ! Compute the critical overdensity corresponding to this new node.
                 deltaCritical1=self_%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
@@ -608,8 +608,8 @@ contains
              if (accretionFraction < 0.0d0) then
                 ! Terminate the branch with a final node.
                 !$omp atomic
-                nodeIndex          =  nodeIndex+1
-                nodeNew1           => treeNode      (nodeIndex        ,tree)
+                self_%nodeIndex          =  self_%nodeIndex+1
+                nodeNew1           => treeNode      (self_%nodeIndex        ,nodeCurrent%hostTree)
                 basicNew1          => nodeNew1%basic(autoCreate=.true.     )
                 ! Create a node at the mass resolution.
                 nodeMass1          =  massResolution
@@ -788,14 +788,14 @@ contains
                 case (.true.)
                    ! Branching occurs - create two progenitors.
                    !$omp atomic
-                   nodeIndex      =  nodeIndex+1
-                   nodeNew1       => treeNode(nodeIndex,tree)
-                   basicNew1      => nodeNew1%basic(autoCreate=.true.)
+                   self_%nodeIndex =  self_%nodeIndex+1
+                   nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                   basicNew1       => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
-                   nodeMass1      =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor_,self_%workers(numberWorker)%randomNumberGenerator_,nodeCurrent)
-                   nodeMass2      =  basic_%mass()-nodeMass1
-                   nodeMass1      =  nodeMass1*(1.0d0-accretionFractionCumulative)
-                   nodeMass2      =  nodeMass2*(1.0d0-accretionFractionCumulative)
+                   nodeMass1       =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor_,self_%workers(numberWorker)%randomNumberGenerator_,nodeCurrent)
+                   nodeMass2       =  basic_%mass()-nodeMass1
+                   nodeMass1       =  nodeMass1*(1.0d0-accretionFractionCumulative)
+                   nodeMass2       =  nodeMass2*(1.0d0-accretionFractionCumulative)
                    ! Compute the critical overdensity of the first new node.
                    deltaCritical1 =  self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
@@ -805,9 +805,9 @@ contains
                    ! Create second progenitor if it would be above the mass resolution.
                    if (nodeMass2 > massResolution) then
                       !$omp atomic
-                      nodeIndex=nodeIndex+1
-                      nodeNew2  => treeNode(nodeIndex,tree)
-                      basicNew2 => nodeNew2%basic(autoCreate=.true.)
+                      self_%nodeIndex =  self_%nodeIndex+1
+                      nodeNew2        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                      basicNew2       => nodeNew2%basic(autoCreate=.true.)
                       ! Compute the critical overdensity of the second new node.
                       deltaCritical2=self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass2,nodeNew2)
                       ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
@@ -820,11 +820,11 @@ contains
                       if (nodeMass2 > nodeMass1) then
                          nodeCurrent%firstChild => nodeNew2
                          nodeNew2   %sibling    => nodeNew1
-                         call self_%onBranch(tree,massResolution,nodeIndex,nodeNew1)
+                         call self_%onBranch(tree,massResolution,nodeNew1)
                       else
                          nodeCurrent%firstChild => nodeNew1
                          nodeNew1   %sibling    => nodeNew2
-                         call self_%onBranch(tree,massResolution,nodeIndex,nodeNew2)
+                         call self_%onBranch(tree,massResolution,nodeNew2)
                       end if
                       nodeNew1      %parent     => nodeCurrent
                       nodeNew2      %parent     => nodeCurrent
@@ -842,13 +842,13 @@ contains
                    ! No branching occurs - create one progenitor.
                    if (accretionFractionCumulative >= self_%accretionLimit) then
                       !$omp atomic
-                      nodeIndex      =  nodeIndex+1
-                      nodeNew1       => treeNode(nodeIndex,tree)
-                      basicNew1      => nodeNew1%basic(autoCreate=.true.)
+                      self_%nodeIndex =  self_%nodeIndex+1
+                      nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                      basicNew1       => nodeNew1%basic(autoCreate=.true.)
                       ! Compute new mass accounting for sub-resolution accretion.
-                      nodeMass1      =  basic_%mass()*(1.0d0-accretionFractionCumulative)
+                      nodeMass1       =  basic_%mass()*(1.0d0-accretionFractionCumulative)
                       ! Compute the critical overdensity corresponding to this new node.
-                      deltaCritical1 =  self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
+                      deltaCritical1  =  self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
                       call basicNew1%massSet(nodeMass1     )
                       call basicNew1%timeSet(deltaCritical1)
                       ! Inform the build controller of this new node.
@@ -868,7 +868,7 @@ contains
                    end if
                 end select
                 ! If the timestep was limited by the build controller, allow the build controller to respond.
-                if (controlLimited) branchIsDone=.not.self_%workers(numberWorker)%mergerTreeBuildController_%controlTimeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,nodeIndex)
+                if (controlLimited) branchIsDone=.not.self_%workers(numberWorker)%mergerTreeBuildController_%controlTimeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self_%nodeIndex)
              end if
           end if
        end do
@@ -881,16 +881,15 @@ contains
     return
   end subroutine cole2000BuildBranch
 
-  recursive subroutine cole2000OnBranch(tree,massResolution,nodeIndex,node)
+  recursive subroutine cole2000OnBranch(tree,massResolution,node)
     !!{
     Act on branching.
     !!}
     implicit none
     type            (mergerTree), intent(in   )          :: tree
     double precision            , intent(in   )          :: massResolution
-    integer         (kind_int8 ), intent(inout)          :: nodeIndex
     type            (treeNode  ), intent(inout), pointer :: node
-    !$GLC attributes unused :: tree, massResolution, nodeIndex, node
+    !$GLC attributes unused :: tree, massResolution, node
     
     return
   end subroutine cole2000OnBranch

@@ -99,8 +99,18 @@ jobs:
         run: |
           apt -y update && apt -y upgrade
           apt -y install ${{ inputs.install }}
+      - name: Check for IRATE deploy secret availability
+        id: secret-check
+        # Perform secret check and put boolean result as an output.
+        shell: bash
+        run: |
+          if [ "${{ secrets.IRATE_DEPLOY_PRIVATE_KEY }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
       - name: Install IRATE
-        if: ${{ format('{0}',inputs.needsIRATE) == '1' && github.triggering_actor != 'dependabot[bot]'}}
+        if: ${{ format('{0}',inputs.needsIRATE) == '1' && steps.secret-check.outputs.available == 'true' }}
         run: |
           apt -y update && apt -y upgrade
           apt -y install python3-minimal python3-dev python3-setuptools libhdf5-dev curl libntirpc-dev python3-h5py python3-numpy cython3
@@ -145,7 +155,7 @@ jobs:
             false
            fi
            apt -y update && apt -y upgrade
-           apt -y install python3-numpy python3-h5py
+           apt -y install python3-numpy python3-h5py python3-lxml python3-blessings
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
            ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log

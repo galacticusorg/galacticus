@@ -34,7 +34,8 @@
      !!}
      private
    contains
-     procedure :: multiplier => identityMultiplier
+     procedure :: multiplier          => identityMultiplier
+     procedure :: isRedshiftDependent => identityIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorIdentity
 
   interface stellarPopulationSpectraPostprocessorIdentity
@@ -75,3 +76,15 @@ contains
     identityMultiplier=1.0d0
     return
   end function identityMultiplier
+
+  logical function identityIsRedshiftDependent(self) result(isRedshiftDependent)
+    !!{
+    Return false indicating that the postprocessor is redshift independent.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorIdentity), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isRedshiftDependent=.false.
+    return
+  end function identityIsRedshiftDependent

@@ -39,6 +39,7 @@
      private
    contains
      procedure :: timeMinimum               => nullTimeMinimum
+     procedure :: timeMaximum               => nullTimeMaximum
      procedure :: isInLightcone             => nullIsInLightcone
      procedure :: replicationCount          => nullReplicationCount
      procedure :: solidAngle                => nullSolidAngle
@@ -98,6 +99,18 @@ contains
     return
   end function nullTimeMinimum
 
+  double precision function nullTimeMaximum(self)
+    !!{
+    Return the maximum time in the lightcone.
+    !!}
+    implicit none
+    class(geometryLightconeNull), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    nullTimeMaximum=-huge(0.0d0)
+    return
+  end function nullTimeMaximum
+
   logical function nullIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
     Determine if the given {\normalfont \ttfamily node} lies within the lightcone
@@ -155,15 +168,16 @@ contains
     return
   end function nullVelocity
 
-  double precision function nullTimeLightconeCrossing(self,node,timeStart,timeEnd)
+  double precision function nullTimeLightconeCrossing(self,node,timeStart,timeEnd,timesCrossing)
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
     implicit none
-    class           (geometryLightconeNull), intent(inout)  :: self
-    type            (treeNode             ), intent(inout)  :: node
-    double precision                       , intent(in   )  :: timeStart, timeEnd
-    !$GLC attributes unused :: self, node, timeStart, timeEnd
+    class           (geometryLightconeNull), intent(inout)                                      :: self
+    type            (treeNode             ), intent(inout)                                      :: node
+    double precision                       , intent(in   )                                      :: timeStart    , timeEnd
+    double precision                       , intent(inout), dimension(:), allocatable, optional :: timesCrossing
+    !$GLC attributes unused :: self, node, timeStart, timeEnd, timesCrossing
 
     nullTimeLightconeCrossing=huge(0.0d0)
     return

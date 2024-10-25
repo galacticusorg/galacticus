@@ -22,12 +22,11 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
-  use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
-  use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForce     , hotHaloRamPressureForceClass
-  use :: Galactic_Structure          , only : galacticStructureClass
+  use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForce , hotHaloRamPressureForceClass
   use :: Kind_Numbers                , only : kind_int8
   use :: Root_Finder                 , only : rootFinder
-  
+  use :: Mass_Distributions          , only : massDistributionClass
+
   !![
   <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
    <description>
@@ -51,8 +50,6 @@
      private
      class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
-     class           (galacticStructureClass      ), pointer :: galacticStructure_       => null()
      double precision                                        :: formFactor
      logical                                                 :: solverFailureIsFatal
      integer         (kind_int8                   )          :: uniqueIDLast             =  -1
@@ -74,8 +71,9 @@
   ! Global variables used in root finding.
   class           (hotHaloRamPressureStrippingFont2008), pointer :: self_
   type            (treeNode                           ), pointer :: node_
+  class           (massDistributionClass              ), pointer :: massDistribution__, massDistributionGas__
   double precision                                               :: forceRamPressure
-  !$omp threadprivate(self_,node_,forceRamPressure)
+  !$omp threadprivate(self_,node_,forceRamPressure,massDistribution__, massDistributionGas__)
 
 contains
 
@@ -89,8 +87,6 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
-    class           (hotHaloMassDistributionClass       ), pointer       :: hotHaloMassDistribution_
-    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: formFactor
     logical                                                              :: solverFailureIsFatal
     
@@ -110,21 +106,17 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
-    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=hotHaloRamPressureStrippingFont2008(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_)
+    self=hotHaloRamPressureStrippingFont2008(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"    />
     <objectDestructor name="hotHaloRamPressureForce_"/>
-    <objectDestructor name="hotHaloMassDistribution_"/>
-    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function font2008ConstructorParameters
 
-  function font2008ConstructorInternal(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_,galacticStructure_) result(self)
+  function font2008ConstructorInternal(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
     !!}
@@ -132,13 +124,11 @@ contains
     type            (hotHaloRamPressureStrippingFont2008)                        :: self
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
-    class           (hotHaloMassDistributionClass       ), intent(in   ), target :: hotHaloMassDistribution_
-    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     double precision                                     , intent(in   )         :: formFactor
     logical                                              , intent(in   )         :: solverFailureIsFatal
     double precision                                     , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="formFactor, solverFailureIsFatal, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_, *galacticStructure_"/>
+    <constructorAssign variables="formFactor, solverFailureIsFatal, *darkMatterHaloScale_, *hotHaloRamPressureForce_"/>
     !!]
 
     ! Solver for the ram pressure stripping radius.
@@ -160,8 +150,6 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_"    />
     <objectDestructor name="self%hotHaloRamPressureForce_"/>
-    <objectDestructor name="self%hotHaloMassDistribution_"/>
-    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine font2008Destructor
@@ -170,11 +158,12 @@ contains
     !!{
     Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     !!}
-    use :: Display         , only : displayMessage           , verbosityLevelSilent
-    use :: Error           , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
-    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
-    use :: String_Handling , only : operator(//)
-    use :: Functions_Global, only : State_Retrieve_          , State_Store_                 , mergerTreeStateStore_        , State_Set_
+    use :: Display                   , only : displayMessage           , verbosityLevelSilent
+    use :: Error                     , only : Error_Report             , errorStatusSuccess           , GSL_Error_Details
+    use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: String_Handling           , only : operator(//)
+    use :: Functions_Global          , only : State_Retrieve_          , State_Store_                 , mergerTreeStateStore_        , State_Set_
+    use :: Galactic_Structure_Options, only : componentTypeAll         , massTypeAll                  , componentTypeHotHalo         , massTypeGaseous
 
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
@@ -194,10 +183,13 @@ contains
     ! Test whether node is a satellite.
     if (node%isSatellite().and.node%isPhysicallyPlausible) then
        ! Set a pointer to the satellite node.
-       self_            => self
-       node_            =>                                     node
+       self_                 => self
+       node_                 => node
+       ! Get the hot halo mass distributions.
+       massDistribution__    => node%massDistribution(componentTypeAll    ,massTypeAll    )
+       massDistributionGas__ => node%massDistribution(componentTypeHotHalo,massTypeGaseous)
        ! Get the ram pressure force due to the hot halo.
-       forceRamPressure =  self%hotHaloRamPressureForce_%force(node)
+       forceRamPressure      =  self%hotHaloRamPressureForce_%force(node)
        ! Find the radial range within which the ram pressure radius must lie.
        radiusVirialRoot=font2008RadiusSolver(radiusVirial)
        if      (radiusVirialRoot >= 0.0d0) then
@@ -288,6 +280,10 @@ contains
              self%radiusLast=font2008RadiusStripped
           end if
        end if
+       !![
+       <objectDestructor name="massDistribution__"   />
+       <objectDestructor name="massDistributionGas__"/>
+       !!]
     else
        ! If node is not a satellite, or is not physically plausible, return a ram pressure stripping radius equal to the virial radius.
        font2008RadiusStripped=radiusVirial
@@ -299,21 +295,28 @@ contains
     !!{
     Root function used in finding the ram pressure stripping radius.
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeAll
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: massEnclosed  , forceBindingGravitational, &
-         &                             densityHotHalo
+    double precision                     , intent(in   ) :: radius
+    type            (coordinateSpherical)                :: coordinates
+    double precision                                     :: massEnclosed  , forceBindingGravitational, &
+         &                                                  densityHotHalo
 
     ! Get the hot halo mass distribution.
-    massEnclosed             =+self_%galacticStructure_      %massEnclosed(node_,radius,massType=massTypeAll,componentType=componentTypeAll)
-    densityHotHalo           =+self_%hotHaloMassDistribution_%density     (node_,radius                                                    )
-    forceBindingGravitational=+self_%formFactor                &
-         &                    *gravitationalConstantGalacticus &
-         &                    *massEnclosed                    &
-         &                    *densityHotHalo                  &
-         &                    /radius
+    coordinates              =  [radius,0.0d0,0.0d0]
+    densityHotHalo           =  massDistributionGas__%density(coordinates)
+    if (densityHotHalo > 0.0d0) then
+       massEnclosed             =+massDistribution__%massEnclosedBySphere(radius)
+       forceBindingGravitational=+self_%formFactor                &
+            &                    *gravitationalConstantGalacticus &
+            &                    *massEnclosed                    &
+            &                    *densityHotHalo                  &
+            &                    /radius
+    else
+       forceBindingGravitational=0.0d0
+    end if
     if (forceBindingGravitational >= 0.0d0) then
        font2008RadiusSolver=forceBindingGravitational-forceRamPressure
     else

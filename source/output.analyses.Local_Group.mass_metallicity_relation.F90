@@ -34,7 +34,6 @@
      private
      class           (outputAnalysisClass        ), pointer                   :: outputAnalysis_                                 => null()
      class           (outputTimesClass           ), pointer                   :: outputTimes_                                    => null()
-     class           (galacticStructureClass     ), pointer                   :: galacticStructure_                              => null()
      double precision                             , allocatable, dimension(:) :: randomErrorPolynomialCoefficient                         , systematicErrorPolynomialCoefficient, &
           &                                                                      metallicitySystematicErrorPolynomialCoefficient
      integer                                                                  :: covarianceBinomialBinsPerDecade
@@ -64,7 +63,6 @@ contains
     Constructor for the ``localGroupMassMetallicityRelation'' output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
-    use :: Galactic_Structure          , only : galacticStructureClass
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
     use :: Galactic_Filters            , only : enumerationPositionTypeEncode
     use :: Models_Likelihoods_Constants, only : logImprobable
@@ -72,7 +70,6 @@ contains
     type            (outputAnalysisLocalGroupMassMetallicityRelation)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
     class           (outputTimesClass                               ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                         ), pointer                     :: galacticStructure_
     double precision                                                 , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient               , systematicErrorPolynomialCoefficient, &
          &                                                                                            metallicitySystematicErrorPolynomialCoefficient
     integer                                                                                        :: covarianceBinomialBinsPerDecade
@@ -147,10 +144,9 @@ contains
       <defaultValue>var_str('orbital')</defaultValue>
       <description>The type of position to use in survey geometry filters.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupMassMetallicityRelation(outputTimes_,galacticStructure_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,metallicitySystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupMassMetallicityRelation(outputTimes_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,metallicitySystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -158,7 +154,7 @@ contains
     return
   end function localGroupMassMetallicityRelationConstructorParameters
 
-  function localGroupMassMetallicityRelationConstructorInternal(outputTimes_,galacticStructure_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,metallicitySystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupMassMetallicityRelationConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,metallicitySystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``localGroupMassMetallicityRelation'' output analysis class for internal use.
     !!}
@@ -189,7 +185,6 @@ contains
          &                                                                                                     metallicitySystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                           ), intent(in   )                 :: positionType
     class           (outputTimesClass                                      ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                                ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassStellar                      )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMetallicityStellar               )               , pointer        :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorMetallicitySolarRelative)               , pointer        :: outputAnalysisWeightPropertyOperatorMetallicity_
@@ -227,7 +222,7 @@ contains
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
     !![
-    <constructorAssign variables="*outputTimes_, *galacticStructure_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, metallicitySystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, metallicitySystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
     
     ! Construct mass bins.
@@ -305,7 +300,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                  )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar               (                                                                                    )"/>
     !!]
     ! Create a stellar metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
@@ -506,9 +501,8 @@ contains
     type(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"   />
-    <objectDestructor name="self%outputTimes_"      />
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputTimes_"   />
     !!]
     return
   end subroutine localGroupMassMetallicityRelationDestructor

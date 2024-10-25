@@ -62,7 +62,6 @@ contains
     Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters         , cosmologyParametersClass
-    use :: Galactic_Structure              , only : galacticStructureClass
     use :: Input_Parameters                , only : inputParameter              , inputParameters
     use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatio, outputAnalysisMolecularRatioClass
     implicit none
@@ -74,7 +73,6 @@ contains
     class           (gravitationalLensingClass                    ), pointer                     :: gravitationalLensing_
     class           (outputAnalysisMolecularRatioClass            ), pointer                     :: outputAnalysisMolecularRatio_
     class           (outputAnalysisDistributionOperatorClass      ), pointer                     :: outputAnalysisDistributionOperatorRandomError_
-    class           (galacticStructureClass                       ), pointer                     :: galacticStructure_
     double precision                                               , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
     integer                                                                                      :: covarianceBinomialBinsPerDecade
     double precision                                                                             :: covarianceBinomialMassHaloMinimum             , covarianceBinomialMassHaloMaximum, &
@@ -128,10 +126,9 @@ contains
     <objectBuilder class="gravitationalLensing"               name="gravitationalLensing_"                          source="parameters"/>
     <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperatorRandomError_" source="parameters"/>
     <objectBuilder class="outputAnalysisMolecularRatio"       name="outputAnalysisMolecularRatio_"                  source="parameters"/>
-    <objectBuilder class="galacticStructure"                  name="galacticStructure_"                             source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassFunctionHIALFALFAMartin2010(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,galacticStructure_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionHIALFALFAMartin2010(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"                           />
@@ -140,12 +137,11 @@ contains
     <objectDestructor name="gravitationalLensing_"                         />
     <objectDestructor name="outputAnalysisDistributionOperatorRandomError_"/>
     <objectDestructor name="outputAnalysisMolecularRatio_"                 />
-    <objectDestructor name="galacticStructure_"                            />
     !!]
     return
   end function massFunctionHIALFALFAMartin2010ConstructorParameters
 
-  function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,galacticStructure_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
     Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class for internal use.
     !!}
@@ -166,7 +162,6 @@ contains
     class           (gravitationalLensingClass                      ), intent(in   ), target       :: gravitationalLensing_
     class           (outputAnalysisMolecularRatioClass              ), intent(in   ), target       :: outputAnalysisMolecularRatio_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target       :: outputAnalysisDistributionOperatorRandomError_
-    class           (galacticStructureClass                         ), intent(in   ), target       :: galacticStructure_
     double precision                                                 , intent(in   )               :: sizeSourceLensing
     double precision                                                 , intent(in   ), dimension(:) :: systematicErrorPolynomialCoefficient
     integer                                                          , intent(in   )               :: covarianceBinomialBinsPerDecade
@@ -265,7 +260,6 @@ contains
          &                              outputAnalysisDistributionOperator_                                                                    , &
          &                              outputAnalysisMolecularRatio_                                                                          , &
          &                              outputTimes_                                                                                           , &
-         &                              galacticStructure_                                                                                     , &
          &                              covarianceBinomialBinsPerDecade                                                                        , &
          &                              covarianceBinomialMassHaloMinimum                                                                      , &
          &                              covarianceBinomialMassHaloMaximum                                                                        &

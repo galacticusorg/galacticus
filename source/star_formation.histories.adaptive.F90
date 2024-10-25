@@ -55,15 +55,19 @@
     in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
     the output time, and allows simple (interpolation-free) consolidation of accumulated star formation from the previous output
     time's timesteps to those of the current output time.
-  
-    Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
-    [countMetallicities]} bins between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily
-    [metallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum
-    metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin
-    which extends to infinite metallicity). If {\normalfont \ttfamily [countMetallicities]}$=0$ is set, then the star formation
-    history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
-    used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
-    [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added automatically.
+
+    The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
+    minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
+
+    The metallicity bins are arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]} bins
+    between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
+    units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
+    metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
+    final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
+    [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
+    encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
+    via the {\normalfont \ttfamily [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+    automatically.
    </description>
   </starFormationHistory>
   !!]
@@ -72,25 +76,22 @@
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
-     class           (outputTimesClass), pointer                         :: outputTimes_               => null()
-     double precision                                                    :: timeStepMinimum                     , metallicityMaximum, &
-          &                                                                 metallicityMinimum
-     integer         (c_size_t        )                                  :: countTimeStepsMaximum               , countMetallicities, &
-          &                                                                 countOutputBuffer
-     double precision                  , allocatable, dimension(:      ) :: metallicityTable
-     type            (timeIntervals   ), allocatable, dimension(:      ) :: intervals
-     double precision                  , allocatable, dimension(:,:,:,:) :: starFormationHistoryBuffer
-     integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
+     class           (outputTimesClass), pointer                   :: outputTimes_          => null()
+     double precision                                              :: timeStepMinimum                , metallicityMaximum, &
+          &                                                           metallicityMinimum
+     integer         (c_size_t        )                            :: countTimeStepsMaximum          , countMetallicities
+     double precision                  , allocatable, dimension(:) :: metallicityTable
+     type            (timeIntervals   ), allocatable, dimension(:) :: intervals
    contains
-     final     ::                                adaptiveDestructor
-     procedure :: create                      => adaptiveCreate
-     procedure :: update                      => adaptiveUpdate
-     procedure :: rate                        => adaptiveRate
-     procedure :: scales                      => adaptiveScales
-     procedure :: times                       => adaptiveTimes
-     procedure :: metallicityBoundaries       => adaptiveMetallicityBoundaries
-     procedure :: perOutputTabulationIsStatic => adaptivePerOutputTabulationIsStatic
-     procedure :: descriptor                  => adaptiveDescriptor
+     final     ::                          adaptiveDestructor
+     procedure :: create                => adaptiveCreate
+     procedure :: update                => adaptiveUpdate
+     procedure :: rate                  => adaptiveRate
+     procedure :: scales                => adaptiveScales
+     procedure :: times                 => adaptiveTimes
+     procedure :: metallicityBoundaries => adaptiveMetallicityBoundaries
+     procedure :: ageDistribution       => adaptiveAgeDistribution
+     procedure :: descriptor            => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
   interface starFormationHistoryAdaptive
@@ -118,8 +119,7 @@ contains
     double precision                              , allocatable  , dimension(:) :: metallicityBoundaries
     double precision                                                            :: timeStepMinimum      , metallicityMinimum   , &
          &                                                                         metallicityMaximum
-    integer         (c_size_t)                                                  :: countMetallicities   , countTimeStepsMaximum, &
-          &                                                                        countOutputBuffer
+    integer         (c_size_t)                                                  :: countMetallicities   , countTimeStepsMaximum
 
     !![
     <inputParameter>
@@ -172,15 +172,9 @@ contains
        !!]
     end if
     !![
-    <inputParameter>
-      <name>countOutputBuffer</name>
-      <defaultValue>100_c_size_t</defaultValue>
-      <description>The number of galaxies to hold in the output buffer.</description>
-      <source>parameters</source>
-    </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     <conditionalCall>
-     <call>self=starFormationHistoryAdaptive(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
+     <call>self=starFormationHistoryAdaptive(outputTimes_,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
      <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
      <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
      <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
@@ -192,7 +186,7 @@ contains
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
+  function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
     Internal constructor for the ``adaptive'' star formation history class.
     !!}
@@ -209,7 +203,7 @@ contains
     double precision                              , intent(in   ), dimension(:), optional :: metallicityBoundaries
     double precision                              , intent(in   )              , optional :: metallicityMinimum   , metallicityMaximum
     double precision                              , intent(in   )                         :: timeStepMinimum
-    integer         (c_size_t                    ), intent(in   )                         :: countTimeStepsMaximum, countOutputBuffer
+    integer         (c_size_t                    ), intent(in   )                         :: countTimeStepsMaximum
     integer         (c_size_t                    ), intent(in   )              , optional :: countMetallicities
     class           (outputTimesClass            ), intent(in   ), target                 :: outputTimes_
     double precision                              , allocatable  , dimension(:)           :: timesNew             , timesNewTmp
@@ -225,7 +219,7 @@ contains
     type            (lockDescriptor              )                                        :: fileLock
     character       (len=16                      )                                        :: name
     !![
-    <constructorAssign variables="countOutputBuffer, timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
+    <constructorAssign variables="timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
     !!]
 
     ! Validate metallicity argument and construct the table of metallicities.
@@ -264,7 +258,7 @@ contains
        end select
     end if
     ! Construct the time bins and rebinning strategy to be used for each output.
-    fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor()//".hdf5"
+    fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor(includeSourceDigest=.true.)//".hdf5"
     allocate(self%intervals(self%outputTimes_%count()))
     if (File_Exists(fileName)) then
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
@@ -291,7 +285,7 @@ contains
              timeStart=self%timeStepMinimum+self%intervals(iOutput-1)%time(size(self%intervals(iOutput-1)%time))
           end if
           timeEnd      =self%outputTimes_%time(iOutput)
-          countTimesNew=int((timeEnd-timeStart)/self%timeStepMinimum)+1
+          countTimesNew=int((timeEnd-timeStart)/self%timeStepMinimum)+2
           ! Construct new timesteps to span the the current output time.
           !! Allocate sufficient space for timesteps and copy in the previous timesteps.
           if (iOutput == 1) then
@@ -387,12 +381,6 @@ contains
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
-    ! Construct output buffers.
-    allocate(self%starFormationHistoryBuffer(self%countTimeStepsMaximum,size(self%metallicityTable),self%countOutputBuffer,componentTypeMin:componentTypeMax))
-    allocate(self%         indexOutputBuffer(                                                                              componentTypeMin:componentTypeMax))
-    allocate(self%         indexOutput      (                                                                              componentTypeMin:componentTypeMax))
-    self%indexOutput      =-1_c_size_t
-    self%indexOutputBuffer= 0_c_size_t
     return
   end function adaptiveConstructorInternal
 
@@ -416,7 +404,7 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout)           :: self
-    type            (treeNode                    ), intent(inout)           :: node
+    type            (treeNode                    ), intent(inout), target   :: node
     type            (history                     ), intent(inout)           :: historyStarFormation
     double precision                              , intent(in   )           :: timeBegin
     double precision                              , intent(in   ), optional :: timeEnd
@@ -461,7 +449,11 @@ contains
        basic => node %basic()
        time  =  basic%time ()
        ! Find the point in the table at which to accumulate the star formation rate.
-       iHistory=searchArray(historyStarFormation%time,time)+1
+       if (time <= historyStarFormation%time(1)) then
+          iHistory=1
+       else
+          iHistory=searchArray(historyStarFormation%time,time)+1
+       end if
        ! Find the metallicity bin to accumulate to.
        if    (self%countMetallicities    == 0              ) then
           iMetallicity   =                                                  +1
@@ -519,24 +511,27 @@ contains
     return
   end subroutine adaptiveUpdate
 
-  subroutine adaptiveScales(self,historyStarFormation,massStellar,abundancesStellar)
+  subroutine adaptiveScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
     !!{
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
-    double precision                              , intent(in   )               :: massStellar
+    double precision                              , intent(in   )               :: massStellar               , massGas
     type            (abundances                  ), intent(in   )               :: abundancesStellar
     type            (history                     ), intent(inout)               :: historyStarFormation
-    double precision                              , parameter                   :: massStellarMinimum  =1.0d0
+    type            (treeNode                    ), intent(inout)               :: node
+    double precision                              , parameter                   :: massMinimum         =1.0d0
     double precision                              , allocatable  , dimension(:) :: timeSteps
     integer         (c_size_t                    )                              :: iMetallicity
-    !$GLC attributes unused :: abundancesStellar
+    !$GLC attributes unused :: abundancesStellar, node
 
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
-       historyStarFormation%data(:,iMetallicity)=max(massStellar,massStellarMinimum)/timeSteps
+       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,massMinimum)                            &
+            &                                    *                     timeSteps                                  &
+            &                                    /historyStarFormation%time     (size(historyStarFormation%time))
     end forall
     deallocate(timeSteps)
     return
@@ -555,30 +550,46 @@ contains
     return
   end function adaptiveMetallicityBoundaries
 
-  function adaptiveTimes(self,indexOutput)
+  function adaptiveTimes(self,node,indexOutput,starFormationHistory,allowTruncation,timeStart) result(times)
     !!{
     Return the times used in this tabulation.
     !!}
+    use :: Error, only : Error_Report
     implicit none
-    double precision                              , allocatable  , dimension(:) :: adaptiveTimes
+    double precision                              , allocatable  , dimension(:) :: times
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
-    integer         (c_size_t                    ), intent(in   )               :: indexOutput
-
-    allocate(adaptiveTimes(size(self%intervals(indexOutput)%time)))
-    adaptiveTimes=self%intervals(indexOutput)%time
+    type            (treeNode                    ), intent(inout), optional     :: node
+    integer         (c_size_t                    ), intent(in   ), optional     :: indexOutput
+    type            (history                     ), intent(in   ), optional     :: starFormationHistory
+    logical                                       , intent(in   ), optional     :: allowTruncation
+    double precision                              , intent(  out), optional     :: timeStart
+    !$GLC attributes unused :: allowTruncation
+    
+    if (     present(node       ).or.present(starFormationHistory)) call Error_Report('`node` is not supported'  //{introspection:location})
+    if (.not.present(indexOutput)                                 ) call Error_Report('`indexOutput` is required'//{introspection:location})
+    ! Set the times. These are just our tabulated intervals, except for the final time which is pinned to the output time. This is
+    ! because our final interval may extend past the output time due to the finite size of our minimum interval. Pinning to the
+    ! output time gives a better estimate of the effective size of the bin (since, by definition, no star formation can have
+    ! occurred after the current time).
+    allocate(times(size(self%intervals(indexOutput)%time)))
+    times             =self%intervals   (indexOutput)%time
+    times(size(times))=self%outputTimes_             %time(indexOutput)
+    ! Set the start time.
+    if (present(timeStart)) timeStart=0.0d0
     return
   end function adaptiveTimes
 
-  logical function adaptivePerOutputTabulationIsStatic(self)
+  function adaptiveAgeDistribution(self) result(ageDistribution)
     !!{
-    Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    Indicate the star formation history ages are fixed per output.
     !!}
     implicit none
-    class(starFormationHistoryAdaptive), intent(inout) :: self
+    type (enumerationStarFormationHistoryAgesType)                :: ageDistribution
+    class(starFormationHistoryAdaptive           ), intent(inout) :: self
 
-    adaptivePerOutputTabulationIsStatic=.true.
+    ageDistribution=starFormationHistoryAgesFixedPerOutput
     return
-  end function adaptivePerOutputTabulationIsStatic
+  end function adaptiveAgeDistribution
 
   subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
     !!{
@@ -601,8 +612,6 @@ contains
     call parameters%addParameter('timeStepMinimum'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(i17)   ') self%countTimeStepsMaximum
     call parameters%addParameter('countTimeStepsMaximum',trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(i17)   ') self%countOutputBuffer
-    call parameters%addParameter('countOutputBuffer'    ,trim(adjustl(parameterLabel)))
     metallicityBoundariesLabel=""
     do i=1,size(self%metallicityTable)
        write (parameterLabel,'(e17.10)') self%metallicityTable(i)

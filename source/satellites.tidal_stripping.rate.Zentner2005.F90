@@ -24,7 +24,6 @@
   !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
-  use :: Galactic_Structure             , only : galacticStructureClass
 
   !![
   <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
@@ -61,7 +60,6 @@
      !!}
      private
      class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
-     class           (galacticStructureClass            ), pointer :: galacticStructure_             => null()
      double precision                                              :: efficiency
      logical                                                       :: useDynamicalTimeScale
    contains
@@ -88,7 +86,6 @@ contains
     type            (satelliteTidalStrippingZentner2005)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
-    class           (galacticStructureClass            ), pointer       :: galacticStructure_
     double precision                                                    :: efficiency
     logical                                                             :: useDynamicalTimeScale
 
@@ -106,29 +103,26 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
-    <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
     !!]
-    self=satelliteTidalStrippingZentner2005(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_)
+    self=satelliteTidalStrippingZentner2005(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="galacticStructure_"            />
     !!]
     return
   end function zentner2005ConstructorParameters
 
-  function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_) result(self)
+  function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
-    class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     double precision                                    , intent(in   )         :: efficiency
     logical                                             , intent(in   )         :: useDynamicalTimeScale
     !![
-    <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_, *galacticStructure_"/>
+    <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_"/>
     !!]
 
     return
@@ -143,7 +137,6 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="self%galacticStructure_"            />
     !!]
     return
   end subroutine zentner2005Destructor
@@ -153,6 +146,7 @@ contains
     Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -161,6 +155,7 @@ contains
     class           (satelliteTidalStrippingZentner2005), intent(inout)  :: self
     type            (treeNode                          ), intent(inout)  :: node
     class           (nodeComponentSatellite            ), pointer        :: satellite
+    class           (massDistributionClass             ), pointer        :: massDistribution_
     double precision                                    , dimension(3  ) :: position               , velocity
     double precision                                                     :: massSatellite          , frequencyAngular, &
          &                                                                  periodOrbital          , radius          , &
@@ -187,14 +182,18 @@ contains
          &                /megaParsec
     ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
     ! radial or purely circular orbits.
+    massDistribution_  => node%massDistribution()
     periodOrbital      =  +2.0d0                 &
          &                *Pi                    &
          &                /max(                  &
          &                     frequencyAngular, &
          &                     frequencyRadial   &
          &                    )
-    radiusTidal            =          self%satelliteTidalStrippingRadius_%radius      (node            )
-    massEnclosedTidalRadius=max(0.0d0,self%galacticStructure_            %massEnclosed(node,radiusTidal))
+    radiusTidal            =          self             %satelliteTidalStrippingRadius_%radius              (node       )
+    massEnclosedTidalRadius=max(0.0d0,massDistribution_                               %massEnclosedBySphere(radiusTidal))
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Check whether to use the dynamical time scale or the orbital time scale for mass loss rate.
     if (self%useDynamicalTimeScale .and. massEnclosedTidalRadius > 0.0d0) then
        timeScaleMassLoss=+2.0d0                                 &

@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="73.0"/>
+    <OmegaMatter value="0.25"/>
+    <OmegaDarkEnergy value="0.75"/>
+    <OmegaBaryon value="0.045"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+  
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVariance>
+
+  <mergerTreeConstructor value="read">
+    <fileNames value="testSuite/outputs/millenniumTestTreesGLCSingle.hdf5"/>
+    <presetSubhaloIndices value="false"/>
+    <presetOrbits value="false"/>
+    <presetMergerTimes value="false"/>
+    <presetMergerNodes value="false"/>
+    <presetSubhaloMasses value="false"/>
+    <presetPositions value="false"/>
+    <presetScaleRadii value="false"/>
+    <presetAngularMomenta value="false"/>
+  </mergerTreeConstructor>
+
+  <mergerTreeEvolver value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+  </mergerTreeEvolver>
+
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="100.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperator value="barInstability">
+      <galacticDynamicsBarInstability value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstability>
+    </nodeOperator>
+  </nodeOperator>
+</parameters>

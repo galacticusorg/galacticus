@@ -315,11 +315,13 @@ contains
     Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
+    use :: Mass_Distributions , only : massDistributionClass
     implicit none
-    double precision, intent(in   ) :: massDefinitionTrial
-    double precision                :: radiusOuterDefinition, concentrationDefinition, &
-         &                             radiusCore           , massOuter              , &
-         &                             radiusOuter          , densityOuter
+    double precision                       , intent(in   ) :: massDefinitionTrial
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: radiusOuterDefinition, concentrationDefinition, &
+         &                                                    radiusCore           , massOuter              , &
+         &                                                    radiusOuter          , densityOuter
 
     ! Set the mass of the worker node.
     call state_(stateCount)%basic%massSet(massDefinitionTrial)
@@ -343,12 +345,17 @@ contains
     call state_(stateCount)%darkMatterProfile%scaleSet(radiusCore)
     call Calculations_Reset(state_(stateCount)%nodeWork)
     ! Find the non-alt density.
-    densityOuter=+state_(stateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                                          state_(stateCount)%basic%time()) &
+    densityOuter=+state_(stateCount)%self%cosmologyFunctions_   %matterDensityEpochal(                                state_(stateCount)%basic%time()) &
          &       *state_(stateCount)%self%virialDensityContrast_%densityContrast     (state_(stateCount)%basic%mass(),state_(stateCount)%basic%time())
+    ! Get the current mass distribution.
+    massDistribution_ => state_(stateCount)%self%darkMatterProfileDMODefinition%get(state_(stateCount)%nodeWork)
     ! Solve for radius which encloses required non-alt density.
-    radiusOuter=state_(stateCount)%self%darkMatterProfileDMODefinition%radiusEnclosingDensity(state_(stateCount)%nodeWork,densityOuter)
+    radiusOuter=massDistribution_%radiusEnclosingDensity(densityOuter)
     ! Get the mass within this radius.
-    massOuter  =state_(stateCount)%self%darkMatterProfileDMODefinition%enclosedMass          (state_(stateCount)%nodeWork, radiusOuter)
+    massOuter  =massDistribution_%massEnclosedBySphere  ( radiusOuter)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Return root function.
     concentrationMassRoot=massOuter-state_(stateCount)%mass
     return

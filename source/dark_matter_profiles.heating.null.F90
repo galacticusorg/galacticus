@@ -23,7 +23,9 @@
 
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingNull">
-   <description>A dark matter profile heating model in which the heating is always zero.</description>
+    <description>
+      A dark matter profile heating model which constructs \refClass{massDistributionHeatingNull} objects to provide zero heating.
+    </description>
   </darkMatterProfileHeating>
   !!]
 
@@ -33,9 +35,7 @@
      !!}
      private
    contains
-     procedure :: specificEnergy                 => nullSpecificEnergy
-     procedure :: specificEnergyGradient         => nullSpecificEnergyGradient
-     procedure :: specificEnergyIsEverywhereZero => nullSpecificEnergyIsEverywhereZero
+     procedure :: get => nullGet
   end type darkMatterProfileHeatingNull
 
   interface darkMatterProfileHeatingNull
@@ -63,46 +63,28 @@ contains
     return
   end function nullConstructorParameters
 
-  double precision function nullSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
+  function nullGet(self,node) result(massDistributionHeating_)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
     !!}
+    use :: Mass_Distributions, only : massDistributionHeatingNull
     implicit none
-    class           (darkMatterProfileHeatingNull), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass   ), intent(inout) :: darkMatterProfileDMO_
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, radius, darkMatterProfileDMO_
-
-    nullSpecificEnergy=0.0d0
-    return
-  end function nullSpecificEnergy
-
-  double precision function nullSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
-    !!{
-    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class           (darkMatterProfileHeatingNull), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass   ), intent(inout) :: darkMatterProfileDMO_
-    double precision                              , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, darkMatterProfileDMO_, radius
-
-    nullSpecificEnergyGradient=0.0d0
-    return
-  end function nullSpecificEnergyGradient
-
-  logical function nullSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !!{
-    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
-    !!}
-    implicit none
+    class(massDistributionHeatingClass), pointer       :: massDistributionHeating_
     class(darkMatterProfileHeatingNull), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
-    class(darkMatterProfileDMOClass   ), intent(inout) :: darkMatterProfileDMO_
-    !$GLC attributes unused :: self, node, darkMatterProfileDMO_
-
-    nullSpecificEnergyIsEverywhereZero=.true.
+ 
+    ! Create the mass distribution.
+    allocate(massDistributionHeatingNull :: massDistributionHeating_)
+    select type(massDistributionHeating_)
+    type is (massDistributionHeatingNull)       
+       !![
+       <referenceConstruct object="massDistributionHeating_">
+	 <constructor>
+           massDistributionHeatingNull()
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     return
-  end function nullSpecificEnergyIsEverywhereZero
+  end function nullGet
+  

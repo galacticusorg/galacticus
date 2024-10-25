@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of star formation history -->
+<!-- 31-August-2024                 -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>2.47</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+    <disk>
+      <massStellar>0.0</massStellar>
+      <massGas>1.0e11</massGas>
+      <abundancesStellar>
+	<metals>0.0</metals>
+      </abundancesStellar>
+      <abundancesGas>
+	<metals>0.0</metals>
+      </abundancesGas>
+    </disk>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.47</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+  </node>
+</tree>

@@ -23,7 +23,10 @@
 
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingTwoBodyRelaxation">
-   <description>A dark matter profile heating model which computes heating due to two-body relaxation.</description>
+    <description>
+      A dark matter profile heating class which returns a \refClass{massDistributionHeatingTwoBodyRelaxation} objects to compute
+      heating due to two-body relaxation.
+    </description>
   </darkMatterProfileHeating>
   !!]
 
@@ -35,9 +38,7 @@
      double precision :: massParticle, lengthSoftening, &
           &              timeStart   , efficiency
    contains
-     procedure :: specificEnergy                 => twoBodyRelaxationSpecificEnergy
-     procedure :: specificEnergyGradient         => twoBodyRelaxationSpecificEnergyGradient
-     procedure :: specificEnergyIsEverywhereZero => twoBodyRelaxationSpecificEnergyIsEverywhereZero
+     procedure :: get => twoBodyRelaxationGet
   end type darkMatterProfileHeatingTwoBodyRelaxation
 
   interface darkMatterProfileHeatingTwoBodyRelaxation
@@ -105,154 +106,36 @@ contains
     return
   end function twoBodyRelaxationConstructorInternal
 
-  double precision function twoBodyRelaxationSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
+  function twoBodyRelaxationGet(self,node) result(massDistributionHeating_)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}. The assumption here is that the mean
-    fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
-    within radius $r=${\normalfont \ttfamily radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
-    circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
-    the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
-    specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
+    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic, treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear          , megaParsec, gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Galacticus_Nodes  , only : nodeComponentBasic
+    use :: Mass_Distributions, only : massDistributionHeatingTwoBodyRelaxation
     implicit none
+    class           (massDistributionHeatingClass             ), pointer       :: massDistributionHeating_
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                           , intent(in   ) :: radius
     class           (nodeComponentBasic                       ), pointer       :: basic
-    double precision                                                           :: particleCount     , velocity               , &
-         &                                                                        logarithmCoulomb  , impactParameterCritical
-
-    basic => node%basic()
-    if (basic%time() > self%timeStart) then
-       velocity                       =+darkMatterProfileDMO_             %circularVelocity(node,radius)
-       impactParameterCritical        =+2.0d0                                                                &
-            &                          *gravitationalConstantGalacticus                                      &
-            &                          *self                              %massParticle                      &
-            &                          /velocity                                                        **2
-       logarithmCoulomb               =+0.5d0                                                                &
-            &                          *log(                                                                 &
-            &                               +1.0d0                                                           &
-            &                               +(                                                               &
-            &                                 +radius                                                        &
-            &                                 /max(                                                          &
-            &                                      self                   %lengthSoftening                 , &
-            &                                      impactParameterCritical                                   &
-            &                                     )                                                          &
-            &                                )                                                          **2  &
-            &                              )
-       particleCount                  =+darkMatterProfileDMO_             %enclosedMass    (node,radius)     &
-            &                          /self                              %massParticle
-       twoBodyRelaxationSpecificEnergy=+2.0d0                                                                &
-            &                          *self                              %efficiency                        &
-            &                          *logarithmCoulomb                                                     &
-            &                          *(                                                                    &
-            &                            +basic                           %time            (           )     &
-            &                            -self                            %timeStart                         &
-            &                           )                                                                    &
-            &                          *velocity                                                        **3  &
-            &                          /radius                                                               &
-            &                          /particleCount                                                        &
-            &                          *kilo                                                                 &
-            &                          *gigaYear                                                             &
-            &                          /megaParsec
-    else
-       twoBodyRelaxationSpecificEnergy=+0.0d0
-    end if
+ 
+    ! Create the mass distribution.
+    allocate(massDistributionHeatingTwoBodyRelaxation :: massDistributionHeating_)
+    select type(massDistributionHeating_)
+    type is (massDistributionHeatingTwoBodyRelaxation)
+       basic => node%basic()
+       !![
+       <referenceConstruct object="massDistributionHeating_">
+	 <constructor>
+           massDistributionHeatingTwoBodyRelaxation(                                          &amp;
+            &amp;                                   massParticle   =+self %massParticle     , &amp;
+            &amp;                                   lengthSoftening=+self %lengthSoftening  , &amp;
+            &amp;                                   timeRelaxing   =+basic%time           ()  &amp;
+	    &amp;                                                   -self %timeStart        , &amp;
+            &amp;                                   efficiency     =+self %efficiency         &amp;
+            &amp;                                  )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     return
-  end function twoBodyRelaxationSpecificEnergy
-
-  double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
-    !!{
-    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    implicit none
-    class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
-    type            (treeNode                                 ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                           , intent(in   ) :: radius
-    class           (nodeComponentBasic                       ), pointer       :: basic
-    double precision                                                           :: particleCount     , velocity               , &
-         &                                                                        logarithmCoulomb  , impactParameterCritical, &
-         &                                                                        gradientCoulomb
-
-    basic => node%basic()
-    if (basic%time() > self%timeStart) then
-       velocity                       =+darkMatterProfileDMO_             %circularVelocity(node,radius)
-       impactParameterCritical        =+2.0d0                                                                &
-            &                          *gravitationalConstantGalacticus                                      &
-            &                          *self                              %massParticle                      &
-            &                          /velocity                                                       **2
-       logarithmCoulomb               =+0.5d0                                                                &
-            &                          *log(                                                                 &
-            &                               +1.0d0                                                           &
-            &                               +(                                                               &
-            &                                 +radius                                                        &
-            &                                 /max(                                                          &
-            &                                      self                   %lengthSoftening                 , &
-            &                                      impactParameterCritical                                   &
-            &                                     )                                                          &
-            &                                )                                                          **2  &
-            &                              )
-       particleCount                  =+darkMatterProfileDMO_             %enclosedMass    (node,radius)     &
-            &                          /self                              %massParticle
-       if (self%lengthSoftening > impactParameterCritical) then
-          gradientCoulomb=+radius                                                            &
-               &          /self                             %lengthSoftening
-       else
-          gradientCoulomb=+2.0d0                                                             &
-               &          *radius                                                            &
-               &          /impactParameterCritical                                           &
-               &          *(                                                                 &
-               &            -1.0d0                                                           &
-               &            +8.0d0                                                           &
-               &            *Pi                                                              &
-               &            *gravitationalConstantGalacticus                                 &
-               &            *radius                                                      **2 &
-               &            *darkMatterProfileDMO_          %density        (node,radius)    &
-               &            /velocity                                                    **2 &
-               &           )
-       end if
-       twoBodyRelaxationSpecificEnergyGradient=+self                             %specificEnergy(node,radius,darkMatterProfileDMO_)    &
-            &                                  /                                                      radius                           &
-            &                                  *(                                                                                      &
-            &                                    -2.5d0                                                                                &
-            &                                    +6.0d0                                                                                &
-            &                                    *Pi                                                                                   &
-            &                                    *gravitationalConstantGalacticus                                                      &
-            &                                    *darkMatterProfileDMO_          %density       (node,radius                      )    &
-            &                                    *radius                                                                           **2 &
-            &                                    /velocity                                                                         **2 &
-            &                                    -                                                    radius                           &
-            &                                    *                gradientCoulomb                                                      &
-            &                                    /               logarithmCoulomb                                                      &
-            &                                    *sqrt(exp(2.0d0*logarithmCoulomb)-1.0d0)                                              &
-            &                                    /     exp(2.0d0*logarithmCoulomb)                                                     &
-            &                                   )
-    else
-       twoBodyRelaxationSpecificEnergyGradient=0.0d0
-    end if
-    return
-  end function twoBodyRelaxationSpecificEnergyGradient
-
-  logical function twoBodyRelaxationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !!{
-    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    implicit none
-    class(darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
-    type (treeNode                                 ), intent(inout) :: node
-    class(darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
-    class(nodeComponentBasic                       ), pointer       :: basic
-    !$GLC attributes unused :: self, darkMatterProfileDMO_
-
-    basic                                           => node %basic()
-    twoBodyRelaxationSpecificEnergyIsEverywhereZero =  basic%time () <= self%timeStart
-    return
-  end function twoBodyRelaxationSpecificEnergyIsEverywhereZero
+  end function twoBodyRelaxationGet

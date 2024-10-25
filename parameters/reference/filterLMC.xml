@@ -2,6 +2,7 @@
 <!-- Reference filter for LMC selection -->
 <parameters>
   <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Build a filter to select trees with LMCs -->
   <mergerTreeFilter value="anyNode">

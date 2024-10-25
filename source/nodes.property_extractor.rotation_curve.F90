@@ -22,7 +22,6 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
-  use :: Galactic_Structure                  , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
@@ -41,7 +40,6 @@
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
@@ -80,7 +78,6 @@ contains
     type   (inputParameters                   ), intent(inout)               :: parameters
     type   (varying_string                    ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass          ), pointer                     :: darkMatterHaloScale_
-    class  (galacticStructureClass            ), pointer                     :: galacticStructure_
     logical                                                                  :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -97,18 +94,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorRotationCurve(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_)
+    self=nodePropertyExtractorRotationCurve(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function rotationCurveConstructorParameters
 
-  function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_) result(self)
+  function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
     !!}
@@ -117,10 +112,9 @@ contains
     type   (nodePropertyExtractorRotationCurve)                              :: self
     type   (varying_string                    ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass          ), intent(in   ), target       :: darkMatterHaloScale_
-    class  (galacticStructureClass            ), intent(in   ), target       :: galacticStructure_
     logical                                    , intent(in   )               :: includeRadii
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -150,7 +144,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine rotationCurveDestructor
@@ -192,6 +185,7 @@ contains
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Error                               , only : Error_Report
+    use :: Mass_Distributions                  , only : massDistributionClass
     implicit none
     double precision                                    , dimension(:,:), allocatable :: rotationCurveExtract
     class           (nodePropertyExtractorRotationCurve), intent(inout) , target      :: self
@@ -201,6 +195,7 @@ contains
     class           (nodeComponentDisk                 ), pointer                     :: disk
     class           (nodeComponentSpheroid             ), pointer                     :: spheroid
     class           (nodeComponentDarkMatterProfile    ), pointer                     :: darkMatterProfile
+    class           (massDistributionClass             ), pointer                     :: massDistribution_
     integer                                                                           :: i
     double precision                                                                  :: radius                , radiusVirial
     !$GLC attributes unused :: time, instance
@@ -230,38 +225,48 @@ contains
           radius=+radius*spheroid         %halfMassRadius()
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID)
-          radius=+radius                                           &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeGalactic,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+          massDistribution_ =>  node             %massDistribution   (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius            =  +radius                                                                                &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case   (radiusTypeStellarMassFraction  %ID)
-          radius=+radius                                           &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeStellar ,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+           massDistribution_ =>  node             %massDistribution  (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius            =  +radius                                                                                &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
-       rotationCurveExtract       (i,1)=self%galacticStructure_%velocityRotation(                                       &
-               &                                                                 node                                 , &
-               &                                                                 radius                               , &
-               &                                                                 componentType=self%radii(i)%component, &
-               &                                                                 massType     =self%radii(i)%mass       &
-               &                                                                )
-       if (self%includeRadii)                                                                                           &
-            & rotationCurveExtract(i,2)=                                         radius
+       massDistribution_                => node             %massDistribution(                                       &
+               &                                                              componentType=self%radii(i)%component, &
+               &                                                              massType     =self%radii(i)%mass       &
+               &                                                             )
+       rotationCurveExtract       (i,1) =  massDistribution_%rotationCurve   (                                       &
+            &                                                                                             radius     &
+            &                                                                )
+       if (self%includeRadii)                                                                                        &
+            & rotationCurveExtract(i,2) =                                                                 radius
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     end do
     return
   end function rotationCurveExtract

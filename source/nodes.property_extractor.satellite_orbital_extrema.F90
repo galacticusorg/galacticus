@@ -21,7 +21,7 @@
 Contains a module which implements satellite orbital extrema property extractor class.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
@@ -36,10 +36,10 @@ Contains a module which implements satellite orbital extrema property extractor 
      A satellite orbital extrema property extractor class.
      !!}
      private
-     class  (galacticStructureClass), pointer :: galacticStructure_ => null()
-     integer                                  :: offsetPericenter            , offsetApocenter , &
-          &                                      elementCount_
-     logical                                  :: extractPericenter           , extractApocenter
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     integer                                    :: offsetPericenter              , offsetApocenter , &
+          &                                        elementCount_
+     logical                                    :: extractPericenter             , extractApocenter
    contains
      final     ::                 satelliteOrbitalExtremaDestructor
      procedure :: elementCount => satelliteOrbitalExtremaElementCount
@@ -67,8 +67,8 @@ contains
     implicit none
     type   (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
-    class  (galacticStructureClass                      ), pointer       :: galacticStructure_
-    logical                                                              :: extractPericenter , extractApocenter
+    class  (darkMatterHaloScaleClass                    ), pointer       :: darkMatterHaloScale_
+    logical                                                              :: extractPericenter   , extractApocenter
 
     !![
     <inputParameter>
@@ -83,17 +83,17 @@ contains
       <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter,galacticStructure_)
+    self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function satelliteOrbitalExtremaConstructorParameters
 
-  function satelliteOrbitalExtremaConstructorInternal(extractPericenter,extractApocenter,galacticStructure_) result(self)
+  function satelliteOrbitalExtremaConstructorInternal(extractPericenter,extractApocenter,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
     !!}
@@ -101,9 +101,9 @@ contains
     implicit none
     type   (nodePropertyExtractorSatelliteOrbitalExtrema)                        :: self
     logical                                              , intent(in   )         :: extractPericenter , extractApocenter
-    class  (galacticStructureClass                      ), intent(in   ), target :: galacticStructure_
+    class  (darkMatterHaloScaleClass                    ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="extractPericenter, extractApocenter, *galacticStructure_"/>
+    <constructorAssign variables="extractPericenter, extractApocenter, *darkMatterHaloScale_"/>
     !!]
 
     self%elementCount_=0
@@ -127,7 +127,7 @@ contains
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine satelliteOrbitalExtremaDestructor
@@ -170,7 +170,7 @@ contains
           nodeHost  => node     %parent
           satellite => node     %satellite  ()
           orbit     =  satellite%virialOrbit()
-          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%galacticStructure_)
+          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%darkMatterHaloScale_)
        else
           radiusOrbital  =0.0d0
           velocityOrbital=0.0d0
@@ -182,7 +182,7 @@ contains
           nodeHost  => node     %parent
           satellite => node     %satellite  ()
           orbit     =  satellite%virialOrbit()
-          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumApocenter ,radiusOrbital,velocityOrbital,self%galacticStructure_)
+          call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumApocenter ,radiusOrbital,velocityOrbital,self%darkMatterHaloScale_)
        else
           radiusOrbital  =0.0d0
           velocityOrbital=0.0d0

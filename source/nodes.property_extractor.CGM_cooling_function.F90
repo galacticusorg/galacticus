@@ -24,11 +24,7 @@
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
   use :: Cooling_Functions                   , only : coolingFunctionClass
-  use :: Hot_Halo_Mass_Distributions         , only : hotHaloMassDistributionClass
-  use :: Hot_Halo_Temperature_Profiles       , only : hotHaloTemperatureProfileClass
   use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
-  use :: Galactic_Structure                  , only : galacticStructureClass
-
   !![
   <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction">
    <description>A property extractor class for the CGM cooling function at a set of radii.</description>
@@ -47,10 +43,7 @@
      private
      class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_           => null()
      class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_          => null()
-     class  (galacticStructureClass                 ), pointer                   :: galacticStructure_            => null()
      class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_              => null()
-     class  (hotHaloMassDistributionClass           ), pointer                   :: hotHaloMassDistribution_      => null()
-     class  (hotHaloTemperatureProfileClass         ), pointer                   :: hotHaloTemperatureProfile_    => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation                     => null()
      integer                                                                     :: radiiCount                             , elementCount_       , &
           &                                                                         abundancesCount                        , chemicalsCount      , &
@@ -94,11 +87,8 @@ contains
     type   (varying_string                         ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
     class  (coolingFunctionClass                   ), pointer                     :: coolingFunction_
-    class  (hotHaloTemperatureProfileClass         ), pointer                     :: hotHaloTemperatureProfile_
-    class  (hotHaloMassDistributionClass           ), pointer                     :: hotHaloMassDistribution_
-    class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
     class  (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
-    logical                                                                       :: includeRadii              , includeDensity
+    logical                                                                       :: includeRadii        , includeDensity
     type   (varying_string                         )                              :: label
     
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -126,27 +116,21 @@ contains
       <description>A label to distinguish this cooling function from others.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
-    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     !!]
-    self=nodePropertyExtractorCGMCoolingFunction(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_,coolingFunction_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
+    self=nodePropertyExtractorCGMCoolingFunction(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"       />
-    <objectDestructor name="darkMatterHaloScale_"      />
-    <objectDestructor name="galacticStructure_"        />
-    <objectDestructor name="coolingFunction_"          />
-    <objectDestructor name="hotHaloTemperatureProfile_"/>
-    <objectDestructor name="hotHaloMassDistribution_"  />
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="coolingFunction_"    />
     !!]
     return
   end function cgmCoolingFunctionConstructorParameters
 
-  function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_,coolingFunction_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
+  function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily cgmCoolingFunction} property extractor class.
     !!}
@@ -159,14 +143,11 @@ contains
     type   (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     class  (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
-    class  (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
     class  (coolingFunctionClass                   ), intent(in   ), target       :: coolingFunction_
-    class  (hotHaloTemperatureProfileClass         ), intent(in   ), target       :: hotHaloTemperatureProfile_
-    class  (hotHaloMassDistributionClass           ), intent(in   ), target       :: hotHaloMassDistribution_
-    logical                                         , intent(in   )               :: includeRadii              , includeDensity
+    logical                                         , intent(in   )               :: includeRadii        , includeDensity
     type   (varying_string                         ), intent(in   )               :: label
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, includeDensity, *cosmologyFunctions_, *darkMatterHaloScale_, *galacticStructure_, *coolingFunction_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, includeDensity, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
 
     ! Decode radii specifiers.
@@ -210,13 +191,10 @@ contains
     type(nodePropertyExtractorCGMCoolingFunction), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"       />
-    <objectDestructor name="self%darkMatterHaloScale_"      />
-    <objectDestructor name="self%galacticStructure_"        />
-    <objectDestructor name="self%coolingFunction_"          />
-    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    <objectDestructor name="self%hotHaloMassDistribution_"  />
-    <objectDestructor name="self%radiation"                 />
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%coolingFunction_"    />
+    <objectDestructor name="self%radiation"           />
     !!]
     return
   end subroutine cgmCoolingFunctionDestructor
@@ -255,12 +233,15 @@ contains
     use :: Abundances_Structure                , only : abundances
     use :: Chemical_Abundances_Structure       , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities   , only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galactic_Structure_Options          , only : componentTypeAll                     , massTypeGalactic            , massTypeStellar
+    use :: Galactic_Structure_Options          , only : componentTypeAll                     , componentTypeHotHalo        , massTypeGaseous                 , massTypeGalactic               , &
+         &                                              massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius      , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
          &                                              radiusTypeGalacticMassFraction       , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
          &                                              radiusTypeStellarMassFraction        , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile       , nodeComponentDisk           , nodeComponentSpheroid           , treeNode                       , &
          &                                              nodeComponentBasic                   , nodeComponentHotHalo
+    use :: Mass_Distributions                  , only : massDistributionClass                , kinematicsDistributionClass
+    use :: Coordinates                         , only : coordinateSpherical                  , assignment(=)
     use :: Numerical_Constants_Astronomical    , only : massSolar                            , megaParsec
     use :: Numerical_Constants_Atomic          , only : massHydrogenAtom
     use :: Numerical_Constants_Prefixes        , only : hecto
@@ -276,6 +257,9 @@ contains
     class           (nodeComponentDisk                      )                , pointer     :: disk
     class           (nodeComponentSpheroid                  )                , pointer     :: spheroid
     class           (nodeComponentDarkMatterProfile         )                , pointer     :: darkMatterProfile
+    class           (massDistributionClass                  )                , pointer     :: massDistribution_
+    class           (kinematicsDistributionClass            )                , pointer     :: kinematicsDistribution_
+    type            (coordinateSpherical                    )                              :: coordinates
     integer                                                                                :: i
     double precision                                                                       :: radius                   , radiusVirial         , &
          &                                                                                    density                  , temperature          , &
@@ -309,27 +293,33 @@ contains
           radius=+radius*spheroid         %halfMassRadius()
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID)
-          radius=+radius                                           &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeGalactic,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+          massDistribution_ =>  node             %massDistribution   (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius            =  +radius                                                                                &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
         case   (radiusTypeStellarMassFraction  %ID)
-          radius=+radius                                           &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeStellar ,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+           massDistribution_ =>  node             %massDistribution  (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius            =  +radius                                                                                &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
@@ -356,9 +346,16 @@ contains
           ! Convert to number density per unit total mass density.
           call fractionsChemical%scale(massToDensityConversion)
        end if
-       ! Get density and temperature  at the required radius.
-       density              =self%hotHaloMassDistribution_  %density    (node,radius)
-       temperature          =self%hotHaloTemperatureProfile_%temperature(node,radius)
+       ! Get density and temperature.
+       coordinates             =  [radius,0.0d0,0.0d0]
+       massDistribution_       => node                   %massDistribution      (componentTypeHotHalo,massTypeGaseous)
+       kinematicsDistribution_ => massDistribution_      %kinematicsDistribution(                                    )
+       density                 =  massDistribution_      %density               (coordinates                         )
+       temperature             =  kinematicsDistribution_%temperature           (coordinates                         )
+       !![
+       <objectDestructor name="massDistribution_"      />
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
        ! Compute number density of hydrogen (in cm⁻³).
        numberDensityHydrogen=+density                                    &
             &                *abundancesGas   %hydrogenMassFraction()    &

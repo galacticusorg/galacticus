@@ -23,7 +23,6 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
@@ -40,7 +39,6 @@
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      double precision                                     :: timescaleMultiplier
    contains
      final     ::                     boylanKolchin2008Destructor
@@ -68,7 +66,6 @@ contains
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
-    class           (galacticStructureClass                     ), pointer       :: galacticStructure_
     double precision                                                             :: timescaleMultiplier
 
     !![
@@ -80,19 +77,17 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
+    self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function boylanKolchin2008ConstructorParameters
 
-  function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
     !!}
@@ -101,9 +96,8 @@ contains
     double precision                                             , intent(in   )         :: timescaleMultiplier
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -119,7 +113,6 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine boylanKolchin2008Destructor
@@ -128,16 +121,18 @@ contains
     !!{
     Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
-    use :: Kepler_Orbits   , only : keplerOrbit
-    use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBasic                              , treeNode
+    use :: Mass_Distributions, only : massDistributionClass
+    use :: Kepler_Orbits     , only : keplerOrbit
+    use :: Satellite_Orbits  , only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
     class           (satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
     type            (keplerOrbit                                ), intent(inout) :: orbit
     type            (treeNode                                   ), pointer       :: nodeHost
     class           (nodeComponentBasic                         ), pointer       :: basicHost                            , basic
+    class           (massDistributionClass                      ), pointer       :: massDistribution_
     logical                                                      , parameter     :: acceptUnboundOrbits          =.false.
     double precision                                             , parameter     :: expArgumentMaximum           =100.0d0
     double precision                                             , parameter     :: A                            =0.216d0, b                 =1.3d0, &  !   Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
@@ -158,7 +153,7 @@ contains
     velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
     radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,self%galacticStructure_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -172,10 +167,13 @@ contains
        return
     case (errorCodeSuccess          )
        ! Compute orbital circularity.
-       orbitalCircularity                                                                          &
-            & =orbit%angularMomentum()                                                             &
-            & /equivalentCircularOrbitRadius                                                       &
-            & /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
+       massDistribution_  =>  self             %darkMatterProfileDMO_%get            (nodeHost                     )
+       orbitalCircularity =  +orbit                                  %angularMomentum(                             ) &
+            &                /massDistribution_                      %rotationCurve  (equivalentCircularOrbitRadius) &
+            &                /equivalentCircularOrbitRadius
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     case default
        orbitalCircularity=0.0d0
        call Error_Report('unrecognized error code'//{introspection:location})

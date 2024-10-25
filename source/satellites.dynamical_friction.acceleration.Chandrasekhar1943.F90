@@ -25,7 +25,6 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
@@ -51,7 +50,6 @@
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      double precision                                     :: logarithmCoulomb
    contains
      !![
@@ -84,7 +82,6 @@ contains
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
-    class           (galacticStructureClass                     ), pointer       :: galacticStructure_
     double precision                                                             :: logarithmCoulomb
 
     !![
@@ -96,19 +93,17 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
+    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function chandrasekhar1943ConstructorParameters
 
-  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class.
     !!}
@@ -116,10 +111,9 @@ contains
     type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     double precision                                             , intent(in   )         :: logarithmCoulomb
     !![
-    <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -135,7 +129,6 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine chandrasekhar1943Destructor
@@ -144,9 +137,11 @@ contains
     !!{
     Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
     !!}
+    use :: Coordinates                     , only : coordinateCartesian      , assignment(=)
     use :: Error_Functions                 , only : Error_Function
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, componentTypeDarkHalo          , massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic             , treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -158,24 +153,31 @@ contains
     class           (nodeComponentBasic                         ), pointer               :: basic
     class           (nodeComponentSatellite                     ), pointer               :: satellite
     type            (treeNode                                   ), pointer               :: nodeHost
-    double precision                                             , dimension(3)          :: position                     , velocity
+    class           (massDistributionClass                      ), pointer               :: massDistribution_            , massDistributionHost_
     double precision                                                                     :: massSatellite
+    type            (coordinateCartesian                        )                        :: position                     , velocity
 
-    nodeHost                      =>  node                        %mergesWith           (                          )
-    basic                         =>  node                        %basic                (                          )
-    satellite                     =>  node                        %satellite            (                          )
-    massSatellite                 =   satellite                   %boundMass            (                          )
-    position                      =   satellite                   %position             (                          )
-    velocity                      =   satellite                   %velocity             (                          )
-    chandrasekhar1943Acceleration =  +4.0d0                                                                          &
-            &                        *Pi                                                                             &
-            &                        *self%galacticStructure_%chandrasekharIntegral(nodeHost,node,position,velocity) &
-            &                        *self                   %coulombLogarithm     (         node                  ) &
-            &                        *gravitationalConstantGalacticus**2                                             &
-            &                        *massSatellite                                                                  &
-            &                        *kilo                                                                           &
-            &                        *gigaYear                                                                       &
+    nodeHost                      =>  node     %mergesWith      ()
+    basic                         =>  node     %basic           ()
+    satellite                     =>  node     %satellite       ()
+    massSatellite                 =   satellite%boundMass       ()
+    position                      =   satellite%position        ()
+    velocity                      =   satellite%velocity        ()
+    massDistribution_             =>  node     %massDistribution()
+    massDistributionHost_         =>  nodeHost %massDistribution()
+    chandrasekhar1943Acceleration =  +4.0d0                                                                                                                &
+            &                        *Pi                                                                                                                   &
+            &                        *massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity) &
+            &                        *self                 %coulombLogarithm     (node                                                                   ) &
+            &                        *gravitationalConstantGalacticus**2                                                                                   &
+            &                        *massSatellite                                                                                                        &
+            &                        *kilo                                                                                                                 &
+            &                        *gigaYear                                                                                                             &
             &                        /megaParsec
+    !![
+    <objectDestructor name="massDistribution_"    />
+    <objectDestructor name="massDistributionHost_"/>
+    !!]
     return
   end function chandrasekhar1943Acceleration
 

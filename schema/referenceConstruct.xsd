@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate referenceConstruct directives -->
+
+  <xs:element name="referenceConstruct" type="xs:string">
+    <xs:attribute name="object"         use="required"/>
+    <xs:attribute name="owner"          use="optional"/>
+    <xs:attribute name="isResult"       use="optional"/>
+    <xs:attribute name="nameAssociated" use="optional"/>
+    <xs:attribute name="constructor"    use="optional"/>
+    <xs:element   name="constructor"    type="xs:string" maxOccurs="1" />
+  </xs:element>
+  
+</xs:schema>

@@ -26,7 +26,6 @@
   use :: Cosmological_Velocity_Field    , only : cosmologicalVelocityFieldClass
   use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass      , cosmologicalMassVariancePeakBackgroundSplit, criticalOverdensityClass, criticalOverdensityPeakBackgroundSplit, &
           &                                      haloEnvironmentNormal
-  use :: Dark_Matter_Profiles_DMO       , only : darkMatterProfileDMOClass
   use :: Halo_Mass_Functions            , only : haloMassFunctionShethTormen
   use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
   use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
@@ -54,7 +53,6 @@
      class           (cosmologicalVelocityFieldClass     ), pointer                         :: cosmologicalVelocityField_      => null()     
      class           (darkMatterHaloBiasClass            ), pointer                         :: darkMatterHaloBias_             => null()
      class           (darkMatterHaloScaleClass           ), pointer                         :: darkMatterHaloScale_            => null()
-     class           (darkMatterProfileDMOClass          ), pointer                         :: darkMatterProfileDMO_           => null()
      class           (cosmologicalMassVarianceClass      ), pointer                         :: cosmologicalMassVariance_       => null()
      class           (criticalOverdensityClass           ), pointer                         :: criticalOverdensity_            => null()
      class           (linearGrowthClass                  ), pointer                         :: linearGrowth_                   => null()
@@ -149,7 +147,6 @@ contains
     class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
     class           (darkMatterHaloBiasClass            ), pointer       :: darkMatterHaloBias_
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
     class           (linearGrowthClass                  ), pointer       :: linearGrowth_
     class           (virialDensityContrastClass         ), pointer       :: virialDensityContrast_
     class           (correlationFunctionTwoPointClass   ), pointer       :: correlationFunctionTwoPoint_
@@ -219,12 +216,11 @@ contains
     <objectBuilder class="linearGrowth"                   name="linearGrowth_"                   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
     <objectBuilder class="darkMatterHaloBias"             name="darkMatterHaloBias_"             source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
     <objectBuilder class="virialDensityContrast"          name="virialDensityContrast_"          source="parameters"/>
     <objectBuilder class="correlationFunctionTwoPoint"    name="correlationFunctionTwoPoint_"    source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     !!]
-    self=virialOrbitLossCone(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_)
+    self=virialOrbitLossCone(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"            />
@@ -235,7 +231,6 @@ contains
     <objectDestructor name="linearGrowth_"                  />
     <objectDestructor name="darkMatterHaloScale_"           />
     <objectDestructor name="darkMatterHaloBias_"            />
-    <objectDestructor name="darkMatterProfileDMO_"          />
     <objectDestructor name="virialDensityContrast_"         />
     <objectDestructor name="correlationFunctionTwoPoint_"   />
     <objectDestructor name="mergerTreeBranchingProbability_"/>
@@ -243,7 +238,7 @@ contains
     return
   end function lossConeConstructorParameters
 
-  function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_) result(self)
+  function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily lossCone} virial orbits class.
     !!}
@@ -259,7 +254,6 @@ contains
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     class           (darkMatterHaloBiasClass            ), intent(in   ), target :: darkMatterHaloBias_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     class           (linearGrowthClass                  ), intent(in   ), target :: linearGrowth_
     class           (virialDensityContrastClass         ), intent(in   ), target :: virialDensityContrast_
     class           (correlationFunctionTwoPointClass   ), intent(in   ), target :: correlationFunctionTwoPoint_
@@ -271,7 +265,7 @@ contains
     logical                                              , intent(in   )         :: includeInFlightGrowth
     integer                                                                      :: countVelocities
     !![
-    <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="velocityMinimum, velocityMaximum, countVelocitiesPerUnit, countMassesPerDecade, includeInFlightGrowth, haloMassFunctionA, haloMassFunctionP, haloMassFunctionNormalization, velocityDispersionMultiplier, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalVelocityField_, *linearGrowth_, *darkMatterHaloBias_, *darkMatterHaloScale_, *virialDensityContrast_, *correlationFunctionTwoPoint_, *cosmologicalMassVariance_, *criticalOverdensity_, *mergerTreeBranchingProbability_"/>
     !!]
 
     ! Set an initial mass range, along with an unphysical initial time (so that retabulation will be forced on the first call).
@@ -314,7 +308,6 @@ contains
     <objectDestructor name="self%virialDensityContrast_"         />
     <objectDestructor name="self%correlationFunctionTwoPoint_"   />
     <objectDestructor name="self%mergerTreeBranchingProbability_"/>
-    <objectDestructor name="self%darkMatterProfileDMO_"          />
     !!]
     return
   end subroutine lossConeDestructor
@@ -493,7 +486,6 @@ contains
          &                                                                       self%virialDensityContrast_%densityContrast(basicSatellite%mass(),basicSatellite%timeLastIsolated()), &
          &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                               )
     massHost       =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
@@ -503,7 +495,6 @@ contains
          &                                                velocity              =velocityHost                                                                                        , &
          &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &                                               )
     massSatellite  =  min(massSatellite,massHost)
@@ -588,7 +579,7 @@ contains
 
     basic                                =>  node%basic()
     basicHost                            =>  host%basic()
-    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_)
     lossConeAngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
          &                                  *radiusHost                                      &
          &                                  /(                                               & ! Account for reduced mass.
@@ -661,7 +652,7 @@ contains
 
     basic              =>  node%basic()
     basicHost          =>  host%basic()
-    massHost           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    massHost           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_)
     lossConeEnergyMean =  +0.5d0                                           &
          &                *self%velocityTotalRootMeanSquared(node,host)**2 &
          &                /(                                               & ! Account for reduced mass.
@@ -746,7 +737,6 @@ contains
          &                                                                       self%virialDensityContrast_%densityContrast(basicSatellite%mass(),basicSatellite%timeLastIsolated()), &
          &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
          &  )
     massHost       =  Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
@@ -754,7 +744,6 @@ contains
          &                                                                       self%virialDensityContrast_%densityContrast(basicHost     %mass(),basicHost     %timeLastIsolated()), &
          &                                                cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                                cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
-         &                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
          &                                                virialDensityContrast_=self%virialDensityContrast_                                                                           &
          & )
     if     (                                           &

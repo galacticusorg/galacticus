@@ -150,24 +150,18 @@ contains
     return
   end function gaussianSlabConstructorInternal
 
-  double precision function gaussianSlabDensity(self,coordinates,componentType,massType)
+  double precision function gaussianSlabDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
     implicit none
-    class           (massDistributionGaussianSlab), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    type            (coordinateCylindrical       )                          :: position
-    double precision                                                        :: z
+    class           (massDistributionGaussianSlab), intent(inout) :: self
+    class           (coordinate                  ), intent(in   ) :: coordinates
+    type            (coordinateCylindrical       )                :: position
+    double precision                                              :: z
 
-    if (.not.self%matches(componentType,massType)) then
-       gaussianSlabDensity=0.0d0
-       return
-    end if
     ! If disk is razor thin, density is undefined.
     if (self%scaleHeight <= 0.0d0) call Error_Report('density undefined for razor-thin slab'//{introspection:location})
     ! Get position in cylindrical coordinate system.
@@ -178,76 +172,64 @@ contains
     return
   end function gaussianSlabDensity
 
-  double precision function gaussianSlabDensitySphericalAverage(self,radius,componentType,massType)
+  double precision function gaussianSlabDensitySphericalAverage(self,radius)
     !!{
     Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in a Gaussian slab mass distribution.
     !!}
     implicit none
-    class           (massDistributionGaussianSlab), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, radius, componentType, massType
+    class           (massDistributionGaussianSlab), intent(inout) :: self
+    double precision                              , intent(in   ) :: radius
+    !$GLC attributes unused :: self, radius
 
     gaussianSlabDensitySphericalAverage=0.0d0
     call Error_Report('spherically-averaged density profile is not implemented'//{introspection:location})
     return
   end function gaussianSlabDensitySphericalAverage
 
-  double precision function gaussianSlabRotationCurve(self,radius,componentType,massType)
+  double precision function gaussianSlabRotationCurve(self,radius)
     !!{
     Rotation curve for a infinite extent Gaussian slab.
     !!}
     implicit none
-    class           (massDistributionGaussianSlab), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, radius, componentType, massType
+    class           (massDistributionGaussianSlab), intent(inout) :: self
+    double precision                              , intent(in   ) :: radius
+    !$GLC attributes unused :: self, radius
     
     gaussianSlabRotationCurve=0.0d0
     return
   end function gaussianSlabRotationCurve
 
-  double precision function gaussianSlabRotationCurveGradient(self,radius,componentType,massType)
+  double precision function gaussianSlabRotationCurveGradient(self,radius)
     !!{
     Rotation curve gradient for a infinite extent Gaussian slab.
     !!}
     implicit none
-    class           (massDistributionGaussianSlab), intent(inout)           :: self
-    double precision                              , intent(in   )           :: radius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, radius, componentType, massType
+    class           (massDistributionGaussianSlab), intent(inout) :: self
+    double precision                              , intent(in   ) :: radius
+    !$GLC attributes unused :: self, radius
     
     gaussianSlabRotationCurveGradient=0.0d0
     return
   end function gaussianSlabRotationCurveGradient
 
-  double precision function gaussianSlabSurfaceDensity(self,coordinates,componentType,massType)
+  double precision function gaussianSlabSurfaceDensity(self,coordinates)
     !!{
     Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
     !!}
     use :: Coordinates             , only : coordinate
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionGaussianSlab), intent(inout)           :: self
-    class           (coordinate                  ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    class(massDistributionGaussianSlab), intent(inout) :: self
+    class(coordinate                  ), intent(in   ) :: coordinates
     !$GLC attributes unused :: coordinates
     
-    if (.not.self%matches(componentType,massType)) then
-       gaussianSlabSurfaceDensity=0.0d0
-       return
-    end if
     gaussianSlabSurfaceDensity=+sqrt(2.0d0*Pi)      &
          &                     *self%scaleHeight    &
          &                     *self%densityCentral
     return
   end function gaussianSlabSurfaceDensity
 
-  double precision function gaussianSlabSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite,componentType,massType)
+  double precision function gaussianSlabSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{
     Compute radial moments of the Gaussian slab mass distribution surface density profile.
     !!}
@@ -257,14 +239,8 @@ contains
     double precision                              , intent(in   )           :: moment
     double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                                       , intent(  out), optional :: isInfinite
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
     !$GLC attributes unused :: self, moment, radiusMinimum, radiusMaximum
     
-    if (.not.self%matches(componentType,massType)) then
-       gaussianSlabSurfaceDensityRadialMoment=0.0d0
-       return
-    end if
     ! All moments are infinite.
     gaussianSlabSurfaceDensityRadialMoment=huge(0.0d0)
     if (present(isInfinite)) then
@@ -275,16 +251,14 @@ contains
     return
   end function gaussianSlabSurfaceDensityRadialMoment
 
-  double precision function gaussianSlabRadiusHalfMass(self,componentType,massType)
+  double precision function gaussianSlabRadiusHalfMass(self)
     !!{
     Return the half-mass radius for an infinite extent Gaussian slab mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class(massDistributionGaussianSlab), intent(inout)           :: self
-    type (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    !$GLC attributes unused :: self, componentType, massType
+    class(massDistributionGaussianSlab), intent(inout) :: self
+    !$GLC attributes unused :: self
 
     gaussianSlabRadiusHalfMass=0.0d0
     call Error_Report('half mass radius is undefined'//{introspection:location})

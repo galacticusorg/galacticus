@@ -508,7 +508,7 @@ contains
     <deepCopy source="self%mergerTreeConstructor_" destination="mergerTreeConstructor_"/>
     <deepCopy source="self%mergerTreeOperator_"    destination="mergerTreeOperator_"   />
     <deepCopy source="self%nodeOperator_"          destination="nodeOperator_"         />
-    <deepCopyFinalize variables="mergerTreeEvolver_ mergerTreeOutputter_ mergerTreeInitializor_ mergerTreeConstructor_ mergerTreeOperator_ nodeOperator_"/>  
+    <deepCopyFinalize variables="mergerTreeEvolver_ mergerTreeOutputter_ mergerTreeInitializor_ mergerTreeConstructor_ mergerTreeOperator_ nodeOperator_"/>
     !!]
     !$omp end critical(evolveForestsDeepCopy)
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
@@ -656,6 +656,7 @@ contains
              currentTree  => tree
              do while (associated(currentTree))
                 ! Skip empty trees.
+                removeTree=.false.
                 if (associated(currentTree%nodeBase)) then
                    basicNodeBase => currentTree%nodeBase%basic()
                    removeTree    =   .not.associated(currentTree%nodeBase%firstChild) &

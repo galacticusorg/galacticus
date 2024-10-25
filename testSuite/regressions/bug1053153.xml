@@ -5,7 +5,7 @@
 <!-- density ratio in standard black hole model.                                       -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <mergerTreeConstructor value="read">
     <missingHostsAreFatal value="false"/>
     <fileNames value="testSuite/data/mergerTrees/bug1053153.hdf5"/>
@@ -98,6 +98,8 @@
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
   </nodeOperator>
 
 </parameters>

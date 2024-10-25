@@ -4,7 +4,7 @@
 <!-- running Galacticus on Bolshoi merger trees -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -240,6 +240,8 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spin -->
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Halo positions -->
+    <nodeOperator value="positionDiscrete"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

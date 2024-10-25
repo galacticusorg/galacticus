@@ -128,7 +128,7 @@ contains
     select type (spin)
     class is (nodeComponentSpinScalar)
        ! Set scale for spin.
-       call spin%angularMomentumScale(max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_=darkMatterHaloScale_,useBullockDefinition=.true.)))
+       call spin%angularMomentumScale(max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_,useBullockDefinition=.true.)))
     end select
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set

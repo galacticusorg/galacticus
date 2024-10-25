@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of adaptive star formation history -->
+<!-- 31-Auugust-2025                         -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentHotHalo value="null"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="null"/>
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentSatellite value="null"/>
+  <componentSpheroid value="null">
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="scalar"/>
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.0"/>
+    <OmegaMatter value="0.3"/>
+    <OmegaDarkEnergy value="0.7"/>
+    <OmegaBaryon value="0.05"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="Tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/starFormationHistoryTree.xml"/>
+  </mergerTreeConstructor>
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Hot halo model options -->
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Galactic structure options -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Star formation rate -->
+  <starFormationRateDisks value="timescale">
+    <starFormationTimescale value="fixed">
+      <timescale value="2.0"/>
+    </starFormationTimescale>
+  </starFormationRateDisks>
+
+  <!-- Metal production -->
+  <stellarPopulation value="standard">
+    <metalYield value="0.025"/>
+    <recycledFraction value="0.400"/>
+  </stellarPopulation>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"/>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+  </nodeOperator>
+  
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-7"/>
+    <odeToleranceRelative value="1.0e-7"/>
+  </mergerTreeNodeEvolver>
+
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.000"/>
+    <timestepHostRelative value="0.100"/>
+  </mergerTreeEvolver>
+
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="1.0e-3"/>
+      <timeStepRelative value="1.0e-3"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="starFormationHistory"/>
+  </mergerTreeEvolveTimestep>
+
+  <starFormationHistory value="adaptive">
+    <timeStepMinimum value="0.001"/>
+    <countTimeStepsMaximum value="300"/>
+    <countMetallicities value="20"/>
+  </starFormationHistory>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+
+  <!-- Specify output properties -->
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="starFormationHistory">
+      <component value="disk"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/starFormationHistoryAdaptive.hdf5"/>
+
+</parameters>

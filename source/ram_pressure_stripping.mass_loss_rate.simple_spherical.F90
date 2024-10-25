@@ -22,7 +22,6 @@
   !!}
 
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
-  use :: Galactic_Structure          , only : galacticStructureClass
 
   !![
   <ramPressureStripping name="ramPressureStrippingSimpleSpherical">
@@ -51,7 +50,6 @@
      !!}
      private
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
-     class           (galacticStructureClass      ), pointer :: galacticStructure_       => null()
      double precision                                        :: rateFractionalMaximum             , beta
    contains
      final     ::                 simpleSphericalDestructor
@@ -78,7 +76,6 @@ contains
     type            (ramPressureStrippingSimpleSpherical)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
-    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: rateFractionalMaximum   , beta
 
     !![
@@ -95,18 +92,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
-    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=ramPressureStrippingSimpleSpherical(rateFractionalMaximum,beta,hotHaloRamPressureForce_,galacticStructure_)
+    self=ramPressureStrippingSimpleSpherical(rateFractionalMaximum,beta,hotHaloRamPressureForce_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloRamPressureForce_"/>
-    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function simpleSphericalConstructorParameters
 
-  function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_,galacticStructure_) result(self)
+  function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
     !!}
@@ -114,9 +109,8 @@ contains
     type            (ramPressureStrippingSimpleSpherical)                        :: self
     double precision                                     , intent(in   )         :: rateFractionalMaximum   , beta
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
-    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_, *galacticStructure_"/>
+    <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_"/>
     !!]
 
     return
@@ -131,7 +125,6 @@ contains
 
     !![
     <objectDestructor name="self%hotHaloRamPressureForce_"/>
-    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine simpleSphericalDestructor
@@ -153,22 +146,25 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
     !!}
-    use :: Display                         , only : displayGreen                , displayBlue                    , displayMagenta, displayReset
-    use :: Galactic_Structure_Options      , only : componentTypeSpheroid       , coordinateSystemSpherical      , massTypeAll   , massTypeGaseous, &
-         &                                          enumerationComponentTypeType
-    use :: Galacticus_Nodes                , only : nodeComponentSpheroid       , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                    , gravitationalConstantGalacticus, megaParsec
+    use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
+    use :: Display                         , only : displayGreen         , displayBlue                    , displayMagenta, displayReset
+    use :: Galactic_Structure_Options      , only : componentTypeSpheroid, enumerationComponentTypeType   , massTypeAll   , massTypeGaseous
+    use :: Galacticus_Nodes                , only : nodeComponentSpheroid, treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (ramPressureStrippingSimpleSpherical), intent(inout) :: self
     class           (nodeComponent                      ), intent(inout) :: component
     type            (treeNode                           ), pointer       :: node
+    class           (massDistributionClass              ), pointer       :: massDistributionGaseous, massDistributionTotal
     type            (enumerationComponentTypeType       )                :: componentType
-    double precision                                                     :: forceGravitational    , forceRamPressure, &
-         &                                                                  rateMassLossFractional, radiusHalfMass  , &
-         &                                                                  densityGas            , massHalf        , &
-         &                                                                  timeDynamical         , radius          , &
-         &                                                                  radiusHalfMass        , velocity        , &
+    type            (coordinateSpherical                )                :: coordinates
+    double precision                                                     :: forceGravitational     , forceRamPressure, &
+         &                                                                  rateMassLossFractional , radiusHalfMass  , &
+         &                                                                  densityGas             , massHalf        , &
+         &                                                                  timeDynamical          , radius          , &
+         &                                                                  radiusHalfMass         , velocity        , &
          &                                                                  massGas
 
     ! Assume no mass loss rate due to ram pressure by default.
@@ -198,19 +194,15 @@ contains
             &           )
     end select
     ! Compute the densities at the half mass radius.
-    densityGas=self%galacticStructure_%density     (                                            &
-         &                                          node                                      , &
-         &                                          [radiusHalfMass,0.0d0,0.0d0]              , &
-         &                                          coordinateSystem=coordinateSystemSpherical, &
-         &                                          massType        =massTypeGaseous          , &
-         &                                          componentType   =componentType              &
-         &                                         )
-    massHalf  =self%galacticStructure_%massEnclosed(                                            &
-         &                                          node                                      , &
-         &                                          radiusHalfMass                            , &
-         &                                          massType        =massTypeAll              , &
-         &                                          componentType   =componentType              &
-         &                                         )
+    coordinates             =  [radiusHalfMass,0.0d0,0.0d0]
+    massDistributionGaseous => node                   %massDistribution    (massType=massTypeGaseous,componentType=componentType)
+    massDistributionTotal   => node                   %massDistribution    (massType=massTypeAll    ,componentType=componentType)
+    densityGas              =  massDistributionGaseous%density             (         coordinates                                )
+    massHalf                =  massDistributionTotal  %massEnclosedBySphere(         radiusHalfMass                             )
+    !![
+    <objectDestructor name="massDistributionGaseous"/>
+    <objectDestructor name="massDistributionTotal"  />
+    !!]
     ! Compute the gravitational restoring force.
     if (massHalf > 0.0d0 .and. densityGas > 0.0d0) then
        forceGravitational  =  +4.0d0                           &

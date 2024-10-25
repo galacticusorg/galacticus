@@ -65,8 +65,8 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionPowerLaw)                :: self
-    type            (inputParameters                           ), intent(inout) :: parameters
-    double precision                                                            :: exponent
+    type            (inputParameters                        ), intent(inout) :: parameters
+    double precision                                                         :: exponent
 
     !![
     <inputParameter>

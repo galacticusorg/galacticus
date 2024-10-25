@@ -21,8 +21,6 @@
 Contains a module which implements an ISM mass output analysis property extractor class.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassISM">
    <description>An ISM mass output analysis property extractor class.</description>
@@ -33,9 +31,7 @@ Contains a module which implements an ISM mass output analysis property extracto
      A stellar mass output analysis class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
-     final     ::                massISMDestructor
      procedure :: extract     => massISMExtract
      procedure :: quantity    => massISMQuantity
      procedure :: name        => massISMName
@@ -48,7 +44,6 @@ Contains a module which implements an ISM mass output analysis property extracto
      Constructors for the ``massISM'' output analysis class.
      !!}
      module procedure massISMConstructorParameters
-     module procedure massISMConstructorInternal
   end interface nodePropertyExtractorMassISM
 
 contains
@@ -61,60 +56,36 @@ contains
     implicit none
     type (nodePropertyExtractorMassISM)                :: self
     type (inputParameters             ), intent(inout) :: parameters
-    class(galacticStructureClass      ), pointer       :: galacticStructure_
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=nodePropertyExtractorMassISM(galacticStructure_)
+ 
+    self=nodePropertyExtractorMassISM()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function massISMConstructorParameters
-
-  function massISMConstructorInternal(galacticStructure_) result(self)
-    !!{
-    Internal constructor for the ``massISM'' output analysis property extractor class.
-    !!}
-    use :: Input_Parameters, only : inputParameters
-    implicit none
-    type (nodePropertyExtractorMassISM)                        :: self
-    class(galacticStructureClass      ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
-
-    return
-  end function massISMConstructorInternal
-  
-  subroutine massISMDestructor(self)
-    !!{
-    Destructor for the ``massISM'' output analysis property extractor class.
-    !!}
-    implicit none
-    type(nodePropertyExtractorMassISM), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine massISMDestructor
 
   double precision function massISMExtract(self,node,instance)
     !!{
     Implement a massISM output analysis.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeGaseous, radiusLarge
+    use :: Galactic_Structure_Options, only : componentTypeDisk    , componentTypeSpheroid, massTypeGaseous
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout), target   :: self
     type (treeNode                    ), intent(inout), target   :: node
     type (multiCounter                ), intent(inout), optional :: instance
+    class(massDistributionClass       )               , pointer  :: massDistributionDisk, massDistributionSpheroid
     !$GLC attributes unused :: self, instance
 
-    massISMExtract=+self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeDisk    ) &
-         &         +self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeSpheroid)
+    massDistributionDisk     =>  node                    %massDistribution(massType=massTypeGaseous,componentType=componentTypeDisk    )
+    massDistributionSpheroid =>  node                    %massDistribution(massType=massTypeGaseous,componentType=componentTypeSpheroid)
+    massISMExtract           =  +massDistributionDisk    %massTotal       (                                                            ) &
+         &                      +massDistributionSpheroid%massTotal       (                                                            )
+    !![
+    <objectDestructor name="massDistributionDisk"    />
+    <objectDestructor name="massDistributionSpheroid"/>
+    !!]
     return
   end function massISMExtract
 

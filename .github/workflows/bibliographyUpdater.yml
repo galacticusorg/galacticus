@@ -33,7 +33,7 @@ jobs:
         run: |
           ./scripts/aux/bibliographyUpdate.pl ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           title: "fix: Update bibliography records"
           commit-message: "fix: Update bibliography records"

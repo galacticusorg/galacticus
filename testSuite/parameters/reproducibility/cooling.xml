@@ -3,13 +3,13 @@
 <!-- 27-June-2015              -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentHotHalo value="standard"/>
   <componentBlackHole value="null"/>
-  <componentDarkMatterProfile value="null"/>
+  <componentDarkMatterProfile value="scaleFree"/>
   <componentDisk value="null">
     <massDistributionDisk value="exponentialDisk">
       <dimensionless value="true"/>
@@ -111,6 +111,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
     <nodeOperator value="satelliteMassLoss"/>

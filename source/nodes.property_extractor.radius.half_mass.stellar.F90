@@ -21,8 +21,6 @@
 Contains a module which implements a half-stellar mass radius output analysis property extractor class.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassStellar">
    <description>A half-(stellar) mass output analysis property extractor class.</description>
@@ -33,9 +31,7 @@ Contains a module which implements a half-stellar mass radius output analysis pr
      A half-(stellar) mass property extractor output analysis class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
-     final     ::                radiusHalfMassStellarDestructor
      procedure :: extract     => radiusHalfMassStellarExtract
      procedure :: name        => radiusHalfMassStellarName
      procedure :: description => radiusHalfMassStellarDescription
@@ -47,7 +43,6 @@ Contains a module which implements a half-stellar mass radius output analysis pr
      Constructors for the ``radiusHalfMassStellar'' output analysis class.
      !!}
      module procedure radiusHalfMassStellarConstructorParameters
-     module procedure radiusHalfMassStellarConstructorInternal
   end interface nodePropertyExtractorRadiusHalfMassStellar
 
 contains
@@ -60,58 +55,32 @@ contains
     implicit none
     type (nodePropertyExtractorRadiusHalfMassStellar)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
-    class(galacticStructureClass                    ), pointer       :: galacticStructure_
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=nodePropertyExtractorRadiusHalfMassStellar(galacticStructure_)
+    self=nodePropertyExtractorRadiusHalfMassStellar()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function radiusHalfMassStellarConstructorParameters
-
-  function radiusHalfMassStellarConstructorInternal(galacticStructure_) result(self)
-    !!{
-    Internal constructor for the ``radiusHalfMassStellar'' output analysis property extractor class.
-    !!}
-    implicit none
-    type (nodePropertyExtractorRadiusHalfMassStellar)                        :: self
-    class(galacticStructureClass                    ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
-
-    return
-  end function radiusHalfMassStellarConstructorInternal
-  
-  subroutine radiusHalfMassStellarDestructor(self)
-    !!{
-    Destructor for the ``radiusHalfMassStellar'' output analysis property extractor class.
-    !!}
-    implicit none
-    type(nodePropertyExtractorRadiusHalfMassStellar), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine radiusHalfMassStellarDestructor
 
   double precision function radiusHalfMassStellarExtract(self,node,instance)
     !!{
     Implement a half-mass output analysis.
     !!}
     use :: Galactic_Structure_Options, only : massTypeStellar
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class(nodePropertyExtractorRadiusHalfMassStellar), intent(inout), target   :: self
     type (treeNode                                  ), intent(inout), target   :: node
     type (multiCounter                              ), intent(inout), optional :: instance
+    class(massDistributionClass                     )               , pointer  :: massDistribution_
     !$GLC attributes unused :: self, instance
 
-    radiusHalfMassStellarExtract=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0,massType=massTypeStellar)
+    massDistribution_            => node             %massDistribution   (massType      =massTypeStellar)
+    radiusHalfMassStellarExtract =  massDistribution_%radiusEnclosingMass(massFractional=0.5d0          )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function radiusHalfMassStellarExtract
 

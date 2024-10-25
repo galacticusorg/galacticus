@@ -40,10 +40,8 @@
      private
      type(heatSourceList), pointer :: heatSources => null()
    contains
-     final     ::                                   summationDestructor
-     procedure :: specificEnergy                 => summationSpecificEnergy
-     procedure :: specificEnergyGradient         => summationSpecificEnergyGradient
-     procedure :: specificEnergyIsEverywhereZero => summationSpecificEnergyIsEverywhereZero
+     final     ::        summationDestructor
+     procedure :: get => summationGet
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
@@ -126,74 +124,45 @@ contains
     return
   end subroutine summationDestructor
 
-  double precision function summationSpecificEnergy(self,node,radius,darkMatterProfileDMO_)
+  function summationGet(self,node) result(massDistributionHeating_)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
     !!}
+    use :: Mass_Distributions, only : massDistributionHeatingSummation, massDistributionHeatingList
     implicit none
-    class           (darkMatterProfileHeatingSummation), intent(inout) :: self
-    type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                   , intent(in   ) :: radius
-    type            (heatSourceList                   ), pointer       :: heatSource
-
-    summationSpecificEnergy =  0.0d0
-    heatSource              => self%heatSources
-    do while (associated(heatSource))
-       summationSpecificEnergy=+summationSpecificEnergy                                     &
-            &                  +heatSource%heatSource%specificEnergy(                       &
-            &                                                        node                 , &
-            &                                                        radius               , &
-            &                                                        darkMatterProfileDMO_  &
-            &                                                       )
-       heatSource => heatSource%next
-    end do
-    return
-  end function summationSpecificEnergy
-
-  double precision function summationSpecificEnergyGradient(self,node,radius,darkMatterProfileDMO_)
-    !!{
-    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class           (darkMatterProfileHeatingSummation), intent(inout) :: self
-    type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                   , intent(in   ) :: radius
-    type            (heatSourceList                   ), pointer       :: heatSource
-
-    summationSpecificEnergyGradient =  0.0d0
-    heatSource                      => self%heatSources
-    do while (associated(heatSource))
-       summationSpecificEnergyGradient=+summationSpecificEnergyGradient                                     &
-            &                          +heatSource%heatSource%specificEnergyGradient(                       &
-            &                                                                        node                 , &
-            &                                                                        radius               , &
-            &                                                                        darkMatterProfileDMO_  &
-            &                                                                       )
-       heatSource => heatSource%next
-    end do
-    return
-  end function summationSpecificEnergyGradient
-
-  logical function summationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !!{
-    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
-    !!}
-    implicit none
+    class(massDistributionHeatingClass     ), pointer       :: massDistributionHeating_
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    class(darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
+    type (massDistributionHeatingList      ), pointer       :: massDistributionHeatings, massDistributionHeating__
     type (heatSourceList                   ), pointer       :: heatSource
 
-    summationSpecificEnergyIsEverywhereZero =  .true.
-    heatSource                              => self%heatSources
-    do while (associated(heatSource))
-       if (.not.heatSource%heatSource%specificEnergyIsEverywhereZero(node,darkMatterProfileDMO_)) then
-          summationSpecificEnergyIsEverywhereZero=.false.
-          exit
-       end if
-       heatSource => heatSource%next
-    end do
+    ! Create the mass distribution.
+    allocate(massDistributionHeatingSummation :: massDistributionHeating_)
+    select type(massDistributionHeating_)
+    type is (massDistributionHeatingSummation)
+       heatSource                => self%heatSources
+       massDistributionHeating__ => null()
+       massDistributionHeatings  => null()
+       do while (associated(heatSource))
+          if (associated(massDistributionHeatings)) then
+             allocate(massDistributionHeating__%next)
+             massDistributionHeating__ => massDistributionHeating__%next
+          else
+             allocate(massDistributionHeatings      )
+             massDistributionHeating__ => massDistributionHeatings
+          end if
+          massDistributionHeating__%massDistributionHeating_ => heatSource%heatSource%get(node)
+          heatSource                                         => heatSource%next
+       end do
+       !![
+       <referenceConstruct object="massDistributionHeating_">
+	 <constructor>
+           massDistributionHeatingSummation(                                                  &amp;
+            &amp;                           massDistributionHeatings=massDistributionHeatings &amp;
+            &amp;                          )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     return
-  end function summationSpecificEnergyIsEverywhereZero
+  end function summationGet

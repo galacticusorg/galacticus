@@ -26,7 +26,6 @@
   use :: Math_Exponentiation , only : fastExponentiator
   use :: Tables              , only : table1DLinearLinear
   use :: Root_Finder         , only : rootFinder
-  use :: Galactic_Structure  , only : galacticStructureClass
 
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
@@ -69,22 +68,21 @@
      Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.
      !!}
      private
-     class           (galacticStructureClass)        , pointer :: galacticStructure_                 => null()
-     integer         (kind_int8             )                  :: lastUniqueID
-     logical                                                   :: factorsComputed
-     double precision                                          :: massGasPrevious                             , radiusPrevious                , &
-          &                                                       radiusCriticalPrevious                      , radiusMaximumPrevious
-     type            (abundances            )                  :: abundancesFuelPrevious
-     double precision                                          :: chi                                         , radiusDisk                    , &
-          &                                                       massGas                                     , hydrogenMassFraction          , &
-          &                                                       metallicityRelativeToSolar                  , sNormalization                , &
-          &                                                       sigmaMolecularComplexNormalization          , clumpingFactorMolecularComplex, &
-          &                                                       frequencyStarFormation
-     logical                                                   :: assumeMonotonicSurfaceDensity               , molecularFractionFast
-     type            (rootFinder            )                  :: finderCritical                              , finderMolecules
-     type            (fastExponentiator     )                  :: surfaceDensityExponentiator
-     type            (table1DLinearLinear   )                  :: molecularFractionTable
-     procedure       (double precision      ), nopass, pointer :: molecularFractionFunction
+     integer         (kind_int8          )                  :: lastUniqueID
+     logical                                                :: factorsComputed
+     double precision                                       :: massGasPrevious                   , radiusPrevious                , &
+          &                                                    radiusCriticalPrevious            , radiusMaximumPrevious
+     type            (abundances         )                  :: abundancesFuelPrevious
+     double precision                                       :: chi                               , radiusDisk                    , &
+          &                                                    massGas                           , hydrogenMassFraction          , &
+          &                                                    metallicityRelativeToSolar        , sNormalization                , &
+          &                                                    sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
+          &                                                    frequencyStarFormation
+     logical                                                :: assumeMonotonicSurfaceDensity     , molecularFractionFast
+     type            (rootFinder         )                  :: finderCritical                    , finderMolecules
+     type            (fastExponentiator  )                  :: surfaceDensityExponentiator
+     type            (table1DLinearLinear)                  :: molecularFractionTable
+     procedure       (double precision   ), nopass, pointer :: molecularFractionFunction
    contains
      !![
      <methods>
@@ -131,9 +129,8 @@ contains
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
-    class           (galacticStructureClass                          ), pointer       :: galacticStructure_     => null()
-    double precision                                                                  :: frequencyStarFormation          , clumpingFactorMolecularComplex
-    logical                                                                           :: molecularFractionFast           , assumeMonotonicSurfaceDensity
+    double precision                                                                  :: frequencyStarFormation, clumpingFactorMolecularComplex
+    logical                                                                           :: molecularFractionFast , assumeMonotonicSurfaceDensity
 
     !![
     <inputParameter>
@@ -161,17 +158,15 @@ contains
       <description>If true, assume that the surface density in disks is always monotonically decreasing.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=starFormationRateSurfaceDensityDisksKrumholz2009(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity,galacticStructure_)
+    self=starFormationRateSurfaceDensityDisksKrumholz2009(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function krumholz2009ConstructorParameters
 
-  function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity,galacticStructure_) result(self)
+  function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
     !!}
@@ -179,14 +174,13 @@ contains
     use :: Table_Labels        , only : extrapolationTypeFix
     use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
-    type            (starFormationRateSurfaceDensityDisksKrumholz2009)                        :: self
-    double precision                                                  , intent(in   )         :: frequencyStarFormation      , clumpingFactorMolecularComplex
-    logical                                                           , intent(in   )         :: molecularFractionFast       , assumeMonotonicSurfaceDensity
-    class           (galacticStructureClass                          ), intent(in   ), target :: galacticStructure_
-    integer                                                           , parameter             :: sCount                =1000
-    integer                                                                                   :: i
+    type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
+    double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
+    logical                                                           , intent(in   ) :: molecularFractionFast       , assumeMonotonicSurfaceDensity
+    integer                                                           , parameter     :: sCount                =1000
+    integer                                                                           :: i
     !![
-    <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity, *galacticStructure_"/>
+    <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
     !!]
 
     self%lastUniqueID          =-1_kind_int8
@@ -257,9 +251,6 @@ contains
     if (calculationResetEvent%isAttached(self,krumholz2009CalculationReset))                            &
          & call calculationResetEvent%detach                        (self,krumholz2009CalculationReset)
     call        self                 %molecularFractionTable%destroy(                                 )
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
     return
   end subroutine krumholz2009Destructor
 
@@ -398,22 +389,25 @@ contains
     !!{
     Compute surface density and related quantities needed for the \cite{krumholz_star_2009} star formation rate model.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, coordinateSystemCylindrical, massTypeGaseous
+    use :: Coordinates               , only : coordinateCylindrical, assignment(=)
+    use :: Galactic_Structure_Options, only : componentTypeDisk    , massTypeGaseous
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node
     double precision                                                  , intent(in   ) :: radius
     double precision                                                  , intent(  out) :: surfaceDensityGas               , surfaceDensityGasDimensionless
+    class           (massDistributionClass                           ), pointer       :: massDistribution_
     double precision                                                  , parameter     :: surfaceDensityTransition=85.0d12                                 !   M☉/Mpc²
+    type            (coordinateCylindrical                           )                :: coordinates
 
     ! Get gas surface density.
-    surfaceDensityGas=self%galacticStructure_%surfaceDensity(                                                            &
-         &                                                                     node                                    , &
-         &                                                                    [radius                     ,0.0d0,0.0d0], &
-         &                                                   coordinateSystem= coordinateSystemCylindrical             , &
-         &                                                   componentType   = componentTypeDisk                       , &
-         &                                                   massType        = massTypeGaseous                           &
-         &                                                  )
+    coordinates       =  [radius,0.0d0,0.0d0]
+    massDistribution_ => node             %massDistribution(componentType=componentTypeDisk,massType=massTypeGaseous)
+    surfaceDensityGas =  massDistribution_%surfaceDensity  (              coordinates                               )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute the cloud density factor.
     surfaceDensityGasDimensionless=+self%hydrogenMassFraction     &
          &                         *     surfaceDensityGas        &

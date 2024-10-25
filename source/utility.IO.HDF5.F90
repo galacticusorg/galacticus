@@ -4338,6 +4338,10 @@ attributeValue=trim(attributeValue)
        appendDimensionActual=1
     end if
 
+    ! Store the name and location of the object.
+    datasetObject%objectName    =trim(datasetName)
+    datasetObject%objectLocation=datasetObject%parentObject%pathTo()
+
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.
@@ -4519,10 +4523,6 @@ attributeValue=trim(attributeValue)
 
     ! Mark this object as a file object.
     datasetObject%hdf5ObjectType=hdf5ObjectTypeDataset
-
-    ! Store the name and location of the object.
-    datasetObject%objectName=trim(datasetName)
-    datasetObject%objectLocation=datasetObject%parentObject%pathTo()
 
     ! Mark whether dataset is overwritable.
     if (present(isOverwritable)) then

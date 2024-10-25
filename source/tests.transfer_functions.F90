@@ -29,7 +29,7 @@ program Tests_Transfer_Functions
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
-  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999        , transferFunctionEisensteinHu1998, transferFunctionCAMB
+  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999        , transferFunctionEisensteinHu1998, transferFunctionCAMB, transferFunctionTypeTotal
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
@@ -114,6 +114,7 @@ program Tests_Transfer_Functions
        &                                                                             darkMatterParticle_    =darkMatterParticle_               , &
        &                                                                             cosmologyParameters_   =cosmologyParameters_              , &
        &                                                                             cosmologyFunctions_    =cosmologyFunctions_               , &
+       &                                                                             transferFunctionType   =transferFunctionTypeTotal         , &
        &                                                                             redshift               =0.0d0                             , &
        &                                                                             cambCountPerDecade     =0                                   &
        &                                                                            )

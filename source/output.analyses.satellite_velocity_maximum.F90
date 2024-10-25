@@ -180,18 +180,26 @@ contains
     Analyze the maximum velocity tidal track.
     !!}
     use    :: Numerical_Constants_Math, only : Pi
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock, OMP_Unset_Lock
+    use    :: Mass_Distributions      , only : massDistributionClass
+    !$ use :: OMP_Lib                 , only : OMP_Set_Lock         , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisSatelliteVelocityMaximum), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
     integer         (c_size_t                              ), intent(in   ) :: iOutput
-    double precision                                                        :: fractionVelocityMaximum, varianceFractionVelocityMaximum
+    class           (massDistributionClass                 ), pointer       :: massDistributionUnheated_, massDistribution_
+    double precision                                                        :: fractionVelocityMaximum  , varianceFractionVelocityMaximum
 
     ! Skip non-satellites.
     if (.not.node%isSatellite()) return
     ! Extract the maximum circular velocity fraction.
-    fractionVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum(node)/self%darkMatterProfileDMOUnheated%circularVelocityMaximum(node)
-    !$ call OMP_Set_Lock(self%accumulateLock)
+    massDistribution_         => self%darkMatterProfileDMO_       %get(node)
+    massDistributionUnheated_ => self%darkMatterProfileDMOUnheated%get(node)
+    fractionVelocityMaximum=+massDistribution_        %velocityRotationCurveMaximum() &
+         &                  /massDistributionUnheated_%velocityRotationCurveMaximum()
+    !![
+    <objectDestructor name="massDistribution_"        />
+    <objectDestructor name="massDistributionUnheated_"/>
+    !!]
     self%fractionVelocityMaximum(iOutput)=fractionVelocityMaximum
     ! Add model uncertainty.
     varianceFractionVelocityMaximum      =+  self%varianceFractionVelocityMaximumTarget(iOutput) &

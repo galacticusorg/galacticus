@@ -8,7 +8,7 @@ use Data::Dumper;
 # Andrew Benson (27-January-2023)
 
 # Migrate the test parameter file.
-system("mkdir -p outputs; cd ..; scripts/aux/parametersMigrate.pl testSuite/parameters/parameterMigration.xml testSuite/outputs/parameterMigrated.xml --lastModified 6eab8997cd73cb0a474228ade542d133890ad138^");
+system("mkdir -p outputs; cd ..; scripts/aux/parametersMigrate.pl testSuite/parameters/parameterMigration.xml testSuite/outputs/parameterMigrated.xml --lastModifiedRevision 6eab8997cd73cb0a474228ade542d133890ad138^");
 if ( $? == 0 ) {
     print "PASSED: migration of parameter file\n";
 } else {

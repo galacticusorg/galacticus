@@ -22,7 +22,6 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
-  use :: Galactic_Structure                  , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
@@ -41,7 +40,6 @@
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
@@ -84,7 +82,6 @@ contains
     type   (inputParameters                      ), intent(inout)               :: parameters
     type   (varying_string                       ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
-    class  (galacticStructureClass               ), pointer                     :: galacticStructure_
     logical                                                                     :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -101,18 +98,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_)
+    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function projectedDensityConstructorParameters
 
-  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_) result(self)
+  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
     !!}
@@ -121,10 +116,9 @@ contains
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
-    class  (galacticStructureClass               ), intent(in   ), target       :: galacticStructure_
     logical                                       , intent(in   )               :: includeRadii
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -154,7 +148,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine projectedDensityDestructor
@@ -197,6 +190,8 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Numerical_Integration               , only : integrator, GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
+    use :: Mass_Distributions                  , only : massDistributionClass
+    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
     use :: Error                               , only : Error_Report
     implicit none
     double precision                                       , dimension(:,:), allocatable :: densityProjected
@@ -207,6 +202,7 @@ contains
     class           (nodeComponentDisk                    ), pointer                     :: disk
     class           (nodeComponentSpheroid                ), pointer                     :: spheroid
     class           (nodeComponentDarkMatterProfile       ), pointer                     :: darkMatterProfile
+    class           (massDistributionClass                ), pointer                     :: massDistribution_
     double precision                                       , parameter                   :: toleranceRelative      =1.0d-2, epsilonSingularity      =1.0d-3
     type            (integrator                           )                              :: integrator_
     integer                                                                              :: i
@@ -214,6 +210,7 @@ contains
          &                                                                                  radiusSingularity             , densityProjectedPrevious       , &
          &                                                                                  densityProjectedCurrent       , toleranceAbsolute
     logical                                                                              :: converged
+    type            (coordinateSpherical                  )                              :: coordinates
     !$GLC attributes unused :: time, instance
 
     allocate(densityProjected(self%radiiCount,self%elementCount_))
@@ -241,51 +238,50 @@ contains
           radius_=+radius_*spheroid         %halfMassRadius()
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID)
-          radius_=+radius_                                         &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeGalactic,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+          massDistribution_ =>  node             %massDistribution   (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius_           =  +radius_                                                                               &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case   (radiusTypeStellarMassFraction  %ID)
-          radius_=+radius_                                         &
-               & *self%galacticStructure_%radiusEnclosingMass      &
-               &  (                                                &
-               &   node                                         ,  &
-               &   massFractional=self%radii(i)%fraction        ,  &
-               &   massType      =              massTypeStellar ,  &
-               &   componentType =              componentTypeAll,  &
-               &   weightBy      =self%radii(i)%weightBy        ,  &
-               &   weightIndex   =self%radii(i)%weightByIndex      &
-               &  )
+           massDistribution_ =>  node             %massDistribution  (                                                &
+               &                                                      massType      =              massTypeStellar ,  &
+               &                                                      componentType =              componentTypeAll,  &
+               &                                                      weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                      weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                     )
+          radius_           =  +radius_                                                                               &
+               &               *massDistribution_%radiusEnclosingMass(                                                &
+               &                                                      massFractional=self%radii(i)%fraction           &
+               &                                                     )
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
-       densityProjectedPrevious=0.0d0
-       radiusOuter             =max(radius_* 2.0d0                    ,radiusVirial)
+       massDistribution_        => node%massDistribution(self%radii(i)%component,self%radii(i)%mass)
+       densityProjectedPrevious =  0.0d0
+       radiusOuter              =  max(radius_* 2.0d0                    ,radiusVirial)
        ! Cut out a small region round the coordinate singularity at the inner radius. This region will be integrated analytically
        ! assuming a constant density over this region. The region outside of this cut-out will be integrated numerically.
        radiusSingularity       =min(radius_*(1.0d0+epsilonSingularity),radiusOuter )
        !! Analytic integral within the cut-out.
-       densityProjected(i,1)=+2.0d0                                                                  &
-            &                *sqrt(                                                                  &
-            &                      +radiusSingularity**2                                             &
-            &                      -radius_          **2                                             &
-            &                     )                                                                  &
-            &                *self%galacticStructure_%density(                                       &
-            &                                                 node                                 , &
-            &                                                 [                                      &
-            &                                                  radius_                             , &
-            &                                                  0.0d0                               , &
-            &                                                  0.0d0                                 &
-            &                                                 ]                                    , &
-            &                                                 componentType=self%radii(i)%component, &
-            &                                                 massType     =self%radii(i)%mass       &
-            &                                                )
+       coordinates=[radius_,0.0d0,0.0d0]
+       densityProjected(i,1)=+2.0d0                                  &
+            &                *sqrt(                                  &
+            &                      +radiusSingularity**2             &
+            &                      -radius_          **2             &
+            &                     )                                  &
+            &                *massDistribution_%density(coordinates)
        !! Numerical integral outside of the cut-out.
        if (radiusSingularity < radiusOuter) then
           ! Set an absolute tolerance scale for projected density convergence that is a small fraction of the mean halo density,
@@ -305,6 +301,9 @@ contains
        densityProjected(i,1)=+densityProjected       (i,1) &
             &                +densityProjectedCurrent
        if (self%includeRadii) densityProjected(i,2)=radius_
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     end do
     return
 
@@ -322,22 +321,14 @@ contains
       if (radius <= radius_) then
          projectedDensityIntegrand=+0.0d0
       else
-         projectedDensityIntegrand=+2.0d0                                                                  &
-              &                    *radius       **2                                                       &
-              &                    /sqrt(                                                                  &
-              &                          +radius **2                                                       &
-              &                          -radius_**2                                                       &
-              &                    )                                                                       &
-              &                    *self%galacticStructure_%density(                                       &
-              &                                                     node                                 , &
-              &                                                     [                                      &
-              &                                                      radius                              , &
-              &                                                      0.0d0                               , &
-              &                                                      0.0d0                                 &
-              &                                                     ]                                    , &
-              &                                                     componentType=self%radii(i)%component, &
-              &                                                     massType     =self%radii(i)%mass       &
-              &                                                    )
+         coordinates=[radius,0.0d0,0.0d0]
+         projectedDensityIntegrand=+2.0d0                                  &
+              &                    *radius       **2                       &
+              &                    /sqrt(                                  &
+              &                          +radius **2                       &
+              &                          -radius_**2                       &
+              &                    )                                       &
+              &                    *massDistribution_%density(coordinates)
       end if
       return
     end function projectedDensityIntegrand

@@ -2,6 +2,7 @@
 <!-- Reference cosmological model (dark matter-only) -->
 <parameters>
   <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>

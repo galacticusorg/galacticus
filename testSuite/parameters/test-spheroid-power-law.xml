@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Parameters for testing univerMachine nodeOperator -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+  <randomNumberGenerator value="GSL">
+    <seed value="153" />
+  </randomNumberGenerator>
+
+  <!-- Specify tasks to perform -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="standard"/>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon value=" 0.00000"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant value="70.20000"/>
+      <OmegaMatter value=" 0.27250"/>
+      <OmegaDarkEnergy value=" 0.72750"/>
+      <OmegaBaryon value=" 0.04550"/>
+      <temperatureCMB value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build">
+    <redshiftBase value="0.0" />
+  </mergerTreeConstructor>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+
+  <mergerTreeBuildMasses value="readXML">
+    <fileName value="testSuite/parameters/UniverseMachine-treemass.xml" />
+  </mergerTreeBuildMasses>
+  
+  <mergerTreeMassResolution value="scaled">
+    <massResolutionFractional value="1.0e-1"/>
+  </mergerTreeMassResolution>
+
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="gao2008"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Switch off baryonic physics -->
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Tree evolution -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.001"/>	    
+    <odeToleranceRelative value="0.001"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="0.01"/>
+    <timestepHostRelative value="0.01"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+	<outputFileName value="testSuite/outputs/test-spheroid-power-law/test-spheroid-power-law.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <nodePropertyExtractor value="multi">	
+    <nodePropertyExtractor value="massHalo">
+      <virialDensityContrastDefinition value="bryanNorman1998" /> 
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="nodeIndices" />
+    <nodePropertyExtractor value="redshiftLastIsolated" />
+  </nodePropertyExtractor>
+
+  <!-- Node physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+    <nodeOperator value="empiricalGalaxyUniverseMachine">
+      <massStellarFinal value="-1.0d0" />
+      <fractionMassSpheroid value="1.0d0" />
+      <fractionMassDisk value="0.0d0" />
+      <epsilon_0 value="-1.435" />
+      <epsilon_a value= "+1.831" />
+      <epsilon_lna value= "+1.368"/>        
+      <epsilon_z value= "-0.217"/>
+      <M_0 value="+12.035"/>
+      <M_a value="+4.556"/>
+      <M_lna value="+4.417"/> 
+      <M_z value="-0.731"/>
+      <alpha_0 value="+1.963"/>
+      <alpha_a value="-2.316"/>
+      <alpha_lna value="-1.733"/>
+      <alpha_z value="+0.178"/>
+      <beta_0 value= "+0.482"/>
+      <beta_a value = "-0.841"/>
+      <beta_z value= "-0.471"/>
+      <delta_0 value="+0.411"/>
+      <gamma_0 value="-1.034"/>
+      <gamma_a value="-3.10"/>
+      <gamma_z value="-1.055"/>
+    </nodeOperator>
+    <nodeOperator value="spheroidRadiusPowerLaw">
+      <alpha value="0.56" />
+      <beta  value="1.19E-9"/>
+    </nodeOperator>
+  </nodeOperator>
+  
+</parameters>

@@ -60,7 +60,6 @@ contains
     class           (nbodyHaloMassErrorClass               ), pointer       :: nbodyHaloMassError_
     class           (haloMassFunctionClass                 ), pointer       :: haloMassFunction_
     class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass            ), pointer       :: virialDensityContrast_
     class           (*                                     ), pointer       :: percolationObjects_
@@ -87,12 +86,11 @@ contains
     <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
     !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
-    self                =  outputAnalysisSpinDistributionBett2007(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_)
+    self                =  outputAnalysisSpinDistributionBett2007(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"         />
@@ -101,14 +99,13 @@ contains
     <objectDestructor name="nbodyHaloMassError_"          />
     <objectDestructor name="haloMassFunction_"            />
     <objectDestructor name="darkMatterHaloScale_"         />
-    <objectDestructor name="darkMatterProfileDMO_"        />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
     <objectDestructor name="virialDensityContrast_"       />
     !!]
     return
   end function spinDistributionBett2007ConstructorParameters
 
-  function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_) result(self)
+  function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_) result(self)
     !!{
     Internal constructor for the ``spinDistributionBett2007'' output analysis class.
     !!}
@@ -129,7 +126,6 @@ contains
     class           (nbodyHaloMassErrorClass               ), target     , intent(in   )  :: nbodyHaloMassError_
     class           (haloMassFunctionClass                 ), target     , intent(in   )  :: haloMassFunction_
     class           (darkMatterHaloScaleClass              ), target     , intent(in   )  :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass             ), target     , intent(in   )  :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), target     , intent(in   )  :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass            ), target     , intent(in   )  :: virialDensityContrast_
     class           (*                                     ), target     , intent(in   )  :: percolationObjects_
@@ -151,7 +147,6 @@ contains
          &                                                             nbodyHaloMassError_                                                                   , &
          &                                                             haloMassFunction_                                                                     , &
          &                                                             darkMatterHaloScale_                                                                  , &
-         &                                                             darkMatterProfileDMO_                                                                 , &
          &                                                             darkMatterProfileScaleRadius_                                                         , &
          &                                                             outputTimes_                                                                          , &
          &                                                             virialDensityContrast_                                                                , &

@@ -28,10 +28,10 @@ module Output_Versioning
   !!{
   Implements writing of the version number and run time to the \glc\ output file.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_char
+  use, intrinsic :: ISO_C_Binding, only : c_char, c_size_t
   implicit none
   private
-  public :: Version_Output, Version_String, Version
+  public :: Version_Output, Version_Finalize, Version_String, Version
 
   ! Include the automatically generated Git revision number.
   include 'output.version.revision.inc'
@@ -48,6 +48,9 @@ module Output_Versioning
      end subroutine repoHeadHash
   end interface
 #endif
+
+  ! System clock starting count.
+  integer(c_size_t) :: countStartClockSystem
   
 contains
 
@@ -119,6 +122,9 @@ contains
     type     (varying_string)          :: hashFileName
 #endif
 
+    ! Record the count of the system clock.
+    call System_Clock(count=countStartClockSystem)
+    
     ! Write a UUID for this model.
     !$ call hdf5Access%set()
     call outputFile%writeAttribute(generate_UUID(4),'UUID')
@@ -126,10 +132,10 @@ contains
     ! Create a group for version information.
     runTime     =Formatted_Date_and_Time()
     versionGroup=outputFile%openGroup('Version','Version and timestamp for this model.')
-    call versionGroup%writeAttribute(     gitHash   ,'gitHash'  )
-    call versionGroup%writeAttribute(trim(gitBranch),'gitBranch')
-    call versionGroup%writeAttribute(trim(buildTime),'buildTime')
-    call versionGroup%writeAttribute(     runTime   ,'runTime'  )
+    call versionGroup%writeAttribute(     gitHash   ,'gitHash'     )
+    call versionGroup%writeAttribute(trim(gitBranch),'gitBranch'   )
+    call versionGroup%writeAttribute(trim(buildTime),'buildTime'   )
+    call versionGroup%writeAttribute(     runTime   ,'runStartTime')
 #ifdef GIT2AVAIL
     ! Use the git2 library to get the hash of the datasets repo.
     call repoHeadHash(char(inputPath(pathTypeDataStatic))//c_null_char,gitHashDatasets)
@@ -174,5 +180,37 @@ contains
     !$ call hdf5Access%unset()
     return
   end subroutine Version_Output
+  
+  !![
+  <hdfPreCloseTask>
+   <unitName>Version_Finalize</unitName>
+  </hdfPreCloseTask>
+  !!]
+  subroutine Version_Finalize()
+    !!{
+    Output final version information to the main output file.
+    !!}
+    use :: Dates_and_Times   , only : Formatted_Date_and_Time
+    use :: IO_HDF5           , only : hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: Output_HDF5       , only : outputFile
+    use :: ISO_Varying_String, only : varying_string
+    implicit none
+    type            (hdf5Object    ) :: versionGroup
+    type            (varying_string) :: runTime
+    integer         (c_size_t      ) :: countEndClockSystem, rateClockSystem
+    double precision                 :: timeRunDuration
 
+    !$ call hdf5Access%set()
+    call System_Clock(count=countEndClockSystem,count_rate=rateClockSystem)
+    runTime        =Formatted_Date_and_Time()
+    timeRunDuration=dble(countEndClockSystem-countStartClockSystem)/dble(rateClockSystem)
+    versionGroup   =outputFile%openGroup('Version')
+    call versionGroup%writeAttribute(runTime        ,'runEndTime' )
+    call versionGroup%writeAttribute(timeRunDuration,'runDuration')
+    call versionGroup%close         (                             )
+    !$ call hdf5Access%unset()
+    return
+  end subroutine Version_Finalize
+    
 end module Output_Versioning

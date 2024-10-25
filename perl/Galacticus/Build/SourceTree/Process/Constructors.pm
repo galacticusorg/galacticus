@@ -29,6 +29,15 @@ sub Process_Constructors {
     my $depth = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "constructorAssign" && ! $node->{'directive'}->{'processed'} ) {
+	    # All variables named in the directive are assigned to
+	    # `self`. Optional arguments and allocation of allocatables
+	    # are automatically handled.  By default standard assignment
+	    # is used. If a variable name is prefixed with `*` then
+	    # pointer assignment is used, and any `functionClass`
+	    # objects have their reference count incremented. If
+	    # prefixed with `*/` then pointer assignment is used but no
+	    # reference count increment is performed.
+	    #
 	    # Assert that our parent is a function.
 	    unless ( $node->{'parent'}->{'type'} eq "function" || $node->{'parent'}->{'type'} eq "moduleProcedure" ) {
 		my $nodeRoot = $node;
@@ -54,9 +63,10 @@ sub Process_Constructors {
 	    my $assignmentSource = "  ! Auto-generated constructor assignment\n";
 	    (my $variables = $node->{'directive'}->{'variables'}) =~ s/^\s*(.*?)\s*$/$1/;
 	    foreach ( grep {$_ ne ""} split(/\s*,\s*/,$variables) ) {
-		my $matches      = $_ =~ m/^(\*??)([a-zA-Z0-9_]+)/;
+		my $matches      = $_ =~ m/^(\*??)(\/??)([a-zA-Z0-9_]+)/;
 		my $isPointer    = $1 eq "*";
-		my $argumentName = $2;
+		my $doCount      = $2 ne "/";
+		my $argumentName = $3;
 		my $assigner     = $isPointer ? " => " : "=";
 		my $hasDefault   = $_ =~ m/=\s*(.+)/;
 		my $default      = $hasDefault ? $1 : undef();
@@ -65,7 +75,7 @@ sub Process_Constructors {
 		# Get the variable declaration.
 		my $declaration;
 		if ( $node->{'parent'}->{'type'} eq "moduleProcedure" ) {
-		    
+		    # Nothing to do.
 		} else {
 		    $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
 		}
@@ -90,6 +100,8 @@ sub Process_Constructors {
 		    ( $declaration->{'intrinsic'} eq "type" || $declaration->{'intrinsic'} eq "class" )
 		    &&
 		    $isPointer
+		    &&
+		    $doCount
 		    ) {
 		    my $type = lc($declaration->{'type'});
 		    $type =~ s/\s//g;

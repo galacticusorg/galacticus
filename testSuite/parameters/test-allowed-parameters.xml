@@ -2,7 +2,7 @@
 <!-- Subhalos in WDM -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Verbosity -->
   <verbosityLevel value="working"/>
@@ -15,7 +15,7 @@
   <componentDisk value="null"/>
   <componentSatellite value="orbiting"/>
   <componentSpheroid value="null"/>
-  <componentSpin value="scalar"/>
+  <componentSpin value="vector"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
@@ -144,8 +144,6 @@
   <hotHaloMassDistribution value="null"/>
 
   <!-- Orbit model options -->
-  <satelliteOrbitingDestructionMass value="0.0"/>
-  <satelliteOrbitingDestructionMassIsFractional value="true"/>
   <satelliteDynamicalFriction value="chandrasekhar1943"/>
   <satelliteTidalStripping value="zentner2005">
     <efficiency value="1.0"/>
@@ -170,7 +168,6 @@
       <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Satellite merger options -->
   <mergerRemnantSize value="null"/>
@@ -216,7 +213,6 @@
   </nodeOperator>
 
   <!-- Output options -->
-  <outputTimestepHistory value="false"/>
   <nodePropertyExtractor value="virialProperties"/>
   <outputTimes value="list">
     <redshifts value="0.0"/>

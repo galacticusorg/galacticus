@@ -51,14 +51,15 @@ module Galactic_Structure_Options
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
-   <entry label="all"       description="All components"                />
-   <entry label="disk"      description="The disk component"            />
-   <entry label="spheroid"  description="The spheroid component"        />
-   <entry label="hotHalo"   description="The hot halo (CGM) component"  />
-   <entry label="coldHalo"  description="The cold halo (CGM) component" />
-   <entry label="darkHalo"  description="The dark matter halo component"/>
-   <entry label="blackHole" description="The black hole component"      />
-   <entry label="unknown"   description="Unknown components"            />
+   <entry label="all"            description="All components"                 />
+   <entry label="disk"           description="The disk component"             />
+   <entry label="spheroid"       description="The spheroid component"         />
+   <entry label="hotHalo"        description="The hot halo (CGM) component"   />
+   <entry label="coldHalo"       description="The cold halo (CGM) component"  />
+   <entry label="darkHalo"       description="The dark matter halo component" />
+   <entry label="blackHole"      description="The black hole component"       />
+   <entry label="darkMatterOnly" description="The dark matter only component."/>
+   <entry label="unknown"        description="Unknown components"             />
   </enumeration>
   !!]
 
@@ -85,8 +86,9 @@ module Galactic_Structure_Options
   <enumeration>
    <name>structureErrorCode</name>
    <description>Error codes for galactic structure functions.</description>
-   <entry label="success"  description="Successful completion"/>
-   <entry label="infinite" description="Result is ±∞"         />
+   <entry label="success"     description="Successful completion"/>
+   <entry label="infinite"    description="Result is ±∞"         />
+   <entry label="integration" description="Integration failed"   />
   </enumeration>
   !!]
 

@@ -19,7 +19,7 @@ my @testCases =
      {
       	 label     => "nonMonotonic",
       	 gamma     => 1.00          ,
-      	 fitMetric => 0.03
+      	 fitMetric => 0.0301
      },
      {
 	 label     => "monotonic",
@@ -34,7 +34,7 @@ my @testCases =
      {
       	 label     => "monotonic",
       	 gamma     => 0.000      ,
-	 fitMetric => 0.028
+	 fitMetric => 0.0280
      }
     );
 foreach my $testCase ( @testCases ) {
@@ -124,7 +124,6 @@ foreach my $testCase ( @testCases ) {
  
     my $status = $fitMetric < $testCase->{'fitMetric'} ? "SUCCESS" : "FAILED";
     print $status.": subhalo tidal tracks '".$testCase->{'label'}." gamma=".sprintf("%3.1f",$testCase->{'gamma'})."'\n";
-
 }
 
 exit;

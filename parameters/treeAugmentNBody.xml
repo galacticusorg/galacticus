@@ -3,7 +3,7 @@
 <!-- 30-October-2011                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Specify output file name -->
   <outputFileName value="trees.hdf5"/>
@@ -11,7 +11,7 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
-  <componentDarkMatterProfile value="null"/>
+  <componentDarkMatterProfile value="scaleFree"/>
   <componentDisk value="null"/>
   <componentHotHalo value="null"/>
   <componentSatellite value="preset"/>
@@ -166,9 +166,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
-    <!-- Halo concentrations -->
-    <nodeOperator value="darkMatterProfileScaleSet"        />
-    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>

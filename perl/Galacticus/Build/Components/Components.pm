@@ -158,39 +158,19 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "enclosedMass"                                                                                         ,
-	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
-	     description => "Compute the mass enclosed within a radius."                                                           ,
-	     mappable    => "summation"                                                                                            ,
+	     name        => "massDistribution"                                                                                     ,
+	     function    => "Node_Component_Mass_Distribution_Null"                                                                ,
+	     description => "Return the mass distribution for this component."                                                     ,
+	     returnType  => "\\textcolor{red}{\\textless class(massDistribution)\\textgreater}"                                    ,
+	     arguments   => "\\textcolor{red}{\\textless type(enumerationComponentTypeType)\\textgreater} [componentType]\\argin, \\textcolor{red}{\\textless type(enumeratioMassTypeType)\\textgreater} [massType]\\argin, \\textcolor{red}{\\textless type(enumeratioWeightByType)\\textgreater} [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "massBaryonic"                                                                                         ,
+	     function    => "Node_Component_Mass_Baryonic_Null"                                                                    ,
+	     description => "Return the total baryonic mass for this component."                                                   ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "acceleration"                                                                                         ,
-	     function    => "Node_Component_Acceleration_Null"                                                                     ,
-	     description => "Compute the gravitational acceleration at a point."                                                   ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doubleone"                                                                                          ,
-	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "chandrasekharIntegral"                                                                                ,
-	     function    => "Node_Component_Chandrasekhar_Integral_Null"                                                           ,
-	     description => "Compute the Chandrasekhar integral for a given position and velocity."                                ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doubleone"                                                                                          ,
-	     arguments   => "\\doubleone\\ position\\argin, \\doubleone\\ velocity\\argin, \\doublezero\\ radiusHalfMass\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "tidalTensor"                                                                                          ,
-	     function    => "Node_Component_Tidal_Tensor_Null"                                                                     ,
-	     description => "Compute the gravitational tidal tensor at a point."                                                   ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\textcolor{red}{\\textless type(tensorRank2Dimension3Symmetric)\\textgreater}"                       ,
-	     arguments   => "\\doubleone\\ position\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -218,33 +198,6 @@ sub Build_Node_Component_Class {
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "potential"                                                                                            ,
-	     function    => "Node_Component_Potential_Null"                                                                        ,
-	     description => "Compute the gravitational potential."                                                                 ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "rotationCurve"                                                                                        ,
-	     function    => "Node_Component_Rotation_Curve_Null"                                                                   ,
-	     description => "Compute the rotation curve."                                                                          ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
-	 },
-	 {
-	     type        => "procedure"                                                                                            ,
-	     name        => "rotationCurveGradient"                                                                                ,
-	     function    => "Node_Component_Rotation_Curve_Gradient_Null"                                                          ,
-	     description => "Compute the rotation curve gradient."                                                                 ,
-	     mappable    => "summation"                                                                                            ,
-	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 }
 	);
     # Add meta-property methods.

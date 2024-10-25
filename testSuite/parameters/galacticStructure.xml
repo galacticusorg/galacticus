@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing galactic structure functions. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="null"    />
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true" />
+      <scaleHeight   value="0.137"/>
+    </massDistributionDisk>
+  </componentDisk>
+</parameters>
