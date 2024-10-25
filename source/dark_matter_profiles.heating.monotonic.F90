@@ -27,7 +27,16 @@
 
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonic">
-   <description>A dark matter profile heating model which takes another heating source and enforces monotonic heating energy perturbation.</description>
+    <description>
+      A dark matter profile heating model which takes another heating source and enforces monotonic heating energy
+      perturbation. This is achieved by enforcing the constraint that
+      \begin{equation}
+      \mathrm{d}/\mathrm{d}r \left[ \frac{\epsilon}{\mathrm{G} M(r) / r} \right] > 0,
+      \end{equation}
+      where $\epsilon$ is the specific heating energy \citep{du_tidal_2024}. At radii smaller than the shell-crossing radius
+      defined by the above condition the specific energy is assumed to be proportional to ${\mathrm{G} M(r) / r$, with a smooth
+      transition through this radius/
+    </description>
   </darkMatterProfileHeating>
   !!]
 
@@ -46,6 +55,7 @@
        <method description="Reset memoized calculations."                                      method="calculationReset"          />
        <method description="Return true if the no shell crossing assumption is valid locally." method="noShellCrossingIsValid"    />
        <method description="Compute the radius where shell crossing happens."                  method="computeRadiusShellCrossing"/>
+       <method description="Root function used in finding the radius of shell crossing."       method="radiusShellCrossingRoot"   />
      </methods>
      !!]
      final     ::                                   monotonicDestructor
@@ -56,6 +66,7 @@
      procedure :: specificEnergyIsEverywhereZero => monotonicSpecificEnergyIsEverywhereZero
      procedure :: noShellCrossingIsValid         => monotonicNoShellCrossingIsValid
      procedure :: computeRadiusShellCrossing     => monotonicComputeRadiusShellCrossing
+     procedure :: radiusShellCrossingRoot        => monotonicRadiusShellCrossingRoot
   end type darkMatterProfileHeatingMonotonic
 
   interface darkMatterProfileHeatingMonotonic
@@ -68,7 +79,7 @@
 
   ! Global variables used in root solving.
   type (treeNode                         ), pointer :: node_
-  type (darkMatterProfileHeatingMonotonic), pointer :: self_
+  class(darkMatterProfileHeatingMonotonic), pointer :: self_
   class(darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO__
   !$omp threadprivate(node_,self_,darkMatterProfileDMO__)
 
@@ -110,10 +121,10 @@ contains
     self%radiusShellCrossing            =-1.0d0
     self%energyPerturbationShellCrossing=-1.0d0
     self%lastUniqueID                   =-1_kind_int8
-    self%finder                         =rootFinder(                                                    &
-         &                                          rootFunction     =monotonicRadiusShellCrossingRoot, &
-         &                                          toleranceAbsolute=toleranceAbsolute               , &
-         &                                          toleranceRelative=toleranceRelative                 &
+    self%finder                         =rootFinder(                                                     &
+         &                                          rootFunction     =monotonicRadiusShellCrossingRoot_, &
+         &                                          toleranceAbsolute=toleranceAbsolute                , &
+         &                                          toleranceRelative=toleranceRelative                  &
          &                                         )
     return
   end function monotonicConstructorInternal
@@ -258,39 +269,49 @@ contains
     !!{
     Determines if the no shell crossing assumption is valid.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileHeatingMonotonic), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
     class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
     double precision                                   , intent(in   ) :: radius
-    double precision                                                   :: massEnclosed
+    double precision                                   , parameter     :: toleranceRelative    =1.0d-12
+    double precision                                                   :: massEnclosed                 , energySpecificScale   , &
+         &                                                                energySpecific               , energySpecificGradient
 
     massEnclosed                      = darkMatterProfileDMO_%enclosedMass(node,radius)
     if (massEnclosed > 0.0d0) then
-       monotonicNoShellCrossingIsValid=+self%darkMatterProfileHeating_%specificEnergyGradient(                       &
-            &                                                                                 node                 , &
-            &                                                                                 radius               , &
-            &                                                                                 darkMatterProfileDMO_  &
-            &                                                                                )                       &
-            &                          *                                                      radius                 &
-            &                          +self%darkMatterProfileHeating_%specificEnergy        (                       &
+       energySpecific                 =+self%darkMatterProfileHeating_%specificEnergy        (                       &
             &                                                                                 node                 , &
             &                                                                                 radius               , &
             &                                                                                 darkMatterProfileDMO_  &     
-            &                                                                                )                       &
-            &                          *(                                                                            &
-            &                            +1.0d0                                                                      &
-            &                            -4.0d0                                                                      &
-            &                            *Pi                                                                         &
-            &                            *                                                    radius**3              &
-            &                            *darkMatterProfileDMO_       %density               (                       &
+            &                                                                                )
+       energySpecificGradient         =+self%darkMatterProfileHeating_%specificEnergyGradient(                       &
             &                                                                                 node                 , &
-            &                                                                                 radius                 &
-            &                                                                                )                       &
-            &                            /massEnclosed                                                               &
-            &                           )                                                                            &
-            &                          >=0.0d0
+            &                                                                                 radius               , &
+            &                                                                                 darkMatterProfileDMO_  &
+            &                                                                                )
+       energySpecificScale            =+gravitationalConstantGalacticus &
+            &                          *massEnclosed                    &
+            &                          /radius
+       monotonicNoShellCrossingIsValid=+energySpecificGradient                     &
+            &                          *                                radius     &
+            &                          +energySpecific                             &
+            &                          *(                                          &
+            &                            +1.0d0                                    &
+            &                            -4.0d0                                    &
+            &                            *Pi                                       &
+            &                            *                              radius**3  &
+            &                            *darkMatterProfileDMO_%density(           &
+            &                                                           node     , &
+            &                                                           radius     &
+            &                                                          )           &
+            &                            /massEnclosed                             &
+            &                           )                                          &
+            &                          >=                                          &
+            &                           -toleranceRelative                         &
+            &                           *energySpecificScale
     else
        monotonicNoShellCrossingIsValid=.true.
     end if
@@ -308,7 +329,7 @@ contains
     type            (treeNode                         ), intent(inout), target :: node
     class           (darkMatterProfileDMOClass        ), intent(inout), target :: darkMatterProfileDMO_
     double precision                                   , intent(in   )         :: radius
-    double precision                                   , parameter             :: radiusSearchMaximum  =10.0d0
+    double precision                                   , parameter             :: radiusSearchMaximum  =10.0d0, factorRadius              =1.1d0
     integer         (kind_int8                        )                        :: uniqueID
     double precision                                                           :: radiusSearch                , radiusShellCrossingMinimum
 
@@ -320,20 +341,24 @@ contains
        radiusShellCrossingMinimum=radius
        do while (radiusSearch <= radiusSearchMaximum)
           if (.not.self%noShellCrossingIsValid(node,radiusSearch,darkMatterProfileDMO_)) radiusShellCrossingMinimum=radiusSearch
-          radiusSearch=2.0d0*radiusSearch
+          radiusSearch=factorRadius*radiusSearch
        end do
-       ! Seek the exact radius at which shell-crossing first occurs.
+       ! Seek the exact radius at which shell-crossing first occurs. Use an upward expansion step matched to that in our prior
+       ! search since we know that the root should be within this range.
        self_                  => self
        node_                  => node
        darkMatterProfileDMO__ => darkMatterProfileDMO_
        call self%finder%rangeExpand(                                                             &
-            &                       rangeExpandUpward            =2.0d0                        , &
+            &                       rangeExpandUpward            =factorRadius                 , &
             &                       rangeExpandDownward          =1.0d0                        , &
             &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
             &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
             &                       rangeExpandType              =rangeExpandMultiplicative      &
             &                      )
        self%radiusShellCrossing             =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
+       ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
+       if (self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) <= 0.0d0) &
+            & self%radiusShellCrossing=radiusShellCrossingMinimum
        self%energyPerturbationShellCrossing =+self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) &
             &                                /(                                                                                                  &
             &                                  +0.5d0                                                                                            &
@@ -345,41 +370,55 @@ contains
     return
   end subroutine monotonicComputeRadiusShellCrossing
 
-  double precision function monotonicRadiusShellCrossingRoot(radius)
+  double precision function monotonicRadiusShellCrossingRoot_(radius) result(root)
+    !!{
+    Root function used in finding the radius where shell crossing happens.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    root=self_%radiusShellCrossingRoot(node_,radius,darkMatterProfileDMO__)
+    return
+  end function monotonicRadiusShellCrossingRoot_
+  
+  double precision function monotonicRadiusShellCrossingRoot(self,node,radius,darkMatterProfileDMO_)
     !!{
     Root function used in finding the radius where shell crossing happens.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: massEnclosed
+    class           (darkMatterProfileHeatingMonotonic), intent(inout) :: self
+    type            (treeNode                         ), intent(inout) :: node
+    double precision                                   , intent(in   ) :: radius
+    class           (darkMatterProfileDMOClass        ), intent(inout) :: darkMatterProfileDMO_
+    double precision                                                   :: massEnclosed
 
-    massEnclosed                       = darkMatterProfileDMO__%enclosedMass(node_,radius)
+    massEnclosed                       = darkMatterProfileDMO_%enclosedMass(node,radius)
     if (massEnclosed > 0.0d0) then
-       monotonicRadiusShellCrossingRoot=+self_%darkMatterProfileHeating_%specificEnergyGradient(                        &
-            &                                                                                   node_                 , &
-            &                                                                                   radius                , &
-            &                                                                                   darkMatterProfileDMO__  &
-            &                                                                                  )                        &
-            &                           *                                                       radius                  &
-            &                           +self_%darkMatterProfileHeating_%specificEnergy        (                        &
-            &                                                                                   node_                 , &
-            &                                                                                   radius                , &
-            &                                                                                   darkMatterProfileDMO__  &
-            &                                                                                  )                        &
-            &                           *(                                                                              &
-            &                             +1.0d0                                                                        &
-            &                             -4.0d0                                                                        &
-            &                             *Pi                                                                           &
-            &                             *                                                     radius**3               &
-            &                             *darkMatterProfileDMO__       %density               (                        &
-            &                                                                                   node_                 , &
-            &                                                                                   radius                  &
-            &                                                                                  )                        &
-            &                             /massEnclosed                                                                 &
+       monotonicRadiusShellCrossingRoot=+self%darkMatterProfileHeating_%specificEnergyGradient(                       &
+            &                                                                                  node                 , &
+            &                                                                                  radius               , &
+            &                                                                                  darkMatterProfileDMO_  &
+            &                                                                                 )                       &
+            &                           *                                                      radius                 &
+            &                           +self%darkMatterProfileHeating_%specificEnergy        (                       &
+            &                                                                                  node                 , &
+            &                                                                                  radius               , &
+            &                                                                                  darkMatterProfileDMO_  &
+            &                                                                                 )                       &
+            &                           *(                                                                            &
+            &                             +1.0d0                                                                      &
+            &                             -4.0d0                                                                      &
+            &                             *Pi                                                                         &
+            &                             *                                                    radius**3              &
+            &                             *darkMatterProfileDMO_        %density              (                       &
+            &                                                                                  node                 , &
+            &                                                                                  radius                 &
+            &                                                                                 )                       &
+            &                             /massEnclosed                                                               &
             &                            )
     else
-       monotonicRadiusShellCrossingRoot=0.0d0
+       monotonicRadiusShellCrossingRoot=+0.0d0
     end if
     return
   end function monotonicRadiusShellCrossingRoot
