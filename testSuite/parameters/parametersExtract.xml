@@ -267,6 +267,7 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
+  <mergerTreeOutputter value="null"/> <!-- Invalid duplicated parameter - included to ensure these do not cause errors in parameter extraction. -->
   <outputFileName value="testSuite/outputs/parametersExtract.hdf5"/>
 
 </parameters>
