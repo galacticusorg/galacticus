@@ -271,7 +271,7 @@ contains
           self%velocityEscape   =+0.0d0
        end if
        ! Store computation point.
-       self%radius=radius
+       self%radius         =radius
        self%factorsComputed=.true.
     end if
     if (.not.self%energySpecificComputed) then
@@ -308,7 +308,7 @@ contains
        densityLogGradient=+darkMatterProfileDMO_%densityLogSlope(node,radius)
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
        if (self%massLoss_) then
-          massLossGradient=self%gamma_                             &
+          massLossGradient=+self%gamma_                            &
                &           *gravitationalConstantGalacticus        &
                &           *(                                      &
                &             -         self%massEnclosed/radius    &
@@ -346,7 +346,7 @@ contains
           velocityEscapeGradient=-     gravitationalConstantGalacticus &
                &                 *self%massEnclosed                    &
                &                 /self%velocityEscape                  &
-               &                 *     radius**2
+               &                 /     radius**2
        else
           velocityEscapeGradient=+0.0d0
        end if
