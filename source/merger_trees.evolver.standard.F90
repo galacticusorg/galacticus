@@ -125,12 +125,13 @@
      logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
           &                                                      backtrackToSatellites                     , profileSteps
      double precision                                         :: timestepHostAbsolute                      , timestepHostRelative , &
-          &                                                      fractionTimestepSatelliteMinimum
+          &                                                      fractionTimestepSatelliteMinimum          , timeHostPrevious     , &
+          &                                                      timeStepHost
      type            (deadlockList                 ), pointer :: deadlockHeadNode                 => null()
    contains
      !![
      <methods>
-       <method method="initializeTree"     description="Initialize the tree(s)."                     />
+       <method method="initializeTree"     description="Initialize the tree(s)."                      />
        <method method="nodeIsEvolvable"    description="Determine if a node is evolvable."            />
        <method method="timeEvolveTo"       description="Find the time to which a node can be evolved."/>
        <method method="deadlockAddNode"    description="Add a node to the deadlock list."             />
@@ -259,7 +260,9 @@ contains
     <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, profileSteps, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_, *mergerTreeEvolveProfiler_"/>
     !!]
 
-    self%deadlockHeadNode => null()
+    self%deadlockHeadNode =>  null(     )
+    self%timeHostPrevious =  -huge(0.0d0)
+    self%timeStepHost     =  -huge(0.0d0)
     return
   end function standardConstructorInternal
 
@@ -814,27 +817,26 @@ contains
     class           (cosmologyFunctionsClass      ), intent(inout)                    :: cosmologyFunctions_
     class           (mergerTreeEvolveTimestepClass), intent(inout)                    :: mergerTreeEvolveTimestep_
     class           (mergerTreeNodeEvolverClass   ), intent(inout)                    :: mergerTreeNodeEvolver_
-    type            (treeNode                     )                         , pointer :: nodeSatellite            , nodeSibling
+    type            (treeNode                     )                         , pointer :: nodeSatellite                       , nodeSibling
     procedure       (timestepTask                 ), intent(  out)          , pointer :: timestepTask_
     class           (*                            ), intent(  out)          , pointer :: timestepSelf
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(  out), optional, pointer :: nodeLock
     type            (varying_string               ), intent(  out), optional          :: lockType
     procedure       (timestepTask                 )                         , pointer :: timestepTaskInternal
-    class           (nodeComponentBasic           )                         , pointer :: basicParent              , basicSatellite    , &
-         &                                                                               basicSibling             , basic
+    class           (nodeComponentBasic           )                         , pointer :: basicParent                         , basicSatellite    , &
+         &                                                                               basicSibling                        , basic
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: event
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    double precision                                                                  :: expansionFactor          , expansionTimescale, &
-         &                                                                               hostTimeLimit            , time              , &
-         &                                                                               timeEarliest             , evolveToTimeStep  , &
-         &                                                                               hostTimeStep             , timeNode          , &
-         &                                                                               timeSatellite
-    logical                                                                           :: isLimitedByTimestepper
-    character       (len=9                        )                                   :: timeFormatted
     type            (varying_string               ), save                             :: message
     !$omp threadprivate(message)
+    double precision                                                                  :: expansionFactor                     , expansionTimescale, &
+         &                                                                               hostTimeLimit                       , time              , &
+         &                                                                               timeEarliest                        , evolveToTimeStep  , &
+         &                                                                               timeSatellite                       , timeNode
+    logical                                                                           :: isLimitedByTimestepper
+    character       (len=9                        )                                   :: timeFormatted
 
     ! Initially set to the global end time.
     evolveToTime=timeEnd
@@ -908,40 +910,81 @@ contains
     end if
     if (report) call displayUnindent("done")
     if (evolveToTime == timeNode) return
-    ! Ensure that this node is not evolved beyond the time of any of its current satellites.
-    nodeSatellite => node%firstSatellite
-    do while (associated(nodeSatellite))
-       basicSatellite => nodeSatellite %basic()
-       timeSatellite  =  basicSatellite%time ()
-       if (max(timeSatellite,timeNode) < evolveToTime) then
-          if (present(nodeLock)) nodeLock => nodeSatellite
-          if (present(lockType)) lockType =  "hosted satellite"
-          evolveToTime          =max(timeSatellite,timeNode)
-          isLimitedByTimestepper=.false.
-       end if
-       if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,nodeSatellite%index())
-       if (evolveToTime == timeNode) exit
-       nodeSatellite => nodeSatellite%sibling
-    end do
-    ! Return early if the timestep is already zero.
-    if (evolveToTime == timeNode) return
-    ! Also ensure that this node is not evolved beyond the time at which any of its mergees merge. In some cases, the node may
-    ! already be in the future of a mergee. In such cases, simply freeze it at the current time.
-    nodeSatellite => node%firstMergee
-    do while (associated(nodeSatellite))
-       satelliteSatellite => nodeSatellite%satellite()
-       if (max(satelliteSatellite%timeOfMerging(),timeNode) < evolveToTime) then
-          if (present(nodeLock)) nodeLock => nodeSatellite
-          if (present(lockType)) then
-             write (timeFormatted,'(f7.4)') max(satelliteSatellite%timeOfMerging(),timeNode)
-             lockType =  "mergee ("//trim(timeFormatted)//")"
+    ! Limit time based on satellite status.
+    select case (node%isSatellite())
+    case (.false.)
+       ! Limit to the time of its parent node if this node is not a satellite.
+       if (associated(node%parent)) then
+          basicParent => node%parent%basic()
+          if (basicParent%time() < evolveToTime) then
+             if (present(nodeLock)) nodeLock => node%parent
+             if (present(lockType)) lockType =  "promotion"
+             evolveToTime          =basicParent%time()
+             isLimitedByTimestepper=.false.
           end if
-          evolveToTime          =max(satelliteSatellite%timeOfMerging(),timeNode)
+       end if
+       if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
+    case (.true.)
+       ! Do not let satellite evolve too far beyond parent.
+       if (associated(node%parent%parent)) then
+          ! The host halo has a parent, so use the host halo time to limit satellite evolution.
+          basicParent =>     node       %parent%basic()
+          time        =      basicParent       %time ()
+       else
+          ! The host halo has no parent. The satellite must therefore be evolving to some event (e.g. a merger). We have to allow
+          ! it to evolve ahead of the host halo in this case to avoid deadlocks.
+          basicParent =>     node       %parent%basic()
+          time        =  max(basicParent       %time (),timeNode)
+       end if
+       ! Check if the host has a child.
+       select case (associated(node%parent%firstChild))
+       case (.true. )
+          ! Host still has a child - do not let the satellite evolve beyond the host.
+          hostTimeLimit=max(time,timeNode)
+          ! Check for any merge targets directed at this node.
+          nodeSatellite => node%firstMergee
+          timeEarliest  =  huge(1.0d0)
+          do while (associated(nodeSatellite))
+             satelliteSatellite => nodeSatellite%satellite()
+             if (nodeSatellite%isSatellite().and.nodeSatellite%parent%isProgenitorOf(node%parent)) &
+                  & timeEarliest=min(timeEarliest,satelliteSatellite%timeOfMerging())
+             nodeSatellite => nodeSatellite%siblingMergee
+          end do
+          if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
+       case (.false.)
+          ! Find current expansion timescale.
+          if (time /= self%timeHostPrevious) then
+             ! Memoize the host timestep as it depends only on the host time and can be re-used for all satellites in a host.
+             if (self%timestepHostRelative > 0.0d0) then
+                expansionFactor   =      cosmologyFunctions_%expansionFactor(time           )
+                expansionTimescale=1.0d0/cosmologyFunctions_%expansionRate  (expansionFactor)
+                self%timeStepHost =min(self%timestepHostRelative*expansionTimescale,self%timestepHostAbsolute)
+             else
+                ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
+                self%timeStepHost =                                                 self%timestepHostAbsolute
+             end if
+             ! Update the memoization time.
+             self%timeHostPrevious=time
+          end if
+          hostTimeLimit=max(time+self%timeStepHost,timeNode)
+          ! Check if this criterion will actually limit the evolution time.
+          if (hostTimeLimit < evolveToTime) then
+             ! Satellite evolution will be limited by being required to not advance too far ahead of the host halo. If the
+             ! timestep we can advance is less than a specified fraction of what is possible, then skip this for now.
+             if (hostTimeLimit-timeNode < self%fractionTimestepSatelliteMinimum*self%timeStepHost) then
+                hostTimeLimit=timeNode
+             end if
+          end if
+       end select
+       ! Limit to this time.
+       if (hostTimeLimit < evolveToTime) then
+          if (present(nodeLock)) nodeLock => node%parent
+          if (present(lockType)) lockType =  "satellite in host"
+          evolveToTime          =hostTimeLimit
           isLimitedByTimestepper=.false.
        end if
-       if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,nodeSatellite%index())
-       nodeSatellite => nodeSatellite%siblingMergee
-    end do
+       if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
+    end select
     ! Return early if the timestep is already zero.
     if (evolveToTime == timeNode) return
     ! Also ensure that a primary progenitor does not evolve in advance of siblings. This is important since we can not promote a
@@ -962,76 +1005,43 @@ contains
     end if
     ! Return early if the timestep is already zero.
     if (evolveToTime == timeNode) return
-    ! Limit time based on satellite status.
-    select case (node%isSatellite())
-    case (.false.)
-       ! Limit to the time of its parent node if this node is not a satellite.
-       if (associated(node%parent)) then
-          basicParent => node%parent%basic()
-          if (basicParent%time() < evolveToTime) then
-             if (present(nodeLock)) nodeLock => node%parent
-             if (present(lockType)) lockType =  "promotion"
-             evolveToTime          =basicParent%time()
+    ! Ensure that this node is not evolved beyond the time of any of its current satellites.
+    if (timeNode < evolveToTime) then
+       nodeSatellite => node%firstSatellite
+       do while (associated(nodeSatellite))
+          basicSatellite => nodeSatellite %basic()
+          timeSatellite  =  basicSatellite%time ()
+          if (timeSatellite < evolveToTime) then
+             if (present(nodeLock)) nodeLock => nodeSatellite
+             if (present(lockType)) lockType =  "hosted satellite"
+             evolveToTime          =max(timeSatellite,timeNode)
              isLimitedByTimestepper=.false.
+             if (evolveToTime == timeNode) exit
           end if
-       end if
-       if (report) call Evolve_To_Time_Report("promotion limit: ",evolveToTime)
-    case (.true.)
-       ! Do not let satellite evolve too far beyond parent.
-       if (associated(node%parent%parent)) then
-          ! The host halo has a parent, so use the host halo time to limit satellite evolution.
-          basicParent => node%parent%basic()
-          time=basicParent%time()
-       else
-          ! The host halo has no parent. The satellite must therefore be evolving to some event (e.g. a merger). We have to allow
-          ! it to evolve ahead of the host halo in this case to avoid deadlocks.
-          basicParent => node%parent%basic()
-          time=max(basicParent%time(),timeNode)
-       end if
-       ! Check if the host has a child.
-       select case (associated(node%parent%firstChild))
-       case (.true. )
-          ! Host still has a child - do not let the satellite evolve beyond the host.
-          hostTimeLimit=max(time,timeNode)
-          ! Check for any merge targets directed at this node.
-          nodeSatellite => node%firstMergee
-          timeEarliest=huge(1.0d0)
-          do while (associated(nodeSatellite))
-             satelliteSatellite => nodeSatellite%satellite()
-             if (nodeSatellite%isSatellite().and.nodeSatellite%parent%isProgenitorOf(node%parent)) &
-                  & timeEarliest=min(timeEarliest,satelliteSatellite%timeOfMerging())
-             nodeSatellite => nodeSatellite%siblingMergee
-          end do
-          if (timeEarliest < huge(1.0d0)) hostTimeLimit=max(hostTimeLimit,timeEarliest)
-       case (.false.)
-          ! Find current expansion timescale.
-          if (self%timestepHostRelative > 0.0d0) then
-             expansionFactor   =      cosmologyFunctions_%expansionFactor(time           )
-             expansionTimescale=1.0d0/cosmologyFunctions_%expansionRate  (expansionFactor)
-             hostTimeStep      =min(self%timestepHostRelative*expansionTimescale,self%timestepHostAbsolute)
-          else
-             ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
-             hostTimeStep      =                                                 self%timestepHostAbsolute
+          if (report) call Evolve_To_Time_Report("hosted satellite: ",evolveToTime,nodeSatellite%index())
+          nodeSatellite => nodeSatellite%sibling
+       end do
+    end if
+    ! Return early if the timestep is already zero.
+    if (evolveToTime == timeNode) return
+    ! Also ensure that this node is not evolved beyond the time at which any of its mergees merge. In some cases, the node may
+    ! already be in the future of a mergee. In such cases, simply freeze it at the current time.
+    ! then need to also figure out how to speed up satellite evolve checks
+    nodeSatellite => node%firstMergee
+    do while (associated(nodeSatellite))
+       satelliteSatellite => nodeSatellite%satellite()
+       if (max(satelliteSatellite%timeOfMerging(),timeNode) < evolveToTime) then
+          if (present(nodeLock)) nodeLock => nodeSatellite
+          if (present(lockType)) then
+             write (timeFormatted,'(f7.4)') max(satelliteSatellite%timeOfMerging(),timeNode)
+             lockType =  "mergee ("//trim(timeFormatted)//")"
           end if
-          hostTimeLimit=max(time+hostTimeStep,timeNode)
-          ! Check if this criterion will actually limit the evolution time.
-          if (hostTimeLimit < evolveToTime) then
-             ! Satellite evolution will be limited by being required to not advance too far ahead of the host halo. If the
-             ! timestep we can advance is less than a specified fraction of what is possible, then skip this for now.
-             if (hostTimeLimit-timeNode < self%fractionTimestepSatelliteMinimum*hostTimeStep) then
-                hostTimeLimit=timeNode
-             end if
-          end if
-       end select
-       ! Limit to this time.
-       if (hostTimeLimit < evolveToTime) then
-          if (present(nodeLock)) nodeLock => node%parent
-          if (present(lockType)) lockType =  "satellite in host"
-          evolveToTime          =hostTimeLimit
+          evolveToTime          =max(satelliteSatellite%timeOfMerging(),timeNode)
           isLimitedByTimestepper=.false.
        end if
-       if (report) call Evolve_To_Time_Report("satellite in host limit: ",evolveToTime,node%parent%index())
-    end select
+       if (report) call Evolve_To_Time_Report("mergee limit: ",evolveToTime,nodeSatellite%index())
+       nodeSatellite => nodeSatellite%siblingMergee
+    end do
     ! If the timestepper class provided the limit, allow it to optionally refuse to evolve (e.g. if the step is too small to be
     ! efficient).
     if (isLimitedByTimestepper) then
