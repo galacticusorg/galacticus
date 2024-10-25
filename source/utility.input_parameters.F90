@@ -1721,7 +1721,7 @@ contains
     logical                   , intent(in   ), optional :: requireValue                , requirePresent
     integer                   , intent(in   ), optional :: copyInstance
     type     (inputParameter ), pointer                 :: parameterNode
-    integer                                             :: copyCount
+    integer                                             :: copyCount                   , copyInstance_
     type     (varying_string )                          :: groupName
     !![
     <optionalArgument name="requirePresent" defaultsTo=".true." />
@@ -1746,7 +1746,14 @@ contains
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) then
        groupName=parameterName
-       if (copyCount > 1) groupName=groupName//"["//copyInstance//"]"
+       if (copyCount > 1) then
+          if (present(copyInstance)) then
+             copyInstance_=copyInstance
+          else
+             copyInstance_=1
+          end if
+          groupName=groupName//"["//copyInstance//"]"
+       end if
        inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
     end if
     !$ call hdf5Access%unset()
@@ -1865,7 +1872,8 @@ contains
          &                                                                                 workText           , content         , &
          &                                                                                 workValueText      , formatSpecifier , &
          &                                                                                 parameterLeafName
-    type            (varying_string                          )                          :: attributeName      , nodeName
+    type            (varying_string                          )                          :: attributeName      , nodeName        , &
+         &                                                                                 siblingName
     double precision                                                                    :: workValueDouble
     integer         (c_size_t                                )                          :: workValueInteger
     type            (enumerationInputParameterTypeType       )                          :: parameterType
@@ -2041,12 +2049,14 @@ contains
                 copyCount    =self%copiesCount(char(attributeName))
                 if (copyCount > 1) then
                    copyInstance =  copyCount
-                   sibling      => parameterNode
-                   do while (associated(sibling%sibling))
-                      copyInstance =  copyInstance-1
+                   sibling      => parameterNode%sibling
+                   do while (associated(sibling))
+                      siblingName=getNodeName(sibling%content)
+                      if (siblingName == attributeName) &
+                           & copyInstance=copyInstance-1
                       sibling      => sibling%sibling
                    end do
-                   attributeName=attributeName//"["//copyInstance//"]"                
+                   attributeName=attributeName//"["//copyInstance//"]"
                 end if
                 !$ call hdf5Access%set()
                 if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
