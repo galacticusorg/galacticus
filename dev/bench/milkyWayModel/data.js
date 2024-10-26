@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729938765278,
+  "lastUpdate": 1729974624084,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ed6bffd6daef4250ac13458f1dfc7b0f10d4de32",
-          "message": "feat: Improve documentation",
-          "timestamp": "2024-02-08T09:08:07-08:00",
-          "tree_id": "1f949b67e972f8182efc4a51cc818fc2707c352d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ed6bffd6daef4250ac13458f1dfc7b0f10d4de32"
-        },
-        "date": 1707423015105,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 159.085,
-            "unit": "seconds",
-            "range": 0.18163287147394
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 22.0754725219539,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4345e3f5be078d7294fe1774023dc1d0ed664a70",
+          "message": "Merge pull request #730 from galacticusorg/fixDupliactedParametersInOutput\n\nCorrectly handle indices on array parameters",
+          "timestamp": "2024-10-26T13:55:57Z",
+          "tree_id": "4c367798da41d1ec58e05113ace907a6d1f9c27b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4345e3f5be078d7294fe1774023dc1d0ed664a70"
+        },
+        "date": 1729974623286,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 43.105,
+            "unit": "seconds",
+            "range": 0.0535957087829241
           }
         ]
       }
