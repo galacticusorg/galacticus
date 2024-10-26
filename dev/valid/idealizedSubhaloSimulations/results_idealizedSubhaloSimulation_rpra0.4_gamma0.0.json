@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "1c6506aa5a4e23582702dc035a789fedc6bc828a",
-        "message": "Merge pull request #725 from galacticusorg/fixReinstateDMO\n\nReintroduce optional `darkMatterProfileDMO` argument to the halo mass definition conversion function\n",
-        "timestamp": "2024-10-22 23:26:33+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/1c6506aa5a4e23582702dc035a789fedc6bc828a"
+        "id": "0882f7f27a0082b995982d9e0aac168782172ec8",
+        "message": "Merge pull request #729 from galacticusorg/featBaugh2005Normalization\n\nMake the normalization velocity in the `baugh2005` star formation timescale class settable via a parameter\n",
+        "timestamp": "2024-10-25 16:36:30+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
     },
     "results": [
         {

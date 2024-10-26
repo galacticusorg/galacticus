@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "surfaceDensity" : {
-      "percentageBelow" : 53.125,
-      "percentageAbove" : 46.875,
-      "target" : 0.006
+      "target" : 0.006,
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875
    },
    "commit" : {
-      "timestamp" : "Tue, 22 Oct 2024 23:26:33 +0000",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/1c6506aa5a4e23582702dc035a789fedc6bc828a",
       "author" : {
-         "email" : "abensonca@gmail.com",
-         "name" : "Andrew Benson"
+         "name" : "Andrew Benson",
+         "email" : "abensonca@gmail.com"
       },
-      "message" : "Merge pull request #725 from galacticusorg/fixReinstateDMO",
-      "id" : "1c6506aa5a4e23582702dc035a789fedc6bc828a"
+      "timestamp" : "Fri, 25 Oct 2024 16:36:30 +0000",
+      "id" : "0882f7f27a0082b995982d9e0aac168782172ec8",
+      "message" : "Merge pull request #729 from galacticusorg/featBaugh2005Normalization",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
    },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
-      "percentageAbove" : 17.6470588235294,
       "target" : 0.85,
-      "percentageBelow" : 82.3529411764706
+      "percentageAbove" : 10.5263157894737,
+      "percentageBelow" : 89.4736842105263
    }
 }
