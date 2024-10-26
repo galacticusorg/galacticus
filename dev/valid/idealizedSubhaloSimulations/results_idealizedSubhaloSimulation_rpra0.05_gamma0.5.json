@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
-        "message": "fix: Update arguments to constructors\n",
-        "timestamp": "2024-10-25 20:53:06-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91"
+        "id": "4345e3f5be078d7294fe1774023dc1d0ed664a70",
+        "message": "Merge pull request #730 from galacticusorg/fixDupliactedParametersInOutput\n\nCorrectly handle indices on array parameters\n",
+        "timestamp": "2024-10-26 13:55:57+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/4345e3f5be078d7294fe1774023dc1d0ed664a70"
     },
     "results": [
         {

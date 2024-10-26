@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "percentageAbove" : 31.25,
-      "percentageBelow" : 68.75,
-      "target" : 0.85
-   },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
-      "id" : "5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
+      "message" : "Merge pull request #730 from galacticusorg/fixDupliactedParametersInOutput",
+      "id" : "4345e3f5be078d7294fe1774023dc1d0ed664a70",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
+         "email" : "abensonca@gmail.com"
       },
-      "timestamp" : "Fri, 25 Oct 2024 20:53:06 -0700",
-      "message" : "fix: Update arguments to constructors"
+      "timestamp" : "Sat, 26 Oct 2024 13:55:57 +0000",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/4345e3f5be078d7294fe1774023dc1d0ed664a70"
    },
    "surfaceDensity" : {
       "percentageAbove" : 53.125,
-      "target" : 0.006,
-      "percentageBelow" : 46.875
-   }
+      "percentageBelow" : 46.875,
+      "target" : 0.006
+   },
+   "slope" : {
+      "percentageBelow" : 89.4736842105263,
+      "percentageAbove" : 10.5263157894737,
+      "target" : 0.85
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }
