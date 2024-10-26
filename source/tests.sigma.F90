@@ -196,18 +196,21 @@ program Tests_Sigma
        &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
        &                                                                             normalization                      =0.0d0                                      &
        &                                                                            )
-  cosmologicalMassVarianceFilteredPower_   =cosmologicalMassVarianceFilteredPower   (                                                                               &
-       &                                                                             sigma8                             =1.0d+0                                   , &
-       &                                                                             tolerance                          =1.0d-4                                   , &
-       &                                                                             toleranceTopHat                    =1.0d-4                                   , &
-       &                                                                             nonMonotonicIsFatal                =.true.                                   , &
-       &                                                                             monotonicInterpolation             =.false.                                  , &
-       &                                                                             truncateAtParticleHorizon          =.false.                                  , &
-       &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
-       &                                                                             cosmologyFunctions_                =cosmologyFunctions_                      , &
-       &                                                                             linearGrowth_                      =linearGrowth_                            , &
-       &                                                                             powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_, &
-       &                                                                             powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_    &
+  cosmologicalMassVarianceFilteredPower_   =cosmologicalMassVarianceFilteredPower   (                                                                                    &
+       &                                                                             sigma8                                  =1.0d+0                                   , &
+       &                                                                             tolerance                               =1.0d-4                                   , &
+       &                                                                             toleranceTopHat                         =1.0d-4                                   , &
+       &                    rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &
+       &                    integrationFailureIsFatal               =.true.                                   , &
+       &                    storeTabulations                        =.true.                                   , &
+       &                                                                             nonMonotonicIsFatal                     =.true.                                   , &
+       &                                                                             monotonicInterpolation                  =.false.                                  , &
+       &                                                                             truncateAtParticleHorizon               =.false.                                  , &
+       &                                                                             cosmologyParameters_                    =cosmologyParameters_                     , &
+       &                                                                             cosmologyFunctions_                     =cosmologyFunctions_                      , &
+       &                                                                             linearGrowth_                           =linearGrowth_                            , &
+       &                                                                             powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredSimple_, &
+       &                                                                             powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionSharpKSpace_    &
        &                                                                            )
   sigma8=cosmologicalMassVarianceFilteredPower_%rootVariance(mass8,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('σ(M₈) amplitude with sharp k-space window function',sigma8,(sqrt(2.0d0)*Pi/3.0d0)**(1.0d0/3.0d0),relTol=1.0d-4)

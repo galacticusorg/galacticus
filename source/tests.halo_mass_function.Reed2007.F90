@@ -39,7 +39,7 @@ program Tests_Halo_Mass_Function_Reed2007
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: Transfer_Functions                  , only : transferFunctionFile
+  use :: Transfer_Functions                  , only : transferFunctionFile                    , transferFunctionTypeDarkMatter
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group               , Unit_Tests_End_Group, Unit_Tests_Finish
   use :: ISO_Varying_String                  , only : var_str                                 , operator(//)                         , char                , varying_string
   use :: String_Handling                     , only : operator(//)
@@ -120,8 +120,10 @@ program Tests_Halo_Mass_Function_Reed2007
    <constructor>
     transferFunctionFile                                        (                                                                                                           &amp;
      &amp;                                                        fileName                                ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5', &amp;
+     &amp;                                                        transferFunctionType                    =transferFunctionTypeDarkMatter                                 , &amp;
      &amp;                                                        redshift                                =0.000d0                                                        , &amp;
      &amp;                                                        acceptNegativeValues                    =.false.                                                        , &amp;
+     &amp;                                                        factorWavenumberSmoothExtrapolation     =0.0d0                                                          , &amp;
      &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                                           , &amp;
      &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                                              &amp;
      &amp;                                                       )

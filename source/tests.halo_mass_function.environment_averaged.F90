@@ -45,7 +45,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: Transfer_Functions                  , only : transferFunctionCAMB
+  use :: Transfer_Functions                  , only : transferFunctionCAMB                                        , transferFunctionTypeDarkMatter
   use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                                                                                              :: i
@@ -140,6 +140,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
     transferFunctionCAMB                                        (                                                                                &amp;
      &amp;                                                       redshift                                =0.000d0                              , &amp;
      &amp;                                                       cambCountPerDecade                      =0                                    , &amp;
+     &amp;                                                       transferFunctionType                    =transferFunctionTypeDarkMatter       , &amp;
      &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
      &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
      &amp;                                                       darkMatterParticle_                     =darkMatterParticle_                    &amp;
