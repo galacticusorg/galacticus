@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "0882f7f27a0082b995982d9e0aac168782172ec8",
-        "message": "Merge pull request #729 from galacticusorg/featBaugh2005Normalization\n\nMake the normalization velocity in the `baugh2005` star formation timescale class settable via a parameter\n",
-        "timestamp": "2024-10-25 16:36:30+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
+        "id": "5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
+        "message": "fix: Update arguments to constructors\n",
+        "timestamp": "2024-10-25 20:53:06-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91"
     },
     "results": [
         {

@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageAbove" : 31.25,
+      "percentageBelow" : 68.75,
+      "target" : 0.85
    },
    "commit" : {
+      "url" : "https://github.com/galacticusorg/galacticus/commit/5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
+      "id" : "5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
+         "email" : "abenson@carnegiescience.edu"
       },
-      "timestamp" : "Fri, 25 Oct 2024 16:36:30 +0000",
-      "id" : "0882f7f27a0082b995982d9e0aac168782172ec8",
-      "message" : "Merge pull request #729 from galacticusorg/featBaugh2005Normalization",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
+      "timestamp" : "Fri, 25 Oct 2024 20:53:06 -0700",
+      "message" : "fix: Update arguments to constructors"
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "slope" : {
-      "target" : 0.85,
-      "percentageAbove" : 10.5263157894737,
-      "percentageBelow" : 89.4736842105263
+   "surfaceDensity" : {
+      "percentageAbove" : 53.125,
+      "target" : 0.006,
+      "percentageBelow" : 46.875
    }
 }
