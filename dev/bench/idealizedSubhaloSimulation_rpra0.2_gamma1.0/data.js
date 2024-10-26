@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729938800389,
+  "lastUpdate": 1729974658853,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -3885,6 +3885,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91"
         },
         "date": 1729938799232,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213834512038",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775546264547",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631864004522",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4345e3f5be078d7294fe1774023dc1d0ed664a70",
+          "message": "Merge pull request #730 from galacticusorg/fixDupliactedParametersInOutput\n\nCorrectly handle indices on array parameters",
+          "timestamp": "2024-10-26T13:55:57Z",
+          "tree_id": "4c367798da41d1ec58e05113ace907a6d1f9c27b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4345e3f5be078d7294fe1774023dc1d0ed664a70"
+        },
+        "date": 1729974658155,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
