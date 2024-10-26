@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729665354672,
+  "lastUpdate": 1729906706715,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ed6bffd6daef4250ac13458f1dfc7b0f10d4de32",
-          "message": "feat: Improve documentation",
-          "timestamp": "2024-02-08T09:08:07-08:00",
-          "tree_id": "1f949b67e972f8182efc4a51cc818fc2707c352d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ed6bffd6daef4250ac13458f1dfc7b0f10d4de32"
-        },
-        "date": 1707423011395,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 43.326,
-            "unit": "seconds",
-            "range": 0.0326557804981772
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8716,6 +8686,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20972.7237448846,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0882f7f27a0082b995982d9e0aac168782172ec8",
+          "message": "Merge pull request #729 from galacticusorg/featBaugh2005Normalization\n\nMake the normalization velocity in the `baugh2005` star formation timescale class settable via a parameter",
+          "timestamp": "2024-10-25T16:36:30Z",
+          "tree_id": "31c254a49f6cfed39fc2791d0daaf69da225e339",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
+        },
+        "date": 1729906704752,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.302,
+            "unit": "seconds",
+            "range": 0.0836875140024862
           }
         ]
       }
