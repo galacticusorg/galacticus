@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729906717514,
+  "lastUpdate": 1729938755726,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "d0c330dce5fc9b6d455e455762c7e42167e50ac0",
-          "message": "Merge pull request #553 from galacticusorg/fixHDF5VarLenStringRead\n\nAllow reading of variable length string types from HDF5 attributes",
-          "timestamp": "2024-02-07T23:44:39Z",
-          "tree_id": "e2ad3ae35eb6b1173f6eb7ebd44473d103daff08",
-          "url": "https://github.com/galacticusorg/galacticus/commit/d0c330dce5fc9b6d455e455762c7e42167e50ac0"
-        },
-        "date": 1707360461370,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 156.741,
-            "unit": "seconds",
-            "range": 0.099754197904666
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10660,6 +10630,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.929461239854,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91",
+          "message": "fix: Update arguments to constructors",
+          "timestamp": "2024-10-26T03:53:06Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5d2cf9d1f8f4a5063f0c331bf90ecc20fe432a91"
+        },
+        "date": 1729938754813,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 30.282,
+            "unit": "seconds",
+            "range": 0.0638717464925721
           }
         ]
       }
