@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729665358349,
+  "lastUpdate": 1729906710365,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "6590a605538a5f97ff3cd888539564acc1cc1d99",
-          "message": "Merge pull request #552 from galacticusorg/fixPowerSpectrumErrorReporting\n\nFix power spectrum error reporting",
-          "timestamp": "2024-02-07T02:14:17Z",
-          "tree_id": "8c7393031e79e70b596ff31d5ade12adfc81ad68",
-          "url": "https://github.com/galacticusorg/galacticus/commit/6590a605538a5f97ff3cd888539564acc1cc1d99"
-        },
-        "date": 1707282917358,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 161.907,
-            "unit": "seconds",
-            "range": 0.143471599975541
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10660,6 +10630,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 22.074580779209,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0882f7f27a0082b995982d9e0aac168782172ec8",
+          "message": "Merge pull request #729 from galacticusorg/featBaugh2005Normalization\n\nMake the normalization velocity in the `baugh2005` star formation timescale class settable via a parameter",
+          "timestamp": "2024-10-25T16:36:30Z",
+          "tree_id": "31c254a49f6cfed39fc2791d0daaf69da225e339",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0882f7f27a0082b995982d9e0aac168782172ec8"
+        },
+        "date": 1729906709578,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 28.957,
+            "unit": "seconds",
+            "range": 0.0413775301340892
           }
         ]
       }
