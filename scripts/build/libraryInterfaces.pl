@@ -832,7 +832,6 @@ sub buildFortranReassignments {
 		# Search for any module import of this enumeration type.
 		my $importModule;
 		if ( defined($implementation) ) {
-
 		    my $className = $implementation->{'name'};
 		    while ( defined($className) && ! defined($importModule) ) {
 			foreach my $useBlock ( @{$moduleUsesImplementations->{$className}} ) {
@@ -876,7 +875,12 @@ sub buildFortranReassignments {
 		$argument  ->{'fortran'}->{'passAs'            }                                                       = $argument->{'name'}."_";
 		$argument  ->{'fortran'}->{'reassignment'      }                                                       = ($argument->{'isOptional'} ? "if (present(".$argument->{'name'}.")) " : "")."call c_f_pointer(".$argument->{'name'}.",".$argument->{'name'}."_)\n";
 		@{$argument->{'fortran'}->{'isoCBindingSymbols'}                                                     } = ( "c_f_pointer" );
-		$argument  ->{'fortran'}->{'modules'           }->{$functionClass->{'module'}}->{$argument->{'type'}}  = 1;
+		if ( $argument->{'type'} eq "inputParameters" ) {
+		    # inputParameter objects require a special module use.
+		    $argument->{'fortran'}->{'modules'           }->{'Input_Parameters'        }->{'inputParameters'  }  = 1;
+		} else {
+		    $argument->{'fortran'}->{'modules'           }->{$functionClass->{'module'}}->{$argument->{'type'}}  = 1;
+		}
 	    }
 	} elsif ( $argument->{'isFunctionClass'} ) {
 	    # functionClass arguments must be dereferenced via a specialized function.

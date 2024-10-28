@@ -276,6 +276,7 @@ module Cosmological_Density_Field
     <description>Return a descriptor for this object suitable for normalization-only usage.</description>
     <type>void</type>
     <pass>yes</pass>
+    <modules>Input_Parameters</modules>
     <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
     <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
     <code>
