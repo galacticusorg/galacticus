@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "4345e3f5be078d7294fe1774023dc1d0ed664a70",
-        "message": "Merge pull request #730 from galacticusorg/fixDupliactedParametersInOutput\n\nCorrectly handle indices on array parameters\n",
-        "timestamp": "2024-10-26 13:55:57+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4345e3f5be078d7294fe1774023dc1d0ed664a70"
+        "id": "812c10821686ce406668e9e0d3b7e586b5cd8f6f",
+        "message": "fix(style): Formatting only\n",
+        "timestamp": "2024-10-28 07:34:48-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/812c10821686ce406668e9e0d3b7e586b5cd8f6f"
     },
     "results": [
         {
