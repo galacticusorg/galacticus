@@ -7,7 +7,9 @@
   <verbosityLevel value="working"/>
 
   <!-- Task -->
-  <task value="powerSpectra"/>
+  <task value="powerSpectra">
+    <pointsPerDecade value="10"/>
+  </task>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>
