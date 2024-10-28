@@ -55,6 +55,7 @@
     <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>
 
     <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >
+      <logFileName           value="mcmcProposalSize.log"/>
       <gammaInitial          value="0.500e+0"/>
       <gammaAdjustFactor     value="1.100e+0"/>
       <gammaMinimum          value="1.000e-4"/>

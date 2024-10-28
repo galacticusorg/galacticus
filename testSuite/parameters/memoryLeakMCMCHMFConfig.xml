@@ -39,6 +39,7 @@
       <thresholdHatR value=" 1.20" />
     </posteriorSampleConvergence>
     <posteriorSampleDffrntlEvltnProposalSize value="adaptive">
+      <logFileName           value="testSuite/outputs/memoryLeakMCMCHMF.proposalSize.log"/>
       <acceptanceRateMaximum value="0.90e+0" />
       <acceptanceRateMinimum value="0.10e+0" />
       <gammaAdjustFactor value="1.10e+0" />
