@@ -1116,17 +1116,23 @@ contains
     !!{
     Return the index of and specified entry in the luminosity list given its properties.
     !!}
+    use :: Display             , only : displayReset , displayGreen, displayBlue , displayYellow , &
+         &                              displayBold
     use :: Error               , only : Error_Report
-    use :: ISO_Varying_String  , only : assignment(=), operator(//), operator(==), varying_string
+    use :: ISO_Varying_String  , only : assignment(=), operator(//), operator(==), varying_string, &
+         &                              len
     use :: Numerical_Comparison, only : Values_Agree
     use :: String_Handling     , only : operator(//)
     implicit none
-    character       (len=*         ), intent(in   )           :: filterName      , filterType
+    character       (len=*         ), intent(in   )           :: filterName             , filterType
     double precision                , intent(in   )           :: redshift
     double precision                , intent(in   ), optional :: redshiftBand
     character       (len=*         ), intent(in   ), optional :: postprocessChain
-    integer                                                   :: i
-    character       (len=7         )                          :: label
+    integer                                                   :: i                      , lengthNameMaximum      , &
+         &                                                       countDigitsMaximum     , lengthDescriptorMaximum, &
+         &                                                       countCountDigitsMaximum
+    character       (len=64        )                          :: label                  , digitFormat            , &
+         &                                                       labelCount             , digitDigitFormat
     type            (varying_string)                          :: message
 
     Stellar_Luminosities_Index_From_Properties=-1
@@ -1154,34 +1160,70 @@ contains
           return
        end if
     end do
+    if (luminosityCount > 0) then
+       lengthNameMaximum =max(4,maxval(len(luminosityFilter)))
+       countDigitsMaximum=int(log10(dble(luminosityCount)))+1
+    else
+       lengthNameMaximum =4
+       countDigitsMaximum=1
+    end if
+    countCountDigitsMaximum=int(log10(dble(countDigitsMaximum)))+1
+    lengthDescriptorMaximum=max(9,5+2*countDigitsMaximum)
+    write (digitDigitFormat,'(a,i1,a,i1,a)') '(a,i',countCountDigitsMaximum,',a,i',countCountDigitsMaximum,',a)'
+    write (digitFormat,digitDigitFormat) "(i",countDigitsMaximum,".",countDigitsMaximum,")"
     write (label,'(f7.4)') redshift
-    message='unmatched properties ['//filterName//' : '//filterType//' : '//label
+    message='unmatched properties for requested stellar luminosity:'//char(10)
+    message=message//char(10)//repeat(" ",lengthDescriptorMaximum+2)//'name'    //repeat(" ",lengthNameMaximum-4              )//' '//'type    '//' '//'redshift'
     if (present(redshiftBand)) then
-       write (label,'(f7.4)') redshiftBand
-       message=message//' : '//label
+       message=message//' '//'band-redshift'
     end if
     if (present(postprocessChain)) then
-       message=message//' : '//postprocessChain
+       message=message//' '//'postprocessor'
     end if
-    message=message//']'
-    do i=1,luminosityCount
-       message=message//char(10)//i//" of "//luminosityCount
-       message=message//" : "//luminosityFilter(i)
-       message=message//" : "//luminosityType  (i)
-       write (label,'(f6.3)') luminosityRedshift(i)
-       message=message//" : "//trim(adjustl(label))
-       if (present(redshiftBand)) then
-          write (label,'(f6.3)') luminosityBandRedshift   (i)
-          message=message//" : "//label
-       end if
-       if (present(postprocessChain)) then
-          message=message//" : "//luminosityPostprocessSet(i)
-       end if
-    end do
+    message=message//char(10)//'requested:'//repeat(" ",lengthDescriptorMaximum-9)//' '//filterName//repeat(" ",lengthNameMaximum-len(filterName))//' '//filterType//repeat(" ",8-len(filterType))//' '//trim(adjustl(label))//' '
+    if (present(redshiftBand)) then
+       write (label,'(f7.4)') redshiftBand
+       message=message//' '//trim(adjustl(label))//'       '
+    end if
+    if (present(postprocessChain)) then
+       message=message//' '//postprocessChain
+    end if
+    if (luminosityCount > 0) then
+       message=message//char(10)//'available:'
+       write (labelCount,digitFormat) luminosityCount
+       do i=1,luminosityCount
+          write (label,digitFormat) i
+          message=message//char(10)//" "//trim(label)//" of "//trim(labelCount)//repeat(" ",lengthDescriptorMaximum-4-2*countCountDigitsMaximum)
+          message=message//" "//luminosityFilter(i)//repeat(" ",lengthNameMaximum-len(luminosityFilter(i)))
+          message=message//" "//luminosityType  (i)//repeat(" ",8                -len(luminosityType  (i)))
+          write    (label,'(f7.4)') luminosityRedshift    (i)
+          message   =message//" "//trim(adjustl(label))//" "
+          if (present(redshiftBand)) then
+             write (label,'(f7.4)') luminosityBandRedshift(i)
+             message=message//" "//trim(adjustl(label))//"      "
+          end if
+          if (present(postprocessChain)) then
+             message=message//" "//luminosityPostprocessSet(i)
+          end if
+       end do
+    else
+       message=message//char(10)//'no luminosities available'
+    end if
+    message=message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' you can resolve this by adding the appropriate entries (highlighted in bold) to the following parameters:'
+    message   =message//char(10)//'<'//displayBlue()//'luminosityFilter         '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             filterName        //displayReset()//'"/>'
+    message   =message//char(10)//'<'//displayBlue()//'luminosityType           '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             filterType        //displayReset()//'"/>'
+    write (label,'(f7.4)') redshift
+    message   =message//char(10)//'<'//displayBlue()//'luminosityRedshift       '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//trim(adjustl(label           ))//displayReset()//'"/>'
+    if (present(redshiftBand)) then
+       write (label,'(f7.4)') redshiftBand
+       message=message//char(10)//'<'//displayBlue()//'luminosityBandRedshift   '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//trim(adjustl(label           ))//displayReset()//'"/>'
+    end if
+    if (present(postprocessChain)) then
+       message=message//char(10)//'<'//displayBlue()//'luminosityPostprocessSet '//displayYellow()//'value'//displayReset()//'="'//displayGreen()//displayBold()//             postprocessChain  //displayReset()//'"/>'
+    end if
     call Error_Report(message//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Properties
-
 
   subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,stellarPopulationSpectra_)
     !!{
