@@ -237,7 +237,7 @@ contains
     !!]
 
     if (      present(pointsPerDecade).and.present(pointsPerUnit) ) call Error_Report('can not specify both `pointsPerDecade` and `pointsPerUnit`'   //{introspection:location})
-    if (.not.(present(pointsPerDecade).or. present(pointsPerUnit))) call Error_Report('musy specify either both `pointsPerDecade` or `pointsPerUnit`'//{introspection:location})
+    if (.not.(present(pointsPerDecade).or. present(pointsPerUnit))) call Error_Report('must specify either both `pointsPerDecade` or `pointsPerUnit`'//{introspection:location})
     self%spacingIsLogarithmic=present(pointsPerDecade)
     return
   end function powerSpectraConstructorInternal
