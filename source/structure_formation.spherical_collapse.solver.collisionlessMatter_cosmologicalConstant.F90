@@ -663,6 +663,7 @@ contains
          &                                                                                             overdensityLinearTmp                  , overdensityNonLinearTmp           , &
          &                                                                                             times                                 , overdensitiesLinear
     double precision                                                  , allocatable, dimension(:,:) :: linearNonlinearMap__
+    type            (integrator                                      ), allocatable                 :: integrator_
     double precision                                                                                :: expansionFactor                       , epsilonPerturbationMaximum        , &
          &                                                                                             epsilonPerturbationCollapsed          , radiusNow                         , &
          &                                                                                             epsilonPerturbation                   , epsilonPerturbationMinimum        , &
@@ -670,7 +671,6 @@ contains
          &                                                                                             normalization                         , overdensityNonlinear_             , &
          &                                                                                             timesMinimum                          , timesMaximum
     logical                                                                                         :: finderPerturbationConstructed         , finderRadiusConstructed
-    type            (integrator                                      )                              :: integrator_
     type            (rootFinder                                      )                              :: finderPerturbation                    , finderRadius
     integer                                                                                         :: i                                     , timeCount                         , &
          &                                                                                             iOverdensityLinear                    , iOverdensity                      , &
@@ -764,6 +764,7 @@ contains
              epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
              ! For non-collapsed regions, ε will be greater then that for a collapsed perturbation. Step through values until
              ! sufficiently low non-linear overdensity is reached.
+             allocate(integrator_)
              integrator_        =integrator(cllsnlssMttCsmlgclCnstntPerturbationIntegrand,toleranceRelative=1.0d-6,hasSingularities =.true.)
              epsilonPerturbation=epsilonPerturbationCollapsed
              i=0
@@ -860,6 +861,7 @@ contains
                      &                  -1.0d0
                 if (overdensityNonLinear(i) <= -0.99d0) exit
              end do
+             deallocate(integrator_)
              ! Reverse the arrays such that we have overdensity increasing.
              overdensityLinearTmp   =Array_Reverse(overdensityLinear   (1:i))
              overdensityNonLinearTmp=Array_Reverse(overdensityNonLinear(1:i))
