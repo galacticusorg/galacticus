@@ -260,11 +260,18 @@ contains
        end do
        energyDerivativeVelocityEscapeScaleFree=energyDerivativeVelocityEscapeScaleFree*velocityDispersion**2
        energyDerivativeVelocityKickScaleFree  =0.0d0
-       do jVelocityEscape =0,1
-          energyDerivativeVelocityKickScaleFree  =+energyDerivativeVelocityKickScaleFree                                                                                                                                               &
-               &                                  +(energyRetained           (iVelocityEscape(jVelocityEscape),iVelocityKick(            1))-energyRetained           (iVelocityEscape(jVelocityEscape),iVelocityKick(            0))) &
-               &                                  /(velocitiesKickScaleFree  (                                 iVelocityKick(            1))-velocitiesKickScaleFree  (                                 iVelocityKick(            0))) &
-               &                                  *                           hVelocityEscape(jVelocityEscape)
+       do jVelocityEscape =0,1        
+          ! Note that, since we expect ε/σ² ~ xₖ² when all energy is retained, we evalute this derivative as:
+          !
+          !   d(ε/σ²)/dxₖ =  d(ε/σ²)/d(xₖ²) d(xₖ²)/dx = d(ε/σ²)/d(xₖ²) 2 xₖ ≅ Δ(ε/σ²)/Δ(xₖ²) 2 xₖ
+          !
+          ! thereby ensuring that the finite difference derivative is precise in the limit of all energy being retained.
+          energyDerivativeVelocityKickScaleFree  =+energyDerivativeVelocityKickScaleFree                                                                                                                                                     &
+               &                                  +(energyRetained           (iVelocityEscape(jVelocityEscape),iVelocityKick(            1))   -energyRetained           (iVelocityEscape(jVelocityEscape),iVelocityKick(            0))   ) &
+               &                                  /(velocitiesKickScaleFree  (                                 iVelocityKick(            1))**2-velocitiesKickScaleFree  (                                 iVelocityKick(            0))**2) &
+               &                                  *                           hVelocityEscape(jVelocityEscape)                                                                                                                               &
+               &                                  *2.0d0                                                                                                                                                                                     &
+               &                                  *velocityKickScaleFree
        end do
        energyDerivativeVelocityKickScaleFree  =energyDerivativeVelocityKickScaleFree  *velocityDispersion**2
     end if
