@@ -12,6 +12,8 @@ jobs:
       - name: Check for app ID
         env: 
             appid: ${{ secrets.DEPLOY_APP_ID }}
+        run: |
+          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -45,6 +47,8 @@ jobs:
       - name: Check for app ID
         env: 
             appid: ${{ secrets.DEPLOY_APP_ID }}
+        run: |
+          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -78,6 +82,8 @@ jobs:
       - name: Check for app ID
         env: 
             appid: ${{ secrets.DEPLOY_APP_ID }}
+        run: |
+          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -112,6 +118,8 @@ jobs:
       - name: Check for app ID
         env: 
             appid: ${{ secrets.DEPLOY_APP_ID }}
+        run: |
+          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -145,6 +153,8 @@ jobs:
       - name: Check for app ID
         env: 
             appid: ${{ secrets.DEPLOY_APP_ID }}
+        run: |
+          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -184,6 +194,8 @@ jobs:
       - name: Check for app ID
         env: 
             appid: ${{ secrets.DEPLOY_APP_ID }}
+        run: |
+          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
