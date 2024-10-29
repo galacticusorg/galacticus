@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "812c10821686ce406668e9e0d3b7e586b5cd8f6f",
-        "message": "fix(style): Formatting only\n",
-        "timestamp": "2024-10-28 07:34:48-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/812c10821686ce406668e9e0d3b7e586b5cd8f6f"
+        "id": "ce0ddd69a8f3fc9f3025e415359ae14a97a1c4df",
+        "message": "fix: Avoid memory leak\n",
+        "timestamp": "2024-10-28 12:21:19-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ce0ddd69a8f3fc9f3025e415359ae14a97a1c4df"
     },
     "results": [
         {
