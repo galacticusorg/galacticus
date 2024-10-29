@@ -1095,7 +1095,9 @@ jobs:
                 test-impulsiveHeating.pl,
                 test-haloTriaxiality.pl,
                 test-parallelTreeBuild.pl,
-                test-duplicatedOutputPropertyName.pl ]
+                test-duplicatedOutputPropertyName.pl,
+                test-decayingDM-caustic.py,
+                test-decayingDM-profile.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1204,7 +1206,8 @@ jobs:
                 testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
                 testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
                 testSuite/regressions/outputRank2ExtendSegFault.xml,
-                testSuite/regressions/barInstabilityFPE.xml ]
+                testSuite/regressions/barInstabilityFPE.xml,
+                testSuite/regressions/decayingDM-non-monotonic-mass-profile.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
