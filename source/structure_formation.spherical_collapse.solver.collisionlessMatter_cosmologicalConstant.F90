@@ -641,7 +641,8 @@ contains
     use :: Array_Utilities      , only : Array_Reverse
     use :: Arrays_Search        , only : searchArray
     use :: Error                , only : Error_Report
-    use :: File_Utilities       , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor
+    use :: File_Utilities       , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor, &
+         &                               Directory_Make           , File_Path
     use :: HDF5_Access          , only : hdf5Access
     use :: IO_HDF5              , only : hdf5Object
     use :: Linear_Growth        , only : normalizeMatterDominated
@@ -901,6 +902,8 @@ contains
              end do
           end do
           ! Store the map to file.
+          ! Ensure that the directory exists.
+          call Directory_Make(File_Path(self%fileNameNonLinearMap))
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(char(self%fileNameNonLinearMap),fileLock,lockIsShared=.false.)
           !$ call hdf5Access%set()
