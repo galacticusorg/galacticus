@@ -34,8 +34,8 @@
       \mathrm{d}/\mathrm{d}r \left[ \frac{\epsilon}{\mathrm{G} M(r) / r} \right] > 0,
       \end{equation}
       where $\epsilon$ is the specific heating energy \citep{du_tidal_2024}. At radii smaller than the shell-crossing radius
-      defined by the above condition the specific energy is assumed to be proportional to ${\mathrm{G} M(r) / r$, with a smooth
-      transition through this radius/
+      defined by the above condition the specific energy is assumed to be proportional to $\mathrm{G} M(r) / r$, with a smooth
+      transition through this radius.
     </description>
   </darkMatterProfileHeating>
   !!]
