@@ -199,7 +199,10 @@ contains
             &                                                          radius                 &
             &                                                         )                       &
             &  /massEnclosed                                                                  &
-            &  +0.5d0                                                                         &
+            &  +(                                                                             &
+            &    +0.5d0                                                                       &
+            &    -self%toleranceShellCrossing                                                 &
+            &   )                                                                             &
             &  *gravitationalConstantGalacticus                                               &
             &  *massEnclosed                                                                  &
             &  /radius
