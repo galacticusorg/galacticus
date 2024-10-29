@@ -232,7 +232,7 @@ contains
        if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
        if (self%energyPerturbationShellCrossing < 0.0d0) then
           call self%computeRadiusShellCrossing                                              (                       &
-               &                                                                            node                 , &
+               &                                                                             node                 , &
                &                                                                             radius               , &
                &                                                                             darkMatterProfileDMO_  &
                &                                                                            )
@@ -343,14 +343,14 @@ contains
           if (.not.self%noShellCrossingIsValid(node,radiusSearch,darkMatterProfileDMO_)) radiusShellCrossingMinimum=radiusSearch
           radiusSearch=factorRadius*radiusSearch
        end do
-       ! Seek the exact radius at which shell-crossing first occurs. Use an upward expansion step matched to that in our prior
-       ! search since we know that the root should be within this range.
+       ! Seek the exact radius at which shell-crossing first occurs. Use an expansion step matched to that in our prior search
+       ! since we know that the root should be within this range.
        self_                  => self
        node_                  => node
        darkMatterProfileDMO__ => darkMatterProfileDMO_
        call self%finder%rangeExpand(                                                             &
-            &                       rangeExpandUpward            =factorRadius                 , &
-            &                       rangeExpandDownward          =1.0d0                        , &
+            &                       rangeExpandUpward            =1.0d0*factorRadius           , &
+            &                       rangeExpandDownward          =1.0d0/factorRadius           , &
             &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
             &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
             &                       rangeExpandType              =rangeExpandMultiplicative      &
