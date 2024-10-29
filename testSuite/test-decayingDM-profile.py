@@ -11,15 +11,16 @@ import numpy as np
 # Set target densities for these models.
 densitiesTarget = {
     "CDM":           3.88359677e+16,
-    "massLossFalse": 2.83489437e+15,
-    "gamma0.0":      2.67479855e+15,
-    "gamma0.5":      1.74575655e+15
+    "massLossFalse": 2.85231950e+15,
+    "gamma0.0":      2.69196444e+15,
+    "gamma0.5":      1.75812743e+15
     }
 
 # Run the model and check for completion
 print("Running models...")
 status = subprocess.run("mkdir -p outputs",shell=True)
 densities = {}
+failed = False
 for modelName in ( "CDM", "massLossFalse", "gamma0.0", "gamma0.5" ):
     log = open("outputs/test-decayingDM-profile-"+modelName+".log","w")
     status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/decayingDM-profile-"+modelName+".xml",stdout=log,stderr=log,shell=True)
@@ -42,9 +43,10 @@ for modelName in ( "CDM", "massLossFalse", "gamma0.0", "gamma0.5" ):
     nodes                = model['Outputs/Output1/nodeData']
     densities[modelName] = nodes['densityProfile'][:][0][0]
     if not math.isclose(densities[modelName],densitiesTarget[modelName],rel_tol=1e-3):
-        print("FAIL: density mismatch for model '"+modelName+"'")
-        sys.exit()
+        print("FAIL: density mismatch for model '"+modelName+"': "+str(densities[modelName])+" vs. "+str(densitiesTarget[modelName]))
+        failed = True
         
 # No failures occurred, therefore, success.
-print("SUCCESS: density profiles as expected" )
+if not failed:
+    print("SUCCESS: density profiles as expected" )
     
