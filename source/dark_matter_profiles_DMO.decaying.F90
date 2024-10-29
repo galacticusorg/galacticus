@@ -43,7 +43,8 @@
    contains
      !![
      <methods>
-       <method description="Reset memoized calculations." method="calculationReset"/>
+       <method description="Reset memoized calculations."          method="calculationReset"/>
+       <method description="Compute the density reduction factor." method="decayingFactor"  />
      </methods>
      !!]
      final     ::                                      decayingDestructor
