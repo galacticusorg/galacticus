@@ -276,6 +276,13 @@ contains
           iMaximum=nint(log(self%genericEnclosedMassRadiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
           masses(iMinimum:iMaximum)=self%genericEnclosedMassMass
        end if
+       !! If ignoring errors in mass profile tabulation we must always compute the profile completely if we have a new minimum
+       !! radius. Failure to do so can lead to non-monotonically increasing mass profiles (which lead to negative densities) due
+       !! to prior failures in computing the mass profile.
+       if (self%tolerateEnclosedMassIntegrationFailure .and. iMinimum > 1_c_size_t) then
+          iMinimum=+huge(0_c_size_t)
+          iMaximum=-huge(0_c_size_t)
+       end if
        ! Solve for the enclosed mass where old results were unavailable.
        do i=1,countRadii
           ! Skip cases for which we have a pre-existing solution.
@@ -669,12 +676,14 @@ contains
     class           (darkMatterProfileGeneric), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: radius
+    double precision                                          :: massEnclosed
 
-    if (radius > 0.0d0) then   
+    if (radius > 0.0d0) then
+       massEnclosed                    =self%enclosedMass(node,radius)
        genericCircularVelocityNumerical=sqrt(                                 &
             &                                +gravitationalConstantGalacticus &
-            &                                *self%enclosedMass(node,radius)  &
-            &                                /                       radius   &
+            &                                *massEnclosed                    &
+            &                                /radius                          &
             &                               )
     else
        genericCircularVelocityNumerical=0.0d0
