@@ -140,6 +140,7 @@ contains
     self%radius                        =-huge(0.0d0)
     self%factorsComputed               =.false.
     self%massEnclosedComputed          =.false.
+    self%potentialEscapeComputed       =.false.
     self%energySpecificComputed        =.false.
     self%energySpecificGradientComputed=.false.
     return
@@ -217,6 +218,7 @@ contains
        self%radius                        =-huge(0.0d0)
        self%factorsComputed               =.false.
        self%massEnclosedComputed          =.false.
+       self%potentialEscapeComputed       =.false.
        self%energySpecificComputed        =.false.
        self%energySpecificGradientComputed=.false.       
     end if
@@ -356,12 +358,12 @@ contains
           energyDerivativeVelocityEscapeScaleFree=0.0d0
        end if
        ! Compute the specific heating gradient.
-       self%energySpecificGradient=+(                                                                                                                                                            &
-         &                   +((1.0d0-self%fractionRetained)+self%massSplitting_*self%fractionRetained)*massLossGradient                                                                           &
-         &                   +(energyDerivativeVelocityDispersion     +(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityDispersion     *self%massLossEnergy)*velocityDispersionGradient &
-         &                   +(energyDerivativeVelocityEscapeScaleFree+(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityEscapeScaleFree*self%massLossEnergy)*velocityEscapeGradient     &
-         &                  )                                                                                                                                                            &
-         &                 *self%fractionDecayed
+       self%energySpecificGradient=+(                                                                                                                                                                 &
+            &                        +((1.0d0-self%fractionRetained)+self%massSplitting_*self%fractionRetained)*massLossGradient                                                                      &
+            &                        +(energyDerivativeVelocityDispersion     +(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityDispersion     *self%massLossEnergy)*velocityDispersionGradient &
+            &                        +(energyDerivativeVelocityEscapeScaleFree+(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityEscapeScaleFree*self%massLossEnergy)*velocityEscapeGradient     &
+            &                       )                                                                                                                                                                 &
+            &                      *self%fractionDecayed
        self%energySpecificGradientComputed=.true.
     end if
     return
