@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Xiaolong Du
+  
 !!{
-Contains a module which implements a merger tree build controller class which builds trees containing only the main branch and
-descendants of the node on the main branch above a certain mass fraction.
+Implements a merger tree build controller class which builds trees containing only the main branch and
+progenitors of the node on the main branch above a certain mass fraction.
 !!}
 
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerMainBranch">
-   <description>A merger tree build controller class which builds trees containing only the main branch and descendants of the node on the main branch above a certain mass fraction.</description>
+    <description>
+      A merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the
+      main branch above a certain mass fraction. Specifically, if a progenitor node of the node on the main branch has a mass
+      below a certain mass fraction relative to the main branch node, the branch will not grow any further.
+    </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerMainBranch
      !!{     
-     A merger tree build controller class which builds trees containing only the main branch and descendants of the node on the
-     main branch above a certain mass fraction. Specifically, if a descendant node of the node on the main branch has a mass
-     below a certain mass fraction relative to the main branch node, the node will not grow any further.
+     A merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the
+     main branch above a certain mass fraction. Specifically, if a progenitor node of the node on the main branch has a mass
+     below a certain mass fraction relative to the main branch node, the branch will not grow any further.
      !!}
      private
      class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
@@ -69,7 +75,9 @@ contains
       <name>massFraction</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Mass fraction relative to the ancestor node on the main branch below which the descendant node does not grow any further.</description>
+      <description>
+	Mass fraction relative to the descendant node on the main branch below which the progenitor branch does not grow any further.
+      </description>
     </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     !!]
@@ -109,9 +117,10 @@ contains
     return
   end subroutine mainBranchDestructor
 
-  logical function mainBranchControl(self,node,treeWalker_)
+  logical function mainBranchControl(self,node,treeWalker_) result(control)
     !!{
-    Skip side branches of a tree under construction.
+    Skip side branches of a tree under construction if the mass of the node is below a certain fraction relative to its descendant
+    on the main branch.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -120,16 +129,16 @@ contains
     class(mergerTreeWalkerClass              ), intent(inout), optional :: treeWalker_
     class(nodeComponentBasic                 )               , pointer  :: basic
 
-    mainBranchControl=.true.
+    control=.true.
     ! Move to the next node in the tree while such exists, and the mass of current node is below a certain fraction
-    ! relative to its ancestor on the main branch.
-    do while (mainBranchControl.and.associated(node%parent))
+    ! relative to its descendant on the main branch.
+    do while (control.and.associated(node%parent))
        basic => node%basic()
-       if(basic%mass() < self%massFraction*massAncestorOnMainBranch(node)) then
+       if (basic%mass() < self%massFraction*massDescendantOnMainBranch(node)) then
           if (present(treeWalker_)) then
-             mainBranchControl=treeWalker_%next(node)
+             control=treeWalker_%next(node)
           else
-             mainBranchControl=.false.
+             control=.false.
           end if
        else
           return
@@ -138,24 +147,24 @@ contains
     return
   end function mainBranchControl
 
-  double precision function massAncestorOnMainBranch(node)
+  double precision function massDescendantOnMainBranch(node) result(mass)
     !!{
-    Find the mass of the ancestor node on the main branch.
+    Find the mass of the descendant node on the main branch.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer  :: node
-    type (treeNode          )               , pointer  :: workNode
+    type (treeNode          )               , pointer  :: nodeWork
     class(nodeComponentBasic)               , pointer  :: basic
 
-    workNode => node
-    do while(.not.workNode%isOnMainBranch().and.associated(workNode%parent))
-       workNode => workNode%parent
+    nodeWork => node
+    do while (.not.nodeWork%isOnMainBranch().and.associated(nodeWork%parent))
+       nodeWork => nodeWork%parent
     end do
-    basic                    => workNode%basic()
-    massAncestorOnMainBranch =  basic   %mass ()
+    basic => nodeWork%basic()
+    mass  =  basic   %mass ()
     return
-  end function massAncestorOnMainBranch
+  end function massDescendantOnMainBranch
 
   function mainBranchBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
     !!{
