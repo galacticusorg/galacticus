@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730187393242,
+  "lastUpdate": 1730284217046,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "2347f1be84d73ea4f54355a8032e19069005df36",
-          "message": "Merge pull request #566 from galacticusorg/fixVelocityOrbitalOutput\n\nMake orbital velocities relative to the eventual host halo when tracking pre-infall orbits",
-          "timestamp": "2024-02-23T16:27:57Z",
-          "tree_id": "e99409d613819615520400e14ac22da29f68ea4f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2347f1be84d73ea4f54355a8032e19069005df36"
-        },
-        "date": 1708716757792,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 43.016,
-            "unit": "seconds",
-            "range": 0.102373824779164
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8708,6 +8678,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20783.6174211798,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d3a981eeaf261e216556f72b776631d8557991ff",
+          "message": "Merge pull request #732 from galacticusorg/treeBuildControllerMainBranch\n\nImplement a merger tree build controller class which builds trees containing only the main branch and certain descendants",
+          "timestamp": "2024-10-30T00:01:15Z",
+          "tree_id": "0f5d9880e45290e7bf0ecbee24a9de4709ff316c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d3a981eeaf261e216556f72b776631d8557991ff"
+        },
+        "date": 1730284214179,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.085,
+            "unit": "seconds",
+            "range": 0.0946070821872852
           }
         ]
       }
