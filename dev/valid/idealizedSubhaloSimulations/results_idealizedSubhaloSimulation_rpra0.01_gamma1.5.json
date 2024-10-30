@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "ce0ddd69a8f3fc9f3025e415359ae14a97a1c4df",
-        "message": "fix: Avoid memory leak\n",
-        "timestamp": "2024-10-28 12:21:19-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ce0ddd69a8f3fc9f3025e415359ae14a97a1c4df"
+        "id": "d3a981eeaf261e216556f72b776631d8557991ff",
+        "message": "Merge pull request #732 from galacticusorg/treeBuildControllerMainBranch\n\nImplement a merger tree build controller class which builds trees containing only the main branch and certain descendants\n",
+        "timestamp": "2024-10-30 00:01:15+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d3a981eeaf261e216556f72b776631d8557991ff"
     },
     "results": [
         {
