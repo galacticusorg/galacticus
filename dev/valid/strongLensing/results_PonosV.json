@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "surfaceDensity" : {
+      "target" : 0.006,
+      "percentageAbove" : 53.125,
+      "percentageBelow" : 46.875
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
    "slope" : {
-      "percentageAbove" : 29.4117647058824,
-      "percentageBelow" : 70.5882352941177,
+      "percentageAbove" : 33.3333333333333,
+      "percentageBelow" : 66.6666666666667,
       "target" : 0.85
    },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "surfaceDensity" : {
-      "percentageBelow" : 50,
-      "target" : 0.006,
-      "percentageAbove" : 50
-   },
    "commit" : {
-      "message" : "Merge pull request #732 from galacticusorg/treeBuildControllerMainBranch",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/d3a981eeaf261e216556f72b776631d8557991ff",
-      "timestamp" : "Wed, 30 Oct 2024 00:01:15 +0000",
-      "id" : "d3a981eeaf261e216556f72b776631d8557991ff",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
-      }
+         "email" : "abenson@carnegiescience.edu"
+      },
+      "timestamp" : "Tue, 29 Oct 2024 18:43:25 -0700",
+      "id" : "a1ef8729614c387b32e090fc61d08e2a7b04bc81",
+      "message" : "fix: Update file name in test model",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/a1ef8729614c387b32e090fc61d08e2a7b04bc81"
    }
 }
