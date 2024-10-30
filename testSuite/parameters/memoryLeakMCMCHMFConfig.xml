@@ -3,7 +3,7 @@
   <posteriorSampleLikelihood value="haloMassFunction">
     <baseParametersFileName value="testSuite/parameters/memoryLeakMCMCHMFParameters.xml"/>
     <binCountMinimum value="0" />
-    <fileName value="%DATASTATICPATH%/darkMatter/haloMassFunction_MilkyWay_Halo004_z0.000.hdf5" />
+    <fileName value="%DATASTATICPATH%/darkMatter/haloMassFunction_Symphony_MilkyWay_CDM_Halo004_z0.000.hdf5" />
     <likelihoodModel value="simulationSphere" />
     <likelihoodPoisson value="true" />
     <massRangeMaximum value="1.03214e+11" />
