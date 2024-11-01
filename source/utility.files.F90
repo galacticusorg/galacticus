@@ -230,7 +230,12 @@ contains
     character(len=len(fileName))                :: parentName
     integer                                     :: lengthParent
     !$GLC attributes initialized ::  parentName
-    
+
+    ! Handle empty file names.
+    if (fileName == "") then
+       File_Exists_Char=.false.
+       return
+    end if
     ! Find the name of the parent directory.
     parentName  =      fileName
     lengthParent=len(parentName)
