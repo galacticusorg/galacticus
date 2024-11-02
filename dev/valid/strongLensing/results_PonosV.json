@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageAbove" : 53.125,
-      "percentageBelow" : 46.875
-   },
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "slope" : {
-      "percentageAbove" : 33.3333333333333,
-      "percentageBelow" : 66.6666666666667,
-      "target" : 0.85
-   },
    "commit" : {
+      "id" : "2c6d295fc6c85a40c8e949ec869b908cd58dbe2c",
+      "timestamp" : "Sat, 2 Nov 2024 14:50:37 +0000",
       "author" : {
          "name" : "Andrew Benson",
-         "email" : "abenson@carnegiescience.edu"
+         "email" : "abensonca@gmail.com"
       },
-      "timestamp" : "Tue, 29 Oct 2024 18:43:25 -0700",
-      "id" : "a1ef8729614c387b32e090fc61d08e2a7b04bc81",
-      "message" : "fix: Update file name in test model",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/a1ef8729614c387b32e090fc61d08e2a7b04bc81"
-   }
+      "url" : "https://github.com/galacticusorg/galacticus/commit/2c6d295fc6c85a40c8e949ec869b908cd58dbe2c",
+      "message" : "Merge pull request #733 from galacticusorg/fixMemoryIssues"
+   },
+   "slope" : {
+      "percentageAbove" : 29.4117647058824,
+      "percentageBelow" : 70.5882352941177,
+      "target" : 0.85
+   },
+   "surfaceDensity" : {
+      "percentageBelow" : 53.125,
+      "percentageAbove" : 46.875,
+      "target" : 0.006
+   },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }

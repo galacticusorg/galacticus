@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "a1ef8729614c387b32e090fc61d08e2a7b04bc81",
-        "message": "fix: Update file name in test model\n",
-        "timestamp": "2024-10-29 18:43:25-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/a1ef8729614c387b32e090fc61d08e2a7b04bc81"
+        "id": "2c6d295fc6c85a40c8e949ec869b908cd58dbe2c",
+        "message": "Merge pull request #733 from galacticusorg/fixMemoryIssues\n\nFix various memory issues\n",
+        "timestamp": "2024-11-02 14:50:37+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2c6d295fc6c85a40c8e949ec869b908cd58dbe2c"
     },
     "results": [
         {
