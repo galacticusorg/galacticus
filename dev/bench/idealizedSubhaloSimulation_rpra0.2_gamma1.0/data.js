@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730296366688,
+  "lastUpdate": 1730580953971,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -4076,6 +4076,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/a1ef8729614c387b32e090fc61d08e2a7b04bc81"
         },
         "date": 1730296366221,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213834512038",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775546264547",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631864004522",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2c6d295fc6c85a40c8e949ec869b908cd58dbe2c",
+          "message": "Merge pull request #733 from galacticusorg/fixMemoryIssues\n\nFix various memory issues",
+          "timestamp": "2024-11-02T14:50:37Z",
+          "tree_id": "e16c64785fb926edefd5055946fc81e80903b3a0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2c6d295fc6c85a40c8e949ec869b908cd58dbe2c"
+        },
+        "date": 1730580952859,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
