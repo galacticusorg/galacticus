@@ -638,7 +638,8 @@ contains
     type            (mergerTree               ), target   , intent(inout) :: tree
     double precision                                      , intent(in   ) :: timeEnd
     logical                                               , intent(inout) :: treeDidEvolve
-    logical                                               , intent(  out) :: anyTreeExistsAtOutputTime       , hasInterTreeEvent
+    logical                                               , intent(inout) :: anyTreeExistsAtOutputTime
+    logical                                               , intent(  out) :: hasInterTreeEvent
     integer         (omp_lock_kind            ), optional , intent(inout) :: initializationLock
     double precision                           , parameter                :: timeTolerance            =1.0d-5
     type            (mergerTree               ), pointer                  :: currentTree
