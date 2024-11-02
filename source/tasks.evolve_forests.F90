@@ -738,9 +738,9 @@ contains
                 write (label,self%outputTimeFormat) evolveToTime
                 message="Output tree data at t="//trim(label)//" Gyr"
                 call displayMessage(message)
-                call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
-                ! Perform any extra output and post-output processing on nodes.
                 if (associated(tree)) then
+                   call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
+                   ! Perform any extra output and post-output processing on nodes.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                    do while (treeWalkerAll%next(node))
                       basic => node%basic()
