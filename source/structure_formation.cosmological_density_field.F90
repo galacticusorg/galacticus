@@ -323,26 +323,33 @@ module Cosmological_Density_Field
 
 contains
 
-  double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node)
+  double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node,status)
     !!{
     Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
     !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: Error              , only : Error_Report                  , errorStatusSuccess           , errorStatusOutOfRange
     implicit none
     class           (criticalOverdensityClass), intent(inout)              , target :: self
     double precision                          , intent(in   )                       :: criticalOverdensity
     double precision                          , intent(in   ), optional             :: mass
     type            (treeNode                ), intent(inout), optional    , target :: node
-    double precision                          , parameter                           :: toleranceRelative       =1.0d-12, toleranceAbsolute       =0.0d0
-    integer                                   , parameter                           :: countPerUnit            =10000
+    integer                                   , intent(  out), optional             :: status
+    double precision                          , parameter                           :: toleranceRelative                =1.0d-12, toleranceAbsolute       =0.0d0, &
+         &                                                                             fractionTimeCollapseGrowthMinimum=1.0d-03
+    integer                                   , parameter                           :: countPerUnit                     =10000
     double precision                          , allocatable  , dimension(:)         :: threshold
-    double precision                                                                :: timeBigCrunch                   , collapseThresholdMinimum      , &
-         &                                                                             collapseThresholdMaximum        , timeGuess
-    logical                                                                         :: updateResult                    , remakeTable
-    integer                                                                         :: i                               , countThresholds               , &
-         &                                                                             countNewLower                   , countNewUpper
+    double precision                                                                :: timeBigCrunch                            , timeGuess                     , &
+         &                                                                             collapseThresholdMinimum                 , collapseThresholdMaximum      , &
+         &                                                                             collapseTimePrevious                     , collapseTimeUpperLimit        , &
+         &                                                                             timeUpperLimit
+    logical                                                                         :: updateResult                             , remakeTable
+    integer                                                                         :: i                                        , countThresholds               , &
+         &                                                                             countNewLower                            , countNewUpper
 
+    ! Assume a successful calculation by default.
+    if (present(status)) status=errorStatusSuccess    
     ! Determine dependencies.
     if (.not.self%dependenciesInitialized) then
        self%isMassDependent_=self%isMassDependent() .or. self%cosmologicalMassVariance_%growthIsMassDependent()
@@ -472,6 +479,34 @@ contains
           end if
           self%timeOfCollapsePrevious=self%collapseThreshold%interpolate(criticalOverdensity)
        else
+          ! Check that we can find an upper bound to the collapse time. In some cosmologies (e.g. those with a cosmological
+          ! constant) there is a limit to how much the linear growth factor can increase - and therefore some critical
+          ! overdensities will never be reached.
+          timeUpperLimit        =+self%cosmologyFunctions_%cosmicTime               (expansionFactor=1.0d0         )
+          collapseTimeUpperLimit=+self                    %criticalOverdensityTarget                                 &
+               &                 -                         collapseTimeRoot         (                timeUpperLimit)
+          do while (collapseTimeRoot(timeUpperLimit) < 0.0d0)
+             timeUpperLimit        =+2.0d0                                          &
+                  &                 *                               timeUpperLimit
+             collapseTimePrevious  =+     collapseTimeUpperLimit
+             collapseTimeUpperLimit=+self%criticalOverdensityTarget                 &
+                  &                 -     collapseTimeRoot         (timeUpperLimit)
+             ! Check if the collapsing density has increased by some minimal amount as we doubled the time of collapse.
+             if     (                                                                                                      &
+                  &   collapseTimePrevious-collapseTimeUpperLimit < fractionTimeCollapseGrowthMinimum*collapseTimePrevious &
+                  &  .and.                                                                                                 &
+                  &   collapseTimeRoot(timeUpperLimit)            < 0.0d0                                                  &
+                  & ) then
+                ! It did not, suggesting that there is no solution for the collapse time.
+                if (present(status)) then
+                   criticalOverdensityTimeOfCollapse=-huge(0.0d0)
+                   status                           =errorStatusOutOfRange
+                   return
+                else
+                   call Error_Report('unable to bracket collapse time - this can happen in cosmologies with a upper bound to the linear growth (e.g. cosmological constant models)'//{introspection:location})
+                end if
+             end if
+          end do
           self%timeOfCollapsePrevious=self%finderTimeOfCollapse%find(rootGuess=self%timeOfCollapsePrevious)
        end if
     end if
