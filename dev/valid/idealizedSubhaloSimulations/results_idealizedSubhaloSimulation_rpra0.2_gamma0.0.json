@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "2c6d295fc6c85a40c8e949ec869b908cd58dbe2c",
-        "message": "Merge pull request #733 from galacticusorg/fixMemoryIssues\n\nFix various memory issues\n",
-        "timestamp": "2024-11-02 14:50:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/2c6d295fc6c85a40c8e949ec869b908cd58dbe2c"
+        "id": "a06d1a1912e28feda2d95af97fa523e304c03b83",
+        "message": "Merge pull request #734 from galacticusorg/fixTimeOfCollapseUndefined\n\nCatch cases where the time of collapse for a halo is undefined\n",
+        "timestamp": "2024-11-05 13:58:50+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a06d1a1912e28feda2d95af97fa523e304c03b83"
     },
     "results": [
         {
