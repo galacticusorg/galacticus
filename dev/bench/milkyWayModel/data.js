@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730580920225,
+  "lastUpdate": 1730837569229,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "fe19e1a2fd3a716ef1ef35aed4e29eaf049dbf9d",
-          "message": "Merge pull request #567 from galacticusorg/featOutputSelectorTimes\n\nAllow specifying output selection via time in addition to redshift",
-          "timestamp": "2024-02-27T18:11:12Z",
-          "tree_id": "6f70047c8290171cd9eb1c3d8b80811457587cd9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/fe19e1a2fd3a716ef1ef35aed4e29eaf049dbf9d"
-        },
-        "date": 1709078514133,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 150.987,
-            "unit": "seconds",
-            "range": 0.0646846194942114
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.8720966569678,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a06d1a1912e28feda2d95af97fa523e304c03b83",
+          "message": "Merge pull request #734 from galacticusorg/fixTimeOfCollapseUndefined\n\nCatch cases where the time of collapse for a halo is undefined",
+          "timestamp": "2024-11-05T13:58:50Z",
+          "tree_id": "8ccc9d84eab2f717658c27c4e4032c7d4fc926d4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a06d1a1912e28feda2d95af97fa523e304c03b83"
+        },
+        "date": 1730837568390,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 26.866,
+            "unit": "seconds",
+            "range": 0.0403286498657943
           }
         ]
       }
