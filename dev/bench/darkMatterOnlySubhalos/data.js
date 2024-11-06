@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730865531274,
+  "lastUpdate": 1730865538855,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "ba8109553e88d7c84ab0d67ab459aa8fd692cc27",
-          "message": "Merge pull request #570 from galacticusorg/featFlexibleTypeIaDTDs\n\nRefactor the supernovae type Ia delay time distribution class",
-          "timestamp": "2024-02-29T23:20:21Z",
-          "tree_id": "3689bf360207b35fef58f17fbf48ede2170a9fa2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ba8109553e88d7c84ab0d67ab459aa8fd692cc27"
-        },
-        "date": 1709261416815,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.5878497871384,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.1402444122469,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23730.4495023497,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8704,6 +8665,45 @@ window.BENCHMARK_DATA = {
             "value": 48.051,
             "unit": "seconds",
             "range": 0.0469989361577431
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
+          "message": "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch\n\nNumerical imprecisions could previously lead to no solution for the halo mass in the reference model. We now catch these and set the halo mass to the maximum allowed (since these are cases where the halo is collapsing very close to the current epoch).",
+          "timestamp": "2024-11-05T13:38:18-08:00",
+          "tree_id": "86aedeafb3fd19bf781aada44b7be7f0be3457fc",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
+        },
+        "date": 1730865538139,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 16.7514886656023,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 9.6611575539022,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 21027.5830907052,
+            "unit": "-logℒ"
           }
         ]
       }
