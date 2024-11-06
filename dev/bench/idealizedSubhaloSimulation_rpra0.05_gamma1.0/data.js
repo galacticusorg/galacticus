@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730837592209,
+  "lastUpdate": 1730865557434,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -4265,6 +4265,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/a06d1a1912e28feda2d95af97fa523e304c03b83"
         },
         "date": 1730837591392,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737924766514",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.24572985840733",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.236493260231335",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
+          "message": "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch\n\nNumerical imprecisions could previously lead to no solution for the halo mass in the reference model. We now catch these and set the halo mass to the maximum allowed (since these are cases where the halo is collapsing very close to the current epoch).",
+          "timestamp": "2024-11-05T13:38:18-08:00",
+          "tree_id": "86aedeafb3fd19bf781aada44b7be7f0be3457fc",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
+        },
+        "date": 1730865556920,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
