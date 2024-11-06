@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730837576859,
+  "lastUpdate": 1730865535309,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c851a21a3844ce74c1c35fb4f767761e802e6798",
-          "message": "Merge pull request #568 from galacticusorg/featRunTimeFileDependencies\n\nAdd runtime file dependencies to `functionClass` `descriptor` methods",
-          "timestamp": "2024-02-28T04:05:28Z",
-          "tree_id": "403b915da36aa6ddf0c127bb18c7f568bd796bb7",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c851a21a3844ce74c1c35fb4f767761e802e6798"
-        },
-        "date": 1709104161494,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 187.181,
-            "unit": "seconds",
-            "range": 0.186426661184909
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 9.35758483867355,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
+          "message": "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch\n\nNumerical imprecisions could previously lead to no solution for the halo mass in the reference model. We now catch these and set the halo mass to the maximum allowed (since these are cases where the halo is collapsing very close to the current epoch).",
+          "timestamp": "2024-11-05T13:38:18-08:00",
+          "tree_id": "86aedeafb3fd19bf781aada44b7be7f0be3457fc",
+          "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
+        },
+        "date": 1730865534467,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 39.171,
+            "unit": "seconds",
+            "range": 0.0367817889726556
           }
         ]
       }
