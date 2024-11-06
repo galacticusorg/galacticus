@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
-   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
-   "repoUrl" : "https://github.com/galacticusorg/galacticus",
-   "surfaceDensity" : {
-      "target" : 0.006,
-      "percentageAbove" : 50,
-      "percentageBelow" : 50
-   },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/a06d1a1912e28feda2d95af97fa523e304c03b83",
       "author" : {
-         "name" : "Andrew Benson",
-         "email" : "abensonca@gmail.com"
+         "email" : "abenson@obs.carnegiescience.edu",
+         "name" : "Andrew Benson"
       },
-      "id" : "a06d1a1912e28feda2d95af97fa523e304c03b83",
-      "message" : "Merge pull request #734 from galacticusorg/fixTimeOfCollapseUndefined",
-      "timestamp" : "Tue, 5 Nov 2024 13:58:50 +0000"
+      "url" : "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
+      "message" : "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch",
+      "id" : "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
+      "timestamp" : "Tue, 5 Nov 2024 13:38:18 -0800"
    },
+   "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
-      "percentageAbove" : 29.4117647058824,
       "percentageBelow" : 70.5882352941177,
-      "target" : 0.85
-   }
+      "target" : 0.85,
+      "percentageAbove" : 29.4117647058824
+   },
+   "surfaceDensity" : {
+      "percentageBelow" : 53.125,
+      "target" : 0.006,
+      "percentageAbove" : 46.875
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus"
 }

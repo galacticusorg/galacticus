@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "a06d1a1912e28feda2d95af97fa523e304c03b83",
-        "message": "Merge pull request #734 from galacticusorg/fixTimeOfCollapseUndefined\n\nCatch cases where the time of collapse for a halo is undefined\n",
-        "timestamp": "2024-11-05 13:58:50+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/a06d1a1912e28feda2d95af97fa523e304c03b83"
+        "id": "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
+        "message": "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch\n\nNumerical imprecisions could previously lead to no solution for the halo mass in the reference model. We now catch these and set the halo mass to the maximum allowed (since these are cases where the halo is collapsing very close to the current epoch).\n",
+        "timestamp": "2024-11-05 13:38:18-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
     },
     "results": [
         {
