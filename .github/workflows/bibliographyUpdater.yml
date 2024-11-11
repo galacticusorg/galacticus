@@ -14,13 +14,10 @@ defaults:
 jobs:
   Update-Bibliography:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
+      adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-            adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
