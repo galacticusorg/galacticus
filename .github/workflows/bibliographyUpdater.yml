@@ -23,7 +23,7 @@ jobs:
           echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
-        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
@@ -36,7 +36,7 @@ jobs:
           sudo apt -y update
           sudo apt install -y libwww-curl-perl libjson-pp-perl perl-doc libtext-bibtex-perl
       - name: Update the bibliography
-        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
+        if: ${{ env.adstoken != '' }}
         run: |
           ./scripts/aux/bibliographyUpdate.pl ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
