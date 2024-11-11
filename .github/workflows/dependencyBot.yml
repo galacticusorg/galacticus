@@ -8,12 +8,9 @@ jobs:
   # PRs must be closed and re-opened to trigger checks - see here: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
   CAMB:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -43,12 +40,9 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   forutils:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -78,12 +72,9 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   CLASS:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -114,12 +105,9 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   FSPS:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -149,12 +137,9 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   Cloudy:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
@@ -190,12 +175,9 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   mangle:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check for app ID
-        env: 
-            appid: ${{ secrets.DEPLOY_APP_ID }}
-        run: |
-          echo Set environment with app ID
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
         if: ${{ env.appid != '' }}
