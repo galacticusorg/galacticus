@@ -435,7 +435,7 @@ contains
     type            (mergerTree              ), pointer                  , save :: currentTree          , previousTree           , &
          &                                                                         nextTree
     type            (mergerTreeWalkerAllNodes)                           , save :: treeWalkerAll
-    !$omp threadprivate(currentTree,previousTree,treeWalkerAll)
+    !$omp threadprivate(currentTree,previousTree,nextTree,treeWalkerAll)
     type            (treeNode                ), pointer                  , save :: satelliteNode
     class           (nodeComponentBasic      ), pointer                  , save :: basicNodeBase
     !$omp threadprivate(satelliteNode,basicNodeBase,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
@@ -614,7 +614,7 @@ contains
              treeIsFinished=.true.
           end if
           ! Iterate evolving the tree until no more outputs are required.
-          treeEvolveLoop : do while (iOutput <= self%outputTimes_%count())
+          treeEvolveLoop : do while (iOutput <= self%outputTimes_%count() .and. associated(tree))
              ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
              ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
              ! perform the event task). Find the next output time.
@@ -683,10 +683,16 @@ contains
                    message=message//currentTree%index//" {"//currentTree%nodeBase%index()//"}"
                    call displayMessage(message,verbosityLevelInfo)
                    if (.not.associated(previousTree)) then
+                      ! No previous tree is set, so the current tree is the first tree in the forest. Destroy it, but reset the
+                      ! `tree` pointer to the next tree in the forest (otherwise `tree` will become a dangling pointer).
                       nextTree    => currentTree%nextTree
                       call currentTree%destroy()
+                      deallocate(currentTree)
                       currentTree => nextTree
+                      tree        => currentTree
                    else
+                      ! A previous tree exists - simply connect its `next` pointer to the `next` pointer of the current tree, and
+                      ! then destroy the current tree.
                       previousTree%nextTree => currentTree%nextTree
                       call currentTree%destroy()
                       deallocate(currentTree)
@@ -698,24 +704,26 @@ contains
                 end if
              end do
              ! Check that tree reached required time. If it did not, we can evolve it no further.
-             treeTimeEarliest=tree%earliestTimeEvolving()
-             treeTimeLatest  =tree%  latestTime        ()
-             if     (                                 &
-                  &   treeTimeLatest   > evolveToTime &
-                  &  .and.                            &
-                  &   treeTimeEarliest < evolveToTime &
-                  &  .and.                            &
-                  &   .not.evolutionIsEventLimited    &
-                  & ) then
-                if (deadlockReport) exit
-                message='failed to evolve tree to required time'//char(10)
-                write (label,'(f7.2)') evolveToTime
-                message=message//"            target time = "//trim(label)//" Gyr"//char(10)
-                write (label,'(f7.2)') treeTimeEarliest
-                message=message//"  earliest time in tree = "//trim(label)//" Gyr"//char(10)
-                write (label,'(f7.2)') treeTimeLatest
-                message=message//"    latest time in tree = "//trim(label)//" Gyr"
-                call Error_Report(message//{introspection:location})
+             if (associated(tree)) then
+                treeTimeEarliest=tree%earliestTimeEvolving()
+                treeTimeLatest  =tree%  latestTime        ()
+                if     (                                 &
+                     &   treeTimeLatest   > evolveToTime &
+                     &  .and.                            &
+                     &   treeTimeEarliest < evolveToTime &
+                     &  .and.                            &
+                     &   .not.evolutionIsEventLimited    &
+                     & ) then
+                   if (deadlockReport) exit
+                   message='failed to evolve tree to required time'//char(10)
+                   write (label,'(f7.2)') evolveToTime
+                   message=message//"            target time = "//trim(label)//" Gyr"//char(10)
+                   write (label,'(f7.2)') treeTimeEarliest
+                   message=message//"  earliest time in tree = "//trim(label)//" Gyr"//char(10)
+                   write (label,'(f7.2)') treeTimeLatest
+                   message=message//"    latest time in tree = "//trim(label)//" Gyr"
+                   call Error_Report(message//{introspection:location})
+                end if
              end if
              ! Determine what limited evolution.
              if (evolutionIsEventLimited) then
@@ -729,16 +737,18 @@ contains
                 write (label,self%outputTimeFormat) evolveToTime
                 message="Output tree data at t="//trim(label)//" Gyr"
                 call displayMessage(message)
-                call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
-                ! Perform any extra output and post-output processing on nodes.
-                treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-                do while (treeWalkerAll%next(node))
-                   basic => node%basic()
-                   if (basic%time() == evolveToTime) call node%postOutput(evolveToTime)
-                end do
+                if (associated(tree)) then
+                   call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
+                   ! Perform any extra output and post-output processing on nodes.
+                   treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+                   do while (treeWalkerAll%next(node))
+                      basic => node%basic()
+                      if (basic%time() == evolveToTime) call node%postOutput(evolveToTime)
+                   end do
+                end if
                 iOutput=iOutput+1
-                ! If all output times have been reached, we're finished.
-                if (iOutput > self%outputTimes_%count()) then
+                ! If all output times have been reached, or all trees have been destroyed, we're finished.
+                if (iOutput > self%outputTimes_%count() .or. .not.associated(tree)) then
                    treeIsFinished=.true.
                    exit
                 end if

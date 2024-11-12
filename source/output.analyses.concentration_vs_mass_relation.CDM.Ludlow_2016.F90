@@ -22,6 +22,7 @@
   \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
   !!}
 
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
   <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
@@ -37,6 +38,7 @@
     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
     class(nbodyHaloMassErrorClass   ), pointer :: nbodyHaloMassError_    => null()
+    class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
   contains
     final :: concentrationVsHaloMassCDMLudlow2016Destructor
  end type outputAnalysisConcentrationVsHaloMassCDMLudlow2016
@@ -66,15 +68,17 @@ contains
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
     class(outputTimesClass                                  ), pointer       :: outputTimes_
     class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
+    class(darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
 
     !![
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
+    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -87,12 +91,13 @@ contains
     <objectDestructor name="cosmologyFunctions_"   />
     <objectDestructor name="outputTimes_"          />
     <objectDestructor name="nbodyHaloMassError_"   />
+    <objectDestructor name="darkMatterProfileDMO_" />
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
-  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result (self)
+  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result (self)
     !!{
     Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
     !!}
@@ -121,6 +126,7 @@ contains
     class           (virialDensityContrastClass                        ), target       , intent(in   )  :: virialDensityContrast_
     class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_
     class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
+    class           (darkMatterProfileDMOClass                         ), target       , intent(inout)  :: darkMatterProfileDMO_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                         =26
     double precision                                                    , parameter                     :: massHaloMinimum                       = 1.0d10, massHaloMaximum                    =1.0d15
     integer                                                             , parameter                     :: covarianceBinomialBinsPerDecade       =10
@@ -141,7 +147,7 @@ contains
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
     !![
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *nbodyHaloMassError_, *outputTimes_"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
@@ -170,28 +176,28 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build N-body mass error distribution operator.
     allocate(outputAnalysisDistributionOperator_    )
-    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                                     )
+    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                                                           )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_          )
-    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                                        )
+    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                                                              )
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_        )
-    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                                        )
+    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                                                              )
     ! Build a log10 weight property operators.
     allocate(outputAnalysisWeightPropertyOperator_  )
-    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                                        )
+    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                                                              )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_      )
-    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                                        )
+    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                                                              )
     ! Create a virial density contrast object matched to the definition used by Ludlow et al. (2016).
     allocate(virialDensityContrastDefinition_       )
-    virialDensityContrastDefinition_       =  virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,cosmologyParameters_,cosmologyFunctions_                         )
+    virialDensityContrastDefinition_       =  virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,cosmologyParameters_,cosmologyFunctions_                                               )
     ! Create a concentration weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_ )
-    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration                (.false.,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_)
+    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration                (.false.,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     ! Create a halo mass property extractor.
     allocate(nodePropertyExtractor_       )
-    nodePropertyExtractor_                 =  nodePropertyExtractorMassHalo                     (.false.,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_)
+    nodePropertyExtractor_                 =  nodePropertyExtractorMassHalo                     (.false.,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                       &
          &                                                         var_str('concentrationHaloMassRelationCDMLudlow2016'), &
@@ -248,6 +254,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"  />
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%outputTimes_"          />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
     <objectDestructor name="self%nbodyHaloMassError_"   />
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]

@@ -175,7 +175,6 @@
   </haloSpinDistribution>
 
   <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="isotropic">

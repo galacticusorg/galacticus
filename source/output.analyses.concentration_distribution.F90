@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+
   !!{
   Contains a module which implements a concentration distribution output analysis class.
   !!}
@@ -35,6 +37,7 @@
      class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
      class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
      class           (nbodyHaloMassErrorClass   ), pointer :: nbodyHaloMassError_              => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_            => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrastDefinition_ => null(), virialDensityContrast_ => null()
      double precision                                      :: rootVarianceFractionalMinimum             , redshift                        , &
           &                                                   massMinimum                               , massMaximum                     , &
@@ -72,6 +75,7 @@ contains
     class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
     class           (nbodyHaloMassErrorClass                ), pointer                     :: nbodyHaloMassError_
+    class           (darkMatterProfileDMOClass              ), pointer                     :: darkMatterProfileDMO_
     class           (virialDensityContrastClass             ), pointer                     :: virialDensityContrastDefinition_, virialDensityContrast_
     double precision                                         , dimension(:  ), allocatable :: functionValueTarget             , functionCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
@@ -89,6 +93,7 @@ contains
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
     <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"              source="parameters"                                                />
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     <inputParameter>
@@ -116,7 +121,7 @@ contains
          <description>A label for this analysis.</description>
        </inputParameter>
        !!]
-       self=outputAnalysisConcentrationDistribution(char(fileName),label,comment,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_)
+       self=outputAnalysisConcentrationDistribution(char(fileName),label,comment,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_)
     else
        !![
        <inputParameter>
@@ -225,6 +230,7 @@ contains
           &amp;                                       timeRecent                      , &amp;
           &amp;                                       massParticle                    , &amp;
 	  &amp;                                       rootVarianceFractionalMinimum   , &amp;
+	  &amp;                                       darkMatterProfileDMO_           , &amp;
           &amp;                                       cosmologyParameters_            , &amp;
           &amp;                                       cosmologyFunctions_             , &amp;
           &amp;                                       nbodyHaloMassError_             , &amp;
@@ -246,13 +252,14 @@ contains
     <objectDestructor name="cosmologyFunctions_"             />
     <objectDestructor name="outputTimes_"                    />
     <objectDestructor name="nbodyHaloMassError_"             />
+    <objectDestructor name="darkMatterProfileDMO_"           />
     <objectDestructor name="virialDensityContrast_"          />
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function concentrationDistributionConstructorParameters
 
-  function concentrationDistributionConstructorFile(fileName,label,comment,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_) result(self)
+  function concentrationDistributionConstructorFile(fileName,label,comment,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_) result(self)
     !!{
     Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     !!}
@@ -271,6 +278,7 @@ contains
     class           (cosmologyParametersClass               ), intent(in   )                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass                ), intent(in   )                 :: nbodyHaloMassError_
+    class           (darkMatterProfileDMOClass              ), intent(in   )                 :: darkMatterProfileDMO_
     class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrastDefinition_, virialDensityContrast_
     double precision                                         , allocatable  , dimension(:  ) :: functionValueTarget             , concentration
     integer         (c_size_t                               ), allocatable  , dimension(:  ) :: functionCountTarget
@@ -313,14 +321,14 @@ contains
     ! Convert redshift to time.
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Build the object.
-    self=outputAnalysisConcentrationDistribution(label,comment,time,massMinimum,massMaximum,concentration(1),concentration(size(concentration)),size(concentration,kind=c_size_t),timeRecent,massParticle,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self=outputAnalysisConcentrationDistribution(label,comment,time,massMinimum,massMaximum,concentration(1),concentration(size(concentration)),size(concentration,kind=c_size_t),timeRecent,massParticle,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
     !![
     <constructorAssign variables="fileName"/>
     !!]
     return
   end function concentrationDistributionConstructorFile
 
-  function concentrationDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,countConcentrations,timeRecent,massParticle,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function concentrationDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,countConcentrations,timeRecent,massParticle,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
     Internal constructor for the ``concentrationDistribution'' output analysis class.
     !!}
@@ -347,6 +355,7 @@ contains
     class           (outputTimesClass                                ), target                     , intent(inout) :: outputTimes_
     class           (nbodyHaloMassErrorClass                         ), target                     , intent(in   ) :: nbodyHaloMassError_
     class           (virialDensityContrastClass                      ), target                     , intent(in   ) :: virialDensityContrastDefinition_                    , virialDensityContrast_
+    class           (darkMatterProfileDMOClass                       ), target                     , intent(in   ) :: darkMatterProfileDMO_
     double precision                                                                               , intent(in   ) :: massMinimum                                         , massMaximum                             , &
          &                                                                                                            concentrationMinimum                                , concentrationMaximum                    , &
          &                                                                                                            timeRecent                                          , time                                    , &
@@ -383,7 +392,7 @@ contains
     double precision                                                  , parameter                                  :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                        )                                             :: iOutput                                             , bufferCount
     !![
-    <constructorAssign variables="rootVarianceFractionalMinimum, massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, timeRecent, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *virialDensityContrastDefinition_, *virialDensityContrast_"/>
+    <constructorAssign variables="rootVarianceFractionalMinimum, massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, timeRecent, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *nbodyHaloMassError_, *virialDensityContrastDefinition_, *virialDensityContrast_"/>
     !!]
 
     ! Set parameters needed for descriptor.
@@ -469,6 +478,7 @@ contains
       &amp;                                            .false.                               , &amp;
       &amp;                                            cosmologyParameters_                  , &amp;
       &amp;                                            cosmologyFunctions_                   , &amp;
+      &amp;                                            darkMatterProfileDMO_                 , &amp;
       &amp;                                            virialDensityContrast_                , &amp;
       &amp;                                            virialDensityContrastDefinition_        &amp;
       &amp;                                           )
@@ -484,6 +494,7 @@ contains
       &amp;                                            .false.                               , &amp;
       &amp;                                            cosmologyFunctions_                   , &amp;
       &amp;                                            cosmologyParameters_                  , &amp;
+      &amp;                                            darkMatterProfileDMO_                 , &amp;
       &amp;                                            virialDensityContrast_                , &amp;
       &amp;                                            virialDensityContrastDefinition_        &amp;
       &amp;                                           )
@@ -669,6 +680,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"            />
     <objectDestructor name="self%cosmologyFunctions_"             />
     <objectDestructor name="self%nbodyHaloMassError_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]

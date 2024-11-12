@@ -8,20 +8,25 @@ jobs:
   # PRs must be closed and re-opened to trigger checks - see here: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
   CAMB:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
+        if: ${{ env.appid != '' }}
         id: depup
         with:
           file: aux/dependencies.yml
           version_name: camb
           repo: cmbant/CAMB
       - name: Create Pull Request
+        if: ${{ env.appid != '' }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -35,20 +40,25 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   forutils:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
+        if: ${{ env.appid != '' }}
         id: depup
         with:
           file: aux/dependencies.yml
           version_name: forutils
           repo: cmbant/forutils
       - name: Create Pull Request
+        if: ${{ env.appid != '' }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -62,14 +72,18 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   CLASS:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
+        if: ${{ env.appid != '' }}
         id: depup
         with:
           file: aux/dependencies.yml
@@ -77,6 +91,7 @@ jobs:
           repo: lesgourg/class_public
           tag: true
       - name: Create Pull Request
+        if: ${{ env.appid != '' }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -90,20 +105,25 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   FSPS:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
+        if: ${{ env.appid != '' }}
         id: depup
         with:
           file: aux/dependencies.yml
           version_name: fsps
           repo: cconroy20/fsps
       - name: Create Pull Request
+        if: ${{ env.appid != '' }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -117,14 +137,18 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   Cloudy:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - name: Check for dependency
+        if: ${{ env.appid != '' }}
         id: depup
         run: |
           versionMajor=`curl --silent https://data.nublado.org/cloudy_releases/ | grep -o -E 'href="c[[:digit:]]*/">'| sed 's/href="c//;s/\/">//' | sort -g -k 1 | tail -1`
@@ -137,6 +161,7 @@ jobs:
           echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
           echo "branch=cloudy" >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
+        if: ${{ env.appid != '' }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -150,20 +175,25 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
   mangle:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
           private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
+        if: ${{ env.appid != '' }}
         id: depup
         with:
           file: aux/dependencies.yml
           version_name: mangle
           repo: galacticusorg/mangle
       - name: Create Pull Request
+        if: ${{ env.appid != '' }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"

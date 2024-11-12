@@ -46,7 +46,7 @@
      private
      class  (geometryLightconeClass          ), pointer :: geometryLightcone_           => null()
      class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
-     class  (outputTimesClass           ), pointer :: outputTimes_                  => null()
+     class  (outputTimesClass                ), pointer :: outputTimes_                 => null()
      logical                                            :: bufferIsolatedHalos                   , positionHistoryAvailable, &
           &                                                splitTrees
    contains
@@ -74,7 +74,7 @@ contains
     type   (inputParameters                 ), intent(inout) :: parameters
     class  (geometryLightconeClass          ), pointer       :: geometryLightcone_
     class  (satelliteOrphanDistributionClass), pointer       :: satelliteOrphanDistribution_
-    class           (outputTimesClass           ), pointer               :: outputTimes_
+    class (outputTimesClass                 ), pointer       :: outputTimes_
     logical                                                  :: bufferIsolatedHalos         , splitTrees
 
     ! Check and read parameters.
@@ -93,14 +93,14 @@ contains
     </inputParameter>
     <objectBuilder class="geometryLightcone"           name="geometryLightcone_"           source="parameters"/>
     <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
-    <objectBuilder class="outputTimes"            name="outputTimes_"            source="parameters"/>
+    <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
     !!]
     self=mergerTreeOperatorPruneLightcone(geometryLightcone_,satelliteOrphanDistribution_,outputTimes_,bufferIsolatedHalos,splitTrees)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="geometryLightcone_"          />
     <objectDestructor name="satelliteOrphanDistribution_"/>
-    <objectDestructor name="outputTimes_"           />
+    <objectDestructor name="outputTimes_"                />
     !!]
     return
   end function pruneLightconeConstructorParameters
@@ -113,7 +113,7 @@ contains
     type   (mergerTreeOperatorPruneLightcone)                        :: self
     class  (geometryLightconeClass          ), intent(in   ), target :: geometryLightcone_
     class  (satelliteOrphanDistributionClass), intent(in   ), target :: satelliteOrphanDistribution_
-    class           (outputTimesClass           ), intent(in   ), target :: outputTimes_
+    class  (outputTimesClass                ), intent(in   ), target :: outputTimes_
     logical                                  , intent(in   )         :: bufferIsolatedHalos         , splitTrees
     !![
     <constructorAssign variables="*geometryLightcone_, *satelliteOrphanDistribution_, *outputTimes_, bufferIsolatedHalos, splitTrees"/>
@@ -133,8 +133,8 @@ contains
     !![
     <objectDestructor name="self%geometryLightcone_"          />
     <objectDestructor name="self%satelliteOrphanDistribution_"/>
-     <objectDestructor name="self%outputTimes_"           />
-   !!]
+    <objectDestructor name="self%outputTimes_"                />
+    !!]
     return
   end subroutine pruneLightconeDestructor
 
@@ -364,7 +364,7 @@ contains
              end if
           end if
        end do
-       ! Remove any marge targets which no longer exist.
+       ! Remove any merge targets which no longer exist.
        treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
        do while (treeWalkerAll%next(node))
           if (.not.associated(node%mergeTarget)) cycle
@@ -409,7 +409,6 @@ contains
        end do
        ! Replace the first tree in the forest.
        tree %nodeBase => forestRootsNewHead%node
-       tree %nextTree => null()
        basic          => forestRootsNewHead%node%basic()
        write (labelIndex,'(i16)' ) forestRootsNewHead%node%index()
        write (labelTime ,'(f9.3)') basic                  %time ()
@@ -423,6 +422,7 @@ contains
           deallocate(treeCurrent)
           treeCurrent          => treeNext
        end do
+       tree%nextTree => null()
        ! Create new trees in the forest as needed.
        treeCurrent        => tree
        forestRootsNewLast => forestRootsNewHead%next
