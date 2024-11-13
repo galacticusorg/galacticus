@@ -179,7 +179,7 @@ module Mass_Distributions
     <argument>type (enumerationComponentTypeType), intent(in   ), optional :: componentType         </argument>
     <argument>type (enumerationMassTypeType     ), intent(in   ), optional :: massType              </argument>
    </method>
-   <data>logical                               :: dimensionless</data>
+   <data>logical                               :: dimensionless                     </data>
    <data>type   (enumerationComponentTypeType) :: componentType=componentTypeUnknown</data>
    <data>type   (enumerationMassTypeType     ) :: massType     =massTypeUnknown     </data>
   </functionClass>

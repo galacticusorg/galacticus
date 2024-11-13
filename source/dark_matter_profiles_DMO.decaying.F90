@@ -330,7 +330,7 @@ contains
        if (factor > 1.0d0-depletionNegligble) then
           if (radius > self%radiusUndepleted) then
              self%radiusUndepleted=radius
-             self%massUndepleted=self%darkMatterProfileDMO_%enclosedMass(node,radius)
+             self%massUndepleted  =self%darkMatterProfileDMO_%enclosedMass(node,radius)
           end if
        end if
     else
