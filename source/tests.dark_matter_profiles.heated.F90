@@ -238,6 +238,8 @@ program Test_Dark_Matter_Profiles_Heated
      end select
      call Unit_Tests_Begin_Group("Heated dark matter profiles ("//trim(profileName)//")")
      ! Compute initial radius, enclosed mass, and density for a variety of radii and compare to the analytic solutions.
+     potentialZeroPoint        =0.0d0
+     potentialAnalyticZeroPoint=0.0d0
      do i=1,size(radiusVirialFractional)
         write (radiusLabel,'(f4.2)') radiusVirialFractional(i)
         radius               =+radiusVirial              &
