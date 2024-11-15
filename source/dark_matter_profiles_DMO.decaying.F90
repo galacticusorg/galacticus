@@ -38,7 +38,7 @@
      integer         (kind_int8                )          :: lastUniqueID
      double precision                                     :: lifetime_                      , massSplitting_         , &
           &                                                  velocityKick                   , potentialEscape        , &
-          &                                                  radiusUndepleted               , massUndepleted
+          &                                                  radiusUndepleted
      logical                                              :: massLoss_                      , potentialEscapeComputed
    contains
      !![
@@ -247,7 +247,6 @@ contains
     self%genericLastUniqueID                         =node%uniqueID()
     self%potentialEscapeComputed                     =.false.
     self%radiusUndepleted                            =+     0.0d0
-    self%massUndepleted                              =+     0.0d0
     self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
     self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
     self%genericPotentialRadiusMinimum               =+huge(0.0d0)
@@ -327,12 +326,7 @@ contains
             &             *             fractionRetained  & ! ⎨  ...but not escaped...
             &             *(+1.0d0-self%massSplitting_  )   ! ⎩  ...have 1-ε of their original mass.
        ! Check for negligible depletion, and update the undepleted radius to the largest such radius yet found.
-       if (factor > 1.0d0-depletionNegligble) then
-          if (radius > self%radiusUndepleted) then
-             self%radiusUndepleted=radius
-             self%massUndepleted  =self%darkMatterProfileDMO_%enclosedMass(node,radius)
-          end if
-       end if
+       if (factor > 1.0d0-depletionNegligble .and. radius > self%radiusUndepleted) self%radiusUndepleted=radius
     else
        factor          = +1.0d0                           !   Mass loss is being ignored.
     end if
@@ -387,20 +381,14 @@ contains
   double precision function decayingRadiusEnclosingMass(self,node,mass)
     !!{
     Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    {\normalfont \ttfamily] mass} (given in units of $M_\odot$).
     !!}
     implicit none
     class           (darkMatterProfileDMODecaying), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
     double precision                              , intent(in   )         :: mass
 
-    if (mass <= self%massUndepleted) then
-       ! The mass is wihtin the undepleted region - simply use the unmodified profile.
-       decayingRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
-    else
-       ! The mass is outside of the undepleted region - use a numerical solution.
-       decayingRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
-    end if
+    decayingRadiusEnclosingMass=self%radiusEnclosingMassNumerical(node,mass)
     return
   end function decayingRadiusEnclosingMass
 
@@ -428,19 +416,12 @@ contains
     class           (darkMatterProfileDMODecaying), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: radius
-    double precision                                              :: radiusUndepleted, massUndepleted
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     if (radius <= 0.0d0) then
        decayingEnclosedMass=0.0d0
-    else if (radius <= self%radiusUndepleted) then
-       ! Within the undepleted radius the mass is unchanged.
-       decayingEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,                 radius)
     else
-       radiusUndepleted    =+self                      %radiusUndepleted
-       massUndepleted      =+self                      %massUndepleted
-       decayingEnclosedMass=+self                      %enclosedMassDifferenceNumerical(node,radiusUndepleted,radius) &
-            &               +                           massUndepleted
+       decayingEnclosedMass=+self%enclosedMassDifferenceNumerical(node,0.0d0,radius)
     end if
     return
   end function decayingEnclosedMass

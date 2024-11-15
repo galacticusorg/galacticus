@@ -11,8 +11,8 @@ import numpy as np
 # Set target densities for these models.
 densitiesTarget = {
     "CDM":           3.88359677e+16,
-    "massLossFalse": 2.84646987e+15,
-    "gamma0.0":      2.68635626e+15,
+    "massLossFalse": 2.85231951e+15,
+    "gamma0.0":      2.69196444e+15,
     "gamma0.5":      1.75812743e+15
     }
 
