@@ -34,9 +34,9 @@ module Node_Component_Disk_Standard
   public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve                  , &
        &    Node_Component_Disk_Standard_Radius_Solver_Plausibility, Node_Component_Disk_Standard_Radius_Solver               , &
        &    Node_Component_Disk_Standard_Post_Step                 , Node_Component_Disk_Standard_Thread_Uninitialize         , &
-       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Calculation_Reset           , &
+       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Thread_Initialize           , &
        &    Node_Component_Disk_Standard_State_Store               , Node_Component_Disk_Standard_State_Retrieve              , &
-       &    Node_Component_Disk_Standard_Thread_Initialize         , Node_Component_Disk_Standard_Inactive
+       &    Node_Component_Disk_Standard_Inactive
 
   !![
   <component>
@@ -385,27 +385,6 @@ contains
     end if
     return
   end subroutine Node_Component_Disk_Standard_Thread_Uninitialize
-
-  !![
-  <calculationResetTask>
-    <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
-  </calculationResetTask>
-  !!]
-  subroutine Node_Component_Disk_Standard_Calculation_Reset(node,uniqueID)
-    !!{
-    Reset standard disk structure calculations.
-    !!}
-    use :: Galacticus_Nodes                 , only : treeNode
-    use :: Kind_Numbers                     , only : kind_int8
-    use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset
-    implicit none
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-    
-    call Node_Component_Disk_Standard_Reset(uniqueID)
-    return
-  end subroutine Node_Component_Disk_Standard_Calculation_Reset
 
   !![
   <preEvolveTask>

@@ -30,7 +30,7 @@ module Node_Component_Disk_Very_Simple_Size
   public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver    , &
        &    Node_Component_Disk_Very_Simple_Size_Initialize                , Node_Component_Disk_Very_Simple_Size_Thread_Initialize, &
        &    Node_Component_Disk_Very_Simple_Size_State_Store               , Node_Component_Disk_Very_Simple_Size_State_Retrieve   , &
-       &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize       , Node_Component_Disk_Very_Simple_Size_Calculation_Reset
+       &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
 
   !![
   <component>
@@ -182,27 +182,6 @@ contains
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
-
-  !![
-  <calculationResetTask>
-    <unitName>Node_Component_Disk_Very_Simple_Size_Calculation_Reset</unitName>
-  </calculationResetTask>
-  !!]
-  subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node,uniqueID)
-    !!{
-    Reset very simple size disk structure calculations.
-    !!}
-    use :: Galacticus_Nodes                         , only : treeNode
-    use :: Kind_Numbers                             , only : kind_int8
-    use :: Node_Component_Disk_Very_Simple_Size_Data, only : Node_Component_Disk_Very_Simple_Size_Reset
-    implicit none
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    call Node_Component_Disk_Very_Simple_Size_Reset(uniqueID)
-    return
-  end subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 
   !![
   <radiusSolverPlausibility>
