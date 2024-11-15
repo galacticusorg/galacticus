@@ -527,8 +527,8 @@ contains
           self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious,status=status)
        end if       
        self%radiusFinalPrevious=radiusFinal
-       ! If no solution was found, assume a destroyed profile and set the initial radius to zero.
-       if (status /= errorStatusSuccess) self%radiusInitialPrevious=0.0d0
+       ! If no solution was found, assume a destroyed profile and set the initial radius to the final radius.
+       if (status /= errorStatusSuccess) self%radiusInitialPrevious=radiusFinal
     end if
     heatedRadiusInitial=self%radiusInitialPrevious
     return
