@@ -46,106 +46,63 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   return
 end function Node_Component_Black_Hole_Standard_Spin
 
-double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy&
-     &,weightIndex)
+double precision function Node_Component_Black_Hole_Standard_Mass_Baryonic(self) result(massBaryonic)
   !!{
-  Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  Return the baryonic mass for the standard black hole component.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeBlackHole, massTypeAll                 , massTypeBlackHole      , &
-          &                                 weightByMass           , massTypeGalactic      , enumerationComponentTypeType, enumerationMassTypeType, &
-          &                                 enumerationWeightByType
   implicit none
-  class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-  type            (enumerationComponentTypeType  ), intent(in   ) :: componentType
-  type            (enumerationMassTypeType       ), intent(in   ) :: massType
-  type            (enumerationWeightByType       ), intent(in   ) :: weightBy
-  integer                                         , intent(in   ) :: weightIndex
-  double precision                                , intent(in   ) :: radius
-  !$GLC attributes unused :: weightIndex
+  class(nodeComponentBlackHoleStandard), intent(inout) :: self
 
-  ! Set zero enclosed mass by default.
-  Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
-  ! Return if mass is not to be counted, or if radius is negative.
-  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
-  if (.not.(weightBy      == weightByMass                                                                                   )) return
-  if (      radius        <  0.0d0                                                                                           ) return
-  ! Set the mass if the black hole is at the galactic center.
-  if (self%radialPosition() <= 0.0d0) Node_Component_Black_Hole_Standard_Enclosed_Mass=self%mass()
+  massBaryonic=max(0.0d0,self%mass())
   return
-end function Node_Component_Black_Hole_Standard_Enclosed_Mass
+end function Node_Component_Black_Hole_Standard_Mass_Baryonic
 
- function Node_Component_Black_Hole_Standard_Acceleration(self,positionCartesian,componentType,massType)
+function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
   !!{
-  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  Return the mass distribution for the standard black hole component.
   !!}
-   use :: Galactic_Structure_Options     , only : componentTypeAll               , componentTypeBlackHole      , massTypeAll            , massTypeBlackHole, &
-        &                                         massTypeGalactic               , enumerationComponentTypeType, enumerationMassTypeType
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear                    , megaParsec
-  use :: Numerical_Constants_Prefixes    , only : kilo
+  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity         , &
+       &                                    enumerationWeightByType  , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass       , massDistributionMatches_, kinematicsDistributionLocal
   implicit none
-  double precision                                               , dimension(3) :: Node_Component_Black_Hole_Standard_Acceleration
-  class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
-  type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
-  type            (enumerationMassTypeType       ), intent(in   )               :: massType
-  double precision                                , intent(in   ), dimension(3) :: positionCartesian
-  double precision                                                              :: radius
-  
-  ! Set zero enclosed acceleration by default.
-  Node_Component_Black_Hole_Standard_Acceleration=0.0d0
-  ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
-  radius=sqrt(sum(positionCartesian**2))
-  if (      radius        <  0.0d0                                                                                           ) return
-  ! Compute the acceleration.
-  if (self%radialPosition() <= 0.0d0)                                                     &
-       & Node_Component_Black_Hole_Standard_Acceleration=-kilo                            &
-          &                                              *gigaYear                        &
-          &                                              /megaParsec                      &
-          &                                              *gravitationalConstantGalacticus &
-          &                                              *self%mass()                     &
-          &                                              *positionCartesian               &
-          &                                              /radius**3
-  return
-end function Node_Component_Black_Hole_Standard_Acceleration
+  class  (massDistributionClass         ), pointer                 :: massDistribution_
+  type   (kinematicsDistributionLocal   ), pointer                 :: kinematicsDistribution_
+  class  (nodeComponentBlackHoleStandard), intent(inout)           :: self
+  type   (enumerationComponentTypeType  ), intent(in   ), optional :: componentType
+  type   (enumerationMassTypeType       ), intent(in   ), optional :: massType
+  type   (enumerationWeightByType       ), intent(in   ), optional :: weightBy
+  integer                                , intent(in   ), optional :: weightIndex
+  !![
+  <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+  !!]
+  !$GLC attributes unused :: weightIndex, componentType, massType
 
-function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
-  !!{
-  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
-  !!}
-  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole      , massTypeAll            , massTypeBlackHole, &
-       &                                          massTypeGalactic               , enumerationComponentTypeType, enumerationMassTypeType
-  use :: Numerical_Constants_Math        , only : Pi
-  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-  use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym           , tensorIdentityR2D3Sym  , assignment(=)    , &
-       &                                          operator(*)  
-  use :: Vectors                         , only : Vector_Outer_Product
-  implicit none
-  type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Black_Hole_Standard_Tidal_Tensor
-  class           (nodeComponentBlackHoleStandard), intent(inout)               :: self
-  type            (enumerationComponentTypeType  ), intent(in   )               :: componentType
-  type            (enumerationMassTypeType       ), intent(in   )               :: massType
-  double precision                                , intent(in   ), dimension(3) :: positionCartesian
-  double precision                                                              :: radius
-  type            (tensorRank2Dimension3Symmetric), save                        :: positionTensor
-  !$omp threadprivate(positionTensor)
-  
-  ! Set zero enclosed acceleration by default.
-  Node_Component_Black_Hole_Standard_Tidal_Tensor=tensorNullR2D3Sym
-  ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
-  radius=sqrt(sum(positionCartesian**2))
-  if (      radius        <  0.0d0                                                                                           ) return
-  ! Compute the tidal tensor.
-  if (self%radialPosition() <= 0.0d0) then
-     positionTensor                                 = Vector_Outer_Product(positionCartesian,symmetrize=.true.)
-     Node_Component_Black_Hole_Standard_Tidal_Tensor=+gravitationalConstantGalacticus                       &
-          &                                          *(                                                     &
-          &                                            -(self%mass()      /radius**3)*tensorIdentityR2D3Sym &
-          &                                            +(self%mass()*3.0d0/radius**5)*positionTensor        &
-          &                                           )
+  if     (                                                                                           &	
+       &   massDistributionMatches_(componentTypeBlackHole,massTypeBlackHole,componentType,massType) &
+       &  .and.                                                                                      &
+       &   weightBy_ == weightByMass                                                                 &
+       &  .and.                                                                                      &
+       &   self%mass() > 0.0d0                                                                       &
+       & ) then
+     ! Create a black hole mass distribution.
+     allocate(massDistributionBlackHole :: massDistribution_)
+     select type (massDistribution_)
+     type is (massDistributionBlackHole)
+        !![
+        <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
+        !!]
+     end select
+     ! Construct the kinematic distribution.
+     allocate(kinematicsDistribution_)
+     !![
+     <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+     !!]
+     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+     !![
+     <objectDestructor name="kinematicsDistribution_"/>
+     !!]
+  else
+     massDistribution_ => null()
   end if
   return
-end function Node_Component_Black_Hole_Standard_Tidal_Tensor
+end function Node_Component_Black_Hole_Standard_Mass_Distribution

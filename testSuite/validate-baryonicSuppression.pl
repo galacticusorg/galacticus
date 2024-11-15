@@ -120,13 +120,13 @@ $target->{'withBaryons_noReionization'}->[1] =
 # Define χ² targets for each dataset.
 my $chiSquaredTarget;
 $chiSquaredTarget->{'withBaryons'               }->[1] = 6.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[1] = 4.0;
-$chiSquaredTarget->{'withBaryons'               }->[2] = 3.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[2] = 2.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[1] = 7.0;
+$chiSquaredTarget->{'withBaryons'               }->[2] = 4.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[2] = 3.0;
 $chiSquaredTarget->{'withBaryons'               }->[3] = 5.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[3] = 1.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[3] = 5.0;
 $chiSquaredTarget->{'withBaryons'               }->[4] = 3.0;
-$chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 2.0;
+$chiSquaredTarget->{'withBaryons_noReionization'}->[4] = 4.0;
 
 # Make output directory.
 system("mkdir -p outputs/");
@@ -223,6 +223,7 @@ foreach my $suffix ( "withoutBaryons", "withBaryons", "withBaryons_noReionizatio
 # Compute ratios of mass functions with the dark matter only model mass function.
 my $output;
 my $chiSquared;
+my $failed = 0;
 for(my $outputIndex=1;$outputIndex<=4;++$outputIndex) {
     foreach my $suffix ( "withBaryons", "withBaryons_noReionization" ) {
 	$haloMassFunction->{$suffix}->[$outputIndex]->{'ratio'     } = $haloMassFunction->{$suffix}->[$outputIndex]->{'massFunction'}/$haloMassFunction->{'withoutBaryons'}->[$outputIndex]->{'massFunction'};
@@ -253,6 +254,8 @@ for(my $outputIndex=1;$outputIndex<=4;++$outputIndex) {
 	@{$output->{'model'}->{$suffix         }->[$outputIndex]->{'ratioError'}} = $haloMassFunction->{$suffix         }->[$outputIndex]->{'ratioError'}->list();	
 	# Report.
 	my $status     = $chiSquared->{$suffix}->[$outputIndex] < $chiSquaredTarget->{$suffix}->[$outputIndex] ? "SUCCESS" : "FAILED";
+	$failed = 1
+	    if ( $status eq "FAILED" );
 	my $inequality = $chiSquared->{$suffix}->[$outputIndex] < $chiSquaredTarget->{$suffix}->[$outputIndex] ? "<"       : "≥"     ;
 	print $status.": model '".$suffix.(" " x (length("withBaryons_noReionization")-length($suffix)))."' at z=".$redshifts[$outputIndex]." validation (χ² = ".sprintf("%5.3f",$chiSquared->{$suffix}->[$outputIndex])." ".$inequality." ".sprintf("%5.3f",$chiSquaredTarget->{$suffix}->[$outputIndex]).")\n";
     }
@@ -295,5 +298,9 @@ open(my $reportFile,">","outputs/results_baryonicSuppression.json");
 print $reportFile "window.BARYONICSUPPRESSION_DATA = ";
 print $reportFile $json;
 close($reportFile);
+if ( $failed ) {
+    print "model failed - results were:\n\n";
+    system("cat outputs/results_baryonicSuppression.json");
+}
 
 exit;

@@ -29,7 +29,6 @@ module Node_Component_Black_Hole_Noncentral
   use :: Black_Hole_Binary_Recoil_Velocities, only : blackHoleBinaryRecoilClass
   use :: Black_Hole_Binary_Separations      , only : blackHoleBinarySeparationGrowthRateClass
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure                 , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Noncentral_Rate_Compute       , Node_Component_Black_Hole_Noncentral_Scale_Set        , &
@@ -63,8 +62,7 @@ module Node_Component_Black_Hole_Noncentral
   class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
-  class(galacticStructureClass                  ), pointer :: galacticStructure_
-  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,galacticStructure_)
+  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_)
 
   ! Option specifying whether the triple black hole interaction should be used.
   logical :: tripleInteraction
@@ -129,7 +127,6 @@ contains
        <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="subParameters"/>
        <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="subParameters"/>
        <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="subParameters"/>
-       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="subParameters"/>
        !!]
     end if
     return
@@ -153,7 +150,6 @@ contains
        <objectDestructor name="blackHoleBinaryRecoil_"              />
        <objectDestructor name="blackHoleBinaryMerger_"              />
        <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
-       <objectDestructor name="galacticStructure_"                  />
        !!]
     end if
     return
@@ -494,35 +490,43 @@ contains
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
+    use :: Coordinates               , only : coordinateSpherical   , assignment(=)
+    use :: Mass_Distributions        , only : massDistributionClass
     use :: Galactic_Structure_Options, only : componentTypeBlackHole
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: velocityRecoil        , radius
-    logical                   , intent(in   ) :: ignoreCentralBlackHole
-    double precision                          :: potentialCentral      , potentialCentralSelf, &
-         &                                       potentialHalo         , potentialHaloSelf
-
+    type            (treeNode             ), intent(inout) :: node
+    double precision                       , intent(in   ) :: velocityRecoil        , radius
+    logical                                , intent(in   ) :: ignoreCentralBlackHole
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: potential             , potentialSelf
+    type            (coordinateSpherical  )                :: coordinates           , coordinatesVirial
+    
     ! Compute relevant potentials.
-    potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
-    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
+    coordinates       =  [                     radius            ,0.0d0,0.0d0]
+    coordinatesVirial =  [darkMatterHaloScale_%radiusVirial(node),0.0d0,0.0d0]
+    massDistribution_ => node             %massDistribution   (                             )
+    potential         =  massDistribution_%potentialDifference(coordinates,coordinatesVirial)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
-       potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node),componentType=componentTypeBlackHole)
+       massDistribution_ => node             %massDistribution   (componentType=componentTypeBlackHole                  )
+       potentialSelf     =  massDistribution_%potentialDifference(              coordinates           ,coordinatesVirial)
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     else
        ! No correction for central black hole as it is to be included.
-       potentialCentralSelf=0.0d0
-       potentialHaloSelf   =0.0d0
+       potentialSelf=0.0d0
     end if
     ! Evaluate the escape condition.
     Node_Component_Black_Hole_Noncentral_Recoil_Escapes= &
-         &  +0.5d0*velocityRecoil      **2               &
-         &  +      potentialCentral                      &
-         &  -      potentialCentralSelf                  &
+         &  +0.5d0*velocityRecoil**2                     &
+         &  +      potential                             &
          & >                                             &
-         &  +      potentialHalo                         &
-         &  -      potentialHaloSelf
+         &  +      potentialSelf
     return
   end function Node_Component_Black_Hole_Noncentral_Recoil_Escapes
 
@@ -544,7 +548,7 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> nonCentral',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ galacticStructure_"/>
+    <stateStore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_NonCentral_State_Store
@@ -567,7 +571,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> nonCentral',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ galacticStructure_"/>
+    <stateRestore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_NonCentral_State_Restore

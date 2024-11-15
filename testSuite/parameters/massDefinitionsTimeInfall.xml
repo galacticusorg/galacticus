@@ -15,14 +15,14 @@
   <evolveForestsWorkShare value="cyclic"       />
 
   <!-- Component selection -->
-  <componentBasic             value="standard"/>
-  <componentSatellite         value="standard"/>
-  <componentBlackHole         value="null"    />
-  <componentDarkMatterProfile value="null"    />
-  <componentDisk              value="null"    />
-  <componentHotHalo           value="null"    />
-  <componentSpheroid          value="null"    />
-  <componentSpin              value="null"    />
+  <componentBasic             value="standard" />
+  <componentSatellite         value="standard" />
+  <componentBlackHole         value="null"     />
+  <componentDarkMatterProfile value="scaleFree"/>
+  <componentDisk              value="null"     />
+  <componentHotHalo           value="null"     />
+  <componentSpheroid          value="null"     />
+  <componentSpin              value="null"     />
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>
@@ -95,6 +95,8 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
   </nodeOperator>

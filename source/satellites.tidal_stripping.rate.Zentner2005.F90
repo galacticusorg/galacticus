@@ -24,7 +24,6 @@
   !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
-  use :: Galactic_Structure             , only : galacticStructureClass
   use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
 
   !![
@@ -62,7 +61,6 @@
      !!}
      private
      class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
-     class           (galacticStructureClass            ), pointer :: galacticStructure_             => null()
      class           (darkMatterHaloScaleClass          ), pointer :: darkMatterHaloScale_           => null()
      double precision                                              :: efficiency
      logical                                                       :: useDynamicalTimeScale
@@ -90,7 +88,6 @@ contains
     type            (satelliteTidalStrippingZentner2005)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
-    class           (galacticStructureClass            ), pointer       :: galacticStructure_
     class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
     double precision                                                    :: efficiency
     logical                                                             :: useDynamicalTimeScale
@@ -109,32 +106,29 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
-    <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="parameters"/>
     !!]
-    self=satelliteTidalStrippingZentner2005(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_,darkMatterHaloScale_)
+    self=satelliteTidalStrippingZentner2005(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="galacticStructure_"            />
     <objectDestructor name="darkMatterHaloScale_"          />
     !!]
     return
   end function zentner2005ConstructorParameters
 
-  function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,galacticStructure_,darkMatterHaloScale_) result(self)
+  function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
-    class           (galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                    , intent(in   )         :: efficiency
     logical                                             , intent(in   )         :: useDynamicalTimeScale
     !![
-    <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_, *galacticStructure_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="efficiency, useDynamicalTimeScale, *satelliteTidalStrippingRadius_, *darkMatterHaloScale_"/>
     !!]
 
     return
@@ -149,7 +143,6 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="self%galacticStructure_"            />
     <objectDestructor name="self%darkMatterHaloScale_"          />
     !!]
     return
@@ -160,6 +153,7 @@ contains
     Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec    , gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -169,6 +163,7 @@ contains
     type            (treeNode                          ), intent(inout)  :: node
     type            (treeNode                          ), pointer        :: nodeHost
     class           (nodeComponentSatellite            ), pointer        :: satellite
+    class           (massDistributionClass             ), pointer        :: massDistribution_
     double precision                                    , dimension(3  ) :: position                      , velocity
     double precision                                    , parameter      :: frequencyFractionalTiny=1.0d-6
     double precision                                                     :: massSatellite                 , frequencyAngular  , &
@@ -196,6 +191,8 @@ contains
          &                *kilo                                                &
          &                *gigaYear                                            &
          &                /megaParsec
+    ! Find the orbital frequency. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
+    ! radial or purely circular orbits.
     frequencyOrbital   =max(                  &
          &                  frequencyAngular, &
          &                  frequencyRadial   &
@@ -204,17 +201,18 @@ contains
     nodeHost           =>  node%parent
     timescaleDynamical =   self%darkMatterHaloScale_%timescaleDynamical(nodeHost)
     if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamical) then
-       periodOrbital=+2.0d0                 &
-            &        *Pi                    &
-            &        /max(                  &
-            &             frequencyAngular, &
-            &             frequencyRadial   &
-            &            )
+       periodOrbital=+2.0d0            &
+            &        *Pi               &
+            &        /frequencyOrbital
     else
        periodOrbital=+timescaleDynamical
     end if
-    radiusTidal            =          self%satelliteTidalStrippingRadius_%radius      (node            )
-    massEnclosedTidalRadius=max(0.0d0,self%galacticStructure_            %massEnclosed(node,radiusTidal))
+    massDistribution_  => node%massDistribution()
+    radiusTidal            =          self             %satelliteTidalStrippingRadius_%radius              (node       )
+    massEnclosedTidalRadius=max(0.0d0,massDistribution_                               %massEnclosedBySphere(radiusTidal))
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Check whether to use the dynamical time scale or the orbital time scale for mass loss rate.
     if (self%useDynamicalTimeScale .and. massEnclosedTidalRadius > 0.0d0) then
        timeScaleMassLoss=+2.0d0                                 &

@@ -94,6 +94,10 @@ module Node_Component_Hot_Halo_Very_Simple
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
     </property>
    </properties>
+   <bindings>
+    <binding method="massBaryonic" function="Node_Component_Hot_Halo_Very_Simple_Mass_Baryonic" bindsTo="component"/>
+   </bindings>
+   <functions>objects.nodes.components.hot_halo.very_simple.bound_functions.inc</functions>
   </component>
   !!]
 

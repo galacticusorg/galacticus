@@ -24,9 +24,8 @@
   !!}
 
   use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
-  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  
+
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalHeating">
    <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
@@ -38,7 +37,6 @@
      !!}
      private
      class           (satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
-     class           (galacticStructureClass        ), pointer :: galacticStructure_         => null()
      class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
      double precision                                          :: efficiencyDecay
      logical                                                   :: applyPreInfall
@@ -67,7 +65,6 @@ contains
     type            (nodeOperatorSatelliteTidalHeating)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
-    class           (galacticStructureClass           ), pointer       :: galacticStructure_
     class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     double precision                                                   :: efficiencyDecay
     logical                                                            :: applyPreInfall
@@ -86,32 +83,29 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
-    <objectBuilder class="galacticStructure"         name="galacticStructure_"         source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_,darkMatterHaloScale_)
+    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalHeatingRate_"/>
-    <objectDestructor name="galacticStructure_"        />
     <objectDestructor name="darkMatterHaloScale_"      />
     !!]
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
-  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,galacticStructure_,darkMatterHaloScale_) result(self)
+  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
     class           (satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
-    class           (galacticStructureClass           ), intent(in   ), target :: galacticStructure_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                   , intent(in   )         :: efficiencyDecay
     logical                                            , intent(in   )         :: applyPreInfall
     !![
-    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *galacticStructure_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *darkMatterHaloScale_"/>
     !!]
 
     return
@@ -126,7 +120,6 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalHeatingRate_"/>
-    <objectDestructor name="self%galacticStructure_"        />
     <objectDestructor name="self%darkMatterHaloScale_"      />
     !!]
     return
@@ -136,7 +129,9 @@ contains
     !!{
     Perform mass loss from a satellite due to tidal stripping.
     !!}
+    use :: Coordinates                     , only : coordinateCartesian   , assignment(=)
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -151,12 +146,14 @@ contains
     class           (nodeComponentBasic               )               , pointer :: basic                         , basicHost
     class           (nodeComponentSatellite           )               , pointer :: satellite
     type            (treeNode                         )               , pointer :: nodeHost
+    class           (massDistributionClass            )               , pointer :: massDistribution_
     double precision                                   , dimension(3)           :: position                      , velocity
     double precision                                   , parameter              :: frequencyFractionalTiny=1.0d-6
     double precision                                                            :: radius                        , orbitalPeriod            , &
          &                                                                         radialFrequency               , angularFrequency         , &
          &                                                                         timescaleDynamical            , frequencyOrbital
     type            (tensorRank2Dimension3Symmetric)                            :: tidalTensor                   , tidalTensorPathIntegrated
+    type            (coordinateCartesian           )                            :: coordinates
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if (.not.self%applyPreInfall.and..not.node%isSatellite()) return
@@ -187,7 +184,12 @@ contains
     radius                    =  Vector_Magnitude                   (position)
     if (radius <= 0.0d0) return ! Do not compute rates at zero radius.
     ! Calculate tidal tensor and rate of change of integrated tidal tensor.
-    tidalTensor               =  self%galacticStructure_%tidalTensor(nodeHost,position)             
+    coordinates       =  position
+    massDistribution_ => nodeHost         %massDistribution(           )
+    tidalTensor       =  massDistribution_%tidalTensor     (coordinates)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute the orbital frequency. We use the larger of the angular and radial frequencies to avoid numerical problems for
     ! purely radial or purely circular orbits.
     angularFrequency=+Vector_Magnitude(Vector_Product(position,velocity)) &

@@ -42,8 +42,8 @@ Contains a module which implements a concentration output analysis property extr
      private
      class  (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
      class  (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
-     class  (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class  (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
+     class  (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      logical                                      :: useLastIsolatedTime
    contains
      final     ::                concentrationDestructor
@@ -166,8 +166,8 @@ contains
          &                                                       radius                =     radiusHalo                                                         , &
          &                                                       cosmologyParameters_  =self%cosmologyParameters_                                               , &
          &                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                , &
-         &                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                              , &
          &                                                       virialDensityContrast_=self%virialDensityContrast_                                             , &
+         &                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                              , &
          &                                                       useLastIsolatedTime   =self%useLastIsolatedTime                                                  &
          &                                                      )
     concentrationExtract =  +                  radiusHalo   &

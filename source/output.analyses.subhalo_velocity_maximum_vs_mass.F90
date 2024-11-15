@@ -174,7 +174,7 @@ contains
     type            (varying_string                   )                              :: labelTarget
     type            (hdf5Object                       )                              :: file                    , velocityMaximumVsMassGroup
     !![
-    <constructorAssign variables="redshift, *cosmologyFunctions_"/>
+    <constructorAssign variables="redshift"/>
     !!]
 
     ! Read properties from the file.

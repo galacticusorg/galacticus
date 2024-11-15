@@ -57,10 +57,10 @@ module Display
   character(len=10                       ), allocatable, dimension(:) :: indentationFormat
   character(len=10                       ), allocatable, dimension(:) :: indentationFormatNoNewLine
 
-  character(len=20                       )                            :: threadFormat                                   , masterFormat
+  character(len=20                       )                            :: threadFormat                                     , masterFormat
 
-  logical                                                             :: displayInitialized        =.false.             , verbositySet=.false.
-  type     (enumerationVerbosityLevelType)                            :: verbosityLevel            =verbosityLevelSilent
+  logical                                                             :: displayInitialized        =.false.               , verbositySet=.false.
+  type     (enumerationVerbosityLevelType)                            :: verbosityLevel            =verbosityLevelStandard
 
   ! Progress bar state.
   logical                                                             :: barVisible                =.false.

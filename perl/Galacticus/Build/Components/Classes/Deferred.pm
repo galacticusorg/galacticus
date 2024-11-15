@@ -84,7 +84,7 @@ sub Class_Deferred_Binding_Attachers {
 	my $function =
 	{
 	    type        => "void",
-	    name        => $code::classFunctionName."DeferredFunctionSet",
+	    name        => $code::classFunctionName."DfrrdFnctnSet",
 	    description => "Set the function to be used for the {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
 	    variables   =>
 		[
@@ -158,6 +158,8 @@ sub Class_Deferred_Binding_Wrappers {
     foreach $code::binding ( grep {$_->{'isDeferred'} && $_->{'bindsTo'} eq 'componentClass'} @{$member->{'bindings'}->{'binding'}} ) {
 	# Create the name of the function.
 	$code::classFunctionName = $class->{'name'}.ucfirst($code::binding->{'method'});
+	my $specificType         = $code::binding->{'interface'}->{'type'} ne "void" && ! exists($intrinsicTypes{$code::binding->{'interface'}->{'type'}});
+	my $isPointer            = $specificType && $code::binding->{'interface'}->{'type'} =~ m/,\s*pointer/;
 	# Create the function if necesasary.
 	next
 	    if ( exists($classFunctions->{$code::classFunctionName}->{'wrapper'}) );
@@ -201,8 +203,9 @@ CODE
    call {$classFunctionName}Deferred({join(",",@arguments)})
 CODE
 	} else {
+	    $code::assigner = $isPointer ? " => " : "=";
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   {$classFunctionName}={$classFunctionName}Deferred({join(",",@arguments)})
+   {$classFunctionName}{$assigner}{$classFunctionName}Deferred({join(",",@arguments)})
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

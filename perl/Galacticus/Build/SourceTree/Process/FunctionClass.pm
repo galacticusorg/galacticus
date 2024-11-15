@@ -674,7 +674,10 @@ sub Process_FunctionClass {
 			    # Handle linked lists.
 			    if ( defined($descriptorParameters->{'linkedLists'}) ) {
 				foreach ( @{$descriptorParameters->{'linkedLists'}} ) {
-				    $descriptorCode .= &autoDescriptorLinkedList($_,$descriptorLinkedListVariables);
+				    (my $linkedListCode, my $linkedListModule) = &autoDescriptorLinkedList($_,$descriptorLinkedListVariables);
+				    $descriptorCode .= $linkedListCode;
+				    $descriptorModules{$linkedListModule} = 1
+					if ( $linkedListModule );
 				}
 			    }
 			}
@@ -981,6 +984,8 @@ CODE
 	    my $allowedParametersLinkedListVariables;
 	    @{$allowedParametersLinkedListVariables} = ();
 	    $allowedParametersCode .= "select type (self)\n";
+	    my %allowedParametersModules;
+	    $allowedParametersModules{'ISO_Varying_String'} = 1;
 	    foreach my $class ( @classes ) {
 		if ( $allowedParameters->{$class->{'name'}}->{'declarationMatches'} ) {
 		    my $className = $class->{'name'};
@@ -1112,7 +1117,10 @@ CODE
 				    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."',.true.)\n";
 				}
 				# Handle any linked lists.
-				$allowedParametersCode .= &allowedParametesLinkedList($class,$allowedParametersLinkedListVariables,$source);
+				(my $linkedListCode, my $linkedListModule) = &allowedParametersLinkedList($class,$allowedParametersLinkedListVariables,$source);
+				$allowedParametersCode .= $linkedListCode;
+				$allowedParametersModules{$linkedListModule} = 1
+				    if ( $linkedListModule );
 			    }
 			}
 			if ( defined($allowedParameters->{$className}->{'classParent'}) ) {
@@ -1138,7 +1146,7 @@ CODE
 		type        => "void",
 		recursive   => "yes",
 		pass        => "yes",
-		modules     => "ISO_Varying_String",
+		modules     => join(" ",keys(%allowedParametersModules)),
 		argument    => [
 		    "type     (varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters",
 		    "character(len=*         )                           , intent(in   ) :: sourceName"       ,
@@ -1173,6 +1181,9 @@ CODE
 		# Add a class guard for resets.
 		$deepCopy->{'resetCode'   } .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$deepCopy->{'finalizeCode'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		# Initialize a list of explicity-deep-copied variables that have been found.
+		my $foundDeepCopyNames;
+		@{$foundDeepCopyNames} = ();
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
@@ -1180,15 +1191,20 @@ CODE
 		    last
 			unless ( $node );
 		    # Handle linked lists.
-		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
+		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode, my $linkedListModule) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
 		    $deepCopy->{'assignments' } .= $linkedListCode;
 		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
 		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
+		    if ( $linkedListModule ) {
+			$deepCopy->{'modules'        }->{$linkedListModule} = 1;
+			$deepCopy->{'resetModules'   }->{$linkedListModule} = 1;
+			$deepCopy->{'finalizeModules'}->{$linkedListModule} = 1;
+		    }
 		    # Search the node for declarations.
 		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
@@ -1208,7 +1224,7 @@ CODE
 			unless ( defined($declarationSource) );
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    my @ignore      = ();
-		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy);
+		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames);
 		}
 		# Add any objects declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
@@ -1216,7 +1232,7 @@ CODE
 		    my @ignore = ();
 		    my $node   = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy)
+			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'sibling'};
 		    }
@@ -1233,6 +1249,19 @@ CODE
 		$deepCopy->{'code'} .= "end select\n";
 		# Specify required modules.
 		$deepCopy->{'modules'}->{'Error'} = 1;
+		# Check that all explicit variables were found.
+		{
+		    my $class = $nonAbstractClass;
+		    while ( $class ) {
+			if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+			    foreach my $variable ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {				
+				die("Error: unable to find variable '".$variable."' marked for deep copy in class '".$class->{'name'}."'")
+				    unless ( grep {$_ eq lc($variable)} @{$foundDeepCopyNames} );
+			    }
+			}
+			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		    }
+		}
 	    }
             $deepCopy->{'code'        } .= "end select\n";
 	    $deepCopy->{'resetCode'   } .= "end select\n";
@@ -1351,6 +1380,8 @@ CODE
 		my $extensionOf;
 		# Generate code to output all variables from this class (and any parent class).
 		@{$stateStore->{'staticVariables'}} = ();
+		my $explicitNamesFound;
+		@{$explicitNamesFound} = ();
 		my $class = $nonAbstractClass;
 		while ( $class ) {
 		    my $node = $class->{'tree'}->{'firstChild'};
@@ -1367,14 +1398,16 @@ CODE
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
-			&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'})
+			&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'},$explicitNamesFound)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
 		    # Handle linked lists.
-		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($class,$nonAbstractClass,$stateLinkedListVariables);
-		    $stateStore->{'inputCode'}  .= $linkedListInputCode;
+		    (my $linkedListInputCode, my $linkedListOutputCode, my $linkedListModule) = &stateStoreLinkedList($class,$nonAbstractClass,$stateLinkedListVariables);
+		    $stateStore->{'inputCode' } .= $linkedListInputCode;
 		    $stateStore->{'outputCode'} .= $linkedListOutputCode;
+		    $stateStores->{'stateStoreModules'}->{$linkedListModule} = 1
+			if ( $linkedListModule );
 		    # Handle explicit state store functions.
 		    $stateStores->{'explicitFunctionsFound'} = 1
 			if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}) );
@@ -1404,15 +1437,29 @@ CODE
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
-		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration);
+		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration,$explicitNamesFound);
 		}
 		# Add any variables declared in the functionClassType class.
 		if ( defined($functionClassType) ) {
 		    my $node = $functionClassType->{'node'}->{'firstChild'};
 		    while ( $node ) {
-			&stateStoreVariables($stateStores,$stateStore,undef(),$node->{'declarations'})
+			&stateStoreVariables($stateStores,$stateStore,undef(),$node->{'declarations'},$explicitNamesFound)
 			    if ( $node->{'type'} eq "declaration" );
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		    }
+		}
+		# Check that all explicit variables were found.
+		{
+		    my $class = $nonAbstractClass;
+		    while ( $class ) {
+			if ( exists($class->{'stateStorable'}->{'functionClass'}) && exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
+			    foreach my $variable ( split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
+				die("Error: unable to find variable '".$variable."' marked as state storable in class '".$class->{'name'}."'")
+				    unless ( grep {$_ eq lc($variable)} @{$explicitNamesFound} );
+			    }
+			}
+			# Move to the parent class.
+			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		    }
 		}
 		# Add code to method.
@@ -2432,7 +2479,8 @@ CODE
 			}
 		    }
 		} else {
-		    $modulePostContains->{'content'} .= "      use Error\n";
+		    $modulePostContains->{'content'} .= "      use Error             , only : Error_Report\n";
+		    $modulePostContains->{'content'} .= "      use ISO_Varying_String, only : char\n";
 		}
 		$modulePostContains->{'content'} .= "      implicit none\n";
 		$modulePostContains->{'content'} .= $argumentCode;
@@ -2443,7 +2491,7 @@ CODE
 		    $code =~ s/\n/\n      /g;
 		    $modulePostContains->{'content'} .= $code."\n";
 		} else {
-		    $modulePostContains->{'content'} .= "      call Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    $modulePostContains->{'content'} .= "      call Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use and/or check that the \"'//char(self%objectType())//'\" class implements this method'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    if ( $category eq "function" ) {
 			# Avoid warnings about unset function values.
 			$modulePostContains->{'content'} .= "      ".$directive->{'name'}.ucfirst($methodName).$extension."=";
@@ -2775,7 +2823,7 @@ sub deepCopyLinkedList {
     my $linkedListResetVariables    = shift();
     my $linkedListFinalizeVariables = shift();
     my $debugging                   = shift();
-    return ("","","")
+    return ("","","",undef())
 	unless ( exists($class->{'linkedList'}) );
     my $linkedList = $class->{'linkedList'};
     # Add variables needed for linked list processing.
@@ -2785,7 +2833,7 @@ sub deepCopyLinkedList {
 	    intrinsic  => 'type',
 	    type       => $linkedList->{'type'},
 	    attributes => [ 'pointer' ],
-	    variables  => [ 'item_', 'destination_', 'itemNew_' ]
+	    variables  => [ $linkedList->{'object'}.'item', $linkedList->{'object'}.'destination', $linkedList->{'object'}.'itemNew' ]
 	}
 	)
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
@@ -2795,7 +2843,7 @@ sub deepCopyLinkedList {
 	    intrinsic  => 'type',
 	    type       => $linkedList->{'type'},
 	    attributes => [ 'pointer' ],
-	    variables  => [ 'item_' ]
+	    variables  => [ $linkedList->{'object'}.'item' ]
 	}
 	)
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListResetVariables} );
@@ -2805,7 +2853,7 @@ sub deepCopyLinkedList {
 	    intrinsic  => 'type',
 	    type       => $linkedList->{'type'},
 	    attributes => [ 'pointer' ],
-	    variables  => [ 'item_' ]
+	    variables  => [ $linkedList->{'object'}.'item' ]
 	}
 	)
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListFinalizeVariables} );
@@ -2816,56 +2864,57 @@ sub deepCopyLinkedList {
     $code::objectIntrinsic = exists($linkedList->{'objectIntrinsic'}) ? $linkedList->{'objectIntrinsic'} : "class";
     $code::next            =                                            $linkedList->{'next'           }          ;
     $code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'});
-    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(itemNew_)//' : '//loc(itemNew_%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
+    $code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(".$code::object."itemNew)//' : '//loc(".$code::object."itemNew%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
     my $deepCopyCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 destination%{$variable} => null            ()
-destination_            => null            ()
-item_                   => self%{$variable}
-do while (associated(item_))
-   allocate(itemNew_)
-   if (associated(destination_)) then
-      destination_%{$next}             => itemNew_
-      destination_                     => itemNew_
+{$object}destination    => null            ()
+{$object}item           => self%{$variable}
+do while (associated({$object}item))
+   allocate({$object}itemNew)
+   if (associated({$object}destination)) then
+      {$object}destination%{$next}     => {$object}itemNew
+      {$object}destination             => {$object}itemNew
    else
-      destination         %{$variable} => itemNew_
-      destination_                     => itemNew_
+      destination         %{$variable} => {$object}itemNew
+      {$object}destination             => {$object}itemNew
    end if
-      nullify(itemNew_%{$object})
-      if (associated(item_%{$object})) then
-       if (associated(item_%{$object}%copiedSelf)) then
-        select type(s => item_%{$object}%copiedSelf)
+      nullify({$object}itemNew%{$object})
+      if (associated({$object}item%{$object})) then
+       if (associated({$object}item%{$object}%copiedSelf)) then
+        select type(s => {$object}item%{$object}%copiedSelf)
         {$objectIntrinsic} is ({$objectType})
-         itemNew_%{$object} => s
+         {$object}itemNew%{$object} => s
         class default
          call Error_Report('copiedSelf has incorrect type'//{$location})
         end select
-        call item_%{$object}%copiedSelf%referenceCountIncrement()
+        call {$object}item%{$object}%copiedSelf%referenceCountIncrement()
        else
-        allocate(itemNew_%{$object},mold=item_%{$object})
-        call item_%{$object}%deepCopy(itemNew_%{$object})
-        item_%{$object}%copiedSelf => itemNew_%{$object}
-        call itemNew_%{$object}%autoHook()
+        allocate({$object}itemNew%{$object},mold={$object}item%{$object})
+        call {$object}item%{$object}%deepCopy({$object}itemNew%{$object})
+        {$object}item%{$object}%copiedSelf => {$object}itemNew%{$object}
+        call {$object}itemNew%{$object}%autoHook()
        end if
        {$debugCode}
       end if
-   item_ => item_%{$next}
+   {$object}item => {$object}item%{$next}
 end do
 CODE
     my $deepCopyResetCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-item_ => self%{$variable}
-do while (associated(item_))
-   call item_%{$object}%deepCopyReset()
-   item_ => item_%{$next}
+{$object}item => self%{$variable}
+do while (associated({$object}item))
+   call {$object}item%{$object}%deepCopyReset()
+   {$object}item => {$object}item%{$next}
 end do
 CODE
     my $deepCopyFinalizeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-item_ => self%{$variable}
-do while (associated(item_))
-   call item_%{$object}%deepCopyFinalize()
-   item_ => item_%{$next}
+{$object}item => self%{$variable}
+do while (associated({$object}item))
+   call {$object}item%{$object}%deepCopyFinalize()
+   {$object}item => {$object}item%{$next}
 end do
 CODE
-    return ($deepCopyCode,$deepCopyResetCode,$deepCopyFinalizeCode);
+    my $deepCopyModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($deepCopyCode,$deepCopyResetCode,$deepCopyFinalizeCode,$deepCopyModule);
 }
 
 sub stateStoreLinkedList {
@@ -2873,7 +2922,7 @@ sub stateStoreLinkedList {
     my $class               = shift();
     my $nonAbstractClass    = shift();
     my $linkedListVariables = shift();
-    return ("","","")
+    return ("","","",undef())
 	unless ( exists($class->{'linkedList'}) );
     my $linkedList = $class->{'linkedList'};
     # Add variables needed for linked list processing.
@@ -2883,7 +2932,7 @@ sub stateStoreLinkedList {
 	    intrinsic  => 'type',
 	    type       => $linkedList->{'type'},
 	    attributes => [ 'pointer' ],
-	    variables  => [ 'item_' ]
+	    variables  => [ $linkedList->{'object'}.'item' ]
 	}
 	)
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
@@ -2892,28 +2941,29 @@ sub stateStoreLinkedList {
     $code::object   = $linkedList->{'object'  };
     $code::next     = $linkedList->{'next'    };
     my $inputCode   = fill_in_string(<<'CODE', PACKAGE => 'code');
-item_ => self%{$variable}
-do while (associated(item_))
-   call item_%{$object}%stateRestore(stateFile,gslStateFile,stateOperationID)
-   item_ => item_%{$next}
+{$object}item => self%{$variable}
+do while (associated({$object}item))
+   call {$object}item%{$object}%stateRestore(stateFile,gslStateFile,stateOperationID)
+   {$object}item => {$object}item%{$next}
 end do
 CODE
     my $outputCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-item_ => self%{$variable}
-do while (associated(item_))
-   call item_%{$object}%stateStore(stateFile,gslStateFile,stateOperationID)
-   item_ => item_%{$next}
+{$object}item => self%{$variable}
+do while (associated({$object}item))
+   call {$object}item%{$object}%stateStore(stateFile,gslStateFile,stateOperationID)
+   {$object}item => {$object}item%{$next}
 end do
 CODE
-    return ($inputCode,$outputCode);
+    my $deepCopyModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($inputCode,$outputCode,$deepCopyModule);
 }
 
-sub allowedParametesLinkedList {
+sub allowedParametersLinkedList {
     # Create allowed parameter instructions for linked list objects.
     my $nonAbstractClass    = shift();
     my $linkedListVariables = shift();
     my $source              = shift();
-    return ""
+    return ("",undef())
 	unless ( exists($nonAbstractClass->{'linkedList'}) );
     my $linkedList = $nonAbstractClass->{'linkedList'};
     # Add variables needed for linked list processing.
@@ -2923,7 +2973,7 @@ sub allowedParametesLinkedList {
 	    intrinsic  => 'type',
 	    type       => $linkedList->{'type'},
 	    attributes => [ 'pointer' ],
-	    variables  => [ 'item_' ]
+	    variables  => [ $linkedList->{'object'}.'item' ]
 	}
 	)
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
@@ -2933,13 +2983,14 @@ sub allowedParametesLinkedList {
     $code::next     = $linkedList->{'next'    };
     $code::source   = $source;
     my $iterator   = fill_in_string(<<'CODE', PACKAGE => 'code');
-item_ => self%{$variable}
-do while (associated(item_))
-   call item_%{$object}%allowedParameters(allowedParameters,'{$source}',.true.)
-   item_ => item_%{$next}
+{$object}item => self%{$variable}
+do while (associated({$object}item))
+   call {$object}item%{$object}%allowedParameters(allowedParameters,'{$source}',.true.)
+   {$object}item => {$object}item%{$next}
 end do
 CODE
-    return $iterator;
+    my $deepCopyModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($iterator,$deepCopyModule);
 }
 
 sub autoDescriptorLinkedList {
@@ -2953,7 +3004,7 @@ sub autoDescriptorLinkedList {
 	    intrinsic  => 'type',
 	    type       => $linkedList->{'type'},
 	    attributes => [ 'pointer' ],
-	    variables  => [ 'item_' ]
+	    variables  => [ $linkedList->{'object'}.'item' ]
 	}
 	)
 	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
@@ -2962,13 +3013,14 @@ sub autoDescriptorLinkedList {
     $code::object   = $linkedList->{'object'  };
     $code::next     = $linkedList->{'next'    };
     my $iterator   = fill_in_string(<<'CODE', PACKAGE => 'code');
-item_ => self%{$variable}
-do while (associated(item_))
-   call item_%{$object}%descriptor(parameters)
-   item_ => item_%{$next}
+{$object}item => self%{$variable}
+do while (associated({$object}item))
+   call {$object}item%{$object}%descriptor(parameters)
+   {$object}item => {$object}item%{$next}
 end do
 CODE
-    return $iterator;
+    my $deepCopyModule = exists($linkedList->{'module'}) ? $linkedList->{'module'} : undef();
+    return ($iterator,$deepCopyModule);
 }
 
 sub stateStoreExplicitFunction {
@@ -3064,13 +3116,14 @@ sub potentialDescriptorParameters {
     
 sub deepCopyDeclarations {
     # Process variable declarations from a node for deep copy.
-    my $class            =   shift() ;
-    my $nonAbstractClass =   shift() ;
-    my $node             =   shift() ;
-    my $declarations     =   shift() ;
-    my @ignore           = @{shift()};
-    my $lineNumber       =   shift() ;
-    my $deepCopy         =   shift() ;
+    my $class              =   shift() ;
+    my $nonAbstractClass   =   shift() ;
+    my $node               =   shift() ;
+    my $declarations       =   shift() ;
+    my @ignore             = @{shift()};
+    my $lineNumber         =   shift() ;
+    my $deepCopy           =   shift() ;
+    my $foundDeepCopyNames =   shift() ;
     our $stateStorables;
     our $debugging;
     our $deepCopyActions;
@@ -3169,6 +3222,7 @@ sub deepCopyDeclarations {
 	    foreach my $object ( @{$declaration->{'variables'}} ) {
 		(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
 		if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+		    push(@{$foundDeepCopyNames},$name);
 		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 			$deepCopy->{'assignments' } .= "nullify(destination%".$name.")\n";
 			$deepCopy->{'assignments' } .= "if (associated(self%".$name.")) then\n";
@@ -3314,16 +3368,16 @@ sub deepCopyDeclarations {
 		}
 	}
     }
-   
 }
 
 sub stateStoreVariables {
     # Generate code to store/restore variables in functionClass objects.
-    my  $stateStores    = shift();
-    my  $stateStore     = shift();
-    my  $class          = shift();
-    my  $declarations   = shift();
-    our $stateStorables          ;
+    my  $stateStores        = shift();
+    my  $stateStore         = shift();
+    my  $class              = shift();
+    my  $declarations       = shift();
+    my  $explicitNamesFound = shift();
+    our $stateStorables              ;
     foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
 	# Identify variable type.
 	if ( $declaration->{'intrinsic'} eq "procedure" || $declaration->{'intrinsic'} eq "final" ) {
@@ -3440,8 +3494,11 @@ sub stateStoreVariables {
 		    (my $variableName = $_) =~ s/\s*=.*$//;
 		    next
 			if ( grep {lc($_) eq lc($variableName)} @{$stateStore->{'excludes'}} );
+		    my $isExplicit = grep {lc($_) eq lc($variableName)} @explicits;
 		    next
-			unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
+			unless ( (! $isPointer) || $isExplicit );
+		    push(@{$explicitNamesFound},lc($variableName))
+			if ( $isExplicit );
 		    my $rank = 0;
 		    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 			my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022
+!!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,12 +20,16 @@
   !!{
   An implementation of decaying dark matter halo profiles.
   !!}
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: Decaying_Dark_Matter , only : decayingDarkMatterFractionRetained
 
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Particles  , only : darkMatterParticleClass
+  
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMODecaying">
-   <description>Decaying dark matter halo profiles.</description>
+   <description>
+     A dark matter profile DMO class which builds \refClass{massDistributionSphericalDecaying} objects to account for dark matter
+     particle decays in some other dark matter profile.
+   </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMODecaying
@@ -33,41 +37,16 @@
      A dark matter halo profile class implementing decaying dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
-     integer         (kind_int8                )          :: lastUniqueID
-     double precision                                     :: lifetime_                      , massSplitting_         , &
-          &                                                  velocityKick                   , potentialEscape        , &
-          &                                                  radiusUndepleted               , massUndepleted
-     logical                                              :: massLoss_                      , potentialEscapeComputed
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_                      => null()
+     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_                        => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_                       => null()
+     double precision                                     :: toleranceRelativePotential                          , toleranceRelativeVelocityDispersion, &
+          &                                                  toleranceRelativeVelocityDispersionMaximum
+     logical                                              :: tolerateVelocityMaximumFailure                      , toleratePotentialIntegrationFailure, &
+          &                                                  tolerateEnclosedMassIntegrationFailure
    contains
-     !![
-     <methods>
-       <method description="Reset memoized calculations."          method="calculationReset"/>
-       <method description="Compute the density reduction factor." method="decayingFactor"  />
-     </methods>
-     !!]
-     final     ::                                      decayingDestructor
-     procedure :: autoHook                          => decayingAutoHook
-     procedure :: calculationReset                  => decayingCalculationReset
-     procedure :: density                           => decayingDensity
-     procedure :: densityLogSlope                   => decayingDensityLogSlope
-     procedure :: radiusEnclosingDensity            => decayingRadiusEnclosingDensity
-     procedure :: radiusEnclosingMass               => decayingRadiusEnclosingMass
-     procedure :: radialMoment                      => decayingRadialMoment
-     procedure :: enclosedMass                      => decayingEnclosedMass
-     procedure :: potential                         => decayingPotential
-     procedure :: circularVelocity                  => decayingCircularVelocity
-     procedure :: radiusCircularVelocityMaximum     => decayingRadiusCircularVelocityMaximum
-     procedure :: circularVelocityMaximum           => decayingCircularVelocityMaximum
-     procedure :: radialVelocityDispersion          => decayingRadialVelocityDispersion
-     procedure :: radiusFromSpecificAngularMomentum => decayingRadiusFromSpecificAngularMomentum
-     procedure :: rotationNormalization             => decayingRotationNormalization
-     procedure :: energy                            => decayingEnergy
-     procedure :: kSpace                            => decayingKSpace
-     procedure :: freefallRadius                    => decayingFreefallRadius
-     procedure :: freefallRadiusIncreaseRate        => decayingFreefallRadiusIncreaseRate
-     procedure :: decayingFactor                    => decayingDecayingFactor
+     final     ::        decayingDestructor
+     procedure :: get => decayingGet
   end type darkMatterProfileDMODecaying
 
   interface darkMatterProfileDMODecaying
@@ -82,20 +61,19 @@ contains
 
   function decayingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily decaying} dark matter halo profile class which takes a parameter set as input.
+    Default constructor for the {\normalfont \ttfamily decaying} dark matter halo profile class.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (darkMatterProfileDMODecaying)                 :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterParticleClass      ), pointer       :: darkMatterParticle_
-    double precision                                               :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
-         &                                                            toleranceRelativePotential
-    logical                                                        :: tolerateVelocityMaximumFailure     , toleratePotentialIntegrationFailure       , &
-         &                                                            tolerateVelocityDispersionFailure  , tolerateEnclosedMassIntegrationFailure    , &
-         &                                                            velocityDispersionRadialTabulate
+    type            (darkMatterProfileDMODecaying)                :: self
+    type            (inputParameters             ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterParticleClass     ), pointer       :: darkMatterParticle_
+    double precision                                              :: toleranceRelativePotential                , toleranceRelativeVelocityDispersion, &
+         &                                                           toleranceRelativeVelocityDispersionMaximum
+    logical                                                       :: tolerateVelocityMaximumFailure            , toleratePotentialIntegrationFailure, &
+         &                                                           tolerateEnclosedMassIntegrationFailure
 
     !![
     <inputParameter>
@@ -134,23 +112,11 @@ contains
       <source>parameters</source>
       <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
     </inputParameter>
-    <inputParameter>
-      <name>tolerateVelocityDispersionFailure</name>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the velocity dispersion.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>velocityDispersionRadialTabulate</name>
-      <defaultValue>.true.</defaultValue>
-      <source>parameters</source>
-      <description>If true, use tabulations to evaluate the radial velocity dispersion. Otherwise, compute directly.</description>
-    </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMODecaying(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateVelocityDispersionFailure,tolerateEnclosedMassIntegrationFailure,velocityDispersionRadialTabulate,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=darkMatterProfileDMODecaying(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
@@ -160,64 +126,27 @@ contains
     return
   end function decayingConstructorParameters
 
-  function decayingConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateVelocityDispersionFailure,tolerateEnclosedMassIntegrationFailure,velocityDispersionRadialTabulate,darkMatterParticle_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function decayingConstructorInternal(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
+    Generic constructor for the {\normalfont \ttfamily decaying} dark matter profile class.
     !!}
-    use :: Error                       , only : Error_Report
-    use :: Dark_Matter_Particles       , only : darkMatterParticleDecayingDarkMatter
-    use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
+    use :: Error             , only : Error_Report
     implicit none
     type            (darkMatterProfileDMODecaying)                        :: self
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterParticleClass     ), intent(in   ), target :: darkMatterParticle_
-    double precision                              , intent(in   )         :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, &
-         &                                                                   toleranceRelativePotential
-    logical                                       , intent(in   )         :: tolerateVelocityMaximumFailure     , toleratePotentialIntegrationFailure       , &
-         &                                                                   tolerateVelocityDispersionFailure  , tolerateEnclosedMassIntegrationFailure    , &
-         &                                                                   velocityDispersionRadialTabulate
+    double precision                              , intent(in   )         :: toleranceRelativePotential                , toleranceRelativeVelocityDispersion, &
+         &                                                                   toleranceRelativeVelocityDispersionMaximum
+    logical                                       , intent(in   )         :: tolerateVelocityMaximumFailure            , toleratePotentialIntegrationFailure, &
+         &                                                                   tolerateEnclosedMassIntegrationFailure
     !![
-    <constructorAssign variables="toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateVelocityDispersionFailure, tolerateEnclosedMassIntegrationFailure, velocityDispersionRadialTabulate, *darkMatterParticle_, *darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    <constructorAssign variables="toleranceRelativePotential, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateEnclosedMassIntegrationFailure, *darkMatterParticle_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
-    ! In models with decays, tolerate failures in integration of the density profile (as this can become almost fully disrupted).
-    select type (darkMatterParticle_ => self%darkMatterParticle_)
-    class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime_                             =darkMatterParticle_%lifetime     ()
-       self%massSplitting_                        =darkMatterParticle_%massSplitting()
-       self%velocityKick  =+self               %massSplitting_  &
-            &              *speedLight                          &
-            &              /kilo
-       self%massLoss_                             =darkMatterParticle_%massLoss     ()
-       self%tolerateEnclosedMassIntegrationFailure=.true.
-    class default
-       ! No decays.
-       self%lifetime_                             =-1.0d0
-       self%massSplitting_                        =+0.0d0
-       self%velocityKick  =+0.0d0
-       self%massLoss_                             =.false.
-       self%tolerateEnclosedMassIntegrationFailure=.false.
-    end select
-    ! Initialize.
-    self%genericLastUniqueID    =-1_kind_int8
-    self%lastUniqueID           =-1_kind_int8
-    self%potentialEscapeComputed=.false.
-   return
-  end function decayingConstructorInternal
-
-  subroutine decayingAutoHook(self)
-    !!{
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
-    implicit none
-    class(darkMatterProfileDMODecaying), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,decayingCalculationReset,openMPThreadBindingAllLevels)
     return
-  end subroutine decayingAutoHook
+  end function decayingConstructorInternal
 
   subroutine decayingDestructor(self)
     !!{
@@ -227,368 +156,86 @@ contains
     type(darkMatterProfileDMODecaying), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterParticle_"  />
     !!]
     return
   end subroutine decayingDestructor
 
-  subroutine decayingCalculationReset(self,node)
+  function decayingGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Reset the dark matter profile calculation.
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo            , massTypeDark                       , weightByMass
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Mass_Distributions        , only : massDistributionSphericalDecaying, kinematicsDistributionCollisionless, massDistributionSpherical
     implicit none
-    class(darkMatterProfileDMODecaying), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
+    class           (massDistributionClass              ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionCollisionless), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMODecaying       ), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
+    type            (enumerationWeightByType            ), intent(in   ), optional :: weightBy
+    integer                                              , intent(in   ), optional :: weightIndex
+    double precision                                     , parameter               :: factorRadiusEscape       =1000.0d0
+    class           (nodeComponentBasic                 ), pointer                 :: basic
+    class           (massDistributionClass              ), pointer                 :: massDistributionDecorated
+    double precision                                                               :: radiusEscape
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
 
-    ! Reset calculations for this profile.
-    self%lastUniqueID                                =node%uniqueID()
-    self%genericLastUniqueID                         =node%uniqueID()
-    self%potentialEscapeComputed                     =.false.
-    self%radiusUndepleted                            =+     0.0d0
-    self%massUndepleted                              =+     0.0d0
-    self%genericEnclosedMassRadiusMinimum            =+huge(0.0d0)
-    self%genericEnclosedMassRadiusMaximum            =-huge(0.0d0)
-    self%genericPotentialRadiusMinimum               =+huge(0.0d0)
-    self%genericPotentialRadiusMaximum               =-huge(0.0d0)
-    self%genericVelocityDispersionRadialRadiusMinimum=+huge(0.0d0)
-    self%genericVelocityDispersionRadialRadiusMaximum=-huge(0.0d0)
-    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
-    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
-    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
-    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
-    if (allocated(self%genericPotentialPotential              )) deallocate(self%genericPotentialPotential              )
-    if (allocated(self%genericPotentialRadius                 )) deallocate(self%genericPotentialRadius                 )
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionSphericalDecaying :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionSphericalDecaying)
+       massDistributionDecorated => self%darkMatterProfileDMO_%get(node,weightBy,weightIndex)
+       select type (massDistributionDecorated)
+       class is (massDistributionSpherical)
+          basic        =>  node                     %basic             (    )
+          radiusEscape =  +                          factorRadiusEscape       &
+               &          *self%darkMatterHaloScale_%radiusVirial      (node)
+          !![
+	  <referenceConstruct object="massDistribution_">
+	    <constructor>
+              massDistributionSphericalDecaying(                                                                                       &amp;
+	       &amp;                            toleranceRelativePotential            =self %toleranceRelativePotential              , &amp;
+	       &amp;                            tolerateVelocityMaximumFailure        =self %tolerateVelocityMaximumFailure          , &amp;
+	       &amp;                            toleratePotentialIntegrationFailure   =self %toleratePotentialIntegrationFailure     , &amp;
+	       &amp;                            tolerateEnclosedMassIntegrationFailure=self %tolerateEnclosedMassIntegrationFailure  , &amp;
+	       &amp;                            radiusEscape                          =      radiusEscape                            , &amp;
+	       &amp;                            time                                  =basic%time                                  (), &amp;
+	       &amp;                            darkMatterParticle_                   =self %darkMatterParticle_                     , &amp;
+               &amp;                            massDistribution_                     =      massDistributionDecorated               , &amp;
+               &amp;                            componentType                         =      componentTypeDarkHalo                   , &amp;
+               &amp;                            massType                              =      massTypeDark                              &amp;
+               &amp;                           )
+	    </constructor>
+	  </referenceConstruct>
+	  <objectDestructor name="massDistributionDecorated"/>
+          !!]
+       class default
+          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+       end select
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionCollisionless(                                                                                            &amp;
+         &amp;                              toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp; 
+         &amp;                              toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp; 
+	 &amp;                             )
+      </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
     return
-  end subroutine decayingCalculationReset
-
-  subroutine decayingDecayingFactor(self, node, radius, factor)
-    !!{
-    Return the remaining mass fraction in the profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: radius
-    double precision                              , parameter     :: fractionRadiusVirialMaximum=1.0d3, depletionNegligble=1.0d-2
-    double precision                              , intent(  out) :: factor
-    class           (nodeComponentBasic          ), pointer       :: basic
-    double precision                                              :: velocityDispersion               , velocityEscape           , &
-         &                                                           fractionRetained                 , fractionDecayed          , &
-         &                                                           potentialDifference
-
-    ! For radii within the undepleted region of the halo, the depletion factor is, by definition, 1.
-    if (radius < self%radiusUndepleted) then
-       factor=1.0d0
-       return
-    end if
-    ! Outside of the undepeleted region, compute the depletion factor directly.
-    if (self%massLoss_) then
-       ! Find the escape velocity.
-       if (radius < fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node)) then
-          if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-          if (.not.self%potentialEscapeComputed) then
-             self%potentialEscape=self%darkMatterProfileDMO_%potential(node,fractionRadiusVirialMaximum*self%darkMatterHaloScale_%radiusVirial(node))
-             self%potentialEscapeComputed=.true.
-          end if
-          potentialDifference=+self                      %potentialEscape             &
-               &              -self%darkMatterProfileDMO_%potential      (node,radius)
-          if (potentialDifference > 0.0d0) then
-             velocityEscape=+sqrt(                                                     &
-                  &               +2.0d0                                               &
-                  &               *potentialDifference                                 &
-                  &              )                                                                                                                     
-          else
-             velocityEscape=+0.0d0
-          end if
-       else
-          velocityEscape=+0.0d0
-       end if
-       velocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-       if (velocityDispersion > 0.0d0) then
-          fractionRetained   =+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
-       else
-          if (self%velocityKick > velocityEscape) then
-             fractionRetained=+0.0d0
-          else
-             fractionRetained=+1.0d0
-          end if
-       end if
-       basic => node%basic()
-       fractionDecayed =  +1.0d0                  &
-            &             -exp(                   &
-            &                  -basic%time     () &
-            &                  /self %lifetime_   &
-            &                 )
-       factor          =  +(+1.0d0-     fractionDecayed ) & ! { Fraction of particles undecayed - have 100% of their original mass.
-            &             +             fractionDecayed   & ! ⎧ Fraction of particles decayed...
-            &             *             fractionRetained  & ! ⎨  ...but not escaped...
-            &             *(+1.0d0-self%massSplitting_  )   ! ⎩  ...have 1-ε of their original mass.
-       ! Check for negligible depletion, and update the undepleted radius to the largest such radius yet found.
-       if (factor > 1.0d0-depletionNegligble) then
-          if (radius > self%radiusUndepleted) then
-             self%radiusUndepleted=radius
-             self%massUndepleted=self%darkMatterProfileDMO_%enclosedMass(node,radius)
-          end if
-       end if
-    else
-       factor          = +1.0d0                           !   Mass loss is being ignored.
-    end if
-    return
-  end subroutine decayingDecayingFactor
-
-  double precision function decayingDensity(self,node,radius)
-    !!{
-    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: radius
-    double precision                                              :: factor
-    
-    call self%decayingFactor(node, radius, factor)
-    decayingDensity=+self%darkMatterProfileDMO_%density(node,radius) * factor
-    return
-  end function decayingDensity
-  
-  double precision function decayingDensityLogSlope(self,node,radius)
-    !!{
-    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: radius
-    
-    decayingDensityLogSlope=self%densityLogSlopeNumerical(node, radius)
-    return
-  end function decayingDensityLogSlope
-
-  
-  double precision function decayingRadiusEnclosingDensity(self,node,density)
-    !!{
-    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout), target :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    double precision                              , intent(in   )         :: density
-    
-    decayingRadiusEnclosingDensity = self%radiusEnclosingDensityNumerical(node, density)
-    return
-  end function decayingRadiusEnclosingDensity
-
-  double precision function decayingRadiusEnclosingMass(self,node,mass)
-    !!{
-    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout), target :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    double precision                              , intent(in   )         :: mass
-
-    if (mass <= self%massUndepleted) then
-       ! The mass is wihtin the undepleted region - simply use the unmodified profile.
-       decayingRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
-    else
-       ! The mass is outside of the undepleted region - use a numerical solution.
-       decayingRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
-    end if
-    return
-  end function decayingRadiusEnclosingMass
-
-  double precision function decayingRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !!{
-    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout)           :: self
-    type            (treeNode                    ), intent(inout)           :: node
-    double precision                              , intent(in   )           :: moment
-    double precision                              , intent(in   ), optional :: radiusMinimum, radiusMaximum
-    
-    decayingRadialMoment=self%radialMomentNumerical(node, moment, radiusMinimum, radiusMaximum)
-    return
-  end function decayingRadialMoment
-
-  double precision function decayingEnclosedMass(self,node,radius)
-    !!{
-    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: radius
-    double precision                                              :: radiusUndepleted, massUndepleted
-
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    if (radius <= 0.0d0) then
-       decayingEnclosedMass=0.0d0
-    else if (radius <= self%radiusUndepleted) then
-       ! Within the undepleted radius the mass is unchanged.
-       decayingEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,                 radius)
-    else
-       radiusUndepleted    =+self                      %radiusUndepleted
-       massUndepleted      =+self                      %massUndepleted
-       decayingEnclosedMass=+self                      %enclosedMassDifferenceNumerical(node,radiusUndepleted,radius) &
-            &               +                           massUndepleted
-    end if
-    return
-  end function decayingEnclosedMass
-
-  double precision function decayingPotential(self,node,radius,status)
-    !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout)           :: self
-    type            (treeNode                    ), intent(inout), target   :: node
-    double precision                              , intent(in   )           :: radius
-    type        (enumerationStructureErrorCodeType), intent(  out), optional:: status
-    
-    decayingPotential=self%potentialNumerical(node, radius, status)
-    return
-  end function decayingPotential
-
-  double precision function decayingCircularVelocity(self,node,radius)
-    !!{
-    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: radius
-    
-    decayingCircularVelocity=self%circularVelocityNumerical(node, radius)
-    return
-  end function decayingCircularVelocity
-
-  double precision function decayingCircularVelocityMaximum(self,node)
-    !!{
-    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class(darkMatterProfileDMODecaying), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    
-    decayingCircularVelocityMaximum=self%circularVelocityMaximumNumerical(node)
-    return
-  end function decayingCircularVelocityMaximum
-
-  double precision function decayingRadiusCircularVelocityMaximum(self,node)
-    !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
-    !!}
-    implicit none
-    class(darkMatterProfileDMODecaying), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-
-    decayingRadiusCircularVelocityMaximum=self%radiusCircularVelocityMaximumNumerical(node)
-    return
-  end function decayingRadiusCircularVelocityMaximum
-
-  double precision function decayingRadialVelocityDispersion(self,node,radius)
-    !!{
-    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: radius
-    
-    decayingRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
-    return
-  end function decayingRadialVelocityDispersion
-
-  double precision function decayingRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !!{
-    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    in units of km s$^{-1}$ Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: specificAngularMomentum
-    
-    decayingRadiusFromSpecificAngularMomentum=self%radiusFromSpecificAngularMomentumNumerical(node, specificAngularMomentum)
-    return
-  end function decayingRadiusFromSpecificAngularMomentum
-
-  double precision function decayingRotationNormalization(self,node)
-    !!{
-    Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    !!}
-    implicit none
-    class(darkMatterProfileDMODecaying), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    
-    decayingRotationNormalization=self%rotationNormalizationNumerical(node)
-    return
-  end function decayingRotationNormalization
-
-  double precision function decayingEnergy(self,node)
-    !!{
-    Return the energy of a decaying halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMODecaying), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    
-    decayingEnergy=self%energyNumerical(node)
-    return
-  end function decayingEnergy
-
-  double precision function decayingKSpace(self,node,waveNumber)
-    !!{
-    Returns the Fourier transform of the decaying density profile at the specified {\normalfont \ttfamily waveNumber}
-    (given in Mpc$^{-1}$).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout)         :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    double precision                              , intent(in   )         :: waveNumber
-    
-    decayingKSpace=self%kSpaceNumerical(node, waveNumber)
-    return
-  end function decayingKSpace
-
-  ! multiply by sqrt factor
-  double precision function decayingFreefallRadius(self,node,time)
-    !!{
-    Returns the freefall radius in the decaying density profile at the specified {\normalfont \ttfamily time} (given in
-    Gyr).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout), target :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    double precision                              , intent(in   )         :: time
-    
-    decayingFreefallRadius=self%freefallRadiusNumerical(node, time)
-    return
-  end function decayingFreefallRadius
-
-  double precision function decayingFreefallRadiusIncreaseRate(self,node,time)
-    !!{
-    Returns the rate of increase of the freefall radius in the decaying density profile at the specified {\normalfont
-    \ttfamily time} (given in Gyr).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMODecaying), intent(inout), target :: self
-    type            (treeNode                    ), intent(inout), target :: node
-    double precision                              , intent(in   )         :: time
-
-    decayingFreefallRadiusIncreaseRate=self%freefallRadiusIncreaseRateNumerical(node, time)
-    return
-  end function decayingFreefallRadiusIncreaseRate
+  end function decayingGet

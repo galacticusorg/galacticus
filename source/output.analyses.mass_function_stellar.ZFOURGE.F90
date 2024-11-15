@@ -78,7 +78,6 @@ contains
     Constructor for the ``massFunctionStellarZFOURGE'' output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensingClass
-    use :: Galactic_Structure   , only : galacticStructureClass
     use :: Input_Parameters     , only : inputParameter           , inputParameters
     implicit none
     type            (outputAnalysisMassFunctionStellarZFOURGE)                              :: self
@@ -86,7 +85,6 @@ contains
     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                        ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass               ), pointer                     :: gravitationalLensing_
-    class           (galacticStructureClass                  ), pointer                     :: galacticStructure_
     double precision                                          , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                 :: covarianceBinomialBinsPerDecade  , redshiftInterval
     double precision                                                                        :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -170,21 +168,19 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarZFOURGE(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarZFOURGE(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="gravitationalLensing_"/>
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function massFunctionStellarZFOURGEConstructorParameters
 
-  function massFunctionStellarZFOURGEConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,galacticStructure_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarZFOURGEConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{
     Constructor for the ``massFunctionStellarZFOURGE'' output analysis class for internal use.
     !!}
@@ -204,7 +200,6 @@ contains
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
-    class           (galacticStructureClass                             ), intent(in   ), target       :: galacticStructure_
     integer                                                              , intent(in   )               :: redshiftInterval
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
@@ -367,7 +362,6 @@ contains
          &                                   outputAnalysisPropertyOperator_                                                                                           , &
          &                                   outputAnalysisDistributionOperator_                                                                                       , &
          &                                   outputTimes_                                                                                                              , &
-         &                                   galacticStructure_                                                                                                        , &
          &                                   covarianceBinomialBinsPerDecade                                                                                           , &
          &                                   covarianceBinomialMassHaloMinimum                                                                                         , &
          &                                   covarianceBinomialMassHaloMaximum                                                                                           &
@@ -395,7 +389,6 @@ contains
     type(outputAnalysisMassFunctionStellarZFOURGE), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"   />
     <objectDestructor name="self%gravitationalLensing_"/>
     !!]
     return

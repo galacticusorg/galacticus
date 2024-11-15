@@ -11,8 +11,8 @@ import numpy as np
 # Set target densities for these models.
 densitiesTarget = {
     "CDM":           3.88359677e+16,
-    "massLossFalse": 2.84646987e+15,
-    "gamma0.0":      2.68635626e+15,
+    "massLossFalse": 2.85231951e+15,
+    "gamma0.0":      2.69196444e+15,
     "gamma0.5":      1.75812743e+15
     }
 
@@ -37,7 +37,7 @@ for modelName in ( "CDM", "massLossFalse", "gamma0.0", "gamma0.5" ):
         print("FAILED: model run (errors):")
         subprocess.run("cat outputs/test-decayingDM-profile-"+modelName+".log",shell=True)
         sys.exit()
-    print("SUCCESS: model run")
+    print("SUCCESS: model run ("+modelName+")")
     # Open the models and extract the mass profile and satellite bound mass.
     model                = h5py.File('outputs/decayingDM-profile-'+modelName+'.hdf5','r')
     nodes                = model['Outputs/Output1/nodeData']

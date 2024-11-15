@@ -39,10 +39,10 @@
       <dimensionless value="true"/>
     </massDistributionSpheroid>
   </componentSpheroid>
-  <treeNodeMethodSpin>
+  <componentSpin>
     <value>random</value>
     <value>random</value>
-  </treeNodeMethodSpin>
+  </componentSpin>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
@@ -188,7 +188,7 @@
   </accretionDisks>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <!-- Galaxy merger options -->
   <virialOrbits value="benson2005"/>
   <satelliteMergingTimescales value="jiang2008">

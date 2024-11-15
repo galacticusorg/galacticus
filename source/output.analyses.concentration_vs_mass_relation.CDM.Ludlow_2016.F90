@@ -22,6 +22,7 @@
   \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
   !!}
 
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
   <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
@@ -36,8 +37,8 @@
     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
-    class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
     class(nbodyHaloMassErrorClass   ), pointer :: nbodyHaloMassError_    => null()
+    class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
   contains
     final :: concentrationVsHaloMassCDMLudlow2016Destructor
  end type outputAnalysisConcentrationVsHaloMassCDMLudlow2016
@@ -65,19 +66,19 @@ contains
     class(cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
-    class(darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
     class(outputTimesClass                                  ), pointer       :: outputTimes_
     class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
+    class(darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
 
     !![
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/>
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,nbodyHaloMassError_,outputTimes_)
+    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -96,7 +97,7 @@ contains
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
-  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,nbodyHaloMassError_,outputTimes_) result (self)
+  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result (self)
     !!{
     Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
     !!}
@@ -123,9 +124,9 @@ contains
     class           (cosmologyParametersClass                          ), target       , intent(in   )  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
     class           (virialDensityContrastClass                        ), target       , intent(in   )  :: virialDensityContrast_
-    class           (darkMatterProfileDMOClass                         ), target       , intent(in   )  :: darkMatterProfileDMO_
     class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_
     class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
+    class           (darkMatterProfileDMOClass                         ), target       , intent(inout)  :: darkMatterProfileDMO_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                         =26
     double precision                                                    , parameter                     :: massHaloMinimum                       = 1.0d10, massHaloMaximum                    =1.0d15
     integer                                                             , parameter                     :: covarianceBinomialBinsPerDecade       =10
@@ -146,7 +147,7 @@ contains
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
     !![
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *nbodyHaloMassError_, *outputTimes_"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
@@ -254,8 +255,8 @@ contains
     <objectDestructor name="self%cosmologyParameters_"  />
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%outputTimes_"          />
-    <objectDestructor name="self%nbodyHaloMassError_"   />
     <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%nbodyHaloMassError_"   />
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]
     return

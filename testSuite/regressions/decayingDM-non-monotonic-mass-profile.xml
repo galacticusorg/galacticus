@@ -143,8 +143,8 @@
   </darkMatterProfileDMO>
   <darkMatterProfileHeating value="monotonicWeak">
     <darkMatterProfileHeating value="summation">
-      <darkMatterProfileHeating value="tidal"/>
-      <darkMatterProfileHeating value="DDMv4"/>
+      <darkMatterProfileHeating value="tidal"             />
+      <darkMatterProfileHeating value="decayingDarkMatter"/>
     </darkMatterProfileHeating>
   </darkMatterProfileHeating>
 

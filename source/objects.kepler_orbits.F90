@@ -40,24 +40,24 @@ module Kepler_Orbits
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
-   <entry label="masses"              description="The masses of the orbiting bodies."                     />
-   <entry label="massSatellite"       description="The mass of the satellite body."                        />
-   <entry label="massHost"            description="The mass of the host body."                             />
-   <entry label="specificReducedMass" description="The specific reduced mass of the orbiting body."        />
-   <entry label="radius"              description="The initial radius of the orbit."                       />
-   <entry label="theta"               description="The initial polar angle, theta, of the orbit."              />
-   <entry label="phi"                 description="The initial azimuthal angle, phi, of the orbit."          />
+   <entry label="masses"              description="The masses of the orbiting bodies."                           />
+   <entry label="massSatellite"       description="The mass of the satellite body."                              />
+   <entry label="massHost"            description="The mass of the host body."                                   />
+   <entry label="specificReducedMass" description="The specific reduced mass of the orbiting body."              />
+   <entry label="radius"              description="The initial radius of the orbit."                             />
+   <entry label="theta"               description="The initial polar angle, theta, of the orbit."                />
+   <entry label="phi"                 description="The initial azimuthal angle, phi, of the orbit."              />
    <entry label="epsilon"             description="The initial rotation angle, epsilon, of the orbital velocity."/>
-   <entry label="radiusPericenter"    description="The orbital pericenter radius."                         />
-   <entry label="radiusApocenter"     description="The orbital apocenter radius."                          />
-   <entry label="velocityRadial"      description="The initial radial velocity of the orbit."              />
-   <entry label="velocityTangential"  description="The initial tangential velocity of the orbit."          />
-   <entry label="energy"              description="The orbital energy."                                    />
-   <entry label="angularMomentum"     description="The orbital angular momentum"                           />
-   <entry label="eccentricity"        description="The orbital eccentricity."                              />
-   <entry label="semiMajorAxis"       description="The semi-major axis of the orbit."                      />
-   <entry label="timeInitial"         description="The time at which the orbit was initialized."           />
-   <entry label="timeCurrent"         description="The current time for the orbit."                        />
+   <entry label="radiusPericenter"    description="The orbital pericenter radius."                               />
+   <entry label="radiusApocenter"     description="The orbital apocenter radius."                                />
+   <entry label="velocityRadial"      description="The initial radial velocity of the orbit."                    />
+   <entry label="velocityTangential"  description="The initial tangential velocity of the orbit."                />
+   <entry label="energy"              description="The orbital energy."                                          />
+   <entry label="angularMomentum"     description="The orbital angular momentum"                                 />
+   <entry label="eccentricity"        description="The orbital eccentricity."                                    />
+   <entry label="semiMajorAxis"       description="The semi-major axis of the orbit."                            />
+   <entry label="timeInitial"         description="The time at which the orbit was initialized."                 />
+   <entry label="timeCurrent"         description="The current time for the orbit."                              />
   </enumeration>
   !!]
 

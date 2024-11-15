@@ -238,25 +238,19 @@ contains
     return
   end subroutine sphericalShellOverdensitiesDestructor
 
-  double precision function sphericalShellOverdensitiesDensity(self,coordinates,componentType,massType)
+  double precision function sphericalShellOverdensitiesDensity(self,coordinates)
     !!{
     Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
     !!}
     use :: Arrays_Search, only : searchArrayClosest
     use :: Coordinates  , only : assignment(=)     , coordinateSpherical
     implicit none
-    class           (massDistributionSphericalShellOverdensities), intent(inout)           :: self
-    class           (coordinate                                 ), intent(in   )           :: coordinates
-    type            (enumerationComponentTypeType               ), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType                    ), intent(in   ), optional :: massType
-    integer         (c_size_t                                   )                          :: i
-    type            (coordinateSpherical                        )                          :: position
-    double precision                                                                       :: densityContrast, radius
+    class           (massDistributionSphericalShellOverdensities), intent(inout) :: self
+    class           (coordinate                                 ), intent(in   ) :: coordinates
+    integer         (c_size_t                                   )                :: i
+    type            (coordinateSpherical                        )                :: position
+    double precision                                                             :: densityContrast, radius
 
-    if (.not.self%matches(componentType,massType)) then
-       sphericalShellOverdensitiesDensity=0.0d0
-       return
-    end if
     ! Extract the position.
     position=coordinates
     radius  =position   %r()

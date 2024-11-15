@@ -120,13 +120,17 @@ contains
     !!{
     Return the fractional error on the mass of an N-body halo in the power-law error model.
     !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
+    use :: Coordinates             , only : coordinateSpherical  , assignment(=)
+    use :: Galacticus_Nodes        , only : nodeComponentBasic   , treeNode
+    use :: Mass_Distributions      , only : massDistributionClass
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentBasic            ), pointer       :: basic
+    class           (massDistributionClass         ), pointer       :: massDistribution_
     double precision                                , parameter     :: errorConstant                =0.014d0
+    type            (coordinateSpherical           )                :: coordinates
     double precision                                                :: radiusHalo                           , densityOuterRadius, &
          &                                                             densityRatioInternalToSurface        , particleCount     , &
          &                                                             errorFractionalFixedSphere
@@ -141,9 +145,14 @@ contains
     errorFractionalFixedSphere    =  +1.0d0               &
          &                           /sqrt(particleCount)
     ! Get the outer radius of the halo.
-    radiusHalo                    =  +self%darkMatterHaloScale_ %radiusVirial(node           )
+    radiusHalo                    =  +self             %darkMatterHaloScale_ %radiusVirial(node       )
     ! Get the density at the edge of the halo.
-    densityOuterRadius            =  +self%darkMatterProfileDMO_%density     (node,radiusHalo)
+    massDistribution_             =>  self             %darkMatterProfileDMO_%get         (node       )
+    coordinates                   =  [radiusHalo,0.0d0,0.0d0]
+    densityOuterRadius            =  +massDistribution_                      %density     (coordinates)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Find the ratio of the mean interior density in the halo to the density at the halo outer radius.
     densityRatioInternalToSurface =  +3.0d0                 &
          &                           *basic%mass()          &

@@ -25,7 +25,8 @@ module Hot_Halo_Temperature_Profiles
   !!{
   Provides a hot halo temperature profile class.
   !!}
-  use :: Galacticus_Nodes, only : treeNode
+  use :: Galacticus_Nodes  , only : treeNode
+  use :: Mass_Distributions, only : kinematicsDistributionClass
   private
 
   !![
@@ -36,19 +37,11 @@ module Hot_Halo_Temperature_Profiles
     Class implementing hot halo temperature profiles.
    </description>
    <default>virial</default>
-   <method name="temperature" >
-    <description>Return the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
+   <method name="get" >
+    <description>Return the temperature distribution of the hot halo.</description>
+    <type>class(kinematicsDistributionClass)</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: radius</argument>
-   </method>
-   <method name="temperatureLogSlope" >
-    <description>Return the logarithmic slope of the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout) :: node</argument>
-    <argument>double precision          , intent(in   ) :: radius</argument>
+    <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
   </functionClass>
   !!]

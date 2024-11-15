@@ -41,7 +41,6 @@
      class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_         => null(), cosmologyFunctionsData => null()
      class           (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
      class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
-     class           (galacticStructureClass         ), pointer :: galacticStructure_          => null()
      type            (varying_string                 )          :: fileName
      double precision                                           :: massMinimum                          , massMaximum                     , &
           &                                                        countMassesPerDecade     
@@ -63,9 +62,8 @@ contains
     Constructor for the ``starFormingMainSequence'' output analysis class which takes a parameter set as input.
     !!}
     use :: Error             , only : Error_Report
-    use :: Input_Parameters  , only : inputParameter        , inputParameters
-    use :: Numerical_Ranges  , only : Make_Range            , rangeTypeLogarithmic
-    use :: Galactic_Structure, only : galacticStructureClass
+    use :: Input_Parameters  , only : inputParameter, inputParameters
+    use :: Numerical_Ranges  , only : Make_Range    , rangeTypeLogarithmic
     implicit none
     type            (outputAnalysisStarFormingMainSequence  )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
@@ -77,7 +75,6 @@ contains
     class           (starFormationRateSpheroidsClass        ), pointer                     :: starFormationRateSpheroids_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_    , outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
-    class           (galacticStructureClass                 ), pointer                     :: galacticStructure_
     double precision                                         , dimension(:  ), allocatable :: meanValueTarget                    , meanCovarianceTarget1D               , &
          &                                                                                    massesStellar
     double precision                                         , dimension(:,:), allocatable :: meanCovarianceTarget
@@ -100,7 +97,6 @@ contains
     <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"       source="parameters"                                                                 />
     <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_"   source="parameters"                                                                 />
     <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisWeightPropertyOperator_" source="parameters"             parameterName="outputAnalysisWeightPropertyOperator"/>
-    <objectBuilder class="galacticStructure"                  name="galacticStructure_"                    source="parameters"                                                                 />
     !!]
     if (parameters%isPresent('fileName')) then
        !![
@@ -120,7 +116,7 @@ contains
          <description>A label for this analysis.</description>
        </inputParameter>
        !!]
-       self=outputAnalysisStarFormingMainSequence(char(fileName),label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_)
+       self=outputAnalysisStarFormingMainSequence(char(fileName),label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_)
     else
        !![
        <inputParameter>
@@ -208,8 +204,7 @@ contains
 	  &amp;                                     outputAnalysisDistributionOperator_  , &amp;
 	  &amp;                                     outputAnalysisWeightPropertyOperator_, &amp;
 	  &amp;                                     starFormationRateDisks_              , &amp;
-	  &amp;                                     starFormationRateSpheroids_          , &amp;
-	  &amp;                                     galacticStructure_                     &amp;
+	  &amp;                                     starFormationRateSpheroids_            &amp;
           &amp;                                     {conditions}                           &amp;
           &amp;                                    )
         </call>
@@ -231,12 +226,11 @@ contains
     <objectDestructor name="outputAnalysisPropertyOperator_"      />
     <objectDestructor name="outputAnalysisDistributionOperator_"  />
     <objectDestructor name="outputAnalysisWeightPropertyOperator_"/>
-    <objectDestructor name="galacticStructure_"                   />
     !!]
     return
   end function starFormingMainSequenceConstructorParameters
 
-  function starFormingMainSequenceConstructorFile(fileName,label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_) result(self)
+  function starFormingMainSequenceConstructorFile(fileName,label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{
     Constructor for the ``starFormingMainSequence'' output analysis class which reads all required properties from file.
     !!}
@@ -256,7 +250,6 @@ contains
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target         :: outputAnalysisPropertyOperator_
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target         :: outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(inout), target         :: outputAnalysisDistributionOperator_
-    class           (galacticStructureClass                 ), intent(in   ), target         :: galacticStructure_
     double precision                                         , allocatable  , dimension(:  ) :: meanValueTarget                      , massesStellar
     double precision                                         , allocatable  , dimension(:,:) :: meanCovarianceTarget
     double precision                                                                         :: massesStellarBinWidthLogarithmic
@@ -287,7 +280,7 @@ contains
     ! Build the object.
     !![
     <conditionalCall>
-      <call>self=starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,meanValueTarget,meanCovarianceTarget{conditions})</call>
+      <call>self=starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,targetLabel,meanValueTarget,meanCovarianceTarget{conditions})</call>
       <argument name="massesStellarBinWidthLogarithmic" value="massesStellarBinWidthLogarithmic" condition="size(massesStellar) == 1"/>
     </conditionalCall>
     <constructorAssign variables="fileName"/>
@@ -295,7 +288,7 @@ contains
     return
   end function starFormingMainSequenceConstructorFile
 
-  function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_,targetLabel,meanValueTarget,meanCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
+  function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,targetLabel,meanValueTarget,meanCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
     !!{
     Internal constructor for the ``starFormingMainSequence'' output analysis class.
     !!}
@@ -323,7 +316,6 @@ contains
     class           (outputAnalysisDistributionOperatorClass        ), intent(inout), target                        :: outputAnalysisDistributionOperator_
     class           (starFormationRateDisksClass                    ), intent(in   ), target                        :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                        :: starFormationRateSpheroids_
-    class           (galacticStructureClass                         ), intent(in   ), target                        :: galacticStructure_
     type            (varying_string                                 ), optional                     , intent(in   ) :: targetLabel
     double precision                                                 , optional     , dimension(:  ), intent(in   ) :: meanValueTarget                                             , massesStellar
     double precision                                                 , optional     , dimension(:,:), intent(in   ) :: meanCovarianceTarget
@@ -345,7 +337,7 @@ contains
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
     !![
-    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
+    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
 
     ! Set properties needed for descriptor.
@@ -415,7 +407,7 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractor_">
       <constructor>
-	nodePropertyExtractorMassStellar(galacticStructure_)
+	nodePropertyExtractorMassStellar()
       </constructor>
     </referenceConstruct>
     !!]

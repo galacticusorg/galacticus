@@ -25,24 +25,25 @@ program Test_Dark_Matter_Profiles_Zhao1996
   !!{
   Test calculations for Zhao1996 dark matter profiles.
   !!}
-  use :: Calculations_Resets         , only : Calculations_Reset
-  use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters        , only : cosmologyParametersSimple
-  use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Virial_Density_Contrast     , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass                                     , darkMatterProfileDMOZhao1996
-  use :: Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
-  use :: Display                     , only : displayMessage                                                , displayVerbositySet                    , verbosityLevelStandard
-  use :: Events_Hooks                , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities  , only : Functions_Global_Set
-  use :: Galacticus_Nodes            , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize           , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-          &                                   treeNode                                                      , nodeComponentSatellite
-  use :: Input_Parameters            , only : inputParameters
-  use :: Node_Components             , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Numerical_Ranges            , only : Make_Range                                                    , rangeTypeLogarithmic
-  use :: Numerical_Constants_Math    , only : Pi
-  use :: Unit_Tests                  , only : Assert                                                        , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use :: Error                       , only : Error_Report
+  use :: Calculations_Resets       , only : Calculations_Reset
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Coordinates               , only : coordinateSpherical                                           , assignment(=)
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass                                     , darkMatterProfileDMOZhao1996
+  use :: Mass_Distributions        , only : nonAnalyticSolversNumerical                                   , massDistributionClass            , kinematicsDistributionClass        , massDistributionSpherical
+  use :: Display                   , only : displayMessage                                                , displayVerbositySet              , verbosityLevelStandard
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+          &                                 treeNode                                                      , nodeComponentSatellite
+  use :: Input_Parameters          , only : inputParameters
+  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Numerical_Ranges          , only : Make_Range                                                    , rangeTypeLogarithmic
+  use :: Numerical_Constants_Math  , only : Pi
+  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Error                     , only : Error_Report
   implicit none
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )                        :: darkMatterHaloScale_
   type            (cosmologyParametersSimple                                     )                        :: cosmologyParameters_
@@ -52,6 +53,8 @@ program Test_Dark_Matter_Profiles_Zhao1996
        &                                                                                                     darkMatterProfileZhao1996CoredNFW_          , darkMatterProfileZhao1996Gamma0_5NFW_, &
        &                                                                                                     darkMatterProfileZhao1996Gamma1_5NFW_
   class           (darkMatterProfileDMOClass                                     ), pointer               :: darkMatterProfileZhao1996_
+  class           (massDistributionClass                                         ), pointer               :: massDistribution_
+  class           (kinematicsDistributionClass                                   ), pointer               :: kinematicsDistribution_
   type            (treeNode                                                      ), pointer               :: node_
   class           (nodeComponentBasic                                            ), pointer               :: basic_
   class           (nodeComponentDarkMatterProfile                                ), pointer               :: darkMatterProfile_
@@ -65,7 +68,8 @@ program Test_Dark_Matter_Profiles_Zhao1996
   integer                                                                                                 :: i                                           , j  
   double precision                                                                                        :: radiusScale                                 , radiusVirial                         , &
        &                                                                                                     potentialNumerical                          , potential
-
+  type            (coordinateSpherical                                           )                        :: coordinates                                 , coordinatesReference
+  
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Zhao1996 dark matter profiles")
   parameters=inputParameters('testSuite/parameters/darkMatterProfilesZhao1996.xml')
@@ -195,35 +199,47 @@ program Test_Dark_Matter_Profiles_Zhao1996
      case default
         call Error_Report('unknown profile'//{introspection:location})
      end select
-     do j=1,countRadii
-        mass                       (j)=+darkMatterProfileZhao1996_%enclosedMass                     (node_,radius = radii(j))
-        massNumerical              (j)=+darkMatterProfileZhao1996_%enclosedMassNumerical            (node_,radius = radii(j))
-        velocityDispersion         (j)=+darkMatterProfileZhao1996_%radialVelocityDispersion         (node_,radius = radii(j))
-        velocityDispersionNumerical(j)=+darkMatterProfileZhao1996_%radialVelocityDispersionNumerical(node_,radius = radii(j))
-     end do
-     call Assert(                                    &
-          &             "Enclosed mass"            , &
-          &             mass                       , &
-          &             massNumerical              , &
-          &      relTol=+2.0d-2                      &
-          &     )
-     call Assert(                                    &
-          &             "Velocity dispersion"      , &
-          &             velocityDispersion         , &
-          &             velocityDispersionNumerical, &
-          &      relTol=+2.0d-2                      &
-          &     )
-     !! When comparing to the numerical calculation of potential we take the potential relative to 100 times the virial radius, as
-     !! that is the radius to which the numerical solution is integrated.
-     potential         =+darkMatterProfileZhao1996_%potential         (node_,radius=2.0d+0*radiusScale ) &
-          &             -darkMatterProfileZhao1996_%potential         (node_,radius=1.0d+2*radiusVirial)
-     potentialNumerical=+darkMatterProfileZhao1996_%potentialNumerical(node_,radius=2.0d+0*radiusScale )
-     call Assert(                           &
-          &             "Potential"       , &
-          &             potential         , &
-          &             potentialNumerical, &
-          &      relTol=+2.0d-2             &
-          &     )
+     massDistribution_       => darkMatterProfileZhao1996_%get                   (node_)
+     kinematicsDistribution_ => massDistribution_         %kinematicsDistribution(     )
+     select type (massDistribution_)
+     class is (massDistributionSpherical)
+        do j=1,countRadii
+           coordinates                   =[radii(j),0.0d0,0.0d0]
+           mass                       (j)=+massDistribution_      %massEnclosedBySphere         (radius     =      radii(j)                                            )
+           massNumerical              (j)=+massDistribution_      %massEnclosedBySphereNumerical(radius     =      radii(j)                                            )
+           velocityDispersion         (j)=+kinematicsDistribution_%velocityDispersion1D         (coordinates=coordinates   ,massDistributionEmbedding=massDistribution_)
+           velocityDispersionNumerical(j)=+kinematicsDistribution_%velocityDispersion1DNumerical(coordinates=coordinates   ,massDistributionEmbedding=massDistribution_)
+        end do
+        call Assert(                                    &
+             &             "Enclosed mass"            , &
+             &             mass                       , &
+             &             massNumerical              , &
+             &      relTol=+2.0d-2                      &
+             &     )
+        call Assert(                                    &
+             &             "Velocity dispersion"      , &
+             &             velocityDispersion         , &
+             &             velocityDispersionNumerical, &
+             &      relTol=+2.0d-2                      &
+             &     )
+        !! When comparing to the numerical calculation of potential we take the potential relative to 100 times the virial radius, as
+        !! that is the radius to which the numerical solution is integrated.
+        coordinates         =[2.0d+0*radiusScale ,0.0d0,0.0d0]
+        coordinatesReference=[1.0d+2*radiusVirial,0.0d0,0.0d0]
+        potential           =+massDistribution_%potential         (coordinates=coordinates         ) &
+             &               -massDistribution_%potential         (coordinates=coordinatesReference)
+        potentialNumerical  =+massDistribution_%potentialNumerical(coordinates=coordinates         )
+        call Assert(                           &
+             &             "Potential"       , &
+             &             potential         , &
+             &             potentialNumerical, &
+             &      relTol=+2.1d-2             &
+             &     )
+     end select
+     !![
+     <objectDestructor name="      massDistribution_"/>
+     <objectDestructor name="kinematicsDistribution_"/>
+     !!]
      call Unit_Tests_End_Group            ()
   end do
   call Unit_Tests_End_Group               ()

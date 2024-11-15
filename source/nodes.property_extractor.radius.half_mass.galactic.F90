@@ -21,8 +21,6 @@
 Contains a module which implements a half-galactic mass radius output analysis property extractor class.
 !!}
 
-  use :: Galactic_Structure, only : galacticStructureClass
-
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassGalactic">
    <description>A half-galactic mass output analysis property extractor class.</description>
@@ -33,9 +31,7 @@ Contains a module which implements a half-galactic mass radius output analysis p
      A half-galactic mass property extractor output analysis class.
      !!}
      private
-     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
-     final     ::                radiusHalfMassGalacticDestructor
      procedure :: extract     => radiusHalfMassGalacticExtract
      procedure :: name        => radiusHalfMassGalacticName
      procedure :: description => radiusHalfMassGalacticDescription
@@ -47,7 +43,6 @@ Contains a module which implements a half-galactic mass radius output analysis p
      Constructors for the ``radiusHalfMassGalactic'' output analysis class.
      !!}
      module procedure radiusHalfMassGalacticConstructorParameters
-     module procedure radiusHalfMassGalacticConstructorInternal
   end interface nodePropertyExtractorRadiusHalfMassGalactic
 
 contains
@@ -60,61 +55,34 @@ contains
     implicit none
     type (nodePropertyExtractorRadiusHalfMassGalactic)                :: self
     type (inputParameters                            ), intent(inout) :: parameters
-    class(galacticStructureClass                     ), pointer       :: galacticStructure_
 
-    !![
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
-    !!]
-    self=nodePropertyExtractorRadiusHalfMassGalactic(galacticStructure_)
+    self=nodePropertyExtractorRadiusHalfMassGalactic()
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function radiusHalfMassGalacticConstructorParameters
-
-  function radiusHalfMassGalacticConstructorInternal(galacticStructure_) result(self)
-    !!{
-    Internal constructor for the ``radiusHalfMassGalactic'' output analysis property extractor class.
-    !!}
-    implicit none
-    type (nodePropertyExtractorRadiusHalfMassGalactic)                        :: self
-    class(galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
-    !![
-    <constructorAssign variables="*galacticStructure_"/>
-    !!]
-
-    return
-  end function radiusHalfMassGalacticConstructorInternal
-  
-  subroutine radiusHalfMassGalacticDestructor(self)
-    !!{
-    Destructor for the ``radiusHalfMassGalactic'' output analysis property extractor class.
-    !!}
-    implicit none
-    type(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout) :: self
-    
-    !![
-    <objectDestructor name="self%galacticStructure_"/>
-    !!]
-    return
-  end subroutine radiusHalfMassGalacticDestructor
 
   double precision function radiusHalfMassGalacticExtract(self,node,instance)
     !!{
     Implement a half-mass output analysis.
     !!}
     use :: Galactic_Structure_Options, only : massTypeGalactic
+    use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout), target   :: self
     type (treeNode                                   ), intent(inout), target   :: node
     type (multiCounter                               ), intent(inout), optional :: instance
+    class(massDistributionClass                      )               , pointer  :: massDistribution_
     !$GLC attributes unused :: self, instance
 
-    radiusHalfMassGalacticExtract=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0,massType=massTypeGalactic)
+    massDistribution_             => node             %massDistribution   (massType      =massTypeGalactic)
+    radiusHalfMassGalacticExtract =  massDistribution_%radiusEnclosingMass(massFractional=0.5d0          )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function radiusHalfMassGalacticExtract
-
 
   function radiusHalfMassGalacticName(self)
     !!{

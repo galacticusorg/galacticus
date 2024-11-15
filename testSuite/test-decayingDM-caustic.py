@@ -17,7 +17,7 @@ status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/decayingDM
 log.close()
 print("...done ("+str(status)+")")
 if status.returncode != 0:
-    print("FAILED: model run ("+modelName+"):")
+    print("FAILED: model run:")
     subprocess.run("cat outputs/test-decayingDM-caustic.log",shell=True)
     sys.exit()
 print("Checking for errors...")

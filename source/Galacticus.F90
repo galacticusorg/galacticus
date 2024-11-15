@@ -65,6 +65,8 @@ program Galacticus
 #endif
   ! Register error handlers.
   call Error_Handler_Register()
+  ! Show the Galacticus banner.
+  call Display_Banner_Show()
   ! Check that we have at least one command line argument.
   if (Command_Argument_Count() < 1) call usageError()
   ! Get the name of the parameter file from the first command line argument.
@@ -97,8 +99,6 @@ program Galacticus
   call Error_Wait_Set_From_Parameters   (parameters)
   ! Set resource limits.
   call System_Limits_Set                (parameters)
-  ! Show the Galacticus banner.
-  call Display_Banner_Show()
   ! Validate parameter file.
   call parameters%checkParameters()
   ! Perform task.

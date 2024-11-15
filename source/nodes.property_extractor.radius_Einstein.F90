@@ -23,8 +23,8 @@ Implements an output analysis property extractor class that extracts the Einstei
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Root_Finder            , only : rootFinder
+  use :: Mass_Distributions     , only : massDistributionClass
   use :: Numerical_Integration  , only : integrator
 
   !![
@@ -39,7 +39,6 @@ Implements an output analysis property extractor class that extracts the Einstei
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_       => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_      => null()
-     class           (galacticStructureClass  ), pointer :: galacticStructure_        => null()
      double precision                                    :: redshiftSource                     , timeSource
      type            (rootFinder              )          :: finder
      type            (integrator              )          :: integratorImpactParameter          , integratorLineOfSight
@@ -61,10 +60,10 @@ Implements an output analysis property extractor class that extracts the Einstei
 
   ! Submodule-scope variables used in root-finding.
   class           (nodePropertyExtractorRadiusEinstein), pointer :: self_
-  type            (treeNode                           ), pointer :: node_
+  class           (massDistributionClass              ), pointer :: massDistribution_
   double precision                                               :: densitySurfaceCritical     , radiusImpact_, &
        &                                                            distanceLineOfSightMaximum_
-  !$omp threadprivate(self_,node_,densitySurfaceCritical,radiusImpact_,distanceLineOfSightMaximum_)
+  !$omp threadprivate(self_,massDistribution_,densitySurfaceCritical,radiusImpact_,distanceLineOfSightMaximum_)
   
 contains
 
@@ -78,7 +77,6 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: redshiftSource
         
      !![
@@ -89,24 +87,21 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
     self=nodePropertyExtractorRadiusEinstein(                                                                                                 &
          &                                   cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftSource)), &
          &                                   cosmologyFunctions_                                                                            , &
-         &                                   darkMatterHaloScale_                                                                           , &
-         &                                   galacticStructure_                                                                               &
+         &                                   darkMatterHaloScale_                                                                             &
          &                                  )
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function radiusEinsteinConstructorParameters
 
-  function radiusEinsteinConstructorInternal(timeSource,cosmologyFunctions_,darkMatterHaloScale_,galacticStructure_) result(self)
+  function radiusEinsteinConstructorInternal(timeSource,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the ``radiusEinstein'' node property extractor.
     !!}
@@ -115,10 +110,9 @@ contains
     type            (nodePropertyExtractorRadiusEinstein)                        :: self
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     double precision                                     , intent(in   )         :: timeSource
     !![
-    <constructorAssign variables="timeSource, *cosmologyFunctions_, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="timeSource, *cosmologyFunctions_, *darkMatterHaloScale_"/>
     !!]
 
     ! Compute corresponding redshift - these are needed for the descriptor.
@@ -154,7 +148,6 @@ contains
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine radiusEinsteinDestructor
@@ -178,7 +171,7 @@ contains
          &                                                                                                      *arcsecondstoDegrees                       &
          &                                                                                                      *degreesToRadians
     double precision                                                               :: distanceAngularLensSource                     , distanceAngularLens, &
-         &                                                                            distanceAngularSource                         , massTotal
+         &                                                                            distanceAngularSource
     !$GLC attributes unused :: instance
 
     radiusEinsteinExtract=-1.0d0
@@ -201,12 +194,11 @@ contains
          &                 /distanceAngularLens             &
          &                 /distanceAngularLensSource
     ! Find the outer radius of the halo.
-    satellite                   => node                   %satellite          (                                              )
-    massTotal                   =  self%galacticStructure_%massEnclosed       (node                                          )
-    distanceLineOfSightMaximum_ =  self%galacticStructure_%radiusEnclosingMass(node,mass=min(satellite%boundMass(),massTotal))
+    massDistribution_ => node%massDistribution()
+    satellite                   => node             %satellite          (                                       )
+    distanceLineOfSightMaximum_ =  massDistribution_%radiusEnclosingMass(min(satellite%boundMass(),basic%mass()))
     ! Find the radius within which the mean projected surface density equals the critical density.
     self_ => self
-    node_ => node
     if (radiusEinsteinProjectedDensityRoot(radiusEinsteinTiny*distanceAngularLens) < 0.0d0) then
        ! For extremely tiny Einstein radii we simply return zero, to avoid unnecessary computation.
        radiusEinsteinExtract=+0.0d0
@@ -263,25 +255,19 @@ contains
     !!{
     Integrand function used in finding the mean enclosed projected density.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, massTypeAll
+    use :: Galactic_Structure_Options, only : componentTypeAll   , massTypeAll
+    use :: Coordinates               , only : coordinateSpherical, assignment(=)
     implicit none
-    double precision, intent(in   ) :: distance
-    double precision                :: radius
+    double precision                     , intent(in   ) :: distance
+    double precision                                     :: radius
+    type            (coordinateSpherical)                :: coordinates
 
     radius                                            =+sqrt(                  &
          &                                                   +distance     **2 &
          &                                                   +radiusImpact_**2 &
          &                                                  )
-    radiusEinsteinProjectedDensityIntegrandLineOfSight=+self_%galacticStructure_%density(                                &
-            &                                                                            node_                         , &
-            &                                                                            [                               &
-            &                                                                             radius                       , &
-            &                                                                             0.0d0                        , &
-            &                                                                             0.0d0                          &
-            &                                                                            ]                             , &
-            &                                                                            componentType=componentTypeAll, &
-            &                                                                            massType     =massTypeAll       &
-            &                                                                          )
+    coordinates                                       = [radius,0.0d0,0.0d0]
+    radiusEinsteinProjectedDensityIntegrandLineOfSight=+massDistribution_%density(coordinates)
     return
   end function radiusEinsteinProjectedDensityIntegrandLineOfSight
   

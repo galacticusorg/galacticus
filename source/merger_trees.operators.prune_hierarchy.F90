@@ -148,7 +148,7 @@ contains
              ! Find which node we should prune.
              nodeListCurrent => nodeListHead
              if (hierarchyDepth > self%hierarchyDepth) then
-                do i=1,self%hierarchyDepth-hierarchyDepth
+                do i=1,hierarchyDepth-self%hierarchyDepth
                    nodeListCurrent => nodeListCurrent%next
                 end do
              end if

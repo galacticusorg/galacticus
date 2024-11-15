@@ -32,3 +32,16 @@ double precision function Node_Component_Hot_Halo_Cold_Mode_Mass_Total(self)
   return
 end function Node_Component_Hot_Halo_Cold_Mode_Mass_Total
 
+double precision function Node_Component_Hot_Halo_Cole_Mode_Mass_Baryonic(self) result(massBaryonic)
+  !!{
+  Return the baryonic mass for the very simple disk component.
+  !!}
+  implicit none
+  class(nodeComponentHotHaloColdMode), intent(inout) :: self
+
+  massBaryonic=+max(0.0d0,self%mass         ()) &
+       &       +max(0.0d0,self%massCold     ()) &
+       &       +max(0.0d0,self%outflowedMass())
+  return
+end function Node_Component_Hot_Halo_Cole_Mode_Mass_Baryonic
+

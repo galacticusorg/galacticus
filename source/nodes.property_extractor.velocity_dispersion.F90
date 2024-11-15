@@ -22,9 +22,9 @@
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale    , darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
-  use :: Galactic_Structure                  , only : galacticStructureClass
   use :: Galactic_Structure_Options          , only : enumerationMassTypeType, enumerationComponentTypeType, enumerationWeightByType
-
+  use :: Mass_Distributions                  , only : massDistributionClass  , kinematicsDistributionClass
+  
   !![
   <nodePropertyExtractor name="nodePropertyExtractorVelocityDispersion">
    <description>
@@ -51,7 +51,6 @@
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii                           , integrationFailureIsFatal
      double precision                                             :: toleranceRelative
@@ -80,14 +79,18 @@
   end interface nodePropertyExtractorVelocityDispersion
 
   ! Module-scope variables used in integrands.
+  class           (massDistributionClass                  ), pointer :: massDistribution_                     , massDistributionStellarDisk_      , &
+       &                                                                massDistributionWeighted_             , massDistributionStellarSpheroid_  , &
+       &                                                                massDistributionTotal_
+  class           (kinematicsDistributionClass            ), pointer :: kinematicsDistribution_               , kinematicsDistributionStellarDisk_, &
+       &                                                                kinematicsDistributionStellarSpheroid_
   class           (nodePropertyExtractorVelocityDispersion), pointer :: self_
-  type            (treeNode                               ), pointer :: node_
   type            (enumerationMassTypeType                )          :: massType_
   type            (enumerationComponentTypeType           )          :: componentType_
   type            (enumerationWeightByType                )          :: weightBy_
   integer                                                            :: weightIndex_
   double precision                                                   :: radiusImpact_ , radiusOuter_
-  !$omp threadprivate(self_,node_,weightBy_,componentType_,massType_,weightIndex_,radiusImpact_,radiusOuter_)
+  !$omp threadprivate(massDistribution_,massDistributionWeighted_,massDistributionStellarDisk_,massDistributionStellarSpheroid_,massDistributionTotal_,kinematicsDistribution_,kinematicsDistributionStellarDisk_,kinematicsDistributionStellarSpheroid_,self_,weightBy_,componentType_,massType_,weightIndex_,radiusImpact_,radiusOuter_)
 
 contains
 
@@ -97,13 +100,12 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (nodePropertyExtractorVelocityDispersion)                              :: self
-    type   (inputParameters                        ), intent(inout)               :: parameters
-    type   (varying_string                         ), allocatable  , dimension(:) :: radiusSpecifiers
-    class  (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
-    class  (galacticStructureClass                 ), pointer                     :: galacticStructure_
-    double precision                                                              :: toleranceRelative
-    logical                                                                       :: includeRadii        , integrationFailureIsFatal
+    type            (nodePropertyExtractorVelocityDispersion)                              :: self
+    type            (inputParameters                        ), intent(inout)               :: parameters
+    type            (varying_string                         ), allocatable  , dimension(:) :: radiusSpecifiers
+    class           (darkMatterHaloScaleClass               ), pointer                     :: darkMatterHaloScale_
+    double precision                                                                       :: toleranceRelative
+    logical                                                                                :: includeRadii        , integrationFailureIsFatal
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
@@ -131,18 +133,16 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_)
+    self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function velocityDispersionConstructorParameters
 
-  function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result(self)
+  function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
     !!}
@@ -151,11 +151,10 @@ contains
     type            (nodePropertyExtractorVelocityDispersion)                              :: self
     type            (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
     class           (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
-    class           (galacticStructureClass                 ), intent(in   ), target       :: galacticStructure_
     logical                                                  , intent(in   )               :: includeRadii        , integrationFailureIsFatal
     double precision                                         , intent(in   )               :: toleranceRelative
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, integrationFailureIsFatal, toleranceRelative, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, integrationFailureIsFatal, toleranceRelative, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -185,7 +184,6 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine velocityDispersionDestructor
@@ -222,12 +220,13 @@ contains
     Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , componentTypeDisk           , componentTypeSpheroid              , massTypeGalactic               , &
-          &                                             massTypeStellar                , radiusLarge
+          &                                             massTypeStellar                , massTypeAll
     use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage, directionRadial                , &
           &                                             radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius               , radiusTypeGalacticLightFraction, &
           &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius   , radiusTypeSpheroidRadius       , &
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid              , treeNode
+    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
     use :: Numerical_Integration               , only : integrator
     use :: Error                               , only : Error_Report
     implicit none
@@ -249,6 +248,7 @@ contains
     logical                                                                                :: scaleIsZero
     type            (integrator                             )                              :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
          &                                                                                    integratorLambdaR2                     , integratorLambdaR1
+    type            (coordinateSpherical                    )                              :: coordinates
     !$GLC attributes unused :: time, instance
 
     integratorVelocitySurfaceDensity=integrator(velocityDispersionVelocitySurfaceDensityIntegrand,toleranceRelative=1.0d-3)
@@ -291,27 +291,35 @@ contains
           scaleIsZero                  =(spheroid                   %halfMassRadius() <= 0.0d0)
        case   (radiusTypeGalacticMassFraction  %ID,  &
             &  radiusTypeGalacticLightFraction %ID )
-          radiusFromFraction=+self%galacticStructure_%radiusEnclosingMass(                                                &
-               &                                                                         node                          ,  &
-               &                                                          massFractional=self%radii(i)%fraction        ,  &
-               &                                                          massType      =              massTypeGalactic,  &
-               &                                                          componentType =              componentTypeAll,  &
-               &                                                          weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                          weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                         )
-          radius                       =    radius*radiusFromFraction
-          radiusOuter_=max(radius,radiusFromFraction)*outerRadiusMultiplier
+          massDistribution_  =>  node             %massDistribution   (                                                &
+               &                                                       massType      =              massTypeGalactic,  &
+               &                                                       componentType =              componentTypeAll,  &
+               &                                                       weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                       weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                      )
+          radiusFromFraction =  +massDistribution_%radiusEnclosingMass(                                                &
+               &                                                       massFractional=self%radii(i)%fraction           &
+               &                                                      )
+          radius             =  +radius*radiusFromFraction
+          radiusOuter_       =  max(radius,radiusFromFraction)*outerRadiusMultiplier
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case   (radiusTypeStellarMassFraction  %ID)
-          radiusFromFraction=+self%galacticStructure_%radiusEnclosingMass(                                                &
-               &                                                                         node                          ,  &
-               &                                                          massFractional=self%radii(i)%fraction        ,  &
-               &                                                          massType      =              massTypeStellar ,  &
-               &                                                          componentType =              componentTypeAll,  &
-               &                                                          weightBy      =self%radii(i)%weightBy        ,  &
-               &                                                          weightIndex   =self%radii(i)%weightByIndex      &
-               &                                                         )
-          radius                       =    radius*radiusFromFraction
-          radiusOuter_=max(radius,radiusFromFraction)*outerRadiusMultiplier
+          massDistribution_  =>  node             %massDistribution   (                                                &
+               &                                                       massType      =              massTypeStellar ,  &
+               &                                                       componentType =              componentTypeAll,  &
+               &                                                       weightBy      =self%radii(i)%weightBy        ,  &
+               &                                                       weightIndex   =self%radii(i)%weightByIndex      &
+               &                                                      )
+          radiusFromFraction =  +massDistribution_%radiusEnclosingMass(                                                &
+               &                                                       massFractional=self%radii(i)%fraction           &
+               &                                                      )
+          radius             =  +radius*radiusFromFraction
+          radiusOuter_       =  max(radius,radiusFromFraction)*outerRadiusMultiplier
+          !![
+	  <objectDestructor name="massDistribution_"/>
+	  !!]
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
@@ -319,20 +327,18 @@ contains
           ! Do not compute dispersions if the component scale is zero.
           velocityDispersionExtract(i,1)=0.0d0
        else
+          massDistribution_         => node             %      massDistribution(componentType=self%radii(i)%component       ,massType=self%radii(i)%mass                                                                                )
+          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii(i)%component       ,massType=self%radii(i)%mass        ,weightBy=self%radii(i)%weightBy,weightIndex=self%radii(i)%weightByIndex)
+          massDistributionTotal_    => node             %      massDistribution(componentType=              componentTypeAll,massType=              massTypeAll                                                                         )
+          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                                        ) 
           select case (self%radii(i)%direction%ID)
           case (directionRadial                    %ID)
              ! Radial velocity dispersion.
-             velocityDispersionExtract(i,1)=self%galacticStructure_%velocityDispersion(                                       &
-                  &                                                                                  node                   , &
-                  &                                                                                  radius                 , &
-                  &                                                                                  radiusOuter_           , &
-                  &                                                                    massType     =self%radii(i)%mass     , &
-                  &                                                                    componentType=self%radii(i)%component  &
-                  &                                                                   )
+             coordinates                   =[radius,0.0d0,0.0d0]
+             velocityDispersionExtract(i,1)=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionTotal_)
           case (directionLineOfSight               %ID)
              ! Line-of-sight velocity dispersion.
              self_               => self
-             node_               => node
              massType_           =  self%radii(i)%mass
              componentType_      =  self%radii(i)%component
              weightBy_           =  self%radii(i)%integralWeightBy
@@ -342,7 +348,6 @@ contains
           case (directionLineOfSightInteriorAverage%ID)
              ! Average over the line-of-sight velocity dispersion within the radius.
              self_          => self
-             node_          => node
              massType_      =  self%radii(i)%mass
              componentType_ =  self%radii(i)%component
              weightBy_      =  self%radii(i)%integralWeightBy
@@ -359,45 +364,42 @@ contains
           case (directionLambdaR                   %ID)
              ! The "lambdaR" parameter of Cappellari et al. (2007; MNRAS; 379; 418)
              self_          => self
-             node_          => node
              massType_      =  self%radii(i)%mass
              componentType_ =  self%radii(i)%component
              weightBy_      =  self%radii(i)%integralWeightBy
              weightIndex_   =  self%radii(i)%integralWeightByIndex
              ! Check the total masses of the disk and spheroid components. If either is zero we can use the solutions for the
              ! appropriate limiting case.
-             massSpheroid=self%galacticStructure_%massEnclosed(                                             &
-                  &                                            node                                       , &
-                  &                                            radiusLarge                                , &
-                  &                                            massType     =massTypeStellar              , &
-                  &                                            componentType=componentTypeSpheroid        , &
-                  &                                            weightBy     =weightBy_   , &
-                  &                                            weightIndex  =weightIndex_  &
-                  &                                           )
-             massDisk    =self%galacticStructure_%massEnclosed(                                             &
-                  &                                            node                                       , &
-                  &                                            radiusLarge                                , &
-                  &                                            massType     =massTypeStellar              , &
-                  &                                            componentType=componentTypeDisk            , &
-                  &                                            weightBy     =weightBy_   , &
-                  &                                            weightIndex  =weightIndex_  &
-                  &                                           )
+             massDistributionStellarDisk_     => node%massDistribution(componentType=componentTypeDisk    ,massType=massTypeStellar,weightBy=weightBy_,weightIndex=weightIndex_)
+             massDistributionStellarSpheroid_ => node%massDistribution(componentType=componentTypeSpheroid,massType=massTypeStellar,weightBy=weightBy_,weightIndex=weightIndex_)
+             massSpheroid=massDistributionStellarSpheroid_%massTotal()
+             massDisk    =massDistributionStellarDisk_    %massTotal()
              if      (massDisk     <= 0.0d0) then
                 velocityDispersionExtract(i,1)=0.0d0
              else if (massSpheroid <= 0.0d0) then
                 velocityDispersionExtract(i,1)=1.0d0
              else
                 ! Full calculation is required.
-                radiusZero=0.0d0
-                numerator  =integratorLambdaR2%integrate(radiusZero,radius)
-                denominator=integratorLambdaR1%integrate(radiusZero,radius)
+                radiusZero             =  0.0d0
+                numerator              =  integratorLambdaR2%integrate(radiusZero,radius)
+                denominator            =  integratorLambdaR1%integrate(radiusZero,radius)
                 if (denominator <= 0.0d0) then
                    velocityDispersionExtract(i,1)=0.0d0
                 else
                    velocityDispersionExtract(i,1)=numerator/denominator
                 end if
              end if
+             !![
+	     <objectDestructor name="massDistributionStellarDisk_"    />
+	     <objectDestructor name="massDistributionStellarSpheroid_"/>
+	     !!]
           end select
+          !![
+	  <objectDestructor name="massDistribution_"        />
+	  <objectDestructor name="massDistributionWeighted_"/>
+	  <objectDestructor name="kinematicsDistribution_"  />
+	  <objectDestructor name="massDistributionTotal_"   />
+	  !!]
        end if
        if (self%includeRadii)                       &
             & velocityDispersionExtract(i,2)=radius
@@ -479,7 +481,6 @@ contains
     return
   end function velocityDispersionUnitsInSI
 
-
   double precision function velocityDispersionLambdaRIntegrand1(radius)
     !!{
     Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
@@ -501,37 +502,27 @@ contains
     \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {  \Sigma_\mathrm{s}(r) [\sigma_\mathrm{s}^2(r)] + \Sigma_\mathrm{d}(r) [V_\mathrm{d}(r)-V(r)]^2  \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
     \end{equation}
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDisk, massTypeAll, massTypeStellar
-    use :: Numerical_Constants_Math  , only : Pi
-    use :: Numerical_Integration     , only : integrator
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Integration   , only : integrator
+    use :: Coordinates             , only : coordinateCylindrical, assignment(=)
     implicit none
-    double precision            , intent(in   ) :: radius
-    double precision            , parameter     :: fractionSmall                         =1.0d-3
-    type            (integrator)                :: integratorDensity                            , integratorVelocityDensity
-    double precision                            :: sigmaLineOfSightSquaredSpheroidDensity       , densitySpheroid          , &
-         &                                         densityDisk                                  , velocityDisk             , &
-         &                                         velocityMean                                 , sigmaLineOfSightSquared
+    double precision                       , intent(in   ) :: radius
+    double precision                       , parameter     :: fractionSmall                         =1.0d-3
+    type            (integrator           )                :: integratorDensity                            , integratorVelocityDensity
+    double precision                                       :: sigmaLineOfSightSquaredSpheroidDensity       , densitySpheroid          , &
+         &                                                    densityDisk                                  , velocityDisk             , &
+         &                                                    velocityMean                                 , sigmaLineOfSightSquared
+    type            (coordinateCylindrical)                :: coordinates
 
     if (radius <= 0.0d0) then
        velocityDispersionLambdaRIntegrand1=0.0d0
     else
-       radiusImpact_=radius
-       integratorDensity             =integrator                                                (velocityDispersionDensityIntegrand,toleranceRelative=1.0d-2)
-       densitySpheroid               =integratorDensity     %integrate                          (radius                            ,radiusOuter_            )
-       densityDisk                   =self_%galacticStructure_%surfaceDensity  (                                                     &
-            &                                                                                                  node_               , &
-            &                                                                                                  [radius,0.0d0,0.0d0], &
-            &                                                                                    massType     =massTypeStellar     , &
-            &                                                                                    componentType=componentTypeDisk   , &
-            &                                                                                    weightBy     =weightBy_           , &
-            &                                                                                    weightIndex  =weightIndex_          &
-            &                                                                                   )
-       velocityDisk                  =self_%galacticStructure_%velocityRotation(                                                     &
-            &                                                                                                  node_               , &
-            &                                                                                                  radius              , &
-            &                                                                                    massType     =massTypeAll         , &
-            &                                                                                    componentType=componentTypeAll      &
-            &                                                                                   )
+       radiusImpact_                 = radius
+       coordinates                   =[radius,0.0d0,0.0d0]
+       integratorDensity             =integrator                                 (velocityDispersionDensityIntegrand,toleranceRelative=1.0d-2)
+       densitySpheroid               =integratorDensity           %integrate     (radius                            ,radiusOuter_            )
+       densityDisk                   =massDistributionStellarDisk_%surfaceDensity(coordinates                                                )
+       velocityDisk                  =massDistributionTotal_      %rotationCurve (radius                                                     )
        ! Test if the spheroid density is significant....
        if (densitySpheroid < fractionSmall*densityDisk) then
           ! ...it is not, so we can avoid computing the spheroid velocity dispersion.
@@ -585,29 +576,19 @@ contains
     V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
     \end{equation}
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDisk, massTypeAll, massTypeStellar
-    use :: Numerical_Constants_Math  , only : Pi
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Coordinates             , only : coordinateCylindrical, assignment(=)
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: densityDisk, velocityDisk
+    double precision                       , intent(in   ) :: radius
+    double precision                                       :: densityDisk, velocityDisk
+    type            (coordinateCylindrical)                :: coordinates
 
     if (radius <= 0.0d0) then
        velocityDispersionLambdaRIntegrand2=0.0d0
     else
-       densityDisk=self_%galacticStructure_%surfaceDensity   (                                    &
-            &                                                               node_               , &
-            &                                                               [radius,0.0d0,0.0d0], &
-            &                                                 massType     =massTypeStellar     , &
-            &                                                 componentType=componentTypeDisk   , &
-            &                                                 weightBy     =weightBy_           , &
-            &                                                 weightIndex  =weightIndex_          &
-            &                                                )
-       velocityDisk=self_%galacticStructure_%velocityRotation(                                    &
-            &                                                               node_               , &
-            &                                                               radius              , &
-            &                                                 massType     =massTypeAll         , &
-            &                                                 componentType=componentTypeAll      &
-            &                                                )
+       coordinates                        =[radius,0.0d0,0.0d0]
+       densityDisk                        =massDistributionStellarDisk_%surfaceDensity(coordinates)
+       velocityDisk                       =massDistributionTotal_      %rotationCurve (radius     )
        velocityDispersionLambdaRIntegrand2=+2.0d0        &
             &                              *Pi           &
             &                              *radius       &
@@ -621,31 +602,19 @@ contains
     !!{
     Integrand function used for integrating line-of-sight velocity dispersion over surface density.
     !!}
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    double precision, intent(in   ) :: radius
-
+    double precision                     , intent(in   ) :: radius
+    type            (coordinateSpherical)                :: coordinates
+    
     if (radius <= 0.0d0) then
        velocityDispersionVelocitySurfaceDensityIntegrand=0.0d0
     else
-       velocityDispersionVelocitySurfaceDensityIntegrand=+velocityDispersionSolidAngleInCylinder     (                                    &
-            &                                                                                                        radius               &
-            &                                                                                        )                                    &
-            &                                            *                                                           radius**2            &
-            &                                            *self_%galacticStructure_%density           (                                    &
-            &                                                                                                       node_               , &
-            &                                                                                                       [radius,0.0d0,0.0d0], &
-            &                                                                                         massType     =massType_           , &
-            &                                                                                         componentType=componentType_      , &
-            &                                                                                         weightBy     =weightBy_           , &
-            &                                                                                         weightIndex  =weightIndex_          &
-            &                                                                                        )                                    &
-            &                                            *self_%galacticStructure_%velocityDispersion(                                    &
-            &                                                                                                       node_               , &
-            &                                                                                                       radius              , &
-            &                                                                                                       radiusOuter_        , &
-            &                                                                                         massType     =massType_           , &
-            &                                                                                         componentType=componentType_        &
-            &                                                                                        )**2
+       coordinates                                      =[radius,0.0d0,0.0d0]
+       velocityDispersionVelocitySurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius                            )    &
+            &                                            *                                                                 radius                             **2 &
+            &                                            *massDistributionWeighted_%density                               (coordinates                       )    &
+            &                                            *kinematicsDistribution_  %velocityDispersion1D                  (coordinates,massDistributionTotal_)**2
     end if
    return
   end function velocityDispersionVelocitySurfaceDensityIntegrand
@@ -654,24 +623,18 @@ contains
     !!{
     Integrand function used for integrating line-of-sight surface density dispersion over area.
     !!}
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    double precision, intent(in   ) :: radius
+    double precision                     , intent(in   ) :: radius
+    type            (coordinateSpherical)                :: coordinates
 
     if (radius <= 0.0d0) then
        velocityDispersionSurfaceDensityIntegrand=+0.0d0
     else
-       velocityDispersionSurfaceDensityIntegrand=+velocityDispersionSolidAngleInCylinder(                                    &
-            &                                                                                           radius               &
-            &                                                                           )                                    &
-            &                                    *                                                      radius **2           &
-            &                                    *self_%galacticStructure_%density      (                                    &
-            &                                                                                          node_               , &
-            &                                                                                          [radius,0.0d0,0.0d0], &
-            &                                                                            massType     =massType_           , &
-            &                                                                            componentType=componentType_      , &
-            &                                                                            weightBy     =weightBy_           , &
-            &                                                                            weightIndex  =weightIndex_          &
-            &                                                                           )
+       coordinates                              =[radius,0.0d0,0.0d0]
+       velocityDispersionSurfaceDensityIntegrand=+                          velocityDispersionSolidAngleInCylinder(radius     )    &
+            &                                    *                                                                 radius      **2 &
+            &                                    *massDistributionWeighted_%density                               (coordinates)
     end if
     return
   end function velocityDispersionSurfaceDensityIntegrand
@@ -739,15 +702,8 @@ contains
     if (radius <= radiusImpact_) then
        velocityDispersionDensityIntegrand=+0.0d0
     else
-        velocityDispersionDensityIntegrand=+self_%galacticStructure_%densitySphericalAverage(                              &
-            &                                                                                node_                       , &
-            &                                                                                              radius        , &
-            &                                                                                massType     =massType_     , &
-            &                                                                                componentType=componentType_, &
-            &                                                                                weightBy     =weightBy_     , &
-            &                                                                                weightIndex  =weightIndex_    &
-            &                                                                               )                              &
-            &                             *     radius                                                                     &
+        velocityDispersionDensityIntegrand=+massDistributionWeighted_%densitySphericalAverage(radius) &
+            &                             *     radius                                               &
             &                             /sqrt(radius**2-radiusImpact_**2)
     end if
     return
@@ -780,7 +736,6 @@ contains
     \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     \end{equation}
     !!}
-    use :: Galactic_Structure_Options      , only : componentTypeAll               , massTypeAll
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
@@ -788,22 +743,10 @@ contains
     if (radius <= radiusImpact_) then
        velocityDispersionVelocityDensityIntegrand=+0.0d0
     else
-       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                                                  &
-            &                                     *self_%galacticStructure_%densitySphericalAverage(                                &
-            &                                                                                                     node_           , &
-            &                                                                                                     radius          , &
-            &                                                                                       massType     =massType_       , &
-            &                                                                                       componentType=componentType_  , &
-            &                                                                                       weightBy     =weightBy_       , &
-            &                                                                                       weightIndex  =weightIndex_      &
-            &                                                                                      )                                &
-            &                                     *self_%galacticStructure_%massEnclosed           (                                &
-            &                                                                                                     node_           , &
-            &                                                                                                     radius          , &
-            &                                                                                       massType     =massTypeAll     , &
-            &                                                                                       componentType=componentTypeAll  &
-            &                                                                                      )                                &
-            &                                     /     radius**2                                                                   &
+       velocityDispersionVelocityDensityIntegrand=+gravitationalConstantGalacticus                           &
+            &                                     *massDistributionWeighted_%densitySphericalAverage(radius) &
+            &                                     *massDistributionTotal_   %massEnclosedBySphere   (radius) &
+            &                                     /     radius**2                                            &
             &                                     *sqrt(radius**2-radiusImpact_**2)
     end if
     return

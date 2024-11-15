@@ -20,7 +20,6 @@
   !!{
   Implements a node operator class that triggers destruction of satellites based on their density profiles.
   !!}
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
@@ -33,7 +32,6 @@
      A node operator class that triggers destruction of satellites based on their density profiles.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_                => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_                 => null()
      double precision                                     :: fractionDensityProfileVirialFraction
    contains
@@ -70,7 +68,6 @@ contains
     type            (nodeOperatorSatelliteDestructionDensityProfileThreshold)                :: self
     type            (inputParameters                                        ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                               ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                              ), pointer       :: darkMatterProfileDMO_
     double precision                                                                         :: fractionDensityProfileVirialFraction
 
     !![
@@ -80,28 +77,25 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteDestructionDensityProfileThreshold(fractionDensityProfileVirialFraction,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=nodeOperatorSatelliteDestructionDensityProfileThreshold(fractionDensityProfileVirialFraction,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
 
-  function satelliteDestructionDensityProfileThresholdCnstrctrIntrnl(fractionDensityProfileVirialFraction,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function satelliteDestructionDensityProfileThresholdCnstrctrIntrnl(fractionDensityProfileVirialFraction,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteDestructionDensityProfileThreshold} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionDensityProfileThreshold)                        :: self
     class           (darkMatterHaloScaleClass                               ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass                              ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                                         , intent(in   )         :: fractionDensityProfileVirialFraction
     !![
-    <constructorAssign variables="fractionDensityProfileVirialFraction, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="fractionDensityProfileVirialFraction, *darkMatterHaloScale_"/>
     !!]
     
     return
@@ -115,8 +109,7 @@ contains
     type(nodeOperatorSatelliteDestructionDensityProfileThreshold), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine satelliteDestructionDensityProfileThresholdDestructor
@@ -125,19 +118,28 @@ contains
     !!{
     Determine if the satellite should be destroyed.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    use :: Coordinates       , only : coordinateSpherical           , assignment(=)
+    use :: Galacticus_Nodes  , only : nodeComponentDarkMatterProfile
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (nodeOperatorSatelliteDestructionDensityProfileThreshold), intent(inout), target  :: self
     type            (treeNode                                               ), intent(inout), target  :: node
+    class           (massDistributionClass                                  )               , pointer :: massDistribution_
     class           (nodeComponentDarkMatterProfile                         )               , pointer :: darkMatterProfile
     double precision                                                                                  :: radiusScale
-
-    darkMatterProfile =>   node                                   %darkMatterProfile                   (                )
-    radiusScale       =   +darkMatterProfile                      %scale                               (                )
-    shouldDestroy     =   +self             %darkMatterProfileDMO_%density                             (node,radiusScale) &
-         &               <                                                                                                &
-         &                +self                                   %fractionDensityProfileVirialFraction                   &
-         &                *self             %darkMatterHaloScale_ %densityMean                         (node            )
+    type            (coordinateSpherical                                    )                         :: coordinates
+    
+    massDistribution_ =>   node                                   %massDistribution                    (           )
+    darkMatterProfile =>   node                                   %darkMatterProfile                   (           )
+    radiusScale       =   +darkMatterProfile                      %scale                               (           )
+    coordinates       =  [radiusScale,0.0d0,0.0d0]
+    shouldDestroy     =   +massDistribution_                      %density                             (coordinates) &
+         &               <                                                                                           &
+         &                +self                                   %fractionDensityProfileVirialFraction              &
+         &                *self             %darkMatterHaloScale_ %densityMean                         (node       )
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function satelliteDestructionDensityProfileThresholdShouldDestroy
   

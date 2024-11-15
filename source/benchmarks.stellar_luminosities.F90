@@ -25,11 +25,12 @@ program Benchmark_Stellar_Populations_Luminosities
   !!{
   Benchmarking of stellar population luminosity calculations.
   !!}
-  use, intrinsic :: ISO_Fortran_Env, only : output_unit
+  use, intrinsic :: ISO_Fortran_Env                           , only : output_unit
   use            :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
   use            :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use            :: Cosmology_Parameters                      , only : cosmologyParametersSimple
   use            :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
+  use            :: Events_Hooks                              , only : eventsHooksInitialize
   use            :: Input_Paths                               , only : inputPath                                     , pathTypeDataDynamic                      , pathTypeDataStatic
   use            :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
   use            :: Input_Parameters                          , only : inputParameters
@@ -79,6 +80,7 @@ program Benchmark_Stellar_Populations_Luminosities
 
   parameters=inputParameters()
   call displayVerbositySet(verbosityLevelWorking)
+  call eventsHooksInitialize()
   ! Construct cosmology and stellar populations.
   cosmologyParameters_                  =cosmologyParametersSimple                      (                                                                                                                                                   &
        &                                                                                 OmegaMatter                          = 0.3d0                                                                                                     , &
@@ -186,8 +188,8 @@ program Benchmark_Stellar_Populations_Luminosities
           &       Filter_Get_Index(var_str("VIRCAM_NB980"         )),Filter_Get_Index(var_str("VIRCAM_NB990"         )),Filter_Get_Index(var_str("VIRCAM_Y"             )),Filter_Get_Index(var_str("VIRCAM_Z"             )), &
           &       Filter_Get_Index(var_str("WFC3IR_f105w"         )),Filter_Get_Index(var_str("WFC3IR_f125w"         )),Filter_Get_Index(var_str("WFC3IR_f160w"         )),Filter_Get_Index(var_str("WFCAM_H"              )), &
           &       Filter_Get_Index(var_str("WFCAM_J"              )),Filter_Get_Index(var_str("WFCAM_K"              )),Filter_Get_Index(var_str("WFCAM_Y"              )),Filter_Get_Index(var_str("WFCAM_Z"              )), &
-          &       Filter_Get_Index(var_str("WFIRST_BAO-Grism"     )),Filter_Get_Index(var_str("WFIRST_F184"          )),Filter_Get_Index(var_str("WFIRST_H158"          )),Filter_Get_Index(var_str("WFIRST_J129"          )), &
-          &       Filter_Get_Index(var_str("WFIRST_SNPrism"       )),Filter_Get_Index(var_str("WFIRST_W149"          )),Filter_Get_Index(var_str("WFIRST_Y106"          )),Filter_Get_Index(var_str("WFIRST_Z087"          )), &
+          &       Filter_Get_Index(var_str("Roman_F062"           )),Filter_Get_Index(var_str("Roman_F087"           )),Filter_Get_Index(var_str("Roman_F106"           )),Filter_Get_Index(var_str("Roman_F129"           )), &
+          &       Filter_Get_Index(var_str("Roman_F146"           )),Filter_Get_Index(var_str("Roman_F158"           )),Filter_Get_Index(var_str("Roman_F184"           )),Filter_Get_Index(var_str("Roman_F213"           )), &
           &       Filter_Get_Index(var_str("WIRCAM_K"             )),Filter_Get_Index(var_str("bJ"                   )),Filter_Get_Index(var_str("xRayFull"             )),Filter_Get_Index(var_str("xRayHard"             )), &
           &       Filter_Get_Index(var_str("xRaySoft"             ))                                                                                                                                                           &
           &      ]

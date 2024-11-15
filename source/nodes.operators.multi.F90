@@ -85,7 +85,7 @@ contains
     integer                                   :: i
 
     self    %processes => null()
-    process_          => null()
+    process_           => null()
     do i=1,parameters%copiesCount('nodeOperator',zeroIfNotPresent=.true.)
        if (associated(process_)) then
           allocate(process_%next)

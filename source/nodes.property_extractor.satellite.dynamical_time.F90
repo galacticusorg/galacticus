@@ -25,7 +25,6 @@ Provides a class that implements a satellite dynamical time extractor.
 !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
-  use :: Galactic_Structure             , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteDynamicalTime">
@@ -46,7 +45,6 @@ Provides a class that implements a satellite dynamical time extractor.
      !!}
      private
      class(satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
-     class(galacticStructureClass            ), pointer :: galacticStructure_             => null()
    contains
      final     ::                dynamicalTimeDestructor
      procedure :: extract     => dynamicalTimeExtract
@@ -74,31 +72,27 @@ contains
     type (nodePropertyExtractorSatelliteDynamicalTime)                :: self
     type (inputParameters                            ), intent(inout) :: parameters
     class(satelliteTidalStrippingRadiusClass         ), pointer       :: satelliteTidalStrippingRadius_
-    class(galacticStructureClass                     ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
-    <objectBuilder class="galacticStructure"             name="galacticStructure_"             source="parameters"/>
     !!]
-    self=nodePropertyExtractorSatelliteDynamicalTime(satelliteTidalStrippingRadius_, galacticStructure_)
+    self=nodePropertyExtractorSatelliteDynamicalTime(satelliteTidalStrippingRadius_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="galacticStructure_"            />
     !!]
     return
   end function dynamicalTimeConstructorParameters
 
-  function dynamicalTimeConstructorInternal(satelliteTidalStrippingRadius_, galacticStructure_) result(self)
+  function dynamicalTimeConstructorInternal(satelliteTidalStrippingRadius_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily satelliteDynamicalTime} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSatelliteDynamicalTime)                        :: self
     class(satelliteTidalStrippingRadiusClass         ), intent(in   ), target :: satelliteTidalStrippingRadius_
-    class(galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*satelliteTidalStrippingRadius_, *galacticStructure_"/>
+    <constructorAssign variables="*satelliteTidalStrippingRadius_"/>
     !!]
 
     return
@@ -113,7 +107,6 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
-    <objectDestructor name="self%galacticStructure_"            />
     !!]
     return
   end subroutine dynamicalTimeDestructor
@@ -122,18 +115,25 @@ contains
     !!{
     Implement a dynamical time property extractor.
     !!}
-    use :: Numerical_Constants_Math         , only :  Pi
-    use :: Numerical_Constants_Astronomical , only :  gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, Mpc_per_km_per_s_To_Gyr
     implicit none
     class           (nodePropertyExtractorSatelliteDynamicalTime), intent(inout), target   :: self
     type            (treeNode                                   ), intent(inout), target   :: node
     type            (multiCounter                               ), intent(inout), optional :: instance
-    double precision                                                                       :: radiusTidal, massTidal
+    class           (massDistributionClass                      )               , pointer  :: massDistribution_
+    double precision                                                                       :: radiusTidal      , massTidal
     !$GLC attributes unused :: instance
-    dynamicalTimeExtract  =-1.0d0
-    radiusTidal           =self%satelliteTidalStrippingRadius_%radius      (node            )
+
+    dynamicalTimeExtract=-1.0d0
+    radiusTidal         =self%satelliteTidalStrippingRadius_%radius(node)
     if (radiusTidal <= 0.0d0) return
-    massTidal             =self%galacticStructure_            %massEnclosed(node,radiusTidal) 
+    massDistribution_ => node             %massDistribution    (           )
+    massTidal         =  massDistribution_%massEnclosedBySphere(radiusTidal)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (massTidal <= 0.0d0) return
     dynamicalTimeExtract  =+sqrt(                                    &  
          &                       +Pi                             **2 &

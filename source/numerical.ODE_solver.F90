@@ -446,7 +446,7 @@ contains
     evolveForward=x1 > x0
     ! Reset the driver.
     status_   =GSL_ODEIV2_Driver_Reset       (self%gsl_odeiv2_driver       )
-    if    (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'    //{introspection:location})
+    if    (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'   //{introspection:location})
     if (xStep_ /= 0.0d0) then
        status_=GSL_ODEIV2_Driver_Reset_hStart(self%gsl_odeiv2_driver,xStep_)
        if (status_ /= GSL_Success) call Error_Report('failed to reset ODE step size'//{introspection:location})
@@ -456,7 +456,7 @@ contains
        zCount=size(z)
        allocate(z0(zCount))
        z0=z
-       call self%integrator%integrandSet (zCount,integrandsWrapper)
+       call self%integrator%integrandSet(zCount,integrandsWrapper)
        latentIntegrator_=C_FunLoc(latentIntegrator)
     else
        allocate(z0(0))

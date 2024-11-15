@@ -16,7 +16,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
   !!{
   A dark matter halo profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
   !!}
@@ -24,42 +23,21 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonicWeak">
     <description>
-      A dark matter profile heating model which takes another heating source and enforces monotonic heating energy
-      perturbation. This classes enforces a weaker condition (compared to \refClass{darkMatterProfileHeatingMonotonic}):      
-      \begin{equation}
-      \frac{\mathrm{d}r_\mathrm{f}}{\mathrm{d}r_\mathrm{i}} > 0,
-      \end{equation}
-      where $r_\mathrm{i}$ and $r_\mathrm{f}$ are the initial and final radii of the shell respectively.
-      
-      Note that this condition does not ensure that the gradient of the specific heating energy is continuous through the
-      shell-crossing radius. As such, the heated density profile may be discontinuous at this radius also.      
-
-      Using the fact that
-      \begin{equation}
-      -\frac{\mathrm{G}M}{2 r_\mathrm{f}} = -\frac{\mathrm{G}M}{2 r_\mathrm{i}} + \epsilon(r_\mathrm{i}),
-      \end{equation}
-
-      where $\epsilon(r)$ is the specific heating energy as a function of radius, and $M$ is the mass enclosed by the shell, we
-      can re-write the above condition as
-      \begin{equation}
-      \frac{\mathrm{d}\epsilon}{\mathrm{d}r_\mathrm{i}} r_\mathrm{i} - \epsilon(r_\mathrm{i}) \frac{4 \pi r_\mathrm{i}^3 \rho_\mathrm{i}(r_\mathrm{i})}{M} + \frac{\mathrm{G}M}{2r_\mathrm{i}} > \xi \frac{\mathrm{G}M}{r_\mathrm{i}},
-      \end{equation}
-      where $\rho_\mathrm{i}(r_\mathrm{i})$ is the density in the unheated profile. Here, $\xi$ should equal zero to precisely
-      match the criterion for no shell-crossing. However, it is often useful to allow $\xi$ to be a small positive number---this
-      avoids getting too close to the boundary of the shell crossing region (where the density can diverge as there is, by
-      definition, a caustic in density at this point).
+      A dark matter profile heating model builds \refClass{massDistributionHeatingMonotonicWeak} objects to enforce monotonic heating
+      energy perturbations. This classes enforces a weaker condition (compared to \refClass{darkMatterProfileHeatingMonotonic}).
     </description>
   </darkMatterProfileHeating>
   !!]
-  type, extends(darkMatterProfileHeatingMonotonic) :: darkMatterProfileHeatingMonotonicWeak
+  type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingMonotonicWeak
      !!{
      A dark matter profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
      !!}
      private
-     double precision :: toleranceShellCrossing
-   contains
-     procedure :: noShellCrossingIsValid  => monotonicWeakNoShellCrossingIsValid
-     procedure :: radiusShellCrossingRoot => monotonicWeakRadiusShellCrossingRoot
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
+     double precision                                         :: toleranceShellCrossing
+  contains
+     final     ::        monotonicWeakDestructor
+     procedure :: get => monotonicWeakGet
   end type darkMatterProfileHeatingMonotonicWeak
 
   interface darkMatterProfileHeatingMonotonicWeak
@@ -82,7 +60,6 @@ contains
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (darkMatterProfileHeatingClass        ), pointer       :: darkMatterProfileHeating_
     double precision                                                       :: toleranceShellCrossing
-    
     !![
     <inputParameter>
       <name>toleranceShellCrossing</name>
@@ -100,7 +77,7 @@ contains
     return
   end function monotonicWeakConstructorParameters
 
-  function monotonicWeakConstructorInternal(toleranceShellCrossing,darkMatterProfileHeating_) result(self)
+  function monotonicWeakConstructorInternal(toleranceShellCrossing, darkMatterProfileHeating_) result(self)
     !!{
     Internal constructor for the ``monotonicWeak'' dark matter profile heating class.
     !!}
@@ -108,106 +85,53 @@ contains
     type            (darkMatterProfileHeatingMonotonicWeak)                        :: self
     class           (darkMatterProfileHeatingClass        ), target, intent(in   ) :: darkMatterProfileHeating_
     double precision                                               , intent(in   ) :: toleranceShellCrossing
+    !![
+    <constructorAssign variables="toleranceShellCrossing, *darkMatterProfileHeating_"/>
+    !!]
 
-    self%darkMatterProfileHeatingMonotonic=darkMatterProfileHeatingMonotonic(darkMatterProfileHeating_)
-    self%toleranceShellCrossing           =toleranceShellCrossing
     return
   end function monotonicWeakConstructorInternal
 
-  logical function monotonicWeakNoShellCrossingIsValid(self,node,radius,darkMatterProfileDMO_) result(shellCrossingIsValid)
+  subroutine monotonicWeakDestructor(self)
     !!{
-    Determines if the no shell crossing assumption is valid.
+    Destructor for the {\normalfont \ttfamily monotonicWeak} dark matter profile heating class.
     !!}
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    class           (darkMatterProfileDMOClass            ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                       , intent(in   ) :: radius
-    double precision                                                       :: energySpecific       , energySpecificGradient, &
-         &                                                                    energySpecificScale  , massEnclosed
+    type(darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self
 
-    massEnclosed             = darkMatterProfileDMO_%enclosedMass(node,radius)
-    if (massEnclosed > 0.0d0) then
-       energySpecific        = +self%darkMatterProfileHeating_%specificEnergy        (                       &
-            &                                                                         node                 , &
-            &                                                                         radius               , &
-            &                                                                         darkMatterProfileDMO_  &     
-            &                                                                        )
-       energySpecificGradient= +self%darkMatterProfileHeating_%specificEnergyGradient(                       &
-            &                                                                         node                 , &
-            &                                                                         radius               , &
-            &                                                                         darkMatterProfileDMO_  &
-            &                                                                        )
-       energySpecificScale   = +gravitationalConstantGalacticus &
-            &                  *massEnclosed                    &
-            &                  /radius
-       shellCrossingIsValid  = +energySpecificGradient                   &
-            &                  *                                radius   &
-            &                  -energySpecific                           &
-            &                  *4.0d0                                    &
-            &                  *Pi                                       &
-            &                  *                              radius**3  &
-            &                  *darkMatterProfileDMO_%density(           &
-            &                                                 node     , &
-            &                                                 radius     &
-            &                                                )           &
-            &                  /massEnclosed                             &
-            &                  +0.5d0                                    &
-            &                  *energySpecificScale                      &
-            &                 >                                          &
-            &                  +self%toleranceShellCrossing              &
-            &                  *energySpecificScale
-    else
-       shellCrossingIsValid=.true.
-    end if
+    !![
+    <objectDestructor name="self%darkMatterProfileHeating_"/>
+    !!]
     return
-  end function monotonicWeakNoShellCrossingIsValid
+  end subroutine monotonicWeakDestructor
 
-  double precision function monotonicWeakRadiusShellCrossingRoot(self,node,radius,darkMatterProfileDMO_) result(root)
+  function monotonicWeakGet(self,node) result(massDistributionHeating_)
     !!{
-    Root function used in finding the radius where shell crossing happens.
+    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Mass_Distributions, only : massDistributionHeatingMonotonicWeak
     implicit none
-    class           (darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: radius
-    class           (darkMatterProfileDMOClass            ), intent(inout) :: darkMatterProfileDMO_
-    double precision                                                       :: massEnclosed
-
-    massEnclosed= darkMatterProfileDMO_%enclosedMass(node,radius)
-    if (massEnclosed > 0.0d0) then
-       root   =+self%darkMatterProfileHeating_%specificEnergyGradient(                        &
-            &                                                          node                 , &
-            &                                                          radius               , &
-            &                                                          darkMatterProfileDMO_  &
-            &                                                         )                       &
-            &  *                                                       radius                 &
-            &  -self%darkMatterProfileHeating_%specificEnergy         (                       &
-            &                                                          node                 , &
-            &                                                          radius               , &
-            &                                                          darkMatterProfileDMO_  &
-            &                                                         )                       &
-            &  *4.0d0                                                                         &
-            &  *Pi                                                                            &
-            &  *                                                       radius**3              &
-            &  *      darkMatterProfileDMO_       %density            (                       &
-            &                                                          node                 , &
-            &                                                          radius                 &
-            &                                                         )                       &
-            &  /massEnclosed                                                                  &
-            &  +(                                                                             &
-            &    +0.5d0                                                                       &
-            &    -self%toleranceShellCrossing                                                 &
-            &   )                                                                             &
-            &  *gravitationalConstantGalacticus                                               &
-            &  *massEnclosed                                                                  &
-            &  /radius
-    else
-       root   =+0.0d0
-    end if
+    class(massDistributionHeatingClass         ), pointer       :: massDistributionHeating_
+    class(darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self
+    type (treeNode                             ), intent(inout) :: node
+    class(massDistributionHeatingClass         ), pointer       :: massDistributionHeatingDecorated
+ 
+    ! Create the mass distribution.
+    allocate(massDistributionHeatingMonotonicWeak :: massDistributionHeating_)
+    select type(massDistributionHeating_)
+    type is (massDistributionHeatingMonotonicWeak)
+       massDistributionHeatingDecorated => self%darkMatterProfileHeating_%get(node)
+       !![
+       <referenceConstruct object="massDistributionHeating_">
+	 <constructor>
+           massDistributionHeatingMonotonicWeak(                                                            &amp;
+           &amp;                            toleranceShellCrossing  =self%toleranceShellCrossing          , &amp;
+           &amp;                            massDistributionHeating_=     massDistributionHeatingDecorated  &amp;
+           &amp;                           )
+	 </constructor>
+       </referenceConstruct>
+       <objectDestructor name="massDistributionHeatingDecorated"/>
+       !!]
+    end select
     return
-  end function monotonicWeakRadiusShellCrossingRoot
+  end function monotonicWeakGet

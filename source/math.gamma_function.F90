@@ -114,25 +114,25 @@ contains
     return
   end function Gamma_Function_Incomplete_Complementary
 
-  double precision function Gamma_Function(argument)
+  double precision function Gamma_Function(exponent)
     !!{
     Computes the Gamma function.
     !!}
     implicit none
-    double precision, intent(in   ) :: argument
+    double precision, intent(in   ) :: exponent
 
-    Gamma_Function=GSL_SF_Gamma(argument)
+    Gamma_Function=GSL_SF_Gamma(exponent)
     return
   end function Gamma_Function
 
-  double precision function Gamma_Function_Logarithmic(argument)
+  double precision function Gamma_Function_Logarithmic(exponent)
     !!{
     Computes the logarithm of the Gamma function.
     !!}
     implicit none
-    double precision, intent(in   ) :: argument
+    double precision, intent(in   ) :: exponent
 
-    Gamma_Function_Logarithmic=GSL_SF_lnGamma(argument)
+    Gamma_Function_Logarithmic=GSL_SF_lnGamma(exponent)
     return
   end function Gamma_Function_Logarithmic
 
