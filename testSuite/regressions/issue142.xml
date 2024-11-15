@@ -279,7 +279,7 @@
   </accretionDisks>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <!-- Galaxy merger options -->
   <satelliteMergingTimescales value="jiang2008">
     <timescaleMultiplier value="0.75"/>
@@ -372,7 +372,6 @@
       <sigmaRatioLow value="+0.07458 +0.09040 +0.06981"/>
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Orbiting model of satellites -->
   <!-- Values taken from Yang et al. (2020) for their gamma=0 case using the Caterpillar simulations as calibration target -->

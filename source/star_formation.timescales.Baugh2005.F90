@@ -29,10 +29,10 @@
     A star formation timescale class which adopts the star formation rate given by a modified version of the
     \cite{baugh_can_2005} prescription:
     \begin{equation}
-    \tau_\star = \tau_0 (V_\mathrm{disk}/200\hbox{km/s})^\alpha a^\beta
+    \tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta
     \end{equation}
-    where $\tau_0=${\normalfont \ttfamily [timescale]}, $\alpha=${\normalfont \ttfamily [exponentVelocity]} and
-    $\beta=${\normalfont \ttfamily [exponentExpansionFactor]}.
+    where $\tau_0=${\normalfont \ttfamily [timescale]}, $\alpha=${\normalfont \ttfamily [exponentVelocity]},
+    $\beta=${\normalfont \ttfamily [exponentExpansionFactor]}, and $V_0=${\normalfont \ttfamily [velocityNormalization]}.
    </description>
   </starFormationTimescale>
   !!]
@@ -42,8 +42,8 @@
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_    => null()
-     double precision                                    :: timescale_                      , exponentVelocity, &
-          &                                                 exponentExpansionFactor
+     double precision                                    :: timescale_                      , exponentVelocity     , &
+          &                                                 exponentExpansionFactor         , velocityNormalization
    contains
      final     ::              baugh2005Destructor
      procedure :: timescale => baugh2005Timescale
@@ -57,8 +57,6 @@
      module procedure baugh2005ConstructorInternal
   end interface starFormationTimescaleBaugh2005
 
-  double precision, parameter :: velocityVirialNormalization=200.0d0
-
 contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
@@ -71,8 +69,8 @@ contains
     type            (starFormationTimescaleBaugh2005)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
-    double precision                                                 :: timescale              , exponentVelocity, &
-         &                                                              exponentExpansionFactor
+    double precision                                                 :: timescale              , exponentVelocity     , &
+         &                                                              exponentExpansionFactor, velocityNormalization
 
     !![
     <inputParameter>
@@ -93,9 +91,15 @@ contains
       <description>The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>velocityNormalization</name>
+      <defaultValue>200.0d0</defaultValue>
+      <description>The normalization velocity, $V_0$..</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=starFormationTimescaleBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_)
+    self=starFormationTimescaleBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,velocityNormalization,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -103,17 +107,17 @@ contains
     return
   end function baugh2005ConstructorParameters
 
-  function baugh2005ConstructorInternal(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_) result(self)
+  function baugh2005ConstructorInternal(timescale,exponentVelocity,exponentExpansionFactor,velocityNormalization,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleBaugh2005)                        :: self
-    double precision                                 , intent(in   )         :: timescale              , exponentVelocity, &
-         &                                                                      exponentExpansionFactor
+    double precision                                 , intent(in   )         :: timescale              , exponentVelocity     , &
+         &                                                                      exponentExpansionFactor, velocityNormalization
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="exponentVelocity, exponentExpansionFactor, *cosmologyFunctions_"/>
+    <constructorAssign variables="exponentVelocity, exponentExpansionFactor, velocityNormalization, *cosmologyFunctions_"/>
     !!]
 
     self%timescale_=timescale
@@ -162,9 +166,9 @@ contains
        basic              =>  component%hostNode%basic                              (    )
        time               =  +basic             %time                               (    )
        expansionFactor    =  +self              %cosmologyFunctions_%expansionFactor(time)
-       baugh2005Timescale =  +                                               self%timescale_              &
-            &                *(velocity       /velocityVirialNormalization)**self%exponentVelocity        &
-            &                * expansionFactor                             **self%exponentExpansionFactor
+       baugh2005Timescale =  +                                               self%timescale_             &
+            &                *(velocity       /self%velocityNormalization)**self%exponentVelocity        &
+            &                * expansionFactor                            **self%exponentExpansionFactor
     end if
     return
   end function baugh2005Timescale

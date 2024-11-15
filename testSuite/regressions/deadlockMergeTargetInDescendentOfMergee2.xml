@@ -52,7 +52,6 @@
     <wavenumberReference value="1.0"/>
     <running value="0.0"/>
   </powerSpectrumPrimordial>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>

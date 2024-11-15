@@ -247,6 +247,11 @@ contains
     case (.true.)
        ! Compute the expansion factor at formation.
        mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(basicBase%mass(),node)
+       if (mergerTreeFormationExpansionFactor == huge(0.0d0)) then
+          ! No collapse time was found - the accretion rate is indeterminate.
+          wechsler2002MassAccretionRate=-huge(0.0d0)
+          return
+       end if
     case (.false.)
        ! Use the specified formation redshift.
        mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
@@ -278,6 +283,7 @@ contains
     !!{
     Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
     !!}
+    use :: Error, only : Error_Report, errorStatusSuccess, errorStatusOutOfRange
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node
@@ -285,14 +291,25 @@ contains
     double precision                                                , parameter     :: haloMassFraction   =0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
     double precision                                                                :: formationTime              , haloMassCharacteristic, &
          &                                                                             sigmaCharacteristic
+    integer                                                                         :: status
 
     ! Compute the characteristic mass at formation time.
     haloMassCharacteristic=haloMassFraction*haloMass
     ! Compute the corresponding rms fluctuation in the density field (i.e. σ(M)).
     sigmaCharacteristic=self%cosmologicalMassVariance_%rootVariance(haloMassCharacteristic,self%cosmologyFunctions_%cosmicTime(1.0d0))
     ! Get the time at which this equals the critical overdensity for collapse.
-    formationTime=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass,node=node)
-    ! Get the corresponding expansion factor.
-    wechsler2002ExpansionFactorAtFormation=self%cosmologyFunctions_%expansionFactor(formationTime)
+    formationTime=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass,node=node,status=status)
+    select case (status)
+    case (errorStatusSuccess)
+       ! Get the corresponding expansion factor.
+       wechsler2002ExpansionFactorAtFormation=self%cosmologyFunctions_%expansionFactor(formationTime)
+    case (errorStatusOutOfRange)
+       ! Collapse never occurs for this halo mass.
+       wechsler2002ExpansionFactorAtFormation=huge(0.0d0)
+    case default
+       ! Unknown error.
+       wechsler2002ExpansionFactorAtFormation=huge(0.0d0)
+       call Error_Report('failed to find expansion factor at formation'//{introspection:location})
+    end select
     return
   end function wechsler2002ExpansionFactorAtFormation

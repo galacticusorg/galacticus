@@ -261,10 +261,10 @@ contains
     rateHydrogenIonizingPhotonsMaximum =+ionizingLuminosityHydrogen(size(ionizingLuminosityHydrogen))*sqrt(deltaIonizingLuminosityHydrogen)
     densityHydrogenMinimum             =+densityHydrogen           (                              1 )/sqrt(deltaDensityHydrogen           )
     densityHydrogenMaximum             =+densityHydrogen           (size(           densityHydrogen))*sqrt(deltaDensityHydrogen           )
-    self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                &
-         &                              /self%hiiRegionLuminosityFunction_%cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
-         &                              /self%hiiRegionDensityDistribution_%cumulativeDensityDistribution(            densityHydrogenMinimum,            densityHydrogenMaximum)
-    self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_%cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
+    self%luminositiesReduced           =+self%luminositiesReduced                                                                                                                 &
+         &                              /self%hiiRegionLuminosityFunction_ %cumulativeDistributionFunction(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) &
+         &                              /self%hiiRegionDensityDistribution_%cumulativeDensityDistribution (            densityHydrogenMinimum,            densityHydrogenMaximum)
+    self%ionizingLuminosityHydrogenMean=+self%hiiRegionLuminosityFunction_ %cumulativeLuminosity          (rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum)
     ! Construct property names and descriptions.
     allocate(self%names_       (size(lineNames)))
     allocate(self%descriptions_(size(lineNames)))
