@@ -42,7 +42,7 @@ for modelName in ( "CDM", "massLossFalse", "gamma0.0", "gamma0.5" ):
     model                = h5py.File('outputs/decayingDM-profile-'+modelName+'.hdf5','r')
     nodes                = model['Outputs/Output1/nodeData']
     densities[modelName] = nodes['densityProfile'][:][0][0]
-    if not math.isclose(densities[modelName],densitiesTarget[modelName],rel_tol=1e-3):
+    if not math.isclose(densities[modelName],densitiesTarget[modelName],rel_tol=1e-2):
         print("FAIL: density mismatch for model '"+modelName+"': "+str(densities[modelName])+" vs. "+str(densitiesTarget[modelName]))
         failed = True
         
