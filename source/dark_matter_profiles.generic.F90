@@ -147,18 +147,16 @@ module Dark_Matter_Profiles_Generic
 
   ! Module-scope pointers used in integrand functions and root finding.
   type :: genericSolver
-     class(darkMatterProfileGeneric), pointer :: self => null()
-     type (treeNode                ), pointer :: node => null()
+     class           (darkMatterProfileGeneric), pointer :: self          => null()
+     type            (treeNode                ), pointer :: node          => null()
+     double precision                                    :: timeTarget             , densityTarget                , &
+          &                                                 massTarget             , specificAngularMomentumTarget, &
+          &                                                 radiusFreefall
   end type genericSolver
-  type            (genericSolver                 ), allocatable, dimension(:) :: solvers
-  integer                                         , parameter                 :: solversIncrement              =10
-  integer                                                                     :: solversCount                  = 0
-  class           (nodeComponentBasic            ), pointer                   :: genericBasic
-  class           (nodeComponentDarkMatterProfile), pointer                   :: genericDarkMatterProfile
-  double precision                                                            :: genericTime                      , genericRadiusFreefall , genericDensity        , genericMass , &
-       &                                                                         genericSpecificAngularMomentum   , genericMassGrowthRate , genericScaleGrowthRate, genericScale, &
-       &                                                                         genericShape                     , genericShapeGrowthRate
-  !$omp threadprivate(solvers,solversCount,genericBasic,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum,genericMassGrowthRate,genericDarkMatterProfile,genericScaleGrowthRate,genericScale,genericShape,genericShapeGrowthRate)
+  type   (genericSolver), allocatable, dimension(:) :: solvers
+  integer               , parameter                 :: solversIncrement=10
+  integer                                           :: solversCount    = 0
+  !$omp threadprivate(solvers,solversCount)
 
   !![
   <enumeration>
@@ -495,7 +493,6 @@ contains
                 if (status_ /= errorStatusSuccess .and. .not.self%toleratePotentialIntegrationFailure) &
                      & call Error_Report('potential integration failed'//{introspection:location})
              end do
-             call self%solverUnset()
              ! Build the interpolator.
              if (allocated(self%genericPotential)) deallocate(self%genericPotential)
              if (all(potentials > 0.0d0)) then
@@ -570,6 +567,7 @@ contains
              ! The profile is undefined. Leave the table unallocated.
              if (allocated(self%genericPotential)) deallocate(self%genericPotential)
           end if
+          call self%solverUnset()
        end if
        if (allocated(self%genericPotential)) then
           genericPotentialNumerical=-exp(self%genericPotential%interpolate(log(max(radius,self%genericPotentialRadiusMinimum_))))
@@ -578,11 +576,9 @@ contains
        end if
     else
        ! Beyond some large radius approximate as a point mass.
-       call self%solverSet(node)
-       genericPotentialNumerical=-gravitationalConstantGalacticus                                                   &
-            &                    *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radiusMaximum) &
+       genericPotentialNumerical=-gravitationalConstantGalacticus       &
+            &                    *self%enclosedMass(node,radiusMaximum) &
             &                    /radius
-       call self%solverUnset()
     end if
     return
   end function genericPotentialNumerical
@@ -1193,26 +1189,6 @@ contains
 
   end function genericEnergyNumerical
 
-  double precision function genericEnergyEvaluate(timeLogarithmic)
-    !!{
-    GSL-callable function to evaluate the energy of the dark matter profile.
-    !!}
-    use :: Functions_Global, only : Calculations_Reset_
-    implicit none
-    double precision, intent(in   ), value :: timeLogarithmic
-    double precision                       :: time
-
-    time=exp(timeLogarithmic)
-    call genericBasic            %timeSet            (                                     time             )
-    call genericBasic            %timeLastIsolatedSet(                                     time             )
-    call genericBasic            %massSet            (genericMass +genericMassGrowthRate *(time-genericTime))
-    call genericDarkMatterProfile%scaleSet           (genericScale+genericScaleGrowthRate*(time-genericTime))
-    call genericDarkMatterProfile%shapeSet           (genericShape+genericShapeGrowthRate*(time-genericTime))
-    call Calculations_Reset_(solvers(solversCount)%node)
-    genericEnergyEvaluate=solvers(solversCount)%self%energyNumerical(solvers(solversCount)%node)
-    return
-  end function genericEnergyEvaluate
-
   double precision function genericFreefallRadiusNumerical(self,node,time)
     !!{
     Returns the freefall radius in the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily time} (given in
@@ -1227,18 +1203,18 @@ contains
     type            (rootFinder              )                        :: finder
 
     call self%solverSet  (node)
-    genericTime =  time
-    finder      =  rootFinder(                                                             &
-         &                    rootFunction                 =rootRadiusFreefall           , &
-         &                    toleranceAbsolute            =toleranceAbsolute            , &
-         &                    toleranceRelative            =toleranceRelative            , &
-         &                    rangeExpandDownward          =0.5d0                        , &
-         &                    rangeExpandUpward            =2.0d0                        , &
-         &                    rangeExpandType              =rangeExpandMultiplicative    , &
-         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-         &                   )
-    genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
+    solvers(solversCount)%timeTarget=time
+    finder                          =rootFinder(                                                             &
+         &                                      rootFunction                 =rootRadiusFreefall           , &
+         &                                      toleranceAbsolute            =toleranceAbsolute            , &
+         &                                      toleranceRelative            =toleranceRelative            , &
+         &                                      rangeExpandDownward          =0.5d0                        , &
+         &                                      rangeExpandUpward            =2.0d0                        , &
+         &                                      rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                                      rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &                                     )
+    genericFreefallRadiusNumerical  =finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     call self%solverUnset(   )
     return
   end function genericFreefallRadiusNumerical
@@ -1252,10 +1228,10 @@ contains
     double precision            , intent(in   ) :: radiusFreefall
     type            (integrator)                :: integrator_
 
-    genericRadiusFreefall=+radiusFreefall
-    integrator_          = integrator              (integrandTimeFreefall,toleranceRelative=1.0d-3)
-    rootRadiusFreefall   =+integrator_   %integrate(0.0d0                ,radiusFreefall          ) &
-         &                -genericTime
+    solvers           (solversCount)%radiusFreefall=+radiusFreefall
+    integrator_                                    = integrator                         (integrandTimeFreefall,toleranceRelative=1.0d-3)
+    rootRadiusFreefall                             =+integrator_              %integrate(0.0d0                ,radiusFreefall          ) &
+         &                                          -solvers    (solversCount)%timeTarget
     return
   end function rootRadiusFreefall
 
@@ -1268,7 +1244,7 @@ contains
     double precision, intent(in   ) :: radius
     double precision                :: potentialDifference
 
-    potentialDifference=+solvers(solversCount)%self%potentialDifferenceNumerical(solvers(solversCount)%node,radius,genericRadiusFreefall)
+    potentialDifference=+solvers(solversCount)%self%potentialDifferenceNumerical(solvers(solversCount)%node,radius,solvers(solversCount)%radiusFreefall)
     if (potentialDifference < 0.0d0) then
        integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
             &                /sqrt(                     &
@@ -1330,18 +1306,18 @@ contains
     double precision                                                  :: radiusVirial
 
     call self%solverSet  (node)
-    genericDensity=density
-    finder        =rootFinder(                                                             &
-         &                    rootFunction                 =rootDensity                  , &
-         &                    toleranceAbsolute            =toleranceAbsolute            , &
-         &                    toleranceRelative            =toleranceRelative            , &
-         &                    rangeExpandDownward          =0.5d0                        , &
-         &                    rangeExpandUpward            =2.0d0                        , &
-         &                    rangeExpandType              =rangeExpandMultiplicative    , &
-         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
-         &                   )
-    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
+    solvers(solversCount)%densityTarget=density
+    finder                             =rootFinder(                                                             &
+         &                                         rootFunction                 =rootDensity                  , &
+         &                                         toleranceAbsolute            =toleranceAbsolute            , &
+         &                                         toleranceRelative            =toleranceRelative            , &
+         &                                         rangeExpandDownward          =0.5d0                        , &
+         &                                         rangeExpandUpward            =2.0d0                        , &
+         &                                         rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
+         &                                        )
+    radiusVirial                       =self%darkMatterHaloScale_%radiusVirial(node)
     if (rootDensity(radiusFractionalTiny*radiusVirial) < 0.0d0) then
        ! Condition is not met even at a tiny radius - assume it can not be met and return zero radius.
        genericRadiusEnclosingDensityNumerical=0.0d0
@@ -1366,7 +1342,7 @@ contains
          &      /4.0d0                                                                         &
          &      /Pi                                                                            &
          &      /                                                                   radius **3 &
-         &      -genericDensity
+         &      -solvers(solversCount)     %densityTarget
     return
   end function rootDensity
 
@@ -1382,19 +1358,29 @@ contains
     double precision                          , intent(in   )         :: mass
     double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              )                        :: finder
+    double precision                          , dimension(2)          :: rootRange
 
     call self%solverSet  (node)
-    genericMass =  mass
-    finder      =  rootFinder(                                                             &
-         &                    rootFunction                 =rootMass                     , &
-         &                    toleranceAbsolute            =toleranceAbsolute            , &
-         &                    toleranceRelative            =toleranceRelative            , &
-         &                    rangeExpandUpward            =2.0d0                        , &
-         &                    rangeExpandType              =rangeExpandMultiplicative    , &
-         &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-         &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-         &                   )
-    genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
+    solvers(solversCount)%massTarget    =mass
+    finder                              =rootFinder(                                                             &
+         &                                          rootFunction                 =rootMass                     , &
+         &                                          toleranceAbsolute            =toleranceAbsolute            , &
+         &                                          toleranceRelative            =toleranceRelative            , &
+         &                                          rangeExpandUpward            =2.0d0                        , &
+         &                                          rangeExpandDownward          =0.5d0                        , &
+         &                                          rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                          rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                                          rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &                                         )
+    if (allocated(self%genericEnclosedMass)) then
+       ! A mass profile exists - use its extent as the initial search range. If the required radius lies within this range we then
+       ! avoid triggering any retabulation.
+       rootRange=[self%genericEnclosedMassRadiusMinimum,self%genericEnclosedMassRadiusMaximum]
+    else
+       ! No mass profile exists - choose a reasonable range of radii to begin.
+       rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)]
+    end if
+    genericRadiusEnclosingMassNumerical =finder%find(rootRange=rootRange)
     call self%solverUnset(   )
     return
   end function genericRadiusEnclosingMassNumerical
@@ -1406,8 +1392,9 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
+    ! The generic mass profile is valid - compute the root function.
     rootMass=+solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius) &
-         &   -             genericMass
+         &   -solvers(solversCount)     %massTarget  
     return
   end function rootMass
 
@@ -1542,17 +1529,17 @@ contains
     type            (rootFinder              )                        :: finder
 
     call self%solverSet  (node)
-    genericSpecificAngularMomentum =  specificAngularMomentum
-    finder                         =  rootFinder(                                                             &
-         &                                       rootFunction                 =rootSpecificAngularMomentum  , &
-         &                                       toleranceAbsolute            =toleranceAbsolute            , &
-         &                                       toleranceRelative            =toleranceRelative            , &
-         &                                       rangeExpandUpward            =2.0d0                        , &
-         &                                       rangeExpandType              =rangeExpandMultiplicative    , &
-         &                                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-         &                                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-         &                                      )
-    genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
+    solvers(solversCount)%specificAngularMomentumTarget=specificAngularMomentum
+    finder                                             =rootFinder(                                                             &
+         &                                                         rootFunction                 =rootSpecificAngularMomentum  , &
+         &                                                         toleranceAbsolute            =toleranceAbsolute            , &
+         &                                                         toleranceRelative            =toleranceRelative            , &
+         &                                                         rangeExpandUpward            =2.0d0                        , &
+         &                                                         rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+         &                                                        )
+    genericRadiusFromSpecificAngularMomentumNumerical =finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
     call self%solverUnset(   )
     return
   end function genericRadiusFromSpecificAngularMomentumNumerical
@@ -1564,9 +1551,9 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootSpecificAngularMomentum=+solvers(solversCount)%self%circularVelocityNumerical(solvers(solversCount)%node,radius) &
-         &                      *                                                  radius &
-         &                      -genericSpecificAngularMomentum
+    rootSpecificAngularMomentum=+solvers(solversCount)%self%circularVelocityNumerical    (solvers(solversCount)%node,radius) &
+         &                      *                                                                                    radius  &
+         &                      -solvers(solversCount)     %specificAngularMomentumTarget
     return
   end function rootSpecificAngularMomentum
 
