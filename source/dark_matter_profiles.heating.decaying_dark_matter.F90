@@ -34,11 +34,13 @@
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingDecayingDarkMatter
      !!{
-     A dark matter profile heating class which accounts for heating due to decayingDarkMatter shocking.
+     A dark matter profile heating class which accounts for heating due to decaying dark matter.
      !!}
      private
-     class(darkMatterParticleClass  ), pointer :: darkMatterParticle_  => null()
-     class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_  => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_ => null()
+     double precision                                     :: gamma
+     logical                                              :: includeKickHeating
    contains
      final     ::        decayingDarkMatterDestructor
      procedure :: get => decayingDarkMatterGet
@@ -60,23 +62,37 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (darkMatterProfileHeatingDecayingDarkMatter), target        :: self
-    type (inputParameters                           ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
-    class(darkMatterParticleClass                   ), pointer       :: darkMatterParticle_
-    
+    type            (darkMatterProfileHeatingDecayingDarkMatter), target        :: self
+    type            (inputParameters                           ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterParticleClass                   ), pointer       :: darkMatterParticle_
+    double precision                                                            :: gamma
+    logical                                                                     :: includeKickHeating
+
     !![
+    <inputParameter>
+      <name>gamma</name>
+      <source>parameters</source>
+      <description>Parameter controlling the magnitude of heating due to mass loss.</description>
+      <defaultValue>0.5d0</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>includeKickHeating</name>
+      <source>parameters</source>
+      <description>Parameter controlling whether heating due to velocity kicks is to be included.</description>
+      <defaultValue>.true.</defaultValue>
+    </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileHeatingDecayingDarkMatter(darkMatterParticle_,darkMatterHaloScale_)
+    self=darkMatterProfileHeatingDecayingDarkMatter(gamma,includeKickHeating,darkMatterParticle_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function decayingDarkMatterConstructorParameters
 
-  function decayingDarkMatterConstructorInternal(darkMatterParticle_,darkMatterHaloScale_) result(self)
+  function decayingDarkMatterConstructorInternal(gamma,includeKickHeating,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily decayingDarkMatter} dark matter profile heating scales class.
     !!}
@@ -84,8 +100,10 @@ contains
     type (darkMatterProfileHeatingDecayingDarkMatter)                        :: self
     class(darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
     class(darkMatterParticleClass                   ), intent(in   ), target :: darkMatterParticle_
+    double precision                                 , intent(in   )         :: gamma
+    logical                                          , intent(in   )         :: includeKickHeating
     !![
-    <constructorAssign variables="*darkMatterParticle_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="gamma, includeKickHeating, *darkMatterParticle_, *darkMatterHaloScale_"/>
     !!]
     
     return
@@ -132,6 +150,8 @@ contains
            massDistributionHeatingDecayingDarkMatter(                                                 &amp;
             &amp;                                    radiusEscape       =      radiusEscape         , &amp;
             &amp;                                    time               =basic%time               (), &amp;
+            &amp;                                    gamma              =self %gamma                , &amp;
+            &amp;                                    includeKickHeating =self %includeKickHeating   , &amp;
             &amp;                                    darkMatterParticle_=self %darkMatterParticle_    &amp;
             &amp;                                   )
 	 </constructor>

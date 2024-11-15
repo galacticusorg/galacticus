@@ -129,27 +129,25 @@
     <darkMatterParticle value="CDM" />
     <massSplitting value="0.00013" />
     <lifetime value="10" />
-    <heating value="true" />
-    <massLoss value="false" />
   </darkMatterParticle>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfile value="darkMatterOnly"/>
-  <darkMatterProfileDMO value="decaying">
-    <darkMatterProfileDMO value="heated">
-      <toleratePotentialIntegrationFailure value="true"/>
-      <darkMatterProfileDMO value="NFW" />
-      <nonAnalyticSolver value="numerical" />
-      <toleranceRelativeVelocityDispersion value="1.0e-6"/>
-      <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
-      <toleranceRelativePotential value="1.0e-3"/>
-      <fractionRadiusFinalSmall value="0.0"/>
-    </darkMatterProfileDMO>
+  <darkMatterProfileDMO value="heated">
+    <toleratePotentialIntegrationFailure value="true"/>
+    <darkMatterProfileDMO value="NFW" />
+    <nonAnalyticSolver value="numerical" />
+    <toleranceRelativeVelocityDispersion value="1.0e-6"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+    <toleranceRelativePotential value="1.0e-3"/>
+    <fractionRadiusFinalSmall value="0.0"/>
   </darkMatterProfileDMO>
   <darkMatterProfileHeating value="monotonicWeak">
     <darkMatterProfileHeating value="summation">
       <darkMatterProfileHeating value="tidal"             />
-      <darkMatterProfileHeating value="decayingDarkMatter"/>
+      <darkMatterProfileHeating value="decayingDarkMatter" >
+	<gamma value="0.0"/>
+      </darkMatterProfileHeating>
     </darkMatterProfileHeating>
   </darkMatterProfileHeating>
 

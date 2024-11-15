@@ -35,12 +35,12 @@
      A dark matter halo profile class implementing decaying dark matter halos.
      !!}
      private
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
-     double precision                                   :: lifetime_                    , massSplitting_         , &
-          &                                                velocityKick                 , potentialEscape        , &
-          &                                                radiusUndepleted             , time                   , &
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_     => null()
+     double precision                                   :: lifetime_                        , massSplitting  , &
+          &                                                velocityKick                     , potentialEscape, &
+          &                                                radiusUndepleted                 , time           , &
           &                                                radiusEscape
-     logical                                            :: massLoss_                    , potentialEscapeComputed
+     logical                                            :: potentialEscapeComputed
    contains
      !![
      <methods>
@@ -151,9 +151,7 @@ contains
     !!{
     Constructor for ``sphericalDecaying'' mass distribution class.
     !!}
-    use :: Dark_Matter_Particles       , only : darkMatterParticleDecayingDarkMatter
-    use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     implicit none
     type            (massDistributionSphericalDecaying)                          :: self
     class           (massDistributionSpherical        ), intent(in   ), target   :: massDistribution_
@@ -171,20 +169,12 @@ contains
     ! In models with decays, tolerate failures in integration of the density profile (as this can become almost fully disrupted).
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime_                             =+darkMatterParticle_%lifetime      ()
-       self%massSplitting_                        =+darkMatterParticle_%massSplitting ()
-       self%velocityKick                          =+self               %massSplitting_   &
-            &                                      *speedLight                           &
-            &                                      /kilo
-       self%massLoss_                             = darkMatterParticle_%massLoss      ()
+       self%lifetime_                             =+darkMatterParticle_%lifetime     ()
+       self%massSplitting                         =+darkMatterParticle_%massSplitting()
+       self%velocityKick                          =+darkMatterParticle_%velocityKick ()
        self%tolerateEnclosedMassIntegrationFailure=.true.
     class default
-       ! No decays.
-       self%lifetime_                             =-1.0d0
-       self%massSplitting_                        =+0.0d0
-       self%velocityKick                          =+0.0d0
-       self%massLoss_                             =.false.
-       self%tolerateEnclosedMassIntegrationFailure=.false.
+       call Error_Report('expected a member of the `darkMatterParticleDecayingDarkMatter` class'//{introspection:location})
     end select
     ! Initialize.
     self%potentialEscapeComputed=.false.
@@ -224,6 +214,7 @@ contains
     !!}
     use :: Coordinates         , only : coordinateSpherical               , assignment(=)
     use :: Decaying_Dark_Matter, only : decayingDarkMatterFractionRetained
+    use :: Error               , only : Error_Report
     implicit none
     class           (massDistributionSphericalDecaying), intent(inout) :: self
     double precision                                   , intent(in   ) :: radius
@@ -240,57 +231,53 @@ contains
        return
     end if
     ! Outside of the undepeleted region, compute the depletion factor directly.
-    if (self%massLoss_) then
-       ! Find the escape velocity.
-       if (radius < self%radiusEscape) then
-          if (.not.self%potentialEscapeComputed) then
-             coordinates                 =[self%radiusEscape,0.0d0,0.0d0]
-             self%potentialEscape        =self%massDistribution_%potential(coordinates)
-             self%potentialEscapeComputed=.true.
-          end if
-          coordinates        =[radius,0.0d0,0.0d0]
-          potentialDifference=+self                  %potentialEscape              &
-               &              -self%massDistribution_%potential      (coordinates)
-          if (potentialDifference > 0.0d0) then
-             velocityEscape=+sqrt(                     &
-                  &               +2.0d0               &
-                  &               *potentialDifference &
-                  &              )
-          else
-             velocityEscape=+0.0d0
-          end if
+    !! Find the escape velocity.
+    if (radius < self%radiusEscape) then
+       if (.not.self%potentialEscapeComputed) then
+          coordinates                 =[self%radiusEscape,0.0d0,0.0d0]
+          self%potentialEscape        =self%massDistribution_%potential(coordinates)
+          self%potentialEscapeComputed=.true.
+       end if
+       coordinates        =[radius,0.0d0,0.0d0]
+       potentialDifference=+self                  %potentialEscape              &
+            &              -self%massDistribution_%potential      (coordinates)
+       if (potentialDifference > 0.0d0) then
+          velocityEscape=+sqrt(                     &
+               &               +2.0d0               &
+               &               *potentialDifference &
+               &              )
        else
           velocityEscape=+0.0d0
        end if
-       kinematicsDistribution_ => self%massDistribution_%kinematicsDistribution()
-       coordinates             =  [radius,0.0d0,0.0d0]
-       velocityDispersion      =  kinematicsDistribution_%velocityDispersion1D(coordinates,self%massDistribution_)
-       !![
-       <objectDestructor name="kinematicsDistribution_"/>
-       !!]
-       if (velocityDispersion > 0.0d0) then
-       fractionRetained   =+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
-       else
-          if (self%velocityKick > velocityEscape) then
-             fractionRetained=+0.0d0
-          else
-             fractionRetained=+1.0d0
-          end if
-       end if
-       fractionDecayed =  +1.0d0               &
-            &             -exp(                &
-            &                  -self%    time  &
-            &                  /self%lifetime_ &
-            &                 )
-       factor          =  +(+1.0d0-     fractionDecayed ) & ! { Fraction of particles undecayed - have 100% of their original mass.
-            &             +             fractionDecayed   & ! ⎧ Fraction of particles decayed...
-            &             *             fractionRetained  & ! ⎨  ...but not escaped...
-            &             *(+1.0d0-self%massSplitting_  )   ! ⎩  ...have 1-ε of their original mass.
-       ! Check for negligible depletion, and update the undepleted radius to the largest such radius yet found.
-       if (factor > 1.0d0-depletionNegligble .and. radius > self%radiusUndepleted) self%radiusUndepleted=radius
     else
-       factor          = +1.0d0                           !   Mass loss is being ignored.
+       velocityEscape=+0.0d0
     end if
+    kinematicsDistribution_ => self%massDistribution_%kinematicsDistribution()
+    coordinates             =  [radius,0.0d0,0.0d0]
+    velocityDispersion      =  kinematicsDistribution_%velocityDispersion1D(coordinates,self%massDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
+    if (velocityDispersion > 0.0d0) then
+       fractionRetained   =+decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,self%velocityKick)
+    else
+       if (self%velocityKick > velocityEscape) then
+          fractionRetained=+0.0d0
+       else
+          fractionRetained=+1.0d0
+       end if
+    end if
+    fractionDecayed =  +1.0d0               &
+         &             -exp(                &
+         &                  -self%    time  &
+         &                  /self%lifetime_ &
+         &                 )
+    factor          =  +(+1.0d0-     fractionDecayed ) & ! { Fraction of particles undecayed - have 100% of their original mass.
+         &             +             fractionDecayed   & ! ⎧ Fraction of particles decayed...
+         &             *             fractionRetained  & ! ⎨  ...but not escaped...
+         &             *(+1.0d0-self%massSplitting   )   ! ⎩  ...have 1-ε of their original mass.
+    ! Check for negligible depletion, and update the undepleted radius to the largest such radius yet found.
+    if (factor > 1.0d0-depletionNegligble .and. radius > self%radiusUndepleted) self%radiusUndepleted=radius
     return
   end function sphericalDecayingDecayingFactor
 

@@ -24,19 +24,23 @@
   !![
   <massDistributionHeating name="massDistributionHeatingDecayingDarkMatter">
     <description>
-      Implements heating from decays and response to mass loss.
+      Implements heating from decays and response to mass loss. The mass loss heating is parameterized as:
+      \begin{equation}
+      \epsilon(r) = \gamma \frac{\mathrm{G}\Delta M(r)}{r},
+      \end{equation}
+      where $\gamma=${\normalfont \ttfamily [gamma]} sets the magnitude of the heating.
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingDecayingDarkMatter
      !!{
-     Implementation of a decayingDarkMatter mass distribution heating class.
+     Implementation of a decaying dark matter mass distribution heating class.
      !!}
      private
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_    => null()
-     logical                                            :: heating_                        , massLoss_
-     double precision                                   :: lifetime_                       , massSplitting_                , &
-          &                                                gamma_                          , velocityKick
+     logical                                            :: includeKickHeating
+     double precision                                   :: lifetime                        , massSplitting                 , &
+          &                                                gamma                           , velocityKick
      logical                                            :: energySpecificComputed          , energySpecificGradientComputed, &
           &                                                factorsComputed                 , potentialEscapeComputed       , &
           &                                                massEnclosedComputed
@@ -80,7 +84,9 @@ contains
     type            (massDistributionHeatingDecayingDarkMatter)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (darkMatterParticleClass                  ), pointer       :: darkMatterParticle_
-    double precision                                                           :: radiusEscape       , time
+    double precision                                                           :: radiusEscape       , time, &
+         &                                                                        gamma
+    logical                                                                    :: includeKickHeating
 
     !![
     <inputParameter>
@@ -91,11 +97,23 @@ contains
     <inputParameter>
       <name>time</name>
       <source>parameters</source>
-      <description>The time at whichd decays should be evaluated.</description>
+      <description>The time at which decays should be evaluated.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma</name>
+      <source>parameters</source>
+      <description>Parameter controlling the magnitude of heating due to mass loss.</description>
+      <defaultValue>0.5d0</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>includeKickHeating</name>
+      <source>parameters</source>
+      <description>Parameter controlling whether heating due to velocity kicks is to be included.</description>
+      <defaultValue>.true.</defaultValue>
     </inputParameter>
     <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
     !!]
-    self=massDistributionHeatingDecayingDarkMatter(radiusEscape,time,darkMatterParticle_)
+    self=massDistributionHeatingDecayingDarkMatter(radiusEscape,time,gamma,includeKickHeating,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"/>
@@ -103,40 +121,32 @@ contains
     return
   end function decayingDarkMatterConstructorParameters
   
-  function decayingDarkMatterConstructorInternal(radiusEscape,time,darkMatterParticle_) result(self)
+  function decayingDarkMatterConstructorInternal(radiusEscape,time,gamma,includeKickHeating,darkMatterParticle_) result(self)
     !!{
     Constructor for ``decayingDarkMatter'' heating class.
     !!}
-    use :: Dark_Matter_Particles       , only : darkMatterParticleDecayingDarkMatter
-    use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
+    use :: Error                , only : Error_Report
     implicit none
     type            (massDistributionHeatingDecayingDarkMatter)                        :: self
     class           (darkMatterParticleClass                  ), intent(in   ), target :: darkMatterParticle_
-    double precision                                           , intent(in   )         :: time               , radiusEscape
+    double precision                                           , intent(in   )         :: time               , radiusEscape, &
+         &                                                                                gamma
+    logical                                                    , intent(in   )         :: includeKickHeating
     !![
-    <constructorAssign variables="radiusEscape, time, *darkMatterParticle_"/>
+    <constructorAssign variables="radiusEscape, time, gamma, includeKickHeating, *darkMatterParticle_"/>
     !!]
  
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime_     = darkMatterParticle_%lifetime     ()
-       self%massSplitting_= darkMatterParticle_%massSplitting()
-       self%heating_      = darkMatterParticle_%heating      ()
-       self%massLoss_     = darkMatterParticle_%massLoss     ()
-       self%gamma_        = darkMatterParticle_%gamma        ()
-       self%velocityKick  =+self               %massSplitting_  &
-            &              *speedLight                          &
-            &              /kilo
+       self%lifetime     = darkMatterParticle_%lifetime     ()
+       self%massSplitting= darkMatterParticle_%massSplitting()
+       self%velocityKick = darkMatterParticle_%velocityKick ()
     class default
-       ! No decays.
-       self%lifetime_     =-1.0d0
-       self%massSplitting_=+0.0d0
-       self%heating_      =.false.
-       self%massLoss_     =.false.
-       self%gamma_        =+1.0d0
-       self%velocityKick  =+0.0d0
+       call Error_Report('expected a member of the `darkMatterParticleDecayingDarkMatter` class'//{introspection:location})
     end select
+    ! Validate.
+    if (gamma < 0.0d0) call Error_Report('`gamma` ≥ 0 is required'//{introspection:location})
     ! Initialize memoized calculations.
     self%radius                        =-huge(0.0d0)
     self%factorsComputed               =.false.
@@ -199,24 +209,24 @@ contains
     end if
     if (.not.self%massEnclosedComputed) then
        ! Enclosed mass is needed if mass loss is to be accounted for, or if computing gradients.
-       if (self%massLoss_.or.gradientRequired) then
+       if (self%gamma > 0.0d0 .or. gradientRequired) then
           self%massEnclosed        =massDistribution_%massEnclosedBySphere(radius)
           self%massEnclosedComputed=.true.
        end if
     end if
     if (.not.self%factorsComputed) then
        ! Find the fraction of particles that have decayed by this time.
-       self%fractionDecayed =  +1.0d0               &
-            &                  -exp(                &
-            &                       -self%    time  &
-            &                       /self%lifetime_ &
+       self%fractionDecayed =  +1.0d0              &
+            &                  -exp(               &
+            &                       -self%    time &
+            &                       /self%lifetime &
             &                      )
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
-       if (self%massLoss_) then
+       if (self%gamma > 0.0d0) then
           if (radius <= 0.0d0) then
              self%massLossEnergy=+0.0d0
           else
-             self%massLossEnergy=+self%gamma_                          &
+             self%massLossEnergy=+self%gamma                           &
                   &              *     gravitationalConstantGalacticus &
                   &              *self%massEnclosed                    &
                   &              /     radius
@@ -266,16 +276,16 @@ contains
           end if
        end if
        ! If heating is not to be included, set the energy retained to zero.
-       if (.not.self%heating_) self%energyRetained=0.0d0
+       if (.not.self%includeKickHeating) self%energyRetained=0.0d0
        ! Compute the specific heating energy.
-       self%energySpecific=+(                                                     &
-            &                +self%energyRetained                                 &
-            &                +(                                                   &
-            &                  +(1.0d0-self%fractionRetained)                     &
-            &                  +       self%fractionRetained *self%massSplitting_ &
-            &                 )                                                   &
-            &                *self%massLossEnergy                                 &
-            &               )                                                     &
+       self%energySpecific=+(                                                    &
+            &                +self%energyRetained                                &
+            &                +(                                                  &
+            &                  +(1.0d0-self%fractionRetained)                    &
+            &                  +       self%fractionRetained *self%massSplitting &
+            &                 )                                                  &
+            &                *self%massLossEnergy                                &
+            &               )                                                    &
             &              *self%fractionDecayed
        self%energySpecificComputed=.true.
     end if
@@ -285,8 +295,8 @@ contains
        density           =+massDistribution_%density              (coordinates                   )
        densityLogGradient=+massDistribution_%densityGradientRadial(coordinates,logarithmic=.true.)
        ! Compute the change in energy due to mass loss (assuming all decayed particles are lost).
-       if (self%massLoss_) then
-          massLossGradient=+self%gamma_                            &
+       if (self%gamma > 0.0d0) then
+          massLossGradient=+self%gamma                             &
                &           *gravitationalConstantGalacticus        &
                &           *(                                      &
                &             -         self%massEnclosed/radius    &
@@ -329,16 +339,16 @@ contains
           velocityEscapeGradient=+0.0d0
        end if
        ! If heating is not to be included, set the energy retained derivatives to zero.
-       if (.not.self%heating_) then
+       if (.not.self%includeKickHeating) then
           energyDerivativeVelocityDispersion     =0.0d0
           energyDerivativeVelocityEscapeScaleFree=0.0d0
        end if
        ! Compute the specific heating gradient.
-       self%energySpecificGradient=+(                                                                                                                                                                 &
-            &                        +((1.0d0-self%fractionRetained)+self%massSplitting_*self%fractionRetained)*massLossGradient                                                                      &
-            &                        +(energyDerivativeVelocityDispersion     +(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityDispersion     *self%massLossEnergy)*velocityDispersionGradient &
-            &                        +(energyDerivativeVelocityEscapeScaleFree+(-1.0d0+self%massSplitting_)*fractionDerivativeVelocityEscapeScaleFree*self%massLossEnergy)*velocityEscapeGradient     &
-            &                       )                                                                                                                                                                 &
+       self%energySpecificGradient=+(                                                                                                                                                                &
+            &                        +((1.0d0-self%fractionRetained)+self%massSplitting*self%fractionRetained)*massLossGradient                                                                      &
+            &                        +(energyDerivativeVelocityDispersion     +(-1.0d0+self%massSplitting)*fractionDerivativeVelocityDispersion     *self%massLossEnergy)*velocityDispersionGradient &
+            &                        +(energyDerivativeVelocityEscapeScaleFree+(-1.0d0+self%massSplitting)*fractionDerivativeVelocityEscapeScaleFree*self%massLossEnergy)*velocityEscapeGradient     &
+            &                       )                                                                                                                                                                &
             &                      *self%fractionDecayed
        self%energySpecificGradientComputed=.true.
     end if
@@ -382,6 +392,6 @@ contains
     implicit none
     class(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self
 
-    energySpecificIsEverywhereZero=self%lifetime_ <= 0.0d0 .or. self%massSplitting_ <= 0.0d0 .or. .not.(self%heating_ .or. self%massLoss_)      
+    energySpecificIsEverywhereZero=self%lifetime <= 0.0d0 .or. self%massSplitting <= 0.0d0 .or. (.not.self%includeKickHeating .and. self%gamma == 0.0d0)
     return
   end function decayingDarkMatterSpecificEnergyIsEverywhereZero

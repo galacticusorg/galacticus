@@ -31,26 +31,22 @@ Contains a module which implements a decaying dark matter particle class.
      A decaying dark matter particle class.
      !!}
      private
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()
-     double precision                                   :: lifetime_, massSplitting_, gamma_
-     logical                                            :: heating_, massLoss_
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
+     double precision                                   :: lifetime_                    , massSplitting_, &
+          &                                                velocityKick_
    contains
      !![
      <methods>
-       <method description="Return the lifetime of the dark matter particle." method="lifetime" />
-       <method description="Return the mass splitting of the decay." method="massSplitting" />
-       <method description="Return boolean that indicates if heating from decays should be included." method="heating" />
-       <method description="Return boolean that indicates if mass loss from decays should be included." method="massLoss" />
-       <method description="Return free parameter in heating in response to mass loss." method="gamma" />
+       <method description="Return the lifetime of the dark matter particle." method="lifetime"     />
+       <method description="Return the mass splitting of the decay."          method="massSplitting"/>
+       <method description="Return the velocity kick imparted by the decay."  method="velocityKick" />
      </methods>
      !!]
-     final     ::                         decayingDMDestructor
-     procedure :: mass                 => decayingDMMass
-     procedure :: lifetime             => decayingDMLifetime
-     procedure :: massSplitting        => decayingDMMassSplitting
-     procedure :: heating              => decayingDMHeating
-     procedure :: massLoss             => decayingDMMassLoss
-     procedure :: gamma                => decayingDMGamma
+     final     ::                  decayingDMDestructor
+     procedure :: mass          => decayingDMMass
+     procedure :: lifetime      => decayingDMLifetime
+     procedure :: massSplitting => decayingDMMassSplitting
+     procedure :: velocityKick  => decayingDMVelocityKick
   end type darkMatterParticleDecayingDarkMatter
 
   interface darkMatterParticleDecayingDarkMatter
@@ -67,13 +63,14 @@ contains
     !!{
     Constructor for the ``{\normalfont \ttfamily decayingDarkMatter}'' dark matter particle class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type            (darkMatterParticleDecayingDarkMatter)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (darkMatterParticleClass             ), pointer       :: darkMatterParticle_
-    double precision                                                      :: lifetime, massSplitting, gamma
-    logical                                                               :: heating, massLoss
+    double precision                                                      :: lifetime           , massSplitting, &
+         &                                                                   velocityKick
 
     !![
     <inputParameter>
@@ -82,60 +79,71 @@ contains
       <variable>lifetime</variable>
       <description>Lifetime of the dark matter particle in Gyr.</description>
     </inputParameter>
-    <inputParameter>
-      <name>massSplitting</name>
-      <source>parameters</source>
-      <variable>massSplitting</variable>
-      <description>Mass splitting of the dark matter decay.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>heating</name>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-      <variable>heating</variable>
-      <description>Boolean that indicates if heating from decays should be included.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>massLoss</name>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-      <variable>massLoss</variable>
-      <description>Boolean that indicates if mass loss should be included.</description>
-    </inputParameter>
-    <inputParameter>
-      <name>gamma</name>
-      <defaultValue>1.0d0</defaultValue>
-      <source>parameters</source>
-      <variable>gamma</variable>
-      <description>Free parameter in heating in response to mass loss.</description>
-    </inputParameter>
-    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=darkMatterParticleDecayingDarkMatter(lifetime,massSplitting,heating,massLoss,gamma,darkMatterParticle_)
+    if      (parameters%isPresent('massSplitting')) then
+       if (parameters%isPresent('velocityKick')) call Error_Report('specify [massSplitting] or [velocityKick], not both'//{introspection:location})
+       !![
+       <inputParameter>
+	 <name>massSplitting</name>
+	 <source>parameters</source>
+	 <description>Mass splitting of the dark matter decay.</description>
+       </inputParameter>
+       !!]
+    else if (parameters%isPresent('velocityKick' )) then
+       !![
+       <inputParameter>
+	 <name>velocityKick</name>
+	 <source>parameters</source>
+	 <description>Velocity kick imparted by dark matter decay.</description>
+       </inputParameter>
+       !!]
+    else
+       call Error_Report('specify one of [massSplitting] and [velocityKick]'//{introspection:location})
+    end if
     !![
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <conditionalCall>
+      <call>self=darkMatterParticleDecayingDarkMatter(darkMatterParticle_,lifetime{conditions})</call>
+      <argument name="massSplitting" value="massSplitting" parameterPresent="parameters"/>
+      <argument name="velocityKick"  value="velocityKick"  parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_" />
     !!]
     return
   end function decayingDMConstructorParameters
 
-  function decayingDMConstructorInternal(lifetime,massSplitting,heating,massLoss,gamma,darkMatterParticle_) result(self)
+  function decayingDMConstructorInternal(darkMatterParticle_,lifetime,massSplitting,velocityKick) result(self)
     !!{
     Internal constructor for the ``{\normalfont \ttfamily decayingDarkMatter}'' dark matter particle class.
     !!}
+    use :: Error                       , only : Error_Report
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
-    type            (darkMatterParticleDecayingDarkMatter)                        :: self
-    class           (darkMatterParticleClass             ), intent(in   ), target :: darkMatterParticle_
-    double precision                                      , intent(in   )         :: lifetime, massSplitting, gamma
-    logical                                               , intent(in   )         :: heating, massLoss
+    type            (darkMatterParticleDecayingDarkMatter)                          :: self
+    class           (darkMatterParticleClass             ), intent(in   ), target   :: darkMatterParticle_
+    double precision                                      , intent(in   )           :: lifetime
+    double precision                                      , intent(in   ), optional :: massSplitting      , velocityKick
     !![
     <constructorAssign variables="*darkMatterParticle_"/>
     !!]
-    self%lifetime_ = lifetime
-    self%massSplitting_ = massSplitting
-    self%heating_ = heating
-    self%massLoss_ = massLoss
-    self%gamma_ = gamma 
+
+    self%lifetime_=lifetime
+    if      (present(massSplitting)) then
+       if (present(velocityKick)) call Error_Report('specify `massSplitting` or `velocityKick`, not both'//{introspection:location})
+       self%massSplitting_=+massSplitting
+       self%velocityKick_ =+massSplitting &
+            &              *speedLight    &
+            &              /kilo
+    else if (present(velocityKick )) then
+       self%velocityKick_ =+velocityKick
+       self%massSplitting_=+velocityKick  &
+            &              *kilo          &
+            &              /speedLight
+    else
+       call Error_Report('specify one of `massSplitting` and `velocityKick`'//{introspection:location})
+    end if
     return
   end function decayingDMConstructorInternal
 
@@ -147,73 +155,51 @@ contains
     type(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterParticle_" />
+    <objectDestructor name="self%darkMatterParticle_"/>
     !!]
     return
   end subroutine decayingDMDestructor
 
-  double precision function decayingDMMass(self)
+  double precision function decayingDMMass(self) result(mass)
     !!{
     Return the mass, in units of keV, of a decaying dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
 
-    decayingDMMass=self%darkMatterParticle_%mass()
+    mass=self%darkMatterParticle_%mass()
     return
   end function decayingDMMass
 
-  double precision function decayingDMLifetime(self)
+  double precision function decayingDMLifetime(self) result(lifetime)
     !!{
     Return the lifetime, in units of Gyr, of a decaying dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
 
-    decayingDMLifetime=self%lifetime_
+    lifetime=self%lifetime_
     return
   end function decayingDMLifetime
 
-  double precision function decayingDMMassSplitting(self)
+  double precision function decayingDMMassSplitting(self) result(massSplitting)
     !!{
     Return the mass splitting of a decaying dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
 
-    decayingDMMassSplitting=self%massSplitting_
+    massSplitting=self%massSplitting_
     return
   end function decayingDMMassSplitting
 
-  logical function decayingDMHeating(self)
+  double precision function decayingDMVelocityKick(self) result(velocityKick)
     !!{
-    Return boolean that indicates if heating from decays is included.
+    Return the velocity kick imparted by a decaying dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
 
-    decayingDMHeating=self%heating_
+    velocityKick=self%velocityKick_
     return
-  end function decayingDMHeating
-
-  logical function decayingDMMassLoss(self)
-    !!{
-    Return boolean that indicates is mass loss is included.
-    !!}
-    implicit none
-    class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
-
-    decayingDMMassLoss=self%massLoss_
-    return
-  end function decayingDMMassLoss
-
-  double precision function decayingDMGamma(self)
-    !!{
-    Return the free parameter in the heating in response to mass loss.
-    !!}
-    implicit none
-    class(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
-
-    decayingDMGamma=self%gamma_
-    return
-  end function decayingDMGamma
+  end function decayingDMVelocityKick

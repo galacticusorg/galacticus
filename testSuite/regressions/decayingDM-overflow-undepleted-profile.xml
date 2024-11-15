@@ -111,9 +111,6 @@
     <darkMatterParticle value="CDM" />
     <massSplitting value="0.000067" />
     <lifetime value="40" />
-    <heating value="true" />
-    <massLoss value="true" />
-    <gamma value="0.5" />
   </darkMatterParticle>
 
   <!-- Dark matter halo structure options -->
@@ -150,7 +147,9 @@
         <coefficientSecondOrder1   value="+0.000"/>
         <correlationVelocityRadius value="-0.333"/>
       </darkMatterProfileHeating>
-      <darkMatterProfileHeating value="decayingDarkMatter"/>
+      <darkMatterProfileHeating value="decayingDarkMatter">
+	<gamma value="0.5" />
+      </darkMatterProfileHeating>
     </darkMatterProfileHeating>
   </darkMatterProfileHeating>
 
