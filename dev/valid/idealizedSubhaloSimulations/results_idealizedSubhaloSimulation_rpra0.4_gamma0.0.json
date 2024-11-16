@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
-        "message": "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch\n\nNumerical imprecisions could previously lead to no solution for the halo mass in the reference model. We now catch these and set the halo mass to the maximum allowed (since these are cases where the halo is collapsing very close to the current epoch).\n",
-        "timestamp": "2024-11-05 13:38:18-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
+        "id": "1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99",
+        "message": "fix: Avoid problems wth HDF5 `comment` attributes\n\n* Do not set if empty;\n\n* Do not set if a `comment` already exists;\n\n* Avoid name conflicts.\n",
+        "timestamp": "2024-11-16 08:17:16-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99"
     },
     "results": [
         {
@@ -20,6 +20,7 @@ window.ANALYSES_DATA = {
                 "xAxisIsLog": "0",
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
+                "comment": "Analysis of the satellite bound mass vs. time.",
                 "description": "Satellite bound mass fraction vs. time.",
                 "logLikelihood": "26.85265409129778",
                 "type": "function1D",
@@ -68,6 +69,7 @@ window.ANALYSES_DATA = {
                 "xAxisIsLog": "0",
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
+                "comment": "Analysis of the satellite maximum circular velocity radius vs. time.",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
                 "logLikelihood": "12.856529957599932",
                 "type": "function1D",
@@ -116,6 +118,7 @@ window.ANALYSES_DATA = {
                 "xAxisIsLog": "0",
                 "yAxisIsLog": "1",
                 "targetLabel": "Simulations",
+                "comment": "Analysis of the satellite maximum circular velocity vs. time.",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
                 "logLikelihood": "11.535619227855877",
                 "type": "function1D",

@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "commit" : {
+      "id" : "1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99",
+      "message" : "fix: Avoid problems wth HDF5 `comment` attributes",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99",
       "author" : {
-         "email" : "abenson@obs.carnegiescience.edu",
+         "email" : "abenson@carnegiescience.edu",
          "name" : "Andrew Benson"
       },
-      "url" : "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
-      "message" : "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch",
-      "id" : "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
-      "timestamp" : "Tue, 5 Nov 2024 13:38:18 -0800"
+      "timestamp" : "Sat, 16 Nov 2024 08:17:16 -0800"
+   },
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "percentageBelow" : 50,
+      "percentageAbove" : 50,
+      "target" : 0.006
    },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "slope" : {
       "percentageBelow" : 70.5882352941177,
-      "target" : 0.85,
-      "percentageAbove" : 29.4117647058824
-   },
-   "surfaceDensity" : {
-      "percentageBelow" : 53.125,
-      "target" : 0.006,
-      "percentageAbove" : 46.875
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+      "percentageAbove" : 29.4117647058824,
+      "target" : 0.85
+   }
 }
