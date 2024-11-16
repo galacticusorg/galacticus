@@ -1228,9 +1228,6 @@ contains
        end if
     end if
 
-    ! Set the comment for this group.
-    if (present(description)) call groupObject%writeAttribute(trim(description),'description')
-
     ! Mark this object as open.
     groupObject%isOpenValue=.true.
 
@@ -1282,6 +1279,9 @@ contains
     else
        groupObject%isOverwritable=groupObject%parentObject%isOverwritable
     end if
+
+    ! Set the comment for this group.
+    if (present(description)) call groupObject%writeAttribute(trim(description),'description')
     return
   end function IO_HDF5_Open_Group
 
@@ -4502,9 +4502,6 @@ attributeValue=trim(attributeValue)
        end if
     end if
 
-    ! Set the comment for this dataset.
-    if (present(description)) call datasetObject%writeAttribute(trim(description),'description')
-
     ! Mark this object as open.
     datasetObject%isOpenValue=.true.
 
@@ -4523,6 +4520,9 @@ attributeValue=trim(attributeValue)
     else
        datasetObject%isOverwritable=datasetObject%parentObject%isOverwritable
     end if
+
+    ! Set the comment for this dataset.
+    if (present(description)) call datasetObject%writeAttribute(trim(description),'description')
     return
   end function IO_HDF5_Open_Dataset
 
