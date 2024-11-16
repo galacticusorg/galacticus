@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730865578802,
+  "lastUpdate": 1731798364213,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -4193,6 +4193,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
         },
         "date": 1730865578057,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213834512038",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775546264547",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631864004522",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99",
+          "message": "fix: Avoid problems wth HDF5 `comment` attributes\n\n* Do not set if empty;\n\n* Do not set if a `comment` already exists;\n\n* Avoid name conflicts.",
+          "timestamp": "2024-11-16T08:17:16-08:00",
+          "tree_id": "5269ae56c5485c7eb8d936761f25c72834f972ad",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99"
+        },
+        "date": 1731798362930,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
