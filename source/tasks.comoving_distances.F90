@@ -115,7 +115,7 @@ contains
     integer                       , intent(  out), optional :: status
     integer(c_size_t             )                          :: output
     type   (hdf5Object           )                          :: outputsGroup, outputGroup
-    type   (varying_string       )                          :: groupName   , commentText
+    type   (varying_string       )                          :: groupName   , description
 
     call displayIndent('Begin task: comoving distances')
     ! Open the group for output time information.
@@ -123,10 +123,10 @@ contains
     ! Iterate over output times and output data.
     do output=1,self%outputTimes_%count()
        groupName  ='Output'
-       commentText='Data for output number '
+       description='Data for output number '
        groupName  =groupName  //output
-       commentText=commentText//output
-       outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
+       description=description//output
+       outputGroup=outputsGroup%openGroup(char(groupName),char(description))
        call outputGroup%writeAttribute(self%cosmologyFunctions_%distanceComoving(self%outputTimes_%time(output)),'distanceComoving')
        call outputGroup%close         (                                                                                            )
     end do

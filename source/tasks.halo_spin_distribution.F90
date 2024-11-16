@@ -208,7 +208,7 @@ contains
     integer                                                                       :: iSpin                , spinCount
     type            (hdf5Object                    )                              :: outputsGroup         , outputGroup     , &
          &                                                                           containerGroup
-    type            (varying_string                )                              :: groupName            , commentText
+    type            (varying_string                )                              :: groupName            , description
 
     call displayIndent('Begin task: halo spin distribution')
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
@@ -254,10 +254,10 @@ contains
        end do
        ! Open the output group.
        groupName  ='Output'
-       commentText='Data for output number '
+       description='Data for output number '
        groupName  =groupName  //iOutput
-       commentText=commentText//iOutput
-       outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
+       description=description//iOutput
+       outputGroup=outputsGroup%openGroup(char(groupName),char(description))
        ! Store the distribution, redshifts, and spins.
        call outputGroup%writeAttribute(                                                                                              self%outputTimes_%time(iOutput)  ,'outputTime'                                                                )
        call outputGroup%writeAttribute(                                                     self%cosmologyFunctions_%expansionFactor(self%outputTimes_%time(iOutput)) ,'outputExpansionFactor'                                                     )

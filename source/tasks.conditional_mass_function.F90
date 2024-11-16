@@ -417,13 +417,13 @@ contains
     end do
     ! Write the data to file.
     outputGroup=outputFile%openGroup(char(self%outputGroupName))
-    call outputGroup%writeDataset(self%massBinCenters,"mass" ,commentText="mass in units of M☉")
+    call outputGroup%writeDataset(self%massBinCenters,"mass" ,description="mass in units of M☉")
     if (self%integrateOverHaloMassFunction) then
-       call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,commentText="Mass function in units of Mpc⁻³ per log(mass)."                 )
-       call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete mass function in units of Mpc⁻³ per log(mass)."      )
+       call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,description="Mass function in units of Mpc⁻³ per log(mass)."                 )
+       call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",description="Incomplete mass function in units of Mpc⁻³ per log(mass)."      )
     else
-       call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,commentText="Conditional mass function in units of per log(mass)."           )
-       call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
+       call outputGroup%writeDataset(conditionalMassFunction          ,"massFunction"          ,description="Conditional mass function in units of per log(mass)."           )
+       call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",description="Incomplete conditional mass function in units of per log(mass).")
     end if
     call outputGroup%close()
     call displayUnindent('Done task: conditional mass function' )

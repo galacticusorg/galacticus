@@ -295,8 +295,8 @@ contains
          &                                self%correlationProjectedBinned     &
          &                               )
     outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.')
-    call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )
-    call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",commentText="Projected correlation [Mpc].")
+    call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,description="Projected separation [Mpc]." )
+    call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",description="Projected correlation [Mpc].")
     call outputGroup%close       (                                                                                                 )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
