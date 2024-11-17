@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99",
-        "message": "fix: Avoid problems wth HDF5 `comment` attributes\n\n* Do not set if empty;\n\n* Do not set if a `comment` already exists;\n\n* Avoid name conflicts.\n",
-        "timestamp": "2024-11-16 08:17:16-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/1ced7e1e888028a3aaad7ea3c5db1f1d8b84fb99"
+        "id": "a1e98d06453787cab7b691c196cd520ea8ddddb0",
+        "message": "Merge pull request #737 from galacticusorg/fixRemoveObsoletedStructureVars\n\nRemove memoized structure variables\n",
+        "timestamp": "2024-11-17 04:59:09+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a1e98d06453787cab7b691c196cd520ea8ddddb0"
     },
     "results": [
         {
