@@ -39,7 +39,7 @@
      ! Memoized solutions for the potential.
      double precision                          , allocatable, dimension(:) :: potentialProfilePotential__                        , potentialProfileRadius__
      double precision                                                      :: potentialProfileRadiusMinimum__       =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
-          &                                                                   potentialProfileRadiusMinimumActual__
+          &                                                                   potentialProfileRadiusMinimumActual__              , potentialRadiusZeroPoint__     =-huge(0.0d0)
      type            (interpolator            ), allocatable               :: potentialProfile__
      logical                                                               :: toleratePotentialIntegrationFailure   =.false.
      double precision                                                      :: toleranceRelativePotential            =1.0d-6
@@ -528,9 +528,8 @@ contains
          &                                                                             i
     logical                                                                         :: remakeTable
     double precision                                                                :: radiusMaximum               , radiusMinimum       , &
-         &                                                                             radius                      , potentialZeroPoint  , &
-         &                                                                             massRadiusMaximum           , radiusLowerPotential, &
-         &                                                                             radiusUpperPotential
+         &                                                                             radius                      , massRadiusMaximum   , &
+         &                    radiusLowerPotential        , radiusUpperPotential
     integer                                                                         :: status_
 
     if (present(status)) status=structureErrorCodeSuccess
@@ -586,29 +585,32 @@ contains
              iMinimum=+huge(0_c_size_t)
              iMaximum=-huge(0_c_size_t)
           end if
-          ! Construct a zero-point.
-          potentialZeroPoint=-massRadiusMaximum               &
-               &             /radiusMaximum
+          ! Set the radius for the zero point of the potential.
+          if (self%potentialRadiusZeroPoint__ < 0.0d0) self%potentialRadiusZeroPoint__=radiusMaximum
           ! Solve for the enclosed mass where old results were unavailable.
           call self%solverSet  ()
           do i=1,countRadii
              ! Skip cases for which we have a pre-existing solution.
              if (i >= iMinimum .and. i <= iMaximum) cycle  
              ! Evaluate the integral.
-             radiusLowerPotential=self%potentialSolverRadius(radii        (i))
-             radiusUpperPotential=self%potentialSolverRadius(radiusMaximum   )
-             potentials(i)=-integrator_%integrate(radiusLowerPotential,radiusUpperPotential,status_) &
-                  &        -potentialZeroPoint
-             if (status_ /= errorStatusSuccess .and. .not.self%toleratePotentialIntegrationFailure) &
-                  & call Error_Report('potential integration failed'//{introspection:location})
+             radiusLowerPotential=self%potentialSolverRadius(     radii                     (i))
+             radiusUpperPotential=self%potentialSolverRadius(self%potentialRadiusZeroPoint__   )
+             potentials(i)=integrator_%integrate(radiusLowerPotential,radiusUpperPotential,status_)
+             if (status_ /= errorStatusSuccess) then
+                if (self%toleratePotentialIntegrationFailure) then
+                   potentials(i)=-huge(0.0d0)
+                else
+                   call Error_Report('potential integration failed'//{introspection:location})
+                end if
+             end if
           end do
           call self%solverUnset()
           ! Build the interpolator.
           if (allocated(self%potentialProfile__)) deallocate(self%potentialProfile__)
-          if (all(potentials > 0.0d0)) then
+          if (all(potentials > -huge(0.0d0))) then
              radii_     =radii
              potentials_=potentials
-          else if (all(potentials <= 0.0d0)) then
+          else if (all(potentials == -huge(0.0d0))) then
              ! A fully-destroyed profile.
              allocate(radii_     (0))
              allocate(potentials_(0))
@@ -618,7 +620,7 @@ contains
              iPrevious =-1_c_size_t
              do i=size(potentials),1,-1
                 if     (                                          &
-                     &     potentials(i) >  0.0d0                 &
+                     &     potentials(i) >  -huge(0.0d0)          &
                      &  .and.                                     &
                      &   (                                        &
                      &     iPrevious     <= 0_c_size_t            &
@@ -658,7 +660,7 @@ contains
           end if
           if (size(radii_) > 0) then
              allocate(self%potentialProfile__)
-             self%potentialProfile__=interpolator(log(radii_),log(potentials_),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
+             self%potentialProfile__=interpolator(radii_,potentials_,interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
              ! Store the current results for future re-use.
              if (allocated(self%potentialProfileRadius__   )) deallocate(self%potentialProfileRadius__   )
              if (allocated(self%potentialProfilePotential__)) deallocate(self%potentialProfilePotential__)
@@ -679,7 +681,7 @@ contains
        end if
     end if
     if (allocated(self%potentialProfile__)) then
-       potential=-exp(self%potentialProfile__%interpolate(log(max(radius,self%potentialProfileRadiusMinimumActual__))))
+       potential=self%potentialProfile__%interpolate(max(radius,self%potentialProfileRadiusMinimumActual__))
     else
        potential=+0.0d0
     end if
