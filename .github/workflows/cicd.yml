@@ -1097,7 +1097,8 @@ jobs:
                 test-parallelTreeBuild.pl,
                 test-duplicatedOutputPropertyName.pl,
                 test-decayingDM-caustic.py,
-                test-decayingDM-profile.py ]
+                test-decayingDM-profile.py,
+		test-decayingDM-shell-crossing-capture.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
