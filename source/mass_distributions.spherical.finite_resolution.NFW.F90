@@ -54,7 +54,8 @@
           &                                                         lengthResolutionPotentialTerm2                         , lengthResolutionPotentialSquare               , &
           &                                                         lengthResolutionPotentialRootSquare                    , lengthResolutionPotentialOnePlusSquare        , &
           &                                                         lengthResolutionPotentialSqrtOnePlusSquare             , lengthResolutionPotentialOnePlusTwoSquare     , &
-          &                                                         lengthResolutionPotentialOnePlusSquareP1p5             , lengthResolutionPotentialAtanh
+          &                                                         lengthResolutionPotentialOnePlusSquareP1p5             , lengthResolutionPotentialAtanh                , &
+          &                                                         concentrationPotentialTerm
      ! Radius-enclosing-density tabulation.
      logical                                                     :: radiusEnclosingDensityTableInitialized
      integer                                                     :: radiusEnclosingDensityTableLengthResolutionCount       , radiusEnclosingDensityTableDensityCount
@@ -227,6 +228,7 @@ contains
     self%potentialPrevious                             =-huge(0.0d0)
     self%potentialRadiusPrevious                       =-huge(0.0d0)
     self%lengthResolutionScaleFreePotentialPrevious    =-huge(0.0d0)
+    self%concentrationPotentialTerm                    =-huge(0.0d0)
     self%densityRadiusPrevious                         =-huge(0.0d0)
     self%densityPrevious                               =-huge(0.0d0)
     self%densityNormalizationPrevious                  =-huge(0.0d0)
@@ -485,7 +487,8 @@ contains
     type            (enumerationStructureErrorCodeType           ), intent(  out), optional :: status
     double precision                                              , parameter               :: radiusScaleFreeSmall     =1.0d-3
     double precision                                              , parameter               :: radiusScaleFreeLarge     =1.0d+5
-    double precision                                                                        :: lengthResolutionScaleFree       , radiusScaleFree
+    double precision                                                                        :: lengthResolutionScaleFree       , radiusScaleFree, &
+         &                                                                                     concentration
     
     if (present(status)) status=structureErrorCodeSuccess
     if (coordinates%rSpherical() /= self%potentialRadiusPrevious) then
@@ -494,7 +497,6 @@ contains
             &                       /self       %radiusScale
        lengthResolutionScaleFree   =+self       %lengthResolution &
             &                       /self       %radiusScale
-       self%potentialRadiusPrevious= coordinates%rSpherical      ()
        if (lengthResolutionScaleFree /= self%lengthResolutionScaleFreePotentialPrevious) then
           ! Recompute terms that depend only on the scale free resolution length.
           self%lengthResolutionScaleFreePotentialPrevious=lengthResolutionScaleFree
@@ -527,6 +529,13 @@ contains
                &                                                )                                                 &
                &                                           )                                                      &
                &                                          /self%lengthResolutionPotentialOnePlusSquareP1p5
+          concentration                                  =+self%radiusVirial &
+               &                                          /self%radiusScale
+          self%concentrationPotentialTerm                =1.0d0/(                          &
+               &                                                 -          concentration  &
+               &                                                 /   (1.0d0+concentration) &
+               &                                                 +log(1.0d0+concentration) &
+               &                                                )
        end if
        ! Evaluate the potential.
        if      (radiusScaleFree > radiusScaleFreeLarge) then
@@ -534,9 +543,7 @@ contains
           self%potentialPrevious=0.0d0
        else if (radiusScaleFree < radiusScaleFreeSmall) then
           ! Series expansion for small radii.
-          self%potentialPrevious       =  -4.0d0                                  &
-               &                          *Pi                                     &
-               &                          *gravitationalConstantGalacticus        &
+          self%potentialPrevious       =  -gravitationalConstantGalacticus        &
                &                          *self%mass                              &
                &                          /self%radiusScale                       &
                &                          *(                                      &
@@ -545,11 +552,10 @@ contains
                &                            *(+1.0d0-radiusScaleFree            ) &
                &                            /        lengthResolutionScaleFree    &
                &                            /6.0d0                                &
-               &                           )
+               &                           )                                      &
+               &                          *self%concentrationPotentialTerm
        else
-          self%potentialPrevious       =  -4.0d0                                                                                                                         &
-               &                          *Pi                                                                                                                            &
-               &                          *gravitationalConstantGalacticus                                                                                               &
+          self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                               &
                &                          *self%mass                                                                                                                     &
                &                          /self%radiusScale                                                                                                              &
                &                          *(                                                                                                                             &
@@ -584,7 +590,8 @@ contains
                &                                   *sqrt(      +radiusScaleFree**2+self%lengthResolutionPotentialSquare                                                ) &
                &                                  )                                                                                                                      &
                &                            +self%lengthResolutionPotentialTerm2                                                                                         &
-               &                           )
+               &                           )                                                                                                                             &
+               &                          *self%concentrationPotentialTerm
        end if
     end if
     potential=self%potentialPrevious
