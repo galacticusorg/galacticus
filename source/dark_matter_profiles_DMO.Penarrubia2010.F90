@@ -158,8 +158,8 @@ contains
     allocate(self%massDistributionStripped  )
     allocate(self%massDistributionUnstripped)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="massDistributionStripped"   constructor="massDistributionZhao1996(alpha,betaStripped,gamma,scaleLength=0.1d0,mass=1.0d0,radiusOuter=1.0d0)"/>
-    <referenceConstruct isResult="yes" owner="self" object="massDistributionUnstripped" constructor="massDistributionZhao1996(alpha,beta        ,gamma,scaleLength=0.1d0,mass=1.0d0,radiusOuter=1.0d0)"/>
+    <referenceConstruct isResult="yes" owner="self" object="massDistributionStripped"   constructor="massDistributionZhao1996(alpha,betaStripped,gamma,scaleLength=1.0d0,mass=1.0d0,radiusOuter=1.0d0)"/>
+    <referenceConstruct isResult="yes" owner="self" object="massDistributionUnstripped" constructor="massDistributionZhao1996(alpha,beta        ,gamma,scaleLength=1.0d0,mass=1.0d0,radiusOuter=1.0d0)"/>
     !!]
     self%ratioRadiusMaximumRadiusScaleStripped  =+self%massDistributionStripped  %radiusRotationCurveMaximum()
     self%ratioRadiusMaximumRadiusScaleUnstripped=+self%massDistributionUnstripped%radiusRotationCurveMaximum()
