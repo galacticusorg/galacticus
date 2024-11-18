@@ -47,7 +47,9 @@
      private
      class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
      type            (rootFinder                   )          :: finder
-     double precision                                         :: radiusShellCrossing                , energyPerturbationShellCrossing
+     double precision                                         :: radiusShellCrossing                , energyPerturbationShellCrossing, &
+          &                                                      radiusCheckedMinimum
+     logical                                                  :: shellCrossingAllRadii
      integer         (kind_int8                    )          :: lastUniqueID
    contains
      !![
@@ -118,8 +120,10 @@ contains
     <constructorAssign variables="*darkMatterProfileHeating_"/>
     !!]
 
-    self%radiusShellCrossing            =-1.0d0
-    self%energyPerturbationShellCrossing=-1.0d0
+    self%radiusShellCrossing            =-huge(0.0d0)
+    self%radiusCheckedMinimum           =+huge(0.0d0)
+    self%energyPerturbationShellCrossing=-huge(0.0d0)
+    self%shellCrossingAllRadii          =.false.
     self%lastUniqueID                   =-1_kind_int8
     self%finder                         =rootFinder(                                                     &
          &                                          rootFunction     =monotonicRadiusShellCrossingRoot_, &
@@ -150,8 +154,10 @@ contains
     type   (treeNode                         ), intent(inout) :: node
     integer(kind_int8                        ), intent(in   ) :: uniqueID
 
-    self%radiusShellCrossing            =-1.0d0
-    self%energyPerturbationShellCrossing=-1.0d0
+    self%radiusShellCrossing            =-huge(0.0d0)
+    self%radiusCheckedMinimum           =+huge(0.0d0)
+    self%energyPerturbationShellCrossing=-huge(0.0d0)
+    self%shellCrossingAllRadii          =.false.
     self%lastUniqueID                   =uniqueID
     return
   end subroutine monotonicCalculationReset
@@ -183,22 +189,20 @@ contains
     double precision                                   , intent(in   ) :: radius
     integer         (kind_int8                        )                :: uniqueID
 
-    if (self%noShellCrossingIsValid(node,radius,darkMatterProfileDMO_)) then
+    uniqueID=node%uniqueID()
+    if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
+    call self%computeRadiusShellCrossing                              (                       &
+         &                                                             node                 , &
+         &                                                             radius               , &
+         &                                                             darkMatterProfileDMO_  &
+         &                                                            )
+    if (radius > self%radiusShellCrossing .and. .not.self%shellCrossingAllRadii) then
        monotonicSpecificEnergy=self%darkMatterProfileHeating_%specificEnergy(                       &
             &                                                                node                 , &
             &                                                                radius               , &
             &                                                                darkMatterProfileDMO_  &
             &                                                               )
     else
-       uniqueID=node%uniqueID()
-       if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
-       if (self%energyPerturbationShellCrossing < 0.0d0) then
-          call self%computeRadiusShellCrossing                              (                       &
-               &                                                             node                 , &
-               &                                                             radius               , &
-               &                                                             darkMatterProfileDMO_  &
-               &                                                            )
-       end if
        monotonicSpecificEnergy=+self%energyPerturbationShellCrossing                      &
             &                  *0.5d0                                                     &
             &                  *gravitationalConstantGalacticus                           &
@@ -221,22 +225,20 @@ contains
     double precision                                   , intent(in   ) :: radius
     integer         (kind_int8                        )                :: uniqueID
 
-    if (self%noShellCrossingIsValid(node,radius,darkMatterProfileDMO_)) then
+    uniqueID=node%uniqueID()
+    if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
+    call self%computeRadiusShellCrossing                              (                       &
+         &                                                             node                 , &
+         &                                                             radius               , &
+         &                                                             darkMatterProfileDMO_  &
+         &                                                            )
+    if (radius > self%radiusShellCrossing .and. .not.self%shellCrossingAllRadii) then
        monotonicSpecificEnergyGradient=self%darkMatterProfileHeating_%specificEnergyGradient(                       &
             &                                                                                node                 , &
             &                                                                                radius               , &
             &                                                                                darkMatterProfileDMO_  &
             &                                                                               )
     else
-       uniqueID=node%uniqueID()
-       if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
-       if (self%energyPerturbationShellCrossing < 0.0d0) then
-          call self%computeRadiusShellCrossing                                              (                       &
-               &                                                                             node                 , &
-               &                                                                             radius               , &
-               &                                                                             darkMatterProfileDMO_  &
-               &                                                                            )
-       end if
        monotonicSpecificEnergyGradient=+self%energyPerturbationShellCrossing              &
             &                          *0.5d0                                             &
             &                          *gravitationalConstantGalacticus                   &
@@ -332,33 +334,50 @@ contains
     double precision                                   , parameter             :: radiusSearchMaximum  =10.0d0, factorRadius              =1.1d0
     integer         (kind_int8                        )                        :: uniqueID
     double precision                                                           :: radiusSearch                , radiusShellCrossingMinimum
+    logical                                                                    :: foundShellCrossing          , isValidPrevious                 , &
+         &                                                                        isValid
 
     uniqueID=node%uniqueID()
     if (uniqueID /= self%lastUniqueID) call self%calculationReset(node,uniqueID)
-    if (self%energyPerturbationShellCrossing < 0.0d0) then
+    if (radius < self%radiusCheckedMinimum) then
+       ! Record the smallest radius for which we have tested for shell-crossing.
+       self%radiusCheckedMinimum=radius
        ! Search for the largest radius at which shell-crossing occurs.
        radiusSearch              =radius
        radiusShellCrossingMinimum=radius
+       foundShellCrossing        =.false.
+       isValidPrevious           =.true.
        do while (radiusSearch <= radiusSearchMaximum)
-          if (.not.self%noShellCrossingIsValid(node,radiusSearch,darkMatterProfileDMO_)) radiusShellCrossingMinimum=radiusSearch
-          radiusSearch=factorRadius*radiusSearch
+          isValid=self%noShellCrossingIsValid(node,radiusSearch,darkMatterProfileDMO_)
+          if (isValid .and. .not.isValidPrevious) foundShellCrossing=.true.
+          if (.not.isValid) radiusShellCrossingMinimum=radiusSearch
+          isValidPrevious=isValid
+          radiusSearch   =factorRadius*radiusSearch
        end do
-       ! Seek the exact radius at which shell-crossing first occurs. Use an expansion step matched to that in our prior search
-       ! since we know that the root should be within this range.
-       self_                  => self
-       node_                  => node
-       darkMatterProfileDMO__ => darkMatterProfileDMO_
-       call self%finder%rangeExpand(                                                             &
-            &                       rangeExpandUpward            =1.0d0*factorRadius           , &
-            &                       rangeExpandDownward          =1.0d0/factorRadius           , &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                       rangeExpandType              =rangeExpandMultiplicative      &
-            &                      )
-       self%radiusShellCrossing             =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
-       ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
-       if (self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) <= 0.0d0) &
-            & self%radiusShellCrossing=radiusShellCrossingMinimum
+       ! Determine if a the shell crossing radius was found.
+       if (foundShellCrossing .and. isValid) then
+          ! Seek the exact radius at which shell-crossing first occurs. Use an expansion step matched to that in our prior search
+          ! since we know that the root should be within this range.
+          self_                  => self
+          node_                  => node
+          darkMatterProfileDMO__ => darkMatterProfileDMO_
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.0d0*factorRadius           , &
+               &                       rangeExpandDownward          =1.0d0/factorRadius           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusShellCrossing  =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
+          self%shellCrossingAllRadii=.false.
+          ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
+          if (self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) <= 0.0d0) &
+               & self%radiusShellCrossing=radiusShellCrossingMinimum
+       else
+          self%radiusShellCrossing  =+radiusSearchMaximum
+          self%shellCrossingAllRadii=.true.
+       end if
+       ! Determine the energy at the shell-crossing radius.
        self%energyPerturbationShellCrossing =+self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) &
             &                                /(                                                                                                  &
             &                                  +0.5d0                                                                                            &
