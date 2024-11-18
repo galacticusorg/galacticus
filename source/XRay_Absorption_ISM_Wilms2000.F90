@@ -101,13 +101,13 @@ program XRay_Absorption_ISM_Wilms2000
   ! Open the output file.
   call outputFile%openFile('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
   ! Write energy table.
-  call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",commentText="Photon energy in keV",datasetReturned=myDataset)
+  call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",comment="Photon energy in keV",datasetReturned=myDataset)
   call myDataset %writeAttribute(kilo*electronVolt,"unitsInSI")
   call myDataset %close()
   ! Write metallicity table.
-  call outputFile%writeDataset(metallicity,datasetName="metallicity",commentText="Metallicity")
+  call outputFile%writeDataset(metallicity,datasetName="metallicity",comment="Metallicity")
   ! Write crossSection table.
-  call outputFile%writeDataset(crossSection,datasetName="crossSection",commentText="Absorption cross section in cm²",datasetReturned=myDataset)
+  call outputFile%writeDataset(crossSection,datasetName="crossSection",comment="Absorption cross section in cm²",datasetReturned=myDataset)
   call myDataset %writeAttribute(1.0d-4,"unitsInSI")
   call myDataset %close()
   ! Add meta-data.

@@ -548,7 +548,7 @@ contains
          &                                                                                              cosmologyGroup                                         , dataset
     integer                                                                                          :: statusHalfModeMass                                     , statusQuarterModeMass        , &
          &                                                                                              statusHalfModeMassReference
-    type            (varying_string                         )                                        :: groupName                                              , commentText
+    type            (varying_string                         )                                        :: groupName                                              , description
     character       (len=32                                 )                                        :: label
     logical                                                                                          :: scaleIsSettable                                        , shapeIsSettable
     
@@ -906,10 +906,10 @@ contains
     ! Iterate over output times and output data.
     do iOutput=1,outputCount
        groupName  ='Output'
-       commentText='Data for output number '
+       description='Data for output number '
        groupName  =groupName  //iOutput
-       commentText=commentText//iOutput
-       outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
+       description=description//iOutput
+       outputGroup=outputsGroup%openGroup(char(groupName),char(description))
        call    outputGroup%writeAttribute(outputTimes                                   (  iOutput),'outputTime'                                                                                                                          )
        call    outputGroup%writeAttribute(outputRedshifts                               (  iOutput),'outputRedshift'                                                                                                                      )
        call    outputGroup%writeAttribute(outputExpansionFactors                        (  iOutput),'outputExpansionFactor'                                                                                                               )

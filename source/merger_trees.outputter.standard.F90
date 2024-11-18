@@ -708,16 +708,16 @@ contains
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (mergerTree                 ), intent(inout) :: tree
     integer(c_size_t                   ), intent(in   ) :: indexOutput
-    type   (varying_string             )                :: commentText, groupName
+    type   (varying_string             )                :: description, groupName
 
     ! Create a name for the group.
     groupName='mergerTree'
     groupName=groupName//tree%index
     ! Create a comment for the group.
-    commentText='Data for nodes within merger tree ID='
-    commentText=commentText//tree%index
+    description='Data for nodes within merger tree ID='
+    description=description//tree%index
     ! Create a group for the tree.
-    tree%hdf5Group=self%outputGroups(indexOutput)%hdf5Group%openGroup(char(groupName),char(commentText))
+    tree%hdf5Group=self%outputGroups(indexOutput)%hdf5Group%openGroup(char(groupName),char(description))
     ! Add the merger tree weight to the group.
     call tree%hdf5Group%writeAttribute(tree%volumeWeight  ,"volumeWeight"         )
     call tree%hdf5Group%writeAttribute(1.0d0/megaParsec**3,"volumeWeightUnitsInSI")
@@ -1247,7 +1247,7 @@ contains
     integer         (c_size_t                   ), intent(in   )               :: indexOutput
     double precision                             , intent(in   )               :: time
     type            (outputGroup                ), allocatable  , dimension(:) :: outputGroupsTemporary
-    type            (varying_string             )                              :: commentText          , groupName
+    type            (varying_string             )                              :: description          , groupName
 
     !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
@@ -1281,11 +1281,11 @@ contains
        groupName='Output'
        groupName=groupName//indexOutput
        ! Create a comment for the group.
-       commentText='Data for output number '
-       commentText=commentText//indexOutput
+       description='Data for output number '
+       description=description//indexOutput
        ! Create a group for the tree.
        !$ call hdf5Access%set()
-       self%outputGroups(indexOutput)%hdf5Group    =self%outputsGroup                       %openGroup(char(groupName),char(commentText)                                   )
+       self%outputGroups(indexOutput)%hdf5Group    =self%outputsGroup                       %openGroup(char(groupName),char(description)                                   )
        self%outputGroups(indexOutput)%nodeDataGroup=self%outputGroups(indexOutput)%hdf5Group%openGroup("nodeData"     ,"Group containing data on all nodes at this output.")
        self%outputGroups(indexOutput)%opened                  =.true.
        self%outputGroups(indexOutput)%integerAttributesWritten=.false.
