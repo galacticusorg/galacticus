@@ -221,7 +221,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
            call Assert(trim(message),radiusTurnaroundBaryons     ,radiusTurnaroundDMO     ,relTol=1.0d-3)
         end if
         if (trim(outputFractions) == "yes" .and. redshift(i) == 0.0d0) then
-           write (outputFile,'(2x,4(f9.5,1x))') fractionBaryons,criticalOverdensityBaryons,virialDensityContrastBaryons,radiusTurnaroundBaryons; call flush(406)
+           write (outputFile,'(2x,4(f9.5,1x))') fractionBaryons,criticalOverdensityBaryons,virialDensityContrastBaryons,radiusTurnaroundBaryons
            if (fractionBaryons > 0.0d0) exit
         end if
      end do
