@@ -73,7 +73,7 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructor value="fullySpecified">
-    <fileName value="bugTree.xml"/>
+    <fileName value="testSuite/parameters/decayingDM-shell-crossing-capture-tree.xml"/>
   </mergerTreeConstructor>
 
   <!-- Substructure hierarchy options -->
