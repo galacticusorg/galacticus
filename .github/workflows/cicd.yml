@@ -1363,10 +1363,7 @@ jobs:
              Build-Docker-Linux,
              Build-Documentation-Linux,
              Build-Tools,
-             Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
-             Build-Library-MacOS,
-             Build-Tools-MacOS,
              Build-Tools-MacOS-M1,
              Profile-Dark-Matter-Only-Subhalos,
              Profile-Milky-Way-Model,
@@ -1400,8 +1397,6 @@ jobs:
              MPI-Radiative-Transfer-Stromgren-Sphere,
              MPI-MCMC,
              Python-Interface,
-             Codes-MacOS,
-             Python-Interface-MacOS,
              Validate ]
     steps:
       - name: Check out repository code
@@ -1428,14 +1423,6 @@ jobs:
         run: |
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
-      - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-exec-MacOS
-      - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
         uses: actions/download-artifact@v4
         with:
@@ -1444,14 +1431,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: galacticus-debug-MacOS-M1
-      - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-library-MacOS
-      - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v4
-        with:
-          name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
         uses: actions/download-artifact@v4
         with:
@@ -1460,8 +1439,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS-M1.exe ./toolsMacOSM1.zip ./debugSymbolsMacOS-M1.zip --clobber
+          rm  ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@v4
         with:
