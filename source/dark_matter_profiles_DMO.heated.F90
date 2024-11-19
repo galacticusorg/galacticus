@@ -310,8 +310,8 @@ contains
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: radius
-    double precision                                            :: radiusInitial , massEnclosed, &
-         &                                                         densityInitial, jacobian
+    double precision                                            :: radiusInitial , massEnclosed   , &
+         &                                                         densityInitial, jacobianInverse
 
     radiusInitial =self                      %radiusInitial(node,radius       )
     if (radius > 0.0d0 .and. radiusInitial == 0.0d0) then
@@ -332,32 +332,34 @@ contains
     else
        massEnclosed=+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
        if (massEnclosed > 0.0d0) then
-          jacobian      =+1.0d0                                                                                                       &
-               &         /(                                                                                                           &
-               &           +(                                                                                                         &
-               &             +radius                                                                                                  &
-               &             /radiusInitial                                                                                           &
-               &            )                                                                                                     **2 &
-               &           +2.0d0                                                                                                     &
-               &           *radius                                                                                                **2 &
-               &           /gravitationalConstantGalacticus                                                                           &
-               &           /massEnclosed                                                                                              &
-               &           *(                                                                                                         &
-               &             +self%darkMatterProfileHeating_%specificEnergyGradient(node,radiusInitial,self%darkMatterProfileDMO_)    &
-               &             -4.0d0                                                                                                   &
-               &             *Pi                                                                                                      &
-               &             *radiusInitial                                                                                       **2 &
-               &             *densityInitial                                                                                          &
-               &             *self%darkMatterProfileHeating_%specificEnergy        (node,radiusInitial,self%darkMatterProfileDMO_)    &
-               &             /massEnclosed                                                                                            &
-               &            )                                                                                                         &
-               &          )
-          heatedDensity =+densityInitial                                                                                              &
-               &         *(                                                                                                           &
-               &           +radiusInitial                                                                                             &
-               &           /radius                                                                                                    &
-               &          )                                                                                                       **2 &
-               &         *jacobian
+          jacobianInverse=+(                                                                                                         &
+               &            +radius                                                                                                  &
+               &            /radiusInitial                                                                                           &
+               &           )                                                                                                     **2 &
+               &          +2.0d0                                                                                                     &
+               &          *radius                                                                                                **2 &
+               &          /gravitationalConstantGalacticus                                                                           &
+               &          /massEnclosed                                                                                              &
+               &          *(                                                                                                         &
+               &            +self%darkMatterProfileHeating_%specificEnergyGradient(node,radiusInitial,self%darkMatterProfileDMO_)    &
+               &            -4.0d0                                                                                                   &
+               &            *Pi                                                                                                      &
+               &            *radiusInitial                                                                                       **2 &
+               &            *densityInitial                                                                                          &
+               &            *self%darkMatterProfileHeating_%specificEnergy        (node,radiusInitial,self%darkMatterProfileDMO_)    &
+               &            /massEnclosed                                                                                            &
+               &           )
+          if (jacobianInverse > 0.0d0) then
+             heatedDensity=+densityInitial                                                                                              &
+                  &        *(                                                                                                           &
+                  &          +radiusInitial                                                                                             &
+                  &          /radius                                                                                                    &
+                  &         )                                                                                                       **2 &
+                  &        /jacobianInverse
+          else
+             ! Shell crossing assumption is broken - simply return the density unchanged.
+             heatedDensity=+self%darkMatterProfileDMO_%density(node,radius)
+          end if
        else
           heatedDensity =+densityInitial
        end if
