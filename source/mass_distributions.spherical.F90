@@ -533,7 +533,6 @@ contains
     integer                                                                         :: status_
 
     if (present(status)) status=structureErrorCodeSuccess
-    integrator_       =integrator(integrandPotential,toleranceRelative=toleranceRelative)
     potential         =+0.0d0
     radius            =+coordinates%rSpherical()
     radiusMaximum     =+            radius
@@ -578,13 +577,6 @@ contains
              iMaximum=nint(log(self%potentialProfileRadiusMaximum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
              potentials(iMinimum:iMaximum)=self%potentialProfilePotential__
           end if
-          !! If ignoring errors in mass profile tabulation we must always compute the profile completely if we have a new minimum
-          !! radius. Failure to do so can lead to non-monotonically increasing mass profiles (which lead to negative densities) due
-          !! to prior failures in computing the mass profile.
-          if (self%tolerateEnclosedMassIntegrationFailure .and. iMinimum > 1_c_size_t) then
-             iMinimum=+huge(0_c_size_t)
-             iMaximum=-huge(0_c_size_t)
-          end if
           ! Set the radius for the zero point of the potential.
           if (self%potentialRadiusZeroPoint__ < 0.0d0) self%potentialRadiusZeroPoint__=radiusMaximum
           ! Solve for the enclosed mass where old results were unavailable.
@@ -625,7 +617,7 @@ contains
                      &   (                                        &
                      &     iPrevious     <= 0_c_size_t            &
                      &    .or.                                    &
-                     &     potentials(i) >  potentials(iPrevious) &
+                     &     potentials(i) <  potentials(iPrevious) &
                      &   )                                        &
                      & ) then
                    countRadii=countRadii+1_c_size_t
@@ -638,12 +630,12 @@ contains
                 iPrevious=-1_c_size_t
                 do i=size(potentials),1,-1
                    if     (                                          &
-                        &     potentials(i) >  0.0d0                 &
+                        &     potentials(i) >  -huge(0.0d0)          &
                         &  .and.                                     &
                         &   (                                        &
                         &     iPrevious     <= 0_c_size_t            &
                         &    .or.                                    &
-                        &     potentials(i) >  potentials(iPrevious) &
+                        &     potentials(i) <  potentials(iPrevious) &
                         &   )                                        &
                         & ) then
                       radii_     (countRadii)=radii     (i)
