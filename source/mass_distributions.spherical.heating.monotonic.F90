@@ -44,7 +44,9 @@
      private
      class           (massDistributionHeatingClass), pointer :: massDistributionHeating_ => null()
      type            (rootFinder                  )          :: finder
-     double precision                                        :: radiusShellCrossing               , energyPerturbationShellCrossing
+     double precision                                        :: radiusShellCrossing               , energyPerturbationShellCrossing, &
+          &                                                      radiusCheckedMinimum
+     logical                                                 :: shellCrossingAllRadii
    contains
      !![
      <methods>
@@ -110,8 +112,10 @@ contains
     <constructorAssign variables="*massDistributionHeating_"/>
     !!]
 
-    self%radiusShellCrossing            =-1.0d0
-    self%energyPerturbationShellCrossing=-1.0d0
+    self%radiusShellCrossing            =-huge(0.0d0)
+    self%radiusCheckedMinimum           =+huge(0.0d0)
+    self%energyPerturbationShellCrossing=-huge(0.0d0)
+    self%shellCrossingAllRadii          =.false.
     self%finder                         =rootFinder(                                                     &
          &                                          rootFunction     =monotonicRadiusShellCrossingRoot_, &
          &                                          toleranceAbsolute=toleranceAbsolute                , &
@@ -143,17 +147,16 @@ contains
     double precision                                  , intent(in   ) :: radius
     class           (massDistributionClass           ), intent(inout) :: massDistribution_
 
-    if (self%noShellCrossingIsValid(radius,massDistribution_)) then
+    call self%computeRadiusShellCrossing(                   &
+         &                               radius           , &
+         &                               massDistribution_  &
+         &                              )
+    if (radius > self%radiusShellCrossing .and. .not.self%shellCrossingAllRadii) then
        energySpecific=self%massDistributionHeating_%specificEnergy(                   &
             &                                                      radius           , &
             &                                                      massDistribution_  &
             &                                                     )
     else
-       if (self%energyPerturbationShellCrossing < 0.0d0)            &
-            call self%computeRadiusShellCrossing(                   &
-            &                                    radius           , &
-            &                                    massDistribution_  &
-            &                                   )
        energySpecific=+self%energyPerturbationShellCrossing                         &
             &         *0.5d0                                                        &
             &         *gravitationalConstantGalacticus                              &
@@ -176,18 +179,17 @@ contains
     class           (massDistributionClass           ), intent(inout) :: massDistribution_
     type            (coordinateSpherical             )                :: coordinates
 
-    if (self%noShellCrossingIsValid(radius,massDistribution_)) then
+    call self%computeRadiusShellCrossing(                   &
+         &                               radius           , &
+         &                               massDistribution_  &
+         &                              )
+    if (radius > self%radiusShellCrossing .and. .not.self%shellCrossingAllRadii) then
        energySpecificGradient=self%massDistributionHeating_%specificEnergyGradient(                   &
             &                                                                      radius           , &
             &                                                                      massDistribution_  &
             &                                                                     )
     else
-       if (self%energyPerturbationShellCrossing < 0.0d0)              &
-            & call self%computeRadiusShellCrossing(                   &
-            &                                      radius           , &
-            &                                      massDistribution_  &
-            &                                     )
-       coordinates                    =[radius,0.0d0,0.0d0]
+       coordinates           =[radius,0.0d0,0.0d0]
        energySpecificGradient=+self%energyPerturbationShellCrossing                  &
             &                 *0.5d0                                                 &
             &                 *gravitationalConstantGalacticus                       &
@@ -276,30 +278,45 @@ contains
     double precision                                  , intent(in   )         :: radius
     double precision                                  , parameter             :: radiusSearchMaximum  =10.0d0, factorRadius              =1.1d0
     double precision                                                          :: radiusSearch                , radiusShellCrossingMinimum
+    logical                                                                   :: foundShellCrossing          , isValidPrevious                 , &
+         &                                                                       isValid
 
     if (self%energyPerturbationShellCrossing < 0.0d0) then
        ! Search for the largest radius at which shell-crossing occurs.
        radiusSearch              =radius
        radiusShellCrossingMinimum=radius
+       foundShellCrossing        =.false.
+       isValidPrevious           =.true.
        do while (radiusSearch <= radiusSearchMaximum)
-          if (.not.self%noShellCrossingIsValid(radiusSearch,massDistribution_)) radiusShellCrossingMinimum=radiusSearch
-          radiusSearch=factorRadius*radiusSearch
+          isValid=self%noShellCrossingIsValid(radiusSearch,massDistribution_)
+          if (isValid .and. .not.isValidPrevious) foundShellCrossing=.true.
+          if (.not.isValid) radiusShellCrossingMinimum=radiusSearch
+          isValidPrevious= isValid
+          radiusSearch   =+factorRadius &
+               &          *radiusSearch
        end do
-       ! Seek the exact radius at which shell-crossing first occurs. Use an expansion step matched to that in our prior search
-       ! since we know that the root should be within this range.
-       self_              => self
-       massDistribution__ => massDistribution_
-       call self%finder%rangeExpand(                                                             &
-            &                       rangeExpandUpward            =1.0d0*factorRadius           , &
-            &                       rangeExpandDownward          =1.0d0/factorRadius           , &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                       rangeExpandType              =rangeExpandMultiplicative      &
-            &                      )
-       self%radiusShellCrossing             =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
-       ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
-       if (self%massDistributionHeating_%specificEnergy(self%radiusShellCrossing,massDistribution_) <= 0.0d0) &
-            & self%radiusShellCrossing=radiusShellCrossingMinimum
+       ! Determine if a the shell crossing radius was found.
+       if (foundShellCrossing .and. isValid) then
+          ! Seek the exact radius at which shell-crossing first occurs. Use an expansion step matched to that in our prior search
+          ! since we know that the root should be within this range.
+          self_              => self
+          massDistribution__ => massDistribution_
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.0d0*factorRadius           , &
+               &                       rangeExpandDownward          =1.0d0/factorRadius           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusShellCrossing  =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
+          self%shellCrossingAllRadii=.false.
+          ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
+          if (self%massDistributionHeating_%specificEnergy(self%radiusShellCrossing,massDistribution_) <= 0.0d0) &
+               & self%radiusShellCrossing=radiusShellCrossingMinimum
+       else
+          self%radiusShellCrossing  =+radiusSearchMaximum
+          self%shellCrossingAllRadii=.true.
+       end if
        self%energyPerturbationShellCrossing =+self%massDistributionHeating_%specificEnergy      (self%radiusShellCrossing,massDistribution_) &
             &                                /(                                                                                              &
             &                                  +0.5d0                                                                                        &
