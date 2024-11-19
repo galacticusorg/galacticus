@@ -373,18 +373,25 @@ contains
           ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
           if (self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) <= 0.0d0) &
                & self%radiusShellCrossing=radiusShellCrossingMinimum
-       else
+       else if (foundShellCrossing) then
           self%radiusShellCrossing  =+radiusSearchMaximum
           self%shellCrossingAllRadii=.true.
+       else
+          self%radiusShellCrossing  =-huge(0.0d0)
+          self%shellCrossingAllRadii=.false.
        end if
        ! Determine the energy at the shell-crossing radius.
-       self%energyPerturbationShellCrossing =+self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) &
-            &                                /(                                                                                                  &
-            &                                  +0.5d0                                                                                            &
-            &                                  *gravitationalConstantGalacticus                                                                  &
-            &                                  *darkMatterProfileDMO_       %enclosedMass  (node,self%radiusShellCrossing                      ) &
-            &                                  /                                                 self%radiusShellCrossing                        &
-            &                                 )
+       if (self%radiusShellCrossing > 0.0d0) then
+          self%energyPerturbationShellCrossing =+self%darkMatterProfileHeating_%specificEnergy(node,self%radiusShellCrossing,darkMatterProfileDMO_) &
+               &                                /(                                                                                                  &
+               &                                  +0.5d0                                                                                            &
+               &                                  *gravitationalConstantGalacticus                                                                  &
+               &                                  *darkMatterProfileDMO_       %enclosedMass  (node,self%radiusShellCrossing                      ) &
+               &                                  /                                                 self%radiusShellCrossing                        &
+               &                                 )
+       else
+          self%energyPerturbationShellCrossing=-huge(0.0d0)
+       end if
     end if
     return
   end subroutine monotonicComputeRadiusShellCrossing
