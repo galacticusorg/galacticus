@@ -529,7 +529,7 @@ contains
     logical                                                                         :: remakeTable
     double precision                                                                :: radiusMaximum               , radiusMinimum       , &
          &                                                                             radius                      , massRadiusMaximum   , &
-         &                    radiusLowerPotential        , radiusUpperPotential
+         &                                                                             radiusLowerPotential        , radiusUpperPotential
     integer                                                                         :: status_
 
     if (present(status)) status=structureErrorCodeSuccess
@@ -581,13 +581,23 @@ contains
           if (self%potentialRadiusZeroPoint__ < 0.0d0) self%potentialRadiusZeroPoint__=radiusMaximum
           ! Solve for the enclosed mass where old results were unavailable.
           call self%solverSet  ()
-          do i=1,countRadii
+          do i=countRadii,1,-1
              ! Skip cases for which we have a pre-existing solution.
              if (i >= iMinimum .and. i <= iMaximum) cycle  
              ! Evaluate the integral.
-             radiusLowerPotential=self%potentialSolverRadius(     radii                     (i))
-             radiusUpperPotential=self%potentialSolverRadius(self%potentialRadiusZeroPoint__   )
+             radiusLowerPotential   =self%potentialSolverRadius(     radii                     (i  ))
+             ! If the prior point in the grid was successfully evaluated, we need only compute the potential difference relative
+             ! to that point.
+             if (i == countRadii .or. potentials(i+1) == -huge(0.0d0)) then
+                radiusUpperPotential=self%potentialSolverRadius(self%potentialRadiusZeroPoint__     )
+             else
+                radiusUpperPotential=self%potentialSolverRadius(     radii                     (i+1))
+             end if
              potentials(i)=integrator_%integrate(radiusLowerPotential,radiusUpperPotential,status_)
+             ! Convert a potential difference to the actual potential if necessary.
+             if (i < countRadii .and. potentials(i+1) /= -huge(0.0d0)) &
+                  & potentials(i)=+potentials(i  ) &
+                  &               +potentials(i+1)
              if (status_ /= errorStatusSuccess) then
                 if (self%toleratePotentialIntegrationFailure) then
                    potentials(i)=-huge(0.0d0)
