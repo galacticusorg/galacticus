@@ -313,17 +313,24 @@ contains
           ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
           if (self%massDistributionHeating_%specificEnergy(self%radiusShellCrossing,massDistribution_) <= 0.0d0) &
                & self%radiusShellCrossing=radiusShellCrossingMinimum
-       else
+       else if (foundShellCrossing) then
           self%radiusShellCrossing  =+radiusSearchMaximum
           self%shellCrossingAllRadii=.true.
+       else
+          self%radiusShellCrossing  =-huge(0.0d0)
+          self%shellCrossingAllRadii=.false.
        end if
-       self%energyPerturbationShellCrossing =+self%massDistributionHeating_%specificEnergy      (self%radiusShellCrossing,massDistribution_) &
-            &                                /(                                                                                              &
-            &                                  +0.5d0                                                                                        &
-            &                                  *gravitationalConstantGalacticus                                                              &
-            &                                  *massDistribution_          %massEnclosedBySphere(self%radiusShellCrossing                  ) &
-            &                                  /                                                 self%radiusShellCrossing                    &
-            &                                 )
+       if (self%radiusShellCrossing > 0.0d0) then
+          self%energyPerturbationShellCrossing =+self%massDistributionHeating_%specificEnergy      (self%radiusShellCrossing,massDistribution_) &
+               &                                /(                                                                                              &
+               &                                  +0.5d0                                                                                        &
+               &                                  *gravitationalConstantGalacticus                                                              &
+               &                                  *massDistribution_          %massEnclosedBySphere(self%radiusShellCrossing                  ) &
+               &                                  /                                                 self%radiusShellCrossing                    &
+               &                                 )
+       else
+          self%energyPerturbationShellCrossing=-huge(0.0d0)
+       end if
     end if
     return
   end subroutine monotonicComputeRadiusShellCrossing
