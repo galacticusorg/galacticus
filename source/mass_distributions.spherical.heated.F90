@@ -245,7 +245,7 @@ contains
     type            (coordinateSpherical            )                :: coordinatesInitial
     double precision                                                 :: radius            , radiusInitial, &
          &                                                              densityInitial    , massEnclosed , &
-         &                                                              jacobian
+         &                                                              jacobianInverse
     
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating, the density is unchanged.
@@ -270,34 +270,36 @@ contains
     else
        massEnclosed=+self%massDistribution_%massEnclosedBySphere(radiusInitial)
        if (massEnclosed > 0.0d0) then
-          jacobian=+1.0d0                                                                                             &
-               &   /(                                                                                                 &
-               &     +(                                                                                               &
-               &       +radius                                                                                        &
-               &       /radiusInitial                                                                                 &
-               &      )                                                                                           **2 &
-               &     +2.0d0                                                                                           &
-               &     *radius                                                                                      **2 &
-               &     /gravitationalConstantGalacticus                                                                 &
-               &     /massEnclosed                                                                                    &
-               &     *(                                                                                               &
-               &       +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
-               &       -4.0d0                                                                                         &
-               &       *Pi                                                                                            &
-               &       *radiusInitial                                                                             **2 &
-               &       *densityInitial                                                                                &
-               &       *self%massDistributionHeating_%specificEnergy        (radiusInitial,self%massDistribution_)    &
-               &       /massEnclosed                                                                                  &
-               &      )                                                                                               &
-               &    )
-          density =+densityInitial                                                                                    &
-               &   *(                                                                                                 &
-               &     +radiusInitial                                                                                   &
-               &     /radius                                                                                          &
-               &    )                                                                                             **2 &
-               &   *jacobian
+          jacobianInverse=+(                                                                                               &
+               &            +radius                                                                                        &
+               &            /radiusInitial                                                                                 &
+               &           )                                                                                           **2 &
+               &          +2.0d0                                                                                           &
+               &          *radius                                                                                      **2 &
+               &          /gravitationalConstantGalacticus                                                                 &
+               &          /massEnclosed                                                                                    &
+               &          *(                                                                                               &
+               &            +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
+               &            -4.0d0                                                                                         &
+               &            *Pi                                                                                            &
+               &            *radiusInitial                                                                             **2 &
+               &            *densityInitial                                                                                &
+               &            *self%massDistributionHeating_%specificEnergy        (radiusInitial,self%massDistribution_)    &
+               &            /massEnclosed                                                                                  &
+               &           )
+          if (jacobianInverse > 0.0d0) then
+             density=+densityInitial                                                                                    &
+                  &  *(                                                                                                 &
+                  &    +radiusInitial                                                                                   &
+                  &    /radius                                                                                          &
+                  &   )                                                                                             **2 &
+                  &  /jacobianInverse
+          else
+             ! Shell crossing assumption is broken - simply return the density unchanged.
+             density=+self%massDistribution_%density(coordinates)
+          end if
        else
-          density    =+densityInitial
+          density   =+densityInitial
        end if
     end if
     return
