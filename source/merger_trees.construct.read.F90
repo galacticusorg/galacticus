@@ -841,14 +841,14 @@ contains
          &                   {introspection:location}                                             &
          &                  )
     ! Check that half-mass radius information is present if required.
-    if     (                                                                                                                                              &
-         &   self%presetScaleRadii                                                                                                                        &
-         &  .and.                                                                                                                                         &
-         &   .not.self%mergerTreeImporter_%scaleRadiiAvailable()                                                                                          &
-         & )  call Error_Report(                                                                                                                          &
-         &                      "presetting scale radii requires that at least one of readRadiusHalfMass or scaleRadius datasets be present in merger"//  &
-         &                      "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                      //  &
-         &                      {introspection:location}                                                                                                  &
+    if     (                                                                                                                                               &
+         &   self%presetScaleRadii                                                                                                                         &
+         &  .and.                                                                                                                                          &
+         &   .not.self%mergerTreeImporter_%scaleRadiiAvailable()                                                                                           &
+         & )  call Error_Report(                                                                                                                           &
+         &                      "presetting scale radii requires that at least one of readRadiusHalfMass or scaleRadius datasets be present in merger "//  &
+         &                      "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                       //  &
+         &                      {introspection:location}                                                                                                   &
          &                     )
     ! Check that angular momentum information is present if required.
     if     (                                                                                                  &
