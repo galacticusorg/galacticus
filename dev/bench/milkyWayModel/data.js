@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1731843070977,
+  "lastUpdate": 1732230530127,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9a381319ea2196b3205966de35e5489e97f28118",
-          "message": "Merge pull request #571 from galacticusorg/fixOptimizeBaryonicLSS\n\nOptimize baryonic spherical collapse solvers",
-          "timestamp": "2024-03-01T20:22:50Z",
-          "tree_id": "dc0476744365d235537e8ac69282d5dfceb7b4b9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a381319ea2196b3205966de35e5489e97f28118"
-        },
-        "date": 1709335739322,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 176.246,
-            "unit": "seconds",
-            "range": 0.206572989521184
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.9034099821034,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c5185afbf01c82d3e65a46dedcf09ea50a034a3c",
+          "message": "Merge pull request #740 from galacticusorg/fixMergerTreeReadMultipleFiles\n\nCorrectly handle reading of multiple merger tree files",
+          "timestamp": "2024-11-21T16:31:06Z",
+          "tree_id": "ebe387a77320f583242d3af3fa89914c1f6e40d1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c5185afbf01c82d3e65a46dedcf09ea50a034a3c"
+        },
+        "date": 1732230528959,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 26.408,
+            "unit": "seconds",
+            "range": 0.0410804089562634
           }
         ]
       }
