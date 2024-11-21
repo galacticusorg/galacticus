@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "a1e98d06453787cab7b691c196cd520ea8ddddb0",
-        "message": "Merge pull request #737 from galacticusorg/fixRemoveObsoletedStructureVars\n\nRemove memoized structure variables\n",
-        "timestamp": "2024-11-17 04:59:09+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/a1e98d06453787cab7b691c196cd520ea8ddddb0"
+        "id": "c5185afbf01c82d3e65a46dedcf09ea50a034a3c",
+        "message": "Merge pull request #740 from galacticusorg/fixMergerTreeReadMultipleFiles\n\nCorrectly handle reading of multiple merger tree files\n",
+        "timestamp": "2024-11-21 16:31:06+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/c5185afbf01c82d3e65a46dedcf09ea50a034a3c"
     },
     "results": [
         {
