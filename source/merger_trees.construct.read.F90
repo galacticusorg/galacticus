@@ -995,12 +995,13 @@ contains
     ! Find the maximum tree number in the current file.
     treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
     ! Check if we need to move to a new file.
-    if (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames)) then
+    do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
        self%fileCurrent     =self%fileCurrent     +1
        self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
        call self%mergerTreeImporter_%close(                                                        )
        call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
-    end if
+       treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
+    end do
     treeNumberOffset=treeNumber-self%treeNumberOffset
     if (treeNumberOffset <= treeNumberMaximum) then
        ! Set tree properties.
