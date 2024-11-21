@@ -312,6 +312,7 @@ contains
     use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
     use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked   , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable, &
          &                                                enumerationDeadlockStatusType
+    use :: Numerical_Constants_Prefixes          , only : siFormat
     !$ use :: OMP_Lib                            , only : omp_lock_kind
     use    :: Locks                              , only : ompLockClass
     use    :: String_Handling                    , only : operator(//)
@@ -588,10 +589,8 @@ contains
                 end do treeWalkLoop
                 ! Estimate remaining time to process the tree.
                 timeRemaining=self%metaTreeProcessingTime_%timeRemaining(tree,timeEnd)
-                if (timeRemaining > 0.0d0) then
-                   write (label,'(i16)') int(timeRemaining)
-                   call displayMessage("Estimated time remaining to process tree: "//trim(adjustl(label))//"s")
-                end if
+                if (timeRemaining > 0.0d0) &
+                     & call displayMessage("Estimated time remaining to process tree: "//trim(adjustl(siFormat(timeRemaining,'f7.2,1x')))//"s")
                 ! Output tree progress information.
                 if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
                    if (displayVerbosity() >= verbosityLevel) then
