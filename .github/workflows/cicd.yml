@@ -736,7 +736,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-darkMatterOnlySubhalos.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -747,7 +748,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-milkyWay.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-milkyWay.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
@@ -758,7 +760,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-PonosV.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-PonosV.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -769,7 +772,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-baryonicSuppression.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-baryonicSuppression.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
