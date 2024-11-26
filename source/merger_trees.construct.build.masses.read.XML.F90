@@ -120,8 +120,8 @@ contains
     use :: File_Utilities, only : File_Name_Expand
     implicit none
     class           (mergerTreeBuildMassesReadXML), intent(inout)                            :: self
-    double precision                              , intent(  out), allocatable, dimension(:) :: mass, weight
-    type            (node                        ), pointer                                  :: doc , rootNode
+    double precision                              , intent(  out), allocatable, dimension(:) :: mass , weight
+    type            (node                        ), pointer                                  :: doc  , rootNode
     integer                                                                                  :: ioErr
 
     !$omp critical (FoX_DOM_Access)
@@ -131,7 +131,10 @@ contains
     ! Read all tree masses.
     call XML_Array_Read(doc,"treeRootMass",mass)
     ! Extract tree weights if available.
-    if (XML_Path_Exists(rootNode,"treeWeight")) call XML_Array_Read_Static(doc,"treeWeight",weight)
+    if (XML_Path_Exists(rootNode,"treeWeight")) then
+       call XML_Array_Read(doc,"treeWeight",weight)
+       if (size(weight) /= size(mass)) call Error_Report('`mass` and `weight` arrays must have the same size'//{introspection:location})
+    end if
     ! Finished - destroy the XML document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
