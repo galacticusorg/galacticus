@@ -170,6 +170,7 @@ with h5py.File("outputs/validate_baryonicSuppression_IGM_evolution.hdf5","r") as
     igmFile['electronFraction' ] = data['electronFraction' ]
     igmFile.attrs['extrapolationAllowed'] = 1
     igmFile.attrs['fileFormat'          ] = 1
+    igmFile.close()
 
 # Establish bins in halo mass.
 massHaloLogarithmicBins = np.linspace(4.0,7.5,8)
