@@ -4,7 +4,7 @@
 <!--  (M1,z1) = (10^12,8.0)                         -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <verbosityLevel value="working"/>
 
@@ -98,7 +98,7 @@
     <accretionLimit   value=" 0.1"/>
     <mergeProbability value=" 0.1"/>
     <redshiftMaximum  value="15.0"/>
-    <toleranceTimeEarliest value="4.00000e-6"/>
+    <toleranceTimeEarliest value="8.00000e-6"/>
     <mergerTreeBuildController value="constrained">
       <massConstrained     value="1.0e12"/>
       <redshiftConstrained value="8.0"   />
@@ -175,7 +175,6 @@
   </haloSpinDistribution>
 
   <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="isotropic">

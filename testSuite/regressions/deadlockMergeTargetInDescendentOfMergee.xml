@@ -3,7 +3,7 @@
   <!-- This model uses a tree which has a merge target which becomes a satellite in a descendant of its mergee. If such satellites
        are not allowed to evolve until their host no longer has a child node this can result in a deadlock. -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <cosmologyParameters value="simple">
     <HubbleConstant value="67.77"/>
     <OmegaDarkEnergy value="0.692885"/>
@@ -51,7 +51,6 @@
     <wavenumberReference value="1.0"/>
     <running value="0.0"/>
   </powerSpectrumPrimordial>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>

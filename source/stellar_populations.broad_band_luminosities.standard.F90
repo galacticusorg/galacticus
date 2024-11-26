@@ -617,7 +617,7 @@ contains
                       if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')
                       ! Write the dataset.
                       if (.not.luminositiesFile%hasDataset(trim(datasetName))) &
-                           & call luminositiesFile%writeDataset(self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),commentText="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
+                           & call luminositiesFile%writeDataset(self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:),datasetName=trim(datasetName),comment="Tabulated luminosities at redshift z="//adjustl(trim(redshiftLabel)))
                       ! Close the file.
                       call luminositiesFile%close()
                       !$ call hdf5Access%unset()

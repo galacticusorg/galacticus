@@ -21,14 +21,13 @@
   An implementation of isothermal dark matter halo profiles.
   !!}
 
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal">
    <description>
-    A dark matter profile DMO class in which the density profile is given by:
-    \begin{equation}
-     \rho_\mathrm{dark matter}(r) \propto r^{-2},
-    \end{equation}
-    normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
+    A dark matter profile DMO class in which builds \refClass{} objects to implement isothermal density profiles, normalized such
+    that the total mass of the \gls{node} is enclosed with the virial radius.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -37,24 +36,10 @@
      A dark matter halo profile class implementing isothermal dark matter halos.
      !!}
      private
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
-     final     ::                                      isothermalDestructor
-     procedure :: density                           => isothermalDensity
-     procedure :: densityLogSlope                   => isothermalDensityLogSlope
-     procedure :: radialMoment                      => isothermalRadialMoment
-     procedure :: enclosedMass                      => isothermalEnclosedMass
-     procedure :: radiusEnclosingDensity            => isothermalRadiusEnclosingDensity
-     procedure :: potential                         => isothermalPotential
-     procedure :: circularVelocity                  => isothermalCircularVelocity
-     procedure :: radiusCircularVelocityMaximum     => isothermalRadiusCircularVelocityMaximum
-     procedure :: circularVelocityMaximum           => isothermalCircularVelocityMaximum
-     procedure :: radialVelocityDispersion          => isothermalRadialVelocityDispersion
-     procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
-     procedure :: rotationNormalization             => isothermalRotationNormalization
-     procedure :: energy                            => isothermalEnergy
-     procedure :: kSpace                            => isothermalKSpace
-     procedure :: freefallRadius                    => isothermalFreefallRadius
-     procedure :: freefallRadiusIncreaseRate        => isothermalFreefallRadiusIncreaseRate
+     final     ::        isothermalDestructor
+     procedure :: get => isothermalGet
   end type darkMatterProfileDMOIsothermal
 
   interface darkMatterProfileDMOIsothermal
@@ -115,308 +100,60 @@ contains
     return
   end subroutine isothermalDestructor
 
-  double precision function isothermalDensity(self,node,radius)
+  function isothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    in units of Mpc).
+    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass
+    use :: Mass_Distributions        , only : massDistributionIsothermal, kinematicsDistributionIsothermal
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (massDistributionClass           ), pointer                 :: massDistribution_
+    type            (kinematicsDistributionIsothermal), pointer                 :: kinematicsDistribution_
+    class           (darkMatterProfileDMOIsothermal  ), intent(inout)           :: self
+    type            (treeNode                        ), intent(inout)           :: node
+    type            (enumerationWeightByType         ), intent(in   ), optional :: weightBy
+    integer                                           , intent(in   ), optional :: weightIndex
+    class           (nodeComponentBasic              ), pointer                 :: basic
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
 
-    basic             => node %basic()
-    isothermalDensity =  basic%mass ()/4.0d0/Pi/self%darkMatterHaloScale_%radiusVirial(node)/radius**2
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
+    ! Create the mass distribution.
+    allocate(massDistributionIsothermal :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionIsothermal)
+       basic => node%basic()
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionIsothermal(                                                                        &amp;
+           &amp;                      mass           =basic                     %mass                 (    ), &amp;
+           &amp;                      lengthReference=self %darkMatterHaloScale_%radiusVirial         (node), &amp;
+           &amp;                      componentType  =                           componentTypeDarkHalo      , &amp;
+           &amp;                      massType       =                           massTypeDark                 &amp;
+           &amp;                     )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
+    allocate(kinematicsDistribution_)
+    !![
+    <referenceConstruct object="kinematicsDistribution_">
+      <constructor>
+        kinematicsDistributionIsothermal(                                                                                &amp;
+        &amp;                            velocityDispersion_=self %darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0) &amp;
+        &amp;                           )
+	 </constructor>
+    </referenceConstruct>
+    !!]
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    !!]
     return
-  end function isothermalDensity
-
-  double precision function isothermalDensityLogSlope(self,node,radius)
-    !!{
-    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    {\normalfont \ttfamily radius} (given in units of Mpc).
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, radius
-
-    isothermalDensityLogSlope=-2.0d0
-    return
-  end function isothermalDensityLogSlope
-
-  double precision function isothermalRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !!{
-    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    in units of Mpc).
-    !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
-    use :: Numerical_Comparison    , only : Values_Agree
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout)           :: node
-    double precision                                , intent(in   )           :: moment
-    double precision                                , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    class           (nodeComponentBasic            )               , pointer  :: basic
-    double precision                                                          :: radiusMinimumActual, radiusMaximumActual
-
-    radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%darkMatterHaloScale_%radiusVirial(node)
-    if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
-    if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
-    basic   => node%basic         ()
-    if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
-       isothermalRadialMoment=+basic%mass()                                 &
-            &                 /4.0d0                                        &
-            &                 /Pi                                           &
-            &                 /self%darkMatterHaloScale_%radiusVirial(node) &
-            &                 *log(                                         &
-            &                      +radiusMaximumActual                     &
-            &                      /radiusMinimumActual                     &
-            &                     )
-    else
-       isothermalRadialMoment=+basic%mass()                                 &
-            &                 /4.0d0                                        &
-            &                 /Pi                                           &
-            &                 /self%darkMatterHaloScale_%radiusVirial(node) &
-            &                 /                       (moment-1.0d0)        &
-            &                 *(                                            &
-            &                   +radiusMaximumActual**(moment-1.0d0)        &
-            &                   -radiusMinimumActual**(moment-1.0d0)        &
-            &                  )
-    end if
-    return
-  end function isothermalRadialMoment
-
-  double precision function isothermalEnclosedMass(self,node,radius)
-    !!{
-    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    units of Mpc).
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: radius
-    class           (nodeComponentBasic            ), pointer       :: basic
-
-    basic   => node%basic     ()
-    isothermalEnclosedMass=basic%mass()*(radius/self%darkMatterHaloScale_%radiusVirial(node))
-    return
-  end function isothermalEnclosedMass
-
-  double precision function isothermalPotential(self,node,radius,status)
-    !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    units of Mpc).
-    !!}
-    use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeInfinite, structureErrorCodeSuccess
-    implicit none
-    class           (darkMatterProfileDMOIsothermal   ), intent(inout)           :: self
-    type            (treeNode                         ), intent(inout), target   :: node
-    double precision                                   , intent(in   )           :: radius
-    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-    double precision                                   , parameter               :: radiusFractionalMinimum=1.0d-30
-    double precision                                                             :: radiusFractional
-
-    radiusFractional      =  radius/self%darkMatterHaloScale_%radiusVirial(node)
-    if (radiusFractional <= 0.0d0) then
-       isothermalPotential=0.0d0
-       if (present(status)) status=structureErrorCodeInfinite
-    else
-       isothermalPotential=log(radiusFractional)*self%darkMatterHaloScale_%velocityVirial(node)**2
-       if (present(status)) status=structureErrorCodeSuccess
-    end if
-    return
-  end function isothermalPotential
-
-  double precision function isothermalCircularVelocity(self,node,radius)
-    !!{
-    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    units of Mpc). For an isothermal halo this is independent of radius and therefore equal to the virial velocity.
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: radius
-    !$GLC attributes unused :: radius
-
-    isothermalCircularVelocity=self%darkMatterHaloScale_%velocityVirial(node)
-    return
-  end function isothermalCircularVelocity
-
-  double precision function isothermalRadiusCircularVelocityMaximum(self,node)
-    !!{
-    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
-    velocity is independent of radius, so a value of the virial radius is returned.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-
-    isothermalRadiusCircularVelocityMaximum=self%darkMatterHaloScale_%radiusVirial(node)
-    return
-  end function isothermalRadiusCircularVelocityMaximum
-
-  double precision function isothermalCircularVelocityMaximum(self,node)
-    !!{
-    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
-    velocity is independent of radius.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-
-    isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
-    return
-  end function isothermalCircularVelocityMaximum
-
-  double precision function isothermalRadialVelocityDispersion(self,node,radius)
-    !!{
-    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}
-    (given in units of Mpc). For an isothermal halo this is independent of radius and equal to the virial velocity divided by $\sqrt(2)$.
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: radius
-    !$GLC attributes unused :: radius
-
-    isothermalRadialVelocityDispersion=self%darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0)
-    return
-  end function isothermalRadialVelocityDispersion
-
-  double precision function isothermalRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !!{
-    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    in units of km s$^{-1}$ Mpc). For an isothermal halo, the circular velocity is constant (and therefore equal to the virial
-    velocity). Therefore, $r = j/V_\mathrm{virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
-    $r$ the required radius.
-    !!}
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: specificAngularMomentum
-
-    isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%darkMatterHaloScale_%velocityVirial(node)
-    return
-  end function isothermalRadiusFromSpecificAngularMomentum
-
-  double precision function isothermalRotationNormalization(self,node)
-    !!{
-    Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-
-    isothermalRotationNormalization=2.0d0/self%darkMatterHaloScale_%radiusVirial(node)
-    return
-  end function isothermalRotationNormalization
-
-  double precision function isothermalEnergy(self,node)
-    !!{
-    Return the energy of an isothermal halo density profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    implicit none
-    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-    class(nodeComponentBasic            ), pointer       :: basic
-
-    basic            =>       node%basic ()
-    isothermalEnergy =  -0.5d0*basic%mass()*self%darkMatterHaloScale_%velocityVirial(node)**2
-    return
-  end function isothermalEnergy
-
-  double precision function isothermalKSpace(self,node,waveNumber)
-    !!{
-    Returns the Fourier transform of the isothermal density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
-    expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
-    !!}
-    use :: Exponential_Integrals, only : Sine_Integral
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), target  :: node
-    double precision                                , intent(in   )          :: waveNumber
-    double precision                                                         :: radiusScale, waveNumberScaleFree
-
-    ! Get the scale radius (for which we use the virial radius).
-    radiusScale          =  self%darkMatterHaloScale_%radiusVirial(node)
-
-    ! Get the dimensionless wavenumber.
-    waveNumberScaleFree=waveNumber*radiusScale
-
-    ! Compute the Fourier transformed profile.
-    isothermalKSpace=Sine_Integral(waveNumberScaleFree)/waveNumberScaleFree
-
-    return
-  end function isothermalKSpace
-
-  double precision function isothermalFreefallRadius(self,node,time)
-    !!{
-    Returns the freefall radius in the isothermal density profile at the specified {\normalfont \ttfamily time} (given in Gyr). For an isothermal
-    potential, the freefall radius, $r_\mathrm{ff}(t)$, is:
-    \begin{equation}
-    r_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial} t.
-    \end{equation}
-    !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
-    type            (treeNode                      ), intent(inout), target :: node
-    double precision                                , intent(in   )         :: time
-
-    isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%velocityVirial(node)*time&
-         &/Mpc_per_km_per_s_To_Gyr
-    return
-  end function isothermalFreefallRadius
-
-  double precision function isothermalFreefallRadiusIncreaseRate(self,node,time)
-    !!{
-    Returns the rate of increase of the freefall radius in the isothermal density profile at the specified {\normalfont \ttfamily time} (given in
-    Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_\mathrm{ff}(t)$, is:
-    \begin{equation}
-    \dot{r}_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial}.
-    \end{equation}
-    !!}
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
-    type            (treeNode                      ), intent(inout), target :: node
-    double precision                                , intent(in   )         :: time
-    !$GLC attributes unused :: time
-
-    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%velocityVirial(node) &
-         & /Mpc_per_km_per_s_To_Gyr
-    return
-  end function isothermalFreefallRadiusIncreaseRate
-
-  double precision function isothermalRadiusEnclosingDensity(self,node,density)
-    !!{
-    Null implementation of function to compute the radius enclosing a given density for isothermal dark matter halo profiles.
-    !!}
-    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
-    type            (treeNode                      ), intent(inout), target :: node
-    double precision                                , intent(in   )         :: density
-    class           (nodeComponentBasic            ), pointer               :: basic
-
-    basic                            =>             node                %basic       (    )
-    isothermalRadiusEnclosingDensity =  +sqrt(                                              &
-         &                                    +     basic               %mass        (    ) &
-         &                                    /4.0d0                                        &
-         &                                    *3.0d0                                        &
-         &                                    /Pi                                           &
-         &                                    /self%darkMatterHaloScale_%radiusVirial(node) &
-         &                                    /density                                      &
-         &                                   )
-    return
-  end function isothermalRadiusEnclosingDensity
-
+  end function isothermalGet

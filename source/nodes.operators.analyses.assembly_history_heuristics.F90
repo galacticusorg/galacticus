@@ -99,6 +99,7 @@ contains
     self=nodeOperatorAssemblyHistoryHeuristics(exponentGrowth,sigmaThreshold,nbodyHaloMassError_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nbodyHaloMassError_"/>
     !!]
     return
   end function assemblyHistoryHeuristicsConstructorParameters

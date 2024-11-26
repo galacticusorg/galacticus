@@ -15,7 +15,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc" time="2024-09-20T17:34:51"/>
+    <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6" time="2024-09-20T17:34:51"/>
 
     <!-- Component selection -->
     <componentBasic value="standard"/>
@@ -250,7 +250,7 @@
     </accretionDisks>
 
     <!-- Black hole options -->
-    <blackHoleBinaryMergers value="rezzolla2008"/>
+    <blackHoleBinaryMerger value="rezzolla2008"/>
     <!-- Galaxy merger options -->
     <virialOrbit value="benson2005"/>
     <satelliteMergingTimescales value="jiang2008">

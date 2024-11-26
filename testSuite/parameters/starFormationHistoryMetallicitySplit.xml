@@ -3,7 +3,7 @@
 <!-- 31-Auugust-2025                         -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -98,8 +98,8 @@
   
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="1.0e-6"/>
-    <odeToleranceRelative value="1.0e-6"/>
+    <odeToleranceAbsolute value="1.0e-7"/>
+    <odeToleranceRelative value="1.0e-7"/>
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">

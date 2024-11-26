@@ -61,6 +61,10 @@ module Node_Component_Hot_Halo_VS_Delayed
       <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
     </property>
    </properties>
+   <bindings>
+    <binding method="massBaryonic" function="Node_Component_Hot_Halo_Very_Simple_Delayed_Mass_Baryonic" bindsTo="component"/>
+   </bindings>
+   <functions>objects.nodes.components.hot_halo.very_simple_delayed.bound_functions.inc</functions>
   </component>
   !!]
 

@@ -33,7 +33,6 @@ module Node_Component_Black_Hole_Standard
   use :: Black_Hole_Accretion_Rates          , only : blackHoleAccretionRateClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure                  , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set    , &
@@ -110,9 +109,8 @@ module Node_Component_Black_Hole_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
-    <binding method="acceleration" function="Node_Component_Black_Hole_Standard_Acceleration"  bindsTo="component"/>
-    <binding method="tidalTensor"  function="Node_Component_Black_Hole_Standard_Tidal_Tensor"  bindsTo="component"/>
+    <binding method="massDistribution" function="Node_Component_Black_Hole_Standard_Mass_Distribution" bindsTo="component"/>
+    <binding method="massBaryonic"     function="Node_Component_Black_Hole_Standard_Mass_Baryonic"     bindsTo="component"/>
    </bindings>
    <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   </component>
@@ -126,8 +124,7 @@ module Node_Component_Black_Hole_Standard
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
-  class(galacticStructureClass                  ), pointer :: galacticStructure_
-  !$omp threadprivate(accretionDisks_,blackHoleAccretionRate_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,darkMatterHaloScale_,galacticStructure_)
+  !$omp threadprivate(accretionDisks_,blackHoleAccretionRate_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,darkMatterHaloScale_)
 
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
@@ -282,9 +279,9 @@ contains
     !!{
     Initializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
-    use :: Input_Parameters, only : inputParameter           , inputParameters
+    use :: Events_Hooks              , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
+    use :: Galacticus_Nodes          , only : defaultBlackHoleComponent
+    use :: Input_Parameters          , only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -302,8 +299,7 @@ contains
        <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="subParameters"/>
        <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
-       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="subParameters"/>
-       !!]
+       !!]     
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
@@ -329,7 +325,6 @@ contains
        <objectDestructor name="blackHoleBinaryMerger_"              />
        <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
        <objectDestructor name="darkMatterHaloScale_"                />
-       <objectDestructor name="galacticStructure_"                  />
        !!]
     end if
     return
@@ -603,39 +598,48 @@ contains
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
+    use :: Coordinates               , only : coordinateSpherical   , assignment(=)
+    use :: Mass_Distributions        , only : massDistributionClass
     use :: Galactic_Structure_Options, only : componentTypeBlackHole
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
-    type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: velocityRecoil        , radius
-    logical                   , intent(in   ) :: ignoreCentralBlackHole
-    double precision                          :: potentialCentral      , potentialCentralSelf, &
-         &                                       potentialHalo         , potentialHaloSelf
+    type            (treeNode             ), intent(inout) :: node
+    double precision                       , intent(in   ) :: velocityRecoil        , radius
+    logical                                , intent(in   ) :: ignoreCentralBlackHole
+    class           (massDistributionClass), pointer       :: massDistribution_
+    double precision                                       :: potential             , potentialSelf
+    type            (coordinateSpherical  )                :: coordinates           , coordinatesVirial
+
     ! Return false immediately if the recoil velocity is zero.
     if (velocityRecoil <= 0.0d0) then
        Node_Component_Black_Hole_Standard_Recoil_Escapes=.false.
        return
     end if
     ! Compute relevant potentials.
-    potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
-    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
+    coordinates       =  [                     radius            ,0.0d0,0.0d0]
+    coordinatesVirial =  [darkMatterHaloScale_%radiusVirial(node),0.0d0,0.0d0]
+    massDistribution_ => node             %massDistribution   (                             )
+    potential         =  massDistribution_%potentialDifference(coordinates,coordinatesVirial)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
-       potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node),componentType=componentTypeBlackHole)
+       massDistribution_ => node             %massDistribution   (componentType=componentTypeBlackHole                  )
+       potentialSelf     =  massDistribution_%potentialDifference(              coordinates           ,coordinatesVirial)
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     else
        ! No correction for central black hole as it is to be included.
-       potentialCentralSelf=0.0d0
-       potentialHaloSelf   =0.0d0
+       potentialSelf=0.0d0
     end if
     ! Evaluate the escape condition.
     Node_Component_Black_Hole_Standard_Recoil_Escapes= &
-         &  +0.5d0*velocityRecoil      **2             &
-         &  +      potentialCentral                    &
-         &  -      potentialCentralSelf                &
+         &  +0.5d0*velocityRecoil**2                   &
+         &  +      potential                           &
          & >                                           &
-         &  +      potentialHalo                       &
-         &  -      potentialHaloSelf
+         &  +      potentialSelf
     return
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
 
@@ -796,7 +800,7 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleAccretionRate_ darkMatterHaloScale_ galacticStructure_"/>
+    <stateStore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Store
@@ -818,7 +822,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleAccretionRate_ darkMatterHaloScale_ galacticStructure_"/>
+    <stateRestore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Restore

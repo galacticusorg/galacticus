@@ -69,7 +69,8 @@ contains
     type   (inputParameters                          ), intent(inout) :: parameters
     type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
     logical                                                           :: randomize             , collaborativeMPI        , &
-         &                                                               outputAnalyses
+         &                                                               outputAnalyses        , reportFileName          , &
+         &                                                               reportState
     type   (varying_string)                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
@@ -98,6 +99,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
+      <name>reportFileName</name>
+      <description>If true, report the base parameter file name being evaluated.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>reportState</name>
+      <description>If true, report the state being evaluated.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>evolveForestsVerbosity</name>
       <description>The verbosity level to use while performing evolve forests tasks.</description>
       <defaultValue>enumerationVerbosityLevelDecode(displayVerbosity(),includePrefix=.false.)</defaultValue>
@@ -112,7 +125,7 @@ contains
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,outputAnalyses,collaborativeMPI,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -120,7 +133,7 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,randomize,outputAnalyses,collaborativeMPI,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
@@ -128,11 +141,12 @@ contains
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
     logical                                           , intent(in   )         :: randomize               , collaborativeMPI, &
-         &                                                                       outputAnalyses
+         &                                                                       outputAnalyses          , reportFileName  , &
+         &                                                                       reportState
     type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
-    type   (varying_string                           ), intent(in   )         :: failedParametersFileName
+    type   (varying_string                           ), intent(in   )         :: failedParametersFileName, baseParametersFileName
     !![
-    <constructorAssign variables="*parametersModel, randomize, outputAnalyses, collaborativeMPI, evolveForestsVerbosity, failedParametersFileName"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
     !!]
 
     return
@@ -234,7 +248,7 @@ contains
           end if
        end if
        ! Update parameter values.
-       call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector(:,iRank))
+       call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector(:,iRank),report=isActive)
        ! Build the task and outputter objects.
        call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
        !![

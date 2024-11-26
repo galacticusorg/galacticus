@@ -248,6 +248,9 @@ for analysisName in analysisNames.keys():
                                 yLower = y-errors
                                 yUpper = y+errors
                                 haveErrorBars = True
+                            else:
+                                yLower = y
+                                yUpper = y
                             nonZero = np.nonzero(datasets['yDatasetTarget']['data'])
                             if haveErrorBars:
                                 axes.errorbar(datasets['xDataset']['data'][nonZero],datasets['yDatasetTarget']['data'][nonZero],yerr=errors[nonZero],fmt='none',ecolor='#4c3af2',zorder=phase*10)

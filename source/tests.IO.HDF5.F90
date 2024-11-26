@@ -89,12 +89,12 @@ program Tests_IO_HDF5
      select case (iPass)
      case(1)
         call Unit_Tests_Begin_Group("Tests with chunking enabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
+        groupObject=fileObject%openGroup("myGroup",comment="This is my group.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
              &,compressionLevel=9)
         appendableOK=.true.
      case (2)
         call Unit_Tests_Begin_Group("Tests with chunking disabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1_hsize_t&
+        groupObject=fileObject%openGroup("myGroup",comment="This is my group.",objectsOverwritable=.true.,chunkSize=-1_hsize_t&
              &,compressionLevel=-1)
         appendableOK=.false.
      end select
@@ -845,7 +845,7 @@ program Tests_IO_HDF5
        ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
        call fileObject%openFile ("testSuite/data/IntegerRangeU32.hdf5")
        ! Open the root group.
-       groupObject=fileObject%openGroup("/",commentText="Root group.")
+       groupObject=fileObject%openGroup("/",comment="Root group.")
        ! Read the dataset.
        call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
        call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)

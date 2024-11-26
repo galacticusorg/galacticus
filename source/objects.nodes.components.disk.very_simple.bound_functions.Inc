@@ -45,6 +45,18 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   return
 end subroutine Node_Component_Disk_Very_Simple_Attach_Pipe
 
+double precision function Node_Component_Disk_Very_Simple_Mass_Baryonic(self) result(massBaryonic)
+  !!{
+  Return the baryonic mass for the very simple disk component.
+  !!}
+  implicit none
+  class(nodeComponentDiskVerySimple), intent(inout) :: self
+
+  massBaryonic=+max(0.0d0,self%massStellar()) &
+       &       +max(0.0d0,self%massGas    ())
+  return
+end function Node_Component_Disk_Very_Simple_Mass_Baryonic
+
 double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
   !!{
   Computes the mass within a given radius for an very simple disk.

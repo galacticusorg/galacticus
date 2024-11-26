@@ -48,8 +48,8 @@ An implementation of the hot halo mass distribution class which uses the model o
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
    contains
-     final     ::               ricotti2000Destructor
-     procedure :: initialize => ricotti2000Initialize
+     final     ::        ricotti2000Destructor
+     procedure :: get => ricotti2000Get
   end type hotHaloMassDistributionRicotti2000
 
   interface hotHaloMassDistributionRicotti2000
@@ -161,28 +161,40 @@ contains
     return
   end subroutine ricotti2000Destructor
 
-  subroutine ricotti2000Initialize(self,node)
+  function ricotti2000Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily
-    node}. Parameterizations of $\beta$ and core radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
+    Return the {\normalfont \ttfamily ricotti2000} hot halo mass distribution for the given {\normalfont \ttfamily node}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
+    use :: Galacticus_Nodes          , only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
+    use :: Galactic_Structure_Options, only : componentTypeHotHalo, massTypeGaseous               , weightByMass
     implicit none
-    class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
-    type            (treeNode                              ), intent(inout) :: node
-    class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
-    class           (nodeComponentDarkMatterProfile        ), pointer       :: darkMatterProfile
-    double precision                                        , parameter     :: virialToGasTemperatureRatio=1.0d0
-    double precision                                                        :: mass                             , radiusOuter  , &
-         &                                                                     radiusScale                      , radiusVirial , &
-         &                                                                     radiusCore                       , concentration, &
-         &                                                                     b                                , beta
+    class           (massDistributionClass             ), pointer                 :: massDistribution_
+    class           (hotHaloMassDistributionRicotti2000), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
+    type            (enumerationWeightByType           ), intent(in   ), optional :: weightBy
+    integer                                             , intent(in   ), optional :: weightIndex
+    class           (nodeComponentHotHalo              ), pointer                 :: hotHalo
+    class           (nodeComponentDarkMatterProfile    ), pointer                 :: darkMatterProfile
+    double precision                                    , parameter               :: virialToGasTemperatureRatio=1.0d0
+    double precision                                                              :: mass                             , radiusOuter  , &
+         &                                                                           radiusScale                      , radiusVirial , &
+         &                                                                           radiusCore                       , concentration, &
+         &                                                                           b                                , beta
+    !![
+    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    !!]
 
+    ! Assume a null distribution by default.
+    massDistribution_ => null()
+    ! If weighting is not by mass, return a null profile.
+    if (weightBy_ /= weightByMass) return
     ! Compute parameters of the profile.
     hotHalo           =>  node                        %hotHalo          (    )
     darkMatterProfile =>  node                        %darkMatterProfile(    )
     radiusOuter       =   hotHalo                     %outerRadius      (    )
     mass              =   hotHalo                     %mass             (    )
+    ! If outer radius is non-positive return a null profile.
+    if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
     radiusScale       =           darkMatterProfile   %scale            (    )
     radiusVirial      =   self   %darkMatterHaloScale_%radiusVirial     (node)
     concentration     =  +radiusVirial              &
@@ -211,11 +223,24 @@ contains
        mass=0.0d0
        radiusOuter=1.0d0
     end if
-     self%distribution=massDistributionBetaProfile(                         &
-         &                                         beta       =beta       , &
-         &                                         coreRadius =radiusCore , &
-         &                                         mass       =mass       , &
-         &                                         outerRadius=radiusOuter  &
-         &                                        )
+    allocate(massDistributionBetaProfile :: massDistribution_)
+    select type(massDistribution_)
+    type is (massDistributionBetaProfile)
+       !![
+       <referenceConstruct object="massDistribution_">
+	 <constructor>
+           massDistributionBetaProfile(                                            &amp;
+             &amp;                     beta                 =beta                , &amp;
+             &amp;                     coreRadius           =radiusCore          , &amp;
+             &amp;                     mass                 =mass                , &amp;
+             &amp;                     outerRadius          =radiusOuter         , &amp;
+             &amp;                     truncateAtOuterRadius=.true.              , &amp;
+             &amp;                     componentType        =componentTypeHotHalo, &amp;
+             &amp;                     massType             =massTypeGaseous       &amp;
+             &amp;                    )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     return
-  end subroutine ricotti2000Initialize
+  end function ricotti2000Get

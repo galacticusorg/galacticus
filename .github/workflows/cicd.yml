@@ -406,7 +406,7 @@ jobs:
   ## MacOS
   ### Static executable
   Build-Executable-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -419,7 +419,7 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j3 Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
@@ -455,7 +455,7 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j3 Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
@@ -472,7 +472,7 @@ jobs:
           path: 'debugSymbolsMacOS-M1.zip'
   ## Library
   Build-Library-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -484,7 +484,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -504,7 +504,7 @@ jobs:
           path: 'libgalacticusMacOS.zip'
   ### Tools
   Build-Tools-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -521,7 +521,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j3 Galacticus.exe
+          make -j`sysctl -n hw.activecpu` Galacticus.exe
       - name: Build tools
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
@@ -597,7 +597,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j3 Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
       - name: Build tools
         run: |
@@ -1051,6 +1051,7 @@ jobs:
                 test-branchSubsampling.pl,
                 test-CGM-mass-cooled.pl,
                 test-concentration-Ludlow2016.pl,
+                test-concentration-Johnson2021.pl,
                 test-tidallyTruncatedNFWFit.pl,
                 test-constraint-deterministic-spins.pl,
                 test-constraint-mass-function.pl,
@@ -1077,6 +1078,7 @@ jobs:
                 test-star-formation-histories.py,
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
+                test-star-formation-histories-fixedAge.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
                 test-lightcone-crossing.py,
                 test-massProfileSatelliteBoundMass.py,
@@ -1201,7 +1203,8 @@ jobs:
                 testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
                 testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
                 testSuite/regressions/outputRank2ExtendSegFault.xml,
-                testSuite/regressions/barInstabilityFPE.xml ]
+                testSuite/regressions/barInstabilityFPE.xml,
+                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1341,13 +1344,13 @@ jobs:
         executable: [ tests.hashes.cryptographic.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
-      runner: macos-12
+      runner: macos-13
       executable: ${{ matrix.executable }}
       artifact: test-execs-MacOS
     secrets: inherit
   ### Test Python Interface
   Python-Interface-MacOS:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -1367,14 +1370,7 @@ jobs:
           sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-11
-          export CCOMPILER=gcc-11
-          export CPPCOMPILER=g++-11
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/usr/local/include/libqhullcpp"
-          make -j3 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` GALACTICUS_BUILD_OPTION=lib libgalacticus.so
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python

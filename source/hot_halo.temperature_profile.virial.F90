@@ -38,9 +38,8 @@ An implementation of the hot halo temperature class which uses an isothermal vir
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
-     final     ::                        virialDestructor
-     procedure :: temperature         => virialTemperature
-     procedure :: temperatureLogSlope => virialTemperatureLogSlope
+     final     ::        virialDestructor
+     procedure :: get => virialGet
   end type hotHaloTemperatureProfileVirial
 
   interface hotHaloTemperatureProfileVirial
@@ -101,32 +100,31 @@ contains
     return
   end subroutine virialDestructor
 
-  double precision function virialTemperature(self,node,radius)
+  function virialGet(self,node) result(kinematicsDistribution_)
     !!{
-    Return the density in a {\normalfont \ttfamily virial} hot halo mass distribution.
+    Return the virial hot halo temperature distribution for the given {\normalfont \ttfamily node}.
     !!}
+    use :: Mass_Distributions              , only : kinematicsDistributionIsothermal
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-    !$GLC attributes unused :: radius
+    class(kinematicsDistributionClass    ), pointer       :: kinematicsDistribution_
+    class(hotHaloTemperatureProfileVirial), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
 
-    virialTemperature=self%darkMatterHaloScale_%temperatureVirial(node)
+    ! Create an isothermal kinematics distribution.
+    allocate(kinematicsDistributionIsothermal :: kinematicsDistribution_)
+    select type(kinematicsDistribution_)
+    type is (kinematicsDistributionIsothermal)
+       !![
+       <referenceConstruct object="kinematicsDistribution_">
+	 <constructor>
+           kinematicsDistributionIsothermal(                                                                         &amp;
+             &amp;                          temperature_  =self%darkMatterHaloScale_%temperatureVirial       (node), &amp;
+             &amp;                          massAtomicMean=                          meanAtomicMassPrimordial        &amp;
+             &amp;                         )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+    end select
     return
-  end function virialTemperature
-
-  double precision function virialTemperatureLogSlope(self,node,radius)
-    !!{
-    Return the logarithmic slope of the density profile in a {\normalfont \ttfamily virial} hot halo mass
-    distribution.
-    !!}
-    implicit none
-    class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: radius
-    !$GLC attributes unused :: self, node, radius
-
-    virialTemperatureLogSlope=0.0d0
-    return
-  end function virialTemperatureLogSlope
-
+  end function virialGet

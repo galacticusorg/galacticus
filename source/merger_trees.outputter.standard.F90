@@ -265,16 +265,8 @@ contains
           do while (treeWalker%next(node))
              ! Get the basic component.
              basic => node%basic()
-             if (basic%time() == time) then
-                ! Perform our output.
-                call self%output(node,time)
-                ! Perform any extra output.
-                !![
-                <eventHook name="mergerTreeExtraOutput">
-		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node),treeLock</callWith>
-                </eventHook>  
-                !!]
-             end if
+             ! Perform our output for nodes at the output time.
+             if (basic%time() == time) call self%output(node,indexOutput,time)
           end do
           ! Finished output.
           if     (                                                                     &
@@ -364,7 +356,7 @@ contains
     self%integerPropertiesWritten=0
     self%doublePropertiesWritten =0
     ! Perform our output.
-    call self%output(node,basic%time())
+    call self%output(node,indexOutput,basic%time())
     ! Finished output.
     if     (                                                                     &
          &   (                                                                   &
@@ -377,10 +369,11 @@ contains
          & ) call treeLock%set()
     if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
     if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+    if (treeLock%ownedByThread()) call treeLock%unset()
     return
   end subroutine standardOutputNode
 
-  subroutine standardOutput(self,node,time)
+  subroutine standardOutput(self,node,indexOutput,time)
     !!{
     Output the provided node.
     !!}
@@ -393,6 +386,7 @@ contains
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)                   :: self
     type            (treeNode                   ), intent(inout)                   :: node
+    integer         (c_size_t                   ), intent(in   )                   :: indexOutput
     double precision                             , intent(in   )                   :: time
     integer         (kind_int8                  ), allocatable  , dimension(:    ) :: integerTuple
     double precision                             , allocatable  , dimension(:    ) :: doubleTuple
@@ -413,263 +407,270 @@ contains
     call Calculations_Reset (node)
     ! Test whether this node passes all output filters.
     nodePassesFilter=self%galacticFilter_%passes(node)
-    if (.not.nodePassesFilter) return
-    ! Ensure output buffers are allocated.
-    do i=1,self%integerScalarCount
-       if (.not.allocated(self%integerProperty(i)%scalar)) allocate(self%integerProperty(i)%scalar(self%integerBufferSize))
-    end do
-    do i=1,self%doubleScalarCount
-       if (.not.allocated(self%doubleProperty (i)%scalar)) allocate(self%doubleProperty (i)%scalar(self%doubleBufferSize))
-    end do
-    ! Initialize the instance counter.
-    instance=multiCounter([1_c_size_t])
-    call self%nodePropertyExtractor_%addInstances(node,instance)
-    do while (instance%increment())
-       if (self%integerPropertyCount > 0) then
-          integerProperty=0
-          self%integerBufferCount=self%integerBufferCount+1
-       end if
-       if (self%doublePropertyCount > 0) then
-          doubleProperty=0
-          self%doubleBufferCount=self%doubleBufferCount+1
-       end if
-       ! Populate the output buffers with properties. We first populate with any "extra" properties that may be
-       ! being computed, and then call the standard treeNode output method to populate with all "standard"
-       ! properties.
-       call node%output(integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance)
-       ! Handle any extracted properties.
-       select type (extractor_ => self%nodePropertyExtractor_)
-       type  is (nodePropertyExtractorNull         )
-          ! Null extractor - simply ignore.
-       class is (nodePropertyExtractorScalar       )
-          ! Scalar property extractor - extract and store the value.
-          if    (.not.allocated(self%doubleProperty (doubleProperty +1)%scalar)) allocate(self%doubleProperty(doubleProperty +1)%scalar(                      self%doubleBufferSize))
-          self   %doubleProperty (doubleProperty +1)%scalar(self%doubleBufferCount )=extractor_      %extract     (                  node     ,instance)
-          doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +1
-       class is (nodePropertyExtractorTuple        )
-          ! Tuple property extractor - extract and store the values.
-          doubleTuple =extractor_%extract       (node,time,instance)
-          do i=1,+extractor_%elementCount(                  time)
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) allocate(self%doubleProperty (doubleProperty +i)%scalar(                      self%doubleBufferSize))
-             self%doubleProperty (doubleProperty +i)%scalar(self%doubleBufferCount )=doubleTuple (  i)
-          end do
-          deallocate(doubleTuple )
-          doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +extractor_     %elementCount(                       time         )
-       class is (nodePropertyExtractorIntegerScalar)
-          ! Integer scalar property extractor - extract and store the value.
-          if    (.not.allocated(self%integerProperty(integerProperty+1)%scalar)) allocate(self%integerProperty(integerProperty+1)%scalar(                      self%integerBufferSize))
-          self   %integerProperty(integerProperty+1)%scalar(self%integerBufferCount)=extractor_      %extract     (                  node,time,instance)
-          integerProperty                                                           =+integerProperty                                                    &
-               &                                                                     +1
-       class is (nodePropertyExtractorIntegerTuple )
-          ! Integer tuple property extractor - extract and store the values.
-          integerTuple=extractor_%extract       (node,time,instance)
-          do i=1,extractor_%elementCount(                   time)
-             if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) allocate(self%integerProperty(integerProperty+i)%scalar(                      self%integerBufferSize))
-             self%integerProperty(integerProperty+i)%scalar(self%integerBufferCount)=integerTuple(  i)
-          end do
-          deallocate(integerTuple)
-          integerProperty                                                           =+integerProperty                                                    &
-               &                                                                     +extractor_     %elementCount(                       time         )
-       class is (nodePropertyExtractorArray        )
-          ! Array property extractor - extract and store the values.
-          doubleArray =extractor_%extract       (node,time,instance)
-          do i=1,+extractor_%elementCount(                  time)
-             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 )) then 
-                if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
-             end if
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),self%doubleBufferSize))
-             self%doubleProperty (doubleProperty +i)%rank1(:,self%doubleBufferCount)=doubleArray (:,i)
-          end do
-          deallocate(doubleArray )
-          doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +extractor_     %elementCount(                       time         )
-       class is (nodePropertyExtractorList         )
-          ! List property extractor - extract and store the values.
-          doubleArray =extractor_%extract       (node     ,instance)
-          do i=1,+extractor_%elementCount(                      )
-             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
-             if (associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
-                if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
-             end if
-             if (.not.associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
-                allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(size(doubleArray,dim=1)))
-             end if
-             self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferCount)%row=doubleArray(:,i)
-          end do
-          deallocate(doubleArray )
-          doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +extractor_     %elementCount(                                    )
-       class is (nodePropertyExtractorIntegerList  )
-          ! Integer list property extractor - extract and store the values.
-          integerArray=extractor_%extract       (node     ,instance)
-          do i=1,+extractor_%elementCount(                      )
-             if (     allocated(self%integerProperty(integerProperty +i)%scalar     ))                          deallocate(self%integerProperty(integerProperty+i)%scalar)
-             if (     allocated(self%integerProperty(integerProperty +i)%rank1      ))                          deallocate(self%integerProperty(integerProperty+i)%rank1 )
-             if (.not.allocated(self%integerProperty(integerProperty +i)%rank1VarLen)) allocate(self%integerProperty (integerProperty +i)%rank1VarLen(self%integerBufferSize))
-             if (associated(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
-                if (size(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row) /= size(integerArray,dim=1)) deallocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)
-             end if
-             if (.not.associated(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
-                allocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row(size(integerArray,dim=1)))
-             end if
-             self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row=integerArray(:,i)
-          end do
-          deallocate(integerArray)
-          integerProperty                                                           =+integerProperty                                                    &
-               &                                                                     +extractor_     %elementCount(                                    )
-        class is (nodePropertyExtractorList2D       )
-          ! 2D list property extractor - extract and store the values.
-          doubleArray2D =extractor_%extract       (node     ,instance)
-          do i=1,+extractor_%elementCount(                      )
-             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar     )
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1      )
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen)
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank2VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferSize))
-             if (associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
-                if     (                                                                                                                            &
-                     &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=1) /= size(doubleArray2D,dim=1) &
-                     &  .or.                                                                                                                        &
-                     &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=2) /= size(doubleArray2D,dim=2) &
-                     & ) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
-             end if
-             if (.not.associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
-                allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row(size(doubleArray2D,dim=1),size(doubleArray2D,dim=2)))
-             end if
-             self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferCount)%row=doubleArray2D(:,:,i)
-          end do
-          deallocate(doubleArray2D )
-          doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +extractor_     %elementCount(                                    )
-       class is (nodePropertyExtractorMulti        )
-          ! Multi property extractor - extract and store the values.
-          doubleProperties =extractor_%extractDouble (node,time,instance,doubleRanks)
-          do i=1,extractor_%elementCount(elementTypeDouble ,time)
-             select case (doubleRanks(i))
-             case (0)
-                ! Scalar property.
-                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 ))            deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
-                if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) then
-                   allocate(self%doubleProperty(doubleProperty+i)%scalar(          self%doubleBufferSize))
+    if (nodePassesFilter) then
+       ! Ensure output buffers are allocated.
+       do i=1,self%integerScalarCount
+          if (.not.allocated(self%integerProperty(i)%scalar)) allocate(self%integerProperty(i)%scalar(self%integerBufferSize))
+       end do
+       do i=1,self%doubleScalarCount
+          if (.not.allocated(self%doubleProperty (i)%scalar)) allocate(self%doubleProperty (i)%scalar(self%doubleBufferSize))
+       end do
+       ! Initialize the instance counter.
+       instance=multiCounter([1_c_size_t])
+       call self%nodePropertyExtractor_%addInstances(node,instance)
+       do while (instance%increment())
+          if (self%integerPropertyCount > 0) then
+             integerProperty=0
+             self%integerBufferCount=self%integerBufferCount+1
+          end if
+          if (self%doublePropertyCount > 0) then
+             doubleProperty=0
+             self%doubleBufferCount=self%doubleBufferCount+1
+          end if
+          ! Populate the output buffers with properties. We first populate with any "extra" properties that may be
+          ! being computed, and then call the standard treeNode output method to populate with all "standard"
+          ! properties.
+          call node%output(integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance)
+          ! Handle any extracted properties.
+          select type (extractor_ => self%nodePropertyExtractor_)
+          type  is (nodePropertyExtractorNull         )
+             ! Null extractor - simply ignore.
+             class is (nodePropertyExtractorScalar       )
+                ! Scalar property extractor - extract and store the value.
+             if    (.not.allocated(self%doubleProperty (doubleProperty +1)%scalar)) allocate(self%doubleProperty(doubleProperty +1)%scalar(                      self%doubleBufferSize))
+             self   %doubleProperty (doubleProperty +1)%scalar(self%doubleBufferCount )=extractor_      %extract     (                  node     ,instance)
+             doubleProperty                                                            =+doubleProperty                                                     &
+                  &                                                                     +1
+             class is (nodePropertyExtractorTuple        )
+                ! Tuple property extractor - extract and store the values.
+             doubleTuple =extractor_%extract       (node,time,instance)
+             do i=1,+extractor_%elementCount(                  time)
+                if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) allocate(self%doubleProperty (doubleProperty +i)%scalar(                      self%doubleBufferSize))
+                self%doubleProperty (doubleProperty +i)%scalar(self%doubleBufferCount )=doubleTuple (  i)
+             end do
+             deallocate(doubleTuple )
+             doubleProperty                                                            =+doubleProperty                                                     &
+                  &                                                                     +extractor_     %elementCount(                       time         )
+             class is (nodePropertyExtractorIntegerScalar)
+                ! Integer scalar property extractor - extract and store the value.
+             if    (.not.allocated(self%integerProperty(integerProperty+1)%scalar)) allocate(self%integerProperty(integerProperty+1)%scalar(                      self%integerBufferSize))
+             self   %integerProperty(integerProperty+1)%scalar(self%integerBufferCount)=extractor_      %extract     (                  node,time,instance)
+             integerProperty                                                           =+integerProperty                                                    &
+                  &                                                                     +1
+             class is (nodePropertyExtractorIntegerTuple )
+                ! Integer tuple property extractor - extract and store the values.
+             integerTuple=extractor_%extract       (node,time,instance)
+             do i=1,extractor_%elementCount(                   time)
+                if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) allocate(self%integerProperty(integerProperty+i)%scalar(                      self%integerBufferSize))
+                self%integerProperty(integerProperty+i)%scalar(self%integerBufferCount)=integerTuple(  i)
+             end do
+             deallocate(integerTuple)
+             integerProperty                                                           =+integerProperty                                                    &
+                  &                                                                     +extractor_     %elementCount(                       time         )
+             class is (nodePropertyExtractorArray        )
+                ! Array property extractor - extract and store the values.
+             doubleArray =extractor_%extract       (node,time,instance)
+             do i=1,+extractor_%elementCount(                  time)
+                if (     allocated(self%doubleProperty (doubleProperty +i)%scalar))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 )) then 
+                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
                 end if
-                self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
-             case (1)
-                ! Rank-1 array property.
-                if (     allocated(self%doubleProperty(doubleProperty +i)%scalar))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
-                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
-                   shape_=doubleProperties(i)%shape()
-                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
-                   deallocate(shape_)
-                end if
-                if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
-                   shape_=doubleProperties (i)%shape()
-                   allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),self%doubleBufferSize))
-                   deallocate(shape_)
-                end if
-                self%doubleProperty (doubleProperty +i)%rank1 (:,self%doubleBufferCount )=doubleProperties(i)
-             case (-1)
-                ! Rank-1 list property
-                if (     allocated(self%doubleProperty(doubleProperty +i)%scalar     ))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
-                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1      ))             deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
-                if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
+                if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),self%doubleBufferSize))
+                self%doubleProperty (doubleProperty +i)%rank1(:,self%doubleBufferCount)=doubleArray (:,i)
+             end do
+             deallocate(doubleArray )
+             doubleProperty                                                            =+doubleProperty                                                     &
+                  &                                                                     +extractor_     %elementCount(                       time         )
+             class is (nodePropertyExtractorList         )
+                ! List property extractor - extract and store the values.
+             doubleArray =extractor_%extract       (node     ,instance)
+             do i=1,+extractor_%elementCount(                      )
+                if (     allocated(self%doubleProperty (doubleProperty +i)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+                if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
                 if (associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
-                   shape_=doubleProperties(i)%shape()
-                   if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
-                   deallocate(shape_)
+                   if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
                 end if
                 if (.not.associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
-                   shape_=doubleProperties(i)%shape()
-                   allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(shape_(1)))
-                   deallocate(shape_)
+                   allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(size(doubleArray,dim=1)))
                 end if
-                self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row=doubleProperties(i)
-             case (-2)
-                ! Rank-2 list property
-                if (     allocated(self%doubleProperty(doubleProperty +i)%scalar     ))             deallocate(self%doubleProperty (doubleProperty +i)%scalar     )
-                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1      ))             deallocate(self%doubleProperty (doubleProperty +i)%rank1      )
-                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1VarLen))             deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen)
-                if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank2VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferSize))
+                self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferCount)%row=doubleArray(:,i)
+             end do
+             deallocate(doubleArray )
+             doubleProperty                                                            =+doubleProperty                                                     &
+                  &                                                                     +extractor_     %elementCount(                                    )
+             class is (nodePropertyExtractorIntegerList  )
+                ! Integer list property extractor - extract and store the values.
+             integerArray=extractor_%extract       (node     ,instance)
+             do i=1,+extractor_%elementCount(                      )
+                if (     allocated(self%integerProperty(integerProperty +i)%scalar     ))                          deallocate(self%integerProperty(integerProperty+i)%scalar)
+                if (     allocated(self%integerProperty(integerProperty +i)%rank1      ))                          deallocate(self%integerProperty(integerProperty+i)%rank1 )
+                if (.not.allocated(self%integerProperty(integerProperty +i)%rank1VarLen)) allocate(self%integerProperty (integerProperty +i)%rank1VarLen(self%integerBufferSize))
+                if (associated(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
+                   if (size(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row) /= size(integerArray,dim=1)) deallocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)
+                end if
+                if (.not.associated(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
+                   allocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row(size(integerArray,dim=1)))
+                end if
+                self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row=integerArray(:,i)
+             end do
+             deallocate(integerArray)
+             integerProperty                                                           =+integerProperty                                                    &
+                  &                                                                     +extractor_     %elementCount(                                    )
+             class is (nodePropertyExtractorList2D       )
+                ! 2D list property extractor - extract and store the values.
+             doubleArray2D =extractor_%extract       (node     ,instance)
+             do i=1,+extractor_%elementCount(                      )
+                if (     allocated(self%doubleProperty (doubleProperty +i)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar     )
+                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1      )
+                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1VarLen))                          deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen)
+                if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank2VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferSize))
                 if (associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
-                   shape_=doubleProperties(i)%shape()
-                   if     (                                                                                                            &
-                        &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=1) /= shape_(1) &
-                        &  .or.                                                                                                        &
-                        &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=2) /= shape_(2) &
+                   if     (                                                                                                                            &
+                        &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=1) /= size(doubleArray2D,dim=1) &
+                        &  .or.                                                                                                                        &
+                        &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=2) /= size(doubleArray2D,dim=2) &
                         & ) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
-                   deallocate(shape_)
                 end if
                 if (.not.associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
-                   shape_=doubleProperties(i)%shape()
-                   allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row(shape_(1),shape_(2)))
-                   deallocate(shape_)
+                   allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row(size(doubleArray2D,dim=1),size(doubleArray2D,dim=2)))
                 end if
-                self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row=doubleProperties(i)
-             case default
-                call Error_Report('unsupported rank for output property'//{introspection:location})
-             end select
-          end do
-          deallocate(doubleProperties)
-          doubleProperty                                                            =+doubleProperty                                                     &
-               &                                                                     +extractor_     %elementCount(elementTypeDouble,     time         )
-          integerProperties =extractor_%extractInteger (node,time,instance,integerRanks)
-          do i=1,extractor_%elementCount(elementTypeInteger ,time)
-             select case (integerRanks(i))
-             case (0)
-                ! Scalar property.
-                if (     allocated(self%integerProperty(integerProperty+i)%rank1 ))            deallocate(self%integerProperty(integerProperty+i)%rank1 )
-                if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) then
-                   allocate(self%integerProperty(integerProperty+i)%scalar(          self%integerBufferSize))
-                end if
-                self%integerProperty (integerProperty+i)%scalar(self%integerBufferCount  )=integerProperties(i)
-             case (1)
-                ! Rank-1 array property.
-                if (     allocated(self%integerProperty(integerProperty+i)%scalar))             deallocate(self%integerProperty(integerProperty+i)%scalar)
-                if (     allocated(self%integerProperty(integerProperty+i)%rank1 )) then
-                   shape_=integerProperties(i)%shape()
-                   if (size(self%integerProperty(integerProperty+i)%rank1,dim=1) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1)
-                   deallocate(shape_)
-                end if
-                if (.not.allocated(self%integerProperty(integerProperty+i)%rank1)) then
-                   shape_=integerProperties(i)%shape()
-                   allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),self%integerBufferSize))
-                   deallocate(shape_)
-                end if
-                self%integerProperty (integerProperty+i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
-             case (-1)
-                ! Rank-1 list property
-                if (     allocated(self%integerProperty(integerProperty+i)%scalar     ))             deallocate(self%integerProperty (integerProperty+i)%scalar)
-                if (     allocated(self%integerProperty(integerProperty+i)%rank1      ))             deallocate(self%integerProperty (integerProperty+i)%rank1 )
-                if (.not.allocated(self%integerProperty(integerProperty+i)%rank1VarLen)) allocate(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferSize))
-                if (associated(self%integerProperty (integerProperty+i)%rank1VarLen (self%integerBufferCount )%row)) then
-                   shape_=integerProperties(i)%shape()
-                   if (size(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount )%row) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)
-                   deallocate(shape_)
-                end if
-                if (.not.associated(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
-                   shape_=integerProperties(i)%shape()
-                   allocate(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount)%row(shape_(1)))
-                   deallocate(shape_)
-                end if
-                self%integerProperty (integerProperty+i)%rank1VarLen (self%integerBufferCount )%row=integerProperties(i)
-            case default
-                call Error_Report('unsupported rank for output property'//{introspection:location})
-             end select
-          end do
-          deallocate(integerProperties)
-          integerProperty                                                           =+integerProperty                                                    &
-               &                                                                    +extractor_     %elementCount(elementTypeInteger,     time         )
-       class default
-          call Error_Report('unsupported property extractor class'//{introspection:location})
-       end select
-       ! If buffer is full, extend it.
-       if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
-       if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
-    end do
+                self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferCount)%row=doubleArray2D(:,:,i)
+             end do
+             deallocate(doubleArray2D )
+             doubleProperty                                                            =+doubleProperty                                                     &
+                  &                                                                     +extractor_     %elementCount(                                    )
+             class is (nodePropertyExtractorMulti        )
+                ! Multi property extractor - extract and store the values.
+             doubleProperties =extractor_%extractDouble (node,time,instance,doubleRanks)
+             do i=1,extractor_%elementCount(elementTypeDouble ,time)
+                select case (doubleRanks(i))
+                case (0)
+                   ! Scalar property.
+                   if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 ))            deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+                   if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) then
+                      allocate(self%doubleProperty(doubleProperty+i)%scalar(          self%doubleBufferSize))
+                   end if
+                   self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
+                case (1)
+                   ! Rank-1 array property.
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%scalar))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
+                      shape_=doubleProperties(i)%shape()
+                      if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+                      deallocate(shape_)
+                   end if
+                   if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
+                      shape_=doubleProperties (i)%shape()
+                      allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),self%doubleBufferSize))
+                      deallocate(shape_)
+                   end if
+                   self%doubleProperty (doubleProperty +i)%rank1 (:,self%doubleBufferCount )=doubleProperties(i)
+                case (-1)
+                   ! Rank-1 list property
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%scalar     ))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%rank1      ))             deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+                   if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
+                   if (associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                      shape_=doubleProperties(i)%shape()
+                      if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
+                      deallocate(shape_)
+                   end if
+                   if (.not.associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                      shape_=doubleProperties(i)%shape()
+                      allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(shape_(1)))
+                      deallocate(shape_)
+                   end if
+                   self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row=doubleProperties(i)
+                case (-2)
+                   ! Rank-2 list property
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%scalar     ))             deallocate(self%doubleProperty (doubleProperty +i)%scalar     )
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%rank1      ))             deallocate(self%doubleProperty (doubleProperty +i)%rank1      )
+                   if (     allocated(self%doubleProperty(doubleProperty +i)%rank1VarLen))             deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen)
+                   if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank2VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen(self%doubleBufferSize))
+                   if (associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
+                      shape_=doubleProperties(i)%shape()
+                      if     (                                                                                                            &
+                           &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=1) /= shape_(1) &
+                           &  .or.                                                                                                        &
+                           &   size(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row,dim=2) /= shape_(2) &
+                           & ) deallocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)
+                      deallocate(shape_)
+                   end if
+                   if (.not.associated(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row)) then
+                      shape_=doubleProperties(i)%shape()
+                      allocate(self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row(shape_(1),shape_(2)))
+                      deallocate(shape_)
+                   end if
+                   self%doubleProperty (doubleProperty +i)%rank2VarLen (self%doubleBufferCount )%row=doubleProperties(i)
+                case default
+                   call Error_Report('unsupported rank for output property'//{introspection:location})
+                end select
+             end do
+             deallocate(doubleProperties)
+             doubleProperty                                                            =+doubleProperty                                                     &
+                  &                                                                     +extractor_     %elementCount(elementTypeDouble,     time         )
+             integerProperties =extractor_%extractInteger (node,time,instance,integerRanks)
+             do i=1,extractor_%elementCount(elementTypeInteger ,time)
+                select case (integerRanks(i))
+                case (0)
+                   ! Scalar property.
+                   if (     allocated(self%integerProperty(integerProperty+i)%rank1 ))            deallocate(self%integerProperty(integerProperty+i)%rank1 )
+                   if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) then
+                      allocate(self%integerProperty(integerProperty+i)%scalar(          self%integerBufferSize))
+                   end if
+                   self%integerProperty (integerProperty+i)%scalar(self%integerBufferCount  )=integerProperties(i)
+                case (1)
+                   ! Rank-1 array property.
+                   if (     allocated(self%integerProperty(integerProperty+i)%scalar))             deallocate(self%integerProperty(integerProperty+i)%scalar)
+                   if (     allocated(self%integerProperty(integerProperty+i)%rank1 )) then
+                      shape_=integerProperties(i)%shape()
+                      if (size(self%integerProperty(integerProperty+i)%rank1,dim=1) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1)
+                      deallocate(shape_)
+                   end if
+                   if (.not.allocated(self%integerProperty(integerProperty+i)%rank1)) then
+                      shape_=integerProperties(i)%shape()
+                      allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),self%integerBufferSize))
+                      deallocate(shape_)
+                   end if
+                   self%integerProperty (integerProperty+i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
+                case (-1)
+                   ! Rank-1 list property
+                   if (     allocated(self%integerProperty(integerProperty+i)%scalar     ))             deallocate(self%integerProperty (integerProperty+i)%scalar)
+                   if (     allocated(self%integerProperty(integerProperty+i)%rank1      ))             deallocate(self%integerProperty (integerProperty+i)%rank1 )
+                   if (.not.allocated(self%integerProperty(integerProperty+i)%rank1VarLen)) allocate(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferSize))
+                   if (associated(self%integerProperty (integerProperty+i)%rank1VarLen (self%integerBufferCount )%row)) then
+                      shape_=integerProperties(i)%shape()
+                      if (size(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount )%row) /= shape_(1)) deallocate(self%integerProperty(integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)
+                      deallocate(shape_)
+                   end if
+                   if (.not.associated(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount)%row)) then
+                      shape_=integerProperties(i)%shape()
+                      allocate(self%integerProperty (integerProperty+i)%rank1VarLen(self%integerBufferCount)%row(shape_(1)))
+                      deallocate(shape_)
+                   end if
+                   self%integerProperty (integerProperty+i)%rank1VarLen (self%integerBufferCount )%row=integerProperties(i)
+                case default
+                   call Error_Report('unsupported rank for output property'//{introspection:location})
+                end select
+             end do
+             deallocate(integerProperties)
+             integerProperty                                                           =+integerProperty                                                    &
+                  &                                                                    +extractor_     %elementCount(elementTypeInteger,     time         )
+             class default
+             call Error_Report('unsupported property extractor class'//{introspection:location})
+          end select
+          ! If buffer is full, extend it.
+          if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
+          if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
+       end do
+    end if
+    ! Perform any extra output tasks.
+    !![
+    <eventHook name="mergerTreeExtraOutput">
+      <callWith>node,indexOutput,node%hostTree,nodePassesFilter,treeLock</callWith>
+    </eventHook>  
+    !!]
     return
   end subroutine standardOutput
   
@@ -707,16 +708,16 @@ contains
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (mergerTree                 ), intent(inout) :: tree
     integer(c_size_t                   ), intent(in   ) :: indexOutput
-    type   (varying_string             )                :: commentText, groupName
+    type   (varying_string             )                :: description, groupName
 
     ! Create a name for the group.
     groupName='mergerTree'
     groupName=groupName//tree%index
     ! Create a comment for the group.
-    commentText='Data for nodes within merger tree ID='
-    commentText=commentText//tree%index
+    description='Data for nodes within merger tree ID='
+    description=description//tree%index
     ! Create a group for the tree.
-    tree%hdf5Group=self%outputGroups(indexOutput)%hdf5Group%openGroup(char(groupName),char(commentText))
+    tree%hdf5Group=self%outputGroups(indexOutput)%hdf5Group%openGroup(char(groupName),char(description))
     ! Add the merger tree weight to the group.
     call tree%hdf5Group%writeAttribute(tree%volumeWeight  ,"volumeWeight"         )
     call tree%hdf5Group%writeAttribute(1.0d0/megaParsec**3,"volumeWeightUnitsInSI")
@@ -995,10 +996,10 @@ contains
        self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(time)
     class is (nodePropertyExtractorList         )
        ! List property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE??? 
+       self%doublePropertyCount =self%doublePropertyCount +1
     class is (nodePropertyExtractorList2D       )
        ! 2D list property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE???
+       self%doublePropertyCount =self%doublePropertyCount +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - simply increment the integer property output count by one.
        self%integerPropertyCount=self%integerPropertyCount+1
@@ -1007,7 +1008,7 @@ contains
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(time)
     class is (nodePropertyExtractorIntegerList  )
        ! Integer list property extractor - simply increment the integer property output count by one.
-       self%integerPropertyCount=self%integerPropertyCount+1  !! AJB HACK  - WHY NOT INCREMENT BY THE ELEMENT COUNT HERE???
+       self%integerPropertyCount=self%integerPropertyCount+1
     class is (nodePropertyExtractorMulti        )
        ! Multi property extractor - increment double and integer property output counts.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
@@ -1246,7 +1247,7 @@ contains
     integer         (c_size_t                   ), intent(in   )               :: indexOutput
     double precision                             , intent(in   )               :: time
     type            (outputGroup                ), allocatable  , dimension(:) :: outputGroupsTemporary
-    type            (varying_string             )                              :: commentText          , groupName
+    type            (varying_string             )                              :: description          , groupName
 
     !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
@@ -1280,11 +1281,11 @@ contains
        groupName='Output'
        groupName=groupName//indexOutput
        ! Create a comment for the group.
-       commentText='Data for output number '
-       commentText=commentText//indexOutput
+       description='Data for output number '
+       description=description//indexOutput
        ! Create a group for the tree.
        !$ call hdf5Access%set()
-       self%outputGroups(indexOutput)%hdf5Group    =self%outputsGroup                       %openGroup(char(groupName),char(commentText)                                   )
+       self%outputGroups(indexOutput)%hdf5Group    =self%outputsGroup                       %openGroup(char(groupName),char(description)                                   )
        self%outputGroups(indexOutput)%nodeDataGroup=self%outputGroups(indexOutput)%hdf5Group%openGroup("nodeData"     ,"Group containing data on all nodes at this output.")
        self%outputGroups(indexOutput)%opened                  =.true.
        self%outputGroups(indexOutput)%integerAttributesWritten=.false.

@@ -22,7 +22,6 @@ Implements a merger tree evolution timestepping class which limits the step the 
 !!}
 
   use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
-  use :: Galactic_Structure            , only : galacticStructureClass
   use :: Numerical_Interpolation       , only : interpolator
   use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
@@ -67,7 +66,6 @@ Implements a merger tree evolution timestepping class which limits the step the 
      class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_         => null()
      class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_     => null()
      class           (starFormationRateSpheroidsClass), pointer                   :: starFormationRateSpheroids_ => null()
-     class           (galacticStructureClass         ), pointer                   :: galacticStructure_          => null()
      integer                                                                      :: historyCount
      double precision                                                             :: timeBegin                            , timeEnd
      double precision                                 , allocatable, dimension(:) :: rateStarFormationDisk                , densityStellarDisk    , &
@@ -104,7 +102,6 @@ contains
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class           (starFormationRateDisksClass    ), pointer       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass), pointer       :: starFormationRateSpheroids_
-    class           (galacticStructureClass         ), pointer       :: galacticStructure_
     integer                                                          :: historyCount
     double precision                                                 :: timeBegin                  , timeEnd, &
          &                                                              ageUniverse
@@ -113,7 +110,6 @@ contains
     <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
-    <objectBuilder class="galacticStructure"          name="galacticStructure_"          source="parameters"/>
     !!]
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !![
@@ -136,18 +132,17 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_)
+    self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"        />
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
-    <objectDestructor name="galacticStructure_"         />
     !!]
     return
   end function historyConstructorParameters
 
-  function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_,galacticStructure_) result(self)
+  function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
     !!}
@@ -160,10 +155,9 @@ contains
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     class           (starFormationRateDisksClass    ), intent(in   ), target :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass), intent(in   ), target :: starFormationRateSpheroids_
-    class           (galacticStructureClass         ), intent(in   ), target :: galacticStructure_
     integer         (c_size_t                       )                        :: timeIndex
     !![
-    <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_, *galacticStructure_"/>
+    <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
 
     ! Allocate storage arrays.
@@ -221,7 +215,6 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"        />
     <objectDestructor name="self%starFormationRateDisks_"    />
     <objectDestructor name="self%starFormationRateSpheroids_"/>
-    <objectDestructor name="self%galacticStructure_"         />
     !!]
     return
   end subroutine historyDestructor
@@ -271,11 +264,12 @@ contains
     !!{
     Store various properties in global arrays.
     !!}
-    use            :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
+    use            :: Galactic_Structure_Options, only : componentTypeDisk    , componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
           &                                              massTypeStellar
     use            :: Error                     , only : Error_Report
-    use            :: Galacticus_Nodes          , only : mergerTree       , nodeComponentBasic  , nodeComponentDisk    , nodeComponentSpheroid, &
-          &                                              treeNode
+    use            :: Galacticus_Nodes          , only : mergerTree           , nodeComponentBasic  , nodeComponentDisk    , nodeComponentSpheroid, &
+         &                                               treeNode
+    use            :: Mass_Distributions        , only : massDistributionClass
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     implicit none
     class           (*                            ), intent(inout)          :: self
@@ -285,9 +279,12 @@ contains
     class           (nodeComponentBasic           )               , pointer :: basic
     class           (nodeComponentDisk            )               , pointer :: disk
     class           (nodeComponentSpheroid        )               , pointer :: spheroid
+    class           (massDistributionClass        )               , pointer :: massDistributionHotHalo_    , massDistributionGaseous_        , &
+         &                                                                     massDistributionStellarDisk_, massDistributionStellarSpheroid_, &
+         &                                                                     massDistributionStellar_
     integer         (c_size_t                     )                         :: timeIndex
-    double precision                                                        :: rateStarFormationDisk    , massHotGas, &
-         &                                                                     rateStarFormationSpheroid, time
+    double precision                                                        :: rateStarFormationDisk        , massHotGas, &
+         &                                                                     rateStarFormationSpheroid    , time
     !$GLC attributes unused :: deadlockStatus
 
     select type (self)
@@ -309,42 +306,57 @@ contains
        rateStarFormationSpheroid=self%starFormationRateSpheroids_%rate(node)
        ! Accumulate the properties.
        ! Star formation rate:
-       self%rateStarFormation                       (timeIndex)=+  self                   %rateStarFormation        (timeIndex                                                        ) &
-            &                                                   +(+rateStarFormationDisk+rateStarFormationSpheroid)                                                                     &
-            &                                                   *  tree                   %volumeWeight
-       self%rateStarFormationDisk                   (timeIndex)=+  self                   %rateStarFormationDisk    (timeIndex                                                        ) &
-            &                                                   +  rateStarFormationDisk                                                                                                &
-            &                                                   *  tree                   %volumeWeight
-       self%rateStarFormationSpheroid               (timeIndex)=+  self                   %rateStarFormationSpheroid(timeIndex                                                        ) &
-            &                                                   +                        rateStarFormationSpheroid                                                                      &
-            &                                                   *  tree                   %volumeWeight
+       self%rateStarFormation                       (timeIndex) =  +  self                   %rateStarFormation        (timeIndex                                                        ) &
+            &                                                      +(+rateStarFormationDisk+rateStarFormationSpheroid)                                                                     &
+            &                                                      *  tree                   %volumeWeight
+       self%rateStarFormationDisk                   (timeIndex) =  +  self                   %rateStarFormationDisk    (timeIndex                                                        ) &
+            &                                                      +  rateStarFormationDisk                                                                                                &
+            &                                                      *  tree                   %volumeWeight
+       self%rateStarFormationSpheroid               (timeIndex) =  +  self                   %rateStarFormationSpheroid(timeIndex                                                        ) &
+            &                                                      +                          rateStarFormationSpheroid                                                                    &
+            &                                                      *  tree                   %volumeWeight
        ! Stellar densities.
-       self%densityStellar                          (timeIndex)=+  self                   %densityStellar           (timeIndex                                                        ) &
-            &                                                   +  self%galacticStructure_%massEnclosed             (node,                                    massType=massTypeStellar) &
-            &                                                   *  tree                   %volumeWeight
-       self%densityStellarDisk                      (timeIndex)=+  self                   %densityStellarDisk       (timeIndex                                                        ) &
-            &                                                   +  self%galacticStructure_%massEnclosed             (node,componentType=componentTypeDisk    ,massType=massTypeStellar) &
-            &                                                   *  tree                   %volumeWeight
-       self%densityStellarSpheroid                  (timeIndex)=+  self                   %densityStellarSpheroid   (timeIndex                                                        ) &
-            &                                                   +  self%galacticStructure_%massEnclosed             (node,componentType=componentTypeSpheroid,massType=massTypeStellar) &
-            &                                                   *  tree                   %volumeWeight
-
+       massDistributionStellar_                                 =>    node                            %massDistribution      (                                    massType=massTypeStellar)
+       massDistributionStellarDisk_                             =>    node                            %massDistribution      (componentType=componentTypeDisk    ,massType=massTypeStellar)
+       massDistributionStellarSpheroid_                         =>    node                            %massDistribution      (componentType=componentTypeSpheroid,massType=massTypeStellar)
+       self%densityStellar                          (timeIndex) =  +  self                            %densityStellar        (timeIndex                                                   ) &
+            &                                                      +  massDistributionStellar_        %massTotal             (                                                            ) &
+            &                                                      *  tree                            %volumeWeight
+       self%densityStellarDisk                      (timeIndex) =  +  self                            %densityStellarDisk    (timeIndex                                                   ) &
+            &                                                      +  massDistributionStellarDisk_    %massTotal             (                                                            ) &
+            &                                                      *  tree                            %volumeWeight
+       self%densityStellarSpheroid                  (timeIndex) =  +  self                            %densityStellarSpheroid(timeIndex                                                   ) &
+            &                                                      +  massDistributionStellarSpheroid_%massTotal             (                                                            ) &
+            &                                                      *  tree                            %volumeWeight
+       !![
+       <objectDestructor name="massDistributionStellar_"        />
+       <objectDestructor name="massDistributionStellarDisk_"    />
+       <objectDestructor name="massDistributionStellarSpheroid_"/>
+       !!]
        ! Hot gas density.
-       massHotGas                                              =+  self%galacticStructure_%massEnclosed             (node,componentType=componentTypeHotHalo                          )
-       self%densityHotHaloGas                       (timeIndex)=+  self                   %densityHotHaloGas        (timeIndex                                                        ) &
-            &                                                   +massHotGas                                                                                                             &
-            &                                                   *  tree                   %volumeWeight
+       massDistributionHotHalo_                                 =>    node                            %massDistribution      (componentType=componentTypeHotHalo                          )
+       massHotGas                                               =  +  massDistributionHotHalo_        %massTotal             (                                                            )
+       self%densityHotHaloGas                       (timeIndex) =  +  self                            %densityHotHaloGas     (timeIndex                                                   ) &
+            &                                                      +                                   massHotGas                                                                           &
+            &                                                      *  tree                            %volumeWeight
+       !![
+       <objectDestructor name="massDistributionHotHalo_"/>
+       !!]
        ! Galactic gas density.
-       self%densityColdGas                          (timeIndex)=+  self                   %densityColdGas           (timeIndex                                                        ) &
-            &                                                   +(                                                                                                                      &
-            &                                                     +self%galacticStructure_%massEnclosed             (node,massType=massTypeGaseous                                    ) &
-            &                                                     -massHotGas                                                                                                           &
-            &                                                    )                                                                                                                      &
-            &                                                   *tree                     %volumeWeight
+       massDistributionGaseous_                                 =>    node                            %massDistribution      (                                    massType=massTypeGaseous)
+       self%densityColdGas                          (timeIndex) =  +  self                            %densityColdGas        (timeIndex                                                   ) &
+            &                                                      +(                                                                                                                       &
+            &                                                        +massDistributionGaseous_        %massTotal             (                                                            ) &
+            &                                                        -massHotGas                                                                                                            &
+            &                                                       )                                                                                                                       &
+            &                                                      *  tree                            %volumeWeight
+       !![
+       <objectDestructor name="massDistributionGaseous_"/>
+       !!]
        ! Node density
-       if (.not.node%isSatellite()) self%densityNode(timeIndex)=+  self                   %densityNode              (timeIndex                                                        ) &
-            &                                                   +  basic                  %mass                     (                                                                 ) &
-            &                                                   *  tree                   %volumeWeight
+       if (.not.node%isSatellite()) self%densityNode(timeIndex)=+    self                             %densityNode           (timeIndex                                                   ) &
+            &                                                   +    basic                            %mass                  (                                                            ) &
+            &                                                   *    tree                             %volumeWeight
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

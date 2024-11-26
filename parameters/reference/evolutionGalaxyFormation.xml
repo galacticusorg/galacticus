@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Reference subhalo orbits model -->
 <parameters>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <formatVersion>2</formatVersion>
   
   <!-- Component selection -->
@@ -28,6 +28,7 @@
     <efficiencyStrippingOutflow  value="0.1"  />
     <trackStrippedGas            value="true" />
   </componentHotHalo>
+  <componentPosition          value="null"    />
   <componentSatellite         value="orbiting"/>
   <componentSpheroid          value="standard" >
     <ratioAngularMomentumScaleRadius value="0.5"   />
@@ -116,9 +117,7 @@
   <!-- Star formation rate options -->
   <starFormationRateDisks               value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006"             >
-    <assumeMonotonicSurfaceDensity value="true"/>
-    <assumeExponentialDisk         value="true"/>
-    <useTabulation                 value="true"/>
+    <useTabulation value="true"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">

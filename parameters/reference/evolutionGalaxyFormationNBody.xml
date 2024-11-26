@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Reference subhalo orbits model -->
 <parameters>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <formatVersion>2</formatVersion>
   
   <!-- Component selection -->
@@ -28,7 +28,8 @@
     <efficiencyStrippingOutflow  value="0.1"  />
     <trackStrippedGas            value="true" />
   </componentHotHalo>
-  <componentPosition          value="cartesian"/>
+  <componentPosition          value="null"      active="[mergerTreeConstructor] == build"/>
+  <componentPosition          value="cartesian" active="[mergerTreeConstructor] == read" />
   <componentSatellite         value="preset"   />
   <componentSpheroid          value="standard" >
     <ratioAngularMomentumScaleRadius value="0.5"   />
@@ -106,9 +107,7 @@
   <!-- Star formation rate options -->
   <starFormationRateDisks               value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006"             >
-    <assumeMonotonicSurfaceDensity value="true"/>
-    <assumeExponentialDisk         value="true"/>
-    <useTabulation                 value="true"/>
+    <useTabulation value="true"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">
@@ -206,11 +205,12 @@
       <fractionMassFormation value="0.5"/>
     </nodeOperator>
     <!-- Position interpolation -->
-    <nodeOperator value="positionInterpolated">
-      <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
+    <nodeOperator value="positionInterpolated" active="[componentPosition] == cartesian">
+      <wrapPeriodic value="false"/>	<!-- Do not wrap interpolated positions back into the box - this is not needed as we replicate the box. -->
+      <lengthBox    value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
     </nodeOperator>
     <!-- Heuristic analysis -->
-    <nodeOperator value="assemblyHistoryHeuristics">
+    <nodeOperator value="assemblyHistoryHeuristics" active="[mergerTreeConstructor] == read">
       <exponentGrowth value="100.0"/>
       <sigmaThreshold value="5.0"/>
       <nbodyHaloMassError value="trenti2010">

@@ -914,7 +914,7 @@ contains
     galacticusScaleRadiiAvailable=                        &
          &  self%forestHalos%hasDataset("halfMassRadius") &
          & .or.                                           &
-         &  self%forestHalos%hasDataset("position"      )
+         &  self%forestHalos%hasDataset("scaleRadius"   )
     !$ call hdf5Access%unset()
     return
   end function galacticusScaleRadiiAvailable

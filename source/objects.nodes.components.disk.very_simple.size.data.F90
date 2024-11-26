@@ -25,45 +25,12 @@ module Node_Component_Disk_Very_Simple_Size_Data
   !!{
   Stores data for the very simple size disk node component.
   !!}
-  use :: Kind_Numbers      , only : kind_int8
   use :: Mass_Distributions, only : massDistributionClass
   implicit none
   public
 
-  ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8  )               :: lastUniqueID                      =-1
-  !$omp threadprivate(lastUniqueID)
-  ! Records of previously computed and stored quantities.
-  logical                                          :: surfaceDensityCentralGasComputed  =.false., surfaceDensityCentralStellarComputed=.false., &
-       &                                              surfaceDensityCentralTotalComputed=.false.
-  !$omp threadprivate(surfaceDensityCentralGasComputed,surfaceDensityCentralStellarComputed,surfaceDensityCentralTotalComputed)
-  double precision                                 :: surfaceDensityCentralGas                  , surfaceDensityCentralStellar                 , &
-       &                                              surfaceDensityCentralTotal
-  !$omp threadprivate(surfaceDensityCentralGas,surfaceDensityCentralStellar,surfaceDensityCentralTotal)
-  logical                                          :: radiusScaleDiskComputed
-  !$omp threadprivate(radiusScaleDiskComputed)
-  double precision                                 :: radiusScaleDisk
-  !$omp threadprivate(radiusScaleDisk)
-
-  ! The mass distribution object.
-  class           (massDistributionClass), pointer :: diskMassDistribution
-  !$omp threadprivate(diskMassDistribution)
-
-contains
-
-  subroutine Node_Component_Disk_Very_Simple_Size_Reset(uniqueID)
-    !!{
-    Reset calculations for the very simple size disk component.
-    !!}
-    implicit none
-    integer(kind=kind_int8), intent(in   ) :: uniqueID
-
-    radiusScaleDiskComputed             =.false.
-    surfaceDensityCentralGasComputed    =.false.
-    surfaceDensityCentralStellarComputed=.false.
-    surfaceDensityCentralTotalComputed  =.false.
-    lastUniqueID                        =uniqueID
-    return
-  end subroutine Node_Component_Disk_Very_Simple_Size_Reset
+  ! The mass distribution objects.
+  class(massDistributionClass), pointer :: massDistributionStellar_, massDistributionGas_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_)
 
 end module Node_Component_Disk_Very_Simple_Size_Data

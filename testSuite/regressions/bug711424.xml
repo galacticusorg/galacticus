@@ -5,7 +5,7 @@
 <!-- 01-February-2011 -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <cosmologyParameters value="simple">
     <OmegaMatter value="0.2725"/>
     <OmegaBaryon value="0.0455"/>
@@ -229,7 +229,7 @@
   </outputTimes>
 
   <coolingRadius value="simple"/>
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <galacticStructureSolver value="equilibrium"/>
   <mergerTreeConstructor value="build">
     <treeBeginAt value="1"/>

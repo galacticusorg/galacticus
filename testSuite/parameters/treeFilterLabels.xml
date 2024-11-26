@@ -2,7 +2,7 @@
 <!-- Dark matter subhalo evolution model -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <verbosityLevel value="working"/>
 
@@ -228,7 +228,6 @@
       <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
     </virialOrbit>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Orbiting model of satellites -->
   <!-- Values taken from Yang et al. (2020) for their gamma=0 case using the Caterpillar simulations as calibration target -->

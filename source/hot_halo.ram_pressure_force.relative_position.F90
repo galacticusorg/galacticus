@@ -22,7 +22,6 @@
   !!}
 
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
-  use :: Galactic_Structure         , only : galacticStructureClass
 
   !![
   <hotHaloRamPressureForce name="hotHaloRamPressureForceRelativePosition">
@@ -43,7 +42,6 @@
      !!}
      private
      class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
-     class(galacticStructureClass      ), pointer :: galacticStructure_       => null()
    contains
      final     ::          relativePositionDestructor
      procedure :: force => relativePositionForce
@@ -68,22 +66,19 @@ contains
     type (hotHaloRamPressureForceRelativePosition)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(hotHaloMassDistributionClass           ), pointer       :: hotHaloMassDistribution_
-    class(galacticStructureClass                 ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
-    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=hotHaloRamPressureForceRelativePosition(hotHaloMassDistribution_,galacticStructure_)
+    self=hotHaloRamPressureForceRelativePosition(hotHaloMassDistribution_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloMassDistribution_"/>
-    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function relativePositionConstructorParameters
 
-  function relativePositionConstructorInternal(hotHaloMassDistribution_,galacticStructure_) result(self)
+  function relativePositionConstructorInternal(hotHaloMassDistribution_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily relativePosition} hot halo ram pressure force class.
     !!}
@@ -93,9 +88,8 @@ contains
     implicit none
     type (hotHaloRamPressureForceRelativePosition)                        :: self
     class(hotHaloMassDistributionClass           ), intent(in   ), target :: hotHaloMassDistribution_
-    class(galacticStructureClass                 ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*hotHaloMassDistribution_, *galacticStructure_"/>
+    <constructorAssign variables="*hotHaloMassDistribution_"/>
     !!]
 
     ! Ensure that required methods are supported.
@@ -128,7 +122,6 @@ contains
 
     !![
     <objectDestructor name="self%hotHaloMassDistribution_"/>
-    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine relativePositionDestructor
@@ -137,17 +130,22 @@ contains
     !!{
     Return a ram pressure force due to the hot halo based on orbital position within the host halo.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentBasic
-    use :: Vectors         , only : Vector_Magnitude
+    use :: Galacticus_Nodes          , only : nodeComponentPosition, nodeComponentBasic
+    use :: Vectors                   , only : Vector_Magnitude
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Coordinates               , only : coordinateSpherical  , assignment(=)
+    use :: Galactic_Structure_Options, only : componentTypeHotHalo , massTypeGaseous
     implicit none
     class           (hotHaloRamPressureForceRelativePosition), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
-    class           (nodeComponentPosition                  ), pointer       :: position       , positionHost
-    class           (nodeComponentBasic                     ), pointer       :: basic          , basicPrevious   , &
-         &                                                                      basicCurrent   , basicHost
-    type            (treeNode                               ), pointer       :: nodeHost       , nodeHostPrevious, &
+    class           (nodeComponentPosition                  ), pointer       :: position         , positionHost
+    class           (nodeComponentBasic                     ), pointer       :: basic            , basicPrevious   , &
+         &                                                                      basicCurrent     , basicHost
+    type            (treeNode                               ), pointer       :: nodeHost         , nodeHostPrevious, &
          &                                                                      nodeHostCurrent
-    double precision                                                         :: radiusRelative , velocityRelative
+    class           (massDistributionClass                  ), pointer       :: massDistribution_
+    type            (coordinateSpherical                    )                :: coordinates
+    double precision                                                         :: radiusRelative   , velocityRelative
 
     ! Find the host node. Seek the descendant of the node closest in time to our satellite node. This is necessary as satellites
     ! can evolve ahead of their hosts.
@@ -183,8 +181,13 @@ contains
     ! Compute orbital position and velocity.
     radiusRelative   =  +Vector_Magnitude(position%position()-positionHost%position())
     velocityRelative =  +Vector_Magnitude(position%velocity()-positionHost%velocity())
-    ! Find the ram pressure force at this orbital radius.
-    force                =  +self%hotHaloMassDistribution_%density        (nodeHost,radiusRelative)    &
-         &                  *                              velocityRelative                        **2
+    ! Find the ram pressure force this orbital radius.
+    coordinates       =  [radiusRelative,0.0d0,0.0d0]
+    massDistribution_ =>  nodeHost         %massDistribution(componentTypeHotHalo,massTypeGaseous)
+    force             =  +massDistribution_%density         (coordinates                         )    &
+         &               *velocityRelative                                                        **2
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function relativePositionForce

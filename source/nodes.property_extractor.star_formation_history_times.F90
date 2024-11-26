@@ -22,7 +22,8 @@
   !!}
   
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-     
+  use :: Star_Formation_Histories  , only : starFormationHistoryClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes">
     <description>A property extractor class for the star formation history tabulation times of a component.</description>
@@ -33,8 +34,10 @@
      A property extractor class for the star formation history tabulation times of a component.
      !!}
      private
-     type(enumerationComponentTypeType) :: component
+     class(starFormationHistoryClass   ), pointer :: starFormationHistory_ => null()
+     type (enumerationComponentTypeType)          :: component
    contains
+     final     ::                 starFormationHistoryTimesDestructor
      procedure :: elementCount => starFormationHistoryTimesElementCount
      procedure :: extract      => starFormationHistoryTimesExtract
      procedure :: names        => starFormationHistoryTimesNames
@@ -59,9 +62,10 @@ contains
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
     implicit none
-    type(nodePropertyExtractorStarFormationHistoryTimes)                :: self
-    type(inputParameters                               ), intent(inout) :: parameters
-    type(varying_string                                )                :: component
+    type (nodePropertyExtractorStarFormationHistoryTimes)                :: self
+    type (inputParameters                               ), intent(inout) :: parameters
+    class(starFormationHistoryClass                     ), pointer       :: starFormationHistory_
+    type (varying_string                                )                :: component
     
     !![
     <inputParameter>
@@ -69,25 +73,28 @@ contains
       <source>parameters</source>
       <description>The component from which to extract star formation history.</description>
     </inputParameter>
+    <objectBuilder class="starFormationHistory" name="starFormationHistory_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorStarFormationHistoryTimes(enumerationComponentTypeEncode(char(component),includesPrefix=.false.))
+    self=nodePropertyExtractorStarFormationHistoryTimes(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),starFormationHistory_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationHistory_"/>
     !!]
     return
   end function starFormationHistoryTimesConstructorParameters
 
-  function starFormationHistoryTimesConstructorInternal(component) result(self)
+  function starFormationHistoryTimesConstructorInternal(component,starFormationHistory_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationHistoryTimes} property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
     use :: Error                     , only : Error_Report
     implicit none
-    type(nodePropertyExtractorStarFormationHistoryTimes)                :: self
-    type(enumerationComponentTypeType                  ), intent(in   ) :: component
+    type (nodePropertyExtractorStarFormationHistoryTimes)                        :: self
+    type (enumerationComponentTypeType                  ), intent(in   )         :: component
+    class(starFormationHistoryClass                     ), intent(in   ), target :: starFormationHistory_
     !![
-    <constructorAssign variables="component"/>
+    <constructorAssign variables="component, *starFormationHistory_"/>
     !!]
     
     if     (                                                                                                    &
@@ -99,6 +106,19 @@ contains
          & ) call Error_Report("only 'disk', 'spheroid' and NSC components are supported"//{introspection:location})    
     return
   end function starFormationHistoryTimesConstructorInternal
+
+  subroutine starFormationHistoryTimesDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily starFormationHistoryTime} property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%starFormationHistory_"/>
+    !!]
+    return
+  end subroutine starFormationHistoryTimesDestructor
 
   integer function starFormationHistoryTimesElementCount(self)
     !!{
@@ -119,15 +139,16 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
     use :: Histories                 , only : history
     implicit none
-    double precision                                                , dimension(:,: ), allocatable :: starFormationHistoryTimesExtract
-    class           (nodePropertyExtractorStarFormationHistoryTimes), intent(inout)                :: self
-    type            (treeNode                                      ), intent(inout)                :: node
-    type            (multiCounter                                  ), intent(inout)  , optional    :: instance
-    class           (nodeComponentDisk                             )                 , pointer     :: disk
-    class           (nodeComponentSpheroid                         )                 , pointer     :: spheroid
-    class           (nodeComponentNSC                              )                 , pointer     :: NSC
-    type            (history                                       )                               :: starFormationHistory
-    !$GLC attributes unustarFormationHistoryTimes :: instance
+    double precision                                                , dimension(:,:), allocatable :: starFormationHistoryTimesExtract
+    class           (nodePropertyExtractorStarFormationHistoryTimes), intent(inout)               :: self
+    type            (treeNode                                      ), intent(inout)               :: node
+    type            (multiCounter                                  ), intent(inout) , optional    :: instance
+    class           (nodeComponentDisk                             )                , pointer     :: disk
+    class           (nodeComponentSpheroid                         )                , pointer     :: spheroid
+    class           (nodeComponentNSC                              )                , pointer     :: NSC
+    type            (history                                       )                              :: starFormationHistory
+    double precision                                                , dimension(:  ), allocatable :: times 
+    !$GLC attributes unused :: instance
 
     ! Get the relevant star formation history.
     select case (self%component%ID)
@@ -142,10 +163,11 @@ contains
        starFormationHistory =  NSC     %starFormationHistory()
     end select
     if (starFormationHistory%exists()) then
-       allocate(starFormationHistoryTimesExtract(size(starFormationHistory%time),1))
-       starFormationHistoryTimesExtract(:,1)=starFormationHistory%time
+       times=self%starFormationHistory_%times(node=node,starFormationHistory=starFormationHistory,allowTruncation=.true.)
+       allocate(starFormationHistoryTimesExtract(size(times),1))
+       starFormationHistoryTimesExtract(:,1)=times
     else
-       allocate(starFormationHistoryTimesExtract(0                              ,1))
+       allocate(starFormationHistoryTimesExtract(0          ,1))
     end if
     return
   end function starFormationHistoryTimesExtract

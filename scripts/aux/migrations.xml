@@ -204,6 +204,27 @@
       <name new="fractionAngularMomentumRetainedDisk"/>
     </translation>
   </migration>
+  <migration commit="165490f4968c699f7e5bb73ef60bcb7e626f51e6">
+    <translation xpath="//starFormationHistory[@value='adaptive']/countOutputBuffer[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//starFormationHistory[@value='inSitu']/countOutputBuffer[@value]">
+      <remove/>
+    </translation>
+  </migration>
+  <migration commit="e77271d6b878035b124c22fed8169ec844a72316">
+    <translation xpath="//galacticStructure[@value='standard']">
+      <remove/>
+    </translation>
+  </migration>
+  <migration commit="e2cfe28923c9be574d334dd2f6dbe8b2e086a926">
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/assumeMonotonicSurfaceDensity[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']//assumeExponentialDisk[@value]">
+      <remove/>
+    </translation>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

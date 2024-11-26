@@ -4,7 +4,7 @@
      initialization. Previously, this lead to a bug in which the Ludlow model entered into an infinite recursion. -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="null">
@@ -298,9 +298,8 @@
     </accretionDisksADAF>
   </accretionDisks>
   <!-- Black hole options -->
-  <blackHoleBinaryMergers value="rezzolla2008"/>
+  <blackHoleBinaryMerger value="rezzolla2008"/>
   <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
   <!-- Galaxy merger options -->
   <virialOrbit value="isotropic">
     <virialOrbit value="jiang2014"/>

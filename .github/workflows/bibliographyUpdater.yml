@@ -14,9 +14,13 @@ defaults:
 jobs:
   Update-Bibliography:
     runs-on: ubuntu-latest
+    env: 
+      appid: ${{ secrets.DEPLOY_APP_ID }}
+      adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: tibdex/github-app-token@v2
+        if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app_id: ${{ secrets.DEPLOY_APP_ID }}
@@ -29,10 +33,11 @@ jobs:
           sudo apt -y update
           sudo apt install -y libwww-curl-perl libjson-pp-perl perl-doc libtext-bibtex-perl
       - name: Update the bibliography
-        id: depup
+        if: ${{ env.adstoken != '' }}
         run: |
           ./scripts/aux/bibliographyUpdate.pl ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
+        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
         uses: peter-evans/create-pull-request@v7
         with:
           title: "fix: Update bibliography records"

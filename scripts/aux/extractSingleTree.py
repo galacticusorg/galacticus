@@ -18,9 +18,10 @@ def restricted_integer(x):
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='extractSingleTree.py',description='Extract a single forest from a Galacticus merger tree file to its own file')
-parser.add_argument('fromFile'                           )
-parser.add_argument('toFile'                             )
-parser.add_argument('forestIndex',type=restricted_integer)
+parser.add_argument('fromFile'                                                                                                                                        )
+parser.add_argument('toFile'                                                                                                                                          )
+parser.add_argument('index'      ,type  =restricted_integer                                                                                                           )
+parser.add_argument('--indexType',action='store'           ,default="forest",choices=["forest","node"],help='indicates if the provided index is of a forest or a node')
 args = parser.parse_args()
 
 # Remove the output file.
@@ -41,14 +42,28 @@ print("Locating forest...")
 forestIndex = fromFile[forestName][forestName     ][:]
 firstNode   = fromFile[forestName]['firstNode'    ][:]
 nodeCount   = fromFile[forestName]['numberOfNodes'][:]
-selected    = forestIndex == args.forestIndex
-if len(np.nonzero(selected)) < 1:
-    sys.exit("failed to find request forest")
-if len(np.nonzero(selected)) > 1:
-    sys.exit("found multiple matching forests")
-start       = firstNode[np.nonzero(selected)]
-count       = nodeCount[np.nonzero(selected)]
-end         = start+count
+if args.indexType == "forest":
+    forestIndexSelected = args.index
+    selected            = forestIndex == args.index
+    if np.count_nonzero(selected) < 1:
+        sys.exit("failed to find requested forest")
+    if np.count_nonzero(selected) > 1:
+        sys.exit("found multiple matching forests")
+    start = firstNode[np.nonzero(selected)]
+    count = nodeCount[np.nonzero(selected)]
+elif args.indexType == "node":
+    nodeIndex    = fromFile[halosName]['nodeIndex'][:]
+    selectedNode = nodeIndex == args.index
+    if np.count_nonzero(selectedNode) < 1:
+        sys.exit("failed to find requested node")
+    if np.count_nonzero(selectedNode) > 1:
+        sys.exit("found multiple matching nodes")
+    nodePosition        = np.asarray(selectedNode             ).nonzero()[0][ 0]
+    forestPosition      = np.asarray(firstNode <= nodePosition).nonzero()[0][-1]
+    forestIndexSelected = forestIndex[ forestPosition ]
+    start               = firstNode  [[forestPosition]]
+    count               = nodeCount  [[forestPosition]]
+end = start+count
 print("...done")
 
 # Read all halo datasets.
@@ -68,9 +83,9 @@ print("...done")
 
 # Create the forestIndex group.
 toFile.create_group("forestIndex")
-toFile["forestIndex"].create_dataset("forestIndex"  ,data=np.array([args.forestIndex]))
-toFile["forestIndex"].create_dataset("firstNode"    ,data=np.array([               0]))
-toFile["forestIndex"].create_dataset("numberOfNodes",data=                     count  )
+toFile["forestIndex"].create_dataset("forestIndex"  ,data=np.array([forestIndexSelected]))
+toFile["forestIndex"].create_dataset("firstNode"    ,data=np.array([                  0]))
+toFile["forestIndex"].create_dataset("numberOfNodes",data=                        count  )
 
 # Copy the particle data if present.
 if "particleIndexStart" in fromFile[halosName]:

@@ -22,7 +22,6 @@
   !!}
 
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
-  use :: Galactic_Structure                       , only : galacticStructureClass
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2012">
@@ -46,7 +45,6 @@
      !!}
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
-     class           (galacticStructureClass                   ), pointer :: galacticStructure_                    => null()
      double precision                                                     :: nu                                             , mu, &
           &                                                                  beta0
    contains
@@ -73,7 +71,6 @@ contains
     type            (stellarFeedbackOutflowsCreasey2012       )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
-    class           (galacticStructureClass                   ), pointer       :: galacticStructure_
     double precision                                                           :: mu                                   , nu, &
          &                                                                        beta0
 
@@ -100,29 +97,26 @@ contains
       <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
     </inputParameter>
     <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
-    <objectBuilder class="galacticStructure"                    name="galacticStructure_"                    source="parameters"/>
     !!]
-    self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_,galacticStructure_)
+    self=stellarFeedbackOutflowsCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
-    <objectDestructor name="galacticStructure_"                   />
     !!]
     return
   end function creasey2012ConstructorParameters
 
-  function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_,galacticStructure_) result(self)
+  function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily creasey2012} stellar feedback class.
     !!}
     implicit none
     type            (stellarFeedbackOutflowsCreasey2012       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
-    class           (galacticStructureClass                   ), intent(in   ), target :: galacticStructure_
     double precision                                           , intent(in   )         :: mu                                   , nu, &
          &                                                                                beta0
     !![
-    <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_, *galacticStructure_"/>
+    <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_"/>
     !!]
 
     return
@@ -137,7 +131,6 @@ contains
 
     !![
     <objectDestructor name="self%starFormationRateSurfaceDensityDisks_"/>
-    <objectDestructor name="self%galacticStructure_"                   />
     !!]
     return
   end subroutine creasey2012Destructor
@@ -153,15 +146,18 @@ contains
     fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\normalfont \ttfamily [beta0]},
     $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
     !!}
-    use :: Galacticus_Nodes        , only : nodeComponentDisk                     , nodeComponentSpheroid
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator
-    use :: Stellar_Feedback        , only : feedbackEnergyInputAtInfinityCanonical
+    use :: Galactic_Structure_Options, only : componentTypeDisk                     , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+    use :: Galacticus_Nodes          , only : nodeComponentDisk                     , nodeComponentSpheroid
+    use :: Mass_Distributions        , only : massDistributionClass
+    use :: Numerical_Constants_Math  , only : Pi
+    use :: Numerical_Integration     , only : integrator
+    use :: Stellar_Feedback          , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (stellarFeedbackOutflowsCreasey2012), intent(inout) :: self
     class           (nodeComponent                     ), intent(inout) :: component
     double precision                                    , intent(in   ) :: rateEnergyInput               , rateStarFormation
     double precision                                    , intent(  out) :: rateOutflowEjective           , rateOutflowExpulsive
+    class           (massDistributionClass             ), pointer       :: massDistributionGaseous       , massDistributionStellar
     double precision                                    , parameter     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
     double precision                                                    :: radiusScale                   , massGas                        , &
          &                                                                 radiusInner                   , radiusOuter                    , &
@@ -190,15 +186,21 @@ contains
     radiusInner=radiusScale*radiusInnerDimensionless
     radiusOuter=radiusScale*radiusOuterDimensionless
     ! Compute the outflow rate.
-    integrator_         =integrator(outflowRateIntegrand,toleranceRelative=1.0d-3)
-    rateOutflowEjective =+2.0d0                                          &
-         &               *Pi                                             &
-         &               *self%beta0                                     &
-         &               *integrator_%integrate(radiusInner,radiusOuter) &
-         &               /rateStarFormation                              &
-         &               *rateEnergyInput                                &
-         &               /feedbackEnergyInputAtInfinityCanonical
-    rateOutflowExpulsive=+0.0d0
+    massDistributionGaseous => component%hostNode%massDistribution(componentType=componentTypeDisk,massType=massTypeGaseous)
+    massDistributionStellar => component%hostNode%massDistribution(componentType=componentTypeDisk,massType=massTypeStellar)
+    integrator_             =  integrator(outflowRateIntegrand,toleranceRelative=1.0d-3)
+    rateOutflowEjective     =  +2.0d0                                          &
+         &                     *Pi                                             &
+         &                     *self%beta0                                     &
+         &                     *integrator_%integrate(radiusInner,radiusOuter) &
+         &                     /rateStarFormation                              &
+         &                     *rateEnergyInput                                &
+         &                     /feedbackEnergyInputAtInfinityCanonical
+    rateOutflowExpulsive    =  +0.0d0
+    !![
+    <objectDestructor name="massDistributionGaseous"/>
+    <objectDestructor name="massDistributionStellar"/>
+    !!]    
     return
 
   contains
@@ -207,29 +209,19 @@ contains
       !!{
       Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
       !!}
-      use :: Galactic_Structure_Options  , only : componentTypeDisk, coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+      use :: Coordinates                 , only : coordinateCylindrical, assignment(=)
       use :: Numerical_Constants_Prefixes, only : mega
       implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: fractionGas      , densitySurfaceRateStarFormation, &
-           &                             densitySurfaceGas, densitySurfaceStellar
+      double precision                       , intent(in   ) :: radius
+      double precision                                       :: fractionGas      , densitySurfaceRateStarFormation, &
+           &                                                    densitySurfaceGas, densitySurfaceStellar
+      type            (coordinateCylindrical)                :: coordinates
 
+      coordinates=[radius,0.0d0,0.0d0]
       ! Get gas surface density.
-      densitySurfaceGas    =self%galacticStructure_%surfaceDensity(                                                            &
-           &                                                                         component%hostNode                      , &
-           &                                                                        [radius                     ,0.0d0,0.0d0], &
-           &                                                       coordinateSystem= coordinateSystemCylindrical             , &
-           &                                                       componentType   = componentTypeDisk                       , &
-           &                                                       massType        = massTypeGaseous                           &
-           &                                                      )
+      densitySurfaceGas    =massDistributionGaseous%surfaceDensity(coordinates)
       ! Get stellar surface density.
-      densitySurfaceStellar=self%galacticStructure_%surfaceDensity(                                                            &
-           &                                                                         component%hostNode                      , &
-           &                                                                        [radius                     ,0.0d0,0.0d0], &
-           &                                                       coordinateSystem= coordinateSystemCylindrical             , &
-           &                                                       componentType   = componentTypeDisk                       , &
-           &                                                       massType        = massTypeStellar                           &
-           &                                                      )
+      densitySurfaceStellar=massDistributionStellar%surfaceDensity(coordinates)
       ! Compute the gas fraction.
       fractionGas=+  densitySurfaceGas     &
            &      /(                       &

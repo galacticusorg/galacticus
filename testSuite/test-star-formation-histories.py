@@ -33,7 +33,7 @@ for sfhType in ( "adaptive", "metallicitySplit" ):
     else:
         print("   ...done")
         print("   Checking for errors...")
-        status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories.log",shell=True)
+        status = subprocess.run("grep -q -i -e fatal -e aborted -e \"task failed\" -e \"Galacticus experienced an error in the GSL library\" outputs/test-star-formation-histories.log",shell=True)
     if status.returncode == 0:
         print("   ...done ("+str(status)+")")
         print("   FAILED: model run (errors):")

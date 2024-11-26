@@ -1169,20 +1169,19 @@ contains
 
   !! Group routines.
 
-  function IO_HDF5_Open_Group(inObject,groupName,commentText,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel) result (groupObject)
+  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel) result (groupObject)
     !!{
     Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
     not provided, will be taken from the stored object name in {\normalfont \ttfamily groupObject}. The location at which to open the group is
     taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , h5gcreate_f , h5gopen_f, h5gset_comment_f, &
-          &                           hsize_t
+    use :: HDF5              , only : HID_T        , h5gcreate_f , h5gopen_f, hsize_t
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
     type     (hdf5Object    )                          :: groupObject
     character(len=*         ), intent(in   )           :: groupName
-    character(len=*         ), intent(in   ), optional :: commentText
+    character(len=*         ), intent(in   ), optional :: comment
     logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
     integer  (hsize_t       ), intent(in   ), optional :: chunkSize
     integer                  , intent(in   ), optional :: compressionLevel
@@ -1225,15 +1224,6 @@ contains
        call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode)
        if (errorCode < 0) then
           message="failed to make group '"//trim(groupName)//"' at "//locationPath
-          call Error_Report(message//inObject%locationReport()//{introspection:location})
-       end if
-    end if
-
-    ! Set the comment for this group.
-    if (present(commentText)) then
-       call h5gset_comment_f(groupObject%objectID,'.',trim(commentText),errorCode)
-       if (errorCode < 0) then
-          message="failed to set comment for group '"//trim(groupName)//"'"
           call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     end if
@@ -1289,6 +1279,9 @@ contains
     else
        groupObject%isOverwritable=groupObject%parentObject%isOverwritable
     end if
+
+    ! Set the comment for this group.
+    if (present(comment) .and. len_trim(comment) > 0 .and. .not.groupObject%hasAttribute('comment')) call groupObject%writeAttribute(trim(comment),'comment')
     return
   end function IO_HDF5_Open_Group
 
@@ -4264,7 +4257,7 @@ attributeValue=trim(attributeValue)
     return
   end function IO_HDF5_Dataset_Rank
 
-  function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(datasetObject)
+  function IO_HDF5_Open_Dataset(inObject,datasetName,comment,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(datasetObject)
     !!{
     Open an dataset in {\normalfont \ttfamily inObject}.
     !!}
@@ -4272,14 +4265,13 @@ attributeValue=trim(attributeValue)
     use :: HDF5              , only : H5P_DATASET_CREATE_F, H5S_UNLIMITED_F      , H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , &
           &                           H5T_NATIVE_INTEGER  , H5T_NATIVE_INTEGER_8 , HID_T               , HSIZE_T           , &
           &                           h5dcreate_f         , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
-          &                           h5gset_comment_f    , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
-          &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f          , h5screate_simple_f, &
-          &                           hsize_t
+          &                           hsize_t             , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
+          &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f          , h5screate_simple_f
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
     implicit none
     type     (hdf5Object    )                                        :: datasetObject
     character(len=*         )              , intent(in   )           :: datasetName
-    character(len=*         )              , intent(in   ), optional :: commentText
+    character(len=*         )              , intent(in   ), optional :: comment
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
     integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType, &
          &                                                              appendDimension
@@ -4338,6 +4330,10 @@ attributeValue=trim(attributeValue)
     else
        appendDimensionActual=1
     end if
+
+    ! Store the name and location of the object.
+    datasetObject%objectName    =trim(datasetName)
+    datasetObject%objectLocation=datasetObject%parentObject%pathTo()
 
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
@@ -4506,24 +4502,11 @@ attributeValue=trim(attributeValue)
        end if
     end if
 
-    ! Set the comment for this dataset.
-    if (present(commentText)) then
-       call h5gset_comment_f(datasetObject%objectID,'.',trim(commentText),errorCode)
-       if (errorCode < 0) then
-          message="failed to set comment for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
-       end if
-    end if
-
     ! Mark this object as open.
     datasetObject%isOpenValue=.true.
 
     ! Mark this object as a file object.
     datasetObject%hdf5ObjectType=hdf5ObjectTypeDataset
-
-    ! Store the name and location of the object.
-    datasetObject%objectName=trim(datasetName)
-    datasetObject%objectLocation=datasetObject%parentObject%pathTo()
 
     ! Mark whether dataset is overwritable.
     if (present(isOverwritable)) then
@@ -4537,6 +4520,9 @@ attributeValue=trim(attributeValue)
     else
        datasetObject%isOverwritable=datasetObject%parentObject%isOverwritable
     end if
+
+    ! Set the comment for this dataset.
+    if (present(comment) .and. len_trim(comment) > 0 .and. .not.datasetObject%hasAttribute('comment')) call datasetObject%writeAttribute(trim(comment),'comment')
     return
   end function IO_HDF5_Open_Dataset
 
@@ -4742,7 +4728,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Assert_Dataset_Type
 
-  subroutine IO_HDF5_Write_Dataset_Integer_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write an integer 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -4753,7 +4739,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: self
-    character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
+    character(len=*         )              , intent(in   ), optional :: comment                   , datasetName
     integer                  , dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
@@ -4817,7 +4803,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
@@ -4913,7 +4899,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_1D
 
-  subroutine IO_HDF5_Write_Dataset_Integer_2D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write an integer 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -4924,7 +4910,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )                , intent(inout)           :: self
-    character(len=*         )                , intent(in   ), optional :: commentText                , datasetName
+    character(len=*         )                , intent(in   ), optional :: comment                    , datasetName
     integer                  , dimension(:,:), intent(in   )           :: datasetValue
     logical                                  , intent(in   ), optional :: appendTo
     integer  (hsize_t       )                , intent(in   ), optional :: chunkSize
@@ -4988,7 +4974,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,2)
@@ -5084,7 +5070,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_2D
 
-  subroutine IO_HDF5_Write_Dataset_Integer_3D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer_3D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write an integer 3-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -5095,7 +5081,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none  
     class    (hdf5Object    )                  , intent(inout)           :: self
-    character(len=*         )                  , intent(in   ), optional :: commentText                , datasetName
+    character(len=*         )                  , intent(in   ), optional :: comment                    , datasetName
     integer                  , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                    , intent(in   ), optional :: appendTo
     integer  (hsize_t       )                  , intent(in   ), optional :: chunkSize
@@ -5159,7 +5145,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,3)
@@ -6439,7 +6425,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Integer8_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer8_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a long integer 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -6451,7 +6437,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )                           , intent(inout)                   :: self
-    character(len=*         )                           , intent(in   ), optional         :: commentText                , datasetName
+    character(len=*         )                           , intent(in   ), optional         :: comment                   , datasetName
     integer  (kind=kind_int8)             , dimension(:), intent(in   )                   :: datasetValue
     logical                                             , intent(in   ), optional         :: appendTo
     integer  (hsize_t       )                           , intent(in   ), optional         :: chunkSize
@@ -6517,7 +6503,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
@@ -6617,7 +6603,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_1D
 
-  subroutine IO_HDF5_Write_Dataset_Integer8_2D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer8_2D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a long integer 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -6629,7 +6615,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )                             , intent(inout)                   :: self
-    character(len=*         )                             , intent(in   ), optional         :: commentText                 , datasetName
+    character(len=*         )                             , intent(in   ), optional         :: comment                     , datasetName
     integer  (kind=kind_int8)             , dimension(:,:), intent(in   )                   :: datasetValue
     logical                                               , intent(in   ), optional         :: appendTo
     integer  (hsize_t       )                             , intent(in   ), optional         :: chunkSize
@@ -6696,7 +6682,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,2)
@@ -6808,7 +6794,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_2D
 
-  subroutine IO_HDF5_Write_Dataset_Integer8_3D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Integer8_3D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a long integer 3-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -6820,7 +6806,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )                               , intent(inout)                   :: self
-    character(len=*         )                               , intent(in   ), optional         :: commentText                , datasetName
+    character(len=*         )                               , intent(in   ), optional         :: comment                    , datasetName
     integer  (kind=kind_int8)             , dimension(:,:,:), intent(in   )                   :: datasetValue
     logical                                                 , intent(in   ), optional         :: appendTo
     integer  (hsize_t       )                               , intent(in   ), optional         :: chunkSize
@@ -6886,7 +6872,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,3)
@@ -8869,7 +8855,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_3D_Array_Allocatable
   
-  subroutine IO_HDF5_Write_Dataset_Double_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a double 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -8880,7 +8866,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class           (hdf5Object    )              , intent(inout)           :: self
-    character       (len=*         )              , intent(in   ), optional :: commentText                , datasetName
+    character       (len=*         )              , intent(in   ), optional :: comment                    , datasetName
     double precision                , dimension(:), intent(in   )           :: datasetValue
     logical                                       , intent(in   ), optional :: appendTo
     integer  (hsize_t       )                     , intent(in   ), optional :: chunkSize
@@ -8944,7 +8930,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,1)
@@ -9789,7 +9775,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_2D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_2D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a double 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -9800,7 +9786,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                , intent(inout)           :: self
-    character       (len=*         )                , intent(in   ), optional :: commentText                 , datasetName
+    character       (len=*         )                , intent(in   ), optional :: comment                     , datasetName
     double precision                , dimension(:,:), intent(in   )           :: datasetValue
     logical                                         , intent(in   ), optional :: appendTo
     integer  (hsize_t       )                       , intent(in   ), optional :: chunkSize
@@ -9865,7 +9851,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
@@ -10727,7 +10713,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_3D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_3D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a double 3-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -10738,7 +10724,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                  , intent(inout)           :: self
-    character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
+    character       (len=*         )                  , intent(in   ), optional :: comment                     , datasetName
     double precision                , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                           , intent(in   ), optional :: appendTo
     integer         (hsize_t       )                  , intent(in   ), optional :: chunkSize
@@ -10803,7 +10789,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
@@ -11503,7 +11489,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_4D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_4D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a double 4-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -11514,7 +11500,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                    , intent(inout)           :: self
-    character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
+    character       (len=*         )                    , intent(in   ), optional :: comment                     , datasetName
     double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue
     logical                                             , intent(in   ), optional :: appendTo
     integer         (hsize_t       )                    , intent(in   ), optional :: chunkSize
@@ -11579,7 +11565,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 4D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
@@ -12279,7 +12265,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_5D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_5D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a double 5-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -12290,7 +12276,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                      , intent(inout)           :: self
-    character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
+    character       (len=*         )                      , intent(in   ), optional :: comment                     , datasetName
     double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                               , intent(in   ), optional :: appendTo
     integer         (hsize_t       )                      , intent(in   ), optional :: chunkSize
@@ -12355,7 +12341,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 5D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
@@ -13054,7 +13040,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_6D(self,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_6D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a double 6-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -13065,7 +13051,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class           (hdf5Object    )                        , intent(inout)           :: self
-    character       (len=*         )                        , intent(in   ), optional :: commentText                 , datasetName
+    character       (len=*         )                        , intent(in   ), optional :: comment                     , datasetName
     double precision                , dimension(:,:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                                 , intent(in   ), optional :: appendTo
     integer         (hsize_t       )                        , intent(in   ), optional :: chunkSize
@@ -13130,7 +13116,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 6D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,6)
@@ -13829,7 +13815,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Character_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Character_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a character 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -13841,7 +13827,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: self
-    character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
+    character(len=*         )              , intent(in   ), optional :: comment                    , datasetName
     character(len=*         ), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
@@ -13918,7 +13904,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeCharacter,datasetDimensions,useDataType&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeCharacter,datasetDimensions,useDataType&
             &=dataTypeID,appendTo =appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
        if (preExisted) call datasetObject%assertDatasetType([dataTypeID],1)
@@ -14021,7 +14007,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_Character_1D
 
-  subroutine IO_HDF5_Write_Dataset_VarString_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_VarString_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a varying string 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -14029,7 +14015,7 @@ attributeValue=trim(attributeValue)
     use :: String_Handling, only : Convert_VarString_To_Char
     implicit none
     class    (hdf5Object    )              , intent(inout)           :: self
-    character(len=*         )              , intent(in   ), optional :: commentText    , datasetName
+    character(len=*         )              , intent(in   ), optional :: comment        , datasetName
     type     (varying_string), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
@@ -14037,7 +14023,7 @@ attributeValue=trim(attributeValue)
     type     (hdf5Object    )              , intent(  out), optional :: datasetReturned
 
     ! Call the character version of this routine to perform the write.
-    call IO_HDF5_Write_Dataset_Character_1D(self,Convert_VarString_To_Char(datasetValue),datasetName,commentText,appendTo&
+    call IO_HDF5_Write_Dataset_Character_1D(self,Convert_VarString_To_Char(datasetValue),datasetName,comment,appendTo&
          &,chunkSize,compressionLevel,datasetReturned)
 
     return
@@ -16051,7 +16037,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_VarDouble_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_VarDouble_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a varying-length double 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -16064,7 +16050,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object    ), intent(inout)                       :: self
-    character       (len=*         ), intent(in   ), optional             :: commentText                , datasetName
+    character       (len=*         ), intent(in   ), optional             :: comment                    , datasetName
     type            (hdf5VarDouble ), intent(in   ), dimension(:)         :: datasetValue
     logical                         , intent(in   ), optional             :: appendTo
     integer         (hsize_t       ), intent(in   ), optional             :: chunkSize
@@ -16131,7 +16117,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_DOUBLE,1)
@@ -16234,7 +16220,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_VarDouble_1D
   
-  subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a varying-length $\times$ varying-length 1D double array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -16247,7 +16233,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object     ), intent(inout)                       :: self
-    character       (len=*          ), intent(in   ), optional             :: commentText                , datasetName
+    character       (len=*          ), intent(in   ), optional             :: comment                    , datasetName
     type            (hdf5VarDouble2D), intent(in   ), dimension(:)         :: datasetValue
     logical                          , intent(in   ), optional             :: appendTo
     integer         (hsize_t        ), intent(in   ), optional             :: chunkSize
@@ -16315,7 +16301,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeVlenVlenDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeVlenVlenDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D vlen-vlen double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_VLEN_DOUBLE,1)
@@ -16425,7 +16411,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D
 
-  subroutine IO_HDF5_Write_Dataset_VarDouble_2D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_VarDouble_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a varying-length double 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -16438,7 +16424,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object    ), intent(inout)                         :: self
-    character       (len=*         ), intent(in   ), optional               :: commentText                , datasetName
+    character       (len=*         ), intent(in   ), optional               :: comment                       , datasetName
     type            (hdf5VarDouble ), intent(in   ), dimension(:,:)         :: datasetValue
     logical                         , intent(in   ), optional               :: appendTo
     integer         (hsize_t       ), intent(in   ), optional               :: chunkSize
@@ -16505,7 +16491,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_DOUBLE,2)
@@ -16992,7 +16978,7 @@ attributeValue=trim(attributeValue)
     return
   end subroutine IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable
   
-  subroutine IO_HDF5_Write_Dataset_VarInteger8_2D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_VarInteger8_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
     Open and write a variable-length integer-8 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
@@ -17005,7 +16991,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object     ), intent(inout)                       :: self
-    character       (len=*          ), intent(in   ), optional             :: commentText                , datasetName
+    character       (len=*          ), intent(in   ), optional             :: comment                    , datasetName
     type            (hdf5VarInteger8), intent(in   ), dimension(:)         :: datasetValue
     logical                          , intent(in   ), optional             :: appendTo
     integer         (hsize_t        ), intent(in   ), optional             :: chunkSize
@@ -17072,7 +17058,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeVlenInteger8,datasetDimensions,appendTo&
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeVlenInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a variable-length 2D integer-8.
        if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_INTEGER8,1)

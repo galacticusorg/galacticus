@@ -19,17 +19,20 @@
 
   !% An implementation of a spectrum postprocessor that keeps only populations in a specified age window.
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorAgeWindow">
-  !#  <description>
-  !#   A stellar population postprocessor class which keeps only emission from populations with ages between {\normalfont \ttfamily [ageMinimum]} and {\normalfont \ttfamily [ageMaximum]}.
-  !#  </description>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorAgeWindow">
+   <description>
+    A stellar population postprocessor class which keeps only emission from populations with ages between {\normalfont \ttfamily [ageMinimum]} and {\normalfont \ttfamily [ageMaximum]}.
+   </description>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorAgeWindow
      !% An ageWindow spectrum postprocessor.
      private
      double precision :: ageMinimum, ageMaximum
    contains
-     procedure :: multiplier => ageWindowMultiplier
+     procedure :: multiplier          => ageWindowMultiplier
+     procedure :: isRedshiftDependent => ageWindowIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorAgeWindow
 
   interface stellarPopulationSpectraPostprocessorAgeWindow
@@ -48,18 +51,20 @@ contains
     type            (inputParameters                               ), intent(inout) :: parameters
     double precision                                                                :: ageMinimum, ageMaximum
 
-    !# <inputParameter>
-    !#   <name>ageMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum age of stellar populations to retain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>ageMaximum</name>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>The maximum age of stellar populations to retain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>ageMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum age of stellar populations to retain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>ageMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>The maximum age of stellar populations to retain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarPopulationSpectraPostprocessorAgeWindow(ageMinimum,ageMaximum)
     return
   end function ageWindowConstructorParameters
@@ -69,8 +74,10 @@ contains
     implicit none
     type            (stellarPopulationSpectraPostprocessorAgeWindow)                :: self
     double precision                                                , intent(in   ) :: ageMinimum, ageMaximum
-    !# <constructorAssign variables="ageMinimum, ageMaximum"/>
-
+    !![
+    <constructorAssign variables="ageMinimum, ageMaximum"/>
+    !!]
+    
     return
   end function ageWindowConstructorInternal
 
@@ -93,3 +100,15 @@ contains
     end if
     return
   end function ageWindowMultiplier
+
+  logical function ageWindowIsRedshiftDependent(self) result(isRedshiftDependent)
+    !!{
+    Return false indicating that the postprocessor is redshift independent.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorAgeWindow), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isRedshiftDependent=.false.
+    return
+  end function ageWindowIsRedshiftDependent

@@ -40,10 +40,10 @@ Contains a module which implements a virial radius output analysis property extr
      radius).
      !!}
      private
-     class  (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class  (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
      class  (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
      class  (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
+     class  (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      logical                                      :: useLastIsolatedTime
    contains
      final     ::                radiusVirialDestructor
@@ -110,8 +110,8 @@ contains
     type   (nodePropertyExtractorRadiusVirial)                        :: self
     class  (cosmologyParametersClass         ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    class  (virialDensityContrastClass       ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
     class  (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
+    class  (virialDensityContrastClass       ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
     logical                                   , intent(in   )         :: useLastIsolatedTime
     !![
     <constructorAssign variables="useLastIsolatedTime, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
@@ -129,9 +129,9 @@ contains
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%cosmologyParameters_"            />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
@@ -163,8 +163,8 @@ contains
          &                                            radius                =     radiusVirialExtract                                               , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                              , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                               , &
-         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                             , &
          &                                            virialDensityContrast_=self%virialDensityContrast_                                            , &
+         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                             , &
          &                                            useLastIsolatedTime   =self%useLastIsolatedTime                                                 &
          &                                           )
     return

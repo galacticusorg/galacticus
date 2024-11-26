@@ -88,6 +88,7 @@ contains
     Internal constructor for the ``starFormationHistory'' output extractor property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Star_Formation_Histories  , only : starFormationHistoryAgesFixedPerOutput
     use :: Error                     , only : Error_Report
     implicit none
     type (nodePropertyExtractorStarFormationHistory)                        :: self
@@ -106,13 +107,13 @@ contains
        <referenceConstruct    isResult="yes" owner="self" nameAssociated="extractor_" object="extractor_" constructor="nodePropertyExtractorStarFormationHistoryMass (component,starFormationHistory_,outputTimes_)"/>
        !!]
     end select
-    if (.not.self%starFormationHistory_%perOutputTabulationIsStatic()) then
+    if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixedPerOutput) then
        allocate(                                                  self%extractors%next           )    
        allocate(nodePropertyExtractorStarFormationHistoryTimes :: self%extractors%next%extractor_)
        select type (extractor_ => self%extractors%next%extractor_)
        type is (nodePropertyExtractorStarFormationHistoryTimes)
           !![
-	  <referenceConstruct isResult="yes" owner="self" nameAssociated="extractor_" object="extractor_" constructor="nodePropertyExtractorStarFormationHistoryTimes(component                                  )"/>
+	  <referenceConstruct isResult="yes" owner="self" nameAssociated="extractor_" object="extractor_" constructor="nodePropertyExtractorStarFormationHistoryTimes(component,starFormationHistory_             )"/>
           !!]
        end select
     end if

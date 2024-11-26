@@ -23,7 +23,6 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
@@ -46,7 +45,6 @@
      private
      class          (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class          (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class          (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      double precision                                    :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
      double precision                                    :: scatter
@@ -77,7 +75,6 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
-    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: scatter              , timescaleMultiplier
 
     if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
@@ -96,19 +93,17 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
+    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function jiang2008ConstructorParameters
 
-  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
+  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Constructor for the \cite{jiang_fitting_2008} merging timescale class.
     !!}
@@ -117,9 +112,8 @@ contains
     double precision                                     , intent(in   )         :: timescaleMultiplier  , scatter
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
+    <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -135,7 +129,6 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
-    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine jiang2008Destructor
@@ -144,15 +137,17 @@ contains
     !!{
     Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
-    use :: Satellite_Orbits, only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentBasic                              , treeNode
+    use :: Mass_Distributions, only : massDistributionClass
+    use :: Satellite_Orbits  , only : Satellite_Orbit_Equivalent_Circular_Orbit_Radius, errorCodeNoEquivalentOrbit, errorCodeOrbitUnbound, errorCodeSuccess
     implicit none
     class           (satelliteMergingTimescalesJiang2008), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
     type            (keplerOrbit                        ), intent(inout) :: orbit
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basicHost                            , basic
+    class           (massDistributionClass              ), pointer       :: massDistribution_
     logical                                              , parameter     :: acceptUnboundOrbits          =.false.
 
     double precision                                     , parameter     :: C                            =0.43d0 , a            =0.94d0, &  !   Fitting parameters from Jiang's paper.
@@ -169,7 +164,7 @@ contains
        nodeHost => node%parent%firstChild
     end if
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,self%galacticStructure_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -187,9 +182,13 @@ contains
     velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
     radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Compute orbital circularity.
-    orbitalCircularity= orbit%angularMomentum()                                                             &
-         &             /equivalentCircularOrbitRadius                                                       &
-         &             /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
+    massDistribution_  =>  self             %darkMatterProfileDMO_%get            (nodeHost                     )
+    orbitalCircularity =  +orbit                                  %angularMomentum(                             ) &
+         &                /massDistribution_                      %rotationCurve  (equivalentCircularOrbitRadius) &
+         &                /equivalentCircularOrbitRadius
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     ! Compute mass ratio (mass in host [not including satellite if the node is already a satellite] divided by mass in satellite).
     basic     =>  node     %basic()
     basicHost =>  nodeHost %basic()

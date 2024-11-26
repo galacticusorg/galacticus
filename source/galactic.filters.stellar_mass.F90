@@ -87,27 +87,23 @@ contains
     return
   end function stellarMassConstructorInternal
 
-  logical function stellarMassPasses(self,node)
+  logical function stellarMassPasses(self,node) result(passes)
     !!{
-    Implement a  stellar mass high-pass galactic filter.
+    Implement a stellar mass high-pass galactic filter.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC ,treeNode
+    use :: Mass_Distributions        , only : massDistributionClass, massDistributionComposite
+    use :: Galactic_Structure_Options, only : massTypeStellar
     implicit none
-    class           (galacticFilterStellarMass), intent(inout)         :: self
-    type            (treeNode                 ), intent(inout), target :: node
-    class           (nodeComponentDisk        ), pointer               :: disk
-    class           (nodeComponentSpheroid    ), pointer               :: spheroid
-    class           (nodeComponentNSC         ), pointer               :: NSC
-    double precision                                                   :: stellarMass
+    class(galacticFilterStellarMass), intent(inout)          :: self
+    type (treeNode                 ), intent(inout), target  :: node
+    class(massDistributionClass    )               , pointer :: massDistribution_
 
-    disk              => node    %disk       ()
-    spheroid          => node    %spheroid   ()
-    NSC               => node    %NSC        ()
-    stellarMass       = +disk    %massStellar() &
-         &              +spheroid%massStellar() &
-         &              +NSC     %massStellar()
-    stellarMassPasses =  stellarMass            &
-         &              >=                      &
-         &               self%massThreshold
+    massDistribution_ =>  node             %massDistribution(massType=massTypeStellar)
+    passes            =   massDistribution_%massTotal       (                        ) &
+         &               >=                                                            &
+         &                self             %massThreshold
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     return
   end function stellarMassPasses

@@ -34,7 +34,6 @@
      private
      class           (outputAnalysisClass        ), pointer                     :: outputAnalysis_                                 => null()
      class           (outputTimesClass           ), pointer                     :: outputTimes_                                    => null()
-     class           (galacticStructureClass     ), pointer                     :: galacticStructure_                              => null()
      double precision                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient                         , systematicErrorPolynomialCoefficient, &
           &                                                                        massStellarSystematicErrorPolynomialCoefficient
      integer                                                                    :: covarianceBinomialBinsPerDecade
@@ -64,7 +63,6 @@ contains
     Constructor for the ``localGroupOccupationFraction'' output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
-    use :: Galactic_Structure          , only : galacticStructureClass
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
     use :: Galactic_Filters            , only : enumerationPositionTypeEncode
     use :: Models_Likelihoods_Constants, only : logImprobable
@@ -72,7 +70,6 @@ contains
     type            (outputAnalysisLocalGroupOccupationFraction)                              :: self
     type            (inputParameters                           ), intent(inout)               :: parameters
     class           (outputTimesClass                          ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                    ), pointer                     :: galacticStructure_
     double precision                                            , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient               , systematicErrorPolynomialCoefficient, &
          &                                                                                       massStellarSystematicErrorPolynomialCoefficient
     integer                                                                                   :: covarianceBinomialBinsPerDecade
@@ -147,10 +144,9 @@ contains
       <defaultValue>var_str('orbital')</defaultValue>
       <description>The type of position to use in survey geometry filters.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
-    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
-    self=outputAnalysisLocalGroupOccupationFraction(outputTimes_,galacticStructure_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLocalGroupOccupationFraction(outputTimes_,enumerationPositionTypeEncode(positionType,includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"/>
@@ -158,7 +154,7 @@ contains
     return
   end function localGroupOccupationFractionConstructorParameters
 
-  function localGroupOccupationFractionConstructorInternal(outputTimes_,galacticStructure_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function localGroupOccupationFractionConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{
     Constructor for the ``localGroupOccupationFraction'' output analysis class for internal use.
     !!}
@@ -188,7 +184,6 @@ contains
          &                                                                                                  massStellarSystematicErrorPolynomialCoefficient
     type            (enumerationPositionTypeType                        ), intent(in   )                 :: positionType
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                             ), intent(in   ), target         :: galacticStructure_
     type            (nodePropertyExtractorMassBasic                     )               , pointer        :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar                   )               , pointer        :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_           , outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
@@ -218,7 +213,7 @@ contains
     integer         (c_size_t                                           )                                :: i                                                           , bufferCount
     type            (hdf5Object                                         )                                :: fileData
     !![
-    <constructorAssign variables="*galacticStructure_, *outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
     
     ! Construct the target distribution.
@@ -243,7 +238,7 @@ contains
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (galacticStructure_                                                                 )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar               (                                                                                   )"/>
     !!]
     ! Build a size weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
@@ -446,9 +441,8 @@ contains
     type(outputAnalysisLocalGroupOccupationFraction), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%outputAnalysis_"   />
-    <objectDestructor name="self%outputTimes_"      />
-    <objectDestructor name="self%galacticStructure_"/>
+    <objectDestructor name="self%outputAnalysis_"/>
+    <objectDestructor name="self%outputTimes_"   />
     !!]
     return
   end subroutine localGroupOccupationFractionDestructor

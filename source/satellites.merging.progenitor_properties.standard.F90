@@ -22,7 +22,6 @@
   !!}
 
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
-  use :: Galactic_Structure              , only : galacticStructureClass
 
   !![
   <mergerProgenitorProperties name="mergerProgenitorPropertiesStandard">
@@ -57,7 +56,6 @@
      A merger progenitor properties class which uses a standard calculation.
      !!}
      private
-     class(galacticStructureClass  ), pointer :: galacticStructure_   => null()
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
      final     ::        standardDestructor
@@ -86,7 +84,6 @@ contains
     type (mergerProgenitorPropertiesStandard)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(mergerMassMovementsClass          ), pointer       :: mergerMassMovements_
-    class(galacticStructureClass            ), pointer       :: galacticStructure_
 
     if     (                                                                                                                                                           &
          &  .not.                                                                                                                                                      &
@@ -130,27 +127,24 @@ contains
          &        )
     !![
     <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=mergerProgenitorPropertiesStandard(mergerMassMovements_,galacticStructure_)
+    self=mergerProgenitorPropertiesStandard(mergerMassMovements_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerMassMovements_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function standardConstructorParameters
 
- function standardConstructorInternal(mergerMassMovements_,galacticStructure_) result(self)
+ function standardConstructorInternal(mergerMassMovements_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesStandard)                        :: self
     class(mergerMassMovementsClass          ), intent(in   ), target :: mergerMassMovements_
-    class(galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*mergerMassMovements_, *galacticStructure_"/>
+    <constructorAssign variables="*mergerMassMovements_"/>
     !!]
 
     return
@@ -165,7 +159,6 @@ contains
 
     !![
     <objectDestructor name="self%mergerMassMovements_"/>
-    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine standardDestructor
@@ -179,6 +172,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentDisk              , nodeComponentSpheroid    , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk          , destinationMergerSpheroid, destinationMergerUnmoved, enumerationDestinationMergerType
+    use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     class           (mergerProgenitorPropertiesStandard), intent(inout), target :: self
     type            (treeNode                          ), intent(inout), target :: nodeSatellite                  , nodeHost
@@ -187,6 +181,7 @@ contains
          &                                                                         massSpheroidHostPreMerger      , massGasSpheroidRemnant           , &
          &                                                                         massSpheroidRemnant            , massSatellite                    , &
          &                                                                         radiusSatellite                , massSpheroidSatellite
+    class           (massDistributionClass             ), pointer               :: massDistributionHost           , massDistributionSatellite
     class           (nodeComponentDisk                 ), pointer               :: diskHost                       , diskSatellite
     class           (nodeComponentSpheroid             ), pointer               :: spheroidHost                   , spheroidSatellite
     double precision                                    , parameter             :: massComponentMinimum=1.0d-30
@@ -207,8 +202,10 @@ contains
     diskSatellite     => nodeSatellite%disk    ()
     spheroidSatellite => nodeSatellite%spheroid()
     ! Find the baryonic masses of the two galaxies.
-    massSatellite=self%galacticStructure_%massEnclosed(nodeSatellite,massType=massTypeGalactic)
-    massHost     =self%galacticStructure_%massEnclosed(nodeHost     ,massType=massTypeGalactic)
+    massDistributionSatellite => nodeSatellite            %massDistribution(massType=massTypeGalactic)
+    massDistributionHost      => nodeHost                 %massDistribution(massType=massTypeGalactic)
+    massSatellite             =  massDistributionSatellite%massTotal       (                         )
+    massHost                  =  massDistributionHost     %massTotal       (                         )
     ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M r) where M is the
     ! component mass and r its half-mass radius. We use a weighted average of these factors to infer the specific angular momentum
     ! of the remnant from its mass and radius.
@@ -346,5 +343,10 @@ contains
     ! Compute the mass of the host spheroid before the merger.
     massSpheroidHostPreMerger=spheroidHost%massStellar()+spheroidHost%massGas()
     if (radiusHost <= 0.0d0) massSpheroidHostPreMerger=0.0d0
+    ! Clean up.
+    !![
+    <objectDestructor name="massDistributionSatellite"/>
+    <objectDestructor name="massDistributionHost     "/>
+    !!]
     return
   end subroutine standardGet

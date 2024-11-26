@@ -496,7 +496,7 @@ CODE
 	    my $waitTimeWriter           = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine eventsHooksWaitTimes()
 #ifdef OMPPROFILE
-    use :: Galacticus_HDF5   , only : galacticusOutputFile
+    use :: Output_HDF5       , only : outputFile
     use :: IO_HDF5           , only : hdf5Object
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : varying_string      , var_str
@@ -518,7 +518,7 @@ CODE
 	    $waitTimeWriter .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Open output group.
     !$ call hdf5Access%set()
-    metaDataGroup=galacticusOutputFile%openGroup('metaData','Galacticus meta data.'           )
+    metaDataGroup=outputFile%openGroup('metaData','Galacticus meta data.'           )
     waitTimeGroup=metaDataGroup       %openGroup('openMP'  ,'Meta-data on OpenMP performance.')
     ! Write wait time data.
     call waitTimeGroup%writeDataset(eventHookNames         ,"eventHookNames"         ,"Names of event hooks"                                                              )

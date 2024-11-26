@@ -23,6 +23,7 @@
   
   use :: Geometry_Lightcones           , only : geometryLightconeClass
   use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionClass
+  use :: Output_Times                  , only : outputTimesClass
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
@@ -45,6 +46,7 @@
      private
      class  (geometryLightconeClass          ), pointer :: geometryLightcone_           => null()
      class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
+     class  (outputTimesClass                ), pointer :: outputTimes_                 => null()
      logical                                            :: bufferIsolatedHalos                   , positionHistoryAvailable, &
           &                                                splitTrees
    contains
@@ -72,6 +74,7 @@ contains
     type   (inputParameters                 ), intent(inout) :: parameters
     class  (geometryLightconeClass          ), pointer       :: geometryLightcone_
     class  (satelliteOrphanDistributionClass), pointer       :: satelliteOrphanDistribution_
+    class (outputTimesClass                 ), pointer       :: outputTimes_
     logical                                                  :: bufferIsolatedHalos         , splitTrees
 
     ! Check and read parameters.
@@ -90,17 +93,19 @@ contains
     </inputParameter>
     <objectBuilder class="geometryLightcone"           name="geometryLightcone_"           source="parameters"/>
     <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
+    <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
     !!]
-    self=mergerTreeOperatorPruneLightcone(geometryLightcone_,satelliteOrphanDistribution_,bufferIsolatedHalos,splitTrees)
+    self=mergerTreeOperatorPruneLightcone(geometryLightcone_,satelliteOrphanDistribution_,outputTimes_,bufferIsolatedHalos,splitTrees)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="geometryLightcone_"          />
     <objectDestructor name="satelliteOrphanDistribution_"/>
+    <objectDestructor name="outputTimes_"                />
     !!]
     return
   end function pruneLightconeConstructorParameters
 
-  function pruneLightconeConstructorInternal(geometryLightcone_,satelliteOrphanDistribution_,bufferIsolatedHalos,splitTrees) result(self)
+  function pruneLightconeConstructorInternal(geometryLightcone_,satelliteOrphanDistribution_,outputTimes_,bufferIsolatedHalos,splitTrees) result(self)
     !!{
     Internal constructor for the prune-by-lightcone merger tree operator class.
     !!}
@@ -108,9 +113,10 @@ contains
     type   (mergerTreeOperatorPruneLightcone)                        :: self
     class  (geometryLightconeClass          ), intent(in   ), target :: geometryLightcone_
     class  (satelliteOrphanDistributionClass), intent(in   ), target :: satelliteOrphanDistribution_
+    class  (outputTimesClass                ), intent(in   ), target :: outputTimes_
     logical                                  , intent(in   )         :: bufferIsolatedHalos         , splitTrees
     !![
-    <constructorAssign variables="*geometryLightcone_, *satelliteOrphanDistribution_, bufferIsolatedHalos, splitTrees"/>
+    <constructorAssign variables="*geometryLightcone_, *satelliteOrphanDistribution_, *outputTimes_, bufferIsolatedHalos, splitTrees"/>
     !!]
 
     call pruneLightconeValidate(self)
@@ -127,6 +133,7 @@ contains
     !![
     <objectDestructor name="self%geometryLightcone_"          />
     <objectDestructor name="self%satelliteOrphanDistribution_"/>
+    <objectDestructor name="self%outputTimes_"                />
     !!]
     return
   end subroutine pruneLightconeDestructor
@@ -297,6 +304,10 @@ contains
        end do
     else if (self%splitTrees) then
        ! Tree is in lightcone, but we are asked to split it into forests and trim off late-time nodes where possible.
+       !! Increase the latest time in the lightcone to the subsequent output time to ensure that the tree will be evolved beyond
+       !! this time - necessary in case the actual lightcone crossing occurs slightly after the time at which the node presently
+       !! exists.
+       if (self%outputTimes_%timeNext(timeInLightconeLatest) > 0.0d0) timeInLightconeLatest=self%outputTimes_%timeNext(timeInLightconeLatest)
        !! Walk the trees, building a list of new root nodes and any original root nodes that we can remove.
        write (labelTime,'(f9.3)') timeInLightconeLatest
        call displayMessage('Splitting tree into forests at time '//trim(adjustl(labelTime))//' Gyr',verbosityLevelInfo)
@@ -353,7 +364,7 @@ contains
              end if
           end if
        end do
-       ! Remove any marge targets which no longer exist.
+       ! Remove any merge targets which no longer exist.
        treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
        do while (treeWalkerAll%next(node))
           if (.not.associated(node%mergeTarget)) cycle
@@ -398,7 +409,6 @@ contains
        end do
        ! Replace the first tree in the forest.
        tree %nodeBase => forestRootsNewHead%node
-       tree %nextTree => null()
        basic          => forestRootsNewHead%node%basic()
        write (labelIndex,'(i16)' ) forestRootsNewHead%node%index()
        write (labelTime ,'(f9.3)') basic                  %time ()
@@ -412,6 +422,7 @@ contains
           deallocate(treeCurrent)
           treeCurrent          => treeNext
        end do
+       tree%nextTree => null()
        ! Create new trees in the forest as needed.
        treeCurrent        => tree
        forestRootsNewLast => forestRootsNewHead%next

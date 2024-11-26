@@ -43,9 +43,10 @@
      Implementation of a posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
      !!}
      private
-     type(varying_string )                            :: baseParametersFileName
-     type(inputParameters), pointer                   :: parametersModel        => null()
-     type(parameterList  ), dimension(:), allocatable :: modelParametersActive_          , modelParametersInactive_
+     type   (varying_string )                            :: baseParametersFileName
+     type   (inputParameters), pointer                   :: parametersModel        => null()
+     type   (parameterList  ), dimension(:), allocatable :: modelParametersActive_           , modelParametersInactive_
+     logical                                             :: reportFileName         =  .false., reportState             =.false.
    contains
      !![
      <methods>
@@ -159,38 +160,53 @@ contains
     end if
     return
   end subroutine baseParametersInitialize
-
-   subroutine baseParametersUpdate(self,simulationState,modelParametersActive_,modelParametersInactive_,stateVector)
-     use :: Display           , only : displayIndent         , displayMessage    , displayUnindent   , displayVerbositySet, &
-          &                            verbosityLevelStandard
-     use :: Error             , only : Error_Report          , errorStatusSuccess
-     use :: Model_Parameters  , only : modelParameterDerived
-     use :: ISO_Varying_String, only : operator(//)
-     use :: Kind_Numbers      , only : kind_int8
-     use :: String_Handling   , only : String_Count_Words    , String_Join       , String_Split_Words, operator(//)
-     implicit none
-     class           (posteriorSampleLikelihoodBaseParameters), intent(inout)               :: self
-     class           (posteriorSampleStateClass              ), intent(inout)               :: simulationState
-     type            (modelParameterList                     ), intent(in   ), dimension(:) :: modelParametersActive_, modelParametersInactive_
-     double precision                                         , intent(in   ), dimension(:) :: stateVector
-    type            (varying_string                          ), allocatable  , dimension(:) :: parameterNames
-    integer                                                                                 :: i                     , j                       , &
-         &                                                                                     parameterCount
-    logical                                                                                 :: firstIteration        , dependenciesResolved    , &
-         &                                                                                     dependenciesUpdated
-    character       (len=24                                  )                              :: valueText
-     double precision                                                                       :: valueDerived
-    type            (varying_string                          )                              :: parameterText
-   ! Declarations of GNU libmatheval procedures used.
+  
+  subroutine baseParametersUpdate(self,simulationState,modelParametersActive_,modelParametersInactive_,stateVector,report)
+    use :: Display           , only : displayIndent         , displayMessage    , displayUnindent              , displayVerbositySet, &
+         &                            verbosityLevelStandard, displayVerbosity  , enumerationVerbosityLevelType
+    use :: Error             , only : Error_Report          , errorStatusSuccess
+    use :: Model_Parameters  , only : modelParameterDerived
+    use :: ISO_Varying_String, only : operator(//)
+    use :: Kind_Numbers      , only : kind_int8
+    use :: String_Handling   , only : String_Count_Words    , String_Join       , String_Split_Words, operator(//)
+    implicit none
+    class           (posteriorSampleLikelihoodBaseParameters), intent(inout)               :: self
+    class           (posteriorSampleStateClass              ), intent(inout)               :: simulationState
+    type            (modelParameterList                     ), intent(in   ), dimension(:) :: modelParametersActive_, modelParametersInactive_
+    double precision                                         , intent(in   ), dimension(:) :: stateVector
+    logical                                                  , intent(in   ), optional     :: report
+    type            (varying_string                         ), allocatable  , dimension(:) :: parameterNames
+    integer                                                                                :: i                     , j                       , &
+         &                                                                                    parameterCount
+    logical                                                                                :: firstIteration        , dependenciesResolved    , &
+         &                                                                                    dependenciesUpdated
+    character       (len=24                                 )                              :: valueText
+    double precision                                                                       :: valueDerived
+    type            (varying_string                         )                              :: parameterText
+    type            (enumerationVerbosityLevelType          )                              :: verbosityLevel
+    ! Declarations of GNU libmatheval procedures used.
 #ifdef MATHEVALAVAIL
-    integer         (kind_int8                               )                              :: evaluator
+    integer         (kind_int8                              )                              :: evaluator
 #endif
-    integer         (kind_int8                               ), external                    :: Evaluator_Create_
-    double precision                                          , external                    :: Evaluator_Evaluate_
-    external                                                                                :: Evaluator_Destroy_
+    integer         (kind_int8                              ), external                    :: Evaluator_Create_
+    double precision                                         , external                    :: Evaluator_Evaluate_
+    external                                                                               :: Evaluator_Destroy_
+    !![
+    <optionalArgument name="report" defaultsTo=".false."/>
+    !!]
     
+    ! Set verbosity for our reports.
+    if (report_ .and. (self%reportFileName .or. self%reportState)) then
+       verbosityLevel=displayVerbosity()
+       call displayVerbositySet(verbosityLevelStandard)
+    end if
+    ! Report name of parameter file being evaluated if requested.
+    if (report_ .and. self%reportFileName) call displayMessage("Evaluating likelihood for file `"//char(self%baseParametersFileName)//"`")
     ! Update parameter values.
+    if (report_ .and. self%reportState) call displayIndent("State:")
     do i=1,size(modelParametersActive_)
+       if (report_ .and. self%reportState) &
+            & call displayMessage(char(modelParametersActive_(i)%modelParameter_%name())//" = "//char(self%modelParametersActive_(i)%parameter_%get()))
        if (self%modelParametersActive_(i)%indexElement == 0) then
           ! Simply overwrite the parameter.
           call self%modelParametersActive_(i)%parameter_%set(modelParametersActive_(i)%modelParameter_%unmap(stateVector(i)))
@@ -213,7 +229,7 @@ contains
           parameterNames(self%modelParametersActive_(i)%indexElement)=trim(valueText)
           call self%modelParametersActive_(i)%parameter_%set(String_Join(parameterNames," "))
           deallocate(parameterNames)
-       endif
+       end if
     end do
     ! Resolve dependencies in derived parameters.
     if (size(modelParametersInactive_) > 0) then
@@ -316,7 +332,15 @@ contains
           end if
           firstIteration=.false.
        end do
+       if (report_ .and. self%reportState) then
+          do i=1,size(modelParametersInactive_)
+             call displayMessage(char(modelParametersInactive_(i)%modelParameter_%name())//" = "//char(self%modelParametersInactive_(i)%parameter_%get()))
+          end do
+       end if
     end if
+    if (report_ .and. self%reportState) call displayUnindent("")
     call self%parametersModel%reset()
+    ! Restore verbosity level.
+    if (report_ .and. (self%reportFileName .or. self%reportState)) call displayVerbositySet(verbosityLevel)
     return
   end subroutine baseParametersUpdate

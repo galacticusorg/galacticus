@@ -4,7 +4,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
   <!-- Task and work control -->
   <task value="evolveForests">
     <walltimeMaximum value="-1"/> 
@@ -306,7 +306,6 @@
   <blackHoleJetFraction value="0.00657974778017468"/>
 
   <!-- Satellite orbit options -->
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy merger options -->
   <virialOrbit value="li2020">
@@ -413,7 +412,6 @@
     <timeStepMinimum value="0.01"/>
     <countTimeStepsMaximum value="390"/>
     <countMetallicities value="0"/>
-    <countOutputBuffer value="100"/>
   </starFormationHistory>
   
   <!-- Numerical tolerances -->

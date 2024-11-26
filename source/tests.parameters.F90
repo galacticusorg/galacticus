@@ -66,6 +66,11 @@ program Test_Parameters
   call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
   call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVariance'),1                    )
   call Unit_Tests_End_Group()
+  ! Test conditionals.
+  call Unit_Tests_Begin_Group("Parameter evaluation")
+  call testParameters%value('active1',valueNumerical)
+  call Assert('conditional value',valueNumerical,0.2d0,absTol=1.0d-6)
+  call Unit_Tests_End_Group()
   ! Test adding, retrieving, resetting, reading a parameter.
   call Unit_Tests_Begin_Group("Parameter adding")
   call testParameters%addParameter('addedParameter','qwertyuiop'  )
@@ -115,6 +120,7 @@ program Test_Parameters
   call Assert('derived value [recursive; post-reset]',valueNumerical,-1.344442852d2,absTol=1.0d-6)
   call Unit_Tests_End_Group()
   ! End unit tests.
+  call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Close down.
   call testParameters%destroy()

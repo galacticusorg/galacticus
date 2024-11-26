@@ -22,26 +22,19 @@ program Tests_Kepler_Orbits
   Tests for orbital parameter conversions.
   !!}
   use :: Display                         , only : displayVerbositySet            , verbosityLevelStandard
-  use :: ISO_Varying_String              , only : assignment(=)                  , varying_string
-  use :: Input_Parameters                , only : inputParameters
   use :: Kepler_Orbits                   , only : keplerOrbit
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Math        , only : Pi
   use :: Unit_Tests                      , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                       compareEquals
   implicit none
-  type            (varying_string ) :: parameterFile
-  type            (keplerOrbit    ) :: orbit
-  double precision                  :: valueActual  , valueExpected, velocityScale
-  type            (inputParameters) :: parameters
+  type            (keplerOrbit) :: orbit
+  double precision              :: valueActual, valueExpected, velocityScale
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Orbital parameter conversions")
-
-  ! Open the parameter file.
-  parameterFile='parameters.xml'
-  parameters=inputParameters(parameterFile)
 
   ! Compute velocity scale for unit mass and radius.
   velocityScale=sqrt(gravitationalConstantGalacticus)
@@ -133,8 +126,26 @@ program Tests_Kepler_Orbits
   valueExpected=1.0d0
   call Assert('Semi-major axis of circular orbit'    ,valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
 
+  ! Create an elliptical orbit, starting from pericenter, propagate to apocenter. The orbit is placed in the x-y plane, with the
+  ! pericenter located on the +x axis.
+  call orbit%reset                (                            )
+  call orbit%massesSet            (0.0d0                 ,1.0d0)
+  call orbit%velocityRadialSet    (0.0d0                       )
+  call orbit%velocityTangentialSet(2.29541910309191000d-4      )
+  call orbit%radiusSet            (0.14285714285714285d+0      )
+  call orbit%thetaSet             (0.5d0*Pi                    )
+  call orbit%phiSet               (0.0d0                       )
+  call orbit%epsilonSet           (0.0d0                       )
+  ! Propagate to orbit to apocenter (or very close to it, to avoid rounding errors).
+  call orbit%propagate            (1.0d0-1.0d-6)
+  ! Check that we are at the expected position.
+  call Assert('Propagation: θ',orbit%theta             (),0.5d0               *Pi,absTol=1.0d-2              )
+  call Assert('Propagation: φ',orbit%phi               (),1.0d0               *Pi,absTol=1.0d-2              )
+  call Assert('Propagation: ε',orbit%epsilon           (),0.0d0                  ,absTol=1.0d-2              )
+  call Assert('Propagation: vᵣ',orbit%velocityRadial    (),0.0d0                  ,absTol=1.0d-2*velocityScale)
+  call Assert('Propagation: vᵩ',orbit%velocityTangential(),3.279170147274157d-5   ,absTol=1.0d-2*velocityScale)
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_Finish   ()
 
 end program Tests_Kepler_Orbits

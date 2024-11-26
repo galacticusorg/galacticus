@@ -260,23 +260,29 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
+      use :: Mass_Distributions, only : massDistributionClass
       implicit none
-      type            (treeNode ), intent(inout)          :: node
-      double precision           , intent(in   )          :: specificAngularMomentum
-      procedure       (solverGet), intent(in   ), pointer :: radiusGet              , velocityGet
-      procedure       (solverSet), intent(in   ), pointer :: radiusSet              , velocitySet
-      double precision                                    :: radius                 , velocity
+      type            (treeNode             ), intent(inout)          :: node
+      double precision                       , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet            ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet            ), intent(in   ), pointer :: radiusSet              , velocitySet
+      class           (massDistributionClass)               , pointer :: massDistribution_
+      double precision                                                :: radius                 , velocity
       !$GLC attributes unused :: radiusGet, velocityGet
 
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return
+      massDistribution_ => self%darkMatterProfileDMO_%get(haloNode)
       ! Find the radius in the dark matter profile with the required specific angular momentum
-      radius=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
+      radius  =massDistribution_%radiusFromSpecificAngularMomentum(specificAngularMomentum)
       ! Find the velocity at this radius.
-      velocity=self%darkMatterProfileDMO_%circularVelocity(haloNode,radius)
+      velocity=massDistribution_%rotationCurve                    (radius                 )
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )
       call velocitySet(node,velocity)
+      !![
+      <objectDestructor name="massDistribution_"/>
+      !!]
       return
     end subroutine radiusSolve
 

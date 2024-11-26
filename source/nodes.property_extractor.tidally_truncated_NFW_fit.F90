@@ -25,7 +25,6 @@ Implements a node property extractor that fits for a tidal truncation radius for
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass, darkMatterProfileDMONFW
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTidallyTruncatedNFWFit">
@@ -46,7 +45,6 @@ Implements a node property extractor that fits for a tidal truncation radius for
      type (darkMatterProfileDMONFW  ), pointer :: darkMatterProfileDMONFW_ => null()
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_    => null()
      class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_     => null()
-     class(galacticStructureClass   ), pointer :: galacticStructure_       => null()
    contains
      final     ::                 tidallyTruncatedNFWFitDestructor
      procedure :: elementCount => tidallyTruncatedNFWFitElementCount
@@ -76,24 +74,21 @@ contains
     type (inputParameters                            ), intent(inout) :: parameters
     class(darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
-    class(galacticStructureClass                     ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=nodePropertyExtractorTidallyTruncatedNFWFit(darkMatterHaloScale_,galacticStructure_,darkMatterProfileDMO_)
+    self=nodePropertyExtractorTidallyTruncatedNFWFit(darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function tidallyTruncatedNFWFitConstructorParameters
 
-  function tidallyTruncatedNFWFitConstructorInternal(darkMatterHaloScale_,galacticStructure_,darkMatterProfileDMO_) result(self)
+  function tidallyTruncatedNFWFitConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the ``tidallyTruncatedNFWFit'' output analysis property extractor class.
     !!}
@@ -101,9 +96,8 @@ contains
     type (nodePropertyExtractorTidallyTruncatedNFWFit)                        :: self
     class(darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
-    class(galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *galacticStructure_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
     
     allocate(self%darkMatterProfileDMONFW_)
@@ -131,7 +125,6 @@ contains
     <objectDestructor name="self%darkMatterProfileDMONFW_"/>
     <objectDestructor name="self%darkMatterProfileDMO_"   />
     <objectDestructor name="self%darkMatterHaloScale_"    />
-    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine tidallyTruncatedNFWFitDestructor
@@ -154,9 +147,11 @@ contains
     Implement a tidallyTruncatedNFWFit output analysis.
     !!}
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
+    use            :: Coordinates               , only : coordinateSpherical           , assignment(=)
     use            :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentSatellite
     use            :: Numerical_Ranges          , only : Make_Range                    , rangeTypeLogarithmic
     use            :: Multidimensional_Minimizer, only : multiDMinimizer
+    use            :: Mass_Distributions        , only : massDistributionClass
     implicit none
     double precision                                             , allocatable  , dimension(:) :: tidallyTruncatedNFWFitExtract
     class           (nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout), target       :: self
@@ -165,41 +160,49 @@ contains
     type            (multiCounter                               ), intent(inout), optional     :: instance
     class           (nodeComponentDarkMatterProfile             ), pointer                     :: darkMatterProfile
     class           (nodeComponentSatellite                     ), pointer                     :: satellite
+    class           (massDistributionClass                      ), pointer                     :: massDistribution_                              , massDistributionNFW
     double precision                                             , allocatable  , dimension(:) :: radii                                          , fractionDensity
     type            (multiDMinimizer                            ), allocatable                 :: minimizer_
     double precision                                                            , dimension(1) :: locationMinimum
-    double precision                                             , parameter                   :: fractionRadiusScale                      =0.1d0, fractionMaximum    =0.1d0, & 
-         &                                                                                        radiusMaximumFractionDensityVirialMinimum=0.1d0, fractionStep       =0.1d0, &
+    double precision                                             , parameter                   :: fractionRadiusScale                      =0.1d0, fractionMaximum        =0.1d0, & 
+         &                                                                                        radiusMaximumFractionDensityVirialMinimum=0.1d0, fractionStep           =0.1d0, &
          &                                                                                        radiusMaximumScaleVirialMaximum          =1.0d1
-    integer                                                      , parameter                   :: radiusMaximumCountRadiiPerDecade         =10   , countRadiiPerDecade=10  
-    integer                                                                                    :: countRadii                                     , i                        , &
+    integer                                                      , parameter                   :: radiusMaximumCountRadiiPerDecade         =10   , countRadiiPerDecade    =10  
+    integer                                                                                    :: countRadii                                     , i                            , &
          &                                                                                        iteration                                      , radiusMaximumCountRadii
     logical                                                                                    :: converged
-    double precision                                                                           :: radiusOuter                                    , massTotal                , &
-         &                                                                                        radiusMinimum                                  , radiusMaximum            , &
-         &                                                                                        radiusScale                                    , radiusVirial             , &
+    double precision                                                                           :: radiusOuter                                    , massTotal                    , &
+         &                                                                                        radiusMinimum                                  , radiusMaximum                , &
+         &                                                                                        radiusScale                                    , radiusVirial                 , &
          &                                                                                        radiusMaximumFractionDensityVirial             , factorStepRadius
+    type            (coordinateSpherical                        )                              :: coordinates                                    , coordinatesMaximum           , &
+         &                                                                                        coordinatesVirial
     !$GLC attributes unused :: instance
 
     allocate(tidallyTruncatedNFWFitExtract(3))
-    darkMatterProfile                => node                         %darkMatterProfile(                              )
-    tidallyTruncatedNFWFitExtract(3) =  self%darkMatterProfileDMONFW_%density          (node,darkMatterProfile%scale())
+    darkMatterProfile                => node                                        %darkMatterProfile(            )
+    massDistribution_                => self               %darkMatterProfileDMO_   %get              (node        )
+    massDistributionNFW              => self               %darkMatterProfileDMONFW_%get              (node        )
+    coordinates                      = [darkMatterProfile%scale(),0.0d0,0.0d0]
+    tidallyTruncatedNFWFitExtract(3) =  massDistributionNFW                         %density          (coordinates)
     if (node%isSatellite()) then
        ! Extract required properties.
-       satellite    => node                                  %satellite          (                                              )
-       massTotal    =  self             %galacticStructure_  %massEnclosed       (node                                          )
-       radiusOuter  =  self             %galacticStructure_  %radiusEnclosingMass(node,mass=min(satellite%boundMass(),massTotal))
-       radiusScale  =  darkMatterProfile                     %scale              (                                              )
-       radiusVirial =  self             %darkMatterHaloScale_%radiusVirial       (node                                          )
+       radiusVirial =  self             %darkMatterHaloScale_%radiusVirial        (       node                                )
+       satellite    => node                                  %satellite           (                                           )
+       massTotal    =  massDistribution_                     %massEnclosedBySphere(radius=radiusVirial                        )
+       radiusOuter  =  massDistribution_                     %radiusEnclosingMass (mass  =min(satellite%boundMass(),massTotal))
+       radiusScale  =  darkMatterProfile                     %scale               (                                           )
        ! Choose radii for fitting.
        radiusMaximum=radiusVirial
        if (radiusOuter > radiusVirial) then
            radiusMaximumCountRadii=int(log10(radiusMaximumScaleVirialMaximum)*dble(radiusMaximumCountRadiiPerDecade)+1.0d0)
-           factorStepRadius       =    log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaximumCountRadii         ) 
+           factorStepRadius       =    log10(radiusMaximumScaleVirialMaximum)/dble(radiusMaximumCountRadii         )
+           coordinatesVirial      =[radiusVirial,0.0d0,0.0d0]
            do i=1,radiusMaximumCountRadii
              radiusMaximum                     =10.0d0**(log10(radiusVirial)+factorStepRadius*dble(i))
-             radiusMaximumFractionDensityVirial=+self%darkMatterProfileDMO_%density(node,radiusMaximum) &
-                    &                           /self%darkMatterProfileDMO_%density(node,radiusVirial )
+             coordinatesMaximum                =[radiusMaximum,0.0d0,0.0d0]
+             radiusMaximumFractionDensityVirial=+massDistribution_%density(coordinatesMaximum) &
+                    &                           /massDistribution_%density(coordinatesVirial )
               if (radiusMaximumFractionDensityVirial < radiusMaximumFractionDensityVirialMinimum) exit
            end do 
        end if 
@@ -209,8 +212,9 @@ contains
        ! Tabulate the density ratio relative to an NFW profile.
        allocate(fractionDensity(countRadii))
        do i=1,countRadii
-          fractionDensity(i)=+self%darkMatterProfileDMO_   %density(node,radii(i)) &
-               &             /self%darkMatterProfileDMONFW_%density(node,radii(i))
+          coordinates=[radii(i),0.0d0,0.0d0]
+          fractionDensity(i)=+massDistribution_  %density(coordinates) &
+               &             /massDistributionNFW%density(coordinates)
        end do
        ! Optimize the fit.
        allocate(minimizer_)
@@ -230,6 +234,10 @@ contains
        tidallyTruncatedNFWFitExtract(1)=huge(0.0d0)
        tidallyTruncatedNFWFitExtract(2)=     0.0d0
     end if
+    !![
+    <objectDestructor name="massDistribution_"  />
+    <objectDestructor name="massDistributionNFW"/>
+    !!]
     return
     
   contains

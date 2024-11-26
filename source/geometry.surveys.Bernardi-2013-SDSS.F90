@@ -131,7 +131,7 @@ contains
     double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, &
          &                                                                       luminosity     , starFormationRate
     integer                                         , intent(in   ), optional :: field
-    double precision                                                          :: logarithmicMass,
+    double precision                                                          :: logarithmicMass
     !$GLC attributes unused :: self, field
 
     ! Validate arguments.
@@ -141,9 +141,11 @@ contains
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
     if (present(mass)) then
-       logarithmicMass=min(log10(mass),12.5d0)
+       ! Limit the mass to the range for which our empirical mass-distance relation is calibrated.
+       logarithmicMass=max(8.0d0,min(12.5d0,log10(mass)))
     else
-       logarithmicMass=                12.5d0
+       ! If no mass is given, use the largest calibrated mass (which will give the largest distance).
+       logarithmicMass=              12.5d0
     end if
     bernardi2013SDSSDistanceMaximum                                                         &
          &                         =10.0d0**(                                               &

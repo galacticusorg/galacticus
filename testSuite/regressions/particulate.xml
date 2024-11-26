@@ -2,7 +2,7 @@
 <!-- Simple halo+subhalo configuration for generating particle realizations -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
@@ -78,7 +78,6 @@
   <virialOrbit value="isotropic">
     <virialOrbit value="benson2005"/>
   </virialOrbit>
-  <satelliteOrbitStoreOrbitalParameters value="true"/>
 
   <!-- Galaxy mergers -->
   <mergerMassMovements            value="null"/>
@@ -149,7 +148,9 @@
     <timeSnapshot value="1.0"/>
     <radiusTruncateOverRadiusVirial value="1.0"/>
     <lengthSoftening value="1.0e-5"/>
-    <toleranceRelativeSmoothing value="2.0e-7"/>
+    <toleranceMass value="1.0e-7"/>
+    <tolerancePotential value="1.0e-8"/>
+    <toleranceRelativeSmoothing value="4.0e-7"/>
     <selection value="all"/>
     <nonCosmological value="false"/>
     <chunkSize value="1024"/>

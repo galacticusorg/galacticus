@@ -145,11 +145,11 @@ contains
     implicit none
     type            (darkMatterProfileConcentrationSchneider2015)                        :: self
     class           (darkMatterProfileConcentrationClass        ), intent(in   ), target :: referenceConcentration
-    class           (criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity            , criticalOverdensity_
-    class           (cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance       , cosmologicalMassvariance_
-    class           (cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions             , cosmologyFunctions_
+    class           (criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity           , criticalOverdensity_
+    class           (cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance      , cosmologicalMassvariance_
+    class           (cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions            , cosmologyFunctions_
     double precision                                             , intent(in   )         :: massFractionFormation
-    double precision                                             , parameter             :: toleranceAbsolute                =0.0d00, toleranceRelative        =1.0d-6
+    double precision                                             , parameter             :: toleranceAbsolute                =0.0d0, toleranceRelative        =1.0d-6
     !![
     <constructorAssign variables="massFractionFormation, *referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
     !!]
@@ -225,10 +225,11 @@ contains
     type            (treeNode                                   ), intent(inout), target  :: node
     logical                                                      , intent(in   )          :: mean
     class           (nodeComponentBasic                         )               , pointer :: basic
+    double precision                                             , parameter              :: toleranceTimeRelative      =1.0d-6
     integer                                                                               :: status
-    double precision                                                                      :: mass                                     , &
-         &                                                                                   collapseCriticalOverdensity, timeCollapse, &
-         &                                                                                   massReference              , variance    , &
+    double precision                                                                      :: mass                                            , &
+         &                                                                                   collapseCriticalOverdensity       , timeCollapse, &
+         &                                                                                   massReference                     , variance    , &
          &                                                                                   timeNow
 
     ! Get the basic component and the halo mass and time.
@@ -261,17 +262,23 @@ contains
     timeCollapse         =self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
     timeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
-    ! Find the mass of a halo collapsing at the same time in the reference model.
-    self_                 => self
-    massReferencePrevious =  -1.0d0
-    if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
-       ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
-       ! the choice should not matter too much as the abundances of such halos should be hugely suppressed.
-       massReference        =massReferenceMaximum
+    ! Check for a collapse time very close to the present time.
+    if (timeCollapseReference > time_*(1.0d0-toleranceTimeRelative)) then
+       ! Collapse is happening at the current time - which will correspond to arbitrarily massive halos in the reference model.
+       massReference=massReferenceMaximum
     else
-       massReference        =self%finder%find(rootGuess=mass,status=status)
-       if (status /= errorStatusSuccess) call Error_Report('failed to determine reference mass'//{introspection:location})
-    end if
+       ! Find the mass of a halo collapsing at the same time in the reference model.
+       self_                 => self
+       massReferencePrevious =  -1.0d0
+       if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > -time_*toleranceTimeRelative) then
+          ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
+          ! the choice should not matter too much as the abundances of such halos should be hugely suppressed.
+          massReference        =massReferenceMaximum
+       else
+          massReference        =self%finder%find(rootGuess=mass,status=status)
+          if (status /= errorStatusSuccess) call Error_Report('failed to determine reference mass'//{introspection:location})
+       end if
+   end if
     ! Compute the concentration of a node of this mass in the reference model.
     call basic%massSet(massReference)
     if (mean) then

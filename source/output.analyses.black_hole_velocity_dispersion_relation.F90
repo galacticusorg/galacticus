@@ -24,7 +24,6 @@
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   !![
   <outputAnalysis name="outputAnalysisBlackHoleVelocityDispersionRelation">
@@ -37,7 +36,6 @@
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_                        => null()
-     class           (galacticStructureClass  ), pointer                     :: galacticStructure_                          => null()
      class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_                         => null()
      double precision                          , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient                 , randomErrorPolynomialCoefficient
      double precision                                                        :: randomErrorMinimum                                   , randomErrorMaximum
@@ -68,7 +66,6 @@ contains
     double precision                                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient       , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                 ), pointer                     :: outputTimes_
-    class           (galacticStructureClass                           ), pointer                     :: galacticStructure_
     class           (darkMatterHaloScaleClass                         ), pointer                     :: darkMatterHaloScale_
     double precision                                                                                 :: randomErrorMinimum                         , randomErrorMaximum
     double precision                                                   , parameter                   :: toleranceRelative                   =1.0d-3
@@ -107,21 +104,19 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_,galacticStructure_=galacticStructure_)
+    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="outputTimes_"        />
     <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function blackHoleVelocityDispersionRelationConstructorParameters
 
-  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_,galacticStructure_) result (self)
+  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
     !!{
     Constructor for the ``blackHoleVelocityDispersionRelation'' output analysis class for internal use.
     !!}
@@ -149,7 +144,6 @@ contains
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
-    class           (galacticStructureClass                             ), intent(inout), target         :: galacticStructure_
     class           (darkMatterHaloScaleClass                           ), intent(in   ), target         :: darkMatterHaloScale_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum          =1.0d16
@@ -180,7 +174,7 @@ contains
     type            (varying_string                                     )                                :: targetLabel
     type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_, *galacticStructure_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
     !!]
     
     !$ call hdf5Access%set()
@@ -276,11 +270,11 @@ contains
     ! Build weight property operators.
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"       constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"       constructor="outputAnalysisPropertyOperatorLog10            (                                                                                             )"/>
     !!]
     allocate(outputAnalysisWeightPropertyOperatorMinMax_           )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperatorMinMax_"      constructor="outputAnalysisPropertyOperatorMinMax           (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                                                             )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorMinMax_"      constructor="outputAnalysisPropertyOperatorMinMax           (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                                          )"/>
     !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
@@ -288,12 +282,12 @@ contains
     weightPropertyOperators_%next    %operator_ => outputAnalysisWeightPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"            constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                                        )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"            constructor="outputAnalysisPropertyOperatorSequence         (weightPropertyOperators_                                                                     )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                                                )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                             )"/>
     !!]
     ! Create a velocity dispersion property extractor.
     allocate(nodePropertyExtractorVelocityDispersion_              )
@@ -301,16 +295,16 @@ contains
     includeRadii                =.false.
     integrationFailureIsFatal   =.false.
     !![
-    <referenceConstruct object="nodePropertyExtractorVelocityDispersion_"         constructor="nodePropertyExtractorVelocityDispersion       (radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_,galacticStructure_)"/>
+    <referenceConstruct object="nodePropertyExtractorVelocityDispersion_"         constructor="nodePropertyExtractorVelocityDispersion       (radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_)"/>
     !!]
     allocate(nodePropertyExtractor_                                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorScalarizer               (1,1,nodePropertyExtractorVelocitydispersion_                                                                     )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorScalarizer               (1,1,nodePropertyExtractorVelocitydispersion_                                                  )"/>
     !!]
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                                                                )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                                              )"/>
     !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
@@ -363,6 +357,7 @@ contains
     <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
+    <objectDestructor name="nodePropertyExtractorVelocityDispersion_"        />
     <objectDestructor name="nodePropertyExtractor_"                          />
     <objectDestructor name="cosmologyParametersData"                         />
     <objectDestructor name="cosmologyFunctionsData"                          />
@@ -380,7 +375,6 @@ contains
     type(outputAnalysisBlackHoleVelocityDispersionRelation), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%galacticStructure_"  />
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]

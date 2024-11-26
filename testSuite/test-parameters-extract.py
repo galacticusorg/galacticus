@@ -33,7 +33,7 @@ else:
         print("...done")
         print("SUCCESS: model run")
 
-# Open the model and look for duplicated datasets.
+# Compare the two extracted parameter files - they should be identical.
 status = "SUCCESS" if filecmp.cmp("outputs/parametersExtract.xml","outputs/parametersExtractSecond.xml") else "FAILED"
 
 # Report status.

@@ -29,15 +29,14 @@ module Node_Component_Disk_Standard
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Galactic_Structure              , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve                  , &
        &    Node_Component_Disk_Standard_Radius_Solver_Plausibility, Node_Component_Disk_Standard_Radius_Solver               , &
        &    Node_Component_Disk_Standard_Post_Step                 , Node_Component_Disk_Standard_Thread_Uninitialize         , &
-       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Calculation_Reset           , &
+       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Thread_Initialize           , &
        &    Node_Component_Disk_Standard_State_Store               , Node_Component_Disk_Standard_State_Retrieve              , &
-       &    Node_Component_Disk_Standard_Thread_Initialize         , Node_Component_Disk_Standard_Inactive
+       &    Node_Component_Disk_Standard_Inactive
 
   !![
   <component>
@@ -140,27 +139,9 @@ module Node_Component_Disk_Standard
     </property>
    </properties>
    <bindings>
-    <binding method="attachPipes"               function="Node_Component_Disk_Standard_Attach_Pipes"              bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
-    <binding method="enclosedMass"              function="Node_Component_Disk_Standard_Enclosed_Mass"             bindsTo="component"                                                                                           />
-    <binding method="acceleration"              function="Node_Component_Disk_Standard_Acceleration"              bindsTo="component"                                                                                           />
-    <binding method="tidalTensor"               function="Node_Component_Disk_Standard_Tidal_Tensor"              bindsTo="component"                                                                                           />
-    <binding method="density"                   function="Node_Component_Disk_Standard_Density"                   bindsTo="component"                                                                                           />
-    <binding method="densitySphericalAverage"   function="Node_Component_Disk_Standard_Density_Spherical_Average" bindsTo="component"                                                                                           />
-    <binding method="potential"                 function="Node_Component_Disk_Standard_Potential"                 bindsTo="component"                                                                                           />
-    <binding method="rotationCurve"             function="Node_Component_Disk_Standard_Rotation_Curve"            bindsTo="component"                                                                                           />
-    <binding method="rotationCurveGradient"     function="Node_Component_Disk_Standard_Rotation_Curve_Gradient"   bindsTo="component"                                                                                           />
-    <binding method="surfaceDensity"            function="Node_Component_Disk_Standard_Surface_Density"           bindsTo="component"                                                                                           />
-    <binding method="chandrasekharIntegral"   isDeferred="true"                                                   bindsTo="component"                                                                                            >
-      <interface>
-	<type>double</type>
-	<shape>3</shape>
-	<self pass="true" intent="inout" />
-	<argument>type            (treeNode                    ), intent(inout)               :: nodeSatellite                       </argument>
-	<argument>double precision                              , intent(in   ), dimension(3) :: positionCartesian, velocityCartesian</argument>
-	<argument>type            (enumerationComponentTypeType), intent(in   )               :: componentType                       </argument>
-	<argument>type            (enumerationMassTypeType     ), intent(in   )               :: massType                            </argument>
-      </interface>
-    </binding>
+    <binding method="attachPipes"      function="Node_Component_Disk_Standard_Attach_Pipes"      bindsTo="component" description="Attach pipes to the standard disk component." returnType="\void" arguments=""/>
+    <binding method="massDistribution" function="Node_Component_Disk_Standard_Mass_Distribution" bindsTo="component"                                                                                           />
+    <binding method="massBaryonic"     function="Node_Component_Disk_Standard_Mass_Baryonic"     bindsTo="component"                                                                                           />
    </bindings>
    <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   </component>
@@ -171,8 +152,7 @@ module Node_Component_Disk_Standard
   class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
   class(starFormationHistoryClass       ), pointer :: starFormationHistory_
   class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
-  class(galacticStructureClass          ), pointer :: galacticStructure_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationHistory_,mergerMassMovements_,galacticStructure_)
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationHistory_,mergerMassMovements_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -230,8 +210,6 @@ contains
           call diskStandardComponent%attachPipes()
           pipesAttached=.true.
        end if
-       ! Bind the Chandrasekhar integral function.
-       call diskStandardComponent%chandrasekharIntegralFunction(Node_Component_Disk_Standard_Chandrasekhar_Integral)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
@@ -286,13 +264,14 @@ contains
     !!{
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx            , openMPThreadBindingAtLevel, postEvolveEvent, &
           &                                          satelliteMergerEvent       , mergerTreeExtraOutputEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Mass_Distributions               , only : massDistributionCylindrical
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk       , massDistributionDisk_        
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_       , kinematicDistribution_
+    use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
+    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar            , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(2)  :: dependencies
@@ -310,12 +289,11 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
-       <objectBuilder class="darkMatterHaloScale"                                                 name="darkMatterHaloScale_"         source="subParameters"                    />
-       <objectBuilder class="stellarPopulationProperties"                                         name="stellarPopulationProperties_" source="subParameters"                    />
-       <objectBuilder class="starFormationHistory"                                                name="starFormationHistory_"        source="subParameters"                    />
-       <objectBuilder class="mergerMassMovements"                                                 name="mergerMassMovements_"         source="subParameters"                    />
-       <objectBuilder class="galacticStructure"                                                   name="galacticStructure_"           source="subParameters"                    />
-       <objectBuilder class="massDistribution"               parameterName="massDistributionDisk" name="massDistributionDisk_"        source="subParameters" threadPrivate="yes" >
+       <objectBuilder class="darkMatterHaloScale"                                              name="darkMatterHaloScale_"         source="subParameters"                    />
+       <objectBuilder class="stellarPopulationProperties"                                      name="stellarPopulationProperties_" source="subParameters"                    />
+       <objectBuilder class="starFormationHistory"                                             name="starFormationHistory_"        source="subParameters"                    />
+       <objectBuilder class="mergerMassMovements"                                              name="mergerMassMovements_"         source="subParameters"                    />
+       <objectBuilder class="massDistribution"            parameterName="massDistributionDisk" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionDisk value="exponentialDisk">
           <dimensionless value="true"/>
@@ -324,29 +302,36 @@ contains
        </objectBuilder>
        !!]
        ! Validate the disk mass distribution.
-       select type (massDistributionDisk_)
+       select type (massDistributionStellar_)
        class is (massDistributionCylindrical)
-          ! Since the disk must be cylindrical, deep-copy it to an object of that class. Then we do not need to perform
-          ! type-guards elsewhere in the code.
-          allocate(massDistributionDisk,mold=massDistributionDisk_)
-          !$omp critical(diskStandardDeepCopy)
-          !![
-	  <deepCopyReset variables="massDistributionDisk_"/>
-	  <deepCopy source="massDistributionDisk_" destination="massDistributionDisk"/>
-	  <deepCopyFinalize variables="massDistributionDisk"/>  
-          !!]
-          !$omp end critical(diskStandardDeepCopy)
+          ! The disk mass distribution must have cylindrical symmetry. So, this is acceptable.        
        class default
           call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
-       if (.not.massDistributionDisk%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass types in both.
+       !$omp critical(diskStandardDeepCopy)
+       allocate(massDistributionGas_,mold=massDistributionStellar_)
+       !![
+       <deepCopyReset variables="massDistributionStellar_"/>
+       <deepCopy source="massDistributionStellar_" destination="massDistributionGas_"/>
+       <deepCopyFinalize variables="massDistributionGas_"/>  
+       !!]
+       !$omp end critical(diskStandardDeepCopy)
+       call massDistributionStellar_%setTypes(componentTypeDisk,massTypeStellar)
+       call massDistributionGas_    %setTypes(componentTypeDisk,massTypeGaseous)
+       ! Construct the kinematic distribution.
+       allocate(kinematicDistribution_)
+       !![
+       <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+       !!]
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
        !! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
        !! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
        !! distribution (assuming a flat rotation curve).
-       massDistributionDiskDensityMoment1=massDistributionDisk%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
-       massDistributionDiskDensityMoment2=massDistributionDisk%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
+       massDistributionDiskDensityMoment1=massDistributionStellar_%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
+       massDistributionDiskDensityMoment2=massDistributionStellar_%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
        if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
           ! One or both of the moments are infinite. Simply assume a value of 0.5 as a default.
           diskStructureSolverSpecificAngularMomentum=0.5d0
@@ -362,9 +347,9 @@ contains
        ! curves for thin disk and a spherical mass distribution.
        if (structureSolverUseCole2000Method) then
           diskRadiusSolverFlatVsSphericalFactor=                                          &
-               & +massDistributionDisk%rotationCurve       (radiusStructureSolver)**2 &
-               & *                                          radiusStructureSolver     &
-               & -massDistributionDisk%massEnclosedBySphere(radiusStructureSolver)
+               & +massDistributionStellar_%rotationCurve       (radiusStructureSolver)**2 &
+               & *                                              radiusStructureSolver     &
+               & -massDistributionStellar_%massEnclosedBySphere(radiusStructureSolver)
        end if
     end if
     return
@@ -379,9 +364,9 @@ contains
     !!{
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent     , satelliteMergerEvent , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionDisk, massDistributionDisk_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -393,34 +378,13 @@ contains
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
-       <objectDestructor name="galacticStructure_"          />
-       <objectDestructor name="massDistributionDisk"        />
-       <objectDestructor name="massDistributionDisk_"       />
+       <objectDestructor name="massDistributionStellar_"    />
+       <objectDestructor name="massDistributionGas_"        />
+       <objectDestructor name="kinematicDistribution_"      />
        !!]
     end if
     return
   end subroutine Node_Component_Disk_Standard_Thread_Uninitialize
-
-  !![
-  <calculationResetTask>
-    <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>
-  </calculationResetTask>
-  !!]
-  subroutine Node_Component_Disk_Standard_Calculation_Reset(node,uniqueID)
-    !!{
-    Reset standard disk structure calculations.
-    !!}
-    use :: Galacticus_Nodes                 , only : treeNode
-    use :: Kind_Numbers                     , only : kind_int8
-    use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Reset
-    implicit none
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-    
-    call Node_Component_Disk_Standard_Reset(uniqueID)
-    return
-  end subroutine Node_Component_Disk_Standard_Calculation_Reset
 
   !![
   <preEvolveTask>
@@ -830,8 +794,8 @@ contains
        call disk%stellarPropertiesHistoryScale  (                                            stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=disk%starFormationHistory()
-       call starFormationHistory_%scales        (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
-       call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                            )
+       call starFormationHistory_%scales        (stellarPopulationHistoryScales,node,disk%massStellar(),disk%massGas(),disk%abundancesStellar())
+       call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                                 )
        call stellarPopulationHistoryScales%destroy()
     end select
     return
@@ -871,6 +835,7 @@ contains
     use :: Histories                       , only : history
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
+    use :: Kind_NUmbers, only : kind_int8
     implicit none
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -959,12 +924,11 @@ contains
           ! Also add star formation histories.
           historyNode=disk    %starFormationHistory    ()
           historyHost=diskHost%starFormationHistory    ()
-          call historyHost%increment              (historyNode,autoExtend  =.true. )
-          call historyNode%reset                  (                                )
-          call diskHost   %starFormationHistorySet(historyHost                     )
-          call disk       %starFormationHistorySet(historyNode                     )
-          call historyNode%destroy                (                                )
-          call historyHost%destroy                (                                )
+          call starFormationHistory_%move                   (nodeHost,node,historyHost,historyNode)
+          call diskHost             %starFormationHistorySet(              historyHost            )
+          call disk                 %starFormationHistorySet(                          historyNode)
+          call historyNode          %destroy                (                                     )
+          call historyHost          %destroy                (                                     )
        case (destinationMergerSpheroid%ID)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
@@ -979,7 +943,7 @@ contains
                &                                            +disk        %luminositiesStellar()                         &
                &                                           )
           ! Also add stellar properties histories.
-          historyNode=disk    %stellarPropertiesHistory()
+          historyNode=disk        %stellarPropertiesHistory()
           historyHost=spheroidHost%stellarPropertiesHistory()
           call historyHost %interpolatedIncrement      (historyNode)
           call historyNode %reset                      (           )
@@ -988,12 +952,11 @@ contains
           ! Also add star formation histories.
           historyNode=disk        %starFormationHistory    ()
           historyHost=spheroidHost%starFormationHistory    ()
-          call historyHost %increment              (historyNode,autoExtend  =.true. )
-          call historyNode %reset                  (                                )
-          call spheroidHost%starFormationHistorySet(historyHost                     )
-          call disk        %starFormationHistorySet(historyNode                     )
-          call historyNode %destroy                (                                )
-          call historyHost %destroy                (                                )
+          call starFormationHistory_%move                   (nodeHost,node,historyHost,historyNode)
+          call spheroidHost         %starFormationHistorySet(              historyHost            )
+          call disk                 %starFormationHistorySet(                          historyNode)
+          call historyNode          %destroy                (                                     )
+          call historyHost          %destroy                (                                     )
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
@@ -1248,9 +1211,9 @@ contains
     !!{
     Write the tabulation state to file.
     !!}
-    use            :: Display                          , only : displayMessage      , verbosityLevelInfo
-    use, intrinsic :: ISO_C_Binding                    , only : c_ptr               , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+    use            :: Display                          , only : displayMessage          , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1258,7 +1221,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionDisk darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     write (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return
@@ -1273,9 +1236,9 @@ contains
     !!{
     Retrieve the tabulation state from the file.
     !!}
-    use            :: Display                          , only : displayMessage      , verbosityLevelInfo
-    use, intrinsic :: ISO_C_Binding                    , only : c_ptr               , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionDisk
+    use            :: Display                          , only : displayMessage          , verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1283,152 +1246,10 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionDisk darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     read (stateFile) diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
     return
   end subroutine Node_Component_Disk_Standard_State_Retrieve
   
-  function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,nodeSatellite,positionCartesian,velocityCartesian,componentType,massType)
-    !!{
-    Computes the gravitational acceleration at a given position for a standard disk.
-    !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDiskStandard        , treeNode
-    use :: Galactic_Structure_Options      , only : componentTypeAll                 , componentTypeDisk           , massTypeAll            , weightByMass         , &
-         &                                          weightIndexNull                  , enumerationComponentTypeType, enumerationMassTypeType
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Coordinates                     , only : assignment(=)                    , coordinateSpherical         , coordinateCartesian    , coordinateCylindrical
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Mass_Distributions              , only : massDistributionGaussianEllipsoid
-    use :: Linear_Algebra                  , only : vector                           , matrix             , assignment(=)
-    implicit none
-    double precision                                                  , dimension(3) :: Node_Component_Disk_Standard_Chandrasekhar_Integral
-    class           (nodeComponentDiskStandard        ), intent(inout)               :: self
-    type            (treeNode                         ), intent(inout)               :: nodeSatellite
-    double precision                                   , intent(in   ), dimension(3) :: positionCartesian                                          , velocityCartesian
-    type            (enumerationComponentTypeType     ), intent(in   )               :: componentType
-    type            (enumerationMassTypeType          ), intent(in   )               :: massType
-    double precision                                   , parameter                   :: toomreQRadiusHalfMass                              =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
-    ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
-    double precision                                   , parameter                   :: toomreQFactor                                      =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
-    ! a stellar disk (Binney & Tremaine, eqn. 6.71).
-    double precision                                                  , dimension(3) :: velocityDisk                                               , velocityRelative                , &
-         &                                                                              positionSpherical                                          , positionSphericalMidplane       , &
-         &                                                                              positionCartesianMidplane                                  , positionCylindricalMidplane     , &
-         &                                                                              positionCylindricalHalfMass
-    type            (massDistributionGaussianEllipsoid), save                        :: velocityDistribution
-    logical                                            , save                        :: velocityDistributionInitialized                    =.false.
-    !$omp threadprivate(velocityDistribution,velocityDistributionInitialized)
-    type            (coordinateSpherical              )                              :: coordinatesSpherical
-    type            (coordinateCartesian              )                              :: coordinatesCartesian
-    type            (coordinateCylindrical            )                              :: coordinatesCylindrical
-    double precision                                                                 :: velocityDispersionRadial                                   , velocityDispersionAzimuthal     , &
-         &                                                                              velocityDispersionVertical                                 , velocityCircular                , &
-         &                                                                              velocityCircularHalfMassRadius                             , velocityCircularSquaredGradient , &
-         &                                                                              velocityCircularSquaredGradientHalfMassRadius              , density                         , &
-         &                                                                              densityMidPlane                                            , densitySurface                  , &
-         &                                                                              heightScale                                                , radiusMidplane                  , &
-         &                                                                              frequencyCircular                                          , frequencyEpicyclic              , &
-         &                                                                              frequencyCircularHalfMassRadius                            , frequencyEpicyclicHalfMassRadius, &
-         &                                                                              densitySurfaceRadiusHalfMass                               , velocityDispersionRadialHalfMass, &
-         &                                                                              velocityDispersionMaximum                                  , velocityRelativeMagnitude       , &
-         &                                                                              factorSuppressionExtendedMass                              , radiusHalfMass
-    type            (matrix                           )                              :: rotation
-
-    ! Return if the disk component is not selected.
-    Node_Component_Disk_Standard_Chandrasekhar_Integral=0.0d0
-    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk) .or. self%radius() <= 0.0d0) return
-    ! Construct the velocity vector of the disk rotation.
-    positionCartesianMidplane                    =[positionCartesian(1),positionCartesian(2),0.0d0]
-    coordinatesCartesian                         = positionCartesian
-    coordinatesSpherical                         = coordinatesCartesian
-    positionSpherical                            = coordinatesSpherical
-    coordinatesCartesian                         = positionCartesianMidplane
-    coordinatesSpherical                         = coordinatesCartesian
-    coordinatesCylindrical                       = coordinatesCartesian 
-    positionSphericalMidplane                    = coordinatesSpherical
-    positionCylindricalMidplane                  = coordinatesCylindrical
-    positionCylindricalHalfMass                  =[self%halfMassRadius(),0.0d0,0.0d0]
-    radiusMidplane                               = coordinatesCylindrical%r()
-    velocityCircular                             =self%rotationCurve        (     radiusMidplane  ,componentType,massType)
-    velocityCircularSquaredGradient              =self%rotationCurveGradient(     radiusMidplane  ,componentType,massType)
-    velocityCircularHalfMassRadius               =self%rotationCurve        (self%halfMassRadius(),componentType,massType)
-    velocityCircularSquaredGradientHalfMassRadius=self%rotationCurveGradient(self%halfMassRadius(),componentType,massType)
-    velocityDisk                                =+[positionCartesianMidplane(2),-positionCartesianMidplane(1),0.0d0] &
-         &                                        /radiusMidplane                                                     &
-         &                                        *velocityCircular
-    ! Compute epicyclic frequency.
-    frequencyCircular               =velocityCircular              /     radiusMidplane
-    frequencyCircularHalfMassRadius =velocityCircularHalfMassRadius/self%halfMassRadius()
-    frequencyEpicyclic              =sqrt(velocityCircularSquaredGradient              /     radiusMidplane  +2.0d0*frequencyCircular              **2)
-    frequencyEpicyclicHalfMassRadius=sqrt(velocityCircularSquaredGradientHalfMassRadius/self%halfMassRadius()+2.0d0*frequencyCircularHalfMassRadius**2)
-    ! Get disk structural properties.
-    density                     =+self%density       (positionSpherical          ,componentTypeDisk,massTypeAll,weightByMass,weightIndexNull)
-    densityMidPlane             =+self%density       (positionSphericalMidplane  ,componentTypeDisk,massTypeAll,weightByMass,weightIndexNull)
-    densitySurface              =+self%surfaceDensity(positionCylindricalMidplane,componentTypeDisk,massTypeAll,weightByMass,weightIndexNull)
-    densitySurfaceRadiusHalfMass=+self%surfaceDensity(positionCylindricalHalfMass,componentTypeDisk,massTypeAll,weightByMass,weightIndexNull)
-    if (density <= 0.0d0) return
-    heightScale                 =+0.5d0           &
-         &                       *densitySurface  &
-         &                       /densityMidPlane
-    ! Compute normalization of the radial velocity dispersion.
-    velocityDispersionRadialHalfMass=+toomreQFactor                    &
-         &                           *gravitationalConstantGalacticus  &
-         &                           *densitySurfaceRadiusHalfMass     &
-         &                           *toomreQRadiusHalfMass            &
-         &                           /frequencyEpicyclicHalfMassRadius
-    ! Find the velocity dispersion components of the disk.
-    velocityDispersionRadial   =+velocityDispersionRadialHalfMass                &
-         &                      *exp(-     radiusMidPlane  /self%radius()/2.0d0) &
-         &                      /exp(-self%halfMassRadius()/self%radius()/2.0d0)
-    velocityDispersionAzimuthal=+velocityDispersionRadial*frequencyEpicyclic/2.0d0/frequencyCircular
-    velocityDispersionVertical =+sqrt(Pi*gravitationalConstantGalacticus*densitySurface*heightScale)
-    velocityDispersionMaximum  =+maxval([velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical])
-    velocityDispersionRadial   =+velocityDispersionRadial   /velocityDispersionMaximum
-    velocityDispersionAzimuthal=+velocityDispersionAzimuthal/velocityDispersionMaximum
-    velocityDispersionVertical =+velocityDispersionVertical /velocityDispersionMaximum
-    if (any([velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical] <= 0.0d0)) return
-    ! Find the relative velocity of the perturber and the disk.
-    velocityRelative=(velocityCartesian-velocityDisk)/velocityDispersionMaximum
-    ! Handle limiting case of large relative velocity.
-    velocityRelativeMagnitude=sqrt(sum(velocityRelative**2))
-    ! Initialize the velocity distribution.
-    rotation=reshape(                                                                               &
-         &            [                                                                             &
-         &             +positionCartesianMidplane(1),-positionCartesianMidplane(2),+0.0d0         , &
-         &             +positionCartesianMidplane(2),+positionCartesianMidplane(1),+0.0d0         , &
-         &             +0.0d0                       ,+0.0d0                       ,+radiusMidplane  &
-         &            ]                                                                             &
-         &           /radiusMidplane                                                              , &
-         &           [3,3]                                                                          &
-         &          )
-    coordinatesCartesian=velocityRelative
-    if (.not.velocityDistributionInitialized) then
-       velocityDistribution           =massDistributionGaussianEllipsoid(scaleLength=[1.0d0,1.0d0,1.0d0],rotation=rotation,mass=1.0d0,dimensionless=.true.)
-       velocityDistributionInitialized=.true.
-    end if
-    call velocityDistribution%initialize(scaleLength=[velocityDispersionRadial,velocityDispersionAzimuthal,velocityDispersionVertical],rotation=rotation)
-    ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
-    ! simply avoid extremely large accelerations for subhalo close to the disk plane when that subhalo is much more extended than
-    ! the disk.
-    radiusHalfMass=galacticStructure_%radiusEnclosingMass(                                 &
-         &                                                               nodeSatellite   , &
-         &                                                massFractional=0.5d0           , &
-         &                                                componentType =componentTypeAll, &
-         &                                                massType      =massTypeAll       &
-         &                                               )
-    if (radiusHalfMass > heightScale) then
-       factorSuppressionExtendedMass=+heightScale    &
-            &                        /radiusHalfMass
-    else
-       factorSuppressionExtendedMass=+1.0d0
-    end if
-    ! Evaluate the integral.
-    Node_Component_Disk_Standard_Chandrasekhar_Integral=+density                                                             &
-         &                                              *velocityDistribution         %acceleration(coordinatesCartesian)    &
-         &                                              /velocityDispersionMaximum                                       **2 &
-         &                                              *factorSuppressionExtendedMass
-    return
-  end function Node_Component_Disk_Standard_Chandrasekhar_Integral
-
 end module Node_Component_Disk_Standard

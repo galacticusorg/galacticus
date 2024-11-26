@@ -155,6 +155,7 @@ contains
     class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout)                   :: self
     type            (treeNode                                     ), intent(inout)                   :: node
     type            (multiCounter                                 ), intent(inout)     , optional    :: instance
+    double precision                                               , dimension(:,:  )  , allocatable :: masses
     class           (nodeComponentDisk                            )                    , pointer     :: disk
     class           (nodeComponentSpheroid                        )                    , pointer     :: spheroid
     class           (nodeComponentNSC                             )                    , pointer     :: NSC
@@ -208,10 +209,11 @@ contains
     end select
     
     if (starFormationHistory%exists()) then
-       allocate(starFormationHistoryMassExtract(size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2),1))
-       starFormationHistoryMassExtract(:,:,1)=starFormationHistory%data
+       masses=self%starFormationHistory_%masses(node,starFormationHistory,allowTruncation=.true.)
+       allocate(starFormationHistoryMassExtract(size(masses,dim=1),size(masses,dim=2),1))
+       starFormationHistoryMassExtract(:,:,1)=masses
     else
-       allocate(starFormationHistoryMassExtract(0                               ,0                                       ,1))
+       allocate(starFormationHistoryMassExtract(0                 ,0                 ,1))
     end if
     return
   end function starFormationHistoryMassExtract
@@ -262,7 +264,8 @@ contains
     !!{
     Return metadata associated with the {\normalfont \ttfamily starFormationHistoryMass} properties.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Star_Formation_Histories, only : starFormationHistoryAgesFixedPerOutput
     implicit none
     class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
@@ -272,10 +275,10 @@ contains
     integer         (c_size_t                                     )                :: indexOutput
     !$GLC attributes unused :: metaDataRank0
 
-    call    metaDataRank1%set('metallicity',self%starFormationHistory_%metallicityBoundaries(           ))
-    if (self%starFormationHistory_%perOutputTabulationIsStatic()) then
+    call    metaDataRank1%set('metallicity',self%starFormationHistory_%metallicityBoundaries(                                              ))
+    if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
        indexOutput =  self%outputTimes_%index(time,findClosest=.true.)
-       call metaDataRank1%set('time'       ,self%starFormationHistory_%times                (indexOutput))
+       call metaDataRank1%set('time'       ,self%starFormationHistory_%times                (indexOutput=indexOutput,allowTruncation=.true.))
     end if
     return
   end subroutine starFormationHistoryMassMetaData
