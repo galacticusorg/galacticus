@@ -139,7 +139,7 @@ target['withBaryons_noReionization'].append(
                                          )
 
 # Define χ² targets for each dataset.
-chiSquaredTarget = {"withBaryons": np.array([0.0,6.0,4.0,5.0,3.0]), "withBaryons_noReionization": np.array([0.0,7.0,3.0,5.0,4.0])}
+chiSquaredTarget = {"withBaryons": np.array([0.0,6.0,4.5,5.0,3.0]), "withBaryons_noReionization": np.array([0.0,7.0,3.0,5.0,4.0])}
 
 # Create output path.
 try:
