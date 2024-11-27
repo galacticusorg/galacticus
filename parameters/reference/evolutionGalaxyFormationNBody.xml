@@ -248,8 +248,8 @@
     <mergerTreeEvolveTimestep value="starFormationHistory"/>
     <!-- Limit timesteps based on satellite evolution -->
     <mergerTreeEvolveTimestep value="satellite">
-      <timeOffsetMaximumAbsolute value="0.010"/>
-      <timeOffsetMaximumRelative value="0.001"/>
+      <timeOffsetMaximumAbsolute value="0.0"/>
+      <timeOffsetMaximumRelative value="0.0"/>
     </mergerTreeEvolveTimestep>
     <!-- Set up the new lightcone output using an outputter passed to the lightcone-crossing merger tree evolution timestepper -->
     <mergerTreeEvolveTimestep value="lightconeCrossing">
