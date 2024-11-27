@@ -324,6 +324,17 @@ contains
              deallocate(timesNodeCrossingTmp)
           end if
        end if
+       ! Check for cases where the first crossing time is equal to (or very close to) the current time. These crossing have
+       ! already been processed and so can be ignored.
+       if (size(timesNodeCrossing) == size(timesNodeCrossingPrevious)+1) then
+          if (Values_Agree(timesNodeCrossing(1),basic%time(),absTol=toleranceAbsolute)) then
+             ! The first crossing time is equal to the current time.
+             call move_alloc(timesNodeCrossing,timesNodeCrossingTmp)
+             allocate(timesNodeCrossing(size(timesNodeCrossingTmp)-1))
+             if (size(timesNodeCrossing) > 0) timesNodeCrossing=timesNodeCrossingTmp(2:size(timesNodeCrossingTmp))
+             deallocate(timesNodeCrossingTmp)
+          end if
+       end if
        ! Validate consistency in the lightcone crossing times.
        if (size(timesNodeCrossing) /= size(timesNodeCrossingPrevious)) then
           write (label,'(e16.10)') basic%time()
@@ -420,7 +431,7 @@ contains
             type     (varying_string) :: message
             character(len=16        ) :: label
             write (label,'(e16.10)') time
-            message=var_str("inconsistent number of star formation histories (")//countHistories//") and lightcone crossing times ("//size(timesCrossing)//") in node "//node%index()//" at time "//trim(adjustl(label))//" Gyr"
+            message=var_str("inconsistent number of star formation histories (")//countHistories//") and lightcone crossing times ("//size(timesCrossing)//") in node "//node%index()//" at time "//trim(adjustl(label))//" Gyr (star formation history was created in progenitor "//basic%longIntegerRank0MetaPropertyGet(self%createdInID)//")"
             call Error_Report(message//{introspection:location})
           end block
        end if
@@ -553,12 +564,36 @@ contains
        ! Check that crossing times agree.
        if (size(timesNodeCrossing1) /= size(timesNodeCrossing2)) then
           message=var_str('number of crossing times differs in merging nodes ')//node1%index()//" ("//size(timesNodeCrossing1)//") and "//node2%index()//" ("//size(timesNodeCrossing2)//")"
-          call Error_Report(message//{introspection:location})
+          call displayIndent(message)
+          write (label,'(e12.6)') basic1%time()
+          message='nodes exist at times '//trim(adjustl(label))//' Gyr and '
+          write (label,'(e12.6)') basic2%time()
+          message=message//trim(adjustl(label))//' Gyr'
+          call displayMessage(message)
+          call displayMessage(var_str('star formation histories created in progenitors ')//basic1%longIntegerRank0MetaPropertyGet(self%createdInID)//' and '//basic2%longIntegerRank0MetaPropertyGet(self%createdInID))
+          call displayMessage("times (target | mergee) are:")
+          do i=1,max(size(timesNodeCrossing1),size(timesNodeCrossing2))
+             if (i <= size(timesNodeCrossing1)) then
+                write (label,'(e12.6)') timesNodeCrossing1(i)
+             else
+                label=repeat(" ",12)
+             end if
+             message=         label//" | "
+             if (i <= size(timesNodeCrossing2)) then
+                write (label,'(e12.6)') timesNodeCrossing2(i)
+             else
+                label=repeat(" ",12)
+             end if
+             message=message//label
+             call displayMessage(message)
+          end do
+          call displayUnindent("")
+          call Error_Report("invalid crossing times"//{introspection:location})
        else if (.not.all(Values_Agree(timesNodeCrossing1,timesNodeCrossing2,relTol=toleranceRelative))) then
           call displayIndent(var_str('crossing times differ in merging nodes ')//node1%index()//" and "//node2%index())
-          write (label,'(e12.6)') basic1%time()          
+          write (label,'(e12.6)') basic1%time()
           message='nodes exist at times '//trim(adjustl(label))//' Gyr and '
-          write (label,'(e12.6)') basic1%time()          
+          write (label,'(e12.6)') basic2%time()
           message=message//trim(adjustl(label))//' Gyr'
           call displayMessage(message)
           call displayMessage(var_str('star formation histories created in progenitors ')//basic1%longIntegerRank0MetaPropertyGet(self%createdInID)//' and '//basic2%longIntegerRank0MetaPropertyGet(self%createdInID))
@@ -680,7 +715,7 @@ contains
        write (label,'(e16.10)') basic%time         ( )
        message="time ("//label//") "
        write (label,'(e16.10)')       timesCrossing(1)
-       message=message//"does not match expected time ("//label//") for node "//node%index()
+       message=message//"does not match expected time ("//label//") for node "//node%index()//" (star formation history created in progenitor "//basic%longIntegerRank0MetaPropertyGet(self%createdInID)//")"
        call Error_Report(message//{introspection:location})
     end if
     ! Set the times for this output. Note that the times stored in the history object are relative to t=0, so we increment them by
