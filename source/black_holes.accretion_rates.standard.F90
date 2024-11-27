@@ -144,7 +144,7 @@ contains
     <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
     !!]
-    self=blackHoleAccretionRateStandard(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly,galacticStructure_,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
+    self=blackHoleAccretionRateStandard(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="accretionDisks_"                     />
@@ -156,7 +156,7 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly,galacticStructure_,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
+  function standardConstructorInternal(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} node operator class.
     !!}
@@ -173,7 +173,7 @@ contains
          &                                                                               bondiHoyleAccretionTemperatureSpheroid
     logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly        , stopAccretion
     !![
-    <constructorAssign variables="stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly, *galacticStructure_, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
     !!]
 
     ! Check if cold mode is explicitly tracked.

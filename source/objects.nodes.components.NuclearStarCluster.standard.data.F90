@@ -25,49 +25,12 @@ module Node_Component_NSC_Standard_Data
   !!{
   Stores data for the standard nuclear star cluster node component.
   !!}
-  use :: Kind_Numbers      , only : kind_int8
-  use :: Mass_Distributions, only : massDistributionClass
+  use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal
   implicit none
   public
-  ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8  )          :: lastUniqueID                    =-1
-  !$omp threadprivate(lastUniqueID)
-
-  ! Records of previously computed and stored quantities.
-  logical                                     :: surfaceDensityCentralGasComputed  , surfaceDensityCentralStellarComputed, &
-       &                                         surfaceDensityCentralTotalComputed
   double precision                            :: radiusNorm
-
-  !$omp threadprivate(surfaceDensityCentralGasComputed, surfaceDensityCentralStellarComputed, surfaceDensityCentralTotalComputed)
-  
-  double precision                            :: surfaceDensityCentralGas    , surfaceDensityCentralStellar        , &
-      &                                          surfaceDensityCentralTotal
-  !$omp threadprivate(surfaceDensityCentralGas,  surfaceDensityCentralStellar, surfaceDensityCentralTotal)
- 
-  logical                                     :: radiusScaleNSCComputed
-  !$omp threadprivate(radiusScaleNSCComputed)
-  double precision                            :: radiusScaleNSC
-  !$omp threadprivate(radiusScaleNSC)
-
-  ! The mass distribution object.
-  class           (massDistributionClass      ), pointer :: massDistributionNSC
-  !$omp threadprivate(massDistributionNSC)
-
-contains
-
-  subroutine Node_Component_NSC_Standard_Reset(uniqueID)
-    !!{
-    Reset calculations for the standard nuclear star cluster component.
-    !!}
-    implicit none
-    integer(kind=kind_int8), intent(in   ) :: uniqueID
-
-    radiusScaleNSCComputed              =.false.
-    surfaceDensityCentralGasComputed    =.false.
-    surfaceDensityCentralStellarComputed=.false.
-    surfaceDensityCentralTotalComputed  =.false.
-    lastUniqueID                        =uniqueID
-    return
-  end subroutine Node_Component_NSC_Standard_Reset
-
+  ! The mass distribution objects.
+  class(massDistributionClass      ), pointer :: massDistributionStellar_, massDistributionGas_
+  type (kinematicsDistributionLocal), pointer :: kinematicDistribution_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_)
 end module Node_Component_NSC_Standard_Data
