@@ -30,7 +30,7 @@
   <!-- Merger tree options -->
   <mergerTreeConstructor value="read">
     <!-- Specify the merger tree files to read. -->
-    <fileNames                           value="tree.hdf5"/>
+    <fileNames                           value="testSuite/data/lightconeCrossingAtCurrentTime.hdf5"/>
     <!-- Include subresolution merging times -->
     <satelliteMergingTimescalesSubresolution value="boylanKolchin2008"/>
     <!-- Consistency checks and validation. -->
