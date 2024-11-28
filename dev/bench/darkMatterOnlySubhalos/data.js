@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1732230535095,
+  "lastUpdate": 1732779376414,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c20456b4883f6ac5c9ad4d71f19afbb988029474",
-          "message": "fix: Fix erroneously joined line",
-          "timestamp": "2024-03-07T18:06:57Z",
-          "tree_id": "0c2781c9fc1798b1bd600e15582862d043f0c906",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c20456b4883f6ac5c9ad4d71f19afbb988029474"
-        },
-        "date": 1709847115657,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 44.234,
-            "unit": "seconds",
-            "range": 0.0315658042836927
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8704,6 +8674,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 20909.5934677231,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f482d6b2bd4ce6a1b4707032a574c009983ed4ab",
+          "message": "Merge pull request #744 from galacticusorg/fixTreeWeights\n\nVarious fixes related to reading tree masses from file",
+          "timestamp": "2024-11-27T17:36:03Z",
+          "tree_id": "496f27f470d2c724b32dd081a278dd16df7dd166",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f482d6b2bd4ce6a1b4707032a574c009983ed4ab"
+        },
+        "date": 1732779374505,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.168,
+            "unit": "seconds",
+            "range": 0.158674509610102
           }
         ]
       }
