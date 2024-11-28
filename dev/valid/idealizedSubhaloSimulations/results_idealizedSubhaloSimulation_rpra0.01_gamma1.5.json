@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "c5185afbf01c82d3e65a46dedcf09ea50a034a3c",
-        "message": "Merge pull request #740 from galacticusorg/fixMergerTreeReadMultipleFiles\n\nCorrectly handle reading of multiple merger tree files\n",
-        "timestamp": "2024-11-21 16:31:06+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/c5185afbf01c82d3e65a46dedcf09ea50a034a3c"
+        "id": "f482d6b2bd4ce6a1b4707032a574c009983ed4ab",
+        "message": "Merge pull request #744 from galacticusorg/fixTreeWeights\n\nVarious fixes related to reading tree masses from file\n",
+        "timestamp": "2024-11-27 17:36:03+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f482d6b2bd4ce6a1b4707032a574c009983ed4ab"
     },
     "results": [
         {

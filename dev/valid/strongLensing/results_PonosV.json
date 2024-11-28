@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
+   "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "slope" : {
+      "percentageBelow" : 70.5882352941177,
+      "target" : 0.85,
+      "percentageAbove" : 29.4117647058824
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml",
    "commit" : {
+      "id" : "f482d6b2bd4ce6a1b4707032a574c009983ed4ab",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/f482d6b2bd4ce6a1b4707032a574c009983ed4ab",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abensonca@gmail.com"
       },
-      "timestamp" : "Thu, 21 Nov 2024 16:31:06 +0000",
-      "id" : "c5185afbf01c82d3e65a46dedcf09ea50a034a3c",
-      "message" : "Merge pull request #740 from galacticusorg/fixMergerTreeReadMultipleFiles",
-      "url" : "https://github.com/galacticusorg/galacticus/commit/c5185afbf01c82d3e65a46dedcf09ea50a034a3c"
+      "timestamp" : "Wed, 27 Nov 2024 17:36:03 +0000",
+      "message" : "Merge pull request #744 from galacticusorg/fixTreeWeights"
    },
    "surfaceDensity" : {
-      "percentageBelow" : 53.125,
+      "percentageAbove" : 43.75,
       "target" : 0.006,
-      "percentageAbove" : 46.875
-   },
-   "slope" : {
-      "percentageAbove" : 29.4117647058824,
-      "percentageBelow" : 70.5882352941177,
-      "target" : 0.85
-   },
-   "repoUrl" : "https://github.com/galacticusorg/galacticus"
+      "percentageBelow" : 56.25
+   }
 }
