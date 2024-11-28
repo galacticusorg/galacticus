@@ -1620,7 +1620,7 @@ contains
     !!]
 
     if (self%isPresent(parameterName)) then
-       call self%value(parameterName,parameterText,writeOutput=.false.)
+       call self%value(parameterName,parameterText,writeOutput=.false.,evaluate=.false.)
        inputParametersCount=String_Count_Words(char(parameterText))
     else
        if (zeroIfNotPresent_) then
