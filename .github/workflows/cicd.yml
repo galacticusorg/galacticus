@@ -1202,6 +1202,7 @@ jobs:
                 testSuite/regressions/subhaloTwoConsecutiveMergers.xml,
                 testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
                 testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
+                testSuite/regressions/preInfallEvolutionNotOnMainBranch.xml,
                 testSuite/regressions/outputRank2ExtendSegFault.xml,
                 testSuite/regressions/barInstabilityFPE.xml,
                 testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
