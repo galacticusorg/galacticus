@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1732856597839,
+  "lastUpdate": 1732856608699,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "05526e1732a8eea0cf597557561ecd170cccbfc7",
-          "message": "Merge pull request #574 from galacticusorg/featRamPressurePosition\n\nAdd a ram pressure force class which uses relative positions",
-          "timestamp": "2024-03-08T04:04:16Z",
-          "tree_id": "b6e25e2eeca8b4854f2df2c45009fdc0c0b8969b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/05526e1732a8eea0cf597557561ecd170cccbfc7"
-        },
-        "date": 1709881824650,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 58.4127819334031,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 26.2326123493587,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 23965.5932725254,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8704,6 +8665,45 @@ window.BENCHMARK_DATA = {
             "value": 48.785,
             "unit": "seconds",
             "range": 0.185872267969238
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ce13376f56b63a1c39a39816838bdaa11119a2d1",
+          "message": "Merge pull request #749 from galacticusorg/fixPreInfallEvolution\n\nFix pre infall evolution",
+          "timestamp": "2024-11-28T22:07:37Z",
+          "tree_id": "3e00483ee84123bb3267a646ca5cf023fe83e307",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ce13376f56b63a1c39a39816838bdaa11119a2d1"
+        },
+        "date": 1732856607718,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 17.0103078930614,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 8.65769729017522,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 20989.017504803,
+            "unit": "-logℒ"
           }
         ]
       }
