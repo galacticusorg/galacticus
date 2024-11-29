@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1732779384101,
+  "lastUpdate": 1732856597839,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "05526e1732a8eea0cf597557561ecd170cccbfc7",
-          "message": "Merge pull request #574 from galacticusorg/featRamPressurePosition\n\nAdd a ram pressure force class which uses relative positions",
-          "timestamp": "2024-03-08T04:04:16Z",
-          "tree_id": "b6e25e2eeca8b4854f2df2c45009fdc0c0b8969b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/05526e1732a8eea0cf597557561ecd170cccbfc7"
-        },
-        "date": 1709881818113,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.974,
-            "unit": "seconds",
-            "range": 0.0449043427739097
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8704,6 +8674,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 21027.5830907052,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ce13376f56b63a1c39a39816838bdaa11119a2d1",
+          "message": "Merge pull request #749 from galacticusorg/fixPreInfallEvolution\n\nFix pre infall evolution",
+          "timestamp": "2024-11-28T22:07:37Z",
+          "tree_id": "3e00483ee84123bb3267a646ca5cf023fe83e307",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ce13376f56b63a1c39a39816838bdaa11119a2d1"
+        },
+        "date": 1732856595310,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.785,
+            "unit": "seconds",
+            "range": 0.185872267969238
           }
         ]
       }
