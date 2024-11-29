@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "f482d6b2bd4ce6a1b4707032a574c009983ed4ab",
-        "message": "Merge pull request #744 from galacticusorg/fixTreeWeights\n\nVarious fixes related to reading tree masses from file\n",
-        "timestamp": "2024-11-27 17:36:03+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/f482d6b2bd4ce6a1b4707032a574c009983ed4ab"
+        "id": "ce13376f56b63a1c39a39816838bdaa11119a2d1",
+        "message": "Merge pull request #749 from galacticusorg/fixPreInfallEvolution\n\nFix pre infall evolution\n",
+        "timestamp": "2024-11-28 22:07:37+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ce13376f56b63a1c39a39816838bdaa11119a2d1"
     },
     "results": [
         {
