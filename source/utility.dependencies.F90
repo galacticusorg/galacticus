@@ -2,7 +2,7 @@
 !!           2019, 2020, 2021, 2022, 2023, 2024
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
-!! This file is part of Galacticus.
+!! Tis file is part of Galacticus.
 !!
 !!    Galacticus is free software: you can redistribute it and/or modify
 !!    it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ contains
     type     (varying_string)                          :: dependencyVersion
     character(len=*         ), intent(in   )           :: dependency
     logical                  , intent(in   ), optional :: majorOnly
+    type     (varying_string)                          :: versionTmp
     !![
     <optionalArgument name="majorOnly" defaultsTo=".false."/>
     !!]
@@ -60,9 +61,11 @@ contains
     !$omp end critical(dependenciesInitialize)
     if (dependencies_%exists(trim(dependency))) then
        dependencyVersion=dependencies_%value(trim(dependency))
-       if (majorOnly_ .and. index(dependencyVersion,".") > 1) &
-            & dependencyVersion=extract(dependencyVersion,1,index(dependencyVersion,".")-1)
-    else
+       if (majorOnly_ .and. index(dependencyVersion,".") > 1) then
+          versionTmp       =extract(dependencyVersion,1,index(dependencyVersion,".")-1)
+          dependencyVersion=versionTmp
+       end if
+       else
        call Error_Report('dependency not found'//{introspection:location})
     end if
     return
