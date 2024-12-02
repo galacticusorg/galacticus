@@ -1,24 +1,24 @@
 window.PONOSV_DATA = {
    "slope" : {
-      "percentageAbove" : 29.4117647058824,
+      "percentageBelow" : 70.5882352941177,
       "target" : 0.85,
-      "percentageBelow" : 70.5882352941177
-   },
-   "surfaceDensity" : {
-      "percentageAbove" : 43.75,
-      "target" : 0.006,
-      "percentageBelow" : 56.25
+      "percentageAbove" : 29.4117647058824
    },
    "commit" : {
-      "url" : "https://github.com/galacticusorg/galacticus/commit/ce13376f56b63a1c39a39816838bdaa11119a2d1",
-      "message" : "Merge pull request #749 from galacticusorg/fixPreInfallEvolution",
-      "timestamp" : "Thu, 28 Nov 2024 22:07:37 +0000",
-      "id" : "ce13376f56b63a1c39a39816838bdaa11119a2d1",
+      "url" : "https://github.com/galacticusorg/galacticus/commit/f79af740768446ae23f15bc45d2967f9ac374221",
+      "message" : "Merge pull request #750 from galacticusorg/fixVersionMajorExtract",
+      "timestamp" : "Sun, 1 Dec 2024 18:40:28 +0000",
       "author" : {
          "name" : "Andrew Benson",
          "email" : "abensonca@gmail.com"
-      }
+      },
+      "id" : "f79af740768446ae23f15bc45d2967f9ac374221"
    },
    "repoUrl" : "https://github.com/galacticusorg/galacticus",
+   "surfaceDensity" : {
+      "percentageBelow" : 50,
+      "target" : 0.006,
+      "percentageAbove" : 50
+   },
    "parameterFile" : "testSuite/parameters/validate_PonosV.xml"
 }

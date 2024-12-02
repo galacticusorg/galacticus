@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "ce13376f56b63a1c39a39816838bdaa11119a2d1",
-        "message": "Merge pull request #749 from galacticusorg/fixPreInfallEvolution\n\nFix pre infall evolution\n",
-        "timestamp": "2024-11-28 22:07:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ce13376f56b63a1c39a39816838bdaa11119a2d1"
+        "id": "f79af740768446ae23f15bc45d2967f9ac374221",
+        "message": "Merge pull request #750 from galacticusorg/fixVersionMajorExtract\n\nAvoid overwriting dependency major version\n",
+        "timestamp": "2024-12-01 18:40:28+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/f79af740768446ae23f15bc45d2967f9ac374221"
     },
     "results": [
         {
