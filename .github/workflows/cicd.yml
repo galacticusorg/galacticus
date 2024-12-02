@@ -421,7 +421,7 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j`sysctl -n hw.activecpu` Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
@@ -457,7 +457,7 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j`sysctl -n hw.activecpu` Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
@@ -486,7 +486,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -523,7 +523,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` Galacticus.exe
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe
       - name: Build tools
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
@@ -599,7 +599,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
       - name: Build tools
         run: |
@@ -1380,7 +1380,7 @@ jobs:
           sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python

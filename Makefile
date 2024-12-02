@@ -295,6 +295,12 @@ $(BUILDPATH)/Makefile_Config_Git2:
 	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
 	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
 	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
+else ifeq '${USEGIT2}' 'no'
+$(BUILDPATH)/Makefile_Config_Git2:
+	@mkdir -p $(BUILDPATH)
+	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 else
 $(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
 	@mkdir -p $(BUILDPATH)
