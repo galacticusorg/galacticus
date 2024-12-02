@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "f79af740768446ae23f15bc45d2967f9ac374221",
-        "message": "Merge pull request #750 from galacticusorg/fixVersionMajorExtract\n\nAvoid overwriting dependency major version\n",
-        "timestamp": "2024-12-01 18:40:28+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/f79af740768446ae23f15bc45d2967f9ac374221"
+        "id": "a6a5c8c3a3e96a1a9b9e49e75278790df784f07c",
+        "message": "Merge pull request #745 from galacticusorg/featHDF1.14.5\n\nUpdate code to work with v1.14.5 of the HDF5 library\n",
+        "timestamp": "2024-12-02 02:10:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a6a5c8c3a3e96a1a9b9e49e75278790df784f07c"
     },
     "results": [
         {
