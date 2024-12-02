@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733104140305,
+  "lastUpdate": 1733130115479,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "05526e1732a8eea0cf597557561ecd170cccbfc7",
-          "message": "Merge pull request #574 from galacticusorg/featRamPressurePosition\n\nAdd a ram pressure force class which uses relative positions",
-          "timestamp": "2024-03-08T04:04:16Z",
-          "tree_id": "b6e25e2eeca8b4854f2df2c45009fdc0c0b8969b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/05526e1732a8eea0cf597557561ecd170cccbfc7"
-        },
-        "date": 1709881821731,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 191.995,
-            "unit": "seconds",
-            "range": 0.115232373927156
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 12.867622299157,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a6a5c8c3a3e96a1a9b9e49e75278790df784f07c",
+          "message": "Merge pull request #745 from galacticusorg/featHDF1.14.5\n\nUpdate code to work with v1.14.5 of the HDF5 library",
+          "timestamp": "2024-12-02T02:10:36Z",
+          "tree_id": "709e6ef2a3640ccf80d9a21a0b22ff261708dfd2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a6a5c8c3a3e96a1a9b9e49e75278790df784f07c"
+        },
+        "date": 1733130114546,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 29.872,
+            "unit": "seconds",
+            "range": 0.0502951289890513
           }
         ]
       }
