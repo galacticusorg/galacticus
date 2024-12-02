@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMONFW">
    <description>
-    A dark matter profile DMO class which builds \refClass{} objects to implement the \gls{nfw} density profile
+    A dark matter profile DMO class which builds \refClass{massDistributionNFW} objects to implement the \gls{nfw} density profile
     \citep{navarro_universal_1997}, normalized such that the total mass of the \gls{node} is enclosed with the virial radius and
     with the scale length $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
     \refPhysics{darkMatterProfileConcentration}).

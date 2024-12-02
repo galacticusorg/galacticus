@@ -37,7 +37,7 @@
    contains
      !![
      <methods>
-       <method description="Read the halo masses, and, optionally, weights, from file.." method="read" />
+       <method description="Read the halo masses, and, optionally, weights, from file." method="read"/>
      </methods>
      !!]
      procedure                             :: construct => readConstruct
@@ -58,13 +58,16 @@ contains
     !!{
     Construct a set of merger tree masses by reading from a file.
     !!}
-    use :: Sorting          , only : sort
+    use :: Sorting, only : sort
     implicit none
     class           (mergerTreeBuildMassesRead), intent(inout)                            :: self
     double precision                           , intent(in   )                            :: time
-    double precision                           , intent(  out), allocatable, dimension(:) :: mass        , weight     , &
-         &                                                                                   massMinimum , massMaximum
-    integer                                                                               :: i
+    double precision                           , intent(  out), allocatable, dimension(:) :: mass          , weight      , &
+         &                                                                                   massMinimum   , massMaximum
+    double precision                                                                      :: massPrevious
+    integer                                                                               :: iStart        , iEnd        , &
+         &                                                                                   iStartPrevious, iEndPrevious, &
+         &                                                                                   i
     !$GLC attributes unused :: time
 
     call self%read(mass,weight)
@@ -74,19 +77,34 @@ contains
        call sort(mass       )
        allocate(massMinimum,mold=mass)
        allocate(massMaximum,mold=mass)
-       do i=1,size(mass)
-          massMinimum(i)=+mass(i)/sqrt(1.0d0+self%massIntervalFractional)
-          massMaximum(i)=+mass(i)*sqrt(1.0d0+self%massIntervalFractional)
-          if (i > 1 .and. massMinimum(i) < massMaximum(i-1)) then
-             massMinimum(i  )=sqrt(           &
-                  &                +mass(i-1) &
-                  &                *mass(i  ) &
-                  &               )
-             massMaximum(i-1)=sqrt(           &
-                  &                +mass(i-1) &
-                  &                *mass(i  ) &
-                  &               )
+       massPrevious  =-huge(0.0d0)
+       iStart        =-huge(0    )
+       iEnd          =-huge(0    )
+       iStartPrevious=-huge(0    )
+       iEndPrevious  =-huge(0    )
+       i             =+     0
+       do while (i <= size(mass))
+          i=i+1
+          if (i == size(mass)+1 .or. mass(i) /= massPrevious) then
+             ! Process a block of trees of the same mass.
+             if (massPrevious > 0.0d0) then
+                massMinimum(iStart:iEnd)=+mass(iStart)/sqrt(1.0d0+self%massIntervalFractional)
+                massMaximum(iStart:iEnd)=+mass(iStart)*sqrt(1.0d0+self%massIntervalFractional)
+                if (iStart > 1 .and. massMinimum(iStart) < massMaximum(iStartPrevious)) then
+                   massMinimum(iStart        :iEnd        )=+sqrt(                             &
+                        &                                         +mass       (iStartPrevious) &
+                        &                                         *mass       (iStart        ) &
+                        &                                        )
+                   massMaximum(iStartPrevious:iEndPrevious)=+      massMinimum(iStart        )
+                end if
+             end if
+             ! Update to the start of the next block.
+             iStartPrevious=     iStart
+             iEndPrevious  =     iEnd
+             iStart        =     i
+             massPrevious  =mass(i     )
           end if
+          iEnd=i
        end do
     end if
     return

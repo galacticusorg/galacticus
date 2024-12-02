@@ -80,7 +80,7 @@
      double precision                                         , allocatable, dimension(:) :: fractionModeMasses
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
-     type            (inputParameters                        )                            :: parameters
+     type            (inputParameters                        ), pointer                   :: parameters                          => null()
    contains
      !![
      <methods>
@@ -410,8 +410,7 @@ contains
     <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, errorsAreFatal, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
-    self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
+    self%parameters  => parameters
     allocate(self%virialDensityContrasts(size(virialDensityContrasts)))
     do i=1,size(virialDensityContrasts)
        self%virialDensityContrasts(i)%label=virialDensityContrasts(i)%label
@@ -557,7 +556,7 @@ contains
          &                                                                                              cosmologyGroup                                         , dataset
     integer                                                                                          :: statusHalfModeMass                                     , statusQuarterModeMass        , &
          &                                                                                              statusHalfModeMassReference                            , statusIntegrated
-    type            (varying_string                         )                                        :: groupName                                              , commentText
+    type            (varying_string                         )                                        :: groupName                                              , description
     character       (len=32                                 )                                        :: label
     logical                                                                                          :: scaleIsSettable                                        , shapeIsSettable              , &
          &                                                                                              warnedIntegratedFailure
@@ -938,10 +937,10 @@ contains
     ! Iterate over output times and output data.
     do iOutput=1,outputCount
        groupName  ='Output'
-       commentText='Data for output number '
+       description='Data for output number '
        groupName  =groupName  //iOutput
-       commentText=commentText//iOutput
-       outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
+       description=description//iOutput
+       outputGroup=outputsGroup%openGroup(char(groupName),char(description))
        call    outputGroup%writeAttribute(outputTimes                                   (  iOutput),'outputTime'                                                                                                                          )
        call    outputGroup%writeAttribute(outputRedshifts                               (  iOutput),'outputRedshift'                                                                                                                      )
        call    outputGroup%writeAttribute(outputExpansionFactors                        (  iOutput),'outputExpansionFactor'                                                                                                               )

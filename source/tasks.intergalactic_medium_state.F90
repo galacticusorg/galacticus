@@ -155,7 +155,7 @@ contains
     integer         (c_size_t                    )                              :: outputCount    , i
     type            (hdf5Object                  )                              :: outputsGroup   , outputGroup  , &
          &                                                                         containerGroup
-    type            (varying_string              )                              :: groupName      , commentText
+    type            (varying_string              )                              :: groupName      , description
 
     call displayIndent('Begin task: intergalactic medium state')
     ! Get the requested output redshifts.
@@ -185,10 +185,10 @@ contains
     end if
     do i=1,outputCount
        groupName  ='Output'
-       commentText='Data for output number '
+       description='Data for output number '
        groupName  =groupName  //i
-       commentText=commentText//i
-       outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
+       description=description//i
+       outputGroup=outputsGroup%openGroup(char(groupName),char(description))
        call outputGroup%writeAttribute(time           (i),'outputTime'           )
        call outputGroup%writeAttribute(redshift       (i),'outputRedshift'       )
        call outputGroup%writeAttribute(expansionFactor(i),'outputExpansionFactor')

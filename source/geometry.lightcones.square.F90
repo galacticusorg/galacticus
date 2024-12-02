@@ -66,6 +66,9 @@
    <stateStore>
      <stateStore variables="nodeOperator_" store="nodeOperatorStateStore_" restore="nodeOperatorStateRestore_" module="Functions_Global"/>
    </stateStore>
+   <deepCopy>
+     <ignore variables="nodeOperator_"/>
+   </deepCopy>
   </geometryLightcone>
   !!]
   type, extends(geometryLightconeClass) :: geometryLightconeSquare
@@ -114,27 +117,35 @@
       <method method="nodeVelocityReplicant">
        <description>Computes the physical velocity of a node in the specified replicant.</description>
       </method>
+      <method method="replicantLightConeCrossing">
+	<description>Return the indices of the replicant for which the given node is crossing the lightcone.</description>
+      </method>
+      <method method="isInFieldOfView">
+	<description>Return true if the given position is in the field of view.</description>
+      </method>
      </methods>
      !!]
-     final     ::                              squareDestructor
-     procedure :: timeMinimum               => squareTimeMinimum
-     procedure :: timeMaximum               => squareTimeMaximum
-     procedure :: isInLightcone             => squareIsInLightcone
-     procedure :: replicationCount          => squareReplicationCount
-     procedure :: solidAngle                => squareSolidAngle
-     procedure :: position                  => squarePosition
-     procedure :: velocity                  => squareVelocity
-     procedure :: timeLightconeCrossing     => squareTimeLightconeCrossing
-     procedure :: positionLightconeCrossing => squarePositionLightconeCrossing
-     procedure :: velocityLightconeCrossing => squareVelocityLightconeCrossing
-     procedure :: positionAtOutput          => squarePositionAtOutput
-     procedure :: replicants                => squareReplicants
-     procedure :: periodicRange             => squarePeriodicRange
-     procedure :: nodePositionReplicant     => squareNodePositionReplicant
-     procedure :: nodeVelocityReplicant     => squareNodeVelocityReplicant
-     procedure :: deepCopy                  => squareDeepCopy
-     procedure :: deepCopyReset             => squareDeepCopyReset
-     procedure :: deepCopyFinalize          => squareDeepCopyFinalize
+     final     ::                               squareDestructor
+     procedure :: timeMinimum                => squareTimeMinimum
+     procedure :: timeMaximum                => squareTimeMaximum
+     procedure :: isInLightcone              => squareIsInLightcone
+     procedure :: replicationCount           => squareReplicationCount
+     procedure :: solidAngle                 => squareSolidAngle
+     procedure :: position                   => squarePosition
+     procedure :: velocity                   => squareVelocity
+     procedure :: timeLightconeCrossing      => squareTimeLightconeCrossing
+     procedure :: positionLightconeCrossing  => squarePositionLightconeCrossing
+     procedure :: velocityLightconeCrossing  => squareVelocityLightconeCrossing
+     procedure :: positionAtOutput           => squarePositionAtOutput
+     procedure :: replicants                 => squareReplicants
+     procedure :: periodicRange              => squarePeriodicRange
+     procedure :: nodePositionReplicant      => squareNodePositionReplicant
+     procedure :: nodeVelocityReplicant      => squareNodeVelocityReplicant
+     procedure :: replicantLightConeCrossing => squareReplicantLightConeCrossing
+     procedure :: isInFieldOfView            => squareIsInFieldOfView
+     procedure :: deepCopy                   => squareDeepCopy
+     procedure :: deepCopyReset              => squareDeepCopyReset
+     procedure :: deepCopyFinalize           => squareDeepCopyFinalize
   end type geometryLightconeSquare
 
   interface geometryLightconeSquare
@@ -408,7 +419,7 @@ contains
 
     double precision function inverseCosineIntegral(a,x)
       !!{
-      Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
+      Integral of $\sin(x)*\cos^{-1}[a/\tan(x)]$ evaluated using Wolfram Alpha.
       !!}
       use :: Trigonometric_Functions, only : cosec, cot
       implicit none
@@ -805,14 +816,11 @@ contains
                 nodePositionReplicant(iAxis)=Dot_Product(nodePositionComoving-origin+self%lengthReplication*dble([i,j,k]),self%unitVector(:,iAxis))
              end forall
              ! Test if node lies within the correct angular window.
-             isInFieldOfView=                                                                              &
-                  & abs(atan2(nodePositionReplicant(2),nodePositionReplicant(1))) < 0.5d0*self%angularsize &
-                  &  .and.                                                                                 &
-                  & abs(atan2(nodePositionReplicant(3),nodePositionReplicant(1))) < 0.5d0*self%angularsize
+             isInFieldOfView=self%isInFieldOfView(nodePositionReplicant)
              ! Test if node lies within appropriate radial range.
              distanceRadial=Vector_Magnitude(nodePositionReplicant)
-             found         =      isInFieldOfView                           &
-                  &         .and. distanceRadial  >  distanceMinimum        &
+             found         =      isInFieldOfView                    &
+                  &         .and. distanceRadial  >  distanceMinimum &
                   &         .and. distanceRadial  <= distanceMaximum
              if (found) then
                 if (action == replicantActionAny) then
@@ -863,8 +871,8 @@ contains
     !!{
     Return the time of the next lightcone crossing for this node.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentPosition
-    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gigaYear             , megaParsec
+    use :: Galacticus_Nodes                , only : nodeComponentBasic                      , nodeComponentPosition
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr                 , gigaYear             , megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Vectors                         , only : Vector_Magnitude
     use :: Root_Finder                     , only : rootFinder
@@ -882,13 +890,11 @@ contains
     double precision                                        , dimension(3  )                        :: positionReference           , nodePositionStart , &
          &                                                                                             nodePositionEnd
     double precision                         , parameter                                            :: speedMaximum         =2000.0 ! Maximum plausible physical speed for any node.
-    double precision                         , parameter                                            :: toleranceTimeRelative=1.0d-6
     double precision                                                                                :: distanceMinimum             , distanceMaximum   , &
          &                                                                                             distanceNodeStart           , distanceNodeEnd   , &
          &                                                                                             radiusBuffer                , timeCrossing      , &
-         &                                                                                             timeTolerance               , timeOriginal      , &
-         &                                                                                             timeStart_
-    logical                                                                                         :: isInFieldOfViewStart        , isInFieldOfViewEnd
+         &                                                                                             timeOriginal                , timeStart_
+    logical                                                                                         :: isInFieldOfView
     integer                                                                                         :: i                           , j                 , &
          &                                                                                             k
     type            (rootFinder             )                                                       :: finder
@@ -910,33 +916,19 @@ contains
     periodicRange=self%periodicRange(distanceMinimum,distanceMaximum,radiusBuffer)
     ! Iterate over replicants of interest.
     squareTimeLightconeCrossing=huge(0.0d0)
-    finder                     =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-6)
+    finder                     =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-9)
     do i=periodicRange(1,1),periodicRange(1,2)
        do j=periodicRange(2,1),periodicRange(2,2)
           do k=periodicRange(3,1),periodicRange(3,2)
              ! Compute position of node in lightcone coordinate system.
-             nodePositionStart=self%nodePositionReplicant(node,timeStart_,self%origin,[i,j,k],setTime=.true.)
-             nodePositionEnd  =self%nodePositionReplicant(node,timeEnd   ,self%origin,[i,j,k],setTime=.true.)
-             isInFieldOfViewStart=                                                                                &
-                  &                abs(atan2(nodePositionStart(2),nodePositionStart(1))) < 0.5d0*self%angularsize &
-                  &               .and.                                                                           &
-                  &                abs(atan2(nodePositionStart(3),nodePositionStart(1))) < 0.5d0*self%angularsize
-             isInFieldOfViewEnd  =                                                                                &
-                  &                abs(atan2(nodePositionEnd  (2),nodePositionEnd  (1))) < 0.5d0*self%angularsize &
-                  &               .and.                                                                           &
-                  &                abs(atan2(nodePositionEnd  (3),nodePositionEnd  (1))) < 0.5d0*self%angularsize
-             distanceNodeStart   =Vector_Magnitude(nodePositionStart)
-             distanceNodeEnd     =Vector_Magnitude(nodePositionEnd  )
+             nodePositionStart=self%nodePositionReplicant(node             ,timeStart_,self%origin,[i,j,k],setTime=.true.)
+             nodePositionEnd  =self%nodePositionReplicant(node             ,timeEnd   ,self%origin,[i,j,k],setTime=.true.)
+             distanceNodeStart=Vector_Magnitude          (nodePositionStart                                              )
+             distanceNodeEnd  =Vector_Magnitude          (nodePositionEnd                                                )
              if     (                                      &
                   &   distanceNodeStart <  distanceMaximum &
                   &  .and.                                 &
                   &   distanceNodeEnd   >= distanceMinimum &
-                  &  .and.                                 &
-                  &   (                                    &
-                  &     isInFieldOfViewStart               &
-                  &    .or.                                &
-                  &     isInFieldOfViewEnd                 &
-                  &   )                                    &
                   & ) then
                 ! Find the precise time of lightcone crossing.
                 timeCrossing=finder%find(rootRange=[timeStart_,timeEnd])
@@ -944,22 +936,9 @@ contains
                 ! crossing occurs at least some small time after the current time of the node. (This last condition is to ensure
                 ! that a node which was stopped at precisely the time of lightcone crossing is not marked to be crossing the
                 ! lightcone again at that same time.)
-                nodePositionStart   =self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.)
-                isInFieldOfViewStart=                                                                                &
-                     &                abs(atan2(nodePositionStart(2),nodePositionStart(1))) < 0.5d0*self%angularsize &
-                     &               .and.                                                                           &
-                     &                abs(atan2(nodePositionStart(3),nodePositionStart(1))) < 0.5d0*self%angularsize
-                timeTolerance       =+toleranceTimeRelative                                                          &
-                     &               *self%cosmologyFunctions_%expansionFactor(timeStart_)                           &
-                     &               *self%lengthReplication                                                         &
-                     &               *megaParsec                                                                     &
-                     &               /speedLight                                                                     &
-                     &               /gigaYear
-                if   (                                            &
-                   &   timeCrossing > timeStart_+timeTolerance  &
-                   &  .and.                                       &
-                   &   isInFieldOfViewStart                       &
-                   & ) then
+                nodePositionStart=self%nodePositionReplicant(node             ,timeCrossing,self%origin,[i,j,k],setTime=.true.)
+                isInFieldOfView  =self%isInFieldOfView      (nodePositionStart                                                )
+                if (isInFieldOfView) then
                    ! Only set this crossing as the result if it is the earliest crossing time found so far.
                    if (timeCrossing < squareTimeLightconeCrossing) then
                       squareTimeLightconeCrossing                     =timeCrossing
@@ -1015,34 +994,98 @@ contains
     end function timeCrossingRoot
       
   end function squareTimeLightconeCrossing
-
-  function squarePositionLightconeCrossing(self,node)
+  
+  function squareIsInFieldOfView(self,position) result(isInFieldOfView)
     !!{
-    Return the position at the next lightcone crossing for this node.
+    Return true if the given position is in the field of view of the lightcone.
     !!}
-    use :: Error, only : Error_Report
     implicit none
-    double precision                         , dimension(3)  :: squarePositionLightconeCrossing
+    logical                                                                :: isInFieldOfView
+    class           (geometryLightconeSquare), intent(inout)               :: self
+    double precision                         , intent(in   ), dimension(3) :: position
+
+    isInFieldOfView= abs(atan2(position(2),position(1))) < 0.5d0*self%angularsize &
+         &          .and.                                                         &
+         &           abs(atan2(position(3),position(1))) < 0.5d0*self%angularsize
+    return
+  end function squareIsInFieldOfView
+
+  function squareReplicantLightConeCrossing(self,node) result(replicant)
+    !!{
+    Return the indices of the replicant for which the given {\normalfont \ttfamily node} is crossing the lightcone.
+    !!}
+    use :: Error               , only : Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Vectors             , only : Vector_Magnitude
+    use :: Numerical_Comparison, only : Values_Agree
+    use :: ISO_Varying_String  , only : var_str
+    use :: String_Handling     , only : operator(//)
+    implicit none
+    integer                                  , dimension(3  ) :: replicant
+    class           (geometryLightconeSquare), intent(inout)  :: self
+    type            (treeNode               ), intent(inout)  :: node
+    class           (nodeComponentBasic     ), pointer        :: basic
+    integer                                  , dimension(3,2) :: periodicRange
+    double precision                         , dimension(3  ) :: positionNode
+    integer                                                   :: i                , j           , &
+         &                                                       k
+    double precision                                          :: distanceLightcone, distanceNode, &
+         &                                                       time
+    
+    basic             => node                     %basic           (                                                      )
+    time              =  basic                    %time            (                                                      )
+    distanceLightcone =  self %cosmologyFunctions_%distanceComoving(time                                                  )
+    periodicRange     =  self                     %periodicRange   (distanceLightcone,distanceLightcone,radiusBuffer=0.0d0)
+    do       i=periodicRange(1,1),periodicRange(1,2)
+       do    j=periodicRange(2,1),periodicRange(2,2)
+          do k=periodicRange(3,1),periodicRange(3,2)
+             positionNode   =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.)
+             distanceNode   =Vector_Magnitude(positionNode)
+             if (self%isInFieldOfView(positionNode) .and. Values_Agree(distanceNode,distanceLightcone,relTol=1.0d-6)) then
+                replicant=[i,j,k]
+                return
+             end if
+          end do
+       end do
+    end do
+    replicant=0
+    call Error_Report(var_str('lightcone crossing not found for node ')//node%index()//{introspection:location})    
+    return
+  end function squareReplicantLightConeCrossing
+  
+  function squarePositionLightconeCrossing(self,node) result(position)
+    !!{
+    Return the position at lightcone crossing for this node.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    double precision                         , dimension(3)  :: position
     class           (geometryLightconeSquare), intent(inout) :: self
     type            (treeNode               ), intent(inout) :: node
+    integer                                  , dimension(3)  :: replicant
+    class           (nodeComponentBasic     ), pointer       :: basic
 
-    if (node%uniqueID() /= self%nodeUniqueIDCrossing) call Error_Report('incorrect node'//{introspection:location})
-    squarePositionLightconeCrossing=self%nodePositionCrossing
+    replicant =  self%replicantLightconeCrossing(node                                                  )
+    basic     => node%basic                     (                                                      )
+    position  =  self%nodePositionReplicant     (node,basic%time(),self%origin,replicant,setTime=.true.)
     return
   end function squarePositionLightconeCrossing
   
-  function squareVelocityLightconeCrossing(self,node)
+  function squareVelocityLightconeCrossing(self,node) result(velocity)
     !!{
-    Return the velocity at the next lightcone crossing for this node.
+    Return the velocity at lightcone crossing for this node.
     !!}
-    use :: Error, only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    double precision                         , dimension(3)  :: squareVelocityLightconeCrossing
+    double precision                         , dimension(3)  :: velocity
     class           (geometryLightconeSquare), intent(inout) :: self
     type            (treeNode               ), intent(inout) :: node
-
-    if (node%uniqueID() /= self%nodeUniqueIDCrossing) call Error_Report('incorrect node'//{introspection:location})
-    squareVelocityLightconeCrossing=self%nodeVelocityCrossing
+    integer                                  , dimension(3)  :: replicant
+    class           (nodeComponentBasic     ), pointer       :: basic
+    
+    replicant =  self%replicantLightconeCrossing(node                                      )
+    basic     => node%basic                     (                                          )
+    velocity  =  self%nodeVelocityReplicant     (node,basic%time(),replicant,setTime=.true.)    
     return
   end function squareVelocityLightconeCrossing
   

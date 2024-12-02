@@ -305,6 +305,8 @@ jobs:
           push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
   Build-Documentation-Linux:
     runs-on: ubuntu-latest
@@ -736,7 +738,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-darkMatterOnlySubhalos.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -747,7 +750,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-milkyWay.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-milkyWay.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
@@ -758,7 +762,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-PonosV.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-PonosV.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -769,7 +774,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-baryonicSuppression.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-baryonicSuppression.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -1202,9 +1208,13 @@ jobs:
                 testSuite/regressions/subhaloTwoConsecutiveMergers.xml,
                 testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
                 testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
+                testSuite/regressions/preInfallEvolutionNotOnMainBranch.xml,
                 testSuite/regressions/outputRank2ExtendSegFault.xml,
                 testSuite/regressions/barInstabilityFPE.xml,
-                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml ]
+                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
+                testSuite/regressions/lightconeCrossingTests.xml,
+                testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
+                testSuite/regressions/lightconeCrossingAtCurrentTime.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
