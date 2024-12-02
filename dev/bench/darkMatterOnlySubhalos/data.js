@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733104135168,
+  "lastUpdate": 1733130110496,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "ae7f003c7ac6b69eef57fcf64694e92db51867e9",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2024-03-11T14:47:15Z",
-          "tree_id": "d54d75d380105fc61c7a962beb1f6854020a8686",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ae7f003c7ac6b69eef57fcf64694e92db51867e9"
-        },
-        "date": 1710179690973,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 42.5,
-            "unit": "seconds",
-            "range": 0.098984847325238
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8704,6 +8674,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 21825.4537944202,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a6a5c8c3a3e96a1a9b9e49e75278790df784f07c",
+          "message": "Merge pull request #745 from galacticusorg/featHDF1.14.5\n\nUpdate code to work with v1.14.5 of the HDF5 library",
+          "timestamp": "2024-12-02T02:10:36Z",
+          "tree_id": "709e6ef2a3640ccf80d9a21a0b22ff261708dfd2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a6a5c8c3a3e96a1a9b9e49e75278790df784f07c"
+        },
+        "date": 1733130107789,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.611,
+            "unit": "seconds",
+            "range": 0.0482172168414933
           }
         ]
       }
