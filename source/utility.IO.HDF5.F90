@@ -76,6 +76,7 @@ module IO_HDF5
   integer(kind=HID_T  ), dimension(8)           , public :: H5T_NATIVE_INTEGER_8AS
   integer(kind=HID_T  ), dimension(1)           , public :: H5T_VLEN_DOUBLE             , H5T_VLEN_VLEN_DOUBLE
   integer(kind=HID_T  ), dimension(1)           , public :: H5T_VLEN_INTEGER8
+  integer(kind=HID_T  )                         , public :: H5T_INTEGER8
 
   type hdf5Object
      !!{
@@ -450,12 +451,14 @@ contains
     Initialize the HDF5 subsystem.
     !!}
     use :: Error, only : Error_Report
-    use :: HDF5 , only : H5T_IEEE_F32BE   , H5T_IEEE_F32LE    , H5T_IEEE_F64BE      , H5T_IEEE_F64LE, &
-          &              H5T_NATIVE_DOUBLE, H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, H5T_STD_I32BE , &
-          &              H5T_STD_I32LE    , H5T_STD_I64BE     , H5T_STD_I64LE       , H5T_STD_U32BE , &
-          &              H5T_STD_U32LE    , h5open_f          , h5tvlen_create_f
+    use :: HDF5 , only : H5T_IEEE_F32BE   , H5T_IEEE_F32LE    , H5T_IEEE_F64BE, H5T_IEEE_F64LE  , &
+          &              H5T_NATIVE_DOUBLE, H5T_NATIVE_INTEGER, H5T_STD_I32BE , H5T_STD_U32LE   , &
+          &              H5T_STD_I32LE    , H5T_STD_I64BE     , H5T_STD_I64LE , H5T_STD_U32BE   , &
+          &              h5tcopy_f        , h5tset_size_f     , h5open_f      , h5tvlen_create_f, &
+          &              h5tequal_f
     implicit none
     integer :: errorCode
+    logical :: isLittleEndian, isBigEndian
 
 #ifdef DEBUGHDF5
     call IO_HDF5_Assert_In_Critical()
@@ -465,21 +468,35 @@ contains
        call h5open_f(errorCode)
        if (errorCode < 0) call Error_Report('failed to initialize HDF5 subsystem'//{introspection:location})
 
+       ! Create required datatypes.
+       call h5tequal_f(H5T_NATIVE_INTEGER,H5T_STD_I32LE,isLittleEndian,errorCode)
+       if (errorCode < 0) call Error_Report('failed to test endianness'//{introspection:location})
+       call h5tequal_f(H5T_NATIVE_INTEGER,H5T_STD_I32LE,isBigEndian   ,errorCode)
+       if (errorCode < 0) call Error_Report('failed to test endianness'//{introspection:location})
+       if (isLittleEndian) then
+          call h5tcopy_f(H5T_STD_I64LE,H5T_INTEGER8,errorCode)
+       else if (isBigEndian) then
+          call h5tcopy_f(H5T_STD_I64BE,H5T_INTEGER8,errorCode)
+       else
+          call Error_Report('unable to determine native endianness'//{introspection:location})
+       end if
+       if (errorCode < 0) call Error_Report('failed to copy integer datatype'//{introspection:location})
+
        ! Ensure native datatype arrays are initialized.
        H5T_NATIVE_DOUBLES          =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
        H5T_NATIVE_INTEGERS         =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
        H5T_NATIVE_UNSIGNED_INTEGERS=[H5T_STD_U32BE       ,H5T_STD_U32LE                                              ]
-       H5T_NATIVE_INTEGER_8S       =[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_INTEGER_8S       =[H5T_INTEGER8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
        H5T_NATIVE_INTEGER_8AS(1:3) =H5T_NATIVE_INTEGERS(1:3)
        H5T_NATIVE_INTEGER_8AS(4:5) =H5T_NATIVE_UNSIGNED_INTEGERS
        H5T_NATIVE_INTEGER_8AS(6:8) =H5T_NATIVE_INTEGER_8S
 
        ! Create vlen datatypes.
-       call h5tvlen_create_f(H5T_NATIVE_DOUBLE      ,H5T_VLEN_DOUBLE     (1),errorCode) 
+       call h5tvlen_create_f(H5T_NATIVE_DOUBLE   ,H5T_VLEN_DOUBLE     (1),errorCode) 
        if (errorCode < 0) call Error_Report('failed to create vlen double HDF5 datatype'     //{introspection:location})
-       call h5tvlen_create_f(H5T_VLEN_DOUBLE     (1),H5T_VLEN_VLEN_DOUBLE(1),errorCode) 
+       call h5tvlen_create_f(H5T_VLEN_DOUBLE  (1),H5T_VLEN_VLEN_DOUBLE(1),errorCode) 
        if (errorCode < 0) call Error_Report('failed to create vlen-veln double HDF5 datatype'//{introspection:location})
-       call h5tvlen_create_f(H5T_NATIVE_INTEGER_8   ,H5T_VLEN_INTEGER8   (1),errorCode) 
+       call h5tvlen_create_f(H5T_INTEGER8        ,H5T_VLEN_INTEGER8   (1),errorCode) 
        if (errorCode < 0) call Error_Report('failed to create vlen integer8 HDF5 datatype'   //{introspection:location})
 
        ! Initialize our OpenMP lock.
@@ -1332,9 +1349,9 @@ contains
     Open an attribute in {\normalfont \ttfamily inObject}.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, &
-          &                           HID_T               , HSIZE_T           , h5acreate_f       , h5aopen_f           , &
-          &                           h5sclose_f          , h5screate_simple_f
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, h5screate_simple_f, &
+          &                           HID_T               , HSIZE_T           , h5acreate_f       , h5aopen_f         , &
+          &                           h5sclose_f
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
     implicit none
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
@@ -1408,7 +1425,7 @@ contains
           case (hdf5DataTypeInteger       )
              dataTypeID=H5T_NATIVE_INTEGER
           case (hdf5DataTypeInteger8      )
-             dataTypeID=H5T_NATIVE_INTEGER_8
+             dataTypeID=H5T_INTEGER8
           case (hdf5DataTypeDouble        )
              dataTypeID=H5T_NATIVE_DOUBLE
           case (hdf5DataTypeCharacter     )
@@ -1644,7 +1661,6 @@ contains
     Open and write a long integer scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
@@ -1711,7 +1727,7 @@ contains
 
     ! Write the attribute.
     dataBuffer=c_loc(attributeValue)
-    errorCode=H5Awrite(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
+    errorCode=H5Awrite(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -1728,7 +1744,7 @@ contains
     Open and write an integer 1-D array attribute in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HSIZE_T
+    use            :: HDF5              , only : HSIZE_T
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
@@ -1802,7 +1818,7 @@ contains
     allocate(attributeValueContiguous,mold=attributeValue)
     attributeValueContiguous=attributeValue
     dataBuffer=c_loc(attributeValueContiguous)
-    errorCode=H5Awrite(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
+    errorCode=H5Awrite(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -2619,10 +2635,10 @@ contains
     Open and read a long integer scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HID_T                      , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f          , h5sget_simple_extent_dims_f
+    use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
+          &                                      h5sclose_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)               , trim
+    use            :: ISO_Varying_String, only : assignment(=)              , operator(//), trim
     implicit none
     integer  (kind=kind_int8)              , intent(  out)          , target :: attributeValue
     class    (hdf5Object    )              , intent(inout)                   :: self
@@ -2692,7 +2708,7 @@ contains
     if (matches) then
        ! Read the attribute.
        dataBuffer=c_loc(attributeValue)
-       errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
+       errorCode=H5Aread(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -2739,10 +2755,10 @@ contains
     Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HID_T                      , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f          , h5sget_simple_extent_dims_f
+    use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T      , HSIZE_T, h5aget_space_f, &
+          &                                      h5sclose_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)               , trim
+    use            :: ISO_Varying_String, only : assignment(=)             , operator(//), trim
     implicit none
     integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -2825,7 +2841,7 @@ contains
 
     ! Read the attribute.
     dataBuffer=c_loc(attributeValue)
-    errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
+    errorCode=H5Aread(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -2842,10 +2858,10 @@ contains
     Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HID_T                      , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f          , h5sget_simple_extent_dims_f
+    use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
+          &                                      h5sclose_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//)               , trim
+    use            :: ISO_Varying_String, only : assignment(=)              , operator(//), trim
     implicit none
     integer  (kind=kind_int8)             , dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
@@ -2932,7 +2948,7 @@ contains
     ! since it is of assumed shape.
     allocate(attributeValueContiguous,mold=attributeValue)
     dataBuffer=c_loc(attributeValueContiguous)
-    errorCode=H5Aread(attributeObject%objectID,H5T_NATIVE_INTEGER_8,dataBuffer)
+    errorCode=H5Aread(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -4263,10 +4279,10 @@ attributeValue=trim(attributeValue)
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5P_DATASET_CREATE_F, H5S_UNLIMITED_F      , H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , &
-          &                           H5T_NATIVE_INTEGER  , H5T_NATIVE_INTEGER_8 , HID_T               , HSIZE_T           , &
+          &                           H5T_NATIVE_INTEGER  , h5screate_simple_f   , HID_T               , HSIZE_T           , &
           &                           h5dcreate_f         , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
           &                           hsize_t             , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
-          &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f          , h5screate_simple_f
+          &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
     implicit none
     type     (hdf5Object    )                                        :: datasetObject
@@ -4469,7 +4485,7 @@ attributeValue=trim(attributeValue)
           case (hdf5DataTypeInteger       )
              dataTypeID=H5T_NATIVE_INTEGER
           case (hdf5DataTypeInteger8      )
-             dataTypeID=H5T_NATIVE_INTEGER_8
+             dataTypeID=H5T_INTEGER8
           case (hdf5DataTypeDouble        )
              dataTypeID=H5T_NATIVE_DOUBLE
           case (hdf5DataTypeCharacter     )
@@ -6430,9 +6446,9 @@ attributeValue=trim(attributeValue)
     Open and write a long integer 1-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
+    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6573,7 +6589,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6608,9 +6624,9 @@ attributeValue=trim(attributeValue)
     Open and write a long integer 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
+    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6764,7 +6780,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6799,9 +6815,9 @@ attributeValue=trim(attributeValue)
     Open and write a long integer 3-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8 , HID_T     , &
+    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6942,7 +6958,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_NATIVE_INTEGER_8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6977,11 +6993,11 @@ attributeValue=trim(attributeValue)
     Open and read a long integer scalar dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , h5sselect_elements_f, &
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-          &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
+          &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, size_t              , &
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -7303,7 +7319,7 @@ attributeValue=trim(attributeValue)
     ! Read the dataset.
     allocate(datasetValueContiguous,mold=datasetValue)
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7352,11 +7368,11 @@ attributeValue=trim(attributeValue)
     Open and read a long integer scalar dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
+          &                                      h5sselect_hyperslab_f, size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -7676,7 +7692,7 @@ attributeValue=trim(attributeValue)
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
-    errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7723,11 +7739,11 @@ attributeValue=trim(attributeValue)
     Open and read a double scalar dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
+          &                                      h5sselect_hyperslab_f, size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -8054,7 +8070,7 @@ attributeValue=trim(attributeValue)
     ! Read the dataset.
     allocate(datasetValueContiguous,mold=datasetValue)
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -8103,11 +8119,11 @@ attributeValue=trim(attributeValue)
     Open and read a double 2-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
+          &                                      h5sselect_hyperslab_f, size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -8432,7 +8448,7 @@ attributeValue=trim(attributeValue)
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
-    errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -8479,11 +8495,11 @@ attributeValue=trim(attributeValue)
     Open and read a double 3-D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_NATIVE_INTEGER_8, &
+    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , size_t
+          &                                      h5sselect_hyperslab_f, size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -8813,7 +8829,7 @@ attributeValue=trim(attributeValue)
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
-    errorCode=h5dread(datasetObject%objectID,H5T_NATIVE_INTEGER_8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -14882,12 +14898,11 @@ attributeValue=trim(attributeValue)
     Open and read a varying-length 1D double dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
           &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
           &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
           &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                                      size_t
+          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -15264,12 +15279,11 @@ attributeValue=trim(attributeValue)
     Open and read a varying-length $\times$ varying-length 1D double dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
           &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
           &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
           &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                                      size_t
+          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -15658,12 +15672,11 @@ attributeValue=trim(attributeValue)
     Open and read a varying-length 2D double dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
+    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
           &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
           &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
           &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                                      size_t
+          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -16043,10 +16056,9 @@ attributeValue=trim(attributeValue)
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , hsize_t                    , HID_T                , &
           &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
-          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      hsize_t
+          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object    ), intent(inout)                       :: self
@@ -16226,10 +16238,9 @@ attributeValue=trim(attributeValue)
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , hsize_t                    , HID_T                , &
           &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
-          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      hsize_t
+          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object     ), intent(inout)                       :: self
@@ -16417,10 +16428,9 @@ attributeValue=trim(attributeValue)
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , hsize_t                    , HID_T                , &
           &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
-          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      hsize_t
+          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object    ), intent(inout)                         :: self
@@ -16601,12 +16611,11 @@ attributeValue=trim(attributeValue)
     Open and read a variable-length integer-8 2D array dataset in {\normalfont \ttfamily self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER_8       , &
+    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , hdset_reg_ref_t_f          , &
           &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
           &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
           &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t                    , &
-          &                                      size_t
+          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t               , size_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -16984,10 +16993,9 @@ attributeValue=trim(attributeValue)
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER_8       , HID_T                , &
-          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
-          &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      hsize_t
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , h5sget_simple_extent_dims_f, HID_T        , &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f, &
+          &                                      h5sclose_f   , h5screate_simple_f, h5sselect_hyperslab_f      , hsize_t
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
     class           (hdf5Object     ), intent(inout)                       :: self
@@ -17337,7 +17345,7 @@ attributeValue=trim(attributeValue)
     !!}
     use            :: Error             , only : Error_Report
     use            :: H5TB              , only : h5tbget_table_info_f
-    use            :: HDF5              , only : H5T_NATIVE_INTEGER_8, HSIZE_T        , h5tget_size_f
+    use            :: HDF5              , only : HSIZE_T             , h5tget_size_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc               , c_null_char
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)
     implicit none
@@ -17403,7 +17411,7 @@ attributeValue=trim(attributeValue)
     if (allocated(datasetValue)) deallocate(datasetValue)
     allocate(datasetValue(readCountActual))
     ! Read the column.
-    call h5tget_size_f(H5T_NATIVE_INTEGER_8,recordTypeSize,errorCode)
+    call h5tget_size_f(H5T_INTEGER8,recordTypeSize,errorCode)
     if (errorCode /= 0) then
        message="unable to get long integer datatype size"
        call Error_Report(message//self%locationReport()//{introspection:location})

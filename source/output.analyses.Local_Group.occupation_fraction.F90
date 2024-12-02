@@ -218,7 +218,7 @@ contains
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5")
+    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('fractionOccupation',fractionOccupationData)
     call fileData%close      (                                           )
