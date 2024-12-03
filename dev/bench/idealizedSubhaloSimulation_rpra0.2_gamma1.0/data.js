@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733130161503,
+  "lastUpdate": 1733266710606,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -4466,6 +4466,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/a6a5c8c3a3e96a1a9b9e49e75278790df784f07c"
         },
         "date": 1733130160609,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213834512038",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775546264547",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631864004522",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b575f30e7a670aa634fd7134368a7f49818dce8",
+          "message": "Merge pull request #752 from galacticusorg/fixLineMapFiles\n\nUse separate files to store maps between source and preprocessed files",
+          "timestamp": "2024-12-03T15:42:21Z",
+          "tree_id": "04ab3fac6ba6c92fd5be7bb9ad1d7d2d24ac5a1a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2b575f30e7a670aa634fd7134368a7f49818dce8"
+        },
+        "date": 1733266709675,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
