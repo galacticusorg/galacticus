@@ -119,8 +119,16 @@ contains
     integer                                      , intent(in   )          :: propertyType
     class    (nodeComponentSatellite            )               , pointer :: satellite
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
-
-    if (.not.self%applyPreInfall.and..not.node%isSatellite()) return
+    
+    if     (                                   &
+         &          node%isOnMainBranch     () &
+         &  .or.                               &
+         &   (                                 &
+         &     .not.self%applyPreInfall        &
+         &    .and.                            &
+         &     .not.node%isSatellite        () &
+         &   )                                 &
+         & ) return
     satellite => node%satellite()
     call satellite%boundMassRate(self%satelliteTidalStripping_%massLossRate(node))
     return

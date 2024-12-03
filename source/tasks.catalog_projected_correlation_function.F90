@@ -440,11 +440,11 @@ contains
          &                            )
     ! Write correlations to file.
     correlationFunctionGroup=outputFile%openGroup('projectedCorrelationFunction')
-    call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=dataset)
+    call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,comment='Galaxy separation.'                                ,datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,commentText='Projected correlation function from the full mock.',datasetReturned=dataset)
+    call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,comment='Projected correlation function from the full mock.',datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',commentText='Projected correlation function from survey region.',datasetReturned=dataset)
+    call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',comment='Projected correlation function from survey region.',datasetReturned=dataset)
     call dataset%writeAttribute(megaParsec,'unitsInSI')
     ! Clean up.
     deallocate(galaxyPosition)

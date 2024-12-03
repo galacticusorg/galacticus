@@ -28,7 +28,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMCoreNFW">
     <description>
       Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}
-      are built via \refClass{} objects.
+      are built via \refClass{massDistributionSphericalSIDMCoreNFW} objects.
     </description>
   </darkMatterProfileDMO>
   !!]

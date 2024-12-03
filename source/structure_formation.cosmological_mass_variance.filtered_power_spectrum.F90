@@ -1307,7 +1307,7 @@ contains
     if (.not.File_Exists(char(self%fileName))) return
     call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(self%fileName),overWrite=.false.)
+    dataFile=hdf5Object(char(self%fileName),overWrite=.false.,readOnly=.true.)
     call dataFile%readDataset  ('times'                      ,     timesTmp                   )
     call dataFile%readDataset  ('mass'                       ,     massTmp                    )
     call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp            )

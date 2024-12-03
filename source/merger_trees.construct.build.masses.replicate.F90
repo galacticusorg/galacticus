@@ -105,8 +105,8 @@ contains
     !!{
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
-    use            :: Error            , only : Error_Report
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Error        , only : Error_Report
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (mergerTreeBuildMassesReplicate), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
@@ -117,17 +117,32 @@ contains
     integer         (c_size_t                       )                                          :: i
 
     call self%mergerTreeBuildMasses_%construct(time,massTmp,massMinimumTmp,massMaximumTmp,weightTmp)
-    if (allocated(massTmp).and.allocated(weightTmp)) then
-       allocate(mass  (size(massTmp  )*self%replicationCount))
-       allocate(weight(size(weightTmp)*self%replicationCount))
+    if (allocated(massTmp)) then
+       allocate       (mass       (size(massTmp       )*self%replicationCount))
+       if (allocated(massMinimumTmp)) &
+            & allocate(massMinimum(size(massMinimumTmp)*self%replicationCount))
+       if (allocated(massMaximumTmp)) &
+            & allocate(massMaximum(size(massMaximumTmp)*self%replicationCount))
+       if (allocated(weightTmp)) &
+            & allocate(weight     (size(weightTmp     )*self%replicationCount))
        do i=1,size(massTmp)
-          mass  ((i-1)*self%replicationCount+1:i*self%replicationCount)=massTmp  (i)
-          weight((i-1)*self%replicationCount+1:i*self%replicationCount)=weightTmp(i)/dble(self%replicationCount)
+          mass              ((i-1)*self%replicationCount+1:i*self%replicationCount)=massTmp       (i)
+          if (allocated(massMinimumTmp)) &
+               & massMinimum((i-1)*self%replicationCount+1:i*self%replicationCount)=massMinimumTmp(i)
+          if (allocated(massMaximumTmp)) &
+               & massMaximum((i-1)*self%replicationCount+1:i*self%replicationCount)=massMaximumTmp(i)
+          if (allocated(weightTmp)) &
+               & weight     ((i-1)*self%replicationCount+1:i*self%replicationCount)=weightTmp     (i)/dble(self%replicationCount)
        end do
-       deallocate(massTmp  )
-       deallocate(weightTmp)
+       deallocate       (massTmp       )
+       if (allocated(massMinimumTmp))    &
+            & deallocate(massMinimumTmp)
+       if (allocated(massMaximumTmp))    &
+            & deallocate(massMaximumTmp)
+       if (allocated(weightTmp     ))    &
+            & deallocate(weightTmp     )
     else
-       call Error_Report('masses and weights are required'//{introspection:location})
+       call Error_Report('masses are required'//{introspection:location})
     end if
     return
   end subroutine replicateConstruct

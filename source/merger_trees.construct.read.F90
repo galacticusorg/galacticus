@@ -382,6 +382,9 @@
   ! Counter used to assign unique IDs to split forests.
   type(mpiCounter) :: splitForestUniqueID
 
+  ! Fractional offset in time used for cloned nodes.
+  double precision :: fractionOffsetTimeClones=1.0d-9
+
 contains
 
   function readConstructorParameters(parameters) result(self)
@@ -841,14 +844,14 @@ contains
          &                   {introspection:location}                                             &
          &                  )
     ! Check that half-mass radius information is present if required.
-    if     (                                                                                                                                              &
-         &   self%presetScaleRadii                                                                                                                        &
-         &  .and.                                                                                                                                         &
-         &   .not.self%mergerTreeImporter_%scaleRadiiAvailable()                                                                                          &
-         & )  call Error_Report(                                                                                                                          &
-         &                      "presetting scale radii requires that at least one of readRadiusHalfMass or scaleRadius datasets be present in merger"//  &
-         &                      "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                      //  &
-         &                      {introspection:location}                                                                                                  &
+    if     (                                                                                                                                               &
+         &   self%presetScaleRadii                                                                                                                         &
+         &  .and.                                                                                                                                          &
+         &   .not.self%mergerTreeImporter_%scaleRadiiAvailable()                                                                                           &
+         & )  call Error_Report(                                                                                                                           &
+         &                      "presetting scale radii requires that at least one of readRadiusHalfMass or scaleRadius datasets be present in merger "//  &
+         &                      "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                       //  &
+         &                      {introspection:location}                                                                                                   &
          &                     )
     ! Check that angular momentum information is present if required.
     if     (                                                                                                  &
@@ -995,12 +998,13 @@ contains
     ! Find the maximum tree number in the current file.
     treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
     ! Check if we need to move to a new file.
-    if (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames)) then
+    do while (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames))
        self%fileCurrent     =self%fileCurrent     +1
        self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
        call self%mergerTreeImporter_%close(                                                        )
        call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
-    end if
+       treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
+    end do
     treeNumberOffset=treeNumber-self%treeNumberOffset
     if (treeNumberOffset <= treeNumberMaximum) then
        ! Set tree properties.
@@ -1693,7 +1697,7 @@ contains
                       nodeNew                                         %event          => null()
                       nodeList(descendantNode%isolatedNodeIndex)%node%firstChild      => nodeNew
                       basic                                                           => nodeNew                                        %basic     ()
-                      call basic%timeSet(basic%time()*(1.0d0-1.0d-6))
+                      call basic%timeSet(basic%time()*(1.0d0-fractionOffsetTimeClones))
                       promotionNode        =>                                                  nodeNew
                       timeSubhaloPromotion =  basic                                           %    time()
                    else
@@ -2762,6 +2766,7 @@ contains
     class  (mergerTreeConstructorRead)              , intent(inout) :: self
     class  (nodeData                 ), dimension(:), intent(inout) :: nodes
     type   (treeNodeList             ), dimension(:), intent(inout) :: nodeList
+    type   (treeNode                 ), pointer                     :: nodeMergeTarget
     integer                                                         :: iNode
     integer(c_size_t                 )                              :: jNode
     type   (varying_string           )                              :: message
@@ -2779,18 +2784,25 @@ contains
                 message=message//'] merger in which subhalo has no isolated node progenitor - this should not happen'
                 call Error_Report(message//{introspection:location})
              else
+                ! Check for a cloned copy.
+                nodeMergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
+                if     (                                                               &
+                     &   associated(nodeMergeTarget%firstChild)                        &
+                     &  .and.                                                          &
+                     &   nodeMergeTarget%index() == nodeMergeTarget%firstChild%index() &
+                     & ) nodeMergeTarget => nodeMergeTarget%firstChild
                 ! Set pointer from merging node (a.k.a. the "mergee") to node that will be merged with.
-                nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeList(nodes(jNode)%isolatedNodeIndex)%node
+                nodeList(nodes(iNode)%isolatedNodeIndex)%node%mergeTarget => nodeMergeTarget
                 ! Make a backward pointer from the merge target to the mergee. Check if the target already has mergees associated with it.
-                if (associated(nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee)) then
+                if (associated(nodeMergeTarget%firstMergee)) then
                    ! It does: unlink them and attached to the "siblingMergee" pointer of the current mergee.
-                   nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee
+                   nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => nodeMergeTarget%firstMergee
                 else
                    ! It does not: simply nullify the next mergee pointer of the mergee.
                    nodeList(nodes(iNode)%isolatedNodeIndex)%node%siblingMergee => null()
                 end if
                 ! Append the mergee as the first mergee on the target node.
-                nodeList(nodes(jNode)%isolatedNodeIndex)%node%firstMergee => nodeList(nodes(iNode)%isolatedNodeIndex)%node
+                nodeMergeTarget%firstMergee => nodeList(nodes(iNode)%isolatedNodeIndex)%node
              end if
           end if
        end do
@@ -3011,7 +3023,7 @@ contains
 
     allocate(nodeEventBranchJump ::  newEvent)
     allocate(nodeEventBranchJump :: pairEvent)
-    call node  %attachEvent( newEvent)
+    call node      %attachEvent( newEvent)
     call jumpToHost%attachEvent(pairEvent)
     newEvent %time =  timeOfJump
     newEvent %node => jumpToHost
@@ -3183,7 +3195,7 @@ contains
     class  (nodeData          ), dimension(:), intent(inout) :: nodes
     type   (treeNode          ), pointer                     :: nodeNew , nodeSatellite
     class  (nodeComponentBasic), pointer                     :: basicNew
-    integer                                                  :: iNode
+    integer                                                  :: iNode   , i
 
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
@@ -3199,6 +3211,12 @@ contains
                 ! quantities which use the node index as a label in dataset names for example).
                 allocate(nodeNew)
                 call nodes(iNode)%node%parent%copyNodeTo(nodeNew)
+                if (nodeNew%satelliteCount() > 0) then
+                   ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+                   do i=nodeNew%satelliteCount(),1,-1
+                      call nodeNew%satelliteRemove(i)
+                   end do
+                end if
                 nodeNew%sibling                     => nodes(iNode)%node
                 nodeNew%parent                      => nodes(iNode)%node%parent
                 nodeNew%firstChild                  => null()
@@ -3206,7 +3224,7 @@ contains
                 nodeNew%siblingMergee               => null()
                 nodes(iNode)%node%parent%firstChild => nodeNew
                 basicNew                            => nodeNew%basic()
-                call basicNew%timeSet(basicNew%time()*(1.0d0-1.0d-6))
+                call basicNew%timeSet(basicNew%time()*(1.0d0-fractionOffsetTimeClones))
                 ! Events remain attached to the original and we do not want to duplicate them.
                 nodeNew%event => null()
                 ! Any satellites are now attached to the copy.
@@ -4073,7 +4091,7 @@ contains
     class           (nodeData                 ), pointer                             :: node
     type            (treeNode                 ), pointer                             :: nodeNew          , satellite
     class           (nodeComponentBasic       ), pointer                             :: basicNew
-    integer                                                                          :: iNode
+    integer                                                                          :: iNode            , i
     integer         (c_size_t                 )                                      :: iIsolatedNode    , progenitorLocation, &
          &                                                                              iPull
     integer         (kind_int8                )                                      :: progenitorIndex
@@ -4141,6 +4159,12 @@ contains
                       else
                          allocate                                    (nodeNew)
                          call nodeList(iIsolatedNode)%node%copyNodeTo(nodeNew)
+                         if (nodeNew%satelliteCount() > 0) then
+                            ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+                            do i=nodeNew%satelliteCount(),1,-1
+                               call nodeNew%satelliteRemove(i)
+                            end do
+                         end if
                          nodeNew%sibling                         => nodeList(iIsolatedNode)%node%firstChild
                          nodeNew%parent                          => nodeList(iIsolatedNode)%node
                          nodeNew%firstChild                      => null()
@@ -4148,7 +4172,7 @@ contains
                          nodeNew%siblingMergee                   => null()
                          nodeList(iIsolatedNode)%node%firstChild => nodeNew
                          basicNew                                => nodeNew%basic()
-                         call basicNew%timeSet(basicNew%time()*(1.0d0-1.0d-6))
+                         call basicNew%timeSet(basicNew%time()*(1.0d0-fractionOffsetTimeClones))
                          ! Events remain attached to the original and we do not want to duplicate them.
                          nodeNew%event => null()
                          ! Any satellites are now attached to the copy.
@@ -4174,6 +4198,12 @@ contains
                       if (.not.associated(nodeList(iIsolatedNode)%node%firstChild)) then
                          allocate                                    (nodeNew)
                          call nodeList(iIsolatedNode)%node%copyNodeTo(nodeNew)
+                         if (nodeNew%satelliteCount() > 0) then
+                            ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+                            do i=nodeNew%satelliteCount(),1,-1
+                               call nodeNew%satelliteRemove(i)
+                            end do
+                         end if
                          nodeNew%parent                          => nodeList(iIsolatedNode)%node
                          nodeNew%sibling                         => null()
                          nodeNew%firstChild                      => null()
@@ -4181,7 +4211,7 @@ contains
                          nodeNew%siblingMergee                   => null()
                          nodeList(iIsolatedNode)%node%firstChild => nodeNew
                          basicNew                                => nodeNew%basic()
-                         call basicNew%timeSet(basicNew%time()*(1.0d0-1.0d-6))
+                         call basicNew%timeSet(basicNew%time()*(1.0d0-fractionOffsetTimeClones))
                          ! Events remain attached to the original and we do not want to duplicate them.
                          nodeNew%event => null()
                          ! Any satellites are now attached to the copy.

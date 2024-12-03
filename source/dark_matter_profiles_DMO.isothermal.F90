@@ -26,8 +26,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal">
    <description>
-    A dark matter profile DMO class in which builds \refClass{} objects to implement isothermal density profiles, normalized such
-    that the total mass of the \gls{node} is enclosed with the virial radius.
+    A dark matter profile DMO class in which builds \refClass{massDistributionIsothermal} objects to implement isothermal density
+    profiles, normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
    </description>
   </darkMatterProfileDMO>
   !!]

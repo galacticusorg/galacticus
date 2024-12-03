@@ -141,7 +141,7 @@ contains
     if (File_Exists(char(self%fileName))) then
        ! Check file version number.
        !$ call hdf5Access%set()
-       outputFile=hdf5Object(char(self%fileName),overwrite=.false.)
+       outputFile=hdf5Object(char(self%fileName),overwrite=.false.,readOnly=.true.)
        call outputFile%readAttribute('fileFormat',fileFormatVersion)
        !$ call hdf5Access%unset()
        buildFile=fileFormatVersion /= fileFormatVersionCurrent

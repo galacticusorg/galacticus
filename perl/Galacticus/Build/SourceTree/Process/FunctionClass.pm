@@ -2789,10 +2789,14 @@ CODE
 		&Galacticus::Build::SourceTree::PrependChildToNode($submodule,$codeContent->{'submodule'}->{$className}->{'preContains' });
 		&Galacticus::Build::SourceTree::InsertPostContains($submodule,$codeContent->{'submodule'}->{$className}->{'postContains'});
 		# Write the submodule to a temporary file, and update the actual file only if it has changed (to avoid recompilation cascades).
+		(my $submoduleContent, my $submoduleMappings) = &Galacticus::Build::SourceTree::Serialize($file, stripMappings => 1);
 		open(my $submoduleFile,">",$codeContent->{'submodule'}->{$className}->{'fileName'}.".tmp");
-		print $submoduleFile &Galacticus::Build::SourceTree::Serialize($file);
+		print $submoduleFile $submoduleContent;
 		close($submoduleFile);
 		&File::Changes::Update($codeContent->{'submodule'}->{$className}->{'fileName'},$codeContent->{'submodule'}->{$className}->{'fileName'}.".tmp", proveUpdate => "yes");
+		open(my $mappingFile,">",$codeContent->{'submodule'}->{$className}->{'fileName'}.".lmap");
+		print $mappingFile $submoduleMappings;
+		close($mappingFile);
 	       }
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);

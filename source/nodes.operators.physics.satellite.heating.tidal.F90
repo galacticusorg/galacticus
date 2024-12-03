@@ -147,7 +147,15 @@ contains
     type            (coordinateCartesian           )                            :: coordinates
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
-    if (.not.self%applyPreInfall.and..not.node%isSatellite()) return
+    if     (                                   &
+         &          node%isOnMainBranch     () &
+         &  .or.                               &
+         &   (                                 &
+         &     .not.self%applyPreInfall        &
+         &    .and.                            &
+         &     .not.node%isSatellite        () &
+         &   )                                 &
+         & ) return
     ! Find the host node.
     if (node%isSatellite()) then
        nodeHost => node%mergesWith()

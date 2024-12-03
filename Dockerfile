@@ -1,8 +1,9 @@
 # Galacticus Docker image
 # Uses Docker multi-stage build to build Galacticus.
 
-ARG tag=latest
-FROM ghcr.io/galacticusorg/buildenv:$tag as build
+ARG TAG=latest
+FROM ghcr.io/galacticusorg/buildenv:${TAG} as build
+ARG BRANCH=master
 
 # Set build options.
 ## * The flags are also set in galacticus/buildenv:latest so we don't really need to reset them here.
@@ -18,12 +19,12 @@ RUN     pwd && ls
 
 # Clone datasets.
 RUN     cd /opt &&\
-	git clone --depth 1 https://github.com/galacticusorg/galacticus.git galacticus &&\
+	git clone --depth 1 -b ${BRANCH} https://github.com/galacticusorg/galacticus.git galacticus &&\
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 
 # Build Galacticus.
 RUN     cd /opt/galacticus &&\
-	make -j2 Galacticus.exe
+	make -j4 Galacticus.exe
 
 # Build external tools.
 RUN     cd /opt/galacticus &&\

@@ -178,7 +178,7 @@ contains
     class           (nodeComponentBasic)               , pointer          :: basic
     type            (hdf5Object        )                                  :: outputsGroup                    , outputGroup           , &
          &                                                                   containerGroup                  , dataset
-    type            (varying_string    )                                  :: groupName                       , commentText
+    type            (varying_string    )                                  :: groupName                       , description
     double precision                                                      :: radiusVirial                    , radiusVirialLagrangian
 
     call displayIndent('Begin task: velocity field')
@@ -249,10 +249,10 @@ contains
     ! Iterate over output times and output data.
     do iOutput=1,outputCount
        groupName  ='Output'
-       commentText='Data for output number '
+       description='Data for output number '
        groupName  =groupName  //iOutput
-       commentText=commentText//iOutput
-       outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
+       description=description//iOutput
+       outputGroup=outputsGroup%openGroup(char(groupName),char(description))
        call outputGroup   %writeAttribute(epochRedshift                   (    iOutput),'outputRedshift'                                                                                                   )
        call outputGroup   %writeAttribute(epochTime                       (    iOutput),'outputTime'                                                                                                       )
        call outputGroup   %writeDataset  (mass                                         ,'mass'                            ,'The mass.'                                             ,datasetReturned=dataset)

@@ -854,6 +854,33 @@ program Tests_IO_HDF5
        ! End the pass and destroy objects.
        call Unit_Tests_End_Group()
      end block
+
+     ! Close the file.
+     call fileObject%close()
+
+     ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
+     if (iPass==2) then
+       ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
+       call fileObject%openFile ("testSuite/data/IntegerRangeU32.hdf5")
+       ! Open the root group.
+       groupObject=fileObject%openGroup("/",comment="Root group.")
+       ! Read the dataset.
+       call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
+       call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)
+       deallocate(integerRangeU32)
+
+       ! Close the group.
+       call groupObject%close()
+       ! Close the file.
+       call fileObject%close()
+     end if
+
+     ! End the pass and destroy objects.
+     call Unit_Tests_End_Group()
+     call fileObject   %destroy()
+     call groupObject  %destroy()
+     call datasetObject%destroy()
+>>>>>>> master
   end do
 
   ! Test identifying HDF5 file.
