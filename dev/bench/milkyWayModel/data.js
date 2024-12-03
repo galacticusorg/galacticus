@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733130125307,
+  "lastUpdate": 1733266670813,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "cd809cf990fd32e4d6950fa725537232b4d2c208",
-          "message": "feat: Add a merger tree operator to prune branches below a mass threshold and after the final output time",
-          "timestamp": "2024-03-08T21:26:02Z",
-          "tree_id": "8df396ca2f6f923003c691d78bb79edefea0ee22",
-          "url": "https://github.com/galacticusorg/galacticus/commit/cd809cf990fd32e4d6950fa725537232b4d2c208"
-        },
-        "date": 1709944147291,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 144.013,
-            "unit": "seconds",
-            "range": 0.222719779095201
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "9.394851462531145",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b575f30e7a670aa634fd7134368a7f49818dce8",
+          "message": "Merge pull request #752 from galacticusorg/fixLineMapFiles\n\nUse separate files to store maps between source and preprocessed files",
+          "timestamp": "2024-12-03T15:42:21Z",
+          "tree_id": "04ab3fac6ba6c92fd5be7bb9ad1d7d2d24ac5a1a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2b575f30e7a670aa634fd7134368a7f49818dce8"
+        },
+        "date": 1733266669829,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 37.45,
+            "unit": "seconds",
+            "range": 0.0640936814356439
           }
         ]
       }
