@@ -28,8 +28,8 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution">
     <description>
-      A dark matter profile DMO class which builds \refClass{} objects to mimic the effects of finite resolution in an N-body
-      simulation.
+      A dark matter profile DMO class which builds \refClass{massDistributionSphericalFiniteResolution} objects to mimic the
+      effects of finite resolution in an N-body simulation.
     </description>
   </darkMatterProfileDMO>
   !!]

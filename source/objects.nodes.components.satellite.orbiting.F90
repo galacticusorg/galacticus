@@ -443,6 +443,7 @@ contains
     class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentSatellite)               , pointer :: satellite, satelliteParent
+    type  (keplerOrbit          )                         :: orbit    , orbitParent
     !$GLC attributes unused :: self
 
     satelliteParent => node%parent%satellite()
@@ -451,7 +452,11 @@ contains
        satellite => node%satellite()
        select type (satellite)
        type is (nodeComponentSatellite)
-          ! This is as expected - nothing to do.
+          ! This is as expected - nothing to do. 
+       type is (nodeComponentSatelliteOrbiting)
+          orbitParent=satelliteParent%virialOrbit()
+          orbit      =satellite      %virialOrbit()
+          if (.not. orbit == orbitParent) call Error_Report('multiple satellite components defined on branch have differnt orbits'//{introspection:location})
        class default
           call Error_Report('multiple satellite components defined on branch'//{introspection:location})
        end select

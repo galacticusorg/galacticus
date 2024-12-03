@@ -141,6 +141,7 @@ module Kepler_Orbits
        <method description="Returns the position coordinates." method="position" />
        <method description="Returns the velocity coordinates." method="velocity" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+       <method description="Return true if two orbits are equivalent are equal." method="operator(==)" />
      </methods>
      !!]
      procedure :: builder               => Kepler_Orbits_Builder
@@ -185,6 +186,8 @@ module Kepler_Orbits
      procedure :: angularMomentum       => Kepler_Orbits_Angular_Momentum
      procedure :: eccentricity          => Kepler_Orbits_Eccentricity
      procedure :: semiMajorAxis         => Kepler_Orbits_Semi_Major_Axis
+     procedure ::                          Kepler_Orbits_Equivalent
+     generic   :: operator(==)          => Kepler_Orbits_Equivalent
   end type keplerOrbit
 
   interface keplerOrbit
@@ -1114,5 +1117,42 @@ contains
     Kepler_Orbits_Non_Static_Size_Of=0_c_size_t
     return
   end function Kepler_Orbits_Non_Static_Size_Of
+
+  logical function Kepler_Orbits_Equivalent(orbit1,orbit2) result(equivalent)
+    !!{
+    Test whether two {\normalfont \ttfamily keplerOrbit} objects are equal.
+    !!}
+    implicit none
+    class(keplerOrbit), intent(in   ) :: orbit1, orbit2
+
+    equivalent= (.not.orbit1%             massesIsSet.or..not.orbit2%           massesIsSet.or.orbit1%               massHostValue == orbit2%               massHostValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%             massesIsSet.or..not.orbit2%           massesIsSet.or.orbit1%          massSatelliteValue == orbit2%          massSatelliteValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%   radiusApocenterIsSet.or..not.orbit2%   radiusApocenterIsSet.or.orbit1%        radiusApocenterValue == orbit2%        radiusApocenterValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%            radiusIsSet.or..not.orbit2%            radiusIsSet.or.orbit1%                 radiusValue == orbit2%                 radiusValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%  radiusPericenterIsSet.or..not.orbit2%  radiusPericenterIsSet.or.orbit1%       radiusPericenterValue == orbit2%       radiusPericenterValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%             thetaIsSet.or..not.orbit2%             thetaIsSet.or.orbit1%                  thetaValue == orbit2%                  thetaValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%               phiIsSet.or..not.orbit2%               phiIsSet.or.orbit1%                    phiValue == orbit2%                    phiValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%           epsilonIsSet.or..not.orbit2%           epsilonIsSet.or.orbit1%                epsilonValue == orbit2%                epsilonValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%    velocityRadialIsSet.or..not.orbit2%    velocityRadialIsSet.or.orbit1%         velocityRadialValue == orbit2%         velocityRadialValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%velocityTangentialIsSet.or..not.orbit2%velocityTangentialIsSet.or.orbit1%     velocityTangentialValue == orbit2%     velocityTangentialValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%   angularMomentumIsSet.or..not.orbit2%   angularMomentumIsSet.or.orbit1%        angularMomentumValue == orbit2%        angularMomentumValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%            energyIsSet.or..not.orbit2%            energyIsSet.or.orbit1%                 energyValue == orbit2%                 energyValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%      eccentricityIsSet.or..not.orbit2%      eccentricityIsSet.or.orbit1%           eccentricityValue == orbit2%           eccentricityValue) &
+         &     .and.                                     &
+         &      (.not.orbit1%     semimajorAxisIsSet.or..not.orbit2%     semimajorAxisIsSet.or.orbit1%          semimajorAxisValue == orbit2%          semimajorAxisValue)
+    return
+  end function Kepler_Orbits_Equivalent
 
 end module Kepler_Orbits

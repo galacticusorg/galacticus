@@ -70,6 +70,9 @@ sub Parse_Directives {
 		    $rawCode           .= $line;
 		} elsif ( $line =~ m/^\s*!!\[/ ) {
 		    $rawOpener          = $line;
+		} else {
+		    $rawCodeLine      = $lineNumber+1;
+		    $rawDirectiveLine = $lineNumber+1;
 		}
 		# Process code and directive blocks as necessary.
 		if ( ( $inDirective == 1 || eof($code) ) && $rawCode      ) {
