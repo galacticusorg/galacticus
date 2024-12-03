@@ -4,6 +4,7 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Fortran::Utils;
+use File::Slurp qw(slurp);
 use utf8;
 use open ":std", ":encoding(UTF-8)";
 my $haveColor = eval
@@ -23,9 +24,6 @@ my $preprocessedSourceName = $ARGV[0];
 # Determine if interactive.
 $haveColor = -t STDOUT ? $haveColor : 0;
 
-# Initalize a map.
-my @map;
-
 # Initialize a hash of (possibly) unused functions.
 my %unusedFunctions;
 
@@ -41,30 +39,36 @@ my $unusedVariables;
 # Initialize a structure for interoperable variables.
 my $interoperableVariables;
 
-# Open and read the file.
-my $lineNumber = 0;
-my $unitName;
-push(
-    @map,
-    {
-	source       => $preprocessedSourceName,
-	line         => 1,
-	lineOriginal => 1
-    }
+# Parse the map of line numbers.
+my @map =
+    (
+     {
+	 source       => $preprocessedSourceName,
+	 line         => 1,
+	 lineOriginal => 1
+     }
     );
-open(my $file,$preprocessedSourceName);
-while ( my $line = <$file> ) {
-    ++$lineNumber;
-    if ( $line =~ m/^\!\-\-\>\s+(\d+)\s+\"([a-zA-Z0-9_\-\.\/\(\):]+)\"\s*$/ ) {
+open(my $mapFile,$preprocessedSourceName.".lmap");
+while ( my $line = <$mapFile> ) {
+    if ( $line =~ m/^\!\-\-\>\s+(\d+)\s+(\d+)\s+\"([a-zA-Z0-9_\-\.\/\(\):]+)\"\s*$/ ) {
 	push(
 	    @map,
 	    {
-		source       => $2,
+		source       => $3,
 		line         => $1,
-		lineOriginal => $lineNumber+1 # We add 1 here because the line marker actually refers to the next line in the file.
+		lineOriginal => $2
 	    }
 	    );	 
     }
+}
+close($mapFile);
+
+# Open and read the file.
+my $lineNumber = 0;
+my $unitName;
+open(my $file,$preprocessedSourceName);
+while ( my $line = <$file> ) {
+    ++$lineNumber;
     # Detect functions/subroutines/submodule procedure.
     foreach my $type ( 'subroutine', 'function', 'moduleProcedure' ) {
 	if ( my @matches = ( $line =~ $Fortran::Utils::unitOpeners{$type}->{'regEx'} ) ) {		
