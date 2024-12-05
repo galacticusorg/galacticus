@@ -101,7 +101,6 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
     !!}
-    use :: HDF5_Access, only : hdf5Access
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
 
