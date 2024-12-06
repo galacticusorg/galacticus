@@ -79,7 +79,7 @@
      double precision                                         , allocatable, dimension(:) :: fractionModeMasses
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
-     type            (inputParameters                        )                            :: parameters
+     type            (inputParameters                        ), pointer                   :: parameters                          => null()
    contains
      !![
      <methods>
@@ -401,8 +401,7 @@ contains
     <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
-    self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
+    self%parameters  => parameters
     allocate(self%virialDensityContrasts(size(virialDensityContrasts)))
     do i=1,size(virialDensityContrasts)
        self%virialDensityContrasts(i)%label=virialDensityContrasts(i)%label

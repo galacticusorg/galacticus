@@ -247,7 +247,7 @@ contains
     velocity_=+velocity_                                      &
          &    *self%cosmologyFunctions_%expansionFactor(time) &
          &    *Mpc_per_km_per_s_To_Gyr 
-   if (isSpiral) then
+    if (isSpiral) then
       ! Add on logarithmic spiral interpolation in physical position for satellite nodes.
       offset               =offset+countCoefficientsCubicPolynomial
       coefficientsSpiral   =coefficients(offset+1_c_size_t:offset+countCoefficientsLogarithmicSpiral)
@@ -301,26 +301,29 @@ contains
     implicit none
     class           (nodeOperatorPositionInterpolated), intent(inout)  , target      :: self
     type            (treeNode                        ), intent(inout)  , target      :: node
-    type            (treeNode                        )                 , pointer     :: nodeDescendant      , nodeHost            , &
-         &                                                                              nodeMergeTarget
-    class           (nodeComponentBasic              )                 , pointer     :: basic               , basicHost
-    class           (nodeComponentPosition           )                 , pointer     :: position
+    type            (treeNode                        )                 , pointer     :: nodeDescendant      , nodeHost                  , &
+         &                                                                              nodeMergeTarget     , nodeMergeTargetPrevious
+    class           (nodeComponentBasic              )                 , pointer     :: basic               , basicHost                 , &
+         &                                                                              basicMergeTarget
+    class           (nodeComponentPosition           )                 , pointer     :: position            , positionMergeTarget
     class           (nodeComponentSatellite          )                 , pointer     :: satellite
-    class           (nodeEvent                       )                 , pointer     :: event
-    type            (nodeTrace                       )                 , pointer     :: traceTail           , traceHead
+    class           (nodeEvent                       )                 , pointer     :: event, eventPrior
+    type            (nodeTrace                       )                 , pointer     :: traceTail           , traceHead 
     double precision                                  , dimension(   3)              :: positionReference
     double precision                                  , dimension(4 ,3)              :: coefficientsCubic
     double precision                                  , dimension(20  )              :: coefficientsSpiral
     double precision                                  , dimension( :  ), allocatable :: coefficients
-    type            (history                         )                               :: positionHistory
-    double precision                                                                 :: time                , timeMerger          , &
-         &                                                                              timeBranchJump      , timeSubhaloPromotion
-    integer         (c_size_t                        )                               :: iHistory            , countHistory        , &
-         &                                                                              iTrace              , countTrace          , &
-         &                                                                              offset
-    logical                                                                          :: isSatellite         , haveHistory         , &
-         &                                                                              haveMerger          , haveBranchJump      , &
-         &                                                                              haveSubhaloPromotion, isInitialSatellite  , &
+    character       (len=12                          )                               :: label
+    type            (history                         )                               :: positionHistory     , positionHistoryMergeTarget
+    double precision                                                                 :: time                , timeMerger                , &
+         &                                                                              timeBranchJump      , timeSubhaloPromotion      , &
+         &                                                                              timeJumpLatest
+    integer         (c_size_t                        )                               :: iHistory            , countHistory              , &
+         &                                                                              iTrace              , countTrace                , &
+         &                                                                              offset              , i
+    logical                                                                          :: isSatellite         , haveHistory               , &
+         &                                                                              haveMerger          , haveBranchJump            , &
+         &                                                                              haveSubhaloPromotion, isInitialSatellite        , &
          &                                                                              isHost
 
     ! Consider only branch tips.
@@ -381,47 +384,75 @@ contains
           if (isInitialSatellite) then
              ! For nodes that are initially satellites and have a position history, start them on the first step of that history.
              iHistory          =+1_c_size_t
-             isInitialSatellite=.false.
           end if
        else
           iHistory    =-1_c_size_t
           countHistory=+0_c_size_t
        end if
-       ! Determine any future events associated with this descendant.
-       haveBranchJump       =  .false.
-       haveSubhaloPromotion =  .false.
-       timeBranchJump       =  huge(0.0d0)
-       timeSubhaloPromotion =  huge(0.0d0)
-       event                => nodeDescendant%event
-       do while (associated(event))
-          ! Look for a handled event type in the future. Subhalo promotions and branch jumps are handled.
-          select type (event)
-          type is (nodeEventSubhaloPromotion)
-             if (event%time > time) then
-                haveSubhaloPromotion=.true.
-                timeSubhaloPromotion=event%time
-                exit
-             end if
-          type is (nodeEventBranchJump      )
-             if (event%time > time) then
-                haveBranchJump=.true.
-                timeBranchJump=event%time
-                exit
-             end if
-          type is (nodeEventSubhaloPromotionInterTree)
-             call Error_Report('inter-tree subhalo promotions are not supported'//{introspection:location})
-          type is (nodeEventBranchJumpInterTree)
-             call Error_Report('inter-tree branch jumps are not supported'      //{introspection:location})
-          end select
-          event => event%next
-       end do
+       ! Find any future events associated with this descendant.
+       call findEvents(presentOnly=.false.)
        ! Determine any merger time for this node.
        satellite => nodeDescendant%satellite()
-       if (satellite%timeOfMerging() < satelliteMergeTimeInfinite) then
-          haveMerger      =  .true.
-          timeMerger      =  satellite     %timeOfMerging()
-          nodeMergeTarget => nodeDescendant%mergeTarget
+       if (.not.haveMerger .and. satellite%timeOfMerging() < satelliteMergeTimeInfinite) then
+          haveMerger=.true.
+          timeMerger=satellite%timeOfMerging()
+          ! Use any cloned copy of this node (if available) to determine the merge target.
+          if (associated(nodeDescendant%parent) .and. nodeDescendant%parent%index() == nodeDescendant%index()) then
+             nodeMergeTarget => nodeDescendant%parent%mergeTarget
+          else
+             nodeMergeTarget => nodeDescendant%mergeTarget
+          end if
+          ! If we have a merge target available, follow it. 
+          if (associated(nodeMergeTarget)) then
+             ! Look for a clone - if found, use the clone as our target as it may have a position history.
+             if     (                                                           &
+                  &   associated(nodeMergeTarget%parent)                        &
+                  &  .and.                                                      &
+                  &   nodeMergeTarget%parent%index() == nodeMergeTarget%index() &
+                  & )                                                           &
+                  & nodeMergeTarget => nodeMergeTarget%parent
+             basicMergeTarget           => nodeMergeTarget    %basic          ()
+             positionMergeTarget        => nodeMergeTarget    %position       ()
+             positionHistoryMergeTarget =  positionMergeTarget%positionHistory()
+             if (positionHistoryMergeTarget%exists()) then
+                if      (timeMerger > positionHistoryMergeTarget%time(size(positionHistoryMergeTarget%time))) then
+                   timeMerger=positionHistoryMergeTarget%time(size(positionHistoryMergeTarget%time))
+                else if (timeMerger < positionHistoryMergeTarget%time(1                                    )) then
+                   timeMerger=basicMergeTarget          %time(                                     )
+                else
+                   i=size(positionHistoryMergeTarget%time)
+                   do while (positionHistoryMergeTarget%time(i) > timeMerger)
+                      i=i-1
+                   end do
+                   timeMerger=positionHistoryMergeTarget%time(i)
+                end if
+             else
+                if (timeMerger > basicMergeTarget%time()) timeMerger=basicMergeTarget%time()
+             end if
+          else
+             ! Trace the host here to find the descendant just prior to the merge time. We only look at hosts, so no need to
+             ! consider branch jumps or subhalo promotions.
+             nodeMergeTarget         => nodeHost
+             basicMergeTarget        => nodeMergeTarget%basic()
+             nodeMergeTargetPrevious => null()
+             do while (basicMergeTarget%time() <= timeMerger .and. associated(nodeMergeTarget%parent))
+                nodeMergeTargetPrevious => nodeMergeTarget
+                nodeMergeTarget         => nodeMergeTarget%parent
+                basicMergeTarget        => nodeMergeTarget%basic ()
+             end do
+             ! Back up to the prior node if the current one exceeds the merger time - we need node positions to coincide from the
+             ! time at which they merge (or earlier).
+             if (basicMergeTarget%time() > timeMerger) then
+                nodeMergeTarget  => nodeMergeTargetPrevious
+                basicMergeTarget => nodeMergeTarget        %basic()
+             end if
+             timeMerger=basicMergeTarget%time()
+          end if
        end if
+       ! Orphanize an initial satellite that has no history.
+       if (isInitialSatellite.and..not.haveHistory) &
+            & nodeDescendant => nodeHost
+       isInitialSatellite=.false.
        ! Determine satellite status for the current descendant.
        isSatellite=.not.associated(nodeDescendant,nodeHost)
        if (.not.isSatellite) iHistory=-1_c_size_t
@@ -521,20 +552,35 @@ contains
              ! Determine if this descendant is its own host.
              !! If it is the primary progenitor, then it must be its own host.
              isHost=nodeDescendant%isPrimaryProgenitor().or..not.associated(nodeDescendant%parent)
-             !! Otherwise, it is its own host if the merger happens prior to it becoming a satellite in its aprent.
+             !! Otherwise, it is its own host if the merger happens prior to it becoming a satellite in its parent.
              if (.not.isHost) then
                 basicHost => nodeDescendant%parent%basic()
                 isHost    =  timeMerger < basicHost%time()
              end if
+             ! If we are merging onto some subhalo, but we merge at a time after it is orphanized - then we need to move to its host instead
              if (isHost) then
                 nodeHost => nodeDescendant
              else
                 ! The descendant is not its own host - trace down until we find the host at the time of merging.
                 nodeHost => nodeDescendant%parent
+                ! Find any branch jump and follow the latest of these before the merging time,
+                eventPrior     => nodeDescendant%event
+                timeJumpLatest =  -huge(0.0d0)
+                do while (associated(eventPrior))
+                   select type (eventPrior)
+                   type is (nodeEventBranchJump)
+                      if (eventPrior%time < timeMerger .and. eventPrior%time > timeJumpLatest .and. associated(eventPrior%task)) then
+                         nodeHost       => eventPrior%node
+                         timeJumpLatest =  eventPrior%time                         
+                      end if
+                   end select
+                   eventPrior => eventPrior%next
+                end do
+                ! Find the isolated host.
                 do while (nodeHost%isSatellite())
                    nodeHost => nodeHost%parent
                 end do
-                basicHost =>nodeHost%basic()
+                basicHost => nodeHost%basic()
                 do while (basicHost%time() < timeMerger)
                    nodeHost  => nodeHost%parent
                    basicHost => nodeHost%basic ()
@@ -543,7 +589,7 @@ contains
                 position        => nodeDescendant%position       ()
                 positionHistory =  position      %positionHistory()
                 if (positionHistory%exists()) then
-                   iHistory=1_c_size_t
+                   iHistory    =1_c_size_t
                    countHistory=size(positionHistory%time)
                    do while (iHistory < countHistory .and. timeMerger > positionHistory%time(iHistory))
                       iHistory=iHistory+1_c_size_t
@@ -551,24 +597,36 @@ contains
                 end if
              end if
           else
-             ! Node merge target is not available - assume merging with the current host
+             ! Node merge target is not available - assume merging with the current host.
              if (time == timeMerger) then
                 nodeDescendant => nodeHost
              else
                 nodeDescendant => nodeHost%firstChild
              end if
-             nodeHost => nodeDescendant
+             nodeHost   => nodeDescendant
+             basic      => nodeDescendant%basic()
+             timeMerger =  basic         %time ()
           end if
           time            =  timeMerger
           timeMerger      =  huge(0.0d0)
           haveMerger      =  .false.
-          nodeMergeTarget => null()    
+          nodeMergeTarget => null()
+          ! We have merged - forget any pre-existing branch jumps.
+          haveBranchJump=.false.          
        end if
+       ! Check for any event associated with this node if it is a satellite. In a case where node "A" merges with node "B" at
+       ! some time, t, and node "B" has a branch jump event at that same time, t, we want to follow the host node through the
+       ! branch jump right away.
+       if (associated(nodeDescendant) .and. .not.associated(nodeDescendant,nodeHost)) call findEvents(presentOnly=.true.)
        ! Check for a branch jump.
-       if (haveBranchJump .and. time == timeBranchJump) nodeHost => event%node
+       if (haveBranchJump .and. time == timeBranchJump) then
+          if (associated(nodeDescendant,nodeHost)) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
+          nodeHost => event%node
+       end if
     end do
-    ! Allocate storage for all coefficients.
-    !! NOTE: This is currently inefficient - we allocate enough space for both logarithmic spiral and cubic polynomial coefficients for each timestep.
+    ! Allocate storage for all coefficients.    
+    !! NOTE: This is currently inefficient - we allocate enough space for both logarithmic spiral and cubic polynomial
+    !! coefficients for each timestep, but for non-satellites we only need the cubic polynomial coefficients.
     allocate(coefficients((countTrace-1_c_size_t)*(2_c_size_t+countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)))
     coefficients=-huge(0.0d0)
     ! Extract the final position to use as a reference point when handling periodic boundaries.
@@ -588,8 +646,10 @@ contains
        ! Determine the interpolation coefficients for this step.
        if (associated(traceTail%next)) then ! Skip the final step as we can't interpolate into the future.
           ! Catch any duplicated times.
-          if (traceTail%time == traceTail%next%time) &
-               & call Error_Report(var_str('duplicated time in position trace for node ')//node%index()//{introspection:location})
+          if (traceTail%time == traceTail%next%time) then
+             write (label,'(e12.6)') traceTail%time
+             call Error_Report(var_str('duplicated time (')//trim(adjustl(label))//' Gyr) in position trace for node '//node%index()//{introspection:location})
+          end if
           ! Store the time.
           coefficients(1_c_size_t+iTrace)=traceTail%time
           ! Determine the type of interpolation to use.
@@ -607,7 +667,7 @@ contains
              coefficients(offset+1_c_size_t:offset+countCoefficientsLogarithmicSpiral)=reshape(coefficientsSpiral,[countCoefficientsLogarithmicSpiral])
           else
              ! Polynomial interpolation - whenever the node is not a satellite at this and the next step.
-             coefficients((countTrace-1_c_size_t)+iTrace)=0.0d0
+             coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=0.0d0
              !! Get the cubic polynomial coefficients.
              coefficientsCubic=computeCoefficientsCubicPolynomial   (traceTail,useHost=.false.)
              !! Store the coefficients.
@@ -627,6 +687,54 @@ contains
 
   contains
 
+    subroutine findEvents(presentOnly)
+      !!{
+      Locate events associated with this node.
+      !!}
+      implicit none
+      logical                    , intent(in   ) :: presentOnly
+      class           (nodeEvent), pointer       :: event_
+      double precision                           :: timeEvent
+
+      ! Find any future events associated with this descendant.
+      haveBranchJump       =  .false.
+      haveSubhaloPromotion =  .false.
+      timeEvent            =  huge(0.0d0)
+      timeBranchJump       =  huge(0.0d0)
+      timeSubhaloPromotion =  huge(0.0d0)
+      event                => null(     )
+      event_               => nodeDescendant%event
+      do while (associated(event_))
+         ! Only consider events that occur earlier than the currently found event time. Also, ignore the paired event in the
+         ! receiving halo.
+         if (event_%time < timeEvent .and. associated(event_%task)) then
+            ! Look for a handled event type in the future. Subhalo promotions and branch jumps are handled.
+            select type (event_)
+            type is (nodeEventSubhaloPromotion)
+               if ((.not. presentOnly .and. event_%time > time) .or. (presentOnly .and. event_%time == time)) then
+                  haveSubhaloPromotion =  .true.
+                  timeSubhaloPromotion =  event_%time
+                  event                => event_
+                  timeEvent            =  event %time
+               end if
+            type is (nodeEventBranchJump      )
+               if ((.not. presentOnly .and. event_%time > time) .or. (presentOnly .and. event_%time == time)) then
+                  haveBranchJump =  .true.
+                  timeBranchJump =  event_%time
+                  event          => event_
+                  timeEvent      =  event %time
+               end if
+            type is (nodeEventSubhaloPromotionInterTree)
+               call Error_Report('inter-tree subhalo promotions are not supported'//{introspection:location})
+            type is (nodeEventBranchJumpInterTree)
+               call Error_Report('inter-tree branch jumps are not supported'      //{introspection:location})
+            end select
+         end if
+         event_ => event_%next
+      end do
+      return
+    end subroutine findEvents
+    
     function computeCoefficientsLogarithmicSpiral(trace) result(coefficientsLogarithmicSpiral)
       !!{
       Compute coefficients of a logarithmic spiral interpolation for position and velocity.
@@ -774,6 +882,7 @@ contains
       use :: Histories                       , only : history
       use :: Linear_Algebra                  , only : vector                 , matrix, assignment(=)
       use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
+      use :: Numerical_Comparison            , only : Values_Agree
       implicit none
       double precision                                  , dimension(4,3)              :: coefficientsCubicPolynomial
       type            (nodeTrace                       ), intent(in   ) , target      :: trace
@@ -787,6 +896,7 @@ contains
       type            (matrix                          )                , allocatable :: terms
       integer                                                                         :: i                           , j
       type            (history                         )                              :: positionHistory
+      logical                                                                         :: isClone
       
       do i=1,2
          select case (i)
@@ -823,33 +933,44 @@ contains
          end do
       end if
       ! Solve for the interpolation coefficients in each Cartesian axis.
+      isClone=Values_Agree(times(1),times(2),relTol=2.0d-9)
       do i=1,3
-         allocate(terms       )
-         allocate(coordinates )
-         allocate(coefficients)
-         coordinates=vector(                                                                                                             &
-              &                               [                                                                                          &
-              &                                 positionComoving(1,i),positionComoving(2,i),velocityComoving(1,i),velocityComoving(2,i)  &
-              &                               ]                                                                                          &
-              &             )
-         terms      =matrix(                                                                                                             &
-              &             transpose(                                                                                                   &
-              &                       reshape(                                                                                           &
-              &                               [                                                                                          &
-              &                                      times(1)**3     ,      times(1)**2    ,times(1)             ,1.0d0                , &
-              &                                      times(2)**3     ,      times(2)**2    ,times(2)             ,1.0d0                , &
-              &                                3.0d0*times(1)**2     ,2.0d0*times(1)       ,1.0d0                ,0.0d0                , &
-              &                                3.0d0*times(2)**2     ,2.0d0*times(2)       ,1.0d0                ,0.0d0                  &
-              &                               ]                                                                                        , &
-              &                               [4,4]                                                                                      &
-              &                              )                                                                                           &
-              &                      )                                                                                                   &
-              &            )
-         coefficients                    =terms%linearSystemSolve(coordinates )
-         coefficientsCubicPolynomial(:,i)=                        coefficients
-         deallocate(terms       )
-         deallocate(coordinates )
-         deallocate(coefficients)
+         if (isClone) then
+            ! For clones use a simple linear interpolation which should be sufficiently accurate over the tiny offset in times between the clone and original node.
+            coefficientsCubicPolynomial(:,i)=[                                                                                      &
+                 &                            0.0d0                                                                               , &
+                 &                            0.0d0                                                                               , &
+                 &                            (-positionComoving(1,i)         +positionComoving(2,i)         )/(times(2)-times(1)), &
+                 &                            (+positionComoving(1,i)*times(2)-positionComoving(2,i)*times(1))/(times(2)-times(1))  &
+                 &                           ]
+         else
+            allocate(terms       )
+            allocate(coordinates )
+            allocate(coefficients)
+            coordinates=vector(                                                                                                             &
+                 &                               [                                                                                          &
+                 &                                 positionComoving(1,i),positionComoving(2,i),velocityComoving(1,i),velocityComoving(2,i)  &
+                 &                               ]                                                                                          &
+                 &             )
+            terms      =matrix(                                                                                                             &
+                 &             transpose(                                                                                                   &
+                 &                       reshape(                                                                                           &
+                 &                               [                                                                                          &
+                 &                                      times(1)**3     ,      times(1)**2    ,times(1)             ,1.0d0                , &
+                 &                                      times(2)**3     ,      times(2)**2    ,times(2)             ,1.0d0                , &
+                 &                                3.0d0*times(1)**2     ,2.0d0*times(1)       ,1.0d0                ,0.0d0                , &
+                 &                                3.0d0*times(2)**2     ,2.0d0*times(2)       ,1.0d0                ,0.0d0                  &
+                 &                               ]                                                                                        , &
+                 &                               [4,4]                                                                                      &
+                 &                              )                                                                                           &
+                 &                      )                                                                                                   &
+                 &            )
+            coefficients                    =terms%linearSystemSolve(coordinates )
+            coefficientsCubicPolynomial(:,i)=                        coefficients
+            deallocate(terms       )
+            deallocate(coordinates )
+            deallocate(coefficients)
+         end if
       end do
       return
     end function computeCoefficientsCubicPolynomial
