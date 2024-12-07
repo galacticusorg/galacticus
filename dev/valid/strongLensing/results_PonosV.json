@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "2b575f30e7a670aa634fd7134368a7f49818dce8",
-        "message": "Merge pull request #752 from galacticusorg/fixLineMapFiles\n\nUse separate files to store maps between source and preprocessed files\n",
-        "timestamp": "2024-12-03 15:42:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/2b575f30e7a670aa634fd7134368a7f49818dce8"
+        "id": "10b99e5899c2ce66724029bb7f72acefb27a31a0",
+        "message": "fix: Ensure tempering level state is initialized\n",
+        "timestamp": "2024-12-06 13:55:01-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/10b99e5899c2ce66724029bb7f72acefb27a31a0"
     },
     "surfaceDensity": {
-        "percentageBelow": 46.875,
-        "percentageAbove": 53.125,
+        "percentageBelow": 53.125,
+        "percentageAbove": 46.875,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 89.47368421052632,
-        "percentageAbove": 10.526315789473685,
+        "percentageBelow": 70.58823529411765,
+        "percentageAbove": 29.41176470588235,
         "target": 0.85
     }
 }
