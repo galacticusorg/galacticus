@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733266710606,
+  "lastUpdate": 1733548920901,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -4505,6 +4505,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/2b575f30e7a670aa634fd7134368a7f49818dce8"
         },
         "date": 1733266709675,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213834512038",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775546264547",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631864004522",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "10b99e5899c2ce66724029bb7f72acefb27a31a0",
+          "message": "fix: Ensure tempering level state is initialized",
+          "timestamp": "2024-12-06T13:55:01-08:00",
+          "tree_id": "5b0e573795ee6cfd087ade33e9bdb7518716076c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/10b99e5899c2ce66724029bb7f72acefb27a31a0"
+        },
+        "date": 1733548920184,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
