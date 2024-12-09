@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "10b99e5899c2ce66724029bb7f72acefb27a31a0",
-        "message": "fix: Ensure tempering level state is initialized\n",
-        "timestamp": "2024-12-06 13:55:01-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/10b99e5899c2ce66724029bb7f72acefb27a31a0"
+        "id": "285740a626e7eb7b58cffd23604c2aa848113ef8",
+        "message": "Merge pull request #753 from galacticusorg/fixSMHMRLikelihood\n\nCorrectly calculate the likelihood when including the normalization term with a subset of bins\n",
+        "timestamp": "2024-12-09 15:09:21+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/285740a626e7eb7b58cffd23604c2aa848113ef8"
     },
     "results": [
         {
