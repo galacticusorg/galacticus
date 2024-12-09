@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733548889403,
+  "lastUpdate": 1733782533380,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "97efa132bd8578fd83bf04303d8c060c210aba3f",
-          "message": "Merge pull request #583 from galacticusorg/orbitCalibration\n\nOrbit calibration",
-          "timestamp": "2024-03-16T02:37:27Z",
-          "tree_id": "d39ce6a0ac68f4b860f6e0f316e01a987fc7d42a",
-          "url": "https://github.com/galacticusorg/galacticus/commit/97efa132bd8578fd83bf04303d8c060c210aba3f"
-        },
-        "date": 1710570801861,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.951,
-            "unit": "seconds",
-            "range": 0.0418915265891443
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8704,6 +8674,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21148.23290852636",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "285740a626e7eb7b58cffd23604c2aa848113ef8",
+          "message": "Merge pull request #753 from galacticusorg/fixSMHMRLikelihood\n\nCorrectly calculate the likelihood when including the normalization term with a subset of bins",
+          "timestamp": "2024-12-09T15:09:21Z",
+          "tree_id": "49d070acbc19f7ab12d01560d862a24144f23550",
+          "url": "https://github.com/galacticusorg/galacticus/commit/285740a626e7eb7b58cffd23604c2aa848113ef8"
+        },
+        "date": 1733782531407,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.475,
+            "unit": "seconds",
+            "range": 0.0540601516833093
           }
         ]
       }
