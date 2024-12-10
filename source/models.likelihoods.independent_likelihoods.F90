@@ -254,6 +254,7 @@ contains
           if (self%parameterMapIdentity) then
              allocate(modelLikelihood_%parameterMap          (size(modelParametersActive_)))
              allocate(modelLikelihood_%modelParametersActive_(size(modelParametersActive_)))
+             call modelLikelihood_%simulationState%parameterCountSet(size(modelParametersActive_))
           end if
           do i=1,size(modelLikelihood_%parameterMap)
              ! Determine the mapping of the simulation state vector to this likelihood.
