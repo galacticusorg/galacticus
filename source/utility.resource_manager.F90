@@ -36,19 +36,22 @@ module Resource_Manager
      counting approach and destructs them when no more references exist. Similar in approach to a
      \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{\normalfont \ttfamily shared\_ptr} in C++.  
      !!}
-     class  (*), pointer :: resource => null()
-     integer   , pointer :: counter  => null()
+     class  (*), pointer :: resource  => null()
+     integer   , pointer :: counter   => null()
+     logical             :: reportOn_ =  .false.
    contains
      !![
      <methods>
         <method method="assignment(=)" description="Assign the reference manager, incrementing the reference count of the managed resource."/>
         <method method="release"       description="Release the managed object."                                                            />
         <method method="count"         description="Return the current reference count to the managed object."                              />
+        <method method="reportOn"      description="Report on changes to the reference count to the managed object."                        />
      </methods>
      !!]
      final     :: resourceManagerDestructor
      procedure :: release                   => resourceManagerRelease
      procedure :: count                     => resourceManagerCount
+     procedure :: reportOn                  => resourceManagerReportOn
      procedure :: resourceManagerAssign
      generic   :: assignment(=)             => resourceManagerAssign
   end type resourceManager
@@ -62,20 +65,33 @@ module Resource_Manager
   
 contains
 
-  function resourceManagerConstructor(resource) result(self)
+  function resourceManagerConstructor(resource,reportOn) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily resourceManager} class. This should be called with a pointer to the resource to
     manage after it is first created.
     !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
-    type (resourceManager)                         :: self
-    class(*              ), intent(in   ), pointer :: resource
-
+    type   (resourceManager)                          :: self
+    class  (*              ), intent(in   ), pointer  :: resource
+    logical                 , intent(in   ), optional :: reportOn
+    !![
+    <optionalArgument name="reportOn" defaultsTo=".false." />
+    !!]
+    
     ! Retain a pointer to the shared resource.
     self%resource => resource
     ! Create a shared counter for the resource and initialize the reference count to 1.
     allocate(self%counter)
     self%counter=1
+    ! Set reporting state.
+    self%reportOn_=reportOn_
+    if (self%reportOn_) then
+       call displayMessage(var_str('report on managed resource [loc:')//loc(self%resource)//' ] references - count = '//self%counter)
+       call backtrace()
+    end if
     return
   end function resourceManagerConstructor
 
@@ -94,16 +110,24 @@ contains
     !!{
     Assign a {\normalfont \ttfamily resourceManager} object.
     !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(resourceManager), intent(  out) :: to
     class(resourceManager), intent(in   ) :: from
 
     if (associated(from%counter)) then
        ! Copy pointers to the shared resource and shared counter.
-       to%resource => from%resource
-       to%counter  => from%counter
+       to%resource  => from%resource
+       to%counter   => from%counter
        ! Increment the reference count to our shared object.
-       to%counter  =  to  %counter +1
+       to%counter   =  to  %counter  +1
+       to%reportOn_ =  from%reportOn_
+       if (to%reportOn_) then
+          call displayMessage(var_str('increment managed resource [loc:')//loc(to%resource)//' ] references - count = '//to%counter)
+          call backtrace()
+       end if
     else
        ! No resource to manage - set null pointers.
        to%resource => null()
@@ -116,6 +140,9 @@ contains
     !!{
     Release the managed resource.
     !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
     implicit none
     class(resourceManager), intent(inout) :: self
     
@@ -123,6 +150,10 @@ contains
     if (.not.associated(self%counter)) return
     ! Decrement the reference count to our shared resource.
     self%counter=self%counter-1
+    if (self%reportOn_) then
+       call displayMessage(var_str('decrement managed resource [loc:')//loc(self%resource)//' ] references - count = '//self%counter)
+       call backtrace()
+    end if
     ! If no more references to the shared resource exist we can destroy it (and destroy the shared counter also).
     if (self%counter == 0) then
        deallocate(self%resource)
@@ -148,5 +179,21 @@ contains
     end if
     return
   end function resourceManagerCount
+
+  subroutine resourceManagerReportOn(self)
+    !!{
+    Report on the managed resource.
+    !!}
+    use :: Display           , only : displayMessage
+    use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : operator(//)  , var_str
+    implicit none
+    class(resourceManager), intent(inout) :: self
+
+    self%reportOn_=.true.
+    call displayMessage(var_str('report on managed resource [loc:')//loc(self%resource)//' ] references - count = '//self%counter)
+    call backtrace()
+    return
+  end subroutine resourceManagerReportOn
 
 end module Resource_Manager
