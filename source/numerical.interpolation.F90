@@ -203,6 +203,8 @@ module Numerical_Interpolation
        <method description="Assert that the data is interpolatable."                                                method="assertInterpolatable"/>
      </methods>
      !!]
+     procedure ::                         interpolatorAssign
+     generic   :: assignment(=)        => interpolatorAssign
      procedure ::                         interpolatorInterpolate
      procedure ::                         interpolatorInterpolateNoYa
      generic   :: interpolate          => interpolatorInterpolate           , &
@@ -425,6 +427,32 @@ contains
     return
   end subroutine gslInterpAccelWrapperDestructor
 
+  subroutine interpolatorAssign(self,from)
+    !!{
+    Perform assignment of interpolators.
+    !!}
+    implicit none
+    class(interpolator), intent(inout) :: self
+    class(interpolator), intent(in   ) :: from
+    
+    self%interpManager      =  from%interpManager
+    self%interpAccelManager =  from%interpAccelManager
+    self%interp_            => from%interp_
+    self%interpAccel_       => from%interpAccel_
+    self%interpolationType  =  from%interpolationType
+    self%extrapolationType  =  from%extrapolationType
+    self%countArray         =  from%countArray
+    self%initialized        =  from%initialized
+    self%interpolatable     =  from%interpolatable
+    if (allocated(self%gsl_interp_type)) deallocate(self%gsl_interp_type                            )
+    if (allocated(from%gsl_interp_type))   allocate(self%gsl_interp_type,source=from%gsl_interp_type)
+    if (allocated(self%x              )) deallocate(self%x                                          )
+    if (allocated(from%x              ))   allocate(self%x              ,source=from%x              )
+    if (allocated(self%y              )) deallocate(self%y                                          )
+    if (allocated(from%y              ))   allocate(self%y              ,source=from%y              )    
+    return
+  end subroutine interpolatorAssign
+  
   subroutine interpolatorGSLInitialize(self,ya)
     !!{
     Initialize GSL interpolator.

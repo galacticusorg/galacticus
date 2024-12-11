@@ -183,6 +183,8 @@ module Input_Parameters
      procedure :: reset                => inputParametersReset
      procedure :: path                 => inputParametersPath
      procedure :: lockReinitialize     => inputParametersLockReinitialize
+     procedure ::                         inputParametersAssignment
+     generic   :: assignment(=)        => inputParametersAssignment
   end type inputParameters
 
   interface inputParameters
@@ -939,6 +941,33 @@ contains
     return
   end subroutine inputParametersFinalize
 
+  subroutine inputParametersAssignment(self,from)
+    !!{
+    Assignment operator for {\normalfont \ttfamily inputParameters} class.
+    !!}
+    implicit none
+    class(inputParameters), intent(  out) :: self
+    class(inputParameters), intent(in   ) :: from
+    
+    self%document                         => from%document
+    self%rootNode                         => from%rootNode
+    self%outputParameters                 => from%outputParameters
+    self%outputParametersContainer        => from%outputParametersContainer
+    self%parameters                       => from%parameters
+    self%parent                           => from%parent
+    self%lock                             => from%lock
+    self%outputParametersCopied           =  from%outputParametersCopied
+    self%outputParametersTemporary        =  from%outputParametersTemporary
+    self%isNull                           =  from%isNull
+    self%outputParametersManager          =  from%outputParametersManager
+    self%outputParametersContainerManager =  from%outputParametersContainerManager
+    self%documentManager                  =  from%documentManager
+    self%lockManager                      =  from%lockManager
+    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults                           )
+    if (allocated(from%warnedDefaults))   allocate(self%warnedDefaults,source=from%warnedDefaults)
+    return
+  end subroutine inputParametersAssignment
+  
   recursive subroutine inputParameterDestroy(self)
     !!{
     Destructor for the {\normalfont \ttfamily inputParameter} class.

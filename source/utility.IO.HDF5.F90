@@ -140,6 +140,8 @@ module IO_HDF5
      </methods>
      !!]
      final     ::                                           IO_HDF5_Finalize
+     procedure ::                                           IO_HDF5_Assign
+     generic   :: assignment(=)                           =>IO_HDF5_Assign
      procedure :: name                                    =>IO_HDF5_Name
      procedure :: pathTo                                  =>IO_HDF5_Path_To
      procedure :: fileName                                =>IO_HDF5_File_Name
@@ -632,17 +634,19 @@ contains
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , char
     use :: String_Handling   , only : operator(//)
     implicit none
-    type     (hdf5Object               ), intent(inout)               :: self
-    integer  (hid_t                    ), allocatable  , dimension(:) :: openObjectIDs
-    integer  (size_t                   ), parameter                   :: objectNameSizeMaximum=1024
-    integer                                                           :: errorCode
-    integer  (size_t                   )                              :: i                         , objectNameSize        , &
-         &                                                               openObjectCount           , nonRootOpenObjectCount
-    type     (varying_string           )                              :: message
-    character(len=objectNameSizeMaximum)                              :: objectName
+    type      (hdf5Object               ), intent(inout)               :: self
+    integer   (hid_t                    ), allocatable  , dimension(:) :: openObjectIDs
+    integer   (size_t                   ), parameter                   :: objectNameSizeMaximum=1024
+    integer                                                            :: errorCode
+    integer   (size_t                   )                              :: i                         , objectNameSize        , &
+         &                                                                openObjectCount           , nonRootOpenObjectCount
+    type      (varying_string           )                              :: message
+    character (len=objectNameSizeMaximum)                              :: objectName
+    !$ logical                                                         :: haveLock
     
     if (self%objectManager%count() == 1) then
-       !$ call hdf5Access%set  ()
+       !$ haveLock=hdf5Access%ownedByThread()
+       !$ if (.not.haveLock) call hdf5Access%set  ()
        ! Close the object.
        select case (self%hdf5ObjectType)
        case (hdf5ObjectTypeFile     )
@@ -714,7 +718,7 @@ contains
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end select
-       !$ call hdf5Access%unset()
+       !$ if (.not.haveLock) call hdf5Access%unset()
        nullify(self%parentObject)
     end if
     return
@@ -742,6 +746,31 @@ contains
     return
   end function IO_HDF5_Object_Type
 
+  subroutine IO_HDF5_Assign(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily hdf5Object} class.
+    !!}
+    implicit none
+    class(hdf5Object), intent(  out) :: to
+    class(hdf5Object), intent(in   ) :: from
+
+     to%isOpenValue         =  from%isOpenValue
+     to%isOverwritable      =  from%isOverwritable
+     to%readOnly            =  from%readOnly
+     to%isTemporary         =  from%isTemporary
+     to%objectID            => from%objectID
+     to%objectManager       =  from%objectManager
+     to%objectLocation      =  from%objectLocation
+     to%objectName          =  from%objectName
+     to%hdf5ObjectType      =  from%hdf5ObjectType
+     to%chunkSize           =  from%chunkSize
+     to%compressionLevel    =  from%compressionLevel
+     to%chunkSizeSet        =  from%chunkSizeSet
+     to%compressionLevelSet =  from%compressionLevelSet
+     to%parentObject        => from%parentObject
+    return
+  end subroutine IO_HDF5_Assign
+  
   function IO_HDF5_Name(self) result (nameOfObject)
     !!{
     Returns the path to {\normalfont \ttfamily self}.
@@ -1294,7 +1323,7 @@ contains
     end if
 
     ! Set the comment for this group.
-    if (present(comment) .and. len_trim(comment) > 0 .and. .not.groupObject%hasAttribute('comment')) call groupObject%writeAttribute(trim(comment),'comment')
+    if (present(comment) .and. len_trim(comment) > 0 .and. .not.self%hasAttribute('comment')) call self%writeAttribute(trim(comment),'comment')
     return
   end function IO_HDF5_Open_Group
 
@@ -4458,7 +4487,7 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Set the comment for this dataset.
-    if (present(comment) .and. len_trim(comment) > 0 .and. .not.datasetObject%hasAttribute('comment')) call datasetObject%writeAttribute(trim(comment),'comment')
+    if (present(comment) .and. len_trim(comment) > 0 .and. .not.self%hasAttribute('comment')) call self%writeAttribute(trim(comment),'comment')
     return
   end function IO_HDF5_Open_Dataset
 

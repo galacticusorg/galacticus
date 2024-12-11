@@ -69,6 +69,8 @@ module Locks
      procedure :: set           => ompLockSet
      procedure :: unset         => ompLockUnset
      procedure :: ownedByThread => ompLockOwnedByThread
+     procedure ::                  ompLockAssign
+     generic   :: assignment(=) => ompLockAssign
   end type ompLock
 
   interface ompLock
@@ -203,10 +205,10 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
-    type   (ompLock), intent(inout) :: self
+    type(ompLock), intent(inout) :: self
 
-    ! Destroy the lock.
-    !$ call OMP_Destroy_Lock(self%lock)
+    ! Release the lock.
+    call self%lockManager%release()
     return
   end subroutine ompLockDestructor
 
@@ -264,6 +266,20 @@ contains
     return
   end function ompLockOwnedByThread
 
+  subroutine ompLockAssign(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily ompLock} class.
+    !!}
+    implicit none
+    class(ompLock), intent(  out) :: to
+    class(ompLock), intent(in   ) :: from
+
+    !$ to%lockManager =  from%lockManager
+    !$ to%lock        => from%lock
+    to   %ownerThread =  from%ownerThread
+    return
+  end subroutine ompLockAssign
+  
   function ompReadWriteLockConstructor() result (self)
     !!{
     Constructor for OpenMP read/write lock objects.
