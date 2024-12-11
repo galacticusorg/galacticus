@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733882804814,
+  "lastUpdate": 1733913680882,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "8f25c914acd1feade805f306d219c5c1c21a9ac2",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2024-03-18T16:55:21Z",
-          "tree_id": "60c66da2d03823376c364c3f5d18224a1800dbe9",
-          "url": "https://github.com/galacticusorg/galacticus/commit/8f25c914acd1feade805f306d219c5c1c21a9ac2"
-        },
-        "date": 1710795456936,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.4,
-            "unit": "seconds",
-            "range": 0.0683373982529869
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8708,6 +8678,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21234.12752867039",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "76f43b66b24f2439ba6f09752ea3da786d39588b",
+          "message": "fix: Set probability density to zero for non-positive arguments",
+          "timestamp": "2024-12-10T19:53:10-08:00",
+          "tree_id": "fb863f3051931727e242f6ca902e1cf855e9890c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/76f43b66b24f2439ba6f09752ea3da786d39588b"
+        },
+        "date": 1733913678716,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.822,
+            "unit": "seconds",
+            "range": 0.126962986732541
           }
         ]
       }
