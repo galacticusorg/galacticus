@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@carnegiescience.edu"
         },
-        "id": "c41896db67247c54b7912514831ef8b64c858cae",
-        "message": "fix: Set simulation state size when using a default `parameterMap`\n",
-        "timestamp": "2024-12-10 10:50:37-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/c41896db67247c54b7912514831ef8b64c858cae"
+        "id": "76f43b66b24f2439ba6f09752ea3da786d39588b",
+        "message": "fix: Set probability density to zero for non-positive arguments\n",
+        "timestamp": "2024-12-10 19:53:10-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/76f43b66b24f2439ba6f09752ea3da786d39588b"
     },
     "surfaceDensity": {
-        "percentageBelow": 46.875,
-        "percentageAbove": 53.125,
+        "percentageBelow": 56.25,
+        "percentageAbove": 43.75,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 89.47368421052632,
-        "percentageAbove": 10.526315789473685,
+        "percentageBelow": 70.58823529411765,
+        "percentageAbove": 29.41176470588235,
         "target": 0.85
     }
 }
