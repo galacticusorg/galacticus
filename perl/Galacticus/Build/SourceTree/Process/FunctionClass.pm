@@ -770,7 +770,7 @@ type   (varying_string )       :: descriptorString
 ! Workaround ends here.
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
-call setLiveNodeLists(descriptor%document,.false.)
+call setLiveNodeLists(descriptor%document%document,.false.)
 call self%descriptor(descriptor,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
 descriptorString=descriptor%serializeToString()
 call descriptor%destroy()
@@ -1154,6 +1154,148 @@ CODE
 		    ],
 		code        => $allowedParametersCode
 	    };
+	    
+	    # Add "assignment(=)" operator.
+	    my $assignment;
+            $assignment->{'code'        } .= "select type (self)\n";
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		# Add type guards.
+		$assignment->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$assignment->{'code'} .= "  select type (from)\n";
+		$assignment->{'code'} .= "  type is (".$nonAbstractClass->{'name'}.")\n";
+		# Search the tree for this class.
+		my $class = $nonAbstractClass;
+		while ( $class ) {
+		    my $node = $class->{'tree'}->{'firstChild'};
+		    $node = $node->{'sibling'}
+		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+		    last
+			unless ( $node );
+		    # Search the node for declarations.
+		    $node = $node->{'firstChild'};
+		    while ( $node ) {
+			# Process declarations.
+			if ( $node->{'type'} eq "declaration" ) {
+			    foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
+				my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+				my $assigner    = $isPointer ? "=>" : "=";
+				my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+				    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+				my $referenceCount= 
+				    ($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
+				    &&
+				    (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+				    &&
+				    grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
+				foreach my $object ( @{$declaration->{'variables'}} ) {
+				    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+				    if ( $allocatable ) {
+					$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name."                      )\n";
+					$assignment->{'code'} .= "    if (allocated(from%".$name."))   allocate(self%".$name.",source=from%".$name.")\n";
+				    } else {
+					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+					$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
+					    if ( $referenceCount );
+				    }
+				}
+			    }
+			}
+			$node = $node->{'sibling'};
+		    }
+		    # Move to the parent class.
+		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		}
+		$assignment->{'code'} .= "  class default\n";
+		$assignment->{'code'} .= "    call Error_Report('self and from types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+		$assignment->{'code'} .= "  end select\n";
+	    }
+	    $assignment->{'code'} .= "end select\n";
+	    # Add any objects declared in the base class.
+	    foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+		my $declarationSource;
+		if ( reftype($data) ) {
+		    $declarationSource = $data->{'content'}
+		    if ( $data->{'scope'} eq "self" );
+		} else {
+		    $declarationSource = $data;
+		}
+		next
+		    unless ( defined($declarationSource) );
+		my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+		my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+		my $assigner    = $isPointer ? "=>" : "=";
+		my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+		(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+							  if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+		my $referenceCount= 
+		    ($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
+		    &&
+		    (grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+		    &&
+		    grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
+		foreach my $object ( @{$declaration->{'variables'}} ) {
+		    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+		    if ( $allocatable ) {
+			$assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name."                      )\n";
+			$assignment->{'code'} .= "    if (allocated(from%".$name."))   allocate(self%".$name.",source=from%".$name.")\n";
+		    } else {
+			$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+		    }
+		    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
+			if ( $referenceCount );
+		}
+	    }
+	    # Add any objects declared in the functionClassType class.
+	    if ( defined($functionClassType) ) {
+		# Search the node for declarations.
+		my @ignore = ();
+		my $node   = $functionClassType->{'node'}->{'firstChild'};
+		while ( $node ) {
+		    if ( $node->{'type'} eq "declaration" ) {
+			foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
+			    my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+			    my $assigner    = $isPointer ? "=>" : "=";
+			    my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+			    (my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+								      if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+			    my $referenceCount= 
+				($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
+				&&
+				(grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
+				&&
+				grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
+			    foreach my $object ( @{$declaration->{'variables'}} ) {
+				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+				if ( $allocatable ) {
+				    $assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name."                      )\n";
+				    $assignment->{'code'} .= "    if (allocated(from%".$name."))   allocate(self%".$name.",source=from%".$name.")\n";
+				} else {
+				    $assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+				}
+				$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
+				    if ( $referenceCount );
+			    }
+			}			}
+		    $node = $node->{'sibling'};
+		}
+	    }
+	    # Add objects from the functionClass class.
+	    $assignment->{'code'} .= "self%isDefaultOfClass=from%isDefaultOfClass\n";
+	    $assignment->{'code'} .= "self%referenceCount=from%referenceCount\n";
+	    $assignment->{'code'} .= "return\n";
+	    $methods{'assignment(=)'} =
+	    {
+		description => "Assign the object.",
+		type        => "void",
+		recursive   => "yes",
+		pass        => "yes",
+		selfIntent  => "out",
+		modules     => "Error",
+		argument    => [ "class(".$directive->{'name'}."Class), intent(in   ) :: from" ],
+		code        => $assignment->{'code'}
+	    };
+	    
 	    # Add "deepCopy" method.
 	    my $deepCopy;
             if ( $debugging ) {
@@ -1742,7 +1884,7 @@ CODE
 		);
             foreach ( sort(keys(%methods)) ) {
                 next
-                    if ( $_ eq "destructor" );
+                    if ( $_ eq "destructor" || $_ eq "assignment(=)" );
                 my $method = $methods{$_};
                 my $functionName;
                 if ( exists($method->{'function'}) ) {
@@ -1752,29 +1894,31 @@ CODE
                 }
 		$methodTable->add("",$_,$functionName);
 	    }
-            $modulePreContains->{'content'} .= $methodTable->table();
-            if ( exists($directive->{'generic'}) ) {
-		my $genericTable = Text::Table->new(
-		    {
-			is_sep => 1,
-			body   => "    generic :: "
-		    },
-		    {
-			align  => "left"
-		    },
-		    {
-			is_sep => 1,
-			body   => " => ",
-		    },
-		    {
-			align  => "left"
-		    }
-		    );
+	    $modulePreContains->{'content'} .= $methodTable->table();
+	    $modulePreContains->{'content'} .= "procedure :: ".$directive->{'name'}."Assignment\n";
+	    my $genericTable = Text::Table->new(
+		{
+		    is_sep => 1,
+		    body   => "    generic :: "
+		},
+		{
+		    align  => "left"
+		},
+		{
+		    is_sep => 1,
+		    body   => " => ",
+		},
+		{
+		    align  => "left"
+		}
+		);
+	    if ( exists($directive->{'generic'}) ) {
 		foreach ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
 		    $genericTable->add($_->{'name'},join(", ",&List::ExtraUtils::as_array($_->{'method'})));
 		}
-		$modulePreContains->{'content'} .= $genericTable->table();
             }
+	    $genericTable->add("assignment(=)",$directive->{'name'}."Assignment");
+	    $modulePreContains->{'content'} .= $genericTable->table();
 	    $modulePreContains->{'content'} .= "   final :: ".$directive->{'name'}."Destructor\n"
                 if ( exists($methods{'destructor'}) );
 	    $modulePreContains->{'content'} .= "   end type ".$directive->{'name'}."Class\n\n";
@@ -2412,7 +2556,7 @@ CODE
 		my $argumentCode;
                 if ( $pass eq "yes" ) {
                     my $intrinsic = $methodName eq "destructor" ? "type" : "class";
-		    $argumentCode .= "      ".$intrinsic."(".$directive->{'name'}."Class), intent(inout)";
+		    $argumentCode .= "      ".$intrinsic."(".$directive->{'name'}."Class), intent(".(exists($method->{'selfIntent'}) ? $method->{'selfIntent'} : "inout").")";
 		    $argumentCode .= ", target"
 			if ( exists($method->{'selfTarget'}) && $method->{'selfTarget'} eq "yes" );
 		    $argumentCode .= " :: self\n";
@@ -2434,6 +2578,13 @@ CODE
 		my $extension = "__";
 		$extension = ""
 		    if ( exists($method->{'code'}) );
+		my $nonOperatorName;
+		if ( $methodName eq "assignment(=)" ) {
+		    $nonOperatorName = "assignment";
+		} else {
+		    $nonOperatorName = $methodName;
+		}
+		my $functionName = $directive->{'name'}.ucfirst($nonOperatorName).$extension;
 		my $recursive = exists($method->{'recursive'}) && $method->{'recursive'} eq "yes" ? "recursive " : "";
 		my $elemental = exists($method->{'elemental'}) && $method->{'elemental'} eq "yes" ? "elemental " : "";
 		if ( $method->{'type'} eq "void" ) {
@@ -2443,17 +2594,17 @@ CODE
 		} elsif ( $method->{'type'} =~ m/^class/ ) {
 		    $category = "function";
 		    $type     = "";
-		    $self     = "      ".$method->{'type'}.", pointer :: ".$directive->{'name'}.ucfirst($methodName).$extension."\n";
+		    $self     = "      ".$method->{'type'}.", pointer :: ".$functionName."\n";
 		} elsif ( $method->{'type'} =~ m/^type/ || $method->{'type'} =~ m/,/ ) {
 		    $category = "function";
 		    $type     = "";
-		    $self     = "      ".$method->{'type'}." :: ".$directive->{'name'}.ucfirst($methodName).$extension."\n";
+		    $self     = "      ".$method->{'type'}." :: ".$functionName."\n";
 		} else {
 		    $category = "function";
 		    $type     = $method->{'type'}." ";
 		    $self     = "";
 		}
-		$modulePostContains->{'content'} .= "   ".$recursive.$elemental.$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
+		$modulePostContains->{'content'} .= "   ".$recursive.$elemental.$type.$category." ".$functionName."(self";
 		$modulePostContains->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$modulePostContains->{'content'} .= ")\n";
@@ -2494,7 +2645,7 @@ CODE
 		    $modulePostContains->{'content'} .= "      call Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use and/or check that the \"'//char(self%objectType())//'\" class implements this method'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    if ( $category eq "function" ) {
 			# Avoid warnings about unset function values.
-			$modulePostContains->{'content'} .= "      ".$directive->{'name'}.ucfirst($methodName).$extension."=";
+			$modulePostContains->{'content'} .= "      ".$functionName."=";
 			my $setValue;
 			if ( $method->{'type'} =~ m/^class/ ) {
 			    $setValue = "> null()";
@@ -2517,7 +2668,7 @@ CODE
 		    }
 		    $modulePostContains->{'content'} .= "      return\n";
 		}
-		$modulePostContains->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
+		$modulePostContains->{'content'} .= "   end ".$category." ".$functionName."\n\n";
 	    }
 
 	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
