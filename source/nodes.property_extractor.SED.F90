@@ -980,7 +980,7 @@ contains
     ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
-    call setLiveNodeLists(descriptor%document,.false.)
+    call setLiveNodeLists(descriptor%document%document,.false.)
     call descriptor%addParameter('frame'            ,char(enumerationFrameDecode(self%frame,includePrefix=.false.)))
     !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMinimum

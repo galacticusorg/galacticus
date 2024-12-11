@@ -121,12 +121,23 @@ module Input_Parameters
   </deepCopyActions>
   !!]
     
+  type :: documentWrapper
+     !!{
+     Wrapper class for managing GSL interpolators.
+     !!}
+     private
+     type(node), pointer, public :: document => null()
+   contains
+     final :: documentWrapperDestructor
+  end type documentWrapper
+  
   type :: inputParameters
      private
-     type   (node           ), pointer, public :: document               => null()
+     type   (documentWrapper), pointer, public :: document               => null()
      type   (node           ), pointer         :: rootNode               => null()
      type   (hdf5Object     ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
-     type   (resourceManager)                  :: outputParametersManager          , outputParametersContainerManager
+     type   (resourceManager)                  :: outputParametersManager          , outputParametersContainerManager          , &
+          &                                       documentManager
      type   (inputParameter ), pointer, public :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
      logical                                   :: outputParametersCopied =  .false., outputParametersTemporary        =.false. , &
@@ -280,19 +291,29 @@ contains
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
     type (inputParameters)          :: self
-    class(*              ), pointer :: lock_
+    class(*              ), pointer :: lock_, document_
 
     allocate(self%warnedDefaults)
     allocate(self%lock          )
+    allocate(self%document      )
     !$omp critical (FoX_DOM_Access)
-    self%document       => createDocument    (                                  &
-         &                                    getImplementation()             , &
-         &                                    qualifiedName      ="parameters", &
-         &                                    docType            =null()        &
-         &                                   )
-    self%rootNode       => getDocumentElement(self%document)
-    call setLiveNodeLists(self%document,.false.)
+    self%document%document => createDocument    (                                  &
+         &                                       getImplementation()             , &
+         &                                       qualifiedName      ="parameters", &
+         &                                       docType            =null()        &
+         &                                      )
+    self%rootNode          => getDocumentElement(self%document%document)
+    call setLiveNodeLists(self%document%document,.false.)
     !$omp end critical (FoX_DOM_Access)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    document_ => self%document
+    self%documentManager=resourceManager(document_)
+    !![
+    </workaround>
+    !!]
     self%parameters     => null              (             )
     self%warnedDefaults =  integerHash       (             )
     self%lock           =  ompLock           (             )
@@ -509,8 +530,18 @@ contains
     </workaround>
     !!]
     !$omp critical (FoX_DOM_Access)
-    self%document       => getOwnerDocument(parametersNode)
-    call setLiveNodeLists(self%document,.false.)
+    allocate(self%document)
+    self%document%document => getOwnerDocument(parametersNode)
+    call setLiveNodeLists(self%document%document,.false.)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%document
+    self%documentManager=resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     !$omp end critical (FoX_DOM_Access)
     if (.not.noBuild_) then
        allocate(self%parameters)
@@ -902,13 +933,6 @@ contains
     implicit none    
     class(inputParameters), intent(inout) :: self
 
-    ! Destroy the parameters document. Note that we do not use a finalizer for input parameters. This could destroy part of a
-    ! document which was still pointed to from elsewhere, leaving a dangling pointer. Instead, destruction only occurs when
-    ! explicitly requested.
-    !$omp critical (FoX_DOM_Access)
-    call destroy(self%document)
-    !$omp end critical (FoX_DOM_Access)
-    nullify(self%document)
     if (associated(self%parameters)) then
        call self%parameters%destroy()
        deallocate(self%parameters)
@@ -917,24 +941,39 @@ contains
     return
   end subroutine inputParametersDestroy
 
-  subroutine inputParametersFinalize(self)
+  subroutine documentWrapperDestructor(self)
     !!{
-    Finalizer for the {\normalfont \ttfamily inputParameters} class.
+    Destroy a {\normalfont \ttfamily documentWrapper} object.
     !!}
     use :: FoX_dom, only : destroy
     implicit none
-    type(inputParameters), intent(inout) :: self
-
-    if (self%isNull) then
+    type(documentWrapper), intent(inout) :: self
+    
+    if (associated(self%document)) then
        !$omp critical (FoX_DOM_Access)
        call destroy(self%document)
        !$omp end critical (FoX_DOM_Access)
     end if
-    nullify(self%document  )
+    return
+  end subroutine documentWrapperDestructor
+
+  subroutine inputParametersFinalize(self)
+    !!{
+    Finalizer for the {\normalfont \ttfamily inputParameters} class.
+    !!}
+    implicit none
+    type(inputParameters), intent(inout) :: self
+
+    if (self%isNull) then
+       call self%documentManager%release()
+    else if (associated(self%document)) then
+       nullify(self%document%document)
+    end if
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
     if (allocated (self%warnedDefaults           )) deallocate(self%warnedDefaults)
+    if (associated(self%document                 )) call self%documentManager                 %release()
     if (associated(self%lock                     )) call self%lockManager                     %release()
     if (associated(self%outputParameters         )) call self%outputParametersManager         %release()
     if (associated(self%outputParametersContainer)) call self%outputParametersContainerManager%release()
@@ -1799,30 +1838,32 @@ contains
        inputParametersSubParameters%parameters => parameterNode
     end if
     inputParametersSubParameters%parent        => self
-    !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen()) then
-       groupName=parameterName
-       if (copyCount > 1) then
-          if (present(copyInstance)) then
-             copyInstance_=copyInstance
-          else
-             copyInstance_=1
+    if (associated(self%outputParameters)) then
+       !$ call hdf5Access%set()
+       if (self%outputParameters%isOpen()) then
+          groupName=parameterName
+          if (copyCount > 1) then
+             if (present(copyInstance)) then
+                copyInstance_=copyInstance
+             else
+                copyInstance_=1
+             end if
+             groupName=groupName//"["//copyInstance//"]"
           end if
-          groupName=groupName//"["//copyInstance//"]"
+          allocate(inputParametersSubParameters%outputParameters)
+          inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_ => inputParametersSubParameters%outputParameters
+          inputParametersSubParameters%outputParametersManager=resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
        end if
-       allocate(inputParametersSubParameters%outputParameters)
-       inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
-       !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
-       !!]
-       dummyPointer_ => inputParametersSubParameters%outputParameters
-       inputParametersSubParameters%outputParametersManager=resourceManager(dummyPointer_)
-       !![
-       </workaround>
-       !!]
+       !$ call hdf5Access%unset()
     end if
-    !$ call hdf5Access%unset()
     return
   end function inputParametersSubParameters
 
@@ -2108,25 +2149,27 @@ contains
              {Type¦match¦^Long.*¦read (parameterText,*) parameterValue¦}
              {Type¦match¦^(Character|VarStr)Rank1$¦call String_Split_Words(parameterValue,char(parameterText))¦}
              ! Write the parameter file to an HDF5 object.
-             if (self%outputParameters%isOpen().and.writeOutput_) then
-                !$omp critical (FoX_DOM_Access)
-                attributeName=getNodeName(parameterNode%content)
-                !$omp end critical (FoX_DOM_Access)
-                copyCount    =self%copiesCount(char(attributeName))
-                if (copyCount > 1) then
-                   copyInstance =  copyCount
-                   sibling      => parameterNode%sibling
-                   do while (associated(sibling))
-                      siblingName=getNodeName(sibling%content)
-                      if (siblingName == attributeName) &
-                           & copyInstance=copyInstance-1
-                      sibling      => sibling%sibling
-                   end do
-                   attributeName=attributeName//"["//copyInstance//"]"
+             if (associated(self%outputParameters)) then
+                if (self%outputParameters%isOpen().and.writeOutput_) then
+                   !$omp critical (FoX_DOM_Access)
+                   attributeName=getNodeName(parameterNode%content)
+                   !$omp end critical (FoX_DOM_Access)
+                   copyCount    =self%copiesCount(char(attributeName))
+                   if (copyCount > 1) then
+                      copyInstance =  copyCount
+                      sibling      => parameterNode%sibling
+                      do while (associated(sibling))
+                         siblingName=getNodeName(sibling%content)
+                         if (siblingName == attributeName) &
+                              & copyInstance=copyInstance-1
+                         sibling      => sibling%sibling
+                      end do
+                      attributeName=attributeName//"["//copyInstance//"]"
+                   end if
+                   !$ call hdf5Access%set()
+                   if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
+                   !$ call hdf5Access%unset()
                 end if
-                !$ call hdf5Access%set()
-                if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
-                !$ call hdf5Access%unset()
              end if
           end if
        end if
@@ -2273,7 +2316,7 @@ contains
     type (varying_string ), intent(in   ) :: parameterFile
 
     !$omp critical (FoX_DOM_Access)
-    call serialize(self%document,char(parameterFile))
+    call serialize(self%document%document,char(parameterFile))
     !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParametersSerializeToXML
@@ -2315,7 +2358,7 @@ contains
        !$omp end critical(FoX_DOM_Access)
     else
        !$omp critical(FoX_DOM_Access)
-       parameterNode   => createElementNS(self%document,getNamespaceURI(self%document),parameterName)
+       parameterNode   => createElementNS(self%document%document,getNamespaceURI(self%document%document),parameterName)
        call setAttribute(parameterNode,"value",trim(parameterValue))
        dummy           => appendChild  (self%rootNode,parameterNode)
        !$omp end critical(FoX_DOM_Access)

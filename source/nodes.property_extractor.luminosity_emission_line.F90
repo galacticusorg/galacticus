@@ -748,7 +748,7 @@ contains
     ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
-    call setLiveNodeLists(descriptor%document,.false.)
+    call setLiveNodeLists(descriptor%document%document,.false.)
     ! Add composited object descriptors.
     call self%starFormationHistory_       %descriptor(descriptor)
     call self%outputTimes_                %descriptor(descriptor)
