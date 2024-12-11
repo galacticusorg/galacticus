@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733782545086,
+  "lastUpdate": 1733882801209,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "3ce8807226eb572cd2e69f27dff0e01ddefd9efd",
-          "message": "Merge pull request #576 from galacticusorg/featTransferFunctionHalfModeSlope\n\nAdd a new transfer function class",
-          "timestamp": "2024-03-12T04:50:30Z",
-          "tree_id": "7a1d0cad97095dc74297e74aad36509622d468a8",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3ce8807226eb572cd2e69f27dff0e01ddefd9efd"
-        },
-        "date": 1710229937117,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 161.902,
-            "unit": "seconds",
-            "range": 0.194225641976331
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "12.701321349767081",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "c41896db67247c54b7912514831ef8b64c858cae",
+          "message": "fix: Set simulation state size when using a default `parameterMap`",
+          "timestamp": "2024-12-10T10:50:37-08:00",
+          "tree_id": "6a22c4bf54129570b004f2bfdb830fa8df73762d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c41896db67247c54b7912514831ef8b64c858cae"
+        },
+        "date": 1733882800364,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 25.502,
+            "unit": "seconds",
+            "range": 0.0333706457835006
           }
         ]
       }
