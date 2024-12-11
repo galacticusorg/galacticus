@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "285740a626e7eb7b58cffd23604c2aa848113ef8",
-        "message": "Merge pull request #753 from galacticusorg/fixSMHMRLikelihood\n\nCorrectly calculate the likelihood when including the normalization term with a subset of bins\n",
-        "timestamp": "2024-12-09 15:09:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/285740a626e7eb7b58cffd23604c2aa848113ef8"
+        "id": "c41896db67247c54b7912514831ef8b64c858cae",
+        "message": "fix: Set simulation state size when using a default `parameterMap`\n",
+        "timestamp": "2024-12-10 10:50:37-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/c41896db67247c54b7912514831ef8b64c858cae"
     },
     "surfaceDensity": {
         "percentageBelow": 46.875,
