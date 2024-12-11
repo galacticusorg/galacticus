@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733882808962,
+  "lastUpdate": 1733913685126,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "97efa132bd8578fd83bf04303d8c060c210aba3f",
-          "message": "Merge pull request #583 from galacticusorg/orbitCalibration\n\nOrbit calibration",
-          "timestamp": "2024-03-16T02:37:27Z",
-          "tree_id": "d39ce6a0ac68f4b860f6e0f316e01a987fc7d42a",
-          "url": "https://github.com/galacticusorg/galacticus/commit/97efa132bd8578fd83bf04303d8c060c210aba3f"
-        },
-        "date": 1710570806835,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 396.953,
-            "unit": "seconds",
-            "range": 0.172075855353461
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10648,6 +10618,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "13.046489180316716",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "76f43b66b24f2439ba6f09752ea3da786d39588b",
+          "message": "fix: Set probability density to zero for non-positive arguments",
+          "timestamp": "2024-12-10T19:53:10-08:00",
+          "tree_id": "fb863f3051931727e242f6ca902e1cf855e9890c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/76f43b66b24f2439ba6f09752ea3da786d39588b"
+        },
+        "date": 1733913684297,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 26.728,
+            "unit": "seconds",
+            "range": 0.0588693468622909
           }
         ]
       }
