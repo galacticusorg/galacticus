@@ -11,10 +11,13 @@ use XML::Simple;
 use Sort::Topo;
 use LaTeX::Encode;
 use Scalar::Util qw(reftype);
+use List::Util;
+use List::MoreUtils qw(first_index);
 use List::ExtraUtils;
 use List::Uniq ':all';
 use File::Changes;
 use Fortran::Utils;
+use Text::Levenshtein;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
@@ -414,7 +417,15 @@ sub Process_FunctionClass {
 					    }
 					} else {
 					    $supported = -1;
-					    push(@failureMessage,"could not find a matching internal variable for parameter [".$name."]");
+					    my @potentialNames = map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}};
+					    my @distances      = &Text::Levenshtein::distance(lc($name),map {lc($_)} @potentialNames);
+					    my $indexMinimum   = first_index {$_ == &List::Util::min(@distances)} @distances;
+					    my $message = "could not find a matching internal variable for parameter [".$name."]";
+					    unless ( $indexMinimum == -1 ) {
+						(my $nameGuess = $potentialNames[$indexMinimum]) =~ s/_//;
+						$message .= " - did you mean [".$nameGuess."]";
+					    }
+					    push(@failureMessage,$message);
 					}
 				    }
 				} else {
