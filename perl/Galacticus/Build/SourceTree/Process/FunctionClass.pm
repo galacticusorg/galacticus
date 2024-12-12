@@ -417,13 +417,15 @@ sub Process_FunctionClass {
 					    }
 					} else {
 					    $supported = -1;
-					    my @potentialNames = map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}};
-					    my @distances      = &Text::Levenshtein::distance(lc($name),map {lc($_)} @potentialNames);
-					    my $indexMinimum   = first_index {$_ == &List::Util::min(@distances)} @distances;
 					    my $message = "could not find a matching internal variable for parameter [".$name."]";
-					    unless ( $indexMinimum == -1 ) {
-						(my $nameGuess = $potentialNames[$indexMinimum]) =~ s/_//;
-						$message .= " - did you mean [".$nameGuess."]";
+					    my @potentialNames = map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}};
+					    if ( scalar(@potentialNames) > 0 ) {
+						my @distances      = &Text::Levenshtein::distance(lc($name),map {lc($_)} @potentialNames);
+						my $indexMinimum   = first_index {$_ == &List::Util::min(@distances)} @distances;
+						unless ( $indexMinimum == -1 ) {
+						    (my $nameGuess = $potentialNames[$indexMinimum]) =~ s/_//;
+						    $message .= " - did you mean [".$nameGuess."]";
+						}
 					    }
 					    push(@failureMessage,$message);
 					}
