@@ -419,6 +419,10 @@
      <beta value="0.01"/>
      </tidalStripping>
     </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <massSeed value="100"/>
+      <spinSeed value="0"/>
+    </nodeOperator>
   </nodeOperator>
   
   <starFormationHistory value="adaptive">

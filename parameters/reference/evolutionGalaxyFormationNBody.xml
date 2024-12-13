@@ -7,7 +7,6 @@
   <!-- Component selection -->
   <componentBasic             value="standard"/>
   <componentBlackHole         value="standard" >
-    <massSeed                                    value="100.0000"/>
     <heatsHotHalo                                value="true"    />
     <efficiencyWind                              value="  0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"    />
@@ -219,6 +218,10 @@
 	<correlationNormalization value="1.000e0"/>
 	<correlationRedshiftExponent value="0.000e0"/>
       </nbodyHaloMassError>
+    </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <massSeed value="100"/>
+      <spinSeed value="0"/>
     </nodeOperator>
   </nodeOperator>
 

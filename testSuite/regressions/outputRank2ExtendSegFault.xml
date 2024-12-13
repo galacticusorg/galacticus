@@ -406,6 +406,10 @@
     <nodeOperator value="indexShift"/>
     <nodeOperator value="indexLastHost"/>
     <nodeOperator value="timeFirstInfall"/>
+    <nodeOperator value="blackHolesSeed">
+      <massSeed value="100"/>
+      <spinSeed value="0"/>
+    </nodeOperator>
   </nodeOperator>
   
   <starFormationHistory value="adaptive">
