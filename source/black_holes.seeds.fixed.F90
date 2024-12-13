@@ -24,13 +24,13 @@
   !![
   <blackHoleSeeds name="blackHoleSeedsFixed">
    <description>
-    A model of black hole seeds in which seeds have fixed mass and spin, indepedent of the halo in which they form.
+    A model of black hole seeds in which seeds have fixed mass and spin, independent of the halo in which they form.
    </description>
   </blackHoleSeeds>
   !!]
   type, extends(blackHoleSeedsClass) :: blackHoleSeedsFixed
      !!{
-     A model of black hole seeds in which seeds have fixed mass and spin, indepedent of the halo in which they form.
+     A model of black hole seeds in which seeds have fixed mass and spin, independent of the halo in which they form.
      !!}
      private
      double precision :: mass_, spin_   
@@ -41,7 +41,7 @@
   
   interface blackHoleSeedsFixed
      !!{
-     Constructors for the {\normalfont \ttfamily standard} black hole accretion rate class.
+     Constructors for the {\normalfont \ttfamily fixed} black hole seeds class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal

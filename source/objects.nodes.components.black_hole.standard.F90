@@ -363,8 +363,8 @@ contains
           ! Find the rate of increase in mass of the black hole.
           massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency-jetEfficiency)
           ! If no black hole component currently exists and we have some accretion then this is an error - we can not have
-          ! accretion onto a non-existant black hole.
-          if (instanceCount == 0 .and. massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existant black hole'//{introspection:location})
+          ! accretion onto a non-existent black hole.
+          if (instanceCount == 0 .and. massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existent black hole'//{introspection:location})
           ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.
           if (blackHole%mass() <= 0.0d0 .and. massAccretionRate < 0.0d0) cycle
           ! Add the accretion to the black hole.
