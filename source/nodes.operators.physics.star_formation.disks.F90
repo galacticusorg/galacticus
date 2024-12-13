@@ -32,7 +32,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationDisks
      !!{
-     A node operator class that shifts node indices at node promotion.
+     A node operator class that performs star formation.
      !!}
      private
      class           (starFormationRateDisksClass     ), pointer :: starFormationRateDisks_      => null()
