@@ -36,16 +36,16 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
     <description>
-      A posterior sampling likelihood class which combines likelihoods from one or more other \refClass{posteriorSampleLikelihood}
+      A posterior sampling likelihood class which combines likelihoods from one or more other \refClass{posteriorSampleLikelihoodClass}
       classes that are assumed to be independent (i.e. the $\log \mathcal{L}$ of the models are simply summed to find the final
       likelihood).
       
-      Since each \refClass{posteriorSampleLikelihood} class may require a different set of parameters a {\normalfont \ttfamily
+      Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a {\normalfont \ttfamily
       [parameterMap]} parameter may be specified. If present, the number of {\normalfont \ttfamily [parameterMap]} parameters must
       equal the number of {\normalfont \ttfamily [posteriorSampleLikelihood]} parameters. Each such parameter should give a
       (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} class) which should be
       passed to the corresponding {\normalfont \ttfamily [posteriorSampleLikelihood]}. If no {\normalfont \ttfamily
-      [parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihood} class.
+      [parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
       
       Similarly, a set of {\normalfont \ttfamily parameterInactiveMap} parameters may be given, to specify which (if any, an empty
       {\normalfont \ttfamily value} is permissible) of the inactive parameters specified by \refClass{modelParameterInactive}
