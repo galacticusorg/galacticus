@@ -210,6 +210,7 @@ runs:
         sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
         sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
         sudo perl -MCPAN -e 'force("install","Text::Template")'
+        sudo perl -MCPAN -e 'force("install","Text::Levenshtein")'
         sudo perl -MCPAN -e 'force("install","List::Uniq")'
         sudo perl -MCPAN -e 'force("install","IO::Util")'
         sudo perl -MCPAN -e 'force("install","Class::Util")'
