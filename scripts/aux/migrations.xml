@@ -43,7 +43,7 @@
       <name new="componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"/>
     </translation>
     <translation xpath="/parameters/blackHoleSeedMass[@value]">
-      <name new="componentBlackHole--massSeed"/>
+      <name new="componentBlackHole--mass"/>
     </translation>
     <translation xpath="/parameters/tripleBlackHoleInteraction[@value]">
       <name new="componentBlackHole--tripleInteraction"/>

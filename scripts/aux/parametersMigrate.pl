@@ -369,8 +369,8 @@ sub blackHoleSeedMass {
     # Create a new node operator and insert into the list.
     my $operatorNode = $input->createElement("nodeOperator"  );
     my $seedNode     = $input->createElement("blackHoleSeeds");
-    my $massNode     = $input->createElement("massSeed"      );
-    my $spinNode     = $input->createElement("spinSeed"      );
+    my $massNode     = $input->createElement("mass"          );
+    my $spinNode     = $input->createElement("spin"          );
     $operatorNode->setAttribute('value','blackHolesSeed');
     $seedNode    ->setAttribute('value','fixed'         );
     $massNode    ->setAttribute('value',$massSeed       );

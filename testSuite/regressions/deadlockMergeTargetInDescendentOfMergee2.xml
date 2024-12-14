@@ -117,11 +117,11 @@
     </nodeOperator>
     <!-- Halo positions -->
     <nodeOperator value="positionDiscrete"/>
-    <nodeOperator value="blackHolesSeed">
+    <nodeOperator value="blackHoleSeeds">
       <blackHoleSeeds value="fixed">
-        <massSeed value="100"/>
-        <spinSeed value="0"/>
-      </blackHolesSeed>
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
     </nodeOperator>
   </nodeOperator>
 
