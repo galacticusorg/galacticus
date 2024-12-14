@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "76f43b66b24f2439ba6f09752ea3da786d39588b",
-        "message": "fix: Set probability density to zero for non-positive arguments\n",
-        "timestamp": "2024-12-10 19:53:10-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/76f43b66b24f2439ba6f09752ea3da786d39588b"
+        "id": "9b7a31593fb57ae03f0df0a8c914e037999a5326",
+        "message": "Merge pull request #756 from galacticusorg/featGuessParameterName\n\nProvide a guess for a parameter name when no matching parameter is found in auto-descriptor\n",
+        "timestamp": "2024-12-13 17:54:18+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9b7a31593fb57ae03f0df0a8c914e037999a5326"
     },
     "results": [
         {
