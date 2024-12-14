@@ -311,8 +311,10 @@
 	</galacticDynamicsBarInstability>
       </nodeOperator>
       <nodeOperator value="blackHolesSeed">
-	<massSeed value="0"/>
-	<spinSeed value="0"/>
+	<blackHoleSeeds value="fixed">
+	  <massSeed value="0"/>
+	  <spinSeed value="0"/>
+	</blackHoleSeeds>
       </nodeOperator>
     </nodeOperator>
 

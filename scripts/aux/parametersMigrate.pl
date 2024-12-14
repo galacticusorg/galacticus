@@ -367,15 +367,18 @@ sub blackHoleSeedMass {
     die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a black hole seed operator")
 	if ( scalar(@nodeOperators) >  1 );
     # Create a new node operator and insert into the list.
-    my $operatorNode = $input->createElement("nodeOperator");
-    my $massNode     = $input->createElement("massSeed"    );
-    my $spinNode     = $input->createElement("spinSeed"    );
+    my $operatorNode = $input->createElement("nodeOperator"  );
+    my $seedNode     = $input->createElement("blackHoleSeeds");
+    my $massNode     = $input->createElement("massSeed"      );
+    my $spinNode     = $input->createElement("spinSeed"      );
     $operatorNode->setAttribute('value','blackHolesSeed');
+    $seedNode    ->setAttribute('value','fixed'         );
     $massNode    ->setAttribute('value',$massSeed       );
     $spinNode    ->setAttribute('value',0.0             );
     # Assemble our new nodes.
-    $operatorNode->addChild($massNode);
-    $operatorNode->addChild($spinNode);
+    $operatorNode->addChild($seedNode);
+    $seedNode    ->addChild($massNode);
+    $seedNode    ->addChild($spinNode);
     # Insert the new parameters.
     $nodeOperators[0]->insertAfter($operatorNode,$nodeOperators[0]->lastChild);
 }

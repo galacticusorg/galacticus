@@ -270,8 +270,10 @@
     <!-- Positions for subhalos -->
     <nodeOperator value="positionTraceDarkMatter"/>
     <nodeOperator value="blackHolesSeed">
-      <massSeed value="100"/>
-      <spinSeed value="0"/>
+      <blackHoleSeeds value="fixed">
+        <massSeed value="100"/>
+        <spinSeed value="0"/>
+      </blackHolesSeed>
     </nodeOperator>
   </nodeOperator>
   

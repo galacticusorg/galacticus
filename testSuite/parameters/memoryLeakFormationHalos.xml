@@ -256,8 +256,10 @@
       <massFactorReformation value="2.0"/>      
     </nodeOperator>
     <nodeOperator value="blackHolesSeed">
-      <massSeed value="100"/>
-      <spinSeed value="0"/>
+      <blackHoleSeeds value="fixed">
+        <massSeed value="100"/>
+        <spinSeed value="0"/>
+      </blackHolesSeed>
     </nodeOperator>
   </nodeOperator>
 
