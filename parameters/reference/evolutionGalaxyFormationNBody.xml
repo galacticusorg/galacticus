@@ -219,7 +219,7 @@
 	<correlationRedshiftExponent value="0.000e0"/>
       </nbodyHaloMassError>
     </nodeOperator>
-    <nodeOperator value="blackHoleSeeds">
+    <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>

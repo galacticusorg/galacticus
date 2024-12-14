@@ -271,7 +271,7 @@
     </nodeOperator>
     <!-- Shift preset named N-body properties -->
     <nodeOperator value="presetNamedShift"/>
-    <nodeOperator value="blackHoleSeeds">
+    <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>

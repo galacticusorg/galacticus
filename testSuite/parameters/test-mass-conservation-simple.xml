@@ -246,7 +246,7 @@
 	  </stellarFeedbackOutflows>
 	</stellarFeedbackOutflows>
       </nodeOperator>
-      <nodeOperator value="blackHoleSeeds">
+      <nodeOperator value="blackHolesSeed">
 	<blackHoleSeeds value="fixed">
 	  <mass value="0"/>
 	  <spin value="0"/>

@@ -255,7 +255,7 @@
     <nodeOperator value="nodeFormationTimeCole2000">
       <massFactorReformation value="2.0"/>      
     </nodeOperator>
-    <nodeOperator value="blackHoleSeeds">
+    <nodeOperator value="blackHolesSeed">
       <blackHoleSeeds value="fixed">
         <mass value="100"/>
         <spin value="0"/>
