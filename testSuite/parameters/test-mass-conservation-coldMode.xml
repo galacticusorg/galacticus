@@ -308,7 +308,7 @@
 	  <stabilityThresholdStellar value="1.1"/>
 	</galacticDynamicsBarInstability>
       </nodeOperator>
-      <nodeOperator value="blackHolesSeed">
+      <nodeOperator value="blackHolesSeed" iterable="no">
 	<blackHoleSeeds value="fixed">
 	  <mass value="0"/>
 	  <spin value="0"/>
