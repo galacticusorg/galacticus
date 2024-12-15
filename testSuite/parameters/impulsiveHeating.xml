@@ -17,7 +17,6 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard">
-    <massSeed value="100"/>
     <heatsHotHalo value="true"/>
     <efficiencyWind value="0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
@@ -419,6 +418,12 @@
 	<stabilityThresholdGaseous value="0.7"/>
 	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
+    </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
     </nodeOperator>
   </nodeOperator>
 
