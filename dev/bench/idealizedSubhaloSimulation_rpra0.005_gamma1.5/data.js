@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734136819121,
+  "lastUpdate": 1734311259398,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.005; γ=1.5)": [
@@ -4811,6 +4811,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/9b7a31593fb57ae03f0df0a8c914e037999a5326"
         },
         "date": 1734136818329,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": "48.57555996098561",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "35.056147793037816",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.005; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": "23.74933605926893",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0c09c35084f94c5d1059c1de045256101fab2735",
+          "message": "Merge pull request #757 from galacticusorg/featBlackHoleSeeds\n\nMove setting of black hole seeds to a `nodeOperator`",
+          "timestamp": "2024-12-15T18:53:33Z",
+          "tree_id": "1549ad24eb64dc9339ca635c4cf2de7e3c01ec44",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0c09c35084f94c5d1059c1de045256101fab2735"
+        },
+        "date": 1734311258563,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
