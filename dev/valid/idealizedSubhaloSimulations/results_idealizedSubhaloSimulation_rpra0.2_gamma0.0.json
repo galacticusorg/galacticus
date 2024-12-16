@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "9b7a31593fb57ae03f0df0a8c914e037999a5326",
-        "message": "Merge pull request #756 from galacticusorg/featGuessParameterName\n\nProvide a guess for a parameter name when no matching parameter is found in auto-descriptor\n",
-        "timestamp": "2024-12-13 17:54:18+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9b7a31593fb57ae03f0df0a8c914e037999a5326"
+        "id": "0c09c35084f94c5d1059c1de045256101fab2735",
+        "message": "Merge pull request #757 from galacticusorg/featBlackHoleSeeds\n\nMove setting of black hole seeds to a `nodeOperator`\n",
+        "timestamp": "2024-12-15 18:53:33+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0c09c35084f94c5d1059c1de045256101fab2735"
     },
     "results": [
         {
