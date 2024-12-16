@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734136811398,
+  "lastUpdate": 1734311241134,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "3ac102f22a46dd05613771c69899f2ca5b2b36c1",
-          "message": "fix: Correct LaTeX journal reference commands",
-          "timestamp": "2024-03-20T05:22:40Z",
-          "tree_id": "5c3357ad8a4da33c36e1a354162d2bac4a0fa9b0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3ac102f22a46dd05613771c69899f2ca5b2b36c1"
-        },
-        "date": 1710926311529,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.114,
-            "unit": "seconds",
-            "range": 0.131796813314972
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8712,6 +8682,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21027.583090705208",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0c09c35084f94c5d1059c1de045256101fab2735",
+          "message": "Merge pull request #757 from galacticusorg/featBlackHoleSeeds\n\nMove setting of black hole seeds to a `nodeOperator`",
+          "timestamp": "2024-12-15T18:53:33Z",
+          "tree_id": "1549ad24eb64dc9339ca635c4cf2de7e3c01ec44",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0c09c35084f94c5d1059c1de045256101fab2735"
+        },
+        "date": 1734311238854,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 48.283,
+            "unit": "seconds",
+            "range": 0.126174878640514
           }
         ]
       }
