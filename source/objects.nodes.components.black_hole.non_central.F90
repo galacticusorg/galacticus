@@ -28,6 +28,7 @@ module Node_Component_Black_Hole_Noncentral
   use :: Black_Hole_Binary_Mergers          , only : blackHoleBinaryMergerClass
   use :: Black_Hole_Binary_Recoil_Velocities, only : blackHoleBinaryRecoilClass
   use :: Black_Hole_Binary_Separations      , only : blackHoleBinarySeparationGrowthRateClass
+  use :: Black_Hole_Seeds                   , only : blackHoleSeedsClass
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
   implicit none
   private
@@ -62,7 +63,8 @@ module Node_Component_Black_Hole_Noncentral
   class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
-  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_)
+  class(blackHoleSeedsClass                     ), pointer :: blackHoleSeeds_
+  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,blackHoleSeeds_)
 
   ! Option specifying whether the triple black hole interaction should be used.
   logical :: tripleInteraction
@@ -127,6 +129,7 @@ contains
        <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="subParameters"/>
        <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="subParameters"/>
        <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="subParameters"/>
+       <objectBuilder class="blackHoleSeeds"                      name="blackHoleSeeds_"                      source="subParameters"/>
        !!]
     end if
     return
@@ -150,6 +153,7 @@ contains
        <objectDestructor name="blackHoleBinaryRecoil_"              />
        <objectDestructor name="blackHoleBinaryMerger_"              />
        <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       <objectDestructor name="blackHoleSeeds_"                     />
        !!]
     end if
     return
@@ -368,8 +372,8 @@ contains
     velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine whether the binary is ejected or stays in the galaxy.
     if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
-       massBlackHoleNew=blackHole1%massSeed()
-       spinBlackHoleNew=blackHole1%spinSeed()
+       massBlackHoleNew=blackHoleSeeds_%mass(node)
+       spinBlackHoleNew=blackHoleSeeds_%spin(node)
     end if
     ! Set the mass and spin of the central black hole.
     call blackHole1%massSet(massBlackHoleNew)
@@ -383,7 +387,7 @@ contains
     !!{
     Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), target   :: node
@@ -548,7 +552,7 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> nonCentral',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_"/>
+    <stateStore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleSeeds_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_NonCentral_State_Store
@@ -571,7 +575,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> nonCentral',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_"/>
+    <stateRestore variables="darkMatterHaloScale_ blackHoleBinaryRecoil_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleSeeds_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_NonCentral_State_Restore

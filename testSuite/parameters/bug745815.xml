@@ -16,7 +16,6 @@
 
   <componentBasic value="standard"/>
   <componentBlackHole value="standard">
-    <massSeed value="100"/>
     <efficiencyWind value="0.001"/>
     <bondiHoyleAccretionEnhancementHotHalo value="1"/>
     <bondiHoyleAccretionEnhancementSpheroid value="1"/>

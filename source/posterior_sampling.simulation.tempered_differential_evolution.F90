@@ -54,9 +54,9 @@
      Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
      !!}
      private
-     integer                                                                                    :: untemperedStepCount                      , temperingLevelCount    , &
+     integer                                                                                    :: untemperedStepCount                                , temperingLevelCount    , &
           &                                                                                        stepsPerLevel
-     integer                                                                                    :: temperingStep                            , temperingLevelMonotonic
+     integer                                                                                    :: temperingStep                                      , temperingLevelMonotonic
      double precision                                                                           :: temperatureMaximum
      class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), pointer                   :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_ => null()
      double precision                                               , allocatable, dimension(:) :: temperatures
@@ -64,8 +64,8 @@
    contains
      !![
      <methods>
-       <method description="Return the current tempering level." method="initialize" />
-       <method description="Return the current tempering level." method="level" />
+       <method method="initialize" description="Return the current tempering level."/>
+       <method method="level"      description="Return the current tempering level."/>
      </methods>
      !!]
      final     ::                   temperedDifferentialEvolutionDestructor
@@ -186,6 +186,8 @@ contains
     self%untemperedStepCount                       =  untemperedStepCount
     self%stepsPerLevel                             =  stepsPerLevel
     self%temperatureMaximum                        =  temperatureMaximum
+    self%temperingLevelMonotonic                   =  0
+    self%temperingStep                             =  0
     allocate(self%temperatures(temperingLevelCount))
     allocate(posteriorSampleStateSimple :: self%temperedStates(temperingLevelCount))
     do i=1,temperingLevelCount
@@ -328,10 +330,10 @@ contains
     class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
 
     temperedDifferentialEvolutionLevel=self%temperingLevelMonotonic
-    if (self%temperingLevelMonotonic > self%temperingLevelCount)                     &
-         & temperedDifferentialEvolutionLevel= 2                            &
-         &                                             *self%temperingLevelCount     &
-         &                                             -self%temperingLevelMonotonic
+    if (self%temperingLevelMonotonic > self%temperingLevelCount)            &
+         & temperedDifferentialEvolutionLevel=+2                            &
+         &                                    *self%temperingLevelCount     &
+         &                                    -self%temperingLevelMonotonic
     return
   end function temperedDifferentialEvolutionLevel
 

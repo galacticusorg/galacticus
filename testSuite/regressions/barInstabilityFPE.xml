@@ -12,7 +12,6 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard">
-    <massSeed value="100"/>
     <growthRatioToStellarSpheroid value="2.32959186797031"/>
     <heatsHotHalo value="true"/>
     <efficiencyHeating value="0.00140338137883176"/>
@@ -412,6 +411,12 @@
      <tidalStripping value="simple">
      <beta value="0.01"/>
      </tidalStripping>
+    </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
     </nodeOperator>
   </nodeOperator>
   

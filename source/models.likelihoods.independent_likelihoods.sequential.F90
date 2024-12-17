@@ -262,6 +262,7 @@ contains
        end forall
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
+       call modelLikelihood_%simulationState%countSet     (simulationState%count     ())
        ! Evaluate this likelihood
        timeEvaluate_=-1.0
        logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &

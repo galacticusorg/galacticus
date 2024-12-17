@@ -214,7 +214,7 @@ contains
 
     if (x > 0.0d0) then
        logNormalDensity=+self%distributionFunction1DNormal%density(log(x)) &
-         &              /x
+            &           /x
     else
        logNormalDensity=+0.0d0
     end if

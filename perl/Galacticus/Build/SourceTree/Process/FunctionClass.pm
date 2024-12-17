@@ -11,10 +11,13 @@ use XML::Simple;
 use Sort::Topo;
 use LaTeX::Encode;
 use Scalar::Util qw(reftype);
+use List::Util;
+use List::MoreUtils qw(first_index);
 use List::ExtraUtils;
 use List::Uniq ':all';
 use File::Changes;
 use Fortran::Utils;
+use Text::Levenshtein;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
@@ -414,7 +417,17 @@ sub Process_FunctionClass {
 					    }
 					} else {
 					    $supported = -1;
-					    push(@failureMessage,"could not find a matching internal variable for parameter [".$name."]");
+					    my $message = "could not find a matching internal variable for parameter [".$name."]";
+					    my @potentialNames = map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}};
+					    if ( scalar(@potentialNames) > 0 ) {
+						my @distances      = &Text::Levenshtein::distance(lc($name),map {lc($_)} @potentialNames);
+						my $indexMinimum   = first_index {$_ == &List::Util::min(@distances)} @distances;
+						unless ( $indexMinimum == -1 ) {
+						    (my $nameGuess = $potentialNames[$indexMinimum]) =~ s/_//;
+						    $message .= " - did you mean [".$nameGuess."]";
+						}
+					    }
+					    push(@failureMessage,$message);
 					}
 				    }
 				} else {
@@ -2789,10 +2802,14 @@ CODE
 		&Galacticus::Build::SourceTree::PrependChildToNode($submodule,$codeContent->{'submodule'}->{$className}->{'preContains' });
 		&Galacticus::Build::SourceTree::InsertPostContains($submodule,$codeContent->{'submodule'}->{$className}->{'postContains'});
 		# Write the submodule to a temporary file, and update the actual file only if it has changed (to avoid recompilation cascades).
+		(my $submoduleContent, my $submoduleMappings) = &Galacticus::Build::SourceTree::Serialize($file, stripMappings => 1);
 		open(my $submoduleFile,">",$codeContent->{'submodule'}->{$className}->{'fileName'}.".tmp");
-		print $submoduleFile &Galacticus::Build::SourceTree::Serialize($file);
+		print $submoduleFile $submoduleContent;
 		close($submoduleFile);
 		&File::Changes::Update($codeContent->{'submodule'}->{$className}->{'fileName'},$codeContent->{'submodule'}->{$className}->{'fileName'}.".tmp", proveUpdate => "yes");
+		open(my $mappingFile,">",$codeContent->{'submodule'}->{$className}->{'fileName'}.".lmap");
+		print $mappingFile $submoduleMappings;
+		close($mappingFile);
 	       }
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);

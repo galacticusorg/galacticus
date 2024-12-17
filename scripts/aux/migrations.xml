@@ -43,7 +43,7 @@
       <name new="componentBlackHole--bondiHoyleAccretionTemperatureSpheroid"/>
     </translation>
     <translation xpath="/parameters/blackHoleSeedMass[@value]">
-      <name new="componentBlackHole--massSeed"/>
+      <name new="componentBlackHole--mass"/>
     </translation>
     <translation xpath="/parameters/tripleBlackHoleInteraction[@value]">
       <name new="componentBlackHole--tripleInteraction"/>
@@ -224,6 +224,9 @@
     <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']//assumeExponentialDisk[@value]">
       <remove/>
     </translation>
+  </migration>
+  <migration commit="085033d9d7d8f1956eb0b5b7918ce731229d57e2">
+    <translation function="blackHoleSeedMass"/>
   </migration>
 
   <!-- Known default values for parameters -->

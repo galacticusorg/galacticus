@@ -213,16 +213,17 @@ die("buildCode.pl: failed to find a function to generate '".$build->{'type'}."' 
 # Generate output. For Fortran source we run the code through the processor first. Otherwise it is simply output.
 open(my $outputFile,">",$build->{'fileName'}.".tmp");
 # Parse Fortran files, simply output other files.
-print $outputFile 
-    $build->{'fileName'} =~ m/\.Inc$/
-    ?
-    &Galacticus::Build::SourceTree::Serialize(
-	&Galacticus::Build::SourceTree::ProcessTree(
+if ( $build->{'fileName'} =~ m/\.Inc$/ ) {
+    (my $codePreprocessed) =
+	&Galacticus::Build::SourceTree::Serialize(
+	  &Galacticus::Build::SourceTree::ProcessTree(
 	     &Galacticus::Build::SourceTree::ParseCode($build->{'content'},$build->{'fileName'})
-	)
-    )
-    :
-    $build->{'content'};
+	  )
+	);
+    print $outputFile $codePreprocessed;
+} else {
+    print $outputFile $build->{'content'};
+}
 close($outputFile);
 &File::Changes::Update($build->{'fileName'},$build->{'fileName'}.".tmp", proveUpdate => "yes");
 exit;
