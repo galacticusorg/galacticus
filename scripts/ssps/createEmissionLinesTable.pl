@@ -351,7 +351,8 @@ $grid->{'lineData'}->{$lineList{$_}}->{'luminosity'} = pdl      zeros(@dimension
 $grid->{'lineData'}                 ->{'status'    } = pdl long zeros(@dimensions);
 
 # Iterate over all iterables to build an array of jobs.
-$grid->{'counter'} = pdl long zeros(scalar(@{$grid->{'iterables'}}));
+$grid->{'counter'    } = pdl long zeros(scalar(@{$grid->{'iterables'}}));
+$grid->{'modelNumber'} = pdl long zeros(@dimensions);
 my $jobNumber = -1;
 my $jobCount  =  1;
 for(my $i=0;$i<nelem($grid->{'counter'});++$i) {
@@ -365,6 +366,11 @@ if ( $options{'reprocess'} eq "yes" ) {
 } else {
     do {
 	++$jobNumber;
+	my @indices;
+	for(my $i=0;$i<scalar(@{$grid->{'iterables'}});++$i) {
+	    push(@indices,$grid->{'counter'}->(($i)));
+	}
+	$grid->{'modelNumber'}->(@indices) .= $jobNumber;
 	if ( ! exists($options{'model'}) || $options{'model'} == $jobNumber ) {
 	    print "Generating model ".$jobNumber." of ".$jobCount."\n"
 		if ( $jobNumber % 100 == 0 || exists($options{'model'}) );
@@ -1099,8 +1105,10 @@ sub outputSSP {
     
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
-    $lineGroup->dataset('status')->set($grid->{'lineData'}->{'status'});
-    $lineGroup->dataset('status')->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('status'     )->set($grid->{'lineData'}->{'status'     });
+    $lineGroup->dataset('status'     )->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('modelNumber')->set($grid->{'modelNumber'});
+    $lineGroup->dataset('modelNumber')->attrSet(description => "Cloudy model number"                                                                                                          );
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
@@ -1131,8 +1139,10 @@ sub outputAGN {
 
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
-    $lineGroup->dataset('status')->set($grid->{'lineData'}->{'status'});
-    $lineGroup->dataset('status')->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('status'     )->set($grid->{'lineData'}->{'status'});
+    $lineGroup->dataset('status'     )->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('modelNumber')->set($grid->{'lineData'}->{'modelNumber'});
+    $lineGroup->dataset('modelNumber')->attrSet(description => "Cloudy model number"                                                                                                          );
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
