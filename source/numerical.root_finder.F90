@@ -100,6 +100,7 @@ module Root_Finder
      logical                                                                 :: functionInitialized          =.false.
      logical                                                                 :: resetRequired
      logical                                                                 :: useDerivative
+     logical                                                                 :: testLimits
      type            (enumerationStoppingCriterionType    )                  :: stoppingCriterion
      type            (enumerationRangeExpandType          )                  :: rangeExpandType
      double precision                                                        :: rangeExpandUpward
@@ -330,7 +331,7 @@ module Root_Finder
   
 contains
   
-  function rootFinderConstructorInternal(rootFunction,rootFunctionDerivative,rootFunctionBoth,solverType,toleranceAbsolute,toleranceRelative,rangeExpandType,rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit,rangeDownwardLimit,rangeExpandUpwardSignExpect,rangeExpandDownwardSignExpect,stoppingCriterion) result(self)
+  function rootFinderConstructorInternal(rootFunction,rootFunctionDerivative,rootFunctionBoth,solverType,toleranceAbsolute,toleranceRelative,rangeExpandType,rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit,rangeDownwardLimit,rangeExpandUpwardSignExpect,rangeExpandDownwardSignExpect,testLimits,stoppingCriterion) result(self)
     !!{
     Internal constructor for root finders.
     !!}
@@ -344,6 +345,7 @@ contains
     type            (enumerationStoppingCriterionType    ), intent(in   ), optional :: stoppingCriterion
     double precision                                      , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward        , &
          &                                                                             rangeExpandUpward            , rangeUpwardLimit
+    logical                                               , intent(in   ), optional :: testLimits
     procedure       (rootFunctionTemplate                )               , optional :: rootFunction
     procedure       (rootFunctionDerivativeTemplate      )               , optional :: rootFunctionDerivative
     procedure       (rootFunctionBothTemplate            )               , optional :: rootFunctionBoth
@@ -398,7 +400,7 @@ contains
     ! If tolerances are provided, set them.
     call self%tolerance(toleranceAbsolute,toleranceRelative)
     ! If range expansion is defined, set it.
-    call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
+    call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
     return
   end function rootFinderConstructorInternal
   
@@ -567,7 +569,8 @@ contains
     logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected
     integer                                                                       :: iteration             , statusActual
     double precision                                                              :: xHigh                 , xLow                , xRoot               , &
-         &                                                                           xRootPrevious         , fLow                , fHigh
+         &                                                                           xRootPrevious         , fLow                , fHigh               , &
+         &                                                                           fDownwardLimit        , fUpwardLimit
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -618,6 +621,58 @@ contains
     ! Initialize range.
     xLow =rootRange(1)
     xHigh=rootRange(2)
+    ! If we have a downward limit, and know the sign to expect at the downward limit we can check if a solution can be found at
+    ! all.
+    if (self%testLimits .and. self%rangeDownwardLimitSet .and. self%rangeExpandDownwardSignExpect%ID /= rangeExpandSignExpectNone%ID) then
+       fDownwardLimit=self%finderFunction(self%rangeDownwardLimit) 
+       select case (self%rangeExpandDownwardSignExpect%ID)
+       case (rangeExpandSignExpectNegative%ID)
+          rangeLowerAsExpected=(fDownwardLimit  < 0.0d0)
+       case (rangeExpandSignExpectPositive%ID)
+          rangeLowerAsExpected=(fDownwardLimit  > 0.0d0)
+       case default
+          call Error_Report('inconsistent expectation'//{introspection:location})
+       end select
+       if (.not.rangeLowerAsExpected) then
+          if (present(status)) then
+             status            =errorStatusOutOfRange
+             currentFinderIndex=currentFinderIndex-1
+             rootFinderFind    =self%rangeDownwardLimit
+             return
+          else
+             message='root function has incorrect sign at downward limit'
+             write (label,'(e12.6,a1,e12.6)') self%rangeDownwardLimit ,":",fDownwardLimit
+             message=message//char(10)//'xDownwardLimit :f(xDownwardLimit)='//trim(label)
+             call Error_Report(message)
+          end if
+       end if
+    end if
+    ! If we have a upward limit, and know the sign to expect at the upward limit we can check if a solution can be found at
+    ! all.
+    if (self%testLimits .and. self%rangeUpwardLimitSet .and. self%rangeExpandUpwardSignExpect%ID /= rangeExpandSignExpectNone%ID) then
+       fUpwardLimit=self%finderFunction(self%rangeUpwardLimit) 
+       select case (self%rangeExpandUpwardSignExpect%ID)
+       case (rangeExpandSignExpectNegative%ID)
+          rangeLowerAsExpected=(fUpwardLimit  < 0.0d0)
+       case (rangeExpandSignExpectPositive%ID)
+          rangeLowerAsExpected=(fUpwardLimit  > 0.0d0)
+       case default
+          call Error_Report('inconsistent expectation'//{introspection:location})
+       end select
+       if (.not.rangeLowerAsExpected) then
+          if (present(status)) then
+             status            =errorStatusOutOfRange
+             currentFinderIndex=currentFinderIndex-1
+             rootFinderFind    =self%rangeUpwardLimit
+             return
+          else
+             message='root function has incorrect sign at upward limit'
+             write (label,'(e12.6,a1,e12.6)') self%rangeUpwardLimit ,":",fUpwardLimit
+             message=message//char(10)//'xUpwardLimit :f(xUpwardLimit)='//trim(label)
+             call Error_Report(message)
+          end if
+       end if
+    end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
        xRoot       =0.5d0*(xLow+xHigh)
@@ -949,7 +1004,7 @@ contains
     return
   end subroutine rootFinderTolerance
 
-  subroutine rootFinderRangeExpand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
+  subroutine rootFinderRangeExpand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
     !!{
     Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
     !!}
@@ -959,6 +1014,7 @@ contains
     type            (enumerationRangeExpandSignExpectType), intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandUpwardSignExpect
     double precision                                      , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward        , &
          &                                                                             rangeExpandUpward            , rangeUpwardLimit
+    logical                                               , intent(in   ), optional :: testLimits
 
     if (present(rangeExpandUpward            )) self%rangeExpandUpward  =rangeExpandUpward
     if (present(rangeExpandDownward          )) self%rangeExpandDownward=rangeExpandDownward
@@ -998,6 +1054,11 @@ contains
        self%rangeExpandUpwardSignExpect  =rangeExpandUpwardSignExpect
     else
        self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
+    end if
+    if (present(testLimits)) then
+       self%testLimits=testLimits
+    else
+       self%testLimits=.false.
     end if
     return
   end subroutine rootFinderRangeExpand
