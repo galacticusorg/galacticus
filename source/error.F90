@@ -195,10 +195,10 @@ contains
           allocate(newWarning%next)
           newWarning => newWarning%next
        end if
-       newWarning%next    => null   ()
-       newWarning%message =  message
+       newWarning   %next    => null   ()
+       newWarning   %message =  message
+       warningsFound         =  .true.
     end if
-    warningsFound=.true.
     !$omp end critical (Warn)
     return
   end subroutine Warn_Char

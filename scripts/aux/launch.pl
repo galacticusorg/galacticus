@@ -144,8 +144,11 @@ sub Construct_Models {
 		        = &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
 		           ($galacticusOutputFile,$launchScript);
 		    # Set the random seed.
-		    $parameters->{'randomSeed'}->{'value'} = $randomSeed 
-			unless ( exists($parameters->{'randomSeed'}) );
+		    $parameters->{'randomNumberGenerator'} = {
+			value => "GSL",
+			seed  => {value => $randomSeed}
+		    }
+			unless ( exists($parameters->{'randomNumberGenerator'}) );
 		    # Set a state restore file.
 		    if ( $launchScript->{'useStateFile'} eq "yes" ) {
 			(my $stateFile = $parameters->{'outputFileName'}->{'value'}) =~ s/\.hdf5//;

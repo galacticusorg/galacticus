@@ -212,8 +212,12 @@ contains
     class           (distributionFunction1DLogNormal), intent(inout) :: self
     double precision                                 , intent(in   ) :: x
 
-    logNormalDensity=+self%distributionFunction1DNormal%density(log(x)) &
-         &           /x
+    if (x > 0.0d0) then
+       logNormalDensity=+self%distributionFunction1DNormal%density(log(x)) &
+            &           /x
+    else
+       logNormalDensity=+0.0d0
+    end if
     return
   end function logNormalDensity
 
