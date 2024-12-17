@@ -217,12 +217,12 @@ contains
     call Directory_Make(File_Path(fileName_))
     ! If the file exists but has not yet been read, read it now.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(fileName_),fileLock)
+    call File_Lock(char(fileName_),fileLock,lockIsShared=.true.)
     allEpochsFound=.false.
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
        !$ call hdf5Access%set()
-       call    cambOutput%openFile(char(fileName_))
+       call    cambOutput%openFile(char(fileName_),readOnly=.true.)
        call    cambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
        allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
        speciesGroup=cambOutput%openGroup('darkMatter')
@@ -250,6 +250,8 @@ contains
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
+       call File_Unlock(fileLock,sync=.false.)
+       call File_Lock(char(fileName_),fileLock,lockIsShared=.false.)
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set       (               )

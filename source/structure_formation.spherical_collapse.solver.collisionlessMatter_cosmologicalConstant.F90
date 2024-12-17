@@ -243,15 +243,23 @@ contains
     !$omp end critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     if (useCache /=0 ) return
     if (tableStore) then
-       call Directory_Make(char(File_Path(char(fileName)))                              )
-       call File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.false.)
+       call     Directory_Make(char(File_Path(char(fileName)))                              )
+       call     File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.true. )
     end if
-    call    self%restoreTable(time,table_,fileName       ,tableStore,status)
+    call       self%restoreTable(time,table_,fileName       ,tableStore,status)
     if (status /= errorStatusSuccess) then
-       call self%tabulate    (time,table_,calculationType                  )
-       call self%storeTable  (     table_,fileName       ,tableStore       )
+       if (tableStore) then
+          call  File_Unlock   (fileLock                                ,sync        =.false.)
+          call  File_Lock     (               char(fileName)  ,fileLock,lockIsShared=.false.)
+       end if
+       call    self%restoreTable(time,table_,fileName       ,tableStore,status)
+       if (status /= errorStatusSuccess) then
+          call self%tabulate    (time,table_,calculationType                  )
+          call self%storeTable  (     table_,fileName       ,tableStore       )
+       end if
     end if
-    if (tableStore) call File_Unlock(fileLock)
+    if (tableStore) &
+         & call File_Unlock   (fileLock                                                     )
     !$omp critical(sphrclCllpsCllsnlssMttrCsmlgclCnstntCache)
     useCache=0
     if (countCache(calculationType%ID) > 0) then
@@ -987,7 +995,7 @@ contains
     if (.not.tableStore) return
     if (File_Exists(fileName)) then
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       call file%openFile(char(fileName),readOnly=.true.)
        call file%readDataset('time',timeTable)
        if     (                                    &
             &   timeTable(1              ) <= time &
