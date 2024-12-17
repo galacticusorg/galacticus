@@ -354,7 +354,8 @@ contains
                &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
                &                       rangeExpandType              =rangeExpandMultiplicative    , &
-               &                       rangeDownwardLimit           =radiusTiny                     &
+               &                       rangeDownwardLimit           =radiusTiny                   , &
+               &                       testLimits                   =.true.                         &
                &                      )
           self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal,status=status)
        else
@@ -374,7 +375,8 @@ contains
                &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
                &                       rangeExpandType              =rangeExpandMultiplicative    , &
-               &                       rangeDownwardLimit           =radiusTiny                     &
+               &                       rangeDownwardLimit           =radiusTiny                   , &
+               &                       testLimits                   =.true.                         &
                &                      )
           self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious,status=status)
        end if       
