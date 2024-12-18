@@ -32,7 +32,7 @@ module Memory_Reporting
   use, intrinsic :: ISO_C_Binding, only : c_size_t    , c_int
   implicit none
   private
-  public :: reportMemoryUsage, outputMemoryUsageMaximum
+  public :: reportMemoryUsage
 
   ! Code memory size initialization status.
   logical           :: codeMemoryUsageInitialized =.false.
@@ -269,9 +269,7 @@ contains
   end subroutine codeUsageGet
   
   !![
-  <hdfPreCloseTask>
-   <unitName>outputMemoryUsageMaximum</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="outputMemoryUsageMaximum"/>
   !!]
   subroutine outputMemoryUsageMaximum()
     !!{

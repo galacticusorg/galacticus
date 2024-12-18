@@ -26,14 +26,11 @@ module OpenMP_Utilities
   Implements useful OpenMP utilities.
   !!}
   private
-  public :: OpenMP_Critical_Wait_Times
 
 contains
 
   !![
-  <hdfPreCloseTask>
-   <unitName>OpenMP_Critical_Wait_Times</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="OpenMP_Critical_Wait_Times"/>
   !!]
   subroutine OpenMP_Critical_Wait_Times()
     !!{
