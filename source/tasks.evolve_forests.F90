@@ -630,7 +630,7 @@ contains
           if (outputTimeNext > 0.0d0) then
              treeIsFinished=.false.
           else
-             iOutput      =self%outputTimes_%count()+1
+             iOutput       =self%outputTimes_%count()+1
              treeIsFinished=.true.
           end if
           ! Iterate evolving the tree until no more outputs are required.

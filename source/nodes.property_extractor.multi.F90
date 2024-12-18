@@ -238,35 +238,43 @@ contains
        class is (nodePropertyExtractorTuple        )
           elementCount=extractor_%elementCount(time)
           rank0=extractor_%extract(node,time,instance)
-          do i=1,elementCount
-             multiExtractDouble(offset+i)=polyRankDouble(rank0(i))
-             if (present(ranks)) ranks(offset+i)=0
-          end do
-          deallocate(rank0)
+          if (elementCount > 0) then
+             do i=1,elementCount
+                multiExtractDouble(offset+i)=polyRankDouble(rank0(i))
+                if (present(ranks)) ranks(offset+i)=0
+             end do
+             deallocate(rank0)
+          end if
        class is (nodePropertyExtractorArray        )
           elementCount=extractor_%elementCount(time)
-          rank1=extractor_%extract(node,time,instance)
-          do i=1,elementCount
-             multiExtractDouble(offset+i)=polyRankDouble(rank1(:,i))
-             if (present(ranks)) ranks(offset+i)=1
-          end do
-          deallocate(rank1)
+          if (elementCount > 0) then
+             rank1=extractor_%extract(node,time,instance)
+             do i=1,elementCount
+                multiExtractDouble(offset+i)=polyRankDouble(rank1(:,i))
+                if (present(ranks)) ranks(offset+i)=1
+             end do
+             deallocate(rank1)
+          end if
        class is (nodePropertyExtractorList         )
           elementCount=extractor_%elementCount()
-          rank1=extractor_%extract(node     ,instance)
-          do i=1,elementCount
-             multiExtractDouble(offset+i)=polyRankDouble(rank1(:,i))
-             if (present(ranks)) ranks(offset+i)=-1
-          end do
-          deallocate(rank1)
+          if (elementCount > 0) then
+             rank1=extractor_%extract(node     ,instance)
+             do i=1,elementCount
+                multiExtractDouble(offset+i)=polyRankDouble(rank1(:,i))
+                if (present(ranks)) ranks(offset+i)=-1
+             end do
+             deallocate(rank1)
+          end if
        class is (nodePropertyExtractorList2D       )
           elementCount=extractor_%elementCount()
-          rank2=extractor_%extract(node     ,instance)
-          do i=1,elementCount
-             multiExtractDouble(offset+i)=polyRankDouble(rank2(:,:,i))
-             if (present(ranks)) ranks(offset+i)=-2
-          end do
-          deallocate(rank2)
+          if (elementCount > 0) then
+             rank2=extractor_%extract(node     ,instance)
+             do i=1,elementCount
+                multiExtractDouble(offset+i)=polyRankDouble(rank2(:,:,i))
+                if (present(ranks)) ranks(offset+i)=-2
+             end do
+             deallocate(rank2)
+          end if
        class is (nodePropertyExtractorMulti        )
           elementCount=extractor_%elementCount(elementTypeDouble,time)
           if (elementCount > 0) then
@@ -341,20 +349,24 @@ contains
           if (present(ranks)) ranks(offset+1)=0
        class is (nodePropertyExtractorIntegerTuple )
           elementCount=extractor_%elementCount(time)
-          rank0=extractor_%extract(node,time,instance)
-          do i=1,elementCount
-             multiExtractInteger(offset+i)=polyRankInteger(rank0(i))
-             if (present(ranks)) ranks(offset+i)=0
-          end do
-          deallocate(rank0)
+          if (elementCount > 0) then
+             rank0=extractor_%extract(node,time,instance)
+             do i=1,elementCount
+                multiExtractInteger(offset+i)=polyRankInteger(rank0(i))
+                if (present(ranks)) ranks(offset+i)=0
+             end do
+             deallocate(rank0)
+          end if
        class is (nodePropertyExtractorIntegerList  )
           elementCount=extractor_%elementCount()
-          rank1=extractor_%extract(node     ,instance)
-          do i=1,elementCount
-             multiExtractInteger(offset+i)=polyRankInteger(rank1(:,i))
-             if (present(ranks)) ranks(offset+i)=-1
-          end do
-          deallocate(rank1)
+          if (elementCount > 0) then
+             rank1=extractor_%extract(node     ,instance)
+             do i=1,elementCount
+                multiExtractInteger(offset+i)=polyRankInteger(rank1(:,i))
+                if (present(ranks)) ranks(offset+i)=-1
+             end do
+             deallocate(rank1)
+          end if
        class is (nodePropertyExtractorMulti        )
           elementCount=extractor_%elementCount(elementTypeInteger,time)
           if (elementCount > 0) then
