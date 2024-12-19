@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0c09c35084f94c5d1059c1de045256101fab2735",
-        "message": "Merge pull request #757 from galacticusorg/featBlackHoleSeeds\n\nMove setting of black hole seeds to a `nodeOperator`\n",
-        "timestamp": "2024-12-15 18:53:33+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0c09c35084f94c5d1059c1de045256101fab2735"
+        "id": "3c03560c145568f0dad0e8618218d0e7b7e5f736",
+        "message": "Merge pull request #758 from galacticusorg/featConstrainedTreeBuild\n\nAdd a constrained merger tree builder\n",
+        "timestamp": "2024-12-19 14:18:32+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/3c03560c145568f0dad0e8618218d0e7b7e5f736"
     },
     "results": [
         {
