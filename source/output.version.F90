@@ -31,7 +31,7 @@ module Output_Versioning
   use, intrinsic :: ISO_C_Binding, only : c_char, c_size_t
   implicit none
   private
-  public :: Version_Output, Version_Finalize, Version_String, Version
+  public :: Version_String, Version
 
   ! Include the automatically generated Git revision number.
   include 'output.version.revision.inc'
@@ -82,9 +82,7 @@ contains
   end function Version_String
 
   !![
-  <outputFileOpenTask>
-   <unitName>Version_Output</unitName>
-  </outputFileOpenTask>
+  <outputFileOpen function="Version_Output"/>
   !!]
   subroutine Version_Output
     !!{
@@ -182,9 +180,7 @@ contains
   end subroutine Version_Output
   
   !![
-  <hdfPreCloseTask>
-   <unitName>Version_Finalize</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="Version_Finalize"/>
   !!]
   subroutine Version_Finalize()
     !!{

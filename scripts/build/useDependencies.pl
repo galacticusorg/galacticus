@@ -177,7 +177,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
     # Extract lists of directives from this file which require special handling.
     my $directives;
     @{$directives->{$_}} = &Galacticus::Build::Directives::Extract_Directives($sourceFile->{'fullPathFileName'},$_)
-	foreach ( "functionClass", "inputParameter", "enumeration", "eventHook", "eventHookManager" );
+	foreach ( "functionClass", "inputParameter", "enumeration", "eventHook", "eventHookStatic", "eventHookManager" );
     # Special handling for functionClass directives - add implementation files to the list of files to scan.
     if ( scalar(@{$directives->{'functionClass'}}) > 0 ) {
 	foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
@@ -202,6 +202,25 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	my $workSubDirectoryName = $workDirectoryName.$sourceFile->{'subDirectoryName'}.($sourceFile->{'subDirectoryName'} eq "" ? "" : "/");
 	($usesPerFile->{'eventHooksManager'}->{'objectFileName'} = $workSubDirectoryName.$sourceFile    ->{'fileName'}) =~ s/\.(f|f90|c|cpp)$/.o/i;
 	$usesPerFile ->{'eventHooksManager'}->{'fileIdentifier'} =                       $fileIdentifier                                          ;
+    }
+    # Accumulate dependencies for static event hook modules.
+    if ( scalar(@{$directives->{'eventHookStatic'}}) > 0  ) {
+	foreach my $eventHookStatic ( @{$directives->{'eventHookStatic'}} ) {
+	    foreach my $eventHookedStaticFile ( &List::ExtraUtils::as_array($locations->{$eventHookStatic->{'name'}}->{'file'}) ) {
+		my $moduleName;
+		open(my $file,$eventHookedStaticFile) or die "Can't open input file: $eventHookedStaticFile";
+		while (my $line = <$file>) {
+		    if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
+			$moduleName = $1;
+			last;
+		    }
+		}
+		close($file);
+		die("useDependencies.pl: unable to locate containing module for static event '".$eventHookStatic->{'name'}."' in file '".$eventHookedStaticFile."'")
+		    unless ( defined($moduleName) );
+		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($moduleName).".mod");
+	    }
+	}
     }
     # Add dependence on input parameters module if necessary.
     push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."input_parameters.mod")

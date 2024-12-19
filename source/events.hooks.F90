@@ -28,7 +28,8 @@ module Events_Hooks
   use :: Regular_Expressions, only : regEx
   use :: Locks              , only : ompLock, ompReadWriteLock
   private
-  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx, eventsHooksInitialize, eventsHooksFutureThread, eventsHooksAtLevelToAllLevels
+  public :: hook                 , hookUnspecified        , dependencyExact              , dependencyRegEx, &
+       &    eventsHooksInitialize, eventsHooksFutureThread, eventsHooksAtLevelToAllLevels
 
   !![
   <enumeration>
@@ -675,9 +676,7 @@ contains
   end function dependencyRegExConstructor
 
   !![
-  <hdfPreCloseTask>
-   <unitName>eventsHooksWaitTimes</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="eventsHooksWaitTimes"/>
   !!]
 
 end module Events_Hooks
