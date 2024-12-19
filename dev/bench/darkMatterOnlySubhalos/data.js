@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734648472810,
+  "lastUpdate": 1734648483173,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "f615861cadb2a4e73c7862356394a39e77f263da",
-          "message": "Merge pull request #591 from galacticusorg/featReportDuplicateClasses\n\nImprove error reporting when duplicate classes are found",
-          "timestamp": "2024-03-24T05:37:04Z",
-          "tree_id": "7dd8521dbe621b14f19ed9f4671572b87f738798",
-          "url": "https://github.com/galacticusorg/galacticus/commit/f615861cadb2a4e73c7862356394a39e77f263da"
-        },
-        "date": 1711273527718,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.197,
-            "unit": "seconds",
-            "range": 0.055660578508877
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8714,6 +8684,45 @@ window.BENCHMARK_DATA = {
             "value": 49.105,
             "unit": "seconds",
             "range": 0.0672346636787128
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3c03560c145568f0dad0e8618218d0e7b7e5f736",
+          "message": "Merge pull request #758 from galacticusorg/featConstrainedTreeBuild\n\nAdd a constrained merger tree builder",
+          "timestamp": "2024-12-19T14:18:32Z",
+          "tree_id": "bd7d3d29cb6c7cee4c66b75f0a711323eaef9e35",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3c03560c145568f0dad0e8618218d0e7b7e5f736"
+        },
+        "date": 1734648481911,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.28182765243588",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.79891760768824",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "21962.56169079069",
+            "unit": "-logℒ"
           }
         ]
       }
