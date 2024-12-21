@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734648488382,
+  "lastUpdate": 1734749734391,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "3ac102f22a46dd05613771c69899f2ca5b2b36c1",
-          "message": "fix: Correct LaTeX journal reference commands",
-          "timestamp": "2024-03-20T05:22:40Z",
-          "tree_id": "5c3357ad8a4da33c36e1a354162d2bac4a0fa9b0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/3ac102f22a46dd05613771c69899f2ca5b2b36c1"
-        },
-        "date": 1710926315646,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 426.974,
-            "unit": "seconds",
-            "range": 0.401467806925042
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "9.86992554272963",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2581c3f8f48086ff6cc986355bbf55a7a5e104c0",
+          "message": "Merge pull request #759 from galacticusorg/featStaticEventHooks\n\nAdd an `eventHookStatic` directive",
+          "timestamp": "2024-12-20T15:40:24Z",
+          "tree_id": "95ea0106b3695f45b3dc9160ea71ee3572c87e32",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2581c3f8f48086ff6cc986355bbf55a7a5e104c0"
+        },
+        "date": 1734749733470,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 31.877,
+            "unit": "seconds",
+            "range": 0.0636089616327264
           }
         ]
       }
