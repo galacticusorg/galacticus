@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "3c03560c145568f0dad0e8618218d0e7b7e5f736",
-        "message": "Merge pull request #758 from galacticusorg/featConstrainedTreeBuild\n\nAdd a constrained merger tree builder\n",
-        "timestamp": "2024-12-19 14:18:32+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3c03560c145568f0dad0e8618218d0e7b7e5f736"
+        "id": "2581c3f8f48086ff6cc986355bbf55a7a5e104c0",
+        "message": "Merge pull request #759 from galacticusorg/featStaticEventHooks\n\nAdd an `eventHookStatic` directive\n",
+        "timestamp": "2024-12-20 15:40:24+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2581c3f8f48086ff6cc986355bbf55a7a5e104c0"
     },
     "results": [
         {
