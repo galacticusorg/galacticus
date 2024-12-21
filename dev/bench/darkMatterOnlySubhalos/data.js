@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734749729530,
+  "lastUpdate": 1734749739597,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "cacd88d86096523ba75a9a1d303d32ed0c9db97d",
-          "message": "fix: Restore artifact download in action, correct web page path, and unify Milky Way model suffixes for benchmarks and validation",
-          "timestamp": "2024-03-25T14:44:52Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/cacd88d86096523ba75a9a1d303d32ed0c9db97d"
-        },
-        "date": 1711392799445,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.651,
-            "unit": "seconds",
-            "range": 0.0835038921250258
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8725,6 +8697,45 @@ window.BENCHMARK_DATA = {
             "value": 48.865,
             "unit": "seconds",
             "range": 0.059249472572201
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2581c3f8f48086ff6cc986355bbf55a7a5e104c0",
+          "message": "Merge pull request #759 from galacticusorg/featStaticEventHooks\n\nAdd an `eventHookStatic` directive",
+          "timestamp": "2024-12-20T15:40:24Z",
+          "tree_id": "95ea0106b3695f45b3dc9160ea71ee3572c87e32",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2581c3f8f48086ff6cc986355bbf55a7a5e104c0"
+        },
+        "date": 1734749738289,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.010542885432546",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.951061571573307",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "21825.45379442014",
+            "unit": "-logℒ"
           }
         ]
       }
