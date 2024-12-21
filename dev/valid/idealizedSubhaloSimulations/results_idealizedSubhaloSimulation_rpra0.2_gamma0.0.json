@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "2581c3f8f48086ff6cc986355bbf55a7a5e104c0",
-        "message": "Merge pull request #759 from galacticusorg/featStaticEventHooks\n\nAdd an `eventHookStatic` directive\n",
-        "timestamp": "2024-12-20 15:40:24+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/2581c3f8f48086ff6cc986355bbf55a7a5e104c0"
+        "id": "2d169d037025cd788422ed305b84c7fddd146177",
+        "message": "Merge pull request #760 from galacticusorg/fixHDF5ReadOnly\n\nSet HDF5 fle access to `readOnly` when posible\n",
+        "timestamp": "2024-12-21 15:10:00+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2d169d037025cd788422ed305b84c7fddd146177"
     },
     "results": [
         {
