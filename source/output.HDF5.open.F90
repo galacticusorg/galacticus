@@ -55,13 +55,6 @@ contains
     use :: MPI_Utilities     , only : mpiSelf
 #endif
     use :: String_Handling   , only : operator(//)
-    !![
-    <include directive="outputFileOpenTask" type="moduleUse">
-    !!]
-    include 'output.open.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     type   (inputParameters), intent(inout) :: parameters
     integer(hsize_t        )                :: chunkSize
@@ -180,15 +173,11 @@ contains
        ! Set default chunking and compression levels.
        call IO_HDF5_Set_Defaults(hdf5ChunkSize,hdf5CompressionLevel)
 
-       ! Call all routines that requested to output to the file on start up.
+       ! Call all functions that requested to output to the file on start up.
        !![
-       <include directive="outputFileOpenTask" type="functionCall" functionType="void">
+       <eventHookStatic name="outputFileOpen"/>
        !!]
-       include 'output.open.inc'
-       !![
-       </include>
-       !!]
-
+       
        ! Flag that the file is now open.
        outputFileIsOpen=.true.
     end if
@@ -203,13 +192,6 @@ contains
     use :: File_Utilities    , only : File_Rename
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : operator(/=)
-    !![
-    <include directive="hdfPreCloseTask" type="moduleUse">
-    !!]
-    include 'output.HDF5.pre_close_tasks.moduleUse.inc'
-    !![
-    </include>
-    !!]
     implicit none
 
     ! Perform any final tasks prior to shutdown.
@@ -217,12 +199,8 @@ contains
        !$omp critical (Output_HDF5_Close_File)
        if (outputFileIsOpen) then
           !![
-          <include directive="hdfPreCloseTask" type="functionCall" functionType="void">
-          !!]
-          include 'output.HDF5.pre_close_tasks.inc'
-          !![
-          </include>
-          <eventHook name="hdf5PreClose"/>
+	  <eventHookStatic name="outputFileClose"/>
+          <eventHook       name="outputFileClose"/>
           !!]
           ! Close the file.
           !$ call hdf5Access%set()

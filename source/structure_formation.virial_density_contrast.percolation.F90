@@ -591,7 +591,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile     (char(self%fileName         ))
+       call file%openFile     (char(self%fileName         ) ,readOnly=.true.                     )
        call file%readAttribute(          'timeMinimum'      ,self%densityContrastTableTimeMinimum)
        call file%readAttribute(          'timeMaximum'      ,self%densityContrastTableTimeMaximum)
        call file%readAttribute(          'massMinimum'      ,self%densityContrastTableMassMinimum)

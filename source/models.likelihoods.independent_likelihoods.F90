@@ -35,7 +35,28 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
-   <description>A posterior sampling likelihood class which combines other likelihoods assumed to be independent.</description>
+    <description>
+      A posterior sampling likelihood class which combines likelihoods from one or more other \refClass{posteriorSampleLikelihoodClass}
+      classes that are assumed to be independent (i.e. the $\log \mathcal{L}$ of the models are simply summed to find the final
+      likelihood).
+      
+      Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a {\normalfont \ttfamily
+      [parameterMap]} parameter may be specified. If present, the number of {\normalfont \ttfamily [parameterMap]} parameters must
+      equal the number of {\normalfont \ttfamily [posteriorSampleLikelihood]} parameters. Each such parameter should give a
+      (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} class) which should be
+      passed to the corresponding {\normalfont \ttfamily [posteriorSampleLikelihood]}. If no {\normalfont \ttfamily
+      [parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
+      
+      Similarly, a set of {\normalfont \ttfamily parameterInactiveMap} parameters may be given, to specify which (if any, an empty
+      {\normalfont \ttfamily value} is permissible) of the inactive parameters specified by \refClass{modelParameterInactive}
+      should be passed to the corresponding {\normalfont \ttfamily [posteriorSampleLikelihood]}. If no {\normalfont \ttfamily
+      [parameterInactiveMap]} then no inactive parameters are passed to any of the {\normalfont \ttfamily
+      [posteriorSampleLikelihood]} classes.
+
+      Optionally, a parameter {\normalfont \ttfamily [logLikelihoodAccept]} may be specified. Once the likelihood of a chain
+      reaches this value, no further evaluations of the likelihood will be made - the chain is assumed to be sufficiently likely
+      that it is ``acceptable''.
+    </description>
    <linkedList type="posteriorSampleLikelihoodList" variable="modelLikelihoods" next="next" object="modelLikelihood_" objectType="posteriorSampleLikelihoodClass"/>
   </posteriorSampleLikelihood>
   !!]
@@ -46,6 +67,7 @@
      private
      type            (posteriorSampleLikelihoodList), pointer :: modelLikelihoods    => null()
      double precision                                         :: logLikelihoodAccept
+     logical                                                  :: parameterMapIdentity
    contains
      final     ::                    independentLikelihoodsDestructor
      procedure :: evaluate        => independentLikelihoodsEvaluate
@@ -78,7 +100,7 @@ contains
     integer                                                                 :: i                 , parameterMapCount
     type   (enumerationInputParameterErrorStatusType       )                :: errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
-
+    
     !![
     <inputParameter>
       <name>logLikelihoodAccept</name>
@@ -88,11 +110,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
+    self%parameterMapIdentity=.false.
     if     (                                                                             &
          &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
          &  /=                                                                           &
          &   parameters%copiesCount('parameterMap'             ,zeroIfNotPresent=.true.) &
-         & ) call Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
+         & ) then
+       if (parameters%copiesCount('parameterMap',zeroIfNotPresent=.true.) == 0) then
+          self%parameterMapIdentity=.true.
+       else
+          call Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
+       end if
+    end if
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
     do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
@@ -108,25 +137,32 @@ contains
        !!]
        modelLikelihood_%simulationState        =posteriorSampleStateSimple(1)
        modelLikelihood_%parameterMapInitialized=.false.
-       call parameters%value('parameterMap',parameterMapJoined,copyInstance=i)
-       parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
-       allocate(modelLikelihood_%parameterMap          (parameterMapCount))
-       allocate(modelLikelihood_%parameterMapNames     (parameterMapCount))
-       allocate(modelLikelihood_%modelParametersActive_(parameterMapCount))
-       call String_Split_Words(modelLikelihood_%parameterMapNames,char(parameterMapJoined)," ")
-       call modelLikelihood_%simulationState%parameterCountSet(parameterMapCount)
-       call parameters%value('parameterInactiveMap',parameterMapJoined,copyInstance=i,errorStatus=errorStatus)
-       if      (errorStatus == inputParameterErrorStatusSuccess   ) then
+       if (.not.self%parameterMapIdentity) then
+          call parameters%value('parameterMap',parameterMapJoined,copyInstance=i)
           parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
-          allocate(modelLikelihood_%parameterMapInactive     (parameterMapCount))
-          allocate(modelLikelihood_%parameterMapNamesInactive(parameterMapCount))
-          allocate(modelLikelihood_%modelParametersInactive_ (parameterMapCount))
-          call String_Split_Words(modelLikelihood_%parameterMapNamesInactive,char(parameterMapJoined)," ")
-       else if (errorStatus == inputParameterErrorStatusEmptyValue) then
-          ! Empty value is acceptable.
-          allocate(modelLikelihood_%modelParametersInactive_ (                0))
+          allocate(modelLikelihood_%parameterMap          (parameterMapCount))
+          allocate(modelLikelihood_%parameterMapNames     (parameterMapCount))
+          allocate(modelLikelihood_%modelParametersActive_(parameterMapCount))
+          call String_Split_Words(modelLikelihood_%parameterMapNames,char(parameterMapJoined)," ")
+          call modelLikelihood_%simulationState%parameterCountSet(parameterMapCount)
+       end if
+       if (parameters%copiesCount('parameterInactiveMap',zeroIfNotPresent=.true.) == 0) then
+          ! No inactive parameter map is acceptable.
+          allocate   (modelLikelihood_%modelParametersInactive_ (                0))
        else
-          call Error_Report('invalid parameter'//{introspection:location})
+          call parameters%value('parameterInactiveMap',parameterMapJoined,copyInstance=i,errorStatus=errorStatus)
+          if      (errorStatus == inputParameterErrorStatusSuccess   ) then
+             parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
+             allocate(modelLikelihood_%parameterMapInactive     (parameterMapCount))
+             allocate(modelLikelihood_%parameterMapNamesInactive(parameterMapCount))
+             allocate(modelLikelihood_%modelParametersInactive_ (parameterMapCount))
+             call String_Split_Words(modelLikelihood_%parameterMapNamesInactive,char(parameterMapJoined)," ")
+          else if (errorStatus == inputParameterErrorStatusEmptyValue) then
+             ! Empty value is acceptable.
+             allocate(modelLikelihood_%modelParametersInactive_ (                0))
+          else
+             call Error_Report('invalid parameter'//{introspection:location})
+          end if
        end if
     end do
     !![
@@ -215,16 +251,25 @@ contains
     if (present(logLikelihoodVariance)) logLikelihoodVariance  =  0.0d0
     do while (associated(modelLikelihood_))
        if (.not.modelLikelihood_%parameterMapInitialized) then
+          if (self%parameterMapIdentity) then
+             allocate(modelLikelihood_%parameterMap          (size(modelParametersActive_)))
+             allocate(modelLikelihood_%modelParametersActive_(size(modelParametersActive_)))
+             call modelLikelihood_%simulationState%parameterCountSet(size(modelParametersActive_))
+          end if
           do i=1,size(modelLikelihood_%parameterMap)
              ! Determine the mapping of the simulation state vector to this likelihood.
-             modelLikelihood_%parameterMap(i)=-1
-             do j=1,size(modelParametersActive_)
-                if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
-                   modelLikelihood_%parameterMap(i)=j
-                   exit
-                end if
-             end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
+             if (self%parameterMapIdentity) then
+                modelLikelihood_%parameterMap(i)=i
+             else
+                modelLikelihood_%parameterMap(i)=-1
+                do j=1,size(modelParametersActive_)
+                   if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
+                      modelLikelihood_%parameterMap(i)=j
+                      exit
+                   end if
+                end do
+                if (modelLikelihood_%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
+             end if
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              !![
@@ -262,6 +307,7 @@ contains
        end forall
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
+       call modelLikelihood_%simulationState%countSet     (simulationState%count     ())
        ! Determine if the chain is already accepted - if it is we set the proposed prior to be impossible so that the model will not actually be evaluated.
        if (logLikelihoodCurrent > self%logLikelihoodAccept) then
           logPriorProposed_=logImpossible

@@ -78,6 +78,12 @@
 	<stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
     </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
   </nodeOperator>
 
   <cosmologicalMassVariance value="filteredPower">
@@ -103,7 +109,6 @@
   <cosmologyFunctions value="matterLambda"/>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <componentBlackHole value="standard">
-    <massSeed value="100"/>
     <efficiencyWind value="0.001"/>
     <bondiHoyleAccretionTemperatureSpheroid value="100"/>
     <bondiHoyleAccretionEnhancementHotHalo value="1"/>

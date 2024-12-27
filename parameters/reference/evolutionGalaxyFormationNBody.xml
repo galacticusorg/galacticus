@@ -7,7 +7,6 @@
   <!-- Component selection -->
   <componentBasic             value="standard"/>
   <componentBlackHole         value="standard" >
-    <massSeed                                    value="100.0000"/>
     <heatsHotHalo                                value="true"    />
     <efficiencyWind                              value="  0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"    />
@@ -220,6 +219,12 @@
 	<correlationRedshiftExponent value="0.000e0"/>
       </nbodyHaloMassError>
     </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Merger tree evolution -->
@@ -248,8 +253,8 @@
     <mergerTreeEvolveTimestep value="starFormationHistory"/>
     <!-- Limit timesteps based on satellite evolution -->
     <mergerTreeEvolveTimestep value="satellite">
-      <timeOffsetMaximumAbsolute value="0.010"/>
-      <timeOffsetMaximumRelative value="0.001"/>
+      <timeOffsetMaximumAbsolute value="0.0"/>
+      <timeOffsetMaximumRelative value="0.0"/>
     </mergerTreeEvolveTimestep>
     <!-- Set up the new lightcone output using an outputter passed to the lightcone-crossing merger tree evolution timestepper -->
     <mergerTreeEvolveTimestep value="lightconeCrossing">

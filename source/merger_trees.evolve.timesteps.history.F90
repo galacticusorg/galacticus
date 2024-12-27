@@ -194,11 +194,11 @@ contains
     !!{
     Create a hook to the HDF5 pre-close event to allow us to finalize and write out our data.
     !!}
-    use :: Events_Hooks, only : hdf5PreCloseEventGlobal
+    use :: Events_Hooks, only : outputFileCloseEventGlobal
     implicit none
     class(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
-    call hdf5PreCloseEventGlobal%attach(self,historyWrite,label='mergerTreeEvolveTimestepHistory')
+    call outputFileCloseEventGlobal%attach(self,historyWrite,label='mergerTreeEvolveTimestepHistory')
     return
   end subroutine historyAutoHook
 
@@ -206,11 +206,11 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily history} merger tree evolution timestep class.
     !!}
-    use :: Events_Hooks, only : hdf5PreCloseEventGlobal
+    use :: Events_Hooks, only : outputFileCloseEventGlobal
     implicit none
     type(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
-    if (hdf5PreCloseEventGlobal%isAttached(self,historyWrite)) call hdf5PreCloseEventGlobal%detach(self,historyWrite)
+    if (outputFileCloseEventGlobal%isAttached(self,historyWrite)) call outputFileCloseEventGlobal%detach(self,historyWrite)
     !![
     <objectDestructor name="self%cosmologyFunctions_"        />
     <objectDestructor name="self%starFormationRateDisks_"    />

@@ -34,17 +34,19 @@
      A stellar vs halo mass relation output analysis class.
      !!}
      private
-     class           (outputAnalysisClass       ), pointer                   :: outputAnalysis_                      => null()
-     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_                 => null()
-     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_                  => null()
-     class           (darkMatterProfileDMOClass ), pointer                   :: darkMatterProfileDMO_                => null()
-     class           (virialDensityContrastClass), pointer                   :: virialDensityContrast_               => null()
-     class           (outputTimesClass          ), pointer                   :: outputTimes_                         => null()
-     logical                                                                 :: computeScatter
-     integer         (c_size_t                  ), allocatable, dimension(:) :: likelihoodBins
-     integer                                                                 :: redshiftInterval
-     double precision                            , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient          , systematicErrorMassHaloPolynomialCoefficient
-     type            (varying_string            )                            :: analysisLabel
+     class           (outputAnalysisClass       ), pointer                     :: outputAnalysis_                        => null()
+     class           (cosmologyParametersClass  ), pointer                     :: cosmologyParameters_                   => null()
+     class           (cosmologyFunctionsClass   ), pointer                     :: cosmologyFunctions_                    => null()
+     class           (darkMatterProfileDMOClass ), pointer                     :: darkMatterProfileDMO_                  => null()
+     class           (virialDensityContrastClass), pointer                     :: virialDensityContrast_                 => null()
+     class           (outputTimesClass          ), pointer                     :: outputTimes_                           => null()
+     logical                                                                   :: computeScatter                                  , likelihoodNormalize
+     integer         (c_size_t                  ), allocatable, dimension(:  ) :: likelihoodBins
+     integer                                                                   :: redshiftInterval
+     double precision                            , allocatable, dimension(:  ) :: systematicErrorPolynomialCoefficient            , systematicErrorMassHaloPolynomialCoefficient, &
+          &                                                                       massStellarLogarithmicTarget
+     double precision                            , allocatable, dimension(:,:) :: massStellarLogarithmicCovarianceTarget
+     type            (varying_string            )                              :: analysisLabel
    contains
      final     ::                  stellarVsHaloMassRelationLeauthaud2012Destructor
      procedure :: analyze       => stellarVsHaloMassRelationLeauthaud2012Analyze
@@ -81,7 +83,7 @@ contains
     class           (virialDensityContrastClass                          ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
-    logical                                                                                             :: computeScatter
+    logical                                                                                             :: computeScatter                      , likelihoodNormalize
     integer         (c_size_t                                            ), allocatable  , dimension(:) :: likelihoodBins
 
     ! Check and read parameters.
@@ -115,6 +117,13 @@ contains
       <description>The redshift interval (1, 2, or 3) to use.</description>
     </inputParameter>
     <inputParameter>
+      <name>likelihoodNormalize</name>
+      <source>parameters</source>
+      <variable>likelihoodNormalize</variable>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then normalize the likelihood to make it a probability density.</description>
+    </inputParameter>
+    <inputParameter>
       <name>computeScatter</name>
       <source>parameters</source>
       <variable>computeScatter</variable>
@@ -142,7 +151,7 @@ contains
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"  />
@@ -154,7 +163,7 @@ contains
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     !!}
@@ -183,7 +192,7 @@ contains
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                                :: self
     integer                                                               , intent(in   )                 :: redshiftInterval
-    logical                                                               , intent(in   )                 :: computeScatter
+    logical                                                               , intent(in   )                 :: computeScatter                                                , likelihoodNormalize
     integer         (c_size_t                                            ), intent(in   ), dimension(:  ) :: likelihoodBins
     double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                          , systematicErrorMassHaloPolynomialCoefficient
     class           (cosmologyParametersClass                            ), intent(in   ), target         :: cosmologyParameters_
@@ -223,7 +232,6 @@ contains
     type            (surveyGeometryFullSky                               ), pointer                       :: surveyGeometry_
     double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d0, errorPolynomialMassHaloZeroPoint                             =12.0d0
     double precision                                                      , parameter                     :: covarianceLarge                                       = 1.0d4
-    logical                                                               , parameter                     :: likelihoodNormalize                                   =.false.
     integer         (c_size_t                                            )                                :: iBin
     double precision                                                                                      :: massStellarLimit                                              , redshiftMinimum                                                   , &
          &                                                                                                   redshiftMaximum                                               , massHaloMinimum                                                   , &
@@ -234,7 +242,7 @@ contains
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     !![
-    <constructorAssign variables="redshiftInterval, likelihoodBins, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
+    <constructorAssign variables="redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Construct survey geometry.
@@ -292,7 +300,7 @@ contains
     !!]
     ! Read observational data and convert masses to logarithmic.
     !$ call hdf5Access%set()
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
+    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5",readOnly=.true.)
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     groupRedshift=fileData%openGroup(char(groupRedshiftName))
     call groupRedshift%readDataset('massStellar' ,massStellarData )
@@ -345,6 +353,8 @@ contains
           end if
        end do
     end if
+    allocate(self%massStellarLogarithmicTarget          ,source=massStellarLogarithmicTarget          )
+    allocate(self%massStellarLogarithmicCovarianceTarget,source=massStellarLogarithmicCovarianceTarget)
     ! Build a filter which select central galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilterStellarMass_      )
     allocate(galacticFilterHaloIsolated_     )
@@ -684,31 +694,76 @@ contains
     return
   end subroutine stellarVsHaloMassRelationLeauthaud2012Finalize
 
-  double precision function stellarVsHaloMassRelationLeauthaud2012LogLikelihood(self)
+  double precision function stellarVsHaloMassRelationLeauthaud2012LogLikelihood(self) result(logLikelihood)
     !!{
     Return the log-likelihood of a {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis.
     !!}
+    use :: Error                       , only : Error_Report
+    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Interface_GSL               , only : GSL_Success
     use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
-    class           (outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout)               :: self
-    double precision                                                      , allocatable  , dimension(:) :: massStellarLogarithmicMean
-    double precision                                                      , parameter                   :: massStellarLogarithmicTiny=1.0d-3
-    
+    class           (outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout)                 :: self
+    double precision                                                      , parameter                     :: massStellarLogarithmicTiny              =1.0d-3
+    double precision                                                      , allocatable  , dimension(:,:) :: massStellarLogarithmicCovarianceCombined       , massStellarLogarithmicCovarianceCombinedSelected, &
+         &                                                                                                   massStellarLogarithmicCovariance
+    double precision                                                      , allocatable  , dimension(:  ) :: massStellarLogarithmicDifference               , massStellarLogarithmicDifferenceSelected        , &
+         &                                                                                                   massStellarLogarithmic
+    type            (vector                                              )                                :: residual
+    type            (matrix                                              )                                :: covariance
+    integer                                                                                               :: i                                              , j                                               , &
+         &                                                                                                   status
+
     select type (outputAnalysis_ => self%outputAnalysis_)
     class is (outputAnalysisMeanFunction1D)
-       call outputAnalysis_%results(meanValue=massStellarLogarithmicMean)
-       if     (                                                                                                                           &
-            &   (size(self%likelihoodBins) == 0 .and. any(massStellarLogarithmicMean                      <= massStellarLogarithmicTiny)) &
-            &  .or.                                                                                                                       &
-            &                                         any(massStellarLogarithmicMean(self%likelihoodBins) <= massStellarLogarithmicTiny)  &
+       ! Retrieve the results of the analysis.
+       call outputAnalysis_%results(meanValue=massStellarLogarithmic,meanCovariance=massStellarLogarithmicCovariance)
+       if     (                                                                                                                       &
+            &   (size(self%likelihoodBins) == 0 .and. any(massStellarLogarithmic                      <= massStellarLogarithmicTiny)) &
+            &  .or.                                                                                                                   &
+            &                                         any(massStellarLogarithmic(self%likelihoodBins) <= massStellarLogarithmicTiny)  &
             & ) then
           ! If any active bins contain zero galaxies, judge this model to be improbable.
-          stellarVsHaloMassRelationLeauthaud2012LogLikelihood=                     logImprobable
+          logLikelihood=                     logImprobable
        else
-          stellarVsHaloMassRelationLeauthaud2012LogLikelihood=     outputAnalysis_%logLikelihood()
+          ! Finalize analysis.
+          call outputAnalysis_%finalizeAnalysis()
+          ! Compute difference with the target dataset.
+          allocate(massStellarLogarithmicDifference        ,mold=massStellarLogarithmic          )
+          allocate(massStellarLogarithmicCovarianceCombined,mold=massStellarLogarithmicCovariance)
+          massStellarLogarithmicDifference        =+massStellarLogarithmic          -self%massStellarLogarithmicTarget
+          massStellarLogarithmicCovarianceCombined=+massStellarLogarithmicCovariance+self%massStellarLogarithmicCovarianceTarget
+          ! Construct a reduced set of bins.
+          if (size(self%likelihoodBins) > 0) then
+             allocate(massStellarLogarithmicDifferenceSelected        (size(self%likelihoodBins)                          ))
+             allocate(massStellarLogarithmicCovarianceCombinedSelected(size(self%likelihoodBins),size(self%likelihoodBins)))
+             do i=1,size(self%likelihoodBins)
+                massStellarLogarithmicDifferenceSelected           (i  )=massStellarLogarithmicDifference        (self%likelihoodBins(i)                       )
+                do j=1,size(self%likelihoodBins)
+                   massStellarLogarithmicCovarianceCombinedSelected(i,j)=massStellarLogarithmicCovarianceCombined(self%likelihoodBins(i),self%likelihoodBins(j))
+                end do
+             end do
+          else
+             allocate(massStellarLogarithmicDifferenceSelected        ,source=massStellarLogarithmicDifference        )
+             allocate(massStellarLogarithmicCovarianceCombinedSelected,source=massStellarLogarithmicCovarianceCombined)
+          end if
+          ! Construct residual vector and covariance matrix.
+          residual  =vector(massStellarLogarithmicDifferenceSelected   )
+          covariance=matrix(massStellarLogarithmicCovarianceCombinedSelected)
+          ! Compute the log-likelihood.
+          logLikelihood=-0.5d0*covariance%covarianceProduct(residual,status)
+          if (status == GSL_Success) then
+             if (self%likelihoodNormalize)                                                                  &
+                  & logLikelihood=+logLikelihood                                                            &
+                  &               -0.5d0*covariance%determinant()                                           &
+                  &               -0.5d0*dble(size(massStellarLogarithmicDifferenceSelected))*log(2.0d0*Pi)
+          else
+             logLikelihood       =+logImprobable
+          end if
        end if
     class default
-       stellarVsHaloMassRelationLeauthaud2012LogLikelihood   =self%outputAnalysis_%logLikelihood()
+       logLikelihood             =+outputAnalysis_%logLikelihood()
     end select
     return
   end function stellarVsHaloMassRelationLeauthaud2012LogLikelihood

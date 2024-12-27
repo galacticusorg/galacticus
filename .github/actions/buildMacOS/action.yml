@@ -106,19 +106,19 @@ runs:
     - name: Install HDF5
       shell: bash
       run: |
-        curl -L https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.20/src/hdf5-1.8.20.tar.gz --output hdf5-1.8.20.tar.gz
-        tar -vxzf hdf5-1.8.20.tar.gz 
-        cd hdf5-1.8.20
+        curl -L https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_5/downloads/hdf5-1.14.5.tar.gz --output hdf5-1.14.5.tar.gz
+        tar -vxzf hdf5-1.14.5.tar.gz 
+        cd hdf5-1.14.5
         if [[ "${OS_VER}" -eq 13 ]]; then
            # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
-           CC=gcc-11 CXX=g++-11 FC=gfortran-11 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-production
+           CC=gcc-11 CXX=g++-11 FC=gfortran-11 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
         else
-           CC=gcc-11 CXX=g++-11 FC=gfortran-11                         ./configure --prefix=/usr/local --enable-fortran --enable-production
+           CC=gcc-11 CXX=g++-11 FC=gfortran-11                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
         fi
         make -j3
         sudo make install
         cd ..
-        rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz
+        rm -rf hdf5-1.14.5 hdf5-1.14.5.tar.gz
     - name: Install FoX
       shell: bash
       run: |
@@ -210,6 +210,7 @@ runs:
         sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
         sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
         sudo perl -MCPAN -e 'force("install","Text::Template")'
+        sudo perl -MCPAN -e 'force("install","Text::Levenshtein")'
         sudo perl -MCPAN -e 'force("install","List::Uniq")'
         sudo perl -MCPAN -e 'force("install","IO::Util")'
         sudo perl -MCPAN -e 'force("install","Class::Util")'

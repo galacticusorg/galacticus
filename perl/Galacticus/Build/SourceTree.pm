@@ -6,6 +6,7 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use Encode;
 use Data::Dumper;
 use Scalar::Util qw(reftype);
 use Fortran::Utils;
@@ -45,6 +46,7 @@ use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
+use Galacticus::Build::SourceTree::Process::EventHooksStatic;
 use Galacticus::Build::SourceTree::Process::ParameterMigration;
 use Galacticus::Build::SourceTree::Process::Dependencies;
 use Galacticus::Build::SourceTree::Process::ClassDocumentation;
@@ -516,30 +518,69 @@ sub ReplaceNode {
 sub Serialize {
     my $node = shift();
     my (%options) = @_;
-    $options{'annotate'} = 1
-	unless ( exists($options{'annotate'}) );
-    my $serialization;
-    my $currentNode = $node;
+    $options{'annotate'     } = 1
+	unless ( exists($options{'annotate'     }) );
+    $options{'stripMappings'} = 0
+	unless ( exists($options{'stripMappings'}) );
+    my %optionsChild  = %options;
+    $optionsChild{'stripMappings'} = 0;
+    # Walk the tree, serializing code.
+    my $lineNumber    = 0       ;
+    my $serialization           ;
+    my $mappings                ;
+    my $currentNode   = $node   ;
     while ( $currentNode ) {
-	$serialization .= "!--> ".$currentNode->{'line'}." \"".$currentNode->{'source'}."\"\n"
-	    if ( exists($currentNode->{'source'}) && exists($currentNode->{'line'}) && $options{'annotate'} );
+	# Generate a line number mapping from the original file to the pre-processed file.
+	if ( exists($currentNode->{'source'}) && exists($currentNode->{'line'}) && $options{'annotate'} ) {
+	    my $mapping = "!--> ".$currentNode->{'line'}." ".$lineNumber." \"".$currentNode->{'source'}."\"\n";
+	    if ( $options{'stripMappings'} ) {
+		$mappings      .= $mapping;
+	    } else {
+		++$lineNumber;
+		$serialization .= $mapping;
+	    }
+	}
+	# Serialize the current node.
+	my $serializationNode = "";
 	if ( $currentNode->{'type'} eq "code" ) {
-	    $serialization .= $currentNode->{'content'}
+	    $serializationNode .= $currentNode->{'content'};
 	} else {
-	    $serialization .= $currentNode->{'opener'}
-	        if ( exists($currentNode->{'opener'}) );
-	    $serialization .= &Serialize($currentNode->{'firstChild'},%options)
-		if ( $currentNode->{'firstChild'} );
-	    $serialization .= $currentNode->{'closer'}
+	    $serializationNode .= $currentNode->{'opener'}
+	        if ( exists($currentNode->{'opener'}) );	    
+	    if ( $currentNode->{'firstChild'} ) {
+		(my $serializationChild) = &Serialize($currentNode->{'firstChild'},%optionsChild);
+		$serializationNode .= $serializationChild;
+	    }
+	    $serializationNode .= $currentNode->{'closer'}
 	        if ( exists($currentNode->{'closer'}) );
 	}
+	# Strip out any line number mappings from the serialization.
+	if ( $options{'stripMappings'} ) {
+	    my $serializationNodeStripped = "";
+	    my $serializationNodeEncoded  = encode(q{utf8},$serializationNode);
+	    open(my $code, q{<:utf8}, \$serializationNodeEncoded);
+	    while ( my $line = <$code> ) {
+		if ( $line =~ m/^!\-\->\s+(\d+)\s+(\d+)\s+"(.+)"/ ) {
+		    $mappings                  .= "!--> ".$1." ".($lineNumber+1)." \"".$3."\"\n";
+		} else {
+		    ++$lineNumber;
+		    $serializationNodeStripped .= $line;
+		}
+	    }
+	    close($code);
+	    $serializationNode = $serializationNodeStripped;
+	} else {
+	    $lineNumber += $serializationNode =~ tr/\n//;
+	}
+	# Accumulate the serialization.
+	$serialization .= $serializationNode;
 	if ( $currentNode->{'sibling'   } ) {
 	    $currentNode = $currentNode->{'sibling'};
 	} else {
 	    undef($currentNode);
 	}
     }
-    return $serialization;
+    return $serialization, $mappings;
 }
 
 sub InsertAfterNode {

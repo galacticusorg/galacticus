@@ -11,7 +11,6 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard">
-    <massSeed value="100"/>
     <heatsHotHalo value="true"/>
     <efficiencyWind value="0.0024"/>
     <bondiHoyleAccretionEnhancementHotHalo value="1.5"/>
@@ -250,6 +249,12 @@
     </nodeOperator>
     <!-- Halo positions -->
     <nodeOperator value="positionDiscrete"/>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Galaxy merger options -->

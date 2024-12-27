@@ -47,14 +47,7 @@ module Node_Component_Black_Hole_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
       <output unitsInSI="massSolar" comment="Mass of the black hole."/>
-    </property>
-    <property>
-      <name>massSeed</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get" />
     </property>
    </properties>
    <bindings>
@@ -71,9 +64,6 @@ module Node_Component_Black_Hole_Simple
   class(blackHoleBinaryMergerClass     ), pointer :: blackHoleBinaryMerger_
   class(blackHoleAccretionRateClass    ), pointer :: blackHoleAccretionRate_
   !$omp threadprivate(darkMatterHaloScale_,blackHoleAccretionRate_,coolingRadius_,blackHoleBinaryMerger_)
-
-  ! Seed mass for black holes.
-  double precision :: massSeed
 
   ! Feedback parameters.
   double precision :: efficiencyHeating, efficiencyWind
@@ -94,26 +84,13 @@ contains
     !!{
     Initializes the simple black hole node component module.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHoleSimple
-    use :: Input_Parameters, only : inputParameter              , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(inputParameters             ), intent(inout) :: parameters
-    type(nodeComponentBlackHoleSimple)                :: blackHoleSimple
-    type(inputParameters             )                :: subParameters
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters)                :: subParameters
 
-    ! Bind deferred functions.
-    call blackHoleSimple%massSeedFunction(Node_Component_Black_Hole_Simple_Seed_Mass)
     ! Find our parameters.
     subParameters=parameters%subParameters('componentBlackHole')
-    ! Get the seed mass
-    !![
-    <inputParameter>
-      <name>massSeed</name>
-      <source>subParameters</source>
-      <defaultValue>100.0d0</defaultValue>
-      <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
-    </inputParameter>
-    !!]
     ! Options controlling AGN feedback.
     !![
     <inputParameter>
@@ -231,17 +208,14 @@ contains
        ! Get the spheroid component.
        spheroid => node%spheroid()
        ! Set scale for mass.
-       call blackHole%massScale(                                                             &
-            &                   max(                                                         &
-            &                                                 blackHole%massSeed         (), &
-            &                       max(                                                     &
-            &                               massScaleRelative*spheroid %massStellar      (), &
-            &                           max(                                                 &
-            &                                                           massScaleAbsolute  , &
-            &                                                 blackHole%mass             ()  &
-            &                              )                                                 &
-            &                          )                                                     &
-            &                      )                                                         &
+       call blackHole%massScale(                                                         &
+             &                  max(                                                     &
+            &                           massScaleRelative*spheroid %massStellar      (), &
+            &                       max(                                                 &
+            &                                                       massScaleAbsolute  , &
+            &                                             blackHole%mass             ()  &
+            &                          )                                                 &
+            &                      )                                                     &
             &                  )
     end select
     return
@@ -256,6 +230,7 @@ contains
     !!{
     Compute the black hole mass rate of change.
     !!}
+    use :: Error                       , only : Error_Report
     use :: Galacticus_Nodes            , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBlackHole, nodeComponentBlackHoleSimple, &
           &                                     nodeComponentHotHalo     , nodeComponentSpheroid, nodeComponentNSC      , propertyInactive            , &
           &                                     treeNode
@@ -301,11 +276,7 @@ contains
        select type (blackHole)
        type is (nodeComponentBlackHole)
           ! Generic type - interrupt and create a simple black hole if accretion rate is non-zero.
-          if (massAccretionRate /= 0.0d0) then
-             interrupt=.true.
-             interruptProcedure => Node_Component_Black_Hole_Simple_Create
-          end if
-          return
+          if (massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existant black hole'//{introspection:location})
        class is (nodeComponentBlackHoleSimple)
           ! Get the spheroid component.
           spheroid => node%spheroid()
@@ -377,37 +348,6 @@ contains
     call blackHole    %massSet(           0.0d0)
     return
   end subroutine satelliteMerger
-
-  subroutine Node_Component_Black_Hole_Simple_Create(node,timeEnd)
-    !!{
-    Creates a simple black hole component for {\normalfont \ttfamily node}.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
-    implicit none
-    type            (treeNode              ), intent(inout), target   :: node
-    double precision                        , intent(in   ), optional :: timeEnd
-    class           (nodeComponentBlackHole)               , pointer  :: blackHole
-    !$GLC attributes unused :: timeEnd
-    
-    ! Create the component.
-    blackHole => node%blackHole(autoCreate=.true.)
-    ! Set the seed mass.
-    call blackHole%massSet(massSeed)
-    return
-  end subroutine Node_Component_Black_Hole_Simple_Create
-
-  double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
-    !!{
-    Return the seed mass for simple black holes.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHoleSimple
-    implicit none
-    class(nodeComponentBlackHoleSimple), intent(inout) :: self
-    !$GLC attributes unused :: self
-    
-    Node_Component_Black_Hole_Simple_Seed_Mass=massSeed
-    return
-  end function Node_Component_Black_Hole_Simple_Seed_Mass
 
   !![
   <stateStoreTask>

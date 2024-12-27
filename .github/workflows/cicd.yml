@@ -305,6 +305,8 @@ jobs:
           push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
   Build-Documentation-Linux:
     runs-on: ubuntu-latest
@@ -419,7 +421,7 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j`sysctl -n hw.activecpu` Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe tests.hashes.cryptographic.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           ./scripts/build/staticRelinker.pl `grep '\-o tests.hashes.cryptographic.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
@@ -455,7 +457,7 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j`sysctl -n hw.activecpu` Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
@@ -484,7 +486,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -521,7 +523,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` Galacticus.exe
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe
       - name: Build tools
         run: |
           export GALACTICUS_EXEC_PATH=`pwd`
@@ -597,7 +599,7 @@ jobs:
         uses: ./.github/actions/buildMacOS
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` Galacticus.exe 2>&1 | tee build.log
+          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
       - name: Build tools
         run: |
@@ -736,7 +738,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-darkMatterOnlySubhalos.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -747,7 +750,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-milkyWay.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-milkyWay.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
@@ -758,7 +762,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-PonosV.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-PonosV.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -769,7 +774,8 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: validate-baryonicSuppression.pl
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-baryonicSuppression.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 0
@@ -1151,7 +1157,8 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml ]
+        file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
+                testSuite/parameters/constrainedMilkyWay.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1202,9 +1209,13 @@ jobs:
                 testSuite/regressions/subhaloTwoConsecutiveMergers.xml,
                 testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
                 testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
+                testSuite/regressions/preInfallEvolutionNotOnMainBranch.xml,
                 testSuite/regressions/outputRank2ExtendSegFault.xml,
                 testSuite/regressions/barInstabilityFPE.xml,
-                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml ]
+                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
+                testSuite/regressions/lightconeCrossingTests.xml,
+                testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
+                testSuite/regressions/lightconeCrossingAtCurrentTime.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1370,7 +1381,7 @@ jobs:
           sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python
