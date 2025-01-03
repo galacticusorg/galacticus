@@ -538,7 +538,6 @@ contains
           ! Move the black hole to the host.
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
 
-=======
           call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
           call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
           if (blackHoleHostCentral %NSCChannel().or.blackHole%NSCChannel()) then

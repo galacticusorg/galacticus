@@ -181,14 +181,6 @@ contains
     massDistributionStellarNSC_ => node%massDistribution(componentType=componentTypeNSC, massType=massTypeStellar)
     velocityNSC = massDistributionStellarNSC_%rotationCurve(radiusNSC*1.0e-6)
     
-
-    !velocityNSC =  self%galacticStructure_%velocityRotation   (                                 &
-    !     &                                                     node                           , &
-    !     &                                                     radiusNSC*1.0d-6               , &
-    !     &                                                     componentType=componentTypeNSC , &
-    !     &                                                     massType     =massTypeStellar    &
-    !     &                                                                  )
-
     ! Detect nuclear star cluster component type.
     select type (NSC)
       type is (nodeComponentNSC)
@@ -261,7 +253,7 @@ contains
     blackHole => node%blackHole(autoCreate=.true.)
     ! Set to the seed mass.
     call blackHole%          massSet(NSC      %massSeed())
-    call blackHole%          spinSet(blackHole%spinSeed())  
+    call blackHole%          spinSet(               0.0d0)  
     call blackHole%radialPositionSet(               0.0d0)
     call blackHole%    NSCChannelSet(              .true.)
     return
