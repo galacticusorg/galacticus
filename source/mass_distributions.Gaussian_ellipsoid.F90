@@ -530,7 +530,7 @@ contains
       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
-         call file%openFile    (char(fileName      )                             )
+         call file%openFile    (char(fileName      ),readOnly=.true.             )
          call file%readDataset(      'x'            ,self%accelerationX          )
          call file%readDataset(      'scaleLength'  ,self%accelerationScaleLength)
          call file%readDataset(      'acceleration' ,self%accelerationVector     )
