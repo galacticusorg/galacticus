@@ -207,7 +207,7 @@ contains
     type            (lockDescriptor                                  )                             :: fileLock
 
     if (tableStore) then
-       call Directory_Make(char(File_Path(char(self%fileNameVirialDensityContrast)))                             )
+       call Directory_Make(char(File_Path(char(self%fileNameVirialDensityContrast)))                              )
        call File_Lock     (               char(self%fileNameVirialDensityContrast)  ,fileLock,lockIsShared=.false.)
     end if
     call    self%restoreTable(time,virialDensityContrast_,self%fileNameVirialDensityContrast                 ,tableStore,status)
