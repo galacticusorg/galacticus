@@ -99,8 +99,8 @@ contains
     double precision                                           , dimension(size(modelParameters_))              :: stateVector
     type            (multiCounter              )                                                                :: counter
     integer         (c_size_t                  )                                                                :: i               , j
-        
-    allocate(simulationStates(self%countGrid*size(modelParameters_)))
+
+    allocate(simulationStates(self%countGrid**size(modelParameters_)))
     counter=multiCounter(spread(self%countGrid,1,size(modelParameters_)))
     i      =0
     do while (counter%increment())
