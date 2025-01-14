@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736889543263,
+  "lastUpdate": 1736889553448,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@obs.carnegiescience.edu"
-          },
-          "id": "759d2ea43ba78b72c1d2df543762181dbf715d67",
-          "message": "fix: Correct file name for artifact upload",
-          "timestamp": "2024-03-25T20:22:32Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/759d2ea43ba78b72c1d2df543762181dbf715d67"
-        },
-        "date": 1711413302446,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.8583188967591,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 9.61622870029909,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20638.76417226,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8747,6 +8710,45 @@ window.BENCHMARK_DATA = {
             "value": 49.34,
             "unit": "seconds",
             "range": 0.0916406023545097
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c45f348ff1c410d86e767428c4f7b2b7d2c6cba5",
+          "message": "Merge pull request #765 from galacticusorg/fixSampleGridStateSize\n\nFix sample grid state size for the `posteriorSamplesPriorGrid` class",
+          "timestamp": "2025-01-14T14:46:26Z",
+          "tree_id": "2bc2a7c8469ed106929b2d9cc93e730b6f6a4d61",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c45f348ff1c410d86e767428c4f7b2b7d2c6cba5"
+        },
+        "date": 1736889552196,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "17.057900903369177",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "7.85454757700162",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "21408.66315457754",
+            "unit": "-logℒ"
           }
         ]
       }
