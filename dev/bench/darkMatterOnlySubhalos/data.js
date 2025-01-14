@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734819539590,
+  "lastUpdate": 1736889543263,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5d8af8db7fbe60b96437d70092c152863e6c147d",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2024-03-27T14:55:16Z",
-          "tree_id": "9e5fe3de420be62d873888df77348eb8bd30bc85",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5d8af8db7fbe60b96437d70092c152863e6c147d"
-        },
-        "date": 1711586077560,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.805,
-            "unit": "seconds",
-            "range": 0.115414470496396
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8747,6 +8717,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "21408.663154577378",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c45f348ff1c410d86e767428c4f7b2b7d2c6cba5",
+          "message": "Merge pull request #765 from galacticusorg/fixSampleGridStateSize\n\nFix sample grid state size for the `posteriorSamplesPriorGrid` class",
+          "timestamp": "2025-01-14T14:46:26Z",
+          "tree_id": "2bc2a7c8469ed106929b2d9cc93e730b6f6a4d61",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c45f348ff1c410d86e767428c4f7b2b7d2c6cba5"
+        },
+        "date": 1736889540567,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 49.34,
+            "unit": "seconds",
+            "range": 0.0916406023545097
           }
         ]
       }
