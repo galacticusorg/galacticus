@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734819543290,
+  "lastUpdate": 1736889548039,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c4658de9a148da9c2519051f7e2f5a43b2273a3d",
-          "message": "feat: Add a title for the build profile page",
-          "timestamp": "2024-03-26T07:55:11-07:00",
-          "tree_id": "4670ece7f17d8544c7eede5a64105f14dc756336",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c4658de9a148da9c2519051f7e2f5a43b2273a3d"
-        },
-        "date": 1711479308322,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 410.576,
-            "unit": "seconds",
-            "range": 0.410317438098608
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10660,6 +10630,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "13.41454338784657",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c45f348ff1c410d86e767428c4f7b2b7d2c6cba5",
+          "message": "Merge pull request #765 from galacticusorg/fixSampleGridStateSize\n\nFix sample grid state size for the `posteriorSamplesPriorGrid` class",
+          "timestamp": "2025-01-14T14:46:26Z",
+          "tree_id": "2bc2a7c8469ed106929b2d9cc93e730b6f6a4d61",
+          "url": "https://github.com/galacticusorg/galacticus/commit/c45f348ff1c410d86e767428c4f7b2b7d2c6cba5"
+        },
+        "date": 1736889546872,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 25.051,
+            "unit": "seconds",
+            "range": 0.0672971024637309
           }
         ]
       }
