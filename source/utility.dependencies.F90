@@ -1,8 +1,8 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
-!! Tis file is part of Galacticus.
+!! This file is part of Galacticus.
 !!
 !!    Galacticus is free software: you can redistribute it and/or modify
 !!    it under the terms of the GNU General Public License as published by

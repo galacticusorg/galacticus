@@ -14,7 +14,10 @@ use Galacticus::HDF5;
 use Galacticus::StellarMass;
 use Galacticus::GasMass;
 use Galacticus::Options;
+use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PBS;
+use Galacticus::Launch::Slurm;
+use Galacticus::Launch::Local;
 
 # Run Galacticus models for integration testing.
 # Andrew Benson (05-December-2014)
@@ -76,9 +79,10 @@ chomp($gitRevision);
 # Choose a random seed.
 my $randomSeed = int(rand(1000));
 
-# Get PBS configuration and determine number of threads.
-my $pbsConfig = &Galacticus::Options::Config("pbs");
-my $ppn       = exists($pbsConfig->{'ppn'}) ? $pbsConfig->{'ppn'} : 1;
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+my $ppn          = exists($queueConfig->{'ppn'}) ? $queueConfig->{'ppn'} : 1;
 
 # Find integration models to run.
 my $modelCount = 0;
@@ -94,7 +98,7 @@ while ( my $fileName = readdir($testSuite) ) {
 	unless ( $modelCount % $instanceCount == $instance-1 );
     print "Running model '".$modelName."'\n";
     # Iterate over realizations.
-    my @pbsJobs;
+    my @jobs;
     for(my $i=0;$i<($options{'calibrate'} eq "yes" ? $options{'calibrateCount'} : 1);++$i) {
     	# Run the model.
     	print "--> Generating model '".$modelName."' ".($options{'calibrate'} eq "yes" ? "[realization: ".$i."]" : "")." for model integration testing...\n";
@@ -121,14 +125,14 @@ while ( my $fileName = readdir($testSuite) ) {
     		 command      => "cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName.$i."/parameters.xml",
     		 ppn          => $ppn
     		);
-    	    push(@pbsJobs,\%job);
+    	    push(@jobs,\%job);
     	} else {
     	    system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml");
     	}
     	print "   <-- ...done\n";
     	print "<-- ...done\n";
     }
-    &Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsJobs)
+    &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs)
     	if ( $options{'calibrate'} eq "yes" );
     # If calibrating, aggregate statistics and compute means and variances.
     if ( $options{'calibrate'} eq "yes" ) {
