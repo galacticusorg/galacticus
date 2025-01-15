@@ -427,6 +427,7 @@ gridded
 gsl
 gv
 gyr
+gzip
 h5ls
 h5py
 haider
@@ -733,6 +734,7 @@ timestepping
 timesteps
 triaxial
 ttfamily
+tuple
 unaccreted
 unapply
 unary
