@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736927469587,
+  "lastUpdate": 1736927477773,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "5d8af8db7fbe60b96437d70092c152863e6c147d",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2024-03-27T14:55:16Z",
-          "tree_id": "9e5fe3de420be62d873888df77348eb8bd30bc85",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5d8af8db7fbe60b96437d70092c152863e6c147d"
-        },
-        "date": 1711586086633,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 16.8575596681005,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 10.8696851475892,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 20405.9424512488,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8738,6 +8699,43 @@ window.BENCHMARK_DATA = {
             "value": 48.967,
             "unit": "seconds",
             "range": 0.0594651158241022
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "2cd14570974dab452e68a2c0e68085e95a89e406",
+          "message": "feat: Allow setting of the primary output group for each evaluation of the `posteriorSampleLikelihoodGalaxyPopulation` class",
+          "timestamp": "2025-01-15T00:30:38Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2cd14570974dab452e68a2c0e68085e95a89e406"
+        },
+        "date": 1736927476741,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": "16.95203097371882",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": "9.711274663882326",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": "21234.12752867039",
+            "unit": "-logℒ"
           }
         ]
       }
