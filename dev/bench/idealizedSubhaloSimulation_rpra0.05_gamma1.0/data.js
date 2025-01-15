@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736889578392,
+  "lastUpdate": 1736927499060,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
@@ -5006,6 +5006,43 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/c45f348ff1c410d86e767428c4f7b2b7d2c6cba5"
         },
         "date": 1736889577454,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "69.36737924766514",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "39.24572985840733",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "32.236493260231335",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@carnegiescience.edu"
+          },
+          "id": "2cd14570974dab452e68a2c0e68085e95a89e406",
+          "message": "feat: Allow setting of the primary output group for each evaluation of the `posteriorSampleLikelihoodGalaxyPopulation` class",
+          "timestamp": "2025-01-15T00:30:38Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2cd14570974dab452e68a2c0e68085e95a89e406"
+        },
+        "date": 1736927498327,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
