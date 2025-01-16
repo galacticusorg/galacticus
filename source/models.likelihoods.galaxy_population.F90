@@ -143,6 +143,8 @@ contains
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
+    use :: Error  , only : Error_Report
+    use :: Display, only : displayGreen, displayReset
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
@@ -155,6 +157,7 @@ contains
     <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
     !!]
 
+    if (setOutputGroup.and.collaborativeMPI) call Error_Report('[setOutputGroup]=true and [collaborativeMPI]=true is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [collaborativeMPI]=true results in each MPI process evolving a subset of trees from each model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [collaborativeMPI]=false to avoid this problem'//{introspection:location})
     return
   end function galaxyPopulationConstructorInternal
 
