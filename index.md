@@ -11,6 +11,13 @@ Here you can find:
 
 * Benchmark and validation metrics for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
+    * Decaying dark matter-only subhalos (see Nadler & Benson (2025) for details)
+	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime10.0_velocityKick20.0)
+	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick20.0)
+	    * [τ=20 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick40.0)
+	    * [τ=40 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime40.0_velocityKick20.0)
+	    * [τ=40 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime40.0_velocityKick40.0)
+	    * [τ=80 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime80.0_velocityKick40.0)
     * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/bench/milkyWayModel/)
     * Idealized subhalo simulations (see [Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D) for details)
 	    * [rₚ/rₐ=0.005; γ=1.5](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.005_gamma1.5)
@@ -23,6 +30,13 @@ Here you can find:
 	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.4_gamma0.0)
 * Validation plots and data for:
     * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
+    * Decaying dark matter-only subhalos (see Nadler & Benson (2025) for details)
+	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime10.0_velocityKick20.0.html)
+	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick20.0.html)
+	    * [τ=20 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick40.0.html)
+	    * [τ=40 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime40.0_velocityKick20.0.html)
+	    * [τ=40 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime40.0_velocityKick40.0.html)
+	    * [τ=80 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime80.0_velocityKick40.0.html)
     * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/valid/milkyWayModel/)
     * Idealized subhalo simulations (see [Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D) for details)
 	    * [rₚ/rₐ=0.005; γ=1.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.005_gamma1.5.html)
