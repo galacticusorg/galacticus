@@ -128,7 +128,7 @@ contains
     <inputParameter>
       <name>time</name>
       <source>parameters</source>
-      <description>The time at whichd decays should be evaluated.</description>
+      <description>The time at which decays should be evaluated.</description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
     <objectBuilder class="massDistribution"   name="massDistribution_"   source="parameters"/>
@@ -230,7 +230,7 @@ contains
        factor=1.0d0
        return
     end if
-    ! Outside of the undepeleted region, compute the depletion factor directly.
+    ! Outside of the undepleted region, compute the depletion factor directly.
     !! Find the escape velocity.
     if (radius < self%radiusEscape) then
        if (.not.self%potentialEscapeComputed) then

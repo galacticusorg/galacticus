@@ -37,10 +37,10 @@ module Decaying_Dark_Matter
   type            (interpolator)                , allocatable :: interpolatorVelocityEscape                 , interpolatorVelocityKick
   !$omp threadprivate(velocityEscapeScaleFreeMinimum,velocityEscapeScaleFreeMaximum,velocityKickScaleFreeMinimum,velocityKickScaleFreeMaximum,velocitiesEscapeScaleFree,velocitiesKickScaleFree,energyRetained,fractionRetained,interpolatorVelocityEscape,interpolatorVelocityKick)
 
-  ! Scale free velocity above which the velocity dispersion is negligible and we assume deterministci behavior.
+  ! Scale free velocity above which the velocity dispersion is negligible and we assume deterministic behavior.
   double precision                              , parameter   :: velocityScaleFreeLarge        =+100.0d0
 
-  ! Minimum scale free escape velocity for which we can find a self-consistent velocity distribution function. Smaller valeus only
+  ! Minimum scale free escape velocity for which we can find a self-consistent velocity distribution function. Smaller values only
   ! occur at extreme distances outside of halos, so should not matter.
   double precision                              , parameter   :: velocityEscapeScaleFreeLimit  =+  2.3d0
 
@@ -261,7 +261,7 @@ contains
        energyDerivativeVelocityEscapeScaleFree=energyDerivativeVelocityEscapeScaleFree*velocityDispersion**2
        energyDerivativeVelocityKickScaleFree  =0.0d0
        do jVelocityEscape =0,1        
-          ! Note that, since we expect ε/σ² ~ xₖ² when all energy is retained, we evalute this derivative as:
+          ! Note that, since we expect ε/σ² ~ xₖ² when all energy is retained, we evaluate this derivative as:
           !
           !   d(ε/σ²)/dxₖ =  d(ε/σ²)/d(xₖ²) d(xₖ²)/dx = d(ε/σ²)/d(xₖ²) 2 xₖ ≅ Δ(ε/σ²)/Δ(xₖ²) 2 xₖ
           !

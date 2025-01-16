@@ -30,7 +30,7 @@ Implements a merger tree processing time estimator that provides no estimates.
   !!]
   type, extends(metaTreeProcessingTimeClass) :: metaTreeProcessingTimeNull
      !!{
-     A merger tree processing time estimator uthat provides no estimates.
+     A merger tree processing time estimator that provides no estimates.
      !!}
      private
    contains
@@ -78,7 +78,7 @@ contains
 
   double precision function nullTimeRemaining(self,tree,timeFinal)
     !!{
-    Return a null esitmate of the time to process a merger tree.
+    Return a null estimate of the time to process a merger tree.
     !!}
     implicit none
     class           (metaTreeProcessingTimeNull), intent(inout) :: self

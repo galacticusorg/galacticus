@@ -65,7 +65,7 @@ contains
     !![
     <inputParameter>
       <name>massRatioThreshold</name>
-      <description>The satellit-to-host mass ratio below which dynamical friction acceleration is truncated to zero.</description>
+      <description>The satellite-to-host mass ratio below which dynamical friction acceleration is truncated to zero.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>

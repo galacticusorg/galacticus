@@ -318,7 +318,7 @@ contains
        fractionDerivativeVelocityDispersion     =-      (     fractionDerivativeVelocityEscapeScaleFree*self%velocityEscape+fractionDerivativeVelocityKick*self%velocityKick)/self%velocityDispersion
        energyDerivativeVelocityDispersion       =-      (       energyDerivativeVelocityEscapeScaleFree*self%velocityEscape+  energyDerivativeVelocityKick*self%velocityKick)/self%velocityDispersion &
             &                                    +2.0d0*   self%energyRetained                                                                                               /self%velocityDispersion
-       ! Compute the gradient in velocity disperson.
+       ! Compute the gradient in velocity dispersion.
        velocityDispersionGradient=+(                                         &
             &                       -     gravitationalConstantGalacticus    &
             &                       *self%massEnclosed                       &

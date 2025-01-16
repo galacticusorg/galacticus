@@ -139,7 +139,7 @@ contains
 
   double precision function monotonicSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
-    Compute the specific energy in a monotonicly-heated mass distribution.
+    Compute the specific energy in a monotonically-heated mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
