@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,6 +63,7 @@ module Multi_Counters
      Constructors for multi-counters.
      !!}
      module procedure multiCounterConstructor
+     module procedure multiCounterConstructorShortInt
   end interface multiCounter
 
 contains
@@ -71,7 +72,7 @@ contains
     !!{
     Constructor for multi-counters where the ranges are provided.
     !!}
-    use :: Error            , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     type   (multiCounter)                              :: self
     integer(c_size_t    ), intent(in   ), dimension(:) :: ranges
@@ -86,6 +87,18 @@ contains
     return
   end function multiCounterConstructor
 
+  function multiCounterConstructorShortInt(ranges) result (self)
+    !!{
+    Constructor for multi-counters where the ranges are provided as short integers.
+    !!}
+    implicit none
+    type   (multiCounter)                              :: self
+    integer              , intent(in   ), dimension(:) :: ranges
+
+    self=multiCounter(int(ranges,kind=c_size_t))
+    return
+  end function multiCounterConstructorShortInt
+  
   subroutine multiCounterDestructor(self)
     !!{
     Destroy a multi-counter object.
