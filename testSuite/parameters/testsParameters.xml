@@ -63,6 +63,7 @@
   </wrapper1>
   <derivedValue6 value="=min(1.0,2.0)"/>
   <derivedValue7 value="=max(1.0,2.0)"/>
+  <derivedValue8 value="=[nonExistantParameter|1234.5]"/>
   <integerValue1 value="6"/>
   <derivedText1 value="=mouse_[%s|cosmologicalMassVariance]_[%4.2f|derivedValue6]_[%12.6e|derivedValue7]_[%4.4d|integerValue1]"/>
   <active1 value="0.1" active="[cosmologicalMassVariance:sigma_8] != 0.912"/>
