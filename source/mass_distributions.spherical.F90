@@ -32,17 +32,19 @@
      !!}
      private
      ! Memoized solutions for the enclosed mass.
-     double precision                          , allocatable, dimension(:) :: massProfileMass__                                  , massProfileRadius__
-     double precision                                                      :: massProfileRadiusMinimum__            =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
-     type            (interpolator            ), allocatable               :: massProfile__
-     logical                                                               :: tolerateEnclosedMassIntegrationFailure=.false.
+     double precision              , allocatable, dimension(:) :: massProfileMass__                                          , massProfileRadius__
+     double precision                                          :: massProfileRadiusMinimum__                    =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
+     type            (interpolator), allocatable               :: massProfile__
+     logical                                                   :: tolerateEnclosedMassIntegrationFailure        =.false.
      ! Memoized solutions for the potential.
-     double precision                          , allocatable, dimension(:) :: potentialProfilePotential__                        , potentialProfileRadius__
-     double precision                                                      :: potentialProfileRadiusMinimum__       =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
-          &                                                                   potentialProfileRadiusMinimumActual__              , potentialRadiusZeroPoint__     =-huge(0.0d0)
-     type            (interpolator            ), allocatable               :: potentialProfile__
-     logical                                                               :: toleratePotentialIntegrationFailure   =.false.
-     double precision                                                      :: toleranceRelativePotential            =1.0d-6
+     double precision              , allocatable, dimension(:) :: potentialProfilePotential__                                , potentialProfileRadius__
+     double precision                                          :: potentialProfileRadiusMinimum__               =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
+          &                                                       potentialProfileRadiusMinimumActual__                      , potentialRadiusZeroPoint__     =-huge(0.0d0)
+     type            (interpolator), allocatable               :: potentialProfile__
+     logical                                                   :: toleratePotentialIntegrationFailure           =.false.
+     double precision                                          :: toleranceRelativePotential                    =1.0d-6
+     ! Options controlling implementation.
+     logical                                                   :: chandrasekharIntegralComputeVelocityDispersion=.true.
    contains
      !![
      <methods>
