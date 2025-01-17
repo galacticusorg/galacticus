@@ -631,6 +631,7 @@ contains
        case (rangeExpandSignExpectPositive%ID)
           rangeLowerAsExpected=(fDownwardLimit  > 0.0d0)
        case default
+          rangeLowerAsExpected=.false.
           call Error_Report('inconsistent expectation'//{introspection:location})
        end select
        if (.not.rangeLowerAsExpected) then
@@ -653,13 +654,14 @@ contains
        fUpwardLimit=self%finderFunction(self%rangeUpwardLimit) 
        select case (self%rangeExpandUpwardSignExpect%ID)
        case (rangeExpandSignExpectNegative%ID)
-          rangeLowerAsExpected=(fUpwardLimit  < 0.0d0)
+          rangeUpperAsExpected=(fUpwardLimit  < 0.0d0)
        case (rangeExpandSignExpectPositive%ID)
-          rangeLowerAsExpected=(fUpwardLimit  > 0.0d0)
+          rangeUpperAsExpected=(fUpwardLimit  > 0.0d0)
        case default
+          rangeUpperAsExpected=.false.
           call Error_Report('inconsistent expectation'//{introspection:location})
        end select
-       if (.not.rangeLowerAsExpected) then
+       if (.not.rangeUpperAsExpected) then
           if (present(status)) then
              status            =errorStatusOutOfRange
              currentFinderIndex=currentFinderIndex-1
