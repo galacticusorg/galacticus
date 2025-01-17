@@ -138,7 +138,7 @@ contains
     class           (massDistributionClass                 ), pointer       :: massDistributionDisk        , massDistributionSpheroid         , &
          &                                                                     massDistribution_
     class           (nodeComponentBasic                    ), pointer       :: basic
-    double precision                                        , parameter     :: a                    =0.56d0, b                       =3.47d-05, &
+    double precision                                        , parameter     :: a                    =0.56d0, b                       =2.88d-06, &
          &                                                                     alpha                =0.14d0, beta                    =0.39d+00, &
          &                                                                     gamma                =0.10d0, massZeroPoint           =3.98d+10, &
          &                                                                     sigma1               =0.47d0, sigma2                  =0.34d+00
