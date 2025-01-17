@@ -1527,7 +1527,7 @@ jobs:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)'
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos'
-          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime10_velocityKick20'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)'
@@ -1536,7 +1536,7 @@ jobs:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)'
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos'
-          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20_velocityKick20'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
@@ -1545,7 +1545,7 @@ jobs:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos'
-          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20_velocityKick40'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
@@ -1554,7 +1554,7 @@ jobs:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos'
-          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40_velocityKick20'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)'
@@ -1563,7 +1563,7 @@ jobs:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)'
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos'
-          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40_velocityKick40'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)'
@@ -1572,7 +1572,7 @@ jobs:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)'
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos'
-          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80_velocityKick40'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
