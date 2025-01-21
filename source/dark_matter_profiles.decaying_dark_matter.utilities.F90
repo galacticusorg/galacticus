@@ -286,7 +286,7 @@ contains
 
     The truncated Maxwell-Boltzmann distribution is
     \begin{equation}
-      p(v,\theta|s) = \left\{ \begin{array}{ll} A v^2 \exp\left(-\frac{1}{2}\left[\frac{v}{s}\right]^2\right) & \hbox{if } v < v_\mathrm{e} \\ 0 &  \hbox{if } v \ge v_\mathrm{e}, \end{array} \right.
+      p(v,\theta|s) = \left\{ \begin{array}{ll} A^{-1} v^2 \exp\left(-\frac{1}{2}\left[\frac{v}{s}\right]^2\right) & \hbox{if } v < v_\mathrm{e} \\ 0 &  \hbox{if } v \ge v_\mathrm{e}, \end{array} \right.
     \end{equation}
     where $s$ is the velocity width, $v_\mathrm{e}$ is the escape velocity, $v$ is particle speed, $\theta$ is the direction of
     the particle velocity relative to the $z$-axis, and
