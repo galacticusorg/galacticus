@@ -282,7 +282,7 @@ contains
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
-       massDistribution_              => node             %massDistribution    (&
+       massDistribution_              => node             %massDistribution    (                                       &
             &                                                                   componentType=self%radii(i)%component, &
             &                                                                   massType     =self%radii(i)%mass       &
             &                                                                  )

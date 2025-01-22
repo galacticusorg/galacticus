@@ -189,7 +189,6 @@ contains
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
-
     ! Assume a null distribution by default.
     massDistribution_ => null()
     ! If weighting is not by mass, return a null profile.

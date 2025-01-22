@@ -31,23 +31,41 @@
      Implementation of an abstract mass distribution class for spherically symmetric distributions.
      !!}
      private
+     ! Memoized solutions for the enclosed mass.
+     double precision              , allocatable, dimension(:) :: massProfileMass__                                          , massProfileRadius__
+     double precision                                          :: massProfileRadiusMinimum__                    =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
+     type            (interpolator), allocatable               :: massProfile__
+     logical                                                   :: tolerateEnclosedMassIntegrationFailure        =.false.
+     ! Memoized solutions for the potential.
+     double precision              , allocatable, dimension(:) :: potentialProfilePotential__                                , potentialProfileRadius__
+     double precision                                          :: potentialProfileRadiusMinimum__               =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
+          &                                                       potentialProfileRadiusMinimumActual__                      , potentialRadiusZeroPoint__     =-huge(0.0d0)
+     type            (interpolator), allocatable               :: potentialProfile__
+     logical                                                   :: toleratePotentialIntegrationFailure           =.false.
+     double precision                                          :: toleranceRelativePotential                    =1.0d-6
+     ! Options controlling implementation.
+     logical                                                   :: chandrasekharIntegralComputeVelocityDispersion=.true.
    contains
      !![
      <methods>
-       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"                     />
-       <method description="Compute the potential energy of mass distribution."                      method="energyPotential"                    />
-       <method description="Compute the kinetic energy of the mass distribution."                    method="energyKinetic"                      />
-       <method description="Compute (numerically) the potential energy of mass distribution."        method="energyPotentialNumerical"           />
-       <method description="Compute (numerically) the kinetic energy of the mass distribution."      method="energyKineticNumerical"             />
-       <method description="Compute (numerically) a radial densitymoment of the mass distribution."  method="densityRadialMomentNumerical"       />
-       <method description="Compute (numerically) the radial density gradient."                      method="densityGradientRadialNumerical"     />
-       <method description="Compute (numerically) the mass enclosed by a sphere."                    method="massEnclosedBySphereNumerical"      />
-       <method description="Compute (numerically) the rotation curve."                               method="rotationCurveNumerical"             />
-       <method description="Compute (numerically) the gravitational potential."                      method="potentialNumerical"                 />
-       <method description="Compute (numerically) the Fourier transform of the density profile."     method="fourierTransformNumerical"          />
-       <method description="Compute (numerically) the freefall radius."                              method="radiusFreefallNumerical"            />
-       <method description="Compute (numerically) the growth rate of the freefall radius."           method="radiusFreefallIncreaseRateNumerical"/>
-       <method description="Compute (numerically) the energy."                                       method="energyNumerical"                    />
+       <method description="Returns the radius enclosing half of the mass of the mass distribution."                               method="radiusHalfMass"                     />
+       <method description="Compute the potential energy of mass distribution."                                                    method="energyPotential"                    />
+       <method description="Compute the kinetic energy of the mass distribution."                                                  method="energyKinetic"                      />
+       <method description="Compute (numerically) the potential energy of mass distribution."                                      method="energyPotentialNumerical"           />
+       <method description="Compute (numerically) the kinetic energy of the mass distribution."                                    method="energyKineticNumerical"             />
+       <method description="Compute (numerically) a radial densitymoment of the mass distribution."                                method="densityRadialMomentNumerical"       />
+       <method description="Compute (numerically) the radial density gradient."                                                    method="densityGradientRadialNumerical"     />
+       <method description="Compute (numerically) the mass enclosed by a sphere."                                                  method="massEnclosedBySphereNumerical"      />
+       <method description="Compute (numerically) the rotation curve."                                                             method="rotationCurveNumerical"             />
+       <method description="Compute (numerically) the gravitational potential."                                                    method="potentialNumerical"                 />
+       <method description="Compute (numerically) the Fourier transform of the density profile."                                   method="fourierTransformNumerical"          />
+       <method description="Compute (numerically) the freefall radius."                                                            method="radiusFreefallNumerical"            />
+       <method description="Compute (numerically) the growth rate of the freefall radius."                                         method="radiusFreefallIncreaseRateNumerical"/>
+       <method description="Compute (numerically) the energy."                                                                     method="energyNumerical"                    />
+       <method description="Integrand for dark matter profile potential."                                                          method="potentialSolverIntegrand"           />
+       <method description="Return the radius variable used in solving the potential that corresponds to a given physical radius." method="potentialSolverRadius"              />
+       <method description="Set sub-module scope pointers on a stack to allow recursive calls to functions."                       method="solverSphericalSet"                 />
+       <method description="Unset sub-module scope pointers on a stack."                                                           method="solverSphericalUnset"               />
      </methods>
      !!]
      procedure :: symmetry                            => sphericalSymmetry
@@ -56,10 +74,13 @@
      procedure :: densityGradientRadialNumerical      => sphericalDensityGradientRadialNumerical
      procedure :: massEnclosedBySphere                => sphericalMassEnclosedBySphere
      procedure :: massEnclosedBySphereNumerical       => sphericalMassEnclosedBySphereNumerical
+     procedure :: radiusEnclosingMassNumerical        => sphericalRadiusEnclosingMassNumerical
      procedure :: densityRadialMoment                 => sphericalDensityRadialMoment
      procedure :: densityRadialMomentNumerical        => sphericalDensityRadialMomentNumerical
      procedure :: potential                           => sphericalPotential
      procedure :: potentialNumerical                  => sphericalPotentialNumerical
+     procedure :: potentialSolverIntegrand            => sphericalPotentialSolverIntegrand
+     procedure :: potentialSolverRadius               => sphericalPotentialSolverRadius
      procedure :: fourierTransform                    => sphericalFourierTransform
      procedure :: fourierTransformNumerical           => sphericalFourierTransformNumerical
      procedure :: radiusFreefall                      => sphericalRadiusFreefall
@@ -83,13 +104,20 @@
      procedure :: rotationCurveNumerical              => sphericalRotationCurve
      procedure :: rotationCurveGradient               => sphericalRotationCurveGradient
      procedure :: radiusHalfMass                      => sphericalRadiusHalfMass
+     procedure :: solverSphericalSet                  => sphericalSolverSphericalSet
+     procedure :: solverSphericalUnset                => sphericalSolverSphericalUnset
   end type massDistributionSpherical
 
-  ! Module scope variables used in integration and root finding.
-  class           (massDistributionSpherical), pointer :: self_
-  double precision                                     :: time_, radiusFreefall_
-  !$omp threadprivate(self_,time_,radiusFreefall_)
-
+  ! Submodule-scope pointers used in integrand functions and root finding.
+  type :: massSolverSpherical
+     class           (massDistributionSpherical), pointer :: self => null()
+     double precision                                     :: time          , radiusFreefall
+  end type massSolverSpherical
+  type   (massSolverSpherical), allocatable, dimension(:) :: massSphericalSolvers
+  integer                     , parameter                 :: massSphericalSolversIncrement=10
+  integer                                                 :: massSphericalSolversCount    = 0
+  !$omp threadprivate(massSphericalSolvers,massSphericalSolversCount)
+  
 contains
 
   function sphericalSymmetry(self)
@@ -145,10 +173,11 @@ contains
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    self_           =>  self
+    call self%solverSet  ()
     radius          =   coordinates    %rSpherical(                                     )
     differentiator_ =   differentiator            (densityEvaluate                      )
     densityGradient =  +differentiator_%derivative(log(radius)    ,radiusLogarithmicStep)
+    call self%solverUnset()
     if (.not.logarithmic_)                                    &
          & densityGradient=+     densityGradient              &
          &                 *self%density        (coordinates) &
@@ -166,7 +195,7 @@ contains
     type            (coordinateSpherical)                       :: coordinates
 
     coordinates=[exp(radiusLogarithmic),0.0d0,0.0d0]
-    density    =log(self_%density(coordinates))
+    density    =log(massSolvers(massSolversCount)%self%density(coordinates))
     return
   end function densityEvaluate
 
@@ -188,21 +217,250 @@ contains
     Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     distributions using numerical integration.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : integrator
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t
+    use            :: Numerical_Constants_Math, only : Pi
+    use            :: Numerical_Integration   , only : integrator
+    use            :: Numerical_Ranges        , only : Make_Range                  , rangeTypeLogarithmic
+    use            :: Table_Labels            , only : extrapolationTypeExtrapolate
+    use            :: Numerical_Interpolation , only : gsl_interp_linear
+    use            :: Error                   , only : Error_Report                , errorStatusSuccess
     implicit none
-    class           (massDistributionSpherical), intent(inout), target :: self
-    double precision                           , intent(in   )         :: radius
-    type            (integrator               )                        :: integrator_
+    class           (massDistributionSpherical), intent(inout), target     :: self
+    double precision                           , intent(in   )             :: radius
+    double precision                                         , parameter   :: countPointsPerOctave     =4.0d+00
+    double precision                                         , parameter   :: radiusVirialFractionSmall=1.0d-12
+    double precision                          , dimension(:) , allocatable :: masses                           , radii              , &
+         &                                                                    masses_                          , radii_
+    type            (integrator              )                             :: integrator_
+    integer         (c_size_t                )                             :: countRadii                       , iMinimum           , &
+         &                                                                    iMaximum                         , i                  , &
+         &                                                                    iPrevious
+    logical                                                                :: remakeTable
+    double precision                                                       :: radiusIntegralLower              , radiusIntegralUpper, &
+         &                                                                    radiusMinimum                    , radiusMaximum
+    integer                                                                :: status
 
-    self_       =>  self
-    integrator_ =   integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-6)
-    mass        =  +4.0d0                              &
-         &         *Pi                                 &
-         &         *integrator_%integrate(0.0d0,radius)
+    if (radius <= 0.0d0) then
+       mass=0.0d0
+       return
+    end if
+    ! Determine if the table must be rebuilt.
+    remakeTable=.false.
+    if (.not.allocated(self%massProfileMass__)) then
+       remakeTable=.true.
+    else
+       remakeTable= radius < self%massProfileRadiusMinimum__ &
+            &      .or.                                      &
+            &       radius > self%massProfileRadiusMaximum__
+    end if
+    if (remakeTable) then
+       ! Set sub-module-scope pointers.
+       call self%solverSet()
+       ! Initialize integrator.
+       integrator_=integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-2)
+       ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
+       !! Set an initial range of radii that brackets the requested radii.
+       radiusMinimum=0.5d0*radius
+       radiusMaximum=2.0d0*radius
+       !! Round to the nearest factor of 2.
+       radiusMinimum=2.0d0**floor  (log(radiusMinimum)/log(2.0d0))
+       radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
+       !! Expand to encompass any pre-existing range.
+       if (allocated(self%massProfileRadius__)) then
+          radiusMinimum=min(radiusMinimum,self%massProfileRadiusMinimum__)
+          radiusMaximum=max(radiusMaximum,self%massProfileRadiusMaximum__)
+       end if
+       !! Construct arrays.
+       countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+       allocate(radii (countRadii))
+       allocate(masses(countRadii))
+       radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+       ! Copy in any usable results from any previous solution.
+       !! Assume by default that no previous solutions are usable.
+       iMinimum=+huge(0_c_size_t)
+       iMaximum=-huge(0_c_size_t)
+       !! Check that a pre-existing solution exists.
+       if (allocated(self%massProfileRadius__)) then
+          iMinimum=nint(log(self%massProfileRadiusMinimum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+          iMaximum=nint(log(self%massProfileRadiusMaximum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+          masses(iMinimum:iMaximum)=self%massProfileMass__
+       end if
+       !! If ignoring errors in mass profile tabulation we must always compute the profile completely if we have a new minimum
+       !! radius. Failure to do so can lead to non-monotonically increasing mass profiles (which lead to negative densities) due
+       !! to prior failures in computing the mass profile.
+       if (self%tolerateEnclosedMassIntegrationFailure .and. iMinimum > 1_c_size_t) then
+          iMinimum=+huge(0_c_size_t)
+          iMaximum=-huge(0_c_size_t)
+       end if
+       ! Solve for the enclosed mass where old results were unavailable.
+       do i=1,countRadii
+          ! Skip cases for which we have a pre-existing solution.
+          if (i >= iMinimum .and. i <= iMaximum) cycle
+          ! Find the limits for the integral.
+          if (i == 1) then
+             radiusIntegralLower=0.0d0
+          else
+             radiusIntegralLower=radii(i-1)
+          end if
+          radiusIntegralUpper   =radii(i  )
+          ! Evaluate the integral.
+          masses           (i)=+4.0d0*Pi*integrator_%integrate(radiusIntegralLower,radiusIntegralUpper,status=status)
+          if (status /= errorStatusSuccess .and. .not.self%tolerateEnclosedMassIntegrationFailure) &
+               & call Error_Report('enclosed mass profile integration failed'//{introspection:location})
+          if (i > 1) masses(i)=+masses(i  ) &
+               &               +masses(i-1)
+       end do
+       ! Build the interpolator.
+       if (allocated(self%massProfile__)) deallocate(self%massProfile__)
+       if (all(masses > 0.0d0)) then
+          allocate(self%massProfile__)
+          self%massProfile__=interpolator(log(radii),log(masses),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)
+       else if (all(masses == 0.0d0)) then
+          ! This is a fully-destroyed profile - we leave the mass profile unallocated to indicate this.
+       else
+          ! We have a partial profile. Attempt to work with this by selecting out the physically-reasonable values.
+          countRadii=+0_c_size_t
+          iPrevious =-1_c_size_t
+          do i=size(masses),1,-1
+             if     (                                         &
+                  &     masses   (i) >  0.0d0                 &
+                  &  .and.                                    &
+                  &   (                                       &
+                  &     iPrevious    <= 0_c_size_t            &
+                  &    .or.                                   &
+                  &     masses   (i) <  masses    (iPrevious) &
+                  &   )                                       &
+                  & ) then
+                countRadii=countRadii+1_c_size_t
+                iPrevious =           i
+             end if
+          end do
+          if (countRadii > 1) then
+             allocate(radii_ (countRadii))
+             allocate(masses_(countRadii))
+             iPrevious=-1_c_size_t
+             do i=size(masses),1,-1
+                if     (                                         &
+                     &     masses   (i) >  0.0d0                 &
+                     &  .and.                                    &
+                     &   (                                       &
+                     &     iPrevious    <= 0_c_size_t            &
+                     &    .or.                                   &
+                     &     masses   (i) <  masses    (iPrevious) &
+                     &   )                                       &
+                     & ) then
+                   radii_    (countRadii)=radii     (i)
+                   masses_   (countRadii)=masses    (i)
+                   iPrevious             =           i
+                   countRadii            =countRadii-1_c_size_t
+                end if
+             end do
+             allocate(self%massProfile__)
+             self%massProfile__=interpolator(log(radii_),log(masses_),interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)
+          end if
+       end if
+       call self%solverUnset()
+       ! Store the current results for future re-use.
+       if (allocated(self%massProfileRadius__)) deallocate(self%massProfileRadius__)
+       if (allocated(self%massProfileMass__  )) deallocate(self%massProfileMass__  )
+       allocate(self%massProfileRadius__(countRadii))
+       allocate(self%massProfileMass__  (countRadii))
+       self%massProfileRadius__       =radii
+       self%massProfileMass__         =masses
+       self%massProfileRadiusMinimum__=radiusMinimum
+       self%massProfileRadiusMaximum__=radiusMaximum
+    end if
+    ! Interpolate in the table to find the mass difference.
+    if (allocated(self%massProfile__)) then
+       mass=+exp(self%massProfile__%interpolate(log(radius)))
+    else
+       ! Fully-destroyed profile.
+       mass=+0.0d0
+    end if    
     return
   end function sphericalMassEnclosedBySphereNumerical
 
+  double precision function sphericalMassEnclosedBySphereIntegrand(radius) result(integrand)
+    !!{
+    Enclosed mass integrand for spherical mass distributions.
+    !!}
+    use :: Coordinates, only : assignment(=), coordinateSpherical
+    implicit none
+    double precision                     , intent(in   ) :: radius
+    type            (coordinateSpherical)                :: position
+
+    if (radius > 0.0d0) then
+       position =[radius,0.0d0,0.0d0]
+       integrand=+radius**2               &
+            &    *massSolvers(massSolversCount)%self%density(position)
+    else
+      integrand=+0.0d0 
+    end if
+    return
+  end function sphericalMassEnclosedBySphereIntegrand
+
+  double precision function sphericalRadiusEnclosingMassNumerical(self,mass,massFractional) result(radius)
+    !!{
+    Return the radius enclosing a specified mass using a numerical calculation.
+    !!}
+    use :: Root_Finder, only : rootFinder                   , GSL_Root_fSolver_Brent, rangeExpandMultiplicative, rangeExpandSignExpectNegative, &
+         &                     rangeExpandSignExpectPositive
+    use :: Error      , only : Error_Report
+    implicit none
+    class           (massDistributionSpherical), intent(inout), target   :: self
+    double precision                           , intent(in   ), optional :: mass                   , massFractional
+    type            (rootFinder               )                          :: finder
+    double precision                           , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                                                     :: massTarget
+    
+    if      (present(mass          )) then
+       massTarget=     mass
+    else if (present(massFractional)) then
+       massTarget=self%massTotal()*massFractional
+    else
+       massTarget=0.0d0
+       call Error_Report('either "mass" or "massFractional" must be provided'//{introspection:location})
+    end if
+    if (massTarget <= 0.0d0) then
+       radius=0.0d0
+       return
+    end if
+    finder =rootFinder(                                                             &
+         &             rootFunction                 =sphericalMassEnclosedRoot    , &
+         &             toleranceAbsolute            =toleranceAbsolute            , &
+         &             toleranceRelative            =toleranceRelative            , &
+         &             solverType                   =GSL_Root_fSolver_Brent       , &
+         &             rangeExpandUpward            =2.0d0                        , &
+         &             rangeExpandDownward          =0.5d0                        , &
+         &             rangeExpandType              =rangeExpandMultiplicative    , &
+         &             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+         &            )
+    call self%solverSet  (massTarget=massTarget)
+    if (allocated(self%massProfile__)) then
+       ! A mass profile exists - use its extent as the initial search range. If the required radius lies within this range we then
+       ! avoid triggering any retabulation.
+       radius=finder%find(rootRange=[self%massProfileRadiusMinimum__,self%massProfileRadiusMaximum__])
+    else
+       ! No mass profile exists - make a reasonable guess at a radius to begin.
+       radius=finder%find(rootGuess=1.0d0                                                            )
+    end if
+    call self%solverUnset(                     )
+    return
+  end function sphericalRadiusEnclosingMassNumerical
+  
+  double precision function sphericalMassEnclosedRoot(radius) result(root)
+    !!{
+    Root function used in finding radii enclosing a target mass.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    root   =+massSolvers(massSolversCount)%self%massEnclosedBySphere(radius) &
+         &  -massSolvers(massSolversCount)     %massTarget
+    return
+  end function sphericalMassEnclosedRoot
+  
   double precision function sphericalDensitySphericalAverage(self,radius)
     !!{
     Computes the density averaged over a spherical shell.
@@ -218,25 +476,6 @@ contains
     sphericalDensitySphericalAverage=self%density(position)
     return
   end function sphericalDensitySphericalAverage
-
-  double precision function sphericalMassEnclosedBySphereIntegrand(radius) result(integrand)
-    !!{
-    Enclosed mass integrand for spherical mass distributions.
-    !!}
-    use :: Coordinates, only : assignment(=), coordinateSpherical
-    implicit none
-    double precision                     , intent(in   ) :: radius
-    type            (coordinateSpherical)                :: position
-
-    if (radius > 0.0d0) then
-       position =[radius,0.0d0,0.0d0]
-       integrand=+radius**2               &
-            &    *self_%density(position)
-    else
-      integrand=+0.0d0 
-    end if
-    return
-  end function sphericalMassEnclosedBySphereIntegrand
 
   double precision function sphericalRadiusHalfMass(self)
     !!{
@@ -266,42 +505,190 @@ contains
     !!{
     Return the potential at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
     !!}
-    use :: Coordinates                     , only : assignment(=)
-    use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-    use :: Numerical_Integration           , only : integrator
-    use :: Numerical_Comparison            , only : Values_Agree
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Coordinates                     , only : assignment(=)
+    use            :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
+    use            :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use            :: Numerical_Integration           , only : integrator
+    use            :: Numerical_Comparison            , only : Values_Agree
+    use            :: Numerical_Ranges                , only : Make_Range                     , rangeTypeLogarithmic
+    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
+    use            :: Numerical_Interpolation         , only : gsl_interp_linear
+    use            :: Error                           , only : Error_Report                   , errorStatusSuccess
     implicit none
-    class           (massDistributionSpherical        ), intent(inout), target   :: self
-    class           (coordinate                       ), intent(in   )           :: coordinates
-    type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
-    double precision                                   , parameter               :: toleranceRelative  =1.0d-3
-    double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
-    type            (integrator                       ), save                    :: integrator_
-    logical                                            , save                    :: initialized        =.false.
-    !$omp threadprivate(integrator_,initialized)
-    double precision                                                             :: radiusMaximum              , potentialPrevious, &
-         &                                                                          radius
+    class           (massDistributionSpherical        ), intent(inout), target      :: self
+    class           (coordinate                       ), intent(in   )              :: coordinates
+    type            (enumerationStructureErrorCodeType), intent(  out), optional    :: status
+    double precision                                   , dimension(:) , allocatable :: potentials                  , radii               , &
+         &                                                                             potentials_                 , radii_
+    double precision                                   , parameter                  :: countPointsPerOctave=4.0d+0
+    double precision                                   , parameter                  :: radiusMaximumFactor =1.0d+1
+    double precision                                   , parameter                  :: toleranceRelative   =1.0d-6
+    type            (integrator                       )                             :: integrator_
+    integer         (c_size_t                )                                      :: countRadii                  , iMinimum            , &
+         &                                                                             iMaximum                    , iPrevious           , &
+         &                                                                             i
+    logical                                                                         :: remakeTable
+    double precision                                                                :: radiusMaximum               , radiusMinimum       , &
+         &                                                                             radius                      , massRadiusMaximum   , &
+         &                                                                             radiusLowerPotential        , radiusUpperPotential
+    integer                                                                         :: status_
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.initialized) then
-       integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
-       initialized=.true.
+    potential         =+0.0d0
+    radius            =+coordinates%rSpherical()
+    radiusMaximum     =+            radius
+    ! Round to the nearest factor of 2.
+    radiusMaximum=2.0d0**ceiling(log(radiusMaximum)/log(2.0d0))
+    ! Determine if the table must be rebuilt.
+    remakeTable=.false.
+    if (.not.allocated(self%potentialProfilePotential__)) then
+       remakeTable=.true.
+    else
+       remakeTable= radius < self%potentialProfileRadiusMinimum__ &
+            &      .or.                                           &
+            &       radius > self%potentialProfileRadiusMaximum__
     end if
-    self_             =>  self
-    potential         =  +0.0d0
-    potentialPrevious =  +1.0d0
-    radius            =  +coordinates%rSpherical()
-    radiusMaximum     =  +            radius
-    do while (.not.Values_Agree(potential,potentialPrevious,relTol=toleranceRelative))
-       potentialPrevious=+potential
-       radiusMaximum    =+radiusMaximum                        &
-            &            *radiusMaximumFactor
-       potential        =+integrator_%integrate(               &
-            &                                   radius       , &
-            &                                   radiusMaximum  &
-            &                                  )
-    end do
+    if (remakeTable) then
+       integrator_=integrator(integrandPotential,toleranceRelative=self%toleranceRelativePotential)
+       ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
+       !! Check the mass at the maximum radius is non-zero.
+       massRadiusMaximum=self%massEnclosedBySphere(radiusMaximum)
+       if (massRadiusMaximum > 0.0d0) then
+          !! Set an initial range of radii that brackets the requested radii.
+          radiusMinimum=0.5d0*radius
+          !! Round to the nearest factor of 2.
+          radiusMinimum=2.0d0**floor(log(radiusMinimum)/log(2.0d0))
+          !! Expand to encompass any pre-existing range.
+          if (allocated(self%potentialProfileRadius__)) then
+             radiusMinimum=min(radiusMinimum,self%potentialProfileRadiusMinimum__)
+             radiusMaximum=max(radiusMaximum,self%potentialProfileRadiusMaximum__)
+          end if
+          !! Construct arrays.
+          countRadii=nint(log(radiusMaximum/radiusMinimum)/log(2.0d0)*countPointsPerOctave+1.0d0)
+          allocate(radii     (countRadii))
+          allocate(potentials(countRadii))
+          radii=Make_Range(radiusMinimum,radiusMaximum,int(countRadii),rangeTypeLogarithmic)
+          ! Copy in any usable results from any previous solution.
+          !! Assume by default that no previous solutions are usable.
+          iMinimum=+huge(0_c_size_t)
+          iMaximum=-huge(0_c_size_t)
+          !! Check that a pre-existing solution exists.
+          if (allocated(self%potentialProfileRadius__)) then
+             iMinimum=nint(log(self%potentialProfileRadiusMinimum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+             iMaximum=nint(log(self%potentialProfileRadiusMaximum__/radiusMinimum)/log(2.0d0)*countPointsPerOctave)+1_c_size_t
+             potentials(iMinimum:iMaximum)=self%potentialProfilePotential__
+          end if
+          ! Set the radius for the zero point of the potential.
+          if (self%potentialRadiusZeroPoint__ < 0.0d0) self%potentialRadiusZeroPoint__=radiusMaximum
+          ! Solve for the enclosed mass where old results were unavailable.
+          call self%solverSet  ()
+          do i=countRadii,1,-1
+             ! Skip cases for which we have a pre-existing solution.
+             if (i >= iMinimum .and. i <= iMaximum) cycle  
+             ! Evaluate the integral.
+             radiusLowerPotential   =self%potentialSolverRadius(     radii                     (i  ))
+             ! If the prior point in the grid was successfully evaluated, we need only compute the potential difference relative
+             ! to that point.
+             if (i == countRadii .or. potentials(i+1) == -huge(0.0d0)) then
+                radiusUpperPotential=self%potentialSolverRadius(self%potentialRadiusZeroPoint__     )
+             else
+                radiusUpperPotential=self%potentialSolverRadius(     radii                     (i+1))
+             end if
+             potentials(i)=integrator_%integrate(radiusLowerPotential,radiusUpperPotential,status_)
+             ! Convert a potential difference to the actual potential if necessary.
+             if (i < countRadii .and. potentials(i+1) /= -huge(0.0d0)) &
+                  & potentials(i)=+potentials(i  ) &
+                  &               +potentials(i+1)
+             if (status_ /= errorStatusSuccess) then
+                if (self%toleratePotentialIntegrationFailure) then
+                   potentials(i)=-huge(0.0d0)
+                else
+                   call Error_Report('potential integration failed'//{introspection:location})
+                end if
+             end if
+          end do
+          call self%solverUnset()
+          ! Build the interpolator.
+          if (allocated(self%potentialProfile__)) deallocate(self%potentialProfile__)
+          if (all(potentials > -huge(0.0d0))) then
+             radii_     =radii
+             potentials_=potentials
+          else if (all(potentials == -huge(0.0d0))) then
+             ! A fully-destroyed profile.
+             allocate(radii_     (0))
+             allocate(potentials_(0))
+          else
+             !  We have a partial profile. Attempt to work with this by selecting out the physically-reasonable values.
+             countRadii=+0_c_size_t
+             iPrevious =-1_c_size_t
+             do i=size(potentials),1,-1
+                if     (                                          &
+                     &     potentials(i) >  -huge(0.0d0)          &
+                     &  .and.                                     &
+                     &   (                                        &
+                     &     iPrevious     <= 0_c_size_t            &
+                     &    .or.                                    &
+                     &     potentials(i) <  potentials(iPrevious) &
+                     &   )                                        &
+                     & ) then
+                   countRadii=countRadii+1_c_size_t
+                   iPrevious =           i
+                end if
+             end do
+             if (countRadii > 1) then
+                allocate(radii_     (countRadii))
+                allocate(potentials_(countRadii))
+                iPrevious=-1_c_size_t
+                do i=size(potentials),1,-1
+                   if     (                                          &
+                        &     potentials(i) >  -huge(0.0d0)          &
+                        &  .and.                                     &
+                        &   (                                        &
+                        &     iPrevious     <= 0_c_size_t            &
+                        &    .or.                                    &
+                        &     potentials(i) <  potentials(iPrevious) &
+                        &   )                                        &
+                        & ) then
+                      radii_     (countRadii)=radii     (i)
+                      potentials_(countRadii)=potentials(i)
+                      iPrevious              =           i
+                      countRadii             =countRadii-1_c_size_t
+                   end if
+                end do
+             else
+                ! Only one point is available - can not make an interpolator.
+                allocate(radii_     (0))
+                allocate(potentials_(0))
+             end if
+          end if
+          if (size(radii_) > 0) then
+             allocate(self%potentialProfile__)
+             self%potentialProfile__=interpolator(radii_,potentials_,interpolationType=gsl_interp_linear,extrapolationType=extrapolationTypeExtrapolate)  
+             ! Store the current results for future re-use.
+             if (allocated(self%potentialProfileRadius__   )) deallocate(self%potentialProfileRadius__   )
+             if (allocated(self%potentialProfilePotential__)) deallocate(self%potentialProfilePotential__)
+             allocate(self%potentialProfileRadius__   (countRadii))
+             allocate(self%potentialProfilePotential__(countRadii))
+             self%potentialProfileRadius__             =radii
+             self%potentialProfilePotential__          =potentials
+             self%potentialProfileRadiusMinimum__      =radiusMinimum
+             self%potentialProfileRadiusMinimumActual__=radii_       (1)
+             self%potentialProfileRadiusMaximum__      =radiusMaximum
+          else
+             ! The profile is undefined. Leave the table unallocated.
+             if (allocated(self%potentialProfile__)) deallocate(self%potentialProfile__)
+          end if
+       else
+          ! The profile is undefined. Leave the table unallocated.
+          if (allocated(self%potentialProfile__)) deallocate(self%potentialProfile__)
+       end if
+    end if
+    if (allocated(self%potentialProfile__)) then
+       potential=self%potentialProfile__%interpolate(max(radius,self%potentialProfileRadiusMinimumActual__))
+    else
+       potential=+0.0d0
+    end if
     ! Convert to dimensionful units.    
     if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
          &                                     *potential
@@ -310,9 +697,8 @@ contains
 
   double precision function sphericalPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potential)
     !!{
-    Return the potential difference between the two specified
-    {\normalfont \ttfamily coordinates} in a spherical mass
-    distribution using a numerical calculation.
+    Return the potential difference between the two specified {\normalfont \ttfamily coordinates} in a spherical mass distribution
+    using a numerical calculation.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
@@ -321,24 +707,20 @@ contains
     use :: Numerical_Comparison            , only : Values_Agree
     implicit none
     class           (massDistributionSpherical        ), intent(inout), target   :: self
-    class           (coordinate                       ), intent(in   )           :: coordinates1               , coordinates2
+    class           (coordinate                       ), intent(in   )           :: coordinates1              , coordinates2
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                   , parameter               :: toleranceRelative  =1.0d-3
     double precision                                   , parameter               :: radiusMaximumFactor=1.0d+1
-    type            (integrator                       ), save                    :: integrator_
-    logical                                            , save                    :: initialized        =.false.
-    !$omp threadprivate(integrator_,initialized)
+    type            (integrator                       )                          :: integrator_
 
     if (present(status)) status=structureErrorCodeSuccess
-    if (.not.initialized) then
-       integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
-       initialized=.true.
-    end if
-    self_     => self
+    integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
+    call self%solverSet  ()
     potential =  integrator_%integrate(                           &
          &                             coordinates1%rSpherical(), &
          &                             coordinates2%rSpherical()  &
          &                            )
+    call self%solverUnset()
     ! Convert to dimensionful units.    
     if (.not.self%isDimensionless()) potential=+gravitationalConstantGalacticus &
          &                                     *potential
@@ -347,19 +729,52 @@ contains
   
   double precision function integrandPotential(radius)
     !!{
-    Integrand for gravitational potential in a spherical mass distribution.
+    Integrand for gravitational potential in a generic dark matter profile.
     !!}
     implicit none
     double precision, intent(in   ) :: radius
+
+    select type (self => massSolvers(massSolversCount)%self)
+    class is (massDistributionSpherical)
+       integrandPotential=self%potentialSolverIntegrand(radius)
+    class default
+       integrandPotential=0.0d0
+       call Error_Report('unexpected class'//{introspection:location})
+    end select
+    return
+  end function integrandPotential
+
+  double precision function sphericalPotentialSolverIntegrand(self,radius) result(integrandPotential)
+    !!{
+    Integrand for gravitational potential in a spherical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
       
     if (radius > 0.0d0) then
-       integrandPotential=-self_%massEnclosedBySphere(radius)    &
-            &             /                           radius **2
+       integrandPotential=-self%massEnclosedBySphere(radius)    &
+            &             /                          radius **2
     else
        integrandPotential=0.0d0
     end if
     return
-  end function integrandPotential
+  end function sphericalPotentialSolverIntegrand
+
+  double precision function sphericalPotentialSolverRadius(self,radius) result(radiusSolver)
+    !!{
+    Return the radius variable used in computing the potential that corresponds to a given physical radius.
+    In some cases, it is easier to do the integration with respect to another variable which is a function of
+    the physical radius.
+    !!}
+    implicit none
+    class           (massDistributionSpherical), intent(inout) :: self
+    double precision                           , intent(in   ) :: radius
+    !$GLC attributes unused :: self
+
+    radiusSolver=radius
+    return
+  end function sphericalPotentialSolverRadius
 
   function sphericalAcceleration(self,coordinates) result(acceleration)
     !!{
@@ -573,7 +988,6 @@ contains
             &                      /velocityDispersion    &
             &                      /sqrt(2.0d0)
     else
-       
        xV                         =+huge(0.0d0)
     end if
     velocityCartesian             = velocity
@@ -698,8 +1112,7 @@ contains
        timeFreefallMinimum=+0.0d0
     end if   
     if (time < timeFreefallMinimum) return
-    self_  => self
-    time_  =  time
+    call self%solverSphericalSet(time)
     finder =  rootFinder(                                                             &
          &               rootFunction                 =rootRadiusFreefall           , &
          &               toleranceAbsolute            =toleranceAbsolute            , &
@@ -711,6 +1124,7 @@ contains
          &               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &              )
     radius=finder%find(rootGuess=1.0d0)
+    call self%solverSphericalUnset()
     return
   end function sphericalRadiusFreefallNumerical
   
@@ -722,11 +1136,11 @@ contains
     implicit none
     double precision            , intent(in   ) :: radiusFreefall
     type            (integrator)                :: integrator_
-    
-    radiusFreefall_   =+radiusFreefall
-    integrator_       = integrator              (integrandTimeFreefall,toleranceRelative=1.0d-3)
-    rootRadiusFreefall=+integrator_   %integrate(0.0d0                ,radiusFreefall          ) &
-         &             -time_
+      
+    massSphericalSolvers(massSphericalSolversCount)%radiusFreefall=+                                                                               radiusFreefall
+    integrator_                                                   = integrator                                              (integrandTimeFreefall,toleranceRelative=1.0d-3)
+    rootRadiusFreefall                                            =+integrator_                                   %integrate(0.0d0                ,radiusFreefall          ) &
+         &                                                         -massSphericalSolvers(massSphericalSolversCount)%time
     return
   end function rootRadiusFreefall
 
@@ -741,9 +1155,9 @@ contains
     double precision                                     :: potentialDifference
     type            (coordinateSpherical)                :: coordinates        , coordinatesFreefall
 
-    coordinates        =[radius         ,0.0d0,0.0d0]
-    coordinatesFreefall=[radiusFreefall_,0.0d0,0.0d0]
-    potentialDifference=+self_%potentialDifference(coordinates,coordinatesFreefall)
+    coordinates        =[                                                radius        ,0.0d0,0.0d0]
+    coordinatesFreefall=[massSphericalSolvers(massSphericalSolversCount)%radiusFreefall,0.0d0,0.0d0]
+    potentialDifference=+massSphericalSolvers(massSphericalSolversCount)%self%potentialDifference(coordinates,coordinatesFreefall)
     if (potentialDifference < 0.0d0) then
        integrandTimeFreefall=+Mpc_per_km_per_s_To_Gyr   &
             &                /sqrt(                     &
@@ -782,9 +1196,11 @@ contains
     double precision                           , parameter     :: timeLogarithmicStep=1.0d-2
     type            (differentiator           )                :: differentiator_
 
+    call self%solverSphericalSet(time)
     differentiator_   = differentiator            (radiusFreefallEvaluate                    )
     radiusIncreaseRate=+differentiator_%derivative(log(time)             ,timeLogarithmicStep) &
          &             /                               time
+    call self%solverSphericalUnset()
     return
   end function sphericalRadiusFreefallIncreaseRateNumerical
 
@@ -795,7 +1211,7 @@ contains
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
 
-    radiusFreefallEvaluate=self_%radiusFreefall(exp(timeLogarithmic))
+    radiusFreefallEvaluate=massSphericalSolvers(massSphericalSolversCount)%self%radiusFreefall(exp(timeLogarithmic))
     return
   end function radiusFreefallEvaluate
 
@@ -995,3 +1411,45 @@ contains
     end function integrandMoment
     
   end function sphericalDensityRadialMomentNumerical
+
+  subroutine sphericalSolverSphericalSet(self,time)
+    !!{
+    Unset a sub-module scope pointers on the stack.
+    !!}
+    implicit none
+    class           (massDistributionSpherical), intent(inout), target       :: self
+    double precision                           , intent(in   )               :: time
+    integer                                                                  :: i
+    type            (massSolverSpherical      ), allocatable  , dimension(:) :: solvers_
+
+    if (allocated(massSphericalSolvers)) then
+       if (massSphericalSolversCount == size(massSphericalSolvers)) then
+          call move_alloc(massSphericalSolvers,solvers_)
+          allocate(massSphericalSolvers(size(solvers_)+massSphericalSolversIncrement))
+          massSphericalSolvers(1:size(solvers_))=solvers_
+          do i=1,size(solvers_)
+             nullify(solvers_(i)%self)
+          end do
+          deallocate(solvers_)
+       end if
+    else
+       allocate(massSphericalSolvers(massSphericalSolversIncrement))
+    end if
+    massSphericalSolversCount=massSphericalSolversCount+1
+    massSphericalSolvers(massSphericalSolversCount)%self => self
+    massSphericalSolvers(massSphericalSolversCount)%time =  time
+    return
+  end subroutine sphericalSolverSphericalSet
+
+  subroutine sphericalSolverSphericalUnset(self)
+    !!{
+    Unset a sub-module scope pointers on the stack.
+    !!}
+    implicit none
+    class(massDistributionSpherical), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    massSphericalSolvers(massSphericalSolversCount)%self => null()
+    massSphericalSolversCount=massSphericalSolversCount-1
+    return
+  end subroutine sphericalSolverSphericalUnset

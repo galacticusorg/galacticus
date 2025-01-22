@@ -31,19 +31,19 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale                                           , darkMatterHaloScaleClass                , darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated                        , darkMatterProfileDMONFW       , &
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMOClass               , darkMatterProfileDMOHeated                             , darkMatterProfileDMONFW       , &
           &                                 darkMatterProfileDMOTruncated                                 , darkMatterProfileDMOTruncatedExponential, darkMatterProfileHeatingTidal
   use :: Mass_Distributions        , only : nonAnalyticSolversFallThrough                                 , massDistributionClass
   use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Error                     , only : Error_Report
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize            , nodeComponentBasic                                , nodeComponentDarkMatterProfile, &
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize            , nodeComponentBasic                                     , nodeComponentDarkMatterProfile, &
           &                                 nodeComponentSatellite                                        , treeNode
   use :: ISO_Varying_String        , only : assignment(=)                                                 , varying_string
   use :: Input_Parameters          , only : inputParameters
-  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize               , Node_Components_Uninitialize
-  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                              , Unit_Tests_Finish
+  use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize                    , Node_Components_Uninitialize
+  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group                                   , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      )               :: node
   class           (nodeComponentBasic                                            ), pointer      :: basic
@@ -61,25 +61,30 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   type            (cosmologyFunctionsMatterLambda                                )               :: cosmologyFunctions_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            )               :: darkMatterHaloScale_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)               :: virialDensityContrast_
-  double precision                                                                , dimension(7) :: radiusOverVirialRadius                   =[0.125d0 , 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
-  double precision                                                                , dimension(7) :: radius                                             , radiusRoot
+  double precision                                                                , dimension(7) :: radiusOverVirialRadius                    =[0.125d0 , 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
+  double precision                                                                , dimension(7) :: radius                                              , radiusRoot
   double precision                                                                , dimension(7) :: mass
-  double precision                                                                , parameter    :: radiusFractionalTruncateMinimum          = 2.00d+00, radiusFractionalTruncateMaximum=8.0d0
-  double precision                                                                , parameter    :: time                                     =13.80d+00
-  double precision                                                                , parameter    :: massVirial                               = 1.00d+10, concentration                  =8.0d0
-  double precision                                                                               :: radiusFractionalDecay                    = 0.06d+00
-  double precision                                                                , parameter    :: heatingSpecific                          = 1.00d+06
-  double precision                                                                , parameter    :: coefficientSecondOrder                   = 0.00d+00
-  double precision                                                                , parameter    :: correlationVelocityRadius                =-1.00d+00
-  double precision                                                                , parameter    :: toleranceRelativeVelocityDispersion      = 1.00d-06
+  double precision                                                                , parameter    :: radiusFractionalTruncateMinimum           = 2.00d+00, radiusFractionalTruncateMaximum=8.0d0
+  double precision                                                                , parameter    :: time                                      =13.80d+00
+  double precision                                                                , parameter    :: massVirial                                = 1.00d+10, concentration                  =8.0d0
+  double precision                                                                               :: radiusFractionalDecay                     = 0.06d+00
+  double precision                                                                , parameter    :: heatingSpecific                           = 1.00d+06
+  double precision                                                                , parameter    :: coefficientSecondOrder                    = 0.00d+00
+  double precision                                                                , parameter    :: correlationVelocityRadius                 =-1.00d+00
+  double precision                                                                , parameter    :: toleranceRelativeVelocityDispersion       = 1.00d-06
   double precision                                                                , parameter    :: toleranceRelativeVelocityDispersionMaximum= 1.00d-03
-  double precision                                                                               :: radiusVirial                                       , radiusScale                           , &
+  double precision                                                                , parameter    :: toleranceRelativePotential                = 1.00d-03
+  double precision                                                                , parameter    :: fractionRadiusFinalSmall                  = 1.00d-03
+  logical                                                                         , parameter    :: tolerateVelocityMaximumFailure            =.false.
+  logical                                                                         , parameter    :: toleratePotentialIntegrationFailure       =.false.
+  logical                                                                         , parameter    :: tolerateEnclosedMassIntegrationFailure    =.false.
+  logical                                                                         , parameter    :: tolerateVelocityDispersionFailure         =.false.
+  double precision                                                                               :: radiusVirial                                        , radiusScale                           , &
        &                                                                                            toleranceRelative
   type            (varying_string                                                )               :: parameterFile
   type            (inputParameters                                               )               :: parameters
   integer                                                                                        :: i                                                  , j
-  logical                                                                         , parameter    :: velocityDispersionUseSeriesExpansion     =.true.   , velocityDispersionApproximate  =.true., &
-       &                                                                                            tolerateVelocityMaximumFailure           =.false.
+  logical                                                                         , parameter    :: velocityDispersionUseSeriesExpansion     =.true.   , velocityDispersionApproximate  =.true.
   logical                                                                                        :: limitToVirialRadius
 
   ! Set verbosity level.
@@ -134,15 +139,15 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
    </constructor>
   </referenceConstruct>  
   !!]
-  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (velocityDispersionUseSeriesExpansion,                                                                                         darkMatterHaloScale_ )
-  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                              darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                &
-       &                                                                                nonAnalyticSolversFallThrough       ,                                                               darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
-  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay               ,                                                                                                                &
-       &                                                                                nonAnalyticSolversFallThrough       ,                                                               darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
-  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder        ,correlationVelocityRadius                      )
-  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,tolerateVelocityMaximumFailure,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMONFW_,  &
-       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                     )
+  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (velocityDispersionUseSeriesExpansion,                                                                                              darkMatterHaloScale_ )
+  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                                                                                   darkMatterHaloScale_ )
+  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum     ,radiusFractionalTruncateMaximum,                                                                                     &
+       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
+  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay                                                                                                             ,                       &
+       &                                                                                nonAnalyticSolversFallThrough       ,                                                                    darkMatterProfileDMONFW_ ,darkMatterHaloScale_ )
+  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (coefficientSecondOrder              ,coefficientSecondOrder         ,coefficientSecondOrder             ,correlationVelocityRadius                      )
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough       ,velocityDispersionApproximate  ,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMONFW_,                  &
+       &                                                                                darkMatterProfileHeatingTidal_                                                                                                                          )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
   satellite => node%satellite             (autoCreate=.true.)

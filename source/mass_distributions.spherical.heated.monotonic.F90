@@ -254,7 +254,7 @@ contains
             &  *exp(self%massProfile%interpolate(log(radius_))) &
             &  /4.0d0                                           &
             &  /Pi                                              &
-            &  /radius**3
+            &  /radius_**3
     else
        density=+0.0d0
     end if
@@ -280,7 +280,7 @@ contains
     integer                                                                               :: i                           , countRadii
 
     ! Nothing to do if profile is already tabulated.
-    if (allocated(self%massProfile)) return
+    if (.not.self%isBound .or. allocated(self%massProfile)) return
     ! Choose extent of radii at which to tabulate the initial profile.
     self%radiusInitialMinimum=radiusFractionMinimum*self%radiusVirial
     self%radiusInitialMaximum=radiusFractionMaximum*self%radiusVirial

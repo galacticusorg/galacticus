@@ -96,6 +96,8 @@ program Test_Parameters
   call Assert('derived value [min function]',valueNumerical,+1.000000000d0,absTol=1.0d-6)
   call testParameters%value('derivedValue7',valueNumerical)
   call Assert('derived value [max function]',valueNumerical,+2.000000000d0,absTol=1.0d-6)
+  call testParameters%value('derivedValue8',valueNumerical)
+  call Assert('derived value [default]'     ,valueNumerical,+1.234500000d3,absTol=1.0d-6)
   call testParameters%value('derivedText1' ,parameterValue)
   call Assert('derived value [text]'       ,parameterValue,var_str('mouse_filteredPower_1.00_0.200000E+01_0006'))
   allocate(wrapper1)

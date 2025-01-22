@@ -70,9 +70,9 @@ module Error
   integer                    :: errorWaitTime          =86400
 
   ! GSL error status.
-  logical                 :: abortOnErrorGSL=.true.
-  integer(c_int         ) :: errorStatusGSL        , lineGSL
-  type   (varying_string) :: reasonGSL             , fileGSL
+  integer                 :: abortOnErrorGSL=0
+  integer(c_int         ) :: errorStatusGSL   , lineGSL
+  type   (varying_string) :: reasonGSL        , fileGSL
   !$omp threadprivate(abortOnErrorGSL,errorStatusGSL,lineGSL,reasonGSL,fileGSL)
 
   ! Type used to accumulate warning messages.
@@ -577,7 +577,7 @@ contains
     logical                         :: flag
 #endif
 
-    if (abortOnErrorGSL) then
+    if (abortOnErrorGSL == 0) then
        if (stdOutIsATTY()) then
           write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'//displayReset()
        else
@@ -630,7 +630,7 @@ contains
     !!}
     implicit none
 
-    abortOnErrorGSL=.true.
+    abortOnErrorGSL=abortOnErrorGSL+1
     return
   end subroutine GSL_Error_Handler_Abort_On
 
@@ -640,7 +640,7 @@ contains
     !!}
     implicit none
 
-    abortOnErrorGSL=.false.
+    abortOnErrorGSL=abortOnErrorGSL-1
     return
   end subroutine GSL_Error_Handler_Abort_Off
 

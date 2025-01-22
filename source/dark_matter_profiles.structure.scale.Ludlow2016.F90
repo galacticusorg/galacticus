@@ -22,10 +22,11 @@
   algorithm.
   !!}
 
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters   , only : cosmologyParametersClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass
-  use :: Root_Finder            , only : rootFinder
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Root_Finder             , only : rootFinder
 
   !![
   <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016">
@@ -48,6 +49,7 @@
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_        => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
      double precision                                             :: C                                      , f              , &
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
@@ -101,6 +103,7 @@ contains
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass            ), pointer       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
@@ -128,19 +131,21 @@ contains
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !!]
-    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_)
+    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="cosmologyParameters_"         />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
     <objectDestructor name="virialDensityContrast_"       />
+    <objectDestructor name="darkMatterProfileDMO_"        />
     !!]
     return
   end function ludlow2016ConstructorParameters
 
-  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_) result(self)
+  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     !!}
@@ -152,8 +157,9 @@ contains
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (virialDensityContrastClass            ), intent(in   ), target :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *virialDensityContrast_"/>
+    <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *virialDensityContrast_, *darkMatterProfileDMO_"/>
     !!]
 
     ! Find the density contrast as used to define masses by Ludlow et al. (2016).
@@ -173,6 +179,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"         />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     <objectDestructor name="self%virialDensityContrast_"       />
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
     !!]
     return
   end subroutine ludlow2016Destructor
@@ -260,15 +267,15 @@ contains
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.
           if (iterationCount == 1) then
-             basic                                     =>  node                    %basic                 (                                        )
+             basic                                     =>  node                    %basic                     (                                        )
              states(stateCount)%self                   =>  self
              states(stateCount)%node                   =>  node
-             states(stateCount)%hubbleParameterPresent =   self%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=1.0d0                   )
+             states(stateCount)%hubbleParameterPresent =   self%cosmologyFunctions_%hubbleParameterEpochal    (expansionFactor=1.0d0                   )
              states(stateCount)%timePrevious           =  -1.0d0
              states(stateCount)%densityContrast        =  -huge(0.0d0)
           end if
-          massDistribution_                            =>  node                    %massDistribution      (componentTypeDarkMatterOnly,massTypeDark)
-          massHaloCharacteristic                       =  +massDistribution_       %massEnclosedBySphere  (darkMatterProfile_%scale()              )
+          massDistribution_                            =>  self                     %darkMatterProfileDMO_ %get(node                                    )
+          massHaloCharacteristic                       =  +massDistribution_        %massEnclosedBySphere      (darkMatterProfile_%scale()              )
           !![
 	  <objectDestructor name="massDistribution_"/>
 	  !!]
@@ -279,7 +286,8 @@ contains
                &                                                                                                                          ludlow2016DensityContrast(states(stateCount),basic%time()), &
                &                                                                                                   cosmologyParameters_  =self%cosmologyParameters_                                 , &
                &                                                                                                   cosmologyFunctions_   =self%cosmologyFunctions_                                  , &
-               &                                                                                                   virialDensityContrast_=self%virialDensityContrast_                                 &
+               &                                                                                                   virialDensityContrast_=self%virialDensityContrast_                               , &
+               &                                                                                                   darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                  &
                &                                                                                                  )
           ! Find the earliest time in the branch. Also estimate the earliest and latest times between which the formation time will lie.
           if (iterationCount == 1) then
@@ -447,7 +455,8 @@ contains
                      &                                                                    ludlow2016DensityContrast(states(stateCount),basicChild%time()), &
                      &                                             cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                   , &
                      &                                             cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                    , &
-                     &                                             virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                   &
+                     &                                             virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                 , &
+                     &                                             darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                   &
                      &                                            )
                 if (nodeChild%isPrimaryProgenitor()) then
                    ! Interpolate in mass for primary progenitors.
@@ -461,7 +470,8 @@ contains
                            &                                                                       ludlow2016DensityContrast(states(stateCount),basicSibling%time()), &
                            &                                                cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                     , &
                            &                                                cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                      , &
-                           &                                                virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                     &
+                           &                                                virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                   , &
+                           &                                                darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                     &
                            &                                               )
                       nodeSibling  =>   nodeSibling %sibling
                    end do
@@ -471,7 +481,8 @@ contains
                         &                                                                          ludlow2016DensityContrast(states(stateCount),basicBranch %time()), &
                         &                                                   cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                     , &
                         &                                                   cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                      , &
-                        &                                                   virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                     &
+                        &                                                   virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                   , &
+                        &                                                   darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                      &
                         &                                                  )                                                                                          &
                         &              -massSiblings                                                                                                                  &
                         &             )                                                                                                                               &
@@ -503,7 +514,8 @@ contains
                &                                                                   ludlow2016DensityContrast(states(stateCount),basicBranch%time()), &
                &                                             cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                   , &
                &                                             cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                    , &
-               &                                             virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                   &
+               &                                             virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                 , &
+               &                                             darkMatterProfileDMO_ =states(stateCount)%self%darkMatterProfileDMO_                    &
                &                                            )                                           
           if (massProgenitor >= states(stateCount)%massLimit) &
                & massBranch=+massBranch                       &

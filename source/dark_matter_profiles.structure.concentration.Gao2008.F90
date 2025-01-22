@@ -53,13 +53,15 @@
      A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
      !!}
      private
-     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
-     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
-     type (virialDensityContrastFixed), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileDMONFW   ), pointer :: darkMatterProfileDMODefinition_  => null()
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
+     type            (virialDensityContrastFixed), pointer :: virialDensityContrastDefinition_ => null()
+     type            (darkMatterProfileDMONFW   ), pointer :: darkMatterProfileDMODefinition_  => null()
+     double precision                                      :: scatter
    contains
      final     ::                                   gao2008Destructor
      procedure :: concentration                  => gao2008Concentration
+     procedure :: concentrationMean              => gao2008ConcentrationMean
      procedure :: densityContrastDefinition      => gao2008DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => gao2008DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationGao2008
@@ -81,16 +83,23 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (darkMatterProfileConcentrationGao2008)                :: self
-    type (inputParameters                      ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass             ), pointer       :: cosmologyParameters_
+    type            (darkMatterProfileConcentrationGao2008)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
+    double precision                                                       :: scatter
 
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <inputParameter>
+      <name>scatter</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The scatter (in dex) to assume in the halo concentration distribution at fixed mass.</description>
+    </inputParameter>
     !!]
-    self=darkMatterProfileConcentrationGao2008(cosmologyParameters_,cosmologyFunctions_)
+    self=darkMatterProfileConcentrationGao2008(scatter,cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -99,19 +108,20 @@ contains
     return
   end function gao2008ConstructorParameters
 
-  function gao2008ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
+  function gao2008ConstructorInternal(scatter,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
-    type (darkMatterProfileConcentrationGao2008             )                         :: self
-    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
-    class(cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
-    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
+    type            (darkMatterProfileConcentrationGao2008             )                         :: self
+    class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
+    double precision                                                    , intent(in   )          :: scatter
+    type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !![
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="scatter, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     allocate(self%darkMatterProfileDMODefinition_ )
@@ -167,14 +177,35 @@ contains
     return
   end subroutine gao2008Destructor
 
-  double precision function gao2008Concentration(self,node)
+  double precision function gao2008Concentration(self,node) result(concentration)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
-    algorithm.
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    \cite{gao_redshift_2008} algorithm.
+    !!}
+    implicit none
+    class(darkMatterProfileConcentrationGao2008), intent(inout), target :: self
+    type (treeNode                             ), intent(inout), target :: node
+
+    ! Get the mean concentration.
+    concentration=self%concentrationMean(node)
+    ! Add scatter if necessary.
+    if (self%scatter > 0.0d0)                                                                    &
+         &  concentration=+concentration                                                         &
+         &                *10.0d0**(                                                             &
+         &                          +self%scatter                                                &
+         &                          *node%hostTree%randomNumberGenerator_%standardNormalSample() &
+         &                         )
+    return
+  end function gao2008Concentration
+
+  double precision function gao2008ConcentrationMean(self,node) result(concentration)
+    !!{
+    Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    \cite{gao_redshift_2008} algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (darkMatterProfileConcentrationGao2008), intent(inout), target  :: self
+    class           (darkMatterProfileConcentrationGao2008), intent(inout)          :: self
     type            (treeNode                             ), intent(inout), target  :: node
     class           (nodeComponentBasic                   )               , pointer :: basic
     double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0
@@ -188,9 +219,9 @@ contains
     logarithmExpansionFactor=log10(self%cosmologyFunctions_%expansionFactor(basic%time()))
     parameterA              =- 0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
     parameterB              =+ 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
-    gao2008Concentration    =+10.0d0**(parameterA*logarithmHaloMass+parameterB)
+    concentration          =+10.0d0**(parameterA*logarithmHaloMass+parameterB)
     return
-  end function gao2008Concentration
+  end function gao2008ConcentrationMean
 
   function gao2008DensityContrastDefinition(self)
     !!{

@@ -152,6 +152,9 @@ contains
     <constructorAssign variables="alpha, beta, gamma, betaStripped, muRadius, etaRadius, muVelocity, etaVelocity, *darkMatterHaloScale_"/>
     !!]
 
+    ! Compute the mapping between scale radius and radius of peak velocity in the scale-free stripped and unstripped profiles. We
+    ! use a halo of arbitrary mass here, but do set a somewhat physical scale radius to ensure that numerical solvers have a
+    ! reasonable profile to work with.
     allocate(self%massDistributionStripped  )
     allocate(self%massDistributionUnstripped)
     !![
