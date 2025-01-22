@@ -145,6 +145,7 @@ program Test_Dark_Matter_Profiles_Projected
     nodePropertyExtractorProjectedDensity(                                                            &amp;
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
+     &amp;                                tolerateIntegrationFailures         =.false.              , &amp;
      &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>

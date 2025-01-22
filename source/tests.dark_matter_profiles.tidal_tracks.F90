@@ -156,7 +156,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call Unit_Tests_Begin_Group("Unstripped profile matches NFW"    )
   call Assert("Density at scale radius" ,massDistributionNFW_%density(coordinates=coordinatesScale ),massDistributionPenarrubia2010_%density(coordinates=coordinatesScale ),relTol=1.0d-6)
   call Assert("Density at virial radius",massDistributionNFW_%density(coordinates=coordinatesVirial),massDistributionPenarrubia2010_%density(coordinates=coordinatesVirial),relTol=1.0d-6)
-  call Unit_Tests_End_Group  (                                )
+  call Unit_Tests_End_Group  (                                    )
   !![
   <objectDestructor name="massDistributionNFW_"           />
   <objectDestructor name="massDistributionPenarrubia2010_"/>

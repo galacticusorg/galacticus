@@ -26,7 +26,14 @@
   !![
   <massDistributionHeating name="massDistributionHeatingMonotonic">
     <description>
-      A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation.
+      A mass distribution heating class which takes another heating source and enforces monotonic heating energy
+      perturbation. This is achieved by enforcing the constraint that      
+      \begin{equation}
+      \mathrm{d}/\mathrm{d}r \left[ \frac{\epsilon}{\mathrm{G} M(r) / r} \right] > 0,
+      \end{equation}
+      where $\epsilon$ is the specific heating energy \citep{du_tidal_2024}. At radii smaller than the shell-crossing radius
+      defined by the above condition the specific energy is assumed to be proportional to $\mathrm{G} M(r) / r$, with a smooth
+      transition through this radius.
     </description>
   </massDistributionHeating>
   !!]
@@ -37,12 +44,15 @@
      private
      class           (massDistributionHeatingClass), pointer :: massDistributionHeating_ => null()
      type            (rootFinder                  )          :: finder
-     double precision                                        :: radiusShellCrossing               , energyPerturbationShellCrossing
+     double precision                                        :: radiusShellCrossing               , energyPerturbationShellCrossing, &
+          &                                                      radiusCheckedMinimum
+     logical                                                 :: shellCrossingAllRadii
    contains
      !![
      <methods>
        <method description="Return true if the no shell crossing assumption is valid locally." method="noShellCrossingIsValid"    />
        <method description="Compute the radius where shell crossing happens."                  method="computeRadiusShellCrossing"/>
+       <method description="Root function used in finding the radius of shell crossing."       method="radiusShellCrossingRoot"   />
      </methods>
      !!]
      procedure :: specificEnergy                 => monotonicSpecificEnergy
@@ -50,6 +60,7 @@
      procedure :: specificEnergyIsEveryWhereZero => monotonicSpecificEnergyIsEverywhereZero
      procedure :: noShellCrossingIsValid         => monotonicNoShellCrossingIsValid
      procedure :: computeRadiusShellCrossing     => monotonicComputeRadiusShellCrossing
+     procedure :: radiusShellCrossingRoot        => monotonicRadiusShellCrossingRoot
   end type massDistributionHeatingMonotonic
 
   interface massDistributionHeatingMonotonic
@@ -61,7 +72,7 @@
   end interface massDistributionHeatingMonotonic
 
   ! Global variables used in root solving.
-  type (massDistributionHeatingMonotonic), pointer :: self_
+  class(massDistributionHeatingMonotonic), pointer :: self_
   class(massDistributionClass           ), pointer :: massDistribution__
   !$omp threadprivate(self_,massDistribution__)
 
@@ -101,12 +112,14 @@ contains
     <constructorAssign variables="*massDistributionHeating_"/>
     !!]
 
-    self%radiusShellCrossing            =-1.0d0
-    self%energyPerturbationShellCrossing=-1.0d0
-    self%finder                         =rootFinder(                                                    &
-         &                                          rootFunction     =monotonicRadiusShellCrossingRoot, &
-         &                                          toleranceAbsolute=toleranceAbsolute               , &
-         &                                          toleranceRelative=toleranceRelative                 &
+    self%radiusShellCrossing            =-huge(0.0d0)
+    self%radiusCheckedMinimum           =+huge(0.0d0)
+    self%energyPerturbationShellCrossing=-huge(0.0d0)
+    self%shellCrossingAllRadii          =.false.
+    self%finder                         =rootFinder(                                                     &
+         &                                          rootFunction     =monotonicRadiusShellCrossingRoot_, &
+         &                                          toleranceAbsolute=toleranceAbsolute                , &
+         &                                          toleranceRelative=toleranceRelative                  &
          &                                         ) 
     return
   end function monotonicConstructorInternal
@@ -126,7 +139,7 @@ contains
 
   double precision function monotonicSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
-    Compute the specific energy in a monotonicly-heated mass distribution.
+    Compute the specific energy in a monotonically-heated mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -134,17 +147,16 @@ contains
     double precision                                  , intent(in   ) :: radius
     class           (massDistributionClass           ), intent(inout) :: massDistribution_
 
-    if (self%noShellCrossingIsValid(radius,massDistribution_)) then
+    call self%computeRadiusShellCrossing(                   &
+         &                               radius           , &
+         &                               massDistribution_  &
+         &                              )
+    if (radius > self%radiusShellCrossing .and. .not.self%shellCrossingAllRadii) then
        energySpecific=self%massDistributionHeating_%specificEnergy(                   &
             &                                                      radius           , &
             &                                                      massDistribution_  &
             &                                                     )
     else
-       if (self%energyPerturbationShellCrossing < 0.0d0)            &
-            call self%computeRadiusShellCrossing(                   &
-            &                                    radius           , &
-            &                                    massDistribution_  &
-            &                                   )
        energySpecific=+self%energyPerturbationShellCrossing                         &
             &         *0.5d0                                                        &
             &         *gravitationalConstantGalacticus                              &
@@ -167,18 +179,17 @@ contains
     class           (massDistributionClass           ), intent(inout) :: massDistribution_
     type            (coordinateSpherical             )                :: coordinates
 
-    if (self%noShellCrossingIsValid(radius,massDistribution_)) then
+    call self%computeRadiusShellCrossing(                   &
+         &                               radius           , &
+         &                               massDistribution_  &
+         &                              )
+    if (radius > self%radiusShellCrossing .and. .not.self%shellCrossingAllRadii) then
        energySpecificGradient=self%massDistributionHeating_%specificEnergyGradient(                   &
             &                                                                      radius           , &
             &                                                                      massDistribution_  &
             &                                                                     )
     else
-       if (self%energyPerturbationShellCrossing < 0.0d0)              &
-            & call self%computeRadiusShellCrossing(                   &
-            &                                      radius           , &
-            &                                      massDistribution_  &
-            &                                     )
-       coordinates                    =[radius,0.0d0,0.0d0]
+       coordinates           =[radius,0.0d0,0.0d0]
        energySpecificGradient=+self%energyPerturbationShellCrossing                  &
             &                 *0.5d0                                                 &
             &                 *gravitationalConstantGalacticus                       &
@@ -209,38 +220,46 @@ contains
     !!{
     Determines if the no shell crossing assumption is valid.
     !!}
-    use :: Coordinates             , only : coordinateSpherical, assignment(=)
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionHeatingMonotonic), intent(inout) :: self
     class           (massDistributionClass           ), intent(inout) :: massDistribution_
     double precision                                  , intent(in   ) :: radius
-    double precision                                                  :: massEnclosed
+    double precision                                  , parameter     :: toleranceRelative=1.0d-12
+    double precision                                                  :: massEnclosed             , energySpecificScale   , &
+         &                                                               energySpecific           , energySpecificGradient
     type            (coordinateSpherical             )                :: coordinates
 
     massEnclosed                      = massDistribution_%massEnclosedBySphere(radius)
     if (massEnclosed > 0.0d0) then
        coordinates                    =[radius,0.0d0,0.0d0]
-       monotonicNoShellCrossingIsValid=+self%massDistributionHeating_%specificEnergyGradient(                   &
+       energySpecific                 =+self%massDistributionHeating_%specificEnergyGradient(                   &
             &                                                                                radius           , &
             &                                                                                massDistribution_  &
-            &                                                                               )                   &
-            &                          *                                                     radius             &
-            &                          +self%massDistributionHeating_%specificEnergy        (                   &
+            &                                                                               )
+       energySpecificGradient         =+self%massDistributionHeating_%specificEnergy        (                   &
             &                                                                                radius           , &
             &                                                                                massDistribution_  &     
-            &                                                                               )                   &
-            &                          *(                                                                       &
-            &                            +1.0d0                                                                 &
-            &                            -4.0d0                                                                 &
-            &                            *Pi                                                                    &
-            &                            *                                                   radius**3          &
-            &                            *massDistribution_          %density               (                   &
-            &                                                                                coordinates        &
-            &                                                                               )                   &
-            &                            /massEnclosed                                                          &
-            &                           )                                                                       &
-            &                          >=0.0d0
+            &                                                                               )
+       energySpecificScale            =+gravitationalConstantGalacticus &
+            &                          *massEnclosed                    &
+            &                          /radius
+       monotonicNoShellCrossingIsValid=+energySpecific                              &
+            &                          *                            radius          &
+            &                          +energySpecificGradient                      &
+            &                          *(                                           &
+            &                            +1.0d0                                     &
+            &                            -4.0d0                                     &
+            &                            *Pi                                        &
+            &                            *                          radius      **3 &
+            &                            *massDistribution_%density(coordinates)    &
+            &                            /massEnclosed                              &
+            &                           )                                           &
+            &                          >=                                           &
+            &                           -toleranceRelative                          &
+            &                           *energySpecificScale
     else
        monotonicNoShellCrossingIsValid=.true.
     end if
@@ -257,61 +276,110 @@ contains
     class           (massDistributionHeatingMonotonic), intent(inout), target :: self
     class           (massDistributionClass           ), intent(inout), target :: massDistribution_
     double precision                                  , intent(in   )         :: radius
+    double precision                                  , parameter             :: radiusSearchMaximum  =10.0d0, factorRadius              =1.1d0
+    double precision                                                          :: radiusSearch                , radiusShellCrossingMinimum
+    logical                                                                   :: foundShellCrossing          , isValidPrevious                 , &
+         &                                                                       isValid
 
     if (self%energyPerturbationShellCrossing < 0.0d0) then
-       self_              => self
-       massDistribution__ => massDistribution_
-       call self%finder%rangeExpand(                                                             &
-            &                       rangeExpandUpward            =2.0d0                        , &
-            &                       rangeExpandDownward          =1.0d0                        , &
-            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                       rangeExpandType              =rangeExpandMultiplicative      &
-            &                      )
-       self%radiusShellCrossing             =+self%finder%find(rootGuess=radius)
-       self%energyPerturbationShellCrossing =+self%massDistributionHeating_%specificEnergy      (self%radiusShellCrossing,massDistribution_) &
-            &                                /(                                                                                              &
-            &                                  +0.5d0                                                                                        &
-            &                                  *gravitationalConstantGalacticus                                                              &
-            &                                  *massDistribution_          %massEnclosedBySphere(self%radiusShellCrossing                  ) &
-            &                                  /                                                 self%radiusShellCrossing                    &
-            &                                 )
+       ! Search for the largest radius at which shell-crossing occurs.
+       radiusSearch              =radius
+       radiusShellCrossingMinimum=radius
+       foundShellCrossing        =.false.
+       isValidPrevious           =.true.
+       do while (radiusSearch <= radiusSearchMaximum)
+          isValid=self%noShellCrossingIsValid(radiusSearch,massDistribution_)
+          if (isValid .and. .not.isValidPrevious) foundShellCrossing=.true.
+          if (.not.isValid) radiusShellCrossingMinimum=radiusSearch
+          isValidPrevious= isValid
+          radiusSearch   =+factorRadius &
+               &          *radiusSearch
+       end do
+       ! Determine if a the shell crossing radius was found.
+       if (foundShellCrossing .and. isValid) then
+          ! Seek the exact radius at which shell-crossing first occurs. Use an expansion step matched to that in our prior search
+          ! since we know that the root should be within this range.
+          self_              => self
+          massDistribution__ => massDistribution_
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.0d0*factorRadius           , &
+               &                       rangeExpandDownward          =1.0d0/factorRadius           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusShellCrossing  =+self%finder%find(rootGuess=radiusShellCrossingMinimum)
+          self%shellCrossingAllRadii=.false.
+          ! If we exceeded the radius for which the specific energy is non-zero, back up to the prior radius.
+          if (self%massDistributionHeating_%specificEnergy(self%radiusShellCrossing,massDistribution_) <= 0.0d0) &
+               & self%radiusShellCrossing=radiusShellCrossingMinimum
+       else if (foundShellCrossing) then
+          self%radiusShellCrossing  =+radiusSearchMaximum
+          self%shellCrossingAllRadii=.true.
+       else
+          self%radiusShellCrossing  =-huge(0.0d0)
+          self%shellCrossingAllRadii=.false.
+       end if
+       if (self%radiusShellCrossing > 0.0d0) then
+          self%energyPerturbationShellCrossing =+self%massDistributionHeating_%specificEnergy      (self%radiusShellCrossing,massDistribution_) &
+               &                                /(                                                                                              &
+               &                                  +0.5d0                                                                                        &
+               &                                  *gravitationalConstantGalacticus                                                              &
+               &                                  *massDistribution_          %massEnclosedBySphere(self%radiusShellCrossing                  ) &
+               &                                  /                                                 self%radiusShellCrossing                    &
+               &                                 )
+       else
+          self%energyPerturbationShellCrossing=-huge(0.0d0)
+       end if
     end if
     return
   end subroutine monotonicComputeRadiusShellCrossing
 
-  double precision function monotonicRadiusShellCrossingRoot(radius)
+  double precision function monotonicRadiusShellCrossingRoot_(radius) result(root)
+    !!{
+    Root function used in finding the radius where shell crossing happens.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    root=self_%radiusShellCrossingRoot(radius,massDistribution__)
+    return
+  end function monotonicRadiusShellCrossingRoot_
+  
+  double precision function monotonicRadiusShellCrossingRoot(self,radius,massDistribution_)
     !!{
     Root function used in finding the radius where shell crossing happens.
     !!}
     use :: Coordinates             , only : coordinateSpherical, assignment(=)
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                     , intent(in   ) :: radius
-    double precision                                     :: massEnclosed
-    type            (coordinateSpherical)                :: coordinates
+    class           (massDistributionHeatingMonotonic), intent(inout) :: self
+    double precision                                  , intent(in   ) :: radius
+    class           (massDistributionClass           ), intent(inout) :: massDistribution_
+    double precision                                                  :: massEnclosed
+    type            (coordinateSpherical)                             :: coordinates
 
-    massEnclosed                       = massDistribution__%massEnclosedBySphere(radius)
+    massEnclosed                       = massDistribution_%massEnclosedBySphere(radius)
     if (massEnclosed > 0.0d0) then
        coordinates                     =[radius,0.0d0,0.0d0]
-       monotonicRadiusShellCrossingRoot=+self_%massDistributionHeating_%specificEnergyGradient(                    &
-            &                                                                                  radius            , &
-            &                                                                                  massDistribution__  &
-            &                                                                                 )                    &
-            &                           *                                                      radius              &
-            &                           +self_%massDistributionHeating_%specificEnergy        (                    &
-            &                                                                                  radius            , &
-            &                                                                                  massDistribution__  &
-            &                                                                                 )                    &
-            &                           *(                                                                         &
-            &                             +1.0d0                                                                   &
-            &                             -4.0d0                                                                   &
-            &                             *Pi                                                                      &
-            &                             *                                                    radius**3           &
-            &                             *massDistribution__          %density               (                    &
-            &                                                                                  coordinates         &
-            &                                                                                 )                    &
-            &                             /massEnclosed                                                            &
+       monotonicRadiusShellCrossingRoot=+self_%massDistributionHeating_%specificEnergyGradient(                   &
+            &                                                                                  radius           , &
+            &                                                                                  massDistribution_  &
+            &                                                                                 )                   &
+            &                           *                                                      radius             &
+            &                           +self_%massDistributionHeating_%specificEnergy        (                   &
+            &                                                                                  radius           , &
+            &                                                                                  massDistribution_  &
+            &                                                                                 )                   &
+            &                           *(                                                                        &
+            &                             +1.0d0                                                                  &
+            &                             -4.0d0                                                                  &
+            &                             *Pi                                                                     &
+            &                             *                                                    radius**3          &
+            &                             *massDistribution__          %density               (                   &
+            &                                                                                  coordinates        &
+            &                                                                                 )                   &
+            &                             /massEnclosed                                                           &
             &                            )
     else
        monotonicRadiusShellCrossingRoot=0.0d0

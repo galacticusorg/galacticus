@@ -1867,11 +1867,12 @@ contains
          &                                                                                 status
     logical                                                                             :: hasValueAttribute  , hasValueElement , &
          &                                                                                 isException        , isPresent       , &
-         &                                                                                 isDouble           , isText
+         &                                                                                 isDouble           , isText          , &
+         &                                                                                 haveDefault
     character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
          &                                                                                 workText           , content         , &
          &                                                                                 workValueText      , formatSpecifier , &
-         &                                                                                 parameterLeafName
+         &                                                                                 parameterLeafName  , defaultValue
     type            (varying_string                          )                          :: attributeName      , nodeName        , &
          &                                                                                 siblingName
     double precision                                                                    :: workValueDouble
@@ -1940,8 +1941,8 @@ contains
                    parameterType=inputParameterTypeDouble
                    if (isText) then
                       if (index(parameterName,"|") > 0) then
-                         formatSpecifier=parameterName(1:index(parameterName,"|")-1)
-                         parameterName  =parameterName(index(parameterName,"|")+1:len_trim(parameterName))
+                         formatSpecifier=parameterName(1:index(parameterName,"|")-1                        )
+                         parameterName  =parameterName(  index(parameterName,"|")+1:len_trim(parameterName))
                          if (formatSpecifier(1:1) /= "%") call Error_Report('unrecognized format specifier'//{introspection:location})
                          select case (formatSpecifier(len_trim(formatSpecifier):len_trim(formatSpecifier)))
                          case ("s"    )
@@ -1959,6 +1960,12 @@ contains
                       else
                          call Error_Report('inserted parameters must have a format specifier'//{introspection:location})
                       end if
+                   else if (isDouble) then
+                      haveDefault=index(parameterName,"|") > 0
+                      if (haveDefault) then
+                         defaultValue =parameterName(  index(parameterName,"|")+1:len_trim(parameterName))
+                         parameterName=parameterName(1:index(parameterName,"|")-1                        )
+                      end if
                    end if
                    !! Find the named parameter's parent and extract the value from it.
                    call self%findParent(parameterName,parentParameters,parameterLeafName)
@@ -1972,6 +1979,9 @@ contains
                          call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
                       deallocate(parentParameters)
+                   else if (isDouble .and. haveDefault) then
+                      ! The parameter does not exist, but a default value is available - use that default.
+                      read (defaultValue,*) workValueDouble
                    else
                       !$omp critical (FoX_DOM_Access)
                       expression=getTextContent(valueElement)

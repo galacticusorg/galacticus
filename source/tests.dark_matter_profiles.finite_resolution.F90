@@ -30,6 +30,7 @@ program Test_Dark_Matter_Profiles_Finite_Resolution
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Error                     , only : Error_Handler_Register
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOFiniteResolution                          , darkMatterProfileDMOFiniteResolutionNFW, darkMatterProfileDMONFW
   use :: Mass_Distributions        , only : nonAnalyticSolversNumerical                                   , massDistributionClass                  , kinematicsDistributionClass
@@ -72,12 +73,13 @@ program Test_Dark_Matter_Profiles_Finite_Resolution
        &                                                                                                     energyNumerical                                  , energy
   type            (coordinateSpherical                                           )                        :: coordinates                                      , coordinatesScale                               , &
        &                                                                                                     coordinatesVirial
-  
+
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Finite resolution dark matter profiles")
   parameters=inputParameters('testSuite/parameters/darkMatterProfilesFiniteResolution.xml')
-  call eventsHooksInitialize()
+  call eventsHooksInitialize            (          )
   call Functions_Global_Set             (          )
+  call Error_Handler_Register           (          )
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
@@ -218,7 +220,7 @@ program Test_Dark_Matter_Profiles_Finite_Resolution
   potential         =+massDistributionFiniteResolutionNFW_%potential(coordinates=coordinatesScale ) &
        &             -massDistributionFiniteResolutionNFW_%potential(coordinates=coordinatesVirial)
   potentialNumerical=+massDistributionFiniteResolution_   %potential(coordinates=coordinatesScale ) &
-       &             +massDistributionFiniteResolution_   %potential(coordinates=coordinatesVirial)
+       &             -massDistributionFiniteResolution_   %potential(coordinates=coordinatesVirial)
   call Assert(                           &
        &             "Potential"       , &
        &             potential         , &

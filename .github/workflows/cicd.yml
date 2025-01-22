@@ -794,6 +794,18 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-idealizedSubhaloSimulations
     secrets: inherit
+  Validate-Decaying-Dark-Matter-Only-Subhalos:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-decayingDarkMatter.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
+    secrets: inherit
   # Tests
   ## Linux
   ### Test Codes
@@ -897,6 +909,7 @@ jobs:
                       tests.dark_matter_profiles.generic.exe,
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
+                      tests.decaying_dark_matter.exe,
                       tests.spectra.postprocess.Inoue2014.exe,
                       tests.recombination_computed.exe,
                       tests.recombination_cooling.Hummer.exe,
@@ -1100,7 +1113,10 @@ jobs:
                 test-impulsiveHeating.pl,
                 test-haloTriaxiality.pl,
                 test-parallelTreeBuild.pl,
-                test-duplicatedOutputPropertyName.pl ]
+                test-duplicatedOutputPropertyName.pl,
+                test-decayingDM-caustic.py,
+                test-decayingDM-profile.py,
+                test-decayingDM-shell-crossing-capture.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1212,6 +1228,9 @@ jobs:
                 testSuite/regressions/preInfallEvolutionNotOnMainBranch.xml,
                 testSuite/regressions/outputRank2ExtendSegFault.xml,
                 testSuite/regressions/barInstabilityFPE.xml,
+                testSuite/regressions/decayingDM-non-monotonic-mass-profile.xml,
+                testSuite/regressions/decayingDM-overflow-undepleted-profile.xml,
+                testSuite/regressions/heatingMonotonicWeakShellCrossingRadiusRoot.xml,
                 testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
                 testSuite/regressions/lightconeCrossingTests.xml,
                 testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
@@ -1394,7 +1413,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -1502,6 +1521,60 @@ jobs:
           suffix: 'idealizedSubhaloSimulation_rpra0.4_gamma0.0'
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)'
+          type: 'validate'
+          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)'
+          type: 'validate'
+          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
+          type: 'validate'
+          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
+          type: 'validate'
+          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)'
+          type: 'validate'
+          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)'
+          type: 'validate'
+          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
+          suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
         uses: actions/download-artifact@v4
         with:
@@ -1521,18 +1594,20 @@ jobs:
           mkdir -p dev/valid/milkyWayModel
           mkdir -p dev/valid/strongLensing
           mkdir -p dev/valid/idealizedSubhaloSimulations
-          mv results_darkMatterOnlySubhalos.json       dev/valid/darkMatterOnlySubhalos/results.json
-          mv results_milkyWayModel.json                dev/valid/milkyWayModel/results.json
-          mv results_PonosV.json                       dev/valid/strongLensing/results_PonosV.json
-          mv results_baryonicSuppression.json          dev/valid/baryonicSuppression/results_baryonicSuppression.json
-          mv results_idealizedSubhaloSimulation_*.json dev/valid/idealizedSubhaloSimulations/
+          mkdir -p dev/valid/darkMatterOnlySubhalosDecayingDarkMatter
+          mv results_darkMatterOnlySubhalos.json                      dev/valid/darkMatterOnlySubhalos/results.json
+          mv results_milkyWayModel.json                               dev/valid/milkyWayModel/results.json
+          mv results_PonosV.json                                      dev/valid/strongLensing/results_PonosV.json
+          mv results_baryonicSuppression.json                         dev/valid/baryonicSuppression/results_baryonicSuppression.json
+          mv results_idealizedSubhaloSimulation_*.json                dev/valid/idealizedSubhaloSimulations/
+          mv results_darkMatterOnlySubhalos_decayingDarkMatter_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json
+          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulations/results_idealizedSubhaloSimulation_*.json dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/results_darkMatterOnlySubhalos_decayingDarkMatter_*.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
       - name: Push build profile
         run: |
           git checkout gh-pages
@@ -1544,7 +1619,7 @@ jobs:
           git commit -m "Update build profile"
           git push --set-upstream origin gh-pages
           git checkout -
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
   Deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'

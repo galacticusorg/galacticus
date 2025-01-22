@@ -56,7 +56,8 @@
      !!]
      private
      class           (massDistributionHeatingClass), pointer :: massDistributionHeating_ => null()
-     double precision                                        :: radiusFinalPrevious               , radiusInitialPrevious
+     double precision                                        :: radiusFinalPrevious               , radiusInitialPrevious, &
+          &                                                     fractionRadiusFinalSmall
      type            (rootFinder                  )          :: finder
    contains
      !![
@@ -65,13 +66,15 @@
        <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
      </methods>
      !!]
-     final     ::                           sphericalHeatedDestructor
-     procedure :: radiusInitial          => sphericalHeatedRadiusInitial
-     procedure :: noShellCrossingIsValid => sphericalHeatedNoShellCrossingIsValid
-     procedure :: density                => sphericalHeatedDensity
-     procedure :: massEnclosedBySphere   => sphericalHeatedMassEnclosedBySphere
-     procedure :: radiusEnclosingMass    => sphericalHeatedRadiusEnclosingMass
-     procedure :: useUndecorated         => sphericalHeatedUseUndecorated
+     final     ::                             sphericalHeatedDestructor
+     procedure :: radiusInitial            => sphericalHeatedRadiusInitial
+     procedure :: noShellCrossingIsValid   => sphericalHeatedNoShellCrossingIsValid
+     procedure :: potentialSolverIntegrand => heatedPotentialSolverIntegrand
+     procedure :: potentialSolverRadius    => heatedPotentialSolverRadius
+     procedure :: density                  => sphericalHeatedDensity
+     procedure :: massEnclosedBySphere     => sphericalHeatedMassEnclosedBySphere
+     procedure :: radiusEnclosingMass      => sphericalHeatedRadiusEnclosingMass
+     procedure :: useUndecorated           => sphericalHeatedUseUndecorated
   end type massDistributionSphericalHeated
 
   interface massDistributionSphericalHeated
@@ -101,9 +104,11 @@ contains
     type (inputParameters                ), intent(inout) :: parameters
     class(massDistributionClass          ), pointer       :: massDistribution_
     class(massDistributionHeatingClass   ), pointer       :: massDistributionHeating_
-    type (varying_string                 )                :: nonAnalyticSolver            , componentType, &
+    type (varying_string                 )                :: nonAnalyticSolver                     , componentType                      , &
          &                                                   massType
-    logical                                               :: tolerateVelocityMaximumFailure
+    logical                                               :: tolerateVelocityMaximumFailure        , toleratePotentialIntegrationFailure, &
+         &                                                   tolerateEnclosedMassIntegrationFailure
+    double precision                                      :: fractionRadiusFinalSmall              , toleranceRelativePotential
     
     !![
     <inputParameter>
@@ -130,12 +135,36 @@ contains
       <description>If true, tolerate failures to find the radius of the peak in the rotation curve.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateEnclosedMassIntegrationFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleratePotentialIntegrationFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>fractionRadiusFinalSmall</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativePotential</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <source>parameters</source>
+      <description>The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.</description>
+    </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistribution_"        source="parameters"/>
     <objectBuilder class="massDistributionHeating" name="massDistributionHeating_" source="parameters"/>
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),tolerateVelocityMaximumFailure,massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -147,7 +176,7 @@ contains
     return
   end function sphericalHeatedConstructorParameters
   
-  function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
+  function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{
     Constructor for ``sphericalHeated'' mass distribution class.
     !!}
@@ -156,12 +185,14 @@ contains
     class           (massDistributionSpherical        ), intent(in   ), target   :: massDistribution_
     class           (massDistributionHeatingClass     ), intent(in   ), target   :: massDistributionHeating_
     type            (enumerationNonAnalyticSolversType), intent(in   )           :: nonAnalyticSolver
-    logical                                            , intent(in   )           :: tolerateVelocityMaximumFailure
+    logical                                            , intent(in   )           :: toleratePotentialIntegrationFailure      , tolerateEnclosedMassIntegrationFailure        , &
+         &                                                                          tolerateVelocityMaximumFailure
     type            (enumerationComponentTypeType     ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType          ), intent(in   ), optional :: massType
-    double precision                                   , parameter               :: toleranceAbsolute             =0.0d0, toleranceRelative=1.0d-6
+    double precision                                   , intent(in   )           :: fractionRadiusFinalSmall                 , toleranceRelativePotential
+    double precision                                   , parameter               :: toleranceAbsolute                  =0.0d0, toleranceRelative                     =1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, tolerateVelocityMaximumFailure, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
+    <constructorAssign variables="nonAnalyticSolver, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateEnclosedMassIntegrationFailure, fractionRadiusFinalSmall, toleranceRelativePotential, *massDistribution_, *massDistributionHeating_, componentType, massType"/>
     !!]
  
     self%      componentType=self%massDistribution_%componentType
@@ -214,7 +245,7 @@ contains
     type            (coordinateSpherical            )                :: coordinatesInitial
     double precision                                                 :: radius            , radiusInitial, &
          &                                                              densityInitial    , massEnclosed , &
-         &                                                              jacobian
+         &                                                              jacobianInverse
     
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        ! No heating, the density is unchanged.
@@ -223,6 +254,11 @@ contains
     end if
     radius            =coordinates           %rSpherical   (                  )
     radiusInitial     =self                  %radiusInitial(radius            )
+    if (radius > 0.0d0 .and. radiusInitial == 0.0d0) then
+       ! No solution for the initial radius was found - assume a destroyed profile.
+       density=0.0d0
+       return
+    end if
     coordinatesInitial=[radiusInitial,0.0d0,0.0d0]
     densityInitial    =self%massDistribution_%density      (coordinatesInitial)
     if (radius == 0.0d0 .and. radiusInitial == 0.0d0) then
@@ -234,34 +270,36 @@ contains
     else
        massEnclosed=+self%massDistribution_%massEnclosedBySphere(radiusInitial)
        if (massEnclosed > 0.0d0) then
-          jacobian=+1.0d0                                                                                             &
-               &   /(                                                                                                 &
-               &     +(                                                                                               &
-               &       +radius                                                                                        &
-               &       /radiusInitial                                                                                 &
-               &      )                                                                                           **2 &
-               &     +2.0d0                                                                                           &
-               &     *radius                                                                                      **2 &
-               &     /gravitationalConstantGalacticus                                                                 &
-               &     /massEnclosed                                                                                    &
-               &     *(                                                                                               &
-               &       +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
-               &       -4.0d0                                                                                         &
-               &       *Pi                                                                                            &
-               &       *radiusInitial                                                                             **2 &
-               &       *densityInitial                                                                                &
-               &       *self%massDistributionHeating_%specificEnergy        (radiusInitial,self%massDistribution_)    &
-               &       /massEnclosed                                                                                  &
-               &      )                                                                                               &
-               &    )
-          density =+densityInitial                                                                                    &
-               &   *(                                                                                                 &
-               &     +radiusInitial                                                                                   &
-               &     /radius                                                                                          &
-               &    )                                                                                             **2 &
-               &   *jacobian
+          jacobianInverse=+(                                                                                               &
+               &            +radius                                                                                        &
+               &            /radiusInitial                                                                                 &
+               &           )                                                                                           **2 &
+               &          +2.0d0                                                                                           &
+               &          *radius                                                                                      **2 &
+               &          /gravitationalConstantGalacticus                                                                 &
+               &          /massEnclosed                                                                                    &
+               &          *(                                                                                               &
+               &            +self%massDistributionHeating_%specificEnergyGradient(radiusInitial,self%massDistribution_)    &
+               &            -4.0d0                                                                                         &
+               &            *Pi                                                                                            &
+               &            *radiusInitial                                                                             **2 &
+               &            *densityInitial                                                                                &
+               &            *self%massDistributionHeating_%specificEnergy        (radiusInitial,self%massDistribution_)    &
+               &            /massEnclosed                                                                                  &
+               &           )
+          if (jacobianInverse > 0.0d0) then
+             density=+densityInitial                                                                                    &
+                  &  *(                                                                                                 &
+                  &    +radiusInitial                                                                                   &
+                  &    /radius                                                                                          &
+                  &   )                                                                                             **2 &
+                  &  /jacobianInverse
+          else
+             ! Shell crossing assumption is broken - simply return the density unchanged.
+             density=+self%massDistribution_%density(coordinates)
+          end if
        else
-          density    =+densityInitial
+          density   =+densityInitial
        end if
     end if
     return
@@ -288,9 +326,10 @@ contains
     implicit none
     class           (massDistributionSphericalHeated), intent(inout), target  :: self
     double precision                                 , intent(in   )          :: radiusFinal
-    double precision                                 , parameter              :: epsilonExpand=1.0d-2
+    double precision                                 , parameter              :: epsilonExpand=1.0d-2, radiusTiny=1.0d-30
     double precision                                                          :: factorExpand
-    
+    integer                                                                   :: status
+
     ! If profile is unheated, the initial radius equals the final radius.
     if (self%massDistributionHeating_%specificEnergyIsEverywhereZero()) then
        radiusInitial=radiusFinal
@@ -314,9 +353,11 @@ contains
                &                       rangeExpandDownward          =0.50d0                       , &
                &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                       rangeExpandType              =rangeExpandMultiplicative    , &
+               &                       rangeDownwardLimit           =radiusTiny                   , &
+               &                       testLimits                   =.true.                         &
                &                      )
-          self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal)
+          self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal,status=status)
        else
           ! Previous solution exists, and the requested final radius is larger (but not too much larger) than the previous initial
           ! radius. Use the previous initial radius as a guess for the solution, with range expansion in steps determined by the
@@ -333,11 +374,15 @@ contains
                &                       rangeExpandDownward          =1.0d0/factorExpand           , &
                &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                       rangeExpandType              =rangeExpandMultiplicative    , &
+               &                       rangeDownwardLimit           =radiusTiny                   , &
+               &                       testLimits                   =.true.                         &
                &                      )
-          self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious)
+          self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious,status=status)
        end if       
        self%radiusFinalPrevious=radiusFinal
+       ! If no solution was found, assume a destroyed profile and set the initial radius to the final radius.
+       if (status /= errorStatusSuccess) self%radiusInitialPrevious=radiusFinal
     end if
     radiusInitial=self%radiusInitialPrevious
     return
@@ -350,10 +395,9 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radiusInitial
-    double precision, parameter     :: fractionRadiusSmall=1.0d-3
     double precision                :: massEnclosed
     
-    if (radiusInitial < fractionRadiusSmall*radiusFinal_) then
+    if (radiusInitial < self_%fractionRadiusFinalSmall*radiusFinal_) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
        ! no root exists. In this case shell crossing is likely to be occurring. Simply return a value of zero, which places the
@@ -436,3 +480,81 @@ contains
     end if
     return
   end function sphericalHeatedRadiusEnclosingMass
+
+  double precision function heatedPotentialSolverIntegrand(self,radius) result(integrand)
+    !!{
+    Integrand for generic dark matter profile Jeans equation. Here we do the integration with respect to the
+    initial radius $r_i$.
+    \begin{eqnarray}
+     \phi(r) &=& -\int_r^{r^{\mathrm{max}}} \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
+             &=& -\int_{r_i}^{r_{i}^{\mathrm{max}}}\frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^2 \frac{\mathrm{d}r}{\mathrm{d}r_\mathrm{i}}  \mathrm{d} r_i.
+    \end{eqnarray}
+    Here $r$ can be written as a function of $r_i$
+    \begin{equation}
+     r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))},
+    \end{equation}
+    such that
+     \begin{equation}
+     \frac{\mathrm{d}r}{\mathrm{d}r_i} = \left(\frac{r}{r_\mathrm{i}}\right)^2 + \frac{2 r^2}{\mathrm{G} M(r_\mathrm{i})} \left( \epsilon^\prime(r_\mathrm{i}) - \frac{4 \pi r_\mathrm{i}^2 \rho_\mathrm{i}(r_\mathrm{i}) \epsilon(r_\mathrm{i})}{M(r_\mathrm{i})} \right).
+    \end{equation}
+    !!}
+    use :: Coordinates                     , only : coordinateSpherical            , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    implicit none
+    class           (massDistributionSphericalHeated), intent(inout) :: self
+    double precision                                 , intent(in   ) :: radius
+    double precision                                                 :: radiusFinal   , massEnclosed          , &
+         &                                                              energySpecific, energySpecificGradient, &
+         &                                                              density       , jacobian
+    type            (coordinateSpherical            )                :: coordinates
+
+    massEnclosed          =+self%massDistribution_       %massEnclosedBySphere  (radius                       )
+    energySpecific        =+self%massDistributionHeating_%specificEnergy        (radius,self%massDistribution_)
+    energySpecificGradient=+self%massDistributionHeating_%specificEnergyGradient(radius,self%massDistribution_)
+    radiusFinal           =+1.0d0                                                               &
+         &                 /(                                                                   &
+         &                   +1.0d0/radius                                                      &
+         &                   -2.0d0*energySpecific/gravitationalConstantGalacticus/massEnclosed &
+         &                  )
+    if (radiusFinal > 0.0d0) then
+       coordinates        =[radius,0.0d0,0.0d0]
+       density            =+self%massDistribution_%density(coordinates)
+       jacobian           =+(                                  &
+               &             +radiusFinal                      &
+               &             /radius                           &
+               &            )                              **2 &
+               &           +2.0d0                              &
+               &           *radiusFinal                    **2 &
+               &           /gravitationalConstantGalacticus    &
+               &           /massEnclosed                       &
+               &           *(                                  &
+               &             +energySpecificGradient           &
+               &             -4.0d0                            &
+               &             *Pi                               &
+               &             *radius                       **2 &
+               &             *density                          &
+               &             *energySpecific                   &
+               &             /massEnclosed                     &
+               &            )
+       integrand          =-massEnclosed                       &
+            &              / radius             **2            &
+            &              *(radius/radiusFinal)**2            &
+            &              *jacobian
+    else
+       integrand          =+0.0d0
+    end if
+    return
+  end function heatedPotentialSolverIntegrand
+
+  double precision function heatedPotentialSolverRadius(self,radius)
+    !!{
+    Return the radius variable used in computing the potential that corresponds to a given physical radius.
+    Here we do the integration with respect to the initial radius, so return the initial radius.
+    !!}
+    implicit none
+    class           (massDistributionSphericalHeated), intent(inout) :: self
+    double precision                                 , intent(in   ) :: radius
+
+    heatedPotentialSolverRadius=self%radiusInitial(radius)
+    return
+  end function heatedPotentialSolverRadius

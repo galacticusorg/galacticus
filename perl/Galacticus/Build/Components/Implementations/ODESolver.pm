@@ -710,10 +710,10 @@ CODE
 	    $code::offsetName = &offsetName($status,$code::class->{'name'},'floatRank0MetaProperties');
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
  if (.not.allocated({$offsetName})) then
-  allocate({$offsetName}({$class->{'name'}}FloatRank0MetaPropertyEvolvableCount))
- else if (size({$offsetName}) /= {$class->{'name'}}FloatRank0MetaPropertyEvolvableCount) then
+  allocate({$offsetName}({$class->{'name'}}FloatRank0MetaPropertyCount))
+ else if (size({$offsetName}) /= {$class->{'name'}}FloatRank0MetaPropertyCount) then
   deallocate({$offsetName})
-  allocate({$offsetName}({$class->{'name'}}FloatRank0MetaPropertyEvolvableCount))
+  allocate({$offsetName}({$class->{'name'}}FloatRank0MetaPropertyCount))
  end if
 CODE
 	}
