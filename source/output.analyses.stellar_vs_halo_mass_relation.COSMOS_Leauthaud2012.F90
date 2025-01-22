@@ -770,7 +770,7 @@ contains
        if (status == GSL_Success) then
           if (self%likelihoodNormalize)                                                                  &
                & logLikelihood=+logLikelihood                                                            &
-               &               -0.5d0*covariance%determinant()                                           &
+               &               -0.5d0*covariance%logarithmicDeterminant()                                &
                &               -0.5d0*dble(size(massStellarLogarithmicDifferenceSelected))*log(2.0d0*Pi)
        else
           logLikelihood       =+logImprobable

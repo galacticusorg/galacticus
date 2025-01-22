@@ -739,7 +739,7 @@ contains
        if (status == GSL_Success) then
           if (self%likelihoodNormalize)                                                         &
                & scatterFunction1DLogLikelihood=+scatterFunction1DLogLikelihood                 &
-               &                                -0.5d0*covariance%determinant()                 &
+               &                                -0.5d0*covariance%logarithmicDeterminant()      &
                &                                -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
        else
           scatterFunction1DLogLikelihood       =+logImprobable
