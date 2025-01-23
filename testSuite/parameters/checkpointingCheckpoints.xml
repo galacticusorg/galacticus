@@ -445,6 +445,12 @@
     <nodeOperator value="nodeFormationTimeMassFraction">
       <fractionMassFormation value="0.5"/>
     </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Merger tree evolution -->

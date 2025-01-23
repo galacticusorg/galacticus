@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -629,7 +629,7 @@ contains
           if (outputTimeNext > 0.0d0) then
              treeIsFinished=.false.
           else
-             iOutput      =self%outputTimes_%count()+1
+             iOutput       =self%outputTimes_%count()+1
              treeIsFinished=.true.
           end if
           ! Iterate evolving the tree until no more outputs are required.

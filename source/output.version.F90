@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@ module Output_Versioning
   use, intrinsic :: ISO_C_Binding, only : c_char, c_size_t
   implicit none
   private
-  public :: Version_Output, Version_Finalize, Version_String, Version
+  public :: Version_String, Version
 
   ! Include the automatically generated Git revision number.
   include 'output.version.revision.inc'
@@ -82,9 +82,7 @@ contains
   end function Version_String
 
   !![
-  <outputFileOpenTask>
-   <unitName>Version_Output</unitName>
-  </outputFileOpenTask>
+  <outputFileOpen function="Version_Output"/>
   !!]
   subroutine Version_Output
     !!{
@@ -179,9 +177,7 @@ contains
   end subroutine Version_Output
   
   !![
-  <hdfPreCloseTask>
-   <unitName>Version_Finalize</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="Version_Finalize"/>
   !!]
   subroutine Version_Finalize()
     !!{

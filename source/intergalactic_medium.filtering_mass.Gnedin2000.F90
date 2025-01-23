@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -606,7 +606,7 @@ contains
     if (.not.File_Exists(char(self%fileName))) return
     if (self%initialized) call self%table%destroy()
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(self%fileName),overWrite=.false.)
+    dataFile=hdf5Object(char(self%fileName),overWrite=.false.,readOnly=.true.)
     call dataFile%readDataset  ('massFiltering',     massFiltering)
     call dataFile%readAttribute('timeMinimum'  ,self%timeMinimum  )
     call dataFile%readAttribute('timeMaximum'  ,self%timeMaximum  )

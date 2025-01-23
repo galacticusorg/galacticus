@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,8 +29,8 @@ module Node_Component_Black_Hole_Standard
   use :: Black_Hole_Binary_Initial_Separation, only : blackHoleBinaryInitialSeparationClass
   use :: Black_Hole_Binary_Mergers           , only : blackHoleBinaryMergerClass
   use :: Black_Hole_Binary_Recoil_Velocities , only : blackHoleBinaryRecoilClass
-  use :: Black_Hole_Binary_Separations       , only : blackHoleBinarySeparationGrowthRateClass
   use :: Black_Hole_Accretion_Rates          , only : blackHoleAccretionRateClass
+  use :: Black_Hole_Seeds                    , only : blackHoleSeedsClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   implicit none
@@ -52,7 +52,6 @@ module Node_Component_Black_Hole_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
       <output unitsInSI="massSolar" comment="Mass of the black hole."/>
     </property>
     <property>
@@ -61,7 +60,6 @@ module Node_Component_Black_Hole_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
-      <classDefault>self%spinSeed()</classDefault>
       <output unitsInSI="0.0d0" comment="Spin of the black hole."/>
     </property>
     <property>
@@ -75,19 +73,6 @@ module Node_Component_Black_Hole_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-    </property>
-    <property>
-      <name>massSeed</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get"  />
-    </property>
-    <property>
-      <name>spinSeed</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-      <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
     </property>
     <property>
       <name>accretionRate</name>
@@ -111,14 +96,14 @@ module Node_Component_Black_Hole_Standard
   !!]
 
   ! Objects used by this component.
-  class(accretionDisksClass                     ), pointer :: accretionDisks_
-  class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
-  class(blackHoleAccretionRateClass             ), pointer :: blackHoleAccretionRate_
-  class(blackHoleBinaryInitialSeparationClass   ), pointer :: blackHoleBinaryInitialSeparation_
-  class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
-  class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
-  class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(accretionDisks_,blackHoleAccretionRate_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,darkMatterHaloScale_)
+  class(accretionDisksClass                  ), pointer :: accretionDisks_
+  class(blackHoleBinaryRecoilClass           ), pointer :: blackHoleBinaryRecoil_
+  class(blackHoleAccretionRateClass          ), pointer :: blackHoleAccretionRate_
+  class(blackHoleBinaryInitialSeparationClass), pointer :: blackHoleBinaryInitialSeparation_
+  class(blackHoleBinaryMergerClass           ), pointer :: blackHoleBinaryMerger_
+  class(blackHoleSeedsClass                  ), pointer :: blackHoleSeeds_
+  class(darkMatterHaloScaleClass             ), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(accretionDisks_,blackHoleAccretionRate_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleSeeds_,darkMatterHaloScale_)
 
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
@@ -127,9 +112,6 @@ module Node_Component_Black_Hole_Standard
   double precision :: bondiHoyleAccretionTemperatureSpheroid
   ! Control for hot mode only accretion.
   logical          :: bondiHoyleAccretionHotModeOnly
-
-  ! Seed mass for black holes.
-  double precision :: massSeed
 
   ! Feedback parameters.
   double precision :: efficiencyWind                        , efficiencyRadioMode
@@ -163,19 +145,8 @@ contains
     type(nodeComponentBlackHoleStandard)                :: blackHoleStandardComponent
     type(inputParameters               )                :: subParameters
 
-    ! Bind deferred functions.
-    call blackHoleStandardComponent%massSeedFunction(Node_Component_Black_Hole_Standard_Seed_Mass)
     ! Find our parameters.
     subParameters=parameters%subParameters('componentBlackHole')
-    ! Get the seed mass
-    !![
-    <inputParameter>
-      <name>massSeed</name>
-      <source>subParameters</source>
-      <defaultValue>100.0d0</defaultValue>
-      <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
-    </inputParameter>
-    !!]
     ! Get accretion rate enhancement factors.
     !![
     <inputParameter>
@@ -281,13 +252,13 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentBlackHole')
        !![
-       <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="subParameters"/>
-       <objectBuilder class="blackHoleAccretionRate"              name="blackHoleAccretionRate_"              source="subParameters"/>
-       <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="subParameters"/>
-       <objectBuilder class="blackHoleBinaryInitialSeparation"    name="blackHoleBinaryInitialSeparation_"    source="subParameters"/>
-       <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="subParameters"/>
-       <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="subParameters"/>
-       <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="subParameters"/>
+       <objectBuilder class="accretionDisks"                   name="accretionDisks_"                   source="subParameters"/>
+       <objectBuilder class="blackHoleAccretionRate"           name="blackHoleAccretionRate_"           source="subParameters"/>
+       <objectBuilder class="blackHoleSeeds"                   name="blackHoleSeeds_"                   source="subParameters"/>
+       <objectBuilder class="blackHoleBinaryRecoil"            name="blackHoleBinaryRecoil_"            source="subParameters"/>
+       <objectBuilder class="blackHoleBinaryInitialSeparation" name="blackHoleBinaryInitialSeparation_" source="subParameters"/>
+       <objectBuilder class="blackHoleBinaryMerger"            name="blackHoleBinaryMerger_"            source="subParameters"/>
+       <objectBuilder class="darkMatterHaloScale"              name="darkMatterHaloScale_"              source="subParameters"/>
        !!]     
     end if
     return
@@ -309,13 +280,13 @@ contains
     if (defaultBlackHoleComponent%standardIsActive()) then
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
        !![
-       <objectDestructor name="accretionDisks_"                     />
-       <objectDestructor name="blackHoleAccretionRate_"             />
-       <objectDestructor name="blackHoleBinaryRecoil_"              />
-       <objectDestructor name="blackHoleBinaryInitialSeparation_"   />
-       <objectDestructor name="blackHoleBinaryMerger_"              />
-       <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
-       <objectDestructor name="darkMatterHaloScale_"                />
+       <objectDestructor name="accretionDisks_"                  />
+       <objectDestructor name="blackHoleAccretionRate_"          />
+       <objectDestructor name="blackHoleSeeds_"                  />
+       <objectDestructor name="blackHoleBinaryRecoil_"           />
+       <objectDestructor name="blackHoleBinaryInitialSeparation_"/>
+       <objectDestructor name="blackHoleBinaryMerger_"           />
+       <objectDestructor name="darkMatterHaloScale_"             />
        !!]
     end if
     return
@@ -330,6 +301,7 @@ contains
     !!{
     Compute the black hole node mass rate of change.
     !!}
+    use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic, nodeComponentBlackHole, &
           &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyInactive  , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
@@ -390,12 +362,9 @@ contains
           end if
           ! Find the rate of increase in mass of the black hole.
           massAccretionRate=restMassAccretionRate*(1.0d0-radiativeEfficiency-jetEfficiency)
-          ! If no black hole component currently exists and we have some accretion then interrupt and create a black hole.
-          if (instanceCount == 0 .and. massAccretionRate /= 0.0d0) then
-             interrupt=.true.
-             interruptProcedure => Node_Component_Black_Hole_Standard_Create
-             return
-          end if
+          ! If no black hole component currently exists and we have some accretion then this is an error - we can not have
+          ! accretion onto a non-existent black hole.
+          if (instanceCount == 0 .and. massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existent black hole'//{introspection:location})
           ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.
           if (blackHole%mass() <= 0.0d0 .and. massAccretionRate < 0.0d0) cycle
           ! Add the accretion to the black hole.
@@ -477,17 +446,14 @@ contains
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
           ! Set scale for mass.
-          call blackHole%massScale(                                                       &
-               &                   max(                                                   &
-               &                                                 blackHole%massSeed   (), &
-               &                       max(                                               &
-               &                               scaleMassRelative*spheroid %massStellar(), &
-               &                           max(                                           &
-               &                               scaleMassAbsolute                        , &
-               &                                                 blackHole%mass       ()  &
-               &                              )                                           &
-               &                          )                                               &
-               &                      )                                                   &
+          call blackHole%massScale(                                                   &
+               &                   max(                                               &
+               &                           scaleMassRelative*spheroid %massStellar(), &
+               &                       max(                                           &
+               &                           scaleMassAbsolute                        , &
+               &                                             blackHole%mass       ()  &
+               &                          )                                           &
+               &                      )                                               &
                &                  )
 
           ! Set scale for spin.
@@ -568,11 +534,8 @@ contains
           end if
           ! Move the black hole to the host.
           call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-          call blackHoleHostCentral%massSet(massBlackHoleNew           )
-          call blackHoleHostCentral%spinSet(spinBlackHoleNew           )
-          ! Reset the satellite black hole to zero mass.
-          call blackHole           %massSet(blackHole       %massSeed())
-          call blackHole           %spinSet(blackHole       %spinSeed())
+          call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
+          call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
        end do
     else
        ! Adjust the radii of the black holes in the satellite galaxy.
@@ -638,26 +601,6 @@ contains
          &  +      potentialSelf
     return
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
-
-  subroutine Node_Component_Black_Hole_Standard_Create(node,timeEnd)
-    !!{
-    Creates a black hole component for {\normalfont \ttfamily node}.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
-    implicit none
-    type            (treeNode              ), intent(inout), target   :: node
-    double precision                        , intent(in   ), optional :: timeEnd
-    class           (nodeComponentBlackHole)               , pointer  :: blackHole
-    !$GLC attributes unused :: timeEnd
-    
-    ! Create the black hole.
-    blackHole => node%blackHole(autoCreate=.true.)
-    ! Set to the seed mass.
-    call blackHole%          massSet(blackHole%massSeed())
-    call blackHole%          spinSet(blackHole%spinSeed())
-    call blackHole%radialPositionSet(               0.0d0)
-    return
-  end subroutine Node_Component_Black_Hole_Standard_Create
 
   subroutine Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
     !!{
@@ -758,8 +701,8 @@ contains
              end if
              if (blackHole%mass() < 0.0d0) then
                 ! Note that "status" is not set to failure as this change in state of the black hole should not change any
-                ! calculation of differential evolution rates as the mass was in an unphysical regime anyway
-                call blackHole%massSet(blackHole%massSeed())
+                ! calculation of differential evolution rates as the mass was in an unphysical regime anyway.
+                call blackHole%massSet(blackHoleSeeds_%mass(node))
                 ! Indicate that ODE evolution should continue after this state change.
                 if (status == GSL_Success) status=GSL_Continue
              end if
@@ -768,19 +711,6 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
-
-  double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
-    !!{
-    Return the seed mass for standard black holes.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
-    implicit none
-    class(nodeComponentBlackHoleStandard), intent(inout) :: self
-    !$GLC attributes unused :: self
-    
-    Node_Component_Black_Hole_Standard_Seed_Mass=massSeed
-    return
-  end function Node_Component_Black_Hole_Standard_Seed_Mass
 
   !![
   <stateStoreTask>
@@ -800,7 +730,7 @@ contains
 
     call displayMessage('Storing state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
+    <stateStore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleSeeds_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Store
@@ -823,7 +753,7 @@ contains
 
     call displayMessage('Retrieving state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
+    <stateRestore variables="accretionDisks_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleSeeds_ blackHoleAccretionRate_ darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Restore

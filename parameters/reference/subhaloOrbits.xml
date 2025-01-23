@@ -29,8 +29,12 @@
   <!-- Values taken from Yang et al. (2020; MNRAS; 498; 3902; http://adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) approximately
        interpolated betweeing their gamma=0.0 and 2.5 cases (using the Caterpillar simulations as calibration target) to
        approximately match our choice of gamma=1.5 using the Caterpillar simulations as calibration target.  -->
-  <satelliteDynamicalFriction value="chandrasekhar1943">
-    <logarithmCoulomb value="1.35"/>
+  <satelliteDynamicalFriction value="massRatioThreshold">
+    <!-- Allow for includer files to set a mass ratio threshold for dynamical friction - defaulting to zero if none is given. -->
+    <massRatioThreshold value="=[satelliteDynamicalFrictionMassRatioThreshold|0.0]"/>
+    <satelliteDynamicalFriction value="chandrasekhar1943">
+      <logarithmCoulomb value="1.35"/>
+    </satelliteDynamicalFriction>
   </satelliteDynamicalFriction>
   <satelliteTidalHeatingRate  value="gnedin1999"       >
     <epsilon          value="2.70"/>

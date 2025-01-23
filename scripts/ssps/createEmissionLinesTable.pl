@@ -24,6 +24,7 @@ my %options =
     (
      workspace             => "cloudyTable/",
      reprocess             => "no",
+     rerun                 => "no",
      generateOnly          => "no",
      overview              => "no",
      includeGrains         => "yes",
@@ -350,7 +351,8 @@ $grid->{'lineData'}->{$lineList{$_}}->{'luminosity'} = pdl      zeros(@dimension
 $grid->{'lineData'}                 ->{'status'    } = pdl long zeros(@dimensions);
 
 # Iterate over all iterables to build an array of jobs.
-$grid->{'counter'} = pdl long zeros(scalar(@{$grid->{'iterables'}}));
+$grid->{'counter'    } = pdl long zeros(scalar(@{$grid->{'iterables'}}));
+$grid->{'modelNumber'} = pdl long zeros(@dimensions);
 my $jobNumber = -1;
 my $jobCount  =  1;
 for(my $i=0;$i<nelem($grid->{'counter'});++$i) {
@@ -364,6 +366,11 @@ if ( $options{'reprocess'} eq "yes" ) {
 } else {
     do {
 	++$jobNumber;
+	my @indices;
+	for(my $i=0;$i<scalar(@{$grid->{'iterables'}});++$i) {
+	    push(@indices,$grid->{'counter'}->(($i)));
+	}
+	$grid->{'modelNumber'}->(@indices) .= $jobNumber;
 	if ( ! exists($options{'model'}) || $options{'model'} == $jobNumber ) {
 	    print "Generating model ".$jobNumber." of ".$jobCount."\n"
 		if ( $jobNumber % 100 == 0 || exists($options{'model'}) );
@@ -554,6 +561,22 @@ sub generateJobSSP {
     my $iMetallicity           = $grid->{'counter'}->((1));
     my $iLogHydrogenLuminosity = $grid->{'counter'}->((2));
     my $iLogHydrogenDensity    = $grid->{'counter'}->((3));
+    # If this is a rerun, load line data and status.
+    if ( $options{'rerun'} eq "yes" ) {
+	unless ( exists($grid->{'rerunStatusRead'}) ) {
+	    my $tableFile                   = new PDL::IO::HDF5($options{'workspace'}.$options{'outputFileName'});
+	    my $lineGroup                   = $tableFile->group('lines');
+	    $grid->{'lineData'}->{'status'} = $lineGroup->dataset('status')->get();
+	    foreach my $lineIdentifier ( keys(%lineList) ) {
+		my $lineName = $lineList{$lineIdentifier};
+		$grid->{'lineData'}->{$lineName}->{'luminosity'} = $lineGroup->dataset($lineName)->get();
+	    }
+	    $grid->{'rerunStatusRead'} = 1;
+	}
+	my $statusOld = $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity))->sclr();
+	return
+	    if ( $statusOld == 0 );
+    }
     # Normalize the spectrum - this is a convenience only as the normalization will be recomputed by Cloudy.
     $grid->{'normalized'} = pdl long zeros(nelem($grid->{'ages'}),nelem($grid->{'logMetallicities'}))
 	unless ( exists($grid->{'normalized'}) );
@@ -588,7 +611,6 @@ sub generateJobSSP {
 	}
     }
     # Generate a Cloudy parameter file.
-    print "start ".$iAge." ".$iMetallicity."\n";
     my $cloudyScript;
     $cloudyScript .= "title emission line job number ".$jobNumber."\n";
     $cloudyScript .= "# [".$iAge                  ."] age     = ".$grid->{'ages'                   }->(($iAge                  ))."\n";
@@ -666,7 +688,6 @@ sub generateJobSSP {
     ##   https://cloudyastrophysics.groups.io/g/Main/topic/102424985#5431
     #$cloudyScript .= "print line vacuum\n";
     $cloudyScript .= "save lines, array \"lines".$jobNumber.".out\"\n";
-    print "done\n";
     ## Write the Cloudy script to file.
     my $cloudyScriptFileName = "cloudyInput".$jobNumber.".txt";
     open(my $cloudyScriptFile,">".$options{'workspace'}.$cloudyScriptFileName);
@@ -855,7 +876,6 @@ sub reprocessSSP {
 			if ( $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)) == 0 );
 		    # Reset the status before attempting to reprocess.
 		    my $statusOld = $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity))->sclr();
-		    $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)) .= 0;
 		    &linesParse(
 			"lines"        .$jobNumber.".out",
 			"continuum"    .$jobNumber.".out",
@@ -1085,8 +1105,10 @@ sub outputSSP {
     
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
-    $lineGroup->dataset('status')->set($grid->{'lineData'}->{'status'});
-    $lineGroup->dataset('status')->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('status'     )->set($grid->{'lineData'}->{'status'     });
+    $lineGroup->dataset('status'     )->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('modelNumber')->set($grid->{'modelNumber'});
+    $lineGroup->dataset('modelNumber')->attrSet(description => "Cloudy model number"                                                                                                          );
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
@@ -1117,8 +1139,10 @@ sub outputAGN {
 
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
-    $lineGroup->dataset('status')->set($grid->{'lineData'}->{'status'});
-    $lineGroup->dataset('status')->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('status'     )->set($grid->{'lineData'}->{'status'});
+    $lineGroup->dataset('status'     )->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('modelNumber')->set($grid->{'lineData'}->{'modelNumber'});
+    $lineGroup->dataset('modelNumber')->attrSet(description => "Cloudy model number"                                                                                                          );
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
@@ -1142,6 +1166,7 @@ sub linesParse {
     }
     # Check for successful completion.
     my $status = $grid->{'lineData'}->{'status'}->(@indices);
+    $status .= 0;
     my $label  = join(" ",@indices);
     system("grep -q DISASTER ".$options{'workspace'}.$logFileName);
     if ( $? == 0 ) {

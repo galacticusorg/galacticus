@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,16 +36,16 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
     <description>
-      A posterior sampling likelihood class which combines likelihoods from one or more other \refClass{posteriorSampleLikelihood}
+      A posterior sampling likelihood class which combines likelihoods from one or more other \refClass{posteriorSampleLikelihoodClass}
       classes that are assumed to be independent (i.e. the $\log \mathcal{L}$ of the models are simply summed to find the final
       likelihood).
       
-      Since each \refClass{posteriorSampleLikelihood} class may require a different set of parameters a {\normalfont \ttfamily
+      Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a {\normalfont \ttfamily
       [parameterMap]} parameter may be specified. If present, the number of {\normalfont \ttfamily [parameterMap]} parameters must
       equal the number of {\normalfont \ttfamily [posteriorSampleLikelihood]} parameters. Each such parameter should give a
       (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} class) which should be
       passed to the corresponding {\normalfont \ttfamily [posteriorSampleLikelihood]}. If no {\normalfont \ttfamily
-      [parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihood} class.
+      [parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
       
       Similarly, a set of {\normalfont \ttfamily parameterInactiveMap} parameters may be given, to specify which (if any, an empty
       {\normalfont \ttfamily value} is permissible) of the inactive parameters specified by \refClass{modelParameterInactive}
@@ -307,6 +307,7 @@ contains
        end forall
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
+       call modelLikelihood_%simulationState%countSet     (simulationState%count     ())
        ! Determine if the chain is already accepted - if it is we set the proposed prior to be impossible so that the model will not actually be evaluated.
        if (logLikelihoodCurrent > self%logLikelihoodAccept) then
           logPriorProposed_=logImpossible

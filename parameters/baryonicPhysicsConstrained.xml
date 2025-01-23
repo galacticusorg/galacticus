@@ -18,7 +18,6 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="simple">
-    <massSeed value="100.0"/>
     <growthRatioToStellarSpheroid value="1.36151389582815"/>
     <heatsHotHalo value="true"/>
     <efficiency value="0.00361121531459326"/>
@@ -270,6 +269,12 @@
     <nodeOperator value="satelliteMassLoss"/>
     <!-- Positions for subhalos -->
     <nodeOperator value="positionTraceDarkMatter"/>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
   </nodeOperator>
   
   <!-- Numerical tolerances -->

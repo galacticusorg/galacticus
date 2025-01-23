@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -530,7 +530,7 @@ contains
       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
-         file=hdf5Object      (char(fileName      )                             )
+         file=hdf5Object      (char(fileName      ),readOnly=.true.             )
          call file%readDataset(     'x'            ,self%accelerationX          )
          call file%readDataset(     'scaleLength'  ,self%accelerationScaleLength)
          call file%readDataset(     'acceleration' ,self%accelerationVector     )

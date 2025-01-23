@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -221,7 +221,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
            call Assert(trim(message),radiusTurnaroundBaryons     ,radiusTurnaroundDMO     ,relTol=1.0d-3)
         end if
         if (trim(outputFractions) == "yes" .and. redshift(i) == 0.0d0) then
-           write (outputFile,'(2x,4(f9.5,1x))') fractionBaryons,criticalOverdensityBaryons,virialDensityContrastBaryons,radiusTurnaroundBaryons; call flush(406)
+           write (outputFile,'(2x,4(f9.5,1x))') fractionBaryons,criticalOverdensityBaryons,virialDensityContrastBaryons,radiusTurnaroundBaryons
            if (fractionBaryons > 0.0d0) exit
         end if
      end do

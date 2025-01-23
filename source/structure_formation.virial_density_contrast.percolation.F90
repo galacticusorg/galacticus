@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -590,7 +590,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName))
+       file=hdf5Object(char(self%fileName),readOnly=.true.)
        call file%readAttribute('timeMinimum'    ,self%densityContrastTableTimeMinimum)
        call file%readAttribute('timeMaximum'    ,self%densityContrastTableTimeMaximum)
        call file%readAttribute('massMinimum'    ,self%densityContrastTableMassMinimum)
