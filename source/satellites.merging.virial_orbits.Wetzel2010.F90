@@ -264,7 +264,7 @@ contains
     massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                   host                                                                                                , &
          &                                                                   self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
-         &                                                                   radiusHost                                                                                          , &
+         &                                                                   radiusHostSelf                                                                                      , &
          &                                                                   velocityHost                                                                                        , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
          &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
