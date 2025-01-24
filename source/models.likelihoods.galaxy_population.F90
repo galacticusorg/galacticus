@@ -35,8 +35,8 @@
      !!}
      private
      type   (varying_string               )          :: failedParametersFileName
-     logical                                         :: randomize                         , collaborativeMPI, &
-          &                                             outputAnalyses
+     logical                                         :: randomize                         , collaborativeMPI     , &
+          &                                             outputAnalyses                    , reportEvaluationTimes
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
@@ -70,7 +70,7 @@ contains
     type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
     logical                                                           :: randomize             , collaborativeMPI        , &
          &                                                               outputAnalyses        , reportFileName          , &
-         &                                                               reportState
+         &                                                               reportState           , reportEvaluationTimes
     type   (varying_string)                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
@@ -83,6 +83,12 @@ contains
     <inputParameter>
       <name>outputAnalyses</name>
       <description>If true, results of the analyses on each step will be stored to the output file.</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>reportEvaluationTimes</name>
+      <description>If true, report the time taken to evaluate each model.</description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -125,7 +131,7 @@ contains
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -133,20 +139,20 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,reportEvaluationTimes,collaborativeMPI,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName) result(self)
     !!{
     Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     !!}
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
-    logical                                           , intent(in   )         :: randomize               , collaborativeMPI, &
-         &                                                                       outputAnalyses          , reportFileName  , &
-         &                                                                       reportState
+    logical                                           , intent(in   )         :: randomize               , collaborativeMPI     , &
+         &                                                                       outputAnalyses          , reportFileName       , &
+         &                                                                       reportState             , reportEvaluationTimes
     type   (enumerationVerbosityLevelType            ), intent(in   )         :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )         :: failedParametersFileName, baseParametersFileName
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
+    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, reportEvaluationTimes, collaborativeMPI, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName"/>
     !!]
 
     return
@@ -179,6 +185,7 @@ contains
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
     use :: Model_Parameters              , only : modelParameterDerived
     use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
+    use :: Numerical_Constants_Prefixes  , only : siFormat
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     use :: String_Handling               , only : String_Count_Words             , String_Join                  , String_Split_Words          , operator(//)
@@ -289,6 +296,7 @@ contains
           if (verbosityLevel >= verbosityLevelStandard) then
              write (valueText,'(e12.4)') logLikelihoodProposed
              message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+             if (self%reportEvaluationTimes) message=message//" (evaluation in "//trim(siFormat(dble(timeEvaluate),'f5.1,1x'))//"s)"
              call displayMessage(message,verbosityLevelSilent)
           end if
        end if

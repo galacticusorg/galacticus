@@ -560,13 +560,13 @@ contains
           stateVector(i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
        end do
        if (self%logging()) then
-          write (logFileUnit,*) self   %posteriorSampleState_%count(), &
-               &                mpiSelf%rank                 (), &
-               &                timeEvaluate                   , &
-               &                self%isConverged               , &
-               &                self%logPosterior              , &
-               &                logLikelihood                  , &
-               &                stateVector
+          write (logFileUnit,*) self   %posteriorSampleState_%count        (), &
+               &                mpiSelf                      %rank         (), &
+               &                                              timeEvaluate   , &
+               &                self                         %isConverged    , &
+               &                self                         %logPosterior   , &
+               &                                              logLikelihood  , &
+               &                                              stateVector
           if (mod(self%posteriorSampleState_%count(),self%logFlushCount) == 0) call flush(logFileUnit)
        end if
        ! Repeat.
