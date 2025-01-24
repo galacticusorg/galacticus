@@ -107,6 +107,9 @@ int flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared, int 
     }
   }
   /* Lock was not obtained after the maximum number of attempts - return an error code. */
+  close((*ld)->fd);
+  free((*ld)->name);
+  free(*ld);
   return -2;
 }
 
