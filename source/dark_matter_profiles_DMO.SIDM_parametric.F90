@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}.
+  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of \cite{Yang et al_2023}.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -27,18 +27,18 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMParametric">
     <description>
-      Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of
-      \cite{iang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMParametric} class.
+      Dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of
+      \cite{Yang et al_2023} are built via the \refClass{massDistributionSphericalSIDMParametric} class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMParametric
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{iang_semi-analytic_2023}.
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``SIDM_parametric'' model
+     of \cite{Yang et al_2023}.
      !!}
      private
      class(darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
-     class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      integer                                   :: RhosSIDMID, RsSIDMID, RcSIDMID
      double precision                          :: beta
@@ -66,7 +66,6 @@ contains
     type (darkMatterProfileDMOSIDMParametric)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(darkMatterParticleClass           ), pointer       :: darkMatterParticle_
-    class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
     double precision                                         :: beta
 
@@ -81,20 +80,18 @@ contains
 
     !![
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOSIDMParametric(beta, darkMatterProfileDMO_,darkMatterParticle_,darkMatterHaloScale_)
+    self=darkMatterProfileDMOSIDMParametric(beta,darkMatterParticle_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"  />
-    <objectDestructor name="darkMatterProfileDMO_"/>
     <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function sidmParametricConstructorParameters
 
-  function sidmParametricConstructorInternal(beta, darkMatterProfileDMO_,darkMatterParticle_,darkMatterHaloScale_) result(self)
+  function sidmParametricConstructorInternal(beta,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily sidmParametric} dark matter profile class.
     !!}
@@ -102,12 +99,11 @@ contains
     implicit none
     type (darkMatterProfileDMOSIDMParametric)                        :: self
     class(darkMatterParticleClass           ), intent(in   ), target :: darkMatterParticle_
-    class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     double precision                         , intent(in   )         :: beta
 
     !![
-    <constructorAssign variables="beta, *darkMatterProfileDMO_, *darkMatterParticle_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="beta, *darkMatterParticle_, *darkMatterHaloScale_"/>
     !!]
 
     ! Validate the dark matter particle type.
@@ -115,7 +111,7 @@ contains
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! This is as expected.
     class default
-       call Error_Report('SIDM isothermal dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
+       call Error_Report('SIDM parametric dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
     end select    
 
     !![
@@ -135,7 +131,6 @@ contains
     type(darkMatterProfileDMOSIDMParametric), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterParticle_"  />
     <objectDestructor name="self%darkMatterHaloScale_"  />
     !!]
@@ -148,12 +143,12 @@ contains
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, kinematicsDistributionSIDMIsothermal, nonAnalyticSolversNumerical, massDistributionSpherical
+    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, kinematicsDistributionCollisionless, nonAnalyticSolversNumerical, massDistributionSpherical
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
     implicit none
 !    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
     class           (massDistributionClass               ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionSIDMIsothermal), pointer                 :: kinematicsDistribution_
+    type            (kinematicsDistributionCollisionless ), pointer                 :: kinematicsDistribution_
     class           (darkMatterProfileDMOSIDMParametric  ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
@@ -179,6 +174,7 @@ contains
        darkMatterProfile => node%darkMatterProfile()
 !       select type (massDistributionDecorated)
 !       class is (massDistributionSpherical)
+       print *, 'NodeIndex, r_s:', node%index(),darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
        !![
        <referenceConstruct object="massDistribution_">
          <constructor>
@@ -201,7 +197,7 @@ contains
     !![
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
-        kinematicsDistributionSIDMIsothermal( &amp;
+        kinematicsDistributionCollisionless( &amp;
 	 &amp;                              )
       </constructor>
     </referenceConstruct>

@@ -208,7 +208,7 @@ contains
 
     double precision :: formationMassFraction = 0.5d0
     double precision :: timeFormation
-    double precision :: VmaxSIDMPrevious, tc, tau, dtr, VmaxSIDM, RmaxSIDM
+    double precision :: VmaxSIDMPrevious, tc, tau, dtr, VmaxSIDM, RmaxSIDM, RmaxCDM, RmaxNFW0, VmaxNFW0, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c, VmaxCDM
     double precision :: massHaloDeclineFactor=0.99d0, timeEarliest=0.0d0, massResolution
 
 
@@ -238,8 +238,35 @@ contains
     print *, 'Formation time: ', basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
     print *, 'node index: ', node%index()
 
+
+!    initializing each node as NFW
+    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+    tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
+    print *,'tau initilization: ', tau
+!    massDistribution_ => node%massDistribution(componentTypeDarkMatterOnly,massTypeDark)
+    massDistribution_ => self%darkMatterProfileDMO_%get(node)
+
+    RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
+    VmaxCDM = massDistribution_%velocityRotationCurveMaximum()
+    print *, 'RmaxCDM, VmaxCDM: ', RmaxCDM, VmaxCDM    
+
+    RmaxNFW0 = Rmax_NFW(RmaxCDM, tau)
+    VmaxNFW0 = Vmax_NFW(VmaxCDM, tau)
+    r_sNFW0 = r_s0(RmaxNFW0)
+    rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+    rho_s = get_rho_s(rho_sNFW0, tau)
+    r_s = get_r_s(r_sNFW0, tau)
+    r_c = get_r_c(r_sNFW0, tau)
+
+    print *, 'rho_s, r_s, r_c (initilization): ', rho_s, r_s, r_c
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
+
 !    need to add the merger tree below resolution calculation here:
 !    in-progress !!!!!
+
+
     print *, 'Test starting below resolution tree generation ...'
     if (.not.associated(node%firstChild)) then
        print *, 'node time: ', basic%time()
@@ -335,6 +362,25 @@ contains
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%RmaxSIDMID, RmaxSIDM)
 
+             !added section for calculation of rho_s and r_s and r_c
+             RmaxCDM = massDistribution_%radiusRotationCurveMaximum()
+             RmaxSIDM = RmaxSIDM+RmaxCDM
+
+             RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
+             VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)
+
+             r_sNFW0 = r_s0(RmaxNFW0)
+             rho_sNFW0 = rho_s0(r_sNFW0, VmaxNFW0)
+
+             rho_s = get_rho_s(rho_sNFW0, tau)
+             r_s = get_r_s(r_sNFW0, tau)
+             r_c = get_r_c(r_sNFW0, tau)
+
+             call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, rho_s)
+             call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, r_s)
+             call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, r_c)
+
+
              !copy the values from the new tree to the tip of the original branch
              darkMatterProfile => node%darkMatterProfile()
              darkMatterProfileCopy => treeNew%nodeBase%darkMatterProfile()
@@ -342,6 +388,10 @@ contains
              call darkMatterProfile%floatRank0MetaPropertySet(self%tauID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%tauID))
              call darkMatterProfile%floatRank0MetaPropertySet(self%VmaxSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%VmaxSIDMID))
              call darkMatterProfile%floatRank0MetaPropertySet(self%RmaxSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%RmaxSIDMID))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%RhosSIDMID, darkMatterProfileCopy%floatRank0MetaPropertyGet(self%RhosSIDMID))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%RsSIDMID, darkMatterProfileCopy%floatRank0MetaPropertyGet(self%RsSIDMID))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%RcSIDMID, darkMatterProfileCopy%floatRank0MetaPropertyGet(self%RcSIDMID))
+
 
              if (.not.nodeNew%index() == treeNew%nodeBase%index()) then
                 nodeNew => nodeNew%parent
@@ -364,6 +414,8 @@ contains
        end if
     end if
 
+
+    print *, 'NodeIndex, r_s (initialize): ', node%index(), darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID) 
 
     print *, 'Test end of initialization ...'
 
@@ -536,6 +588,8 @@ contains
             massDistribution_ => self%darkMatterProfileDMO_%get(node)
             VmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
             RmaxSIDM = darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)+massDistribution_%radiusRotationCurveMaximum()
+
+            tau = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
 
             RmaxNFW0 = Rmax_NFW(RmaxSIDM, tau)
             VmaxNFW0 = Vmax_NFW(VmaxSIDM, tau)

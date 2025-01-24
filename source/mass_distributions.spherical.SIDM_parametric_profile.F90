@@ -157,7 +157,8 @@ contains
     
     r=coordinates%rSpherical()
     ! Compute density.
-    term1 = ((r ** self%beta + self%coreRadius ** self%beta) ** (1.0d0 / self%beta) / self%scaleRadius)
+!    print *,'r, self%scaleRadius: ', r, self%scaleRadius
+    term1 = ((r ** self%beta + self%coreRadius ** self%beta) ** (1.0d0 / self%beta)) / self%scaleRadius
     term2 = (1.0d0 + r / self%scaleRadius) ** 2
 
     SIDMParametricProfileDensity=self%densityNormalization/(term1 * term2)
@@ -186,7 +187,14 @@ contains
     term2 = 3.0d0 * r**(1.0d0+self%beta) + 2.0d0 * r * self%coreRadius**self%beta + self%scaleRadius * r**self%beta
     term3 = r * (r+self%scaleRadius)**3.0d0
 
-    SIDMParametricProfileDensityGradientRadial=-term1 * term2 * self%scaleRadius**3.0d0 *self%densityNormalization / term3
+    print *,'r, self%scaleRadius, term3, self%coreRadius: ', r, self%scaleRadius, term3, self%coreRadius
+    if (r>0.0d0) then
+       SIDMParametricProfileDensityGradientRadial= (-1.0d0) * term1 * term2 * self%scaleRadius**3.0d0 *self%densityNormalization / term3
+    else
+       print *,'correct gradient is used!'
+       SIDMParametricProfileDensityGradientRadial= 0.0d0
+!       SIDMParametricProfileDensityGradientRadial= (-2.0d0)/(self%coreRadius * self%scaleRadius**3)
+    end if
 
     return
   end function SIDMParametricProfileDensityGradientRadial
