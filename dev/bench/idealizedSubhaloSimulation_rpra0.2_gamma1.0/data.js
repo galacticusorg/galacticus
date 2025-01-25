@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737670757679,
+  "lastUpdate": 1737795071242,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
@@ -4971,6 +4971,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f7dab506c2416d406255f184264ce63fe0266702"
         },
         "date": 1737670757030,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": "30.59213834512038",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "16.757775546264398",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "17.51631864004521",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2d65539e592fa25f100b361462f8ba9301d5af35",
+          "message": "Merge pull request #772 from galacticusorg/featFileLockTimeout\n\nAdd a timeout for file lock requests",
+          "timestamp": "2025-01-24T22:41:19Z",
+          "tree_id": "efcfe7566dbe5cfd643ee516dd7ae44569fef789",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2d65539e592fa25f100b361462f8ba9301d5af35"
+        },
+        "date": 1737795070370,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
