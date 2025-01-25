@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737795039038,
+  "lastUpdate": 1737849591264,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9a84f8498ff587af48f4d1d4d90a77622207bab8",
-          "message": "Merge pull request #596 from galacticusorg/fixEnumerationDescribe\n\nFix generation of enumeration description functions",
-          "timestamp": "2024-03-31T16:08:06Z",
-          "tree_id": "8b2a44d5cbd9026cfbe313325560e8d709609125",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a84f8498ff587af48f4d1d4d90a77622207bab8"
-        },
-        "date": 1711915679445,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.044,
-            "unit": "seconds",
-            "range": 0.0590796073105112
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8706,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "20647.41870529045",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "834a67137808e4f835b9ef37d61094e95fe13c69",
+          "message": "Merge pull request #773 from galacticusorg/featEvaluationTimes\n\nAdd optional display of evaluation times in the `posteriorSampleLikelihoodGalaxyPopulation` class",
+          "timestamp": "2025-01-25T17:19:09Z",
+          "tree_id": "9a4e337ec58a8338f35926afc83401cb2a58d275",
+          "url": "https://github.com/galacticusorg/galacticus/commit/834a67137808e4f835b9ef37d61094e95fe13c69"
+        },
+        "date": 1737849588977,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 58.161,
+            "unit": "seconds",
+            "range": 0.161737132409268
           }
         ]
       }
