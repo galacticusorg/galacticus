@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "f7dab506c2416d406255f184264ce63fe0266702",
-        "message": "Merge pull request #770 from galacticusorg/fixLikelihoodNormalization\n\nFix issues in the normalization of log-likelihoods in `outputAnalysis` classes\n",
-        "timestamp": "2025-01-23 15:38:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/f7dab506c2416d406255f184264ce63fe0266702"
+        "id": "2d65539e592fa25f100b361462f8ba9301d5af35",
+        "message": "Merge pull request #772 from galacticusorg/featFileLockTimeout\n\nAdd a timeout for file lock requests\n",
+        "timestamp": "2025-01-24 22:41:19+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2d65539e592fa25f100b361462f8ba9301d5af35"
     },
     "results": [
         {
