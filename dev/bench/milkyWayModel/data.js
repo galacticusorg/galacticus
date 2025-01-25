@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737795043312,
+  "lastUpdate": 1737849594664,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9a84f8498ff587af48f4d1d4d90a77622207bab8",
-          "message": "Merge pull request #596 from galacticusorg/fixEnumerationDescribe\n\nFix generation of enumeration description functions",
-          "timestamp": "2024-03-31T16:08:06Z",
-          "tree_id": "8b2a44d5cbd9026cfbe313325560e8d709609125",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9a84f8498ff587af48f4d1d4d90a77622207bab8"
-        },
-        "date": 1711915685670,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 468.475,
-            "unit": "seconds",
-            "range": 0.326898302221995
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10656,6 +10626,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": "9.792280541861306",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "834a67137808e4f835b9ef37d61094e95fe13c69",
+          "message": "Merge pull request #773 from galacticusorg/featEvaluationTimes\n\nAdd optional display of evaluation times in the `posteriorSampleLikelihoodGalaxyPopulation` class",
+          "timestamp": "2025-01-25T17:19:09Z",
+          "tree_id": "9a4e337ec58a8338f35926afc83401cb2a58d275",
+          "url": "https://github.com/galacticusorg/galacticus/commit/834a67137808e4f835b9ef37d61094e95fe13c69"
+        },
+        "date": 1737849594023,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 30.601,
+            "unit": "seconds",
+            "range": 0.0699778536396838
           }
         ]
       }
