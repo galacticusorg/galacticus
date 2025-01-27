@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -145,6 +145,7 @@ program Test_Dark_Matter_Profiles_Projected
     nodePropertyExtractorProjectedDensity(                                                            &amp;
      &amp;                                radiusSpecifiers                    =radiusSpecifiers     , &amp;
      &amp;                                includeRadii                        =.false.              , &amp;
+     &amp;                                tolerateIntegrationFailures         =.false.              , &amp;
      &amp;                                darkMatterHaloScale_                =darkMatterHaloScale_   &amp;
      &amp;                               )
    </constructor>

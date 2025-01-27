@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -262,6 +262,7 @@ contains
        end forall
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
+       call modelLikelihood_%simulationState%countSet     (simulationState%count     ())
        ! Evaluate this likelihood
        timeEvaluate_=-1.0
        logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &

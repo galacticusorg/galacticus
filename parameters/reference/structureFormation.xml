@@ -6,7 +6,9 @@
   
   <!-- Structure formation options -->
   <linearGrowth          value="collisionlessMatter"                      />
-  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" >
+    <xi:include href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  </criticalOverdensity>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <haloMassFunction      value="shethTormen"                               >
     <a             value="0.791"/> <!-- Best fit values from Benson, Ludlow, & Cole (2019). -->

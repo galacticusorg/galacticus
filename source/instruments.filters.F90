@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,9 +31,8 @@ module Instruments_Filters
   use :: Locks              , only : ompReadWriteLock
   implicit none
   private
-  public :: Filter_Get_Index  , Filter_Response            , Filter_Extent , Filter_Vega_Offset      , &
-       &    Filter_Name       , Filter_Wavelength_Effective, Filters_Output, Filter_Response_Function, &
-       &    Filters_Initialize
+  public :: Filter_Get_Index, Filter_Response            , Filter_Extent     , Filter_Vega_Offset      , &
+       &    Filter_Name     , Filter_Wavelength_Effective, Filters_Initialize, Filter_Response_Function
 
   type filterType
      !!{
@@ -376,9 +375,7 @@ contains
   end subroutine Filter_Response_Load
 
   !![
-  <hdfPreCloseTask>
-   <unitName>Filters_Output</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="Filters_Output"/>
   !!]
   subroutine Filters_Output()
     !!{

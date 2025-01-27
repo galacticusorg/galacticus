@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,7 +156,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call Unit_Tests_Begin_Group("Unstripped profile matches NFW"    )
   call Assert("Density at scale radius" ,massDistributionNFW_%density(coordinates=coordinatesScale ),massDistributionPenarrubia2010_%density(coordinates=coordinatesScale ),relTol=1.0d-6)
   call Assert("Density at virial radius",massDistributionNFW_%density(coordinates=coordinatesVirial),massDistributionPenarrubia2010_%density(coordinates=coordinatesVirial),relTol=1.0d-6)
-  call Unit_Tests_End_Group  (                                )
+  call Unit_Tests_End_Group  (                                    )
   !![
   <objectDestructor name="massDistributionNFW_"           />
   <objectDestructor name="massDistributionPenarrubia2010_"/>

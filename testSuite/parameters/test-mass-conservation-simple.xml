@@ -246,6 +246,12 @@
 	  </stellarFeedbackOutflows>
 	</stellarFeedbackOutflows>
       </nodeOperator>
+      <nodeOperator value="blackHolesSeed" iterable="no">
+	<blackHoleSeeds value="fixed">
+	  <mass value="0"/>
+	  <spin value="0"/>
+	</blackHoleSeeds>
+      </nodeOperator>
     </nodeOperator>
 
     <nodePropertyExtractor value="multi">

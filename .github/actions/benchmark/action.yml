@@ -46,11 +46,11 @@ runs:
           git checkout gh-pages
           git push --set-upstream origin gh-pages
           git checkout -
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
       - name: Revert benchmark result
         shell: bash
         run: |
           git checkout gh-pages
           git reset --hard HEAD~1
           git checkout -
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.ref != 'refs/heads/master'

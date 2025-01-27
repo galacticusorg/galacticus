@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Cosmological parameters from the WMAP 9-year data                                           -->
+<!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="69.32000"/>	<!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->
+    <OmegaMatter     value=" 0.28650"/>	<!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->
+    <OmegaDarkEnergy value=" 0.71350"/>	<!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->
+    <OmegaBaryon     value=" 0.04628"/>	<!-- Hinshaw et al. (2013; ApJS; 208; 19; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) -->
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+</parameters>

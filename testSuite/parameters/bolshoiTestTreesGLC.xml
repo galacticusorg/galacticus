@@ -9,7 +9,6 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard">
-    <massSeed value="100"/>
     <growthRatioToStellarSpheroid value="1.0d-3"/>
     <heatsHotHalo value="true"/>
     <efficiencyWind value="0.001"/>
@@ -272,6 +271,12 @@
     </nodeOperator>
     <!-- Shift preset named N-body properties -->
     <nodeOperator value="presetNamedShift"/>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Numerical tolerances -->

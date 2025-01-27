@@ -20,7 +20,6 @@
     <!-- Component selection -->
     <componentBasic value="standard"/>
     <componentBlackHole value="standard">
-      <massSeed value="0.0"/>
       <heatsHotHalo value="false"/>
       <efficiencyWind value="0.0024"/>
       <efficiencyWindScalesWithEfficiencyRadiative value="true"/>
@@ -308,6 +307,12 @@
 	  <stabilityThresholdGaseous value="0.7"/>
 	  <stabilityThresholdStellar value="1.1"/>
 	</galacticDynamicsBarInstability>
+      </nodeOperator>
+      <nodeOperator value="blackHolesSeed" iterable="no">
+	<blackHoleSeeds value="fixed">
+	  <mass value="0"/>
+	  <spin value="0"/>
+	</blackHoleSeeds>
       </nodeOperator>
     </nodeOperator>
 

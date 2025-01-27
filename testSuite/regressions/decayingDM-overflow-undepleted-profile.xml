@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters for a decaying dark matter model that caused a crash in the      -->
+<!-- `darkMatterProfileDMODecaying` class when it previously used an un-decayed  -->
+<!-- solution for M(r) inside some radius within which depletion was negligible. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <verbosityLevel value="standard"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8217"/>
+  </randomNumberGenerator>
+
+  <metaTreeProcessingTime value="totalEvolveTime">
+    <exponentTime value="0.5"/>
+    <updateInterval value="10"/>
+  </metaTreeProcessingTime>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="orbiting"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="vector"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="70.0"    />	<!-- Mao et al. 2015 -->
+    <OmegaMatter     value=" 0.286"  />	<!-- Mao et al. 2015 -->
+    <OmegaDarkEnergy value=" 0.714"  />	<!-- Mao et al. 2015 -->
+    <OmegaBaryon     value=" 0.0"    />	<!-- No baryons      -->
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.82"/>     	<!-- Mao et al. 2015 -->
+  </cosmologicalMassVariance>
+  <transferFunction value="CAMB">
+    <darkMatterParticle value="CDM"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant  value="70.0"    /> <!-- Mao et al. 2015 -->
+      <OmegaMatter     value=" 0.286"  /> <!-- Mao et al. 2015 -->
+      <OmegaDarkEnergy value=" 0.714"  /> <!-- Mao et al. 2015 -->
+      <OmegaBaryon     value=" 0.047"  /> <!-- Mao et al. 2015 -->
+      <temperatureCMB  value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.96"  /> <!-- Mao et al. 2015 -->
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/> <!-- Mao et al. 2015 -->
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+    <darkMatterParticle value="CDM"/>
+  </criticalOverdensity>
+  <virialDensityContrast value="bryanNorman1998"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build">
+    <redshiftBase value="6.0"/>
+  </mergerTreeConstructor>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+
+  <!-- Fixed halo masses -->
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree value="1.34e10"/>
+    <treeCount value="1"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeBuildController value="subsample">
+    <massThreshold               value="3.0e9"/>
+    <subsamplingRateAtThreshold  value="1.0"  />
+    <exponent                    value="1.0"  />
+    <factorMassGrowthConsolidate value="0.01"  />
+  </mergerTreeBuildController>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="3.0e8"/>
+  </mergerTreeMassResolution>
+
+  <!-- Remove non-essential parts of the tree -->
+  <mergerTreeOperator value="pruneNonEssential">
+    <essentialNodeID value="20"/>
+    <essentialNodeTime value="0.70"/>
+  </mergerTreeOperator>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="multiLevelHierarchy"/>
+
+  <darkMatterParticle value="decayingDarkMatter">
+    <darkMatterParticle value="CDM" />
+    <massSplitting value="0.000067" />
+    <lifetime value="40" />
+  </darkMatterParticle>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile value="darkMatterOnly"/>
+  <darkMatterProfileDMO value="decaying">
+    <toleratePotentialIntegrationFailure        value="true" />
+    <tolerateVelocityMaximumFailure             value="true" />
+    <tolerateEnclosedMassIntegrationFailure     value="true" />
+    <toleranceRelativeVelocityDispersion        value="1.0e-2"/>
+    <toleranceRelativeVelocityDispersionMaximum value="1.0e-2"/>
+    <toleranceRelativePotential                 value="1.0e-2"/>
+    <darkMatterProfileDMO value="heated">
+      <nonAnalyticSolver                          value="numerical" />
+      <toleratePotentialIntegrationFailure        value="true"  />
+      <tolerateVelocityMaximumFailure             value="true"  />
+      <tolerateVelocityDispersionFailure          value="true"  />
+      <tolerateEnclosedMassIntegrationFailure     value="true"  />
+      <toleranceRelativeVelocityDispersion        value="1.0e-2"/>
+      <toleranceRelativeVelocityDispersionMaximum value="1.0e-1"/>
+      <toleranceRelativePotential                 value="3.0e-2"/>
+      <fractionRadiusFinalSmall                   value="0.0"   />
+      <darkMatterProfileDMO value="finiteResolutionNFW" >
+        <massResolution value="=36.0*1.92e5"/>
+        <lengthResolution value="=3.0*0.18*143.0e-6"/>
+        <resolutionIsComoving value="true"/>
+        <nonAnalyticSolver value="fallThrough"/>
+      </darkMatterProfileDMO>
+    </darkMatterProfileDMO>
+  </darkMatterProfileDMO>
+  <darkMatterProfileHeating value="monotonicWeak">
+    <darkMatterProfileHeating value="summation">
+      <darkMatterProfileHeating value="tidal">
+        <coefficientSecondOrder0   value="+0.000"/>
+        <coefficientSecondOrder1   value="+0.000"/>
+        <correlationVelocityRadius value="-0.333"/>
+      </darkMatterProfileHeating>
+      <darkMatterProfileHeating value="decayingDarkMatter">
+	<gamma value="0.5" />
+      </darkMatterProfileHeating>
+    </darkMatterProfileHeating>
+  </darkMatterProfileHeating>
+
+  <!-- Halo concentration  --> 
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  3.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="ludlow2016">
+      <darkMatterProfileDMO value="NFW" />
+      <C value="700.27000" />
+      <f value="0.07534" />
+      <timeFormationSeekDelta             value="  0.00000"    />
+      <darkMatterProfileScaleRadius value="concentration" >
+        <correctForConcentrationDefinition    value="true"              />
+        <darkMatterProfileConcentration value="diemerJoyce2019">
+        </darkMatterProfileConcentration>
+      </darkMatterProfileScaleRadius>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+
+  <haloSpinDistribution value="bett2007">
+    <alpha value="2.509"/>
+    <lambda0 value="0.04326"/>
+  </haloSpinDistribution>
+
+  <!-- Orbiting model of satellites -->
+  <!-- Values taken from Pullen et al. 2014 -->
+  <satelliteDynamicalFriction value="massRatioThreshold">
+    <massRatioThreshold value="1.0e-3"/>
+    <satelliteDynamicalFriction value="chandrasekhar1943">
+      <logarithmCoulomb value="1.35" />
+    </satelliteDynamicalFriction>
+  </satelliteDynamicalFriction>
+  <satelliteTidalHeatingRate value="gnedin1999">
+    <epsilon value="2.70" />
+    <gamma value="1.50" />
+  </satelliteTidalHeatingRate>
+  <satelliteTidalStripping value="zentner2005">
+    <efficiency value="2.95" />
+  </satelliteTidalStripping>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Subhalo hierarchy -->
+    <nodeOperator value="subsubhaloPromotion"   />
+    <!-- Subhalo orbits -->
+    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteDynamicalFriction"       />
+    <nodeOperator value="satelliteTidalMassLoss"           />
+    <nodeOperator value="satelliteTidalHeating"            />
+    <nodeOperator value="satelliteMergingRadiusTrigger"     >
+      <radiusVirialFraction      value="0.01"/>
+    </nodeOperator>
+    <nodeOperator value="satelliteDestructionMassThreshold" >
+      <massDestructionAbsolute       value="3.0e5"/>
+      <massDestructionMassInfallFraction value="0.0"/>
+    </nodeOperator>
+    <nodeOperator value="satelliteDestructionDensityProfileThreshold" >
+      <fractionDensityProfileVirialFraction value="1.0e-3"/>
+    </nodeOperator>
+    <!-- Halo angular momentum -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <darkMatterProfileDMO value="NFW" />
+      <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+  </nodeOperator>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="simple">
+    <redshiftReionization value="10.5"/>
+    <velocitySuppressionReionization value="35.0"/>
+  </accretionHalo>
+
+  <!-- Hot halo gas cooling model options -->
+  <hotHaloMassDistribution value="null"/>
+  <hotHaloTemperatureProfile value="virial"/>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <coolingSpecificAngularMomentum value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
+  </coolingSpecificAngularMomentum>
+  <coolingFunction value="atomicCIECloudy"/>
+  <coolingRadius value="simple"/>
+  <coolingRate value="whiteFrenk1991">
+    <velocityCutOff value="10000"/>
+  </coolingRate>
+  <coolingTime value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  <coolingTimeAvailable value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailable>
+  <starveSatellites value="false"/>
+
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver value="simple"/>
+
+  <!-- AGN feedback options -->
+  <hotHaloExcessHeatDrivesOutflow value="true"/>
+
+  <!-- Galaxy merger options -->
+  <virialOrbit value="spinCorrelated">
+    <darkMatterProfileDMO value="NFW" />
+    <alpha value="0.155573112534425" />
+    <virialOrbit value="jiang2014">
+      <bRatioHigh             value="+2.88333 +4.06371 +3.86726"/>
+      <bRatioIntermediate     value="+1.05361 +1.56868 +2.89027"/>
+      <bRatioLow              value="+0.07432 +0.54554 +1.04721"/>
+      <gammaRatioHigh         value="+0.07124 +0.04737 -0.01913"/>
+      <gammaRatioIntermediate value="+0.10069 +0.07821 +0.04231"/>
+      <gammaRatioLow          value="+0.10866 +0.11260 +0.11698"/>
+      <muRatioHigh            value="+1.10168 +1.09639 +1.09819"/>
+      <muRatioIntermediate    value="+1.18205 +1.19573 +1.24581"/>
+      <muRatioLow             value="+1.22053 +1.22992 +1.25528"/>
+      <sigmaRatioHigh         value="+0.09244 +0.14335 +0.21079"/>
+      <sigmaRatioIntermediate value="+0.07397 +0.09590 +0.10941"/>
+      <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
+    </virialOrbit>
+  </virialOrbit>
+
+  <mergerMassMovements value="simple">
+    <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.25"/>
+  </mergerMassMovements>
+  <mergerRemnantSize value="null"/>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"  />
+    <odeToleranceRelative value="0.01"  />
+    <reuseODEStepSize value="false" />
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard" >
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites value="true"/>
+  </mergerTreeEvolver>
+
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"               >
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.100"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite"            >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output options -->
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+  </nodePropertyExtractor>
+  <outputFileName value="testSuite/outputs/decayingDM-overflow-undepleted-profile.hdf5"/>
+  <outputTimes value="list">
+    <times value="0.7"/>
+  </outputTimes>
+
+</parameters>

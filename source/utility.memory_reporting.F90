@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,7 @@ module Memory_Reporting
   use, intrinsic :: ISO_C_Binding, only : c_size_t    , c_int
   implicit none
   private
-  public :: reportMemoryUsage, outputMemoryUsageMaximum
+  public :: reportMemoryUsage
 
   ! Code memory size initialization status.
   logical           :: codeMemoryUsageInitialized =.false.
@@ -269,9 +269,7 @@ contains
   end subroutine codeUsageGet
   
   !![
-  <hdfPreCloseTask>
-   <unitName>outputMemoryUsageMaximum</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="outputMemoryUsageMaximum"/>
   !!]
   subroutine outputMemoryUsageMaximum()
     !!{

@@ -77,22 +77,22 @@ if ( exists($options{'lastModifiedRevision'}) ) {
     }
 } else {
     # Look for a last modification hash.
-    my $elementLastModified = $root->findnodes('lastModified')->[0];
+    my $elementLastModified = $root->findnodes('//lastModified')->[0];
     if ( defined($elementLastModified) ) {
 	# A last modified element exists, extract the hash, and update.
 	$hashLastModified = $elementLastModified->getAttribute('revision');
-   } else {
-	# No last modified element exists. Set the last modified hash that immediately prior to the earliest one that this script
-	# is aware of, and add a last modified element.
-	$hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
-	my $elementLastModifiedNode = $input->createElement("lastModified");
-	my $newBreak                = $input->createTextNode("\n  "   );
-	$root->insertBefore($elementLastModifiedNode,$root->firstChild());
-	$root->insertBefore($newBreak               ,$root->firstChild());
-    }
+   }
 }
 ## Update the last modified metadata.
 my $elementLastModified = $root->findnodes('lastModified')->[0];
+unless ( defined($elementLastModified) ) {
+    $hashLastModified           = "6eab8997cd73cb0a474228ade542d133890ad138^";
+    my $elementLastModifiedNode = $input->createElement("lastModified");
+    my $newBreak                = $input->createTextNode("\n  "   );
+    $root->insertBefore($elementLastModifiedNode,$root->firstChild());
+    $root->insertBefore($newBreak               ,$root->firstChild());    
+    $elementLastModified = $root->findnodes('lastModified')->[0];
+}
 $elementLastModified->setAttribute('revision',$hashHead);
 $elementLastModified->setAttribute('time'    ,DateTime->now());
 
@@ -345,4 +345,40 @@ sub radiationFieldIntergalacticBackgroundCMB {
 	$node         ->parentNode->insertAfter($summationNode,$node);
 	$node         ->parentNode->removeChild(               $node);
     }
+}
+
+sub blackHoleSeedMass {
+    # Special handling to add black hole seed mass models.
+    my $input      = shift();
+    my $parameters = shift();
+    # Look for "componentBlackHole" parameters.
+    my $massSeed = 100.0; # This was the default value, to be used if no value was explicitly set.
+    foreach my $node ( $parameters->findnodes("//componentBlackHole[\@value='simple' or \@value='standard' or \@value='nonCentral']/massSeed[\@value]")->get_nodelist() ) {
+	print "   translate special '//componentBlackHole[\@value]/massSeed[\@value]'\n";
+	# Extract the seed mass.
+	$massSeed = $node->getAttribute('value');
+	# Delete this node.
+	$node->parentNode->removeChild($node);
+    }
+    # Find nodeOperators.
+    my @nodeOperators = $parameters->findnodes("//nodeOperator[\@value='multi']")->get_nodelist();
+    die("can not find any `nodeOperator[\@value='multi']` into which to insert a black hole seed operator")
+	if ( scalar(@nodeOperators) == 0 );
+    die("found multiple `nodeOperator[\@value='multi']` nodes - unknown into which to insert a black hole seed operator")
+	if ( scalar(@nodeOperators) >  1 );
+    # Create a new node operator and insert into the list.
+    my $operatorNode = $input->createElement("nodeOperator"  );
+    my $seedNode     = $input->createElement("blackHoleSeeds");
+    my $massNode     = $input->createElement("mass"          );
+    my $spinNode     = $input->createElement("spin"          );
+    $operatorNode->setAttribute('value','blackHolesSeed');
+    $seedNode    ->setAttribute('value','fixed'         );
+    $massNode    ->setAttribute('value',$massSeed       );
+    $spinNode    ->setAttribute('value',0.0             );
+    # Assemble our new nodes.
+    $operatorNode->addChild($seedNode);
+    $seedNode    ->addChild($massNode);
+    $seedNode    ->addChild($spinNode);
+    # Insert the new parameters.
+    $nodeOperators[0]->insertAfter($operatorNode,$nodeOperators[0]->lastChild);
 }

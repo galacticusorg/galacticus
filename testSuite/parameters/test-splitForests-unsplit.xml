@@ -16,7 +16,7 @@
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="null">
-    <massSeed value="100"/>
+    <mass value="100"/>
     <heatsHotHalo value="true"/>
     <efficiencyWind value="0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"/>

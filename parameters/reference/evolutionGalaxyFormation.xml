@@ -7,7 +7,6 @@
   <!-- Component selection -->
   <componentBasic             value="standard"/>
   <componentBlackHole         value="standard" >
-    <massSeed                                    value="100.0000"/>
     <heatsHotHalo                                value="true"    />
     <efficiencyWind                              value="  0.0024"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="true"    />
@@ -241,6 +240,12 @@
     </nodeOperator>
     <nodeOperator value="nodeFormationTimeMassFraction">
       <fractionMassFormation value="0.5"/>
+    </nodeOperator>
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100"/>
+        <spin value="0"/>
+      </blackHoleSeeds>
     </nodeOperator>
   </nodeOperator>
 

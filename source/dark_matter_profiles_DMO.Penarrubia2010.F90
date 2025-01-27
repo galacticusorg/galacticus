@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -152,6 +152,9 @@ contains
     <constructorAssign variables="alpha, beta, gamma, betaStripped, muRadius, etaRadius, muVelocity, etaVelocity, *darkMatterHaloScale_"/>
     !!]
 
+    ! Compute the mapping between scale radius and radius of peak velocity in the scale-free stripped and unstripped profiles. We
+    ! use a halo of arbitrary mass here, but do set a somewhat physical scale radius to ensure that numerical solvers have a
+    ! reasonable profile to work with.
     allocate(self%massDistributionStripped  )
     allocate(self%massDistributionUnstripped)
     !![

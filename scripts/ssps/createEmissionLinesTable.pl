@@ -22,8 +22,14 @@ die("Usage: createEmissionLinesTable.pl [options...]")
 # Parse options.
 my %options =
     (
-     workspace => "cloudyTable/",
-     reprocess => "no"
+     workspace             => "cloudyTable/",
+     reprocess             => "no",
+     rerun                 => "no",
+     generateOnly          => "no",
+     overview              => "no",
+     includeGrains         => "yes",
+     stopElectronFraction  => "0.01",
+     stopLymanOpticalDepth => "10.0"
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 # Validate options.
@@ -345,32 +351,43 @@ $grid->{'lineData'}->{$lineList{$_}}->{'luminosity'} = pdl      zeros(@dimension
 $grid->{'lineData'}                 ->{'status'    } = pdl long zeros(@dimensions);
 
 # Iterate over all iterables to build an array of jobs.
-$grid->{'counter'} = pdl long zeros(scalar(@{$grid->{'iterables'}}));
+$grid->{'counter'    } = pdl long zeros(scalar(@{$grid->{'iterables'}}));
+$grid->{'modelNumber'} = pdl long zeros(@dimensions);
 my $jobNumber = -1;
 my $jobCount  =  1;
 for(my $i=0;$i<nelem($grid->{'counter'});++$i) {
     $jobCount *= nelem($grid->{$grid->{'iterables'}->[$i]});
 }
-do {
-    ++$jobNumber;
-    print "Generating model ".$jobNumber." of ".$jobCount."\n"
-	if ( $jobNumber % 100 == 0 );
-    &{$generateJob}($grid,\%options);
-    for(my $i=0;$i<nelem($grid->{'counter'});++$i) {
-	++$grid->{'counter'}->(($i));
-	if ( $grid->{'counter'}->(($i)) == nelem($grid->{$grid->{'iterables'}->[$i]}) ) {
-	    $grid->{'counter'}->(($i)) .= 0;
-	} else {
-	    last;
-	}
-    }	
-} until ( all($grid->{'counter'} == 0) );
 
 if ( $options{'reprocess'} eq "yes" ) {
     # Reprocess output files. This can be useful if some previous processing of Cloudy output files failed (we often have tens of
     # thousands of these so some intermittment failures can occur).
     &{$reprocess}($grid,\%options);
 } else {
+    do {
+	++$jobNumber;
+	my @indices;
+	for(my $i=0;$i<scalar(@{$grid->{'iterables'}});++$i) {
+	    push(@indices,$grid->{'counter'}->(($i)));
+	}
+	$grid->{'modelNumber'}->(@indices) .= $jobNumber;
+	if ( ! exists($options{'model'}) || $options{'model'} == $jobNumber ) {
+	    print "Generating model ".$jobNumber." of ".$jobCount."\n"
+		if ( $jobNumber % 100 == 0 || exists($options{'model'}) );
+	    &{$generateJob}($grid,\%options);
+	}
+	for(my $i=0;$i<nelem($grid->{'counter'});++$i) {
+	    ++$grid->{'counter'}->(($i));
+	    if ( $grid->{'counter'}->(($i)) == nelem($grid->{$grid->{'iterables'}->[$i]}) ) {
+		$grid->{'counter'}->(($i)) .= 0;
+	    } else {
+		last;
+	    }
+	}
+    } until ( all($grid->{'counter'} == 0) );
+    # Exit here if we are to only generate models.
+    exit
+	if ( $options{'generateOnly'} eq "yes" );
     # Launch all jobs.
     &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@{$grid->{'jobs'}});
 }
@@ -459,7 +476,7 @@ sub establishGridSSP {
     $grid->{'logHydrogenLuminosities'} = pdl [ 48.0, 49.0, 50.0, 51.0, 52.0 ];
     
     # Define hydrogen densities, nₕ, to tabulate.
-    $grid->{'logHydrogenDensities'   } = pdl [  1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ];
+    $grid->{'logHydrogenDensities'   } = pdl [ 1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ];
 
     # Specify the iterables in the grid.
     @{$grid->{'iterables'}} = ( "ages", "logMetallicities", "logHydrogenLuminosities", "logHydrogenDensities" );
@@ -544,6 +561,22 @@ sub generateJobSSP {
     my $iMetallicity           = $grid->{'counter'}->((1));
     my $iLogHydrogenLuminosity = $grid->{'counter'}->((2));
     my $iLogHydrogenDensity    = $grid->{'counter'}->((3));
+    # If this is a rerun, load line data and status.
+    if ( $options{'rerun'} eq "yes" ) {
+	unless ( exists($grid->{'rerunStatusRead'}) ) {
+	    my $tableFile                   = new PDL::IO::HDF5($options{'workspace'}.$options{'outputFileName'});
+	    my $lineGroup                   = $tableFile->group('lines');
+	    $grid->{'lineData'}->{'status'} = $lineGroup->dataset('status')->get();
+	    foreach my $lineIdentifier ( keys(%lineList) ) {
+		my $lineName = $lineList{$lineIdentifier};
+		$grid->{'lineData'}->{$lineName}->{'luminosity'} = $lineGroup->dataset($lineName)->get();
+	    }
+	    $grid->{'rerunStatusRead'} = 1;
+	}
+	my $statusOld = $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity))->sclr();
+	return
+	    if ( $statusOld == 0 );
+    }
     # Normalize the spectrum - this is a convenience only as the normalization will be recomputed by Cloudy.
     $grid->{'normalized'} = pdl long zeros(nelem($grid->{'ages'}),nelem($grid->{'logMetallicities'}))
 	unless ( exists($grid->{'normalized'}) );
@@ -562,17 +595,20 @@ sub generateJobSSP {
     (my $dustToMetalsBoostLogarithmic, my %abundances) = &adjustAbundances(\%abundancesReference,$metallicity,$dustToMetals);
     # Create a depletion file that can be read by Cloudy. Cloudy does not permit digits in these file names. To work around this,
     # we translate our numerical metallicity index into ASCII characters, by mapping digits (0→A, 1→B, etc.).
-    my $encodedMetallicity = join("",map {chr($_+17)} unpack("c*","$iMetallicity"));
-    my $depletionFileName  = "grains_".$encodedMetallicity.".dpl";
-    $grid->{'depletions'}  = pdl long zeros(nelem($grid->{'logMetallicities'}))
-	unless ( exists($grid->{'depletions'}) );
-    unless ( $grid->{'depletions'}->(($iMetallicity)) == 1 ) {
-	open(my $depletionFile,">",$options{'workspace'}.$depletionFileName);
-	foreach my $element ( sort(keys(%abundances)) ) {
-	    print $depletionFile $abundances{$element}->{'name'}." ".$abundances{$element}->{'undepletedFraction'}."\n";
+    my $depletionFileName;
+    if ( $options{'includeGrains'} eq "yes" ) {
+	my $encodedMetallicity = join("",map {chr($_+17)} unpack("c*","$iMetallicity"));
+	$depletionFileName     = "grains_".$encodedMetallicity.".dpl";
+	$grid->{'depletions'}  = pdl long zeros(nelem($grid->{'logMetallicities'}))
+	    unless ( exists($grid->{'depletions'}) );
+	unless ( $grid->{'depletions'}->(($iMetallicity)) == 1 ) {
+	    open(my $depletionFile,">",$options{'workspace'}.$depletionFileName);
+	    foreach my $element ( sort(keys(%abundances)) ) {
+		print $depletionFile $abundances{$element}->{'name'}." ".$abundances{$element}->{'undepletedFraction'}."\n";
+	    }
+	    close($depletionFile);
+	    $grid->{'depletions'}->(($iMetallicity)) .= 1;
 	}
-	close($depletionFile);
-	$grid->{'depletions'}->(($iMetallicity)) .= 1;
     }
     # Generate a Cloudy parameter file.
     my $cloudyScript;
@@ -582,19 +618,25 @@ sub generateJobSSP {
     $cloudyScript .= "# [".$iLogHydrogenLuminosity."] log Q_H = ".$grid->{'logHydrogenLuminosities'}->(($iLogHydrogenLuminosity))."\n";
     $cloudyScript .= "# [".$iLogHydrogenDensity   ."] log n_H = ".$grid->{'logHydrogenDensities'   }->(($iLogHydrogenDensity   ))."\n";
     ## Set the input spectrum for Cloudy.
-    my $counter = -1;
-    for(my $iWavelength=nelem($grid->{'wavelength'})-1;$iWavelength>=0;--$iWavelength) {
-	++$counter;
-	if ( $counter % 3 == 0 ) {
-	    if ( $counter == 0 ) {
-		$cloudyScript .=  "interpolate";
-	    } else {
-		$cloudyScript .=  "\ncontinue";
+    unless ( defined($grid->{'cloudySpectrum'}->[$iAge]->[$iMetallicity]) ) {
+	my $cloudySpectrum;
+	my $logSpectrum = $grid->{'spectra'}->(:,($iAge),($iMetallicity))->log10();
+	my $counter = -1;
+	for(my $iWavelength=nelem($grid->{'wavelength'})-1;$iWavelength>=0;--$iWavelength) {
+	    ++$counter;
+	    if ( $counter % 3 == 0 ) {
+		if ( $counter == 0 ) {
+		    $cloudySpectrum .=  "interpolate";
+		} else {
+		    $cloudySpectrum .=  "\ncontinue";
+		}
 	    }
+	    $cloudySpectrum .=  " (".$grid->{'energy'}->(($iWavelength))." ".$logSpectrum->(($iWavelength)).")";
 	}
-	$cloudyScript .=  " (".$grid->{'energy'}->(($iWavelength))." ".$grid->{'spectra'}->(($iWavelength),($iAge),($iMetallicity))->log10().")";
+	$cloudySpectrum .= "\n";
+	$grid->{'cloudySpectrum'}->[$iAge]->[$iMetallicity] = $cloudySpectrum;
     }
-    $cloudyScript .= "\n";
+    $cloudyScript .= $grid->{'cloudySpectrum'}->[$iAge]->[$iMetallicity];
     ## Set normalization of the spectrum.
     $cloudyScript .= "q(h) = ".$grid->{'logHydrogenLuminosities'}->(($iLogHydrogenLuminosity))."\n";
     # Set the chemical composition of the HII region.
@@ -609,22 +651,33 @@ sub generateJobSSP {
 	$cloudyScript .= "element abundances ".lc($abundances{$element}->{'name'})." ".$abundances{$element}->{'logAbundanceByNumber'}."\n";
     }
     # Specify Cloudy's default ISM grains, but with abundance reduced in proportion to the metallicity to retain a fixed
-    # dust-to-metals ratio.
-    $cloudyScript .= "grains Orion ".$dustToMetalsBoostLogarithmic." _log\n";
+    # dust-to-metals ratio. Include the sublimation suppression function (see section 7.9.5 of Hazy1;
+    # https://data.nublado.org/cloudy_releases/c23/c23.01.tar.gz).
+    $cloudyScript .= "grains Orion ".$dustToMetalsBoostLogarithmic." _log function sublimation\n"
+	if ( $options{'includeGrains'} eq "yes" );
     # Deplete metals into grains using our custom depletions file. Note that these depletions differ from those assumed by
     # the "grains _ISM" model above. This seems to be at the ~10% level, so we do not worry too much about this.
-    $cloudyScript .= "metals deplete \"".$depletionFileName."\"\n";
+    $cloudyScript .= "metals deplete \"".$depletionFileName."\"\n"
+	if ( $options{'includeGrains'} eq "yes" );
     # Set HII region density - this is log₁₀(nₕ/cm¯³).
-    $cloudyScript .= "hden ".$grid->{'logHydrogenDensities'}->(($iLogHydrogenDensity   ))."\n";
+    $cloudyScript .= "hden ".$grid->{'logHydrogenDensities'}->(($iLogHydrogenDensity))."\n";
     # Set other HII region properties.
     $cloudyScript .= "sphere expanding\n";
     $cloudyScript .= "radius 16.0\n";
     # Set cosmic rays (needed to avoid problems in Cloudy in neutral gas).
     $cloudyScript .= "cosmic rays background\n";
-    # Set stopping criteria.
-    $cloudyScript .= "stop temperature 1000 k\n";
+    # Set stopping criteria. 
+    ## Using temperature as a stopping criterion can be problematic as the model can then extend far into the neutral region if
+    ## grains are present and cause heating. Instead, we stop based when an electron fraction (default of 1%) is reached, or when
+    ## an Lyman limit optical depth (default of 10) is reached which should accurately capture the ionization front.
+    $cloudyScript .= "stop temperature off\n";
+    $cloudyScript .= "stop efrac "                .      $options{'stopElectronFraction' } ."\n";
+    $cloudyScript .= "stop Lyman optical depth = ".log10($options{'stopLymanOpticalDepth'})."\n";
     $cloudyScript .= "iterate to convergence\n";
-    ## Output the continuum for refernce.
+    ## Set overview output.
+    $cloudyScript .= "save overview \"overview".$jobNumber.".out\"\n"
+	if ( $options{'overview'} eq "yes" );
+    ## Output the continuum for reference.
     $cloudyScript .= "punch continuum \"continuum".$jobNumber.".out\"\n";
     ## Set line output options.
     $cloudyScript .= "print lines faint _off\n";
@@ -823,17 +876,16 @@ sub reprocessSSP {
 			if ( $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)) == 0 );
 		    # Reset the status before attempting to reprocess.
 		    my $statusOld = $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity))->sclr();
-		    $grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)) .= 0;
 		    &linesParse(
 			"lines"        .$jobNumber.".out",
 			"continuum"    .$jobNumber.".out",
 			"emissionLines".$jobNumber.".sh" ,
 			"emissionLines".$jobNumber.".log",
 			"cloudyInput"  .$jobNumber.".txt",
-			$iAge                  ->sclr()  ,
-			$iMetallicity          ->sclr()  ,
-			$iLogHydrogenLuminosity->sclr()  ,
-			$iLogHydrogenDensity   ->sclr()
+			$iAge                            ,
+			$iMetallicity                    ,
+			$iLogHydrogenLuminosity          ,
+			$iLogHydrogenDensity   
 			);
 		    print "Reprocess job number ".$jobNumber." (status = ".$statusOld." ==> ".$grid->{'lineData'}->{'status'}->(($iAge),($iMetallicity),($iLogHydrogenLuminosity),($iLogHydrogenDensity)).")\n";
 		}
@@ -1053,8 +1105,10 @@ sub outputSSP {
     
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
-    $lineGroup->dataset('status')->set($grid->{'lineData'}->{'status'});
-    $lineGroup->dataset('status')->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('status'     )->set($grid->{'lineData'}->{'status'     });
+    $lineGroup->dataset('status'     )->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('modelNumber')->set($grid->{'modelNumber'});
+    $lineGroup->dataset('modelNumber')->attrSet(description => "Cloudy model number"                                                                                                          );
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
@@ -1085,8 +1139,10 @@ sub outputAGN {
 
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
-    $lineGroup->dataset('status')->set($grid->{'lineData'}->{'status'});
-    $lineGroup->dataset('status')->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('status'     )->set($grid->{'lineData'}->{'status'});
+    $lineGroup->dataset('status'     )->attrSet(description => "Cloudy model status: 0 = success; 1 = disaster; 2 = non-zero exit status; 3 = missing output file; 4 = missing emission lines");
+    $lineGroup->dataset('modelNumber')->set($grid->{'lineData'}->{'modelNumber'});
+    $lineGroup->dataset('modelNumber')->attrSet(description => "Cloudy model number"                                                                                                          );
     foreach ( keys(%lineList) ) {
 	my $lineName = $lineList{$_};
 	$lineGroup->dataset($lineName)->    set(               $grid->{'lineData'}->{$lineName}->{'luminosity'});
@@ -1110,6 +1166,7 @@ sub linesParse {
     }
     # Check for successful completion.
     my $status = $grid->{'lineData'}->{'status'}->(@indices);
+    $status .= 0;
     my $label  = join(" ",@indices);
     system("grep -q DISASTER ".$options{'workspace'}.$logFileName);
     if ( $? == 0 ) {

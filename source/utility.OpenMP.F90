@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,14 +26,11 @@ module OpenMP_Utilities
   Implements useful OpenMP utilities.
   !!}
   private
-  public :: OpenMP_Critical_Wait_Times
 
 contains
 
   !![
-  <hdfPreCloseTask>
-   <unitName>OpenMP_Critical_Wait_Times</unitName>
-  </hdfPreCloseTask>
+  <outputFileClose function="OpenMP_Critical_Wait_Times"/>
   !!]
   subroutine OpenMP_Critical_Wait_Times()
     !!{

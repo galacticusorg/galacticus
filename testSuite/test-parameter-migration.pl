@@ -1,8 +1,10 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use Data::Dumper;
+use List::ExtraUtils;
 
 # Test migration of parameter files.
 # Andrew Benson (27-January-2023)
@@ -20,8 +22,9 @@ my $xml        = new XML::Simple();
 my $parameters = $xml->XMLin("outputs/parameterMigrated.xml");
 
 # Check expected state.
+my @nodeOperators = &List::ExtraUtils::as_array($parameters->{'nodeOperator'}->{'nodeOperator'});
 print "FAILED: missing parameter 'massDestructionAbsolute'\n"
-    unless ( exists($parameters->{'nodeOperator'}->{'nodeOperator'}->{'massDestructionAbsolute'}) );
+    unless ( exists($nodeOperators[0]->{'massDestructionAbsolute'}) );
 print "FAILED: unremoved parameter 'spheroidVerySimpleTrackLuminosities'\n"
     if ( exists($parameters->{'spheroidVerySimpleTrackLuminosities'}) );
 
