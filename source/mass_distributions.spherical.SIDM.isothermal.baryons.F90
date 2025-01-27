@@ -175,7 +175,7 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
     type            (massDistributionSphericalSIDMIsothermalBaryons)                          :: self
-    double precision                                                , intent(in   )           :: timeAge, velocityRelativeMean
+    double precision                                                , intent(in   )           :: timeAge                 , velocityRelativeMean
     class           (massDistributionSpherical                     ), intent(in   ), target   :: massDistribution_
     class           (massDistributionClass                         ), intent(in   ), target   :: massDistributionBaryonic
     class           (darkMatterParticleClass                       ), intent(in   ), target   :: darkMatterParticle_
