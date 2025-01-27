@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -222,13 +222,12 @@ program Test_Dark_Matter_Profiles_Zhao1996
              &             velocityDispersionNumerical, &
              &      relTol=+2.0d-2                      &
              &     )
-        !! When comparing to the numerical calculation of potential we take the potential relative to 100 times the virial radius, as
-        !! that is the radius to which the numerical solution is integrated.
         coordinates         =[2.0d+0*radiusScale ,0.0d0,0.0d0]
         coordinatesReference=[1.0d+2*radiusVirial,0.0d0,0.0d0]
         potential           =+massDistribution_%potential         (coordinates=coordinates         ) &
              &               -massDistribution_%potential         (coordinates=coordinatesReference)
-        potentialNumerical  =+massDistribution_%potentialNumerical(coordinates=coordinates         )
+        potentialNumerical  =+massDistribution_%potentialNumerical(coordinates=coordinates         ) &
+             &               -massDistribution_%potentialNumerical(coordinates=coordinatesReference)
         call Assert(                           &
              &             "Potential"       , &
              &             potential         , &

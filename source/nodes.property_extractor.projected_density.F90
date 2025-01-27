@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,8 @@
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          NSCIsNeeded                            , satelliteIsNeeded
+          &                                                          NSCIsNeeded                            , satelliteIsNeeded   , &
+          &                                                          tolerateIntegrationFailures            
    contains
      final     ::                       projectedDensityDestructor
      procedure :: columnDescriptions => projectedDensityColumnDescriptions
@@ -82,7 +83,7 @@ contains
     type   (inputParameters                      ), intent(inout)               :: parameters
     type   (varying_string                       ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
-    logical                                                                     :: includeRadii
+    logical                                                                     :: includeRadii        , tolerateIntegrationFailures
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
@@ -97,9 +98,15 @@ contains
       <description>Specifies whether or not the radii at which projected density data are output should also be included in the output file.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>tolerateIntegrationFailures</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not failures in integration of the projected density should be tolerated.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
+    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -107,7 +114,7 @@ contains
     return
   end function projectedDensityConstructorParameters
 
-  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
+  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
     !!}
@@ -116,9 +123,9 @@ contains
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
-    logical                                       , intent(in   )               :: includeRadii
+    logical                                       , intent(in   )               :: includeRadii        , tolerateIntegrationFailures
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, tolerateIntegrationFailures, *darkMatterHaloScale_"/>
     !!]
 
     if (includeRadii) then
@@ -190,7 +197,7 @@ contains
           &                                             radiusTypeStellarMassFraction  , radiusTypeVirialRadius      , radiusTypeNSCHalfMassRadius     , radiusTypeNSCRadius
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , nodeComponentNSC               , &
           &                                             treeNode
-    use :: Numerical_Integration               , only : integrator, GSL_Integ_Gauss15
+    use :: Numerical_Integration               , only : integrator                     , GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Mass_Distributions                  , only : massDistributionClass
     use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
@@ -208,7 +215,7 @@ contains
     class           (massDistributionClass                ), pointer                     :: massDistribution_
     double precision                                       , parameter                   :: toleranceRelative      =1.0d-2, epsilonSingularity      =1.0d-3
     type            (integrator                           )                              :: integrator_
-    integer                                                                              :: i
+    integer                                                                              :: i                             , status
     double precision                                                                     :: radiusVirial                  , radiusOuter                    , &
          &                                                                                  radiusSingularity             , densityProjectedPrevious       , &
          &                                                                                  densityProjectedCurrent       , toleranceAbsolute
@@ -298,7 +305,9 @@ contains
                &            *self%darkMatterHaloScale_%densityMean(node)
           converged        =.false.
           do while (.not.converged)
-             densityProjectedCurrent=integrator_%integrate(log(radiusSingularity),log(radiusOuter))
+             densityProjectedCurrent=integrator_%integrate(log(radiusSingularity),log(radiusOuter),status=status)
+             if (status /= errorStatusSuccess .and. .not.self%tolerateIntegrationFailures) &
+                  & call Error_Report('integration of projected density failed'//{introspection:location})
              converged              =Values_Agree(densityProjectedCurrent,densityProjectedPrevious,relTol=toleranceRelative,absTol=toleranceAbsolute)
              if (.not.converged) then
                 radiusOuter             =2.0d0*radiusOuter

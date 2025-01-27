@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -292,7 +292,7 @@ contains
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
-       massDistribution_              => node             %massDistribution    (&
+       massDistribution_              => node             %massDistribution    (                                       &
             &                                                                   componentType=self%radii(i)%component, &
             &                                                                   massType     =self%radii(i)%mass       &
             &                                                                  )

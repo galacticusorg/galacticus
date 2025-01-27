@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1371,8 +1371,8 @@ contains
        residual                  =vector(functionValueDifference   )
        covariance                =matrix(functionCovarianceCombined)
        ! Compute the log-likelihood.
-       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status) &
-            &                           -0.5d0*covariance%determinant()                      &
+       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct     (residual,status) &
+            &                           -0.5d0*covariance%logarithmicDeterminant(               ) &
             &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
        if (status /= GSL_Success) correlationFunctionLogLikelihood=logImprobable
     else

@@ -71,7 +71,7 @@
   <!-- Merger tree building options --> 
   <mergerTreeBuildMasses value="fixedMass">
     <massTree  value="1.2e13"/>
-    <treeCount value="32"    />
+    <treeCount value="28"    />
   </mergerTreeBuildMasses>
 
   <!-- Halo mass resolution -->
