@@ -40,7 +40,7 @@ struct lockDescriptor {
   char *name;
 };
 
-void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
+int flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared, int timeSleep, int countAttempts) {
   //% Fortran-callable wrapper around the fcntl() function to lock a file.
   int e;
   *ld = malloc(sizeof(struct lockDescriptor));
@@ -68,33 +68,49 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
     printf("  -> error description is : %s\n",strerror(errno));
     abort();
   }
+  for(int i=0;i<countAttempts;++i) {
 #ifdef OFDAVAIL
-  if (fcntl((*ld)->fd, F_OFD_SETLKW, &(*ld)->fl) == -1) {
+    int status=fcntl((*ld)->fd, F_OFD_SETLK, &(*ld)->fl);
 #else
-  if (fcntl((*ld)->fd, F_SETLKW    , &(*ld)->fl) == -1) {
+    int status=fcntl((*ld)->fd, F_SETLK    , &(*ld)->fl);
 #endif
-    if (errno == ENOSYS) {
-      /* File locking is not implemented on this system. Fail silently, returning a suitable error code in the lock descriptor */
-      (*ld)->fd = -1;
-    } else {    
-      if (errno == EBADF) {
-	printf("flock_C(): bad file descriptor [EBADF]: %s\n",name);
-      } else if (errno == EINTR) {
-	printf("flock_C(): [EINTR]\n");
-      } else if (errno == EINVAL) {
-	printf("flock_C(): [EINVAL]\n");
-      } else if (errno == ENOLCK) {
-	printf("flock_C(): [ENOLCK]\n");
-      } else if (errno == EOVERFLOW) {
-	printf("flock_C(): [EOVERFLOW]\n");
-      } else if (errno == EDEADLK) {
-	printf("flock_C(): [EDEADLK]\n");
+    if (status == -1) {
+      if (errno == ENOSYS) {
+	/* File locking is not implemented on this system. Fail silently, returning a suitable error code in the lock descriptor */
+	(*ld)->fd = -1;
+	return -1;
+      } else if (errno == EACCES || errno == EAGAIN) {
+	/* File is blocked - sleep and try again. */
+	sleep(timeSleep);
       } else {
-	printf("flock_C(): unknown error [%d]\n",errno);
+	/* Some other error occured - report and abort */
+	if (errno == EBADF) {
+	  printf("flock_C(): bad file descriptor [EBADF]: %s\n",name);
+	} else if (errno == EINTR) {
+	  printf("flock_C(): [EINTR]\n");
+	} else if (errno == EINVAL) {
+	  printf("flock_C(): [EINVAL]\n");
+	} else if (errno == ENOLCK) {
+	  printf("flock_C(): [ENOLCK]\n");
+	} else if (errno == EOVERFLOW) {
+	  printf("flock_C(): [EOVERFLOW]\n");
+	} else if (errno == EDEADLK) {
+	  printf("flock_C(): [EDEADLK]\n");
+	} else {
+	  printf("flock_C(): unknown error [%d]\n",errno);
+	}
+	abort();
       }
-      abort();
+    } else {
+      /* Success */
+      return 0;
     }
   }
+  /* Lock was not obtained after the maximum number of attempts - return an error code. */
+  close((*ld)->fd);
+  free((*ld)->name);
+  free(*ld);
+  return -2;
 }
 
 void funlock_C(struct lockDescriptor **ld) {

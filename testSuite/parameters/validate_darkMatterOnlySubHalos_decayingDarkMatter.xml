@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Decaying dark matter subhalo population evolution model -->
+<!-- 06-January-2025                                         -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
+
+  <verbosityLevel value="standard"/>
+
+  <!-- Include required parameters -->
+  <xi:include href="../../../parameters/reference/cosmologyWMAP9DarkMatterOnly.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../parameters/reference/powerSpectrumWMAP9.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../parameters/reference/structureFormation.xml"           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../parameters/reference/mergerTrees.xml"                  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Dark matter particle properties -->
+  <darkMatterParticle value="decayingDarkMatter">
+    <massSplitting      value=" 0.00013"/>
+    <lifetime           value="80.0"    />
+    <darkMatterParticle value="CDM"     />
+  </darkMatterParticle>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="orbiting"/>
+  <componentSpin              value="vector"  />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSpheroid          value="null"    />
+
+  <!-- Use a fixed set of halo masses - Mau et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...932..128M) simulated halos of mass ~10^{12}Msun. -->
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.0e12"/>
+    <treeCount value="12"    />
+  </mergerTreeBuildMasses>
+  <!-- Resolution is chosen to be close to the 100 particle limit of Mau et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...932..128M) -->
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="2.0e7"/>
+  </mergerTreeMassResolution>
+  <!-- Include subsampling to shorten run times. -->
+  <mergerTreeBuildController value="subsample">
+    <massThreshold               value="3.00e10"/>
+    <subsamplingRateAtThreshold  value="1.00"   />
+    <exponent                    value="1.00"   />
+    <factorMassGrowthConsolidate value="0.01"   />
+  </mergerTreeBuildController>
+  
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile value="darkMatterOnly">
+    <chandrasekharIntegralComputeVelocityDispersion value="false"/>
+  </darkMatterProfile>
+  <darkMatterProfileDMO value="decaying">
+    <!-- Set tolerances and set to ignore failures here. -->
+    <toleratePotentialIntegrationFailure        value="true"  />
+    <tolerateVelocityMaximumFailure             value="true"  />
+    <tolerateEnclosedMassIntegrationFailure     value="true"  />
+    <toleranceRelativeVelocityDispersion        value="1.0e-2"/>
+    <toleranceRelativeVelocityDispersionMaximum value="1.0e-2"/>
+    <toleranceRelativePotential                 value="1.0e-2"/>
+    <darkMatterProfileDMO value="heated">
+      <!--Set tolerances and set to ignore failures here. -->
+      <nonAnalyticSolver                          value="numerical"/>
+      <toleratePotentialIntegrationFailure        value="true"     />
+      <tolerateVelocityMaximumFailure             value="true"     />
+      <tolerateVelocityDispersionFailure          value="true"     />
+      <tolerateEnclosedMassIntegrationFailure     value="true"     />
+      <toleranceRelativeVelocityDispersion        value="1.0e-2"   />
+      <toleranceRelativeVelocityDispersionMaximum value="1.0e-1"   />
+      <toleranceRelativePotential                 value="3.0e-2"   />
+      <fractionRadiusFinalSmall                   value="0.0"      />
+      <darkMatterProfileDMO value="finiteResolutionNFW">
+	<!-- Mau et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...932..128M) use a Plummer-equivalent force softening of 143 pc and a particle mass of 1.92*10^5Msun          -->
+	<!-- The coefficients of N=36 and epsilon=0.18 are taken from the study of Benson & Du (2022; https://ui.adsabs.harvard.edu/abs/2022MNRAS.517.1398B).                          -->
+	<!-- A factor of 3 is included in the length resolution as the Benson & Du calibration was for a grid-based force calculation while Mau et al. used a particle-based approach. -->
+        <massResolution       value="=36.0     *  1.92e+5"/>
+        <lengthResolution     value="= 3.0*0.18*143.00e-6"/>
+        <resolutionIsComoving value="true"                />
+        <nonAnalyticSolver    value="fallThrough"         />
+      </darkMatterProfileDMO>
+    </darkMatterProfileDMO>
+  </darkMatterProfileDMO>
+  <!-- Including heating from both tidal interactions and decaying dark matter. Force monotonic behavior in the heating (as decaying dark matter heating can be non-monotonic). -->
+  <darkMatterProfileHeating value="monotonic">
+    <darkMatterProfileHeating value="summation">
+      <darkMatterProfileHeating value="tidal">
+	<!-- The second order term is set based on the results of Du et al. (2024;
+	     https://ui.adsabs.harvard.edu/abs/2024PhRvD.110b3019D) for gamma=0 - this is more appropriate for the cored density
+	     profiles that can arise in decaying dark matter models. -->
+        <coefficientSecondOrder0   value="+0.210"/>
+        <coefficientSecondOrder1   value="+0.000"/>
+        <correlationVelocityRadius value="-0.333"/>
+      </darkMatterProfileHeating>
+      <darkMatterProfileHeating value="decayingDarkMatter">
+	<gamma              value="0.5" />
+	<includeKickHeating value="true"/>
+      </darkMatterProfileHeating>
+    </darkMatterProfileHeating>
+  </darkMatterProfileHeating>
+
+  <!-- Halo concentration  --> 
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  3.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="ludlow2016">
+      <darkMatterProfileDMO value="NFW" />
+      <C                      value="700.27000"/>
+      <f                      value="  0.07534"/>
+      <timeFormationSeekDelta value="  0.00000"/>
+      <darkMatterProfileScaleRadius value="concentration" >
+        <correctForConcentrationDefinition    value="true"     />
+        <darkMatterProfileConcentration value="diemerJoyce2019" >
+        </darkMatterProfileConcentration>
+      </darkMatterProfileScaleRadius>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Dark matter halo spin -->
+  <haloSpinDistribution value="bett2007">
+    <!-- For leaf nodes in the tree we fall back to drawing spins from the distribution function given by -->
+    <!-- Benson (2017; MNRAS; 471; 2871; http://adsabs.harvard.edu/abs/2017MNRAS.471.2871B).              -->
+    <!-- Best fit paramter values are taken from that paper.                                              -->
+    <alpha   value="1.7091800"/>
+    <lambda0 value="0.0420190"/>
+  </haloSpinDistribution>
+
+  <!-- Satellite orbit options -->
+  <virialOrbit value="spinCorrelated">
+    <darkMatterProfileDMO value="NFW"/>
+    <!-- Best fit value for correlation with host spin from https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations. -->
+    <alpha value="0.155573112534425" />
+    <virialOrbit value="jiang2014" >
+      <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+      <bRatioHigh             value="+2.88333 +4.06371 +3.86726"/>
+      <bRatioIntermediate     value="+1.05361 +1.56868 +2.89027"/>
+      <bRatioLow              value="+0.07432 +0.54554 +1.04721"/>
+      <gammaRatioHigh         value="+0.07124 +0.04737 -0.01913"/>
+      <gammaRatioIntermediate value="+0.10069 +0.07821 +0.04231"/>
+      <gammaRatioLow          value="+0.10866 +0.11260 +0.11698"/>
+      <muRatioHigh            value="+1.10168 +1.09639 +1.09819"/>
+      <muRatioIntermediate    value="+1.18205 +1.19573 +1.24581"/>
+      <muRatioLow             value="+1.22053 +1.22992 +1.25528"/>
+      <sigmaRatioHigh         value="+0.09244 +0.14335 +0.21079"/>
+      <sigmaRatioIntermediate value="+0.07397 +0.09590 +0.10941"/>
+      <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
+    </virialOrbit>
+  </virialOrbit>
+ 
+  <!-- Orbiting model of satellites -->
+  <!-- Values taken from Yang et al. (2020; MNRAS; 498; 3902; http://adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) approximately
+       interpolated betweeing their gamma=0.0 and 2.5 cases (using the Caterpillar simulations as calibration target) to
+       approximately match our choice of gamma=1.5 using the Caterpillar simulations as calibration target.  -->
+  <satelliteDynamicalFriction value="massRatioThreshold">
+    <!-- Ignore dynamical friction for satellite/host mass ratios below 0.001 -->
+    <massRatioThreshold value="1.0e-3"/>
+    <satelliteDynamicalFriction value="chandrasekhar1943">
+      <logarithmCoulomb value="1.35"/>
+    </satelliteDynamicalFriction>
+  </satelliteDynamicalFriction>
+  <satelliteTidalHeatingRate  value="gnedin1999"       >
+    <epsilon          value="2.70"/>
+    <gamma            value="1.50"/>
+  </satelliteTidalHeatingRate>
+  <satelliteTidalStripping    value="zentner2005"      >
+    <efficiency       value="2.95"/>
+  </satelliteTidalStripping>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="multiLevelHierarchy"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo angular momentum -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <darkMatterProfileDMO value="NFW" />
+      <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Subhalo hierarchy -->
+    <nodeOperator value="subsubhaloPromotion"              />
+    <!-- Subhalo orbits -->
+    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteDynamicalFriction"       />
+    <nodeOperator value="satelliteTidalMassLoss"           />
+    <nodeOperator value="satelliteTidalHeating"            />
+    <nodeOperator value="satelliteMergingRadiusTrigger"     >
+      <radiusVirialFraction                 value="1.0e-2"                                    />
+    </nodeOperator>
+    <nodeOperator value="satelliteDestructionMassThreshold" >
+      <massDestructionAbsolute              value="=[mergerTreeMassResolution:massResolution]"/>
+      <massDestructionMassInfallFraction    value="0.0"                                       />
+    </nodeOperator>
+    <!-- Destroy subhalos when the density at the original scale radius falls below 0.001 of the original mean virial density. -->
+    <nodeOperator value="satelliteDestructionDensityProfileThreshold" >
+      <fractionDensityProfileVirialFraction value="1.0e-3"                                    />
+    </nodeOperator>
+  </nodeOperator>
+
+  <!-- Evolvers -->
+  <mergerTreeEvolver value="standard" >
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.10"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01" />
+    <odeToleranceRelative value="0.01" />
+    <reuseODEStepSize     value="false"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"               >
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.100"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite"            >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output options -->
+  <outputFileName value="decayingDarkMatterSubhaloPopulation.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"     />
+    <nodePropertyExtractor value="virialProperties"/>
+    <nodePropertyExtractor value="positionOrbital" />
+    <nodePropertyExtractor value="velocityMaximum"  >
+      <propertyName         value="velocityMaximum"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="velocityMaximum"  >
+      <propertyName         value="velocityPeak"   />
+      <darkMatterProfileDMO value="NFW"            />
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>

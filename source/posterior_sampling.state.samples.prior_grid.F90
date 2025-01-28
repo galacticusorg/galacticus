@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -99,8 +99,8 @@ contains
     double precision                                           , dimension(size(modelParameters_))              :: stateVector
     type            (multiCounter              )                                                                :: counter
     integer         (c_size_t                  )                                                                :: i               , j
-        
-    allocate(simulationStates(self%countGrid*size(modelParameters_)))
+
+    allocate(simulationStates(self%countGrid**size(modelParameters_)))
     counter=multiCounter(spread(self%countGrid,1,size(modelParameters_)))
     i      =0
     do while (counter%increment())

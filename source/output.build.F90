@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,7 @@ module Output_Build
   use, intrinsic :: ISO_C_Binding, only : c_ptr
   implicit none
   private
-  public :: Output_Build_Output, Output_Build_String
+  public :: Output_Build_String
 
   interface
      function GSL_Get_Version() bind(c,name='GSL_Get_Version')
@@ -110,13 +110,11 @@ contains
     Output_Build_String=Output_Build_String//":CPPCOMPILER_VERSION["//CPPCOMPILER_VERSION//"]"
     return
   end function Output_Build_String
-
+  
   !![
-  <outputFileOpenTask>
-   <unitName>Output_Build_Output</unitName>
-  </outputFileOpenTask>
+  <outputFileOpen function="Output_Build_Output"/>
   !!]
-  subroutine Output_Build_Output
+  subroutine Output_Build_Output()
     !!{
     Output build information to the main output file.
     !!}

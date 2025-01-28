@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -119,16 +119,17 @@ contains
     return
   end function sphericalScalerConstructorParameters
   
-  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_) result(self)
+  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
     !!{
     Constructor for ``sphericalScaler'' convergence class.
     !!}
     implicit none
-    type            (massDistributionSphericalScaler)                        :: self
-    class           (massDistributionSpherical      ), intent(in   ), target :: massDistribution_
-    double precision                                 , intent(in   )         :: factorScalingLength, factorScalingMass
+    type            (massDistributionSphericalScaler)                          :: self
+    class           (massDistributionSpherical      ), intent(in   ), target   :: massDistribution_
+    double precision                                 , intent(in   )           :: factorScalingLength                           , factorScalingMass
+    logical                                          , intent(in   ), optional :: chandrasekharIntegralComputeVelocityDispersion
     !![
-    <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_"/>
+    <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_, chandrasekharIntegralComputeVelocityDispersion"/>
     !!]
  
     self%componentType              =self%massDistribution_%componentType

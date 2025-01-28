@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -156,12 +156,14 @@ contains
     class           (nodeComponentBasic                 ), pointer       :: basic
     class           (massDistributionClass              ), pointer       :: massDistribution_        , massDistributionHost_
     double precision                                     , dimension(3)  :: velocity
+    double precision                                     , parameter     :: radiusHalfMassSatelliteTiny=1.0d-30, fractionMassTiny         =1.0d-6
     type            (coordinateCartesian                )                :: position
     double precision                                                     :: massSatellite            , velocityCircularSatellite, &
          &                                                                  radius                   , speed                    , &
          &                                                                  timescaleShock           , heatingRateNormalized    , &
          &                                                                  orbitalFrequencySatellite, radiusHalfMassSatellite  , &
          &                                                                  massHalfSatellite        , fractionDarkMatter
+    logical                                                              :: useFrequencyOrbital
     type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor              , tidalTensorPathIntegrated
     
     ! Construct required properties of satellite and host.
@@ -194,12 +196,10 @@ contains
          &                           *                  massSatellite                                                                       , &
          &                           +massDistribution_%massEnclosedBySphere(radius=self%darkMatterHaloScale_%radiusVirial           (node))  &
          &                      )
-    radiusHalfMassSatellite  =  massDistribution_%radiusEnclosingMass       (mass  =                                massHalfSatellite      )
-    velocityCircularSatellite=  massDistribution_%rotationCurve             (radius=                          radiusHalfMassSatellite      )
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
-    if (radiusHalfMassSatellite > 0.0d0) then
+    useFrequencyOrbital      = massHalfSatellite > fractionMassTiny*basic%mass()
+    if (useFrequencyOrbital) then
+       radiusHalfMassSatellite  =     massDistribution_%radiusEnclosingMass (mass  =                                massHalfSatellite      )
+       velocityCircularSatellite=     massDistribution_%rotationCurve       (radius=                          radiusHalfMassSatellite      )
        ! Compute the orbital frequency.
        orbitalFrequencySatellite =  +velocityCircularSatellite &
             &                       /radiusHalfMassSatellite   &
@@ -214,26 +214,35 @@ contains
             &                       *kilo                                           &
             &                       /megaParsec
     end if
-    ! Find the shock timescale (i.e. crossing time in the radial direction).
-    timescaleShock=+megaParsec &
-         &         /kilo       &
-         &         /gigaYear   &
-         &         *radius     &
-         &         /speed
-    ! Compute the heating rate.
-    heatingRateNormalized=+self%epsilon                                          &
-         &                /(                                                     &
-         &                  +1.0d0                                               &
-         &                  +(                                                   &
-         &                    +timescaleShock                                    &
-         &                    *orbitalFrequencySatellite                         &
-         &                   )**2                                                &
-         &                 )**self%gamma                                         &
-         &                /3.0d0                                                 &
-         &                *tidalTensor%doubleContract(tidalTensorPathIntegrated) &
-         &                *(kilo*gigaYear/megaParsec)**2
-    ! Limit the heating rate to be non-negative.
-    gnedin1999HeatingRate=max(heatingRateNormalized,0.0d0)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
+    ! Catch non-positive speeds.
+    if (speed > 0.0d0) then
+       ! Find the shock timescale (i.e. crossing time in the radial direction).
+       timescaleShock=+megaParsec &
+            &         /kilo       &
+            &         /gigaYear   &
+            &         *radius     &
+            &         /speed
+       ! Compute the heating rate.
+       heatingRateNormalized=+self%epsilon                                          &
+            &                /(                                                     &
+            &                  +1.0d0                                               &
+            &                  +(                                                   &
+            &                    +timescaleShock                                    &
+            &                    *orbitalFrequencySatellite                         &
+            &                   )**2                                                &
+            &                 )**self%gamma                                         &
+            &                /3.0d0                                                 &
+            &                *tidalTensor%doubleContract(tidalTensorPathIntegrated) &
+            &                *(kilo*gigaYear/megaParsec)**2
+       ! Limit the heating rate to be non-negative.
+       gnedin1999HeatingRate=max(heatingRateNormalized,0.0d0)
+    else
+       ! Speed is non-positive - assume zero heating rate.
+       gnedin1999HeatingRate=0.0d0
+    end if
     return
   end function gnedin1999HeatingRate
 

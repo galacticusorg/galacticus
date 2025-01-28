@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of bar instability spheroid creation -->
+<!-- 25-July-2018                              -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>0.7924975472662658E+00</time>
+      <timeLastIsolated>0.7584223758672006E+00</timeLastIsolated>
+      <mass>0.2933408470400075E+09</mass>
+    </basic>
+    <darkMatterProfile>/
+    <scale>0.7377541059681405E-03</scale>
+    </darkMatterProfile>
+    <satellite>
+      <boundMass>0.2754942306085076E+09</boundMass>
+      <destructionTime>-1.0</destructionTime>
+      <position>0.1830946116682216E-02</position>
+      <position>0.5641393095300942E-03</position>
+      <position>-.4546105518934662E-02</position>
+      <tidalHeatingNormalized>0.3710334410941420E+07</tidalHeatingNormalized>
+      <timeOfMerging>0.1797693134862315e+309</timeOfMerging>
+      <velocity>0.1044575678413555E+03</velocity>
+      <velocity>0.7847676070019483E+02</velocity>
+      <velocity>-.2779745856933534E+02</velocity>
+      <tidalTensorPathIntegrated>
+        <x00>-.2730209115129374E+07</x00>
+	<x01>0.1137749428701048E+08</x01>
+	<x02>0.4316923440871870E+07</x02>
+	<x11>-.5872464442762411E+07</x11>
+	<x12>0.3875580228210468E+07</x12>
+	<x22>-.1378571661997683E+08</x22>
+      </tidalTensorPathIntegrated>
+    </satellite>
+    <spin>
+      <angularMomentum>0.3810643809975820E+05</angularMomentum>
+      <angularMomentumVector>-.2614643428638370E+04</angularMomentumVector>
+      <angularMomentumVector>-.1896343052491360E+05</angularMomentumVector>
+      <angularMomentumVector>-.3294924228443738E+05</angularMomentumVector>
+    </spin>
+  </node>
+
+
+  <node>
+    <index>2</index>
+    <parent>3</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <firstSatellite>1</firstSatellite>
+    <basic>
+      <time>0.7924975472662658E+00</time>
+      <timeLastIsolated>0.7924975472662658E+00</timeLastIsolated>
+      <mass>0.5697532725037757E+10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.2399525853328311E-02</scale>
+    </darkMatterProfile>
+    <spin>
+      <angularMomentum>0.1518217414400364E+10</angularMomentum>
+      <angularMomentumVector>-.1150071560557050E+10</angularMomentumVector>
+      <angularMomentumVector>0.5517390323166478E+09</angularMomentumVector>
+      <angularMomentumVector>0.8233489923505635E+09</angularMomentumVector>
+    </spin>
+  </node>
+
+  <node>
+    <index>3</index>
+    <parent>-1</parent>
+    <firstChild>2</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>0.8E+00</time>
+      <timeLastIsolated>0.8E+00</timeLastIsolated>
+      <mass>0.5697532725037757E+10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.2399525853328311E-02</scale>
+    </darkMatterProfile>
+    <spin>
+      <angularMomentum>0.1518217414400364E+10</angularMomentum>
+      <angularMomentumVector>-.1150071560557050E+10</angularMomentumVector>
+      <angularMomentumVector>0.5517390323166478E+09</angularMomentumVector>
+      <angularMomentumVector>0.8233489923505635E+09</angularMomentumVector>
+    </spin>
+  </node>
+
+</tree>
