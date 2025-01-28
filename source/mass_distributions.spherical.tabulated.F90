@@ -661,7 +661,7 @@ contains
 
   double precision function sphericalTabulatedInterpolate(self,radiusScaled,parameters,tabulation) result(interpolated)
     !!{
-    Interpolate in the tabulatd mass distribution.
+    Interpolate in the tabulated mass distribution.
     !!}
     use :: Multi_Counters, only : multiCounter
     implicit none
