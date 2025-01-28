@@ -476,8 +476,9 @@ contains
     double precision                                     , dimension(:  ), intent(in   ) :: parameters
     type            (massDistributionContainer          )                , intent(inout) :: container
     type            (massDistributionTabulation         )                , intent(inout) :: tabulation
-    class           (massDistributionSphericalTabulated )                , pointer       :: instance
-    type            (kinematicsDistributionCollisionless)                , pointer       :: instanceKinematicsDistribution
+    class           (massDistributionSphericalTabulated ), save          , pointer       :: instance
+    type            (kinematicsDistributionCollisionless), save          , pointer       :: instanceKinematicsDistribution
+    !$omp threadprivate(instance,instanceKinematicsDistribution)
     double precision                                     , dimension(:  ), allocatable   :: parameters_                   , parametersReduced_
     integer         (c_size_t                           ), dimension(:  ), allocatable   :: countParameters               , iParameters
     integer         (c_size_t                           )                                :: countRadii                    , iRadius             , &
@@ -538,7 +539,7 @@ contains
           iterationCount     =0_c_size_t
           iterationCountTotal=product(countParameters)
           ! Tabulate in parallel.
-          !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,coordinates,coordinatesZeroPoint,quantity_,instance,instanceKinematicsDistribution,iParameters,parameters_,parametersReduced_,workRemains,counter)
+          !$omp parallel private(iRadius,radius_,time_,radiusOuter_,wavenumber_,coordinates,coordinatesZeroPoint,quantity_,iParameters,parameters_,parametersReduced_,workRemains,counter)
           ! This is a new thread, so mark it as tabulating.
           tabulating         =.true.
           ! Initialize the counter and iterate over parameter states.
@@ -564,11 +565,20 @@ contains
                 instance           => self%factoryTabulation(parameters_       )
              end select
              allocate(instanceKinematicsDistribution)
-             instanceKinematicsDistribution=kinematicsDistributionCollisionless(                                                                                                                    &
-                  &                                                             toleranceRelativeVelocityDispersion       =self%kinematicsDistribution_%toleranceRelativeVelocityDispersion       , &
-                  &                                                             toleranceRelativeVelocityDispersionMaximum=self%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum  &
-                  &                                                            )
+             !![
+	     <referenceConstruct object="instanceKinematicsDistribution">
+	       <constructor>
+		 kinematicsDistributionCollisionless(                                                                                                                    &amp;
+                  &amp;                              toleranceRelativeVelocityDispersion       =self%kinematicsDistribution_%toleranceRelativeVelocityDispersion       , &amp;
+                  &amp;                              toleranceRelativeVelocityDispersionMaximum=self%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum  &amp;
+                  &amp;                             )
+	       </constructor>
+	     </referenceConstruct>
+             !!]
              call instance%setKinematicsDistribution(instanceKinematicsDistribution)
+             !![
+	     <objectDestructor name="instanceKinematicsDistribution"/>
+             !!]
              ! Iterate over scaled radii.
              !$omp do
              do iRadius=1,countRadii
@@ -623,6 +633,7 @@ contains
              end do
              !$omp end do
              deallocate(instance)
+             nullify   (instance)
           end do
           !$omp master
           call displayCounterClear(verbosityLevelWorking)
