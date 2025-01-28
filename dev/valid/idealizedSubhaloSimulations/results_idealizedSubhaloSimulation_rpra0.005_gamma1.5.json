@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "834a67137808e4f835b9ef37d61094e95fe13c69",
-        "message": "Merge pull request #773 from galacticusorg/featEvaluationTimes\n\nAdd optional display of evaluation times in the `posteriorSampleLikelihoodGalaxyPopulation` class\n",
-        "timestamp": "2025-01-25 17:19:09+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/834a67137808e4f835b9ef37d61094e95fe13c69"
+        "id": "e811db8d18095d34fe82c73b4a2f58fbd2f3b54b",
+        "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus\n",
+        "timestamp": "2025-01-27 16:33:29-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e811db8d18095d34fe82c73b4a2f58fbd2f3b54b"
     },
     "results": [
         {
