@@ -25,7 +25,7 @@
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
-  use :: Star_Formation_Rates_NSC        , only : starFormationRateNSCClass
+  use :: Star_Formation_Rates_NSCs       , only : starFormationRateNSCsClass
 
   !![
   <nodeOperator name="nodeOperatorStarFormationRateInterOutput">
@@ -44,7 +44,7 @@
      class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_               => null()
      class  (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_            => null()
      class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_        => null()
-     class  (starFormationRateNSCClass      ), pointer :: starFormationRateNSC_              => null()
+     class  (starFormationRateNSCsClass     ), pointer :: starFormationRateNSCs_             => null()
 
      integer                                           :: starFormationRateDiskInterOutputID   , starFormationRateSpheroidInterOutputID, &
           &                                               starFormationRateNSCInterOutputID    , starFormationRateInterOutputNextID
@@ -78,28 +78,28 @@ contains
     class(mergerMassMovementsClass                ), pointer       :: mergerMassMovements_
     class(starFormationRateDisksClass             ), pointer       :: starFormationRateDisks_
     class(starFormationRateSpheroidsClass         ), pointer       :: starFormationRateSpheroids_
-    class(starFormationRateNSCClass               ), pointer       :: starFormationRateNSC_
+    class(starFormationRateNSCsClass              ), pointer       :: starFormationRateNSCs_
 
     !![
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
-    <objectBuilder class="starFormationRateNSC"       name="starFormationRateNSC_"       source="parameters"/>
+    <objectBuilder class="starFormationRateNSCs"      name="starFormationRateNSCs_"      source="parameters"/>
     !!]
-    self=nodeOperatorStarFormationRateInterOutput(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSC_)
+    self=nodeOperatorStarFormationRateInterOutput(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSCs_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="outputTimes_"               />
     <objectDestructor name="mergerMassMovements_"       />
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
-    <objectDestructor name="starFormationRateNSC_"      />
+    <objectDestructor name="starFormationRateNSCs_"     />
     !!]
     return
   end function starFormationRateInterOutputConstructorParameters
 
-  function starFormationRateInterOutputConstructorInternal(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSC_) result(self)
+  function starFormationRateInterOutputConstructorInternal(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSCs_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationRateInterOutput} node operator class.
     !!}
@@ -109,17 +109,17 @@ contains
     class(mergerMassMovementsClass                ), intent(in   ), target :: mergerMassMovements_
     class(starFormationRateDisksClass             ), intent(in   ), target :: starFormationRateDisks_
     class(starFormationRateSpheroidsClass         ), intent(in   ), target :: starFormationRateSpheroids_
-    class(starFormationRateNSCClass               ), intent(in   ), target :: starFormationRateNSC_
+    class(starFormationRateNSCsClass              ), intent(in   ), target :: starFormationRateNSCs_
 
     !![
-    <constructorAssign variables="*outputTimes_, *mergerMassMovements_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNSC_"/>
+    <constructorAssign variables="*outputTimes_, *mergerMassMovements_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNSCs_"/>
     !!]
     
     !![
     <addMetaProperty component="basic"    name="starFormationRateInterOutputNext"     id="self%starFormationRateInterOutputNextID"     isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="disk"     name="starFormationRateDiskInterOutput"     id="self%starFormationRateDiskInterOutputID"     isEvolvable="yes" isCreator="yes"/>
     <addMetaProperty component="spheroid" name="starFormationRateSpheroidInterOutput" id="self%starFormationRateSpheroidInterOutputID" isEvolvable="yes" isCreator="yes"/>
-    <addMetaProperty component="spheroid" name="starFormationRateNSCInterOutput"      id="self%starFormationRateNSCInterOutputID"      isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="NSC"      name="starFormationRateNSCInterOutput"      id="self%starFormationRateNSCInterOutputID"      isEvolvable="yes" isCreator="yes"/>
     !!]
     return
   end function starFormationRateInterOutputConstructorInternal
@@ -136,7 +136,7 @@ contains
     <objectDestructor name="self%mergerMassMovements_"       />
     <objectDestructor name="self%starFormationRateDisks_"    />
     <objectDestructor name="self%starFormationRateSpheroids_"/>
-    <objectDestructor name="self%starFormationRateNSC_"      />
+    <objectDestructor name="self%starFormationRateNSCs_"     />
     !!]
     return
   end subroutine starFormationRateInterOutputDestructor
@@ -271,7 +271,7 @@ contains
     type is (nodeComponentNSC     )
        ! Nuclear star cluster does not yet exist - nothing to do here.
     class default
-       call NSC     %floatRank0MetaPropertyRate(self%starFormationRateNSCInterOutputID     ,self%starFormationRateNSC_      %rate(node)/timeInterval)
+       call NSC     %floatRank0MetaPropertyRate(self%starFormationRateNSCInterOutputID     ,self%starFormationRateNSCs_     %rate(node)/timeInterval)
     end select      
     return
   end subroutine starFormationRateInterOutputDifferentialEvolution
@@ -314,22 +314,15 @@ contains
             &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
             &                                      +    disk    %floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
             &                                      +    spheroid%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
-            &                                     )
-       call     NSCHost %floatRank0MetaPropertySet(                                                                                                             &
-            &                                       self        %starFormationRateNSCInterOutputID                                                            , &
-            &                                      +    NSCHost %floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
             &                                      +    NSC     %floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
             &                                     )
+
     case (destinationMergerSpheroid%ID)
        call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
             &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
             &                                      +    disk    %floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
             &                                      +    spheroid%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
-            &                                     )
-       call     NSCHost %floatRank0MetaPropertySet(                                                                                                             &
-            &                                       self        %starFormationRateNSCInterOutputID                                                            , &
-            &                                      +    NSCHost %floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
             &                                      +    NSC     %floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
             &                                     )
     case default
@@ -355,20 +348,22 @@ contains
             &                                       self        %starFormationRateDiskInterOutputID                                                           , &
             &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
             &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
-            &                                     )
+            &                                      +     NSCHost%floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
+            &                                      )
        call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
             &                                      +0.0d0                                                                                                       &
             &                                     )
        call      NSCHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                      self         %starFormationRateNSCInterOutputID                                                            , &                                                
-            &                                      +     NSCHost%floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
+            &                                      +0.0d0                                                                                                       &
             &                                     )
     case (destinationMergerSpheroid%ID)
        call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
             &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
             &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                      +     NSCHost%floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
             &                                     )
        call     diskHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                       self        %starFormationRateDiskInterOutputID                                                           , &
@@ -376,7 +371,7 @@ contains
             &                                     )
        call      NSCHost%floatRank0MetaPropertySet(                                                                                                             &
             &                                      self         %starFormationRateNSCInterOutputID                                                            , & 
-            &                                      +     NSCHost%floatRank0MetaPropertyGet                       (self%starFormationRateNSCInterOutputID     )  &
+            &                                      +0.0d0                                                                                                       &
             &                                     )
     case (destinationMergerUnmoved%ID)
        ! Do nothing.

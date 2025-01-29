@@ -21,49 +21,49 @@
   Implements a node operator class that performs star formation in nuclear star cluster.
   !!}
 
-  use :: Star_Formation_Rates_NSC      , only : starFormationRateNSCClass
+  use :: Star_Formation_Rates_NSCs     , only : starFormationRateNSCsClass
   use :: Stellar_Population_Properties , only : stellarPopulationPropertiesClass
   use :: Star_Formation_Histories      , only : starFormationHistoryClass
 
   !![
-  <nodeOperator name="nodeOperatorStarFormationNSC">
+  <nodeOperator name="nodeOperatorStarFormationNSCs">
    <description>A node operator class that performs star formation.</description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorStarFormationNSC
+  type, extends(nodeOperatorClass) :: nodeOperatorStarFormationNSCs
      !!{
      A node operator class that shifts node indices at node promotion.
      !!}
      private
-     class           (starFormationRateNSCClass       ), pointer :: starFormationRateNSC_         => null()
+     class           (starFormationRateNSCsClass      ), pointer :: starFormationRateNSCs_        => null()
      class           (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_  => null()
      class           (starFormationHistoryClass       ), pointer :: starFormationHistory_         => null()
      logical                                                     :: luminositiesStellarInactive
    contains
-     final     ::                                        starFormationNSCDestructor
-     procedure :: differentialEvolution               => starFormationNSCDifferentialEvolution
-     procedure :: differentialEvolutionStepFinalState => starFormationNSCDifferentialEvolutionAnalytics
-  end type nodeOperatorStarFormationNSC
+     final     ::                                        starFormationNSCsDestructor
+     procedure :: differentialEvolution               => starFormationNSCsDifferentialEvolution
+     procedure :: differentialEvolutionStepFinalState => starFormationNSCsDifferentialEvolutionAnalytics
+  end type nodeOperatorStarFormationNSCs
   
-  interface nodeOperatorStarFormationNSC
+  interface nodeOperatorStarFormationNSCs
      !!{
-     Constructors for the {\normalfont \ttfamily starFormationNSC} node operator class.
+     Constructors for the {\normalfont \ttfamily starFormationNSCs} node operator class.
      !!}
-     module procedure starFormationNSCConstructorParameters
-     module procedure starFormationNSCConstructorInternal
-  end interface nodeOperatorStarFormationNSC
+     module procedure starFormationNSCsConstructorParameters
+     module procedure starFormationNSCsConstructorInternal
+  end interface nodeOperatorStarFormationNSCs
   
 contains
 
-  function starFormationNSCConstructorParameters(parameters) result(self)
+  function starFormationNSCsConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodeOperatorStarFormationNSC    )                :: self
+    type   (nodeOperatorStarFormationNSCs   )                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
-    class  (starFormationRateNSCClass       ), pointer       :: starFormationRateNSC_
+    class  (starFormationRateNSCsClass      ), pointer       :: starFormationRateNSCs_
     class  (stellarPopulationPropertiesClass), pointer       :: stellarPopulationProperties_
     class  (starFormationHistoryClass       ), pointer       :: starFormationHistory_
     logical                                                  :: luminositiesStellarInactive
@@ -75,60 +75,60 @@ contains
       <source>parameters</source>
       <description>If true, stellar luminosities will be treated as inactive properties.</description>
     </inputParameter>
-    <objectBuilder class="starFormationRateNSC"          name="starFormationRateNSC_"        source="parameters"/>
+    <objectBuilder class="starFormationRateNSCs"         name="starFormationRateNSCs_"       source="parameters"/>
     <objectBuilder class="stellarPopulationProperties"   name="stellarPopulationProperties_" source="parameters"/>
     <objectBuilder class="starFormationHistory"          name="starFormationHistory_"        source="parameters"/>
     !!]
-    self=nodeOperatorStarFormationNSC(luminositiesStellarInactive,starFormationRateNSC_,stellarPopulationProperties_,starFormationHistory_)
+    self=nodeOperatorStarFormationNSCs(luminositiesStellarInactive,starFormationRateNSCs_,stellarPopulationProperties_,starFormationHistory_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="starFormationRateNSC_"         />
+    <objectDestructor name="starFormationRateNSCs_"         />
     <objectDestructor name="stellarPopulationProperties_"  />
     <objectDestructor name="starFormationHistory_"         />
     !!]
     return
-  end function starFormationNSCConstructorParameters
+  end function starFormationNSCsConstructorParameters
 
-  function starFormationNSCConstructorInternal(luminositiesStellarInactive,starFormationRateNSC_,stellarPopulationProperties_,starFormationHistory_) result(self)
+  function starFormationNSCsConstructorInternal(luminositiesStellarInactive,starFormationRateNSCs_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationNSC} node operator class.
     !!}
     implicit none
-    type   (nodeOperatorStarFormationNSC    )                        :: self
-    class  (starFormationRateNSCClass       ), intent(in   ), target :: starFormationRateNSC_
+    type   (nodeOperatorStarFormationNSCs   )                        :: self
+    class  (starFormationRateNSCsClass      ), intent(in   ), target :: starFormationRateNSCs_
     class  (stellarPopulationPropertiesClass), intent(in   ), target :: stellarPopulationProperties_
     class  (starFormationHistoryClass       ), intent(in   ), target :: starFormationHistory_
     logical                                  , intent(in   )         :: luminositiesStellarInactive
     !![
-    <constructorAssign variables="luminositiesStellarInactive, *starFormationRateNSC_, *stellarPopulationProperties_, *starFormationHistory_"/>
+    <constructorAssign variables="luminositiesStellarInactive, *starFormationRateNSCs_, *stellarPopulationProperties_, *starFormationHistory_"/>
     !!]
     return
-  end function starFormationNSCConstructorInternal
+  end function starFormationNSCsConstructorInternal
 
-  subroutine starFormationNSCDestructor(self)
+  subroutine starFormationNSCsDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily starFormationNSC} node operator class.
+    Destructor for the {\normalfont \ttfamily starFormationNSCs} node operator class.
     !!}
     implicit none
-    type(nodeOperatorStarFormationNSC), intent(inout) :: self
+    type(nodeOperatorStarFormationNSCs), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%starFormationRateNSC_"       />
+    <objectDestructor name="self%starFormationRateNSCs_"      />
     <objectDestructor name="self%stellarPopulationProperties_"/>
     <objectDestructor name="self%starFormationHistory_"       />
     !!]
     return
-  end subroutine starFormationNSCDestructor
+  end subroutine starFormationNSCsDestructor
   
-  subroutine starFormationNSCDifferentialEvolutionAnalytics(self,node)
+  subroutine starFormationNSCsDifferentialEvolutionAnalytics(self,node)
     !!{
     Initialize the mass transfer fraction.    
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentNSC
     implicit none
-    class(nodeOperatorStarFormationNSC), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    class(nodeComponentNSC            ), pointer       :: NSC
+    class(nodeOperatorStarFormationNSCs), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+    class(nodeComponentNSC             ), pointer       :: NSC
 
     ! Mark the formed stellar mass as analytically-solvable (it is always zero) if we are not solving for luminosities as inactive
     ! properties.
@@ -142,36 +142,36 @@ contains
        end select
     end if  
     return
-  end subroutine starFormationNSCDifferentialEvolutionAnalytics
+  end subroutine starFormationNSCsDifferentialEvolutionAnalytics
 
-  subroutine starFormationNSCDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
+  subroutine starFormationNSCsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Perform star formation in a nuclear star cluster.
     !!}
     use :: Abundances_Structure          , only : abundances
-    use :: Galacticus_Nodes              , only : propertyInactive     , propertyTypeActive, propertyEvaluate, nodeComponentNSC
+    use :: Galacticus_Nodes              , only : propertyInactive   , propertyTypeActive, propertyEvaluate, nodeComponentNSC
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
-    class           (nodeOperatorStarFormationNSC), intent(inout), target  :: self
-    type            (treeNode                    ), intent(inout), target  :: node
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask               ), intent(inout), pointer :: functionInterrupt
-    integer                                       , intent(in   )          :: propertyType
-    class           (nodeComponentNSC            )               , pointer :: NSC
-    double precision                                                       :: rateStarFormation       , massFuel                , &
-         &                                                                    rateMassStellar         , rateEnergyInput         , &
-         &                                                                    rateMassFuel            
-    logical                                                                :: luminositiesCompute
-    type            (abundances                  )                         :: abundancesFuel          , rateAbundancesFuels     , &
-         &                                                                    rateAbundancesStellar
-    type            (history                     )                         :: rateHistoryStarFormation, ratePropertiesStellar
-    type            (stellarLuminosities         )                         :: rateLuminositiesStellar 
+    class           (nodeOperatorStarFormationNSCs), intent(inout), target  :: self
+    type            (treeNode                     ), intent(inout), target  :: node
+    logical                                        , intent(inout)          :: interrupt
+    procedure       (interruptTask                ), intent(inout), pointer :: functionInterrupt
+    integer                                        , intent(in   )          :: propertyType
+    class           (nodeComponentNSC             )               , pointer :: NSC
+    double precision                                                        :: rateStarFormation       , massFuel                , &
+         &                                                                     rateMassStellar         , rateEnergyInput         , &
+         &                                                                     rateMassFuel            
+    logical                                                                 :: luminositiesCompute
+    type            (abundances                   )                         :: abundancesFuel          , rateAbundancesFuels     , &
+         &                                                                     rateAbundancesStellar
+    type            (history                      )                         :: rateHistoryStarFormation, ratePropertiesStellar
+    type            (stellarLuminosities          )                         :: rateLuminositiesStellar 
     
     ! Check for a realistic nuclear star cluster, return immediately if nuclear star cluster is unphysical.
     NSC => node%NSC()
-    if     (     NSC%radius         () < 0.0d0 &
-         &  .or. NSC%massGas        () < 0.0d0 &
+    if     (    NSC%radius () < 0.0d0 &
+         &  .or.NSC%massGas() < 0.0d0 &
          & ) return
     if (propertyInactive(propertyType)) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.
@@ -180,7 +180,7 @@ contains
        ! During active property solution, integrate the star formation rate so that we will have a solution for the total mass
        ! of stars formed as a function of time. This differs from the stellar mass due to recycling, and possibly transfer of
        ! stellar mass to other components.
-       rateStarFormation=self%starFormationRateNSC_%rate(node)   
+       rateStarFormation=self%starFormationRateNSCs_%rate(node)   
        call NSC%massStellarFormedRate(rateStarFormation)
        if (self%luminositiesStellarInactive) call NSC%massStellarFormedRate(rateStarFormation)
     end if
@@ -223,5 +223,5 @@ contains
     if (luminositiesCompute                 )                                                                                            &
         & call NSC                         %luminositiesStellarRate(rateLuminositiesStellar                                            )
     return
-  end subroutine starFormationNSCDifferentialEvolution
+  end subroutine starFormationNSCsDifferentialEvolution
   

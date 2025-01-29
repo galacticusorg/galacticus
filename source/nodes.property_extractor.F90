@@ -77,6 +77,7 @@ module Node_Property_Extractors
    <encodeFunction>yes</encodeFunction>
    <entry label="disk"    />
    <entry label="spheroid"/>
+   <entry label="NSC"     />
    <entry label="total"   />
   </enumeration>
   !!]

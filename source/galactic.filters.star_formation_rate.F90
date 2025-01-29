@@ -23,6 +23,7 @@ Contains a module which implements a galactic high-pass filter for total star fo
 
   use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
+  use :: Star_Formation_Rates_NSCs     , only : starFormationRateNSCsClass
 
   !![
   <galacticFilter name="galacticFilterStarFormationRate">
@@ -45,6 +46,7 @@ Contains a module which implements a galactic high-pass filter for total star fo
      private
      class           (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
      class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
+     class           (starFormationRateNSCsClass     ), pointer :: starFormationRateNSCs_      => null()
      double precision                                           :: logM0                                , logSFR0, &
           &                                                        logSFR1
    contains
@@ -72,6 +74,7 @@ contains
     type            (inputParameters                ), intent(inout) :: parameters
     class           (starFormationRateDisksClass    ), pointer       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass), pointer       :: starFormationRateSpheroids_
+    class           (starFormationRateNSCsClass     ), pointer       :: starFormationRateNSCs_
     double precision                                                 :: logM0                      , logSFR0, &
          &                                                              logSFR1
 
@@ -97,17 +100,19 @@ contains
     </inputParameter>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    <objectBuilder class="starFormationRateNSCs"      name="starFormationRateNSCs_"      source="parameters"/>
     !!]
-    self=galacticFilterStarFormationRate(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=galacticFilterStarFormationRate(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSCs_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
+    <objectDestructor name="starFormationRateNSCs_"     />
     !!]
     return
   end function starFormationRateConstructorParameters
 
-  function starFormationRateConstructorInternal(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function starFormationRateConstructorInternal(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSCs_) result(self)
     !!{
     Internal constructor for the ``starFormationRate'' galactic filter class.
     !!}
@@ -117,8 +122,10 @@ contains
          &                                                                      logSFR1
     class           (starFormationRateDisksClass    ), intent(in   ), target :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass), intent(in   ), target :: starFormationRateSpheroids_
+    class           (starFormationRateNSCsClass     ), intent(in   ), target :: starFormationRateNSCs_
+
     !![
-    <constructorAssign variables="logM0, logSFR0, logSFR1, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    <constructorAssign variables="logM0, logSFR0, logSFR1, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNSCs_"/>
     !!]
 
     return
@@ -134,6 +141,7 @@ contains
     !![
     <objectDestructor name="self%starFormationRateDisks_"    />
     <objectDestructor name="self%starFormationRateSpheroids_"/>
+    <objectDestructor name="self%starFormationRateNSCs_"     />
     !!]
     return
   end subroutine starFormationRateDestructor
@@ -142,21 +150,25 @@ contains
     !!{
     Implement an star formation rate galactic filter.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC, treeNode
     implicit none
     class           (galacticFilterStarFormationRate), intent(inout)         :: self
     type            (treeNode                       ), intent(inout), target :: node
     class           (nodeComponentDisk              ), pointer               :: disk
     class           (nodeComponentSpheroid          ), pointer               :: spheroid
+    class           (nodeComponentNSC               ), pointer               :: NSC
     double precision                                                         :: starFormationRate         , stellarMass, &
          &                                                                      starFormationRateThreshold
 
     disk              => node    %disk                            (    )
-    spheroid          => node    %spheroid                        (    )
+    spheroid          => node    %spheroid                        (    ) 
+    NSC               => node    %NSC                             (    )
     stellarMass       = +disk    %massStellar                     (    ) &
-         &              +spheroid%massStellar                     (    )
+         &              +spheroid%massStellar                     (    ) &
+         &              +NSC     %massStellar                     (    )
     starFormationRate = +self    %starFormationRateDisks_    %rate(node) &
-         &              +self    %starFormationRateSpheroids_%rate(node)
+         &              +self    %starFormationRateSpheroids_%rate(node) &
+         &              +self    %starFormationRateNSCs_     %rate(node)
     if (stellarMass > 0.0d0) then
        starFormationRateThreshold= +10.0d0**(                      &
             &                                +  self%logSFR0       &

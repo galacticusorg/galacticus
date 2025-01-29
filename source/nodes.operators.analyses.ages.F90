@@ -23,7 +23,7 @@
   
   use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
-  use :: Star_Formation_Rates_NSC        , only : starFormationRateNSCClass
+  use :: Star_Formation_Rates_NSCs       , only : starFormationRateNSCsClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !![
@@ -41,7 +41,7 @@
      private
      class  (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
      class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
-     class  (starFormationRateNSCClass      ), pointer :: starFormationRateNSC_       => null()
+     class  (starFormationRateNSCsClass     ), pointer :: starFormationRateNSCs_      => null()
      class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_        => null()
      integer                                           :: stellarMassFormedDiskID              , timeStellarMassFormedDiskID    , &
           &                                               stellarMassFormedSpheroidID          , timeStellarMassFormedSpheroidID, &
@@ -74,27 +74,27 @@ contains
     type (inputParameters                    ), intent(inout) :: parameters
     class(starFormationRateDisksClass        ), pointer       :: starFormationRateDisks_
     class(starFormationRateSpheroidsClass    ), pointer       :: starFormationRateSpheroids_
-    class(starFormationRateNSCClass          ), pointer       :: starFormationRateNSC_  
+    class(starFormationRateNSCsClass         ), pointer       :: starFormationRateNSCs_  
     class(mergerMassMovementsClass           ), pointer       :: mergerMassMovements_
     
     !![
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
-    <objectBuilder class="starFormationRateNSC"       name="starFormationRateNSC_"       source="parameters"/>
+    <objectBuilder class="starFormationRateNSCs"      name="starFormationRateNSCs_"      source="parameters"/>
     <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters"/>
     !!]
-    self=nodeOperatorAgesStellarMassWeighted(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSC_,mergerMassMovements_)
+    self=nodeOperatorAgesStellarMassWeighted(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSCs_,mergerMassMovements_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
-    <objectDestructor name="starFormationRateNSC_"      />
+    <objectDestructor name="starFormationRateNSCs_"     />
     <objectDestructor name="mergerMassMovements_"       />
     !!]
     return
   end function agesStellarMassWeightedConstructorParameters
 
-  function agesStellarMassWeightedConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSC_,mergerMassMovements_) result(self)
+  function agesStellarMassWeightedConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNSCs_,mergerMassMovements_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily agesStellarMassWeighted} node operator class.
     !!}
@@ -102,10 +102,10 @@ contains
     type (nodeOperatorAgesStellarMassWeighted)                        :: self
     class(starFormationRateDisksClass        ), intent(in   ), target :: starFormationRateDisks_
     class(starFormationRateSpheroidsClass    ), intent(in   ), target :: starFormationRateSpheroids_
-    class(starFormationRateNSCClass          ), intent(in   ), target :: starFormationRateNSC_
+    class(starFormationRateNSCsClass         ), intent(in   ), target :: starFormationRateNSCs_
     class(mergerMassMovementsClass           ), intent(in   ), target :: mergerMassMovements_
     !![
-    <constructorAssign variables="*starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNSC_, *mergerMassMovements_"/>
+    <constructorAssign variables="*starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNSCs_, *mergerMassMovements_"/>
     !!]
     
     !![
@@ -129,7 +129,7 @@ contains
     !![
     <objectDestructor name="self%starFormationRateDisks_"    />
     <objectDestructor name="self%starFormationRateSpheroids_"/>
-    <objectDestructor name="self%starFormationRateNSC_"      />
+    <objectDestructor name="self%starFormationRateNSCs_"     />
     <objectDestructor name="self%mergerMassMovements_"       />
     !!]
     return
@@ -225,9 +225,10 @@ contains
   
   subroutine agesStellarMassWeightedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
-    Integrates unweighted and time-weighted star formation rates in disk, spheroid and  nuclear star cluster components.
+    Integrates unweighted and time-weighted star formation rates in disk, spheroid, and  nuclear star cluster components.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk   , nodeComponentSpheroid, nodeComponentNSC, nodeComponentBasic, propertyActive
+    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC, nodeComponentBasic, &
+         &                          propertyActive
     implicit none
     class           (nodeOperatorAgesStellarMassWeighted), intent(inout), target  :: self
     type            (treeNode                           ), intent(inout), target  :: node
@@ -250,7 +251,7 @@ contains
     NSC                       => node                            %NSC     (    )
     rateStarFormationDisk     =  self%starFormationRateDisks_    %rate    (node)
     rateStarFormationSpheroid =  self%starFormationRateSpheroids_%rate    (node)
-    rateStarFormationNSC      =  self%starFormationRateNSC_      %rate    (node)
+    rateStarFormationNSC      =  self%starFormationRateNSCs_     %rate    (node)
     ! Find the current cosmic time.
     basic => node %basic()
     time  =  basic%time ()
