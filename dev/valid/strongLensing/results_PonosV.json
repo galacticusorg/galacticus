@@ -4,16 +4,16 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "e811db8d18095d34fe82c73b4a2f58fbd2f3b54b",
-        "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus\n",
-        "timestamp": "2025-01-27 16:33:29-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e811db8d18095d34fe82c73b4a2f58fbd2f3b54b"
+        "id": "2a8a5af380b234a8e812b7e3d59d62834b7f460e",
+        "message": "Merge pull request #775 from galacticusorg/featMassDistributionsTabulated\n\nAdd an abstract class which automates tabulation of parametric, spherically-symmetric, collisionless mass distributions\n",
+        "timestamp": "2025-01-28 23:38:08+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/2a8a5af380b234a8e812b7e3d59d62834b7f460e"
     },
     "surfaceDensity": {
-        "percentageBelow": 46.42857142857143,
-        "percentageAbove": 53.57142857142857,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.006
     },
     "slope": {
