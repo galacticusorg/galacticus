@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738052088479,
+  "lastUpdate": 1738132026065,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -5088,6 +5088,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/e811db8d18095d34fe82c73b4a2f58fbd2f3b54b"
         },
         "date": 1738052087153,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931624296055737",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553741458194446",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.001017835947625",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2a8a5af380b234a8e812b7e3d59d62834b7f460e",
+          "message": "Merge pull request #775 from galacticusorg/featMassDistributionsTabulated\n\nAdd an abstract class which automates tabulation of parametric, spherically-symmetric, collisionless mass distributions",
+          "timestamp": "2025-01-28T23:38:08Z",
+          "tree_id": "ba872dfc85959771df1334b8b5620b8f9bbe992e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2a8a5af380b234a8e812b7e3d59d62834b7f460e"
+        },
+        "date": 1738132024804,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
