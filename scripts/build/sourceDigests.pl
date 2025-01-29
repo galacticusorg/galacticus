@@ -223,7 +223,8 @@ store($digestsPerFile,$ENV{'BUILDPATH'}."/".$blobFileName);
 (my $outputFileName = $targetName) =~ s/\.(exe|o)$/.md5s.c/;
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/".$outputFileName);
 foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
-    print $outputFile "char ".$hashName."MD5[]=\"".$digestsPerFile->{'types'}->{$hashName}->{'compositeMD5'}."\";\n"
+    (my $digest = $digestsPerFile->{'types'}->{$hashName}->{'compositeMD5'}) =~ s/\//\@/g;
+    print $outputFile "char ".$hashName."MD5[]=\"".$digest."\";\n"
 }
 close($outputFile);
 

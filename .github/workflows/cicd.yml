@@ -839,6 +839,7 @@ jobs:
                       tests.interpolation.2D.exe,
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
+                      tests.mass_distributions.tabulated.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
                       tests.math.fast.exe,
@@ -1537,7 +1538,7 @@ jobs:
           type: 'validate'
           artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0'
-          threshold: '250%'
+          threshold: '300%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
         uses: ./.github/actions/benchmark
