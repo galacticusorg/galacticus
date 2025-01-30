@@ -96,7 +96,7 @@ module Numerical_Constants_Astronomical
   <constant variable="minutesToDegrees" value="360.0d0/24.0d0/60.0d0" group="units:astrophysical" description="Conversion factor from minutes to degrees." units="$^\circ/^{\prime\prime}$" unitsInSI="1.0" reference="Defined."/>
   <constant variable="secondsToDegrees" value="360.0d0/24.0d0/3600.0d0" group="units:astrophysical" description="Conversion factor from seconds to degrees." units="$^\circ/^{\prime\prime}$" unitsInSI="1.0" reference="Defined."/>
   <constant variable="hoursToRadians" value="2.0d0*Pi/24.0d0" group="units:astrophysical" description="Conversion factor from hours to radians." units="$\mathrm{rad}/^{\prime}$" unitsInSI="1.0" reference="Defined."/>
-  <constant variable="degreesToRadians" value="2.0d0*Pi/36.0d0" group="units:astrophysical" description="Conversion factor from degrees to radians." units="$\mathrm{rad}/^\circ$" unitsInSI="1.0" reference="Defined."/>
+  <constant variable="degreesToRadians" value="2.0d0*Pi/360.0d0" group="units:astrophysical" description="Conversion factor from degrees to radians." units="$\mathrm{rad}/^\circ$" unitsInSI="1.0" reference="Defined."/>
   !!]
 
 end module Numerical_Constants_Astronomical
