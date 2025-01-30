@@ -626,6 +626,21 @@ Enumerations are used to communicate options to many functions in \glc. All avai
 
 \input{autoEnumerationDefinitions}
 
+\section{Defined Constants}
+
+\glc\ defines numerous constants, including mathematical constants (e.g. $\pi$), physical constants (e.g. the speed of light), unit conversions (e.g. Angstroms to meters), and prefixes (e.g. ``kilo'', ``mega'', etc.). These should be used whenever a constant is needed in the code---it is bad practice to use the numerical value of a constant directly in the code\footnote{Both because it is prone to mistakes (the more times a numerical value is used directly, the more chances there are for typos and other errors), and because using a named constant makes it much easier to understand \emph{what} the code is doing and \emph{why}.}.
+
+All defined constants are described below, along with references to their source, and the name of the module in which the constant is defined. To import a constant into a function, you would add a {\normalfont \ttfamily use} statement. For example, for the constant $\pi$, you would use:
+\begin{verbatim}
+   use :: Numerical_Constants_Math, only : Pi
+\end{verbatim}
+after which you can use this constant, e.g.:
+\begin{verbatim}
+   volumeSphere=4.0d0*Pi/3.0d0*radiusSphere**3
+\end{verbatim}
+
+\input{constants}
+
 \section{Classes}
  
 The return type of each method, and the interfaces (i.e. the types and names of its arguments) are specified for each method of each object. A ``{\normalfont \ttfamily void}'' return type indicates a subroutine.
@@ -696,5 +711,5 @@ Although not methods directly bound to the {\normalfont \ttfamily functionClass}
 \end{itemize}
 
 \end{description}
- 
+
 \input{dataMethods}
