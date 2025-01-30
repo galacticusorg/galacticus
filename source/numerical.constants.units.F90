@@ -30,8 +30,8 @@ module Numerical_Constants_Units
   public
 
   !![
-  <constant variable="angstromsPerMeter" value="1.0d10" symbol="\AA/\mathrm{m}" description="Number of Angstroms per meter." units="\AA/m" unitsInSI="1.0" reference="Defined." group="units"/>
-  <constant variable="angstromsPerMicron" value="1.0d4" symbol="\AA/\mu\mathrm{m}" description="Number of Angstroms per micron." units="\AA/$\mu$m" unitsInSI="1.0" reference="Defined." group="units"/>
+  <constant variable="angstromsPerMeter" value="1.0d10" symbol="\text{\AA}/\mathrm{m}" description="Number of Angstroms per meter." units="\AA/m" unitsInSI="1.0" reference="Defined." group="units"/>
+  <constant variable="angstromsPerMicron" value="1.0d4" symbol="\text{\AA}/\mu\mathrm{m}" description="Number of Angstroms per micron." units="\AA/$\mu$m" unitsInSI="1.0" reference="Defined." group="units"/>
   <constant variable="rydberg" gslSymbol="GSL_CONST_MKSA_RYDBERG" gslHeader="gsl_const_mksa" symbol="\mathrm{Ry}" description="Rydberg---the ionization energy of hydrogen in its ground state." units="kg" unitsInSI="1.0" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_RYDBERG" group="units:atomic"/>
   <constant variable="electronVolt" gslSymbol="GSL_CONST_MKSA_ELECTRON_VOLT" gslHeader="gsl_const_mksa" symbol="\mathrm{eV}" description="Electron-volt---the energy of an electron accelerated through a 1 volt electric field." units="J" unitsInSI="1.0" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/const.html#c.GSL_CONST_MKSA_ELECTRON_VOLT" group="units"/>
   <constant variable="ergs" value="1.0d-7" symbol="\mathrm{ergs}" description="Unit of energy in the CGS system." externalDescription="https://en.wikipedia.org/wiki/Erg" units="J" unitsInSI="1.0" reference="\cite{jackson_classical_1999}" group="units"/>
