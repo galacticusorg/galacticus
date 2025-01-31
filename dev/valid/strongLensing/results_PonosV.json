@@ -12,13 +12,13 @@ window.PONOSV_DATA = {
         "url": "https://github.com/galacticusorg/galacticus/commit/2a8a5af380b234a8e812b7e3d59d62834b7f460e"
     },
     "surfaceDensity": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 53.333333333333336,
-        "percentageAbove": 46.666666666666664,
+        "percentageBelow": 76.47058823529412,
+        "percentageAbove": 23.529411764705884,
         "target": 0.85
     }
 }

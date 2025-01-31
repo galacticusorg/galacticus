@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=10.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "2.8425739481434698",
+                "logLikelihood": "2.3366368070360903",
                 "type": "function1D"
             },
             "data": {
@@ -38,14 +38,14 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    21.632806668487422,
-                    15.23484895229575,
-                    14.094329194315927,
-                    11.373106030983726,
-                    8.209301846518827,
-                    5.0828495706567765,
-                    3.5568834165581507,
-                    1.223971881249876,
+                    18.593075784589214,
+                    16.250104329173123,
+                    15.645744144579146,
+                    12.350296748905246,
+                    7.9174652098847105,
+                    4.874346267356003,
+                    3.2538063397503643,
+                    0.9208948044420993,
                     0.514612269578123
                 ],
                 "yDatasetTarget": [
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=10.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "5.880213063429316",
+                "logLikelihood": "2.1645146743136894",
                 "type": "function1D"
             },
             "data": {
@@ -98,15 +98,15 @@ window.ANALYSES_DATA = {
                     774.263682681127
                 ],
                 "yDataset": [
-                    0.4530169866569957,
-                    0.720261296578902,
-                    0.9254944314725758,
-                    2.8680803359994136,
-                    8.227471985942202,
-                    17.641798226605,
-                    22.405529848036775,
-                    22.405529848036775,
-                    22.405529848036775
+                    0.18807846520404836,
+                    0.4553227751259549,
+                    0.6605559100196287,
+                    2.5085680410394473,
+                    6.999754556541411,
+                    14.712298791221277,
+                    19.26752710935229,
+                    19.26752710935229,
+                    19.26752710935229
                 ],
                 "yDatasetTarget": [
                     0.0,
