@@ -174,7 +174,7 @@ contains
        darkMatterProfile => node%darkMatterProfile()
 !       select type (massDistributionDecorated)
 !       class is (massDistributionSpherical)
-       print *, 'NodeIndex, r_s:', node%index(),darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
+!       print *, 'NodeIndex, r_s:', node%index(),darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
        !![
        <referenceConstruct object="massDistribution_">
          <constructor>
