@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738131996306,
+  "lastUpdate": 1738340653591,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "466c04b2b741a22d51551deb51143752b68dbcd7",
-          "message": "Merge pull request #599 from galacticusorg/featDocClassDefaults\n\nSpecify class defaults in the documentation",
-          "timestamp": "2024-04-10T04:55:20Z",
-          "tree_id": "78ab2e2e8819507f92d5046852c62cfaf7f8dda5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/466c04b2b741a22d51551deb51143752b68dbcd7"
-        },
-        "date": 1712739045873,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 52.844,
-            "unit": "seconds",
-            "range": 0.128617261672262
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8736,6 +8706,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": "20692.67959875034",
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "2a8a5af380b234a8e812b7e3d59d62834b7f460e",
+          "message": "Merge pull request #775 from galacticusorg/featMassDistributionsTabulated\n\nAdd an abstract class which automates tabulation of parametric, spherically-symmetric, collisionless mass distributions",
+          "timestamp": "2025-01-28T23:38:08Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/2a8a5af380b234a8e812b7e3d59d62834b7f460e"
+        },
+        "date": 1738340651553,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 59.015,
+            "unit": "seconds",
+            "range": 0.119885361908933
           }
         ]
       }
