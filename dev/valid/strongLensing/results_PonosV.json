@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "2a8a5af380b234a8e812b7e3d59d62834b7f460e",
-        "message": "Merge pull request #775 from galacticusorg/featMassDistributionsTabulated\n\nAdd an abstract class which automates tabulation of parametric, spherically-symmetric, collisionless mass distributions\n",
-        "timestamp": "2025-01-28 23:38:08+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/2a8a5af380b234a8e812b7e3d59d62834b7f460e"
+        "id": "424d751addbf51f843ee3f815e4ff83fdfd1d83a",
+        "message": "Merge pull request #776 from galacticusorg/featDocConstants\n\nAutomate listing of defined in-code constants in the documentation\n",
+        "timestamp": "2025-02-01 15:40:14+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/424d751addbf51f843ee3f815e4ff83fdfd1d83a"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 76.47058823529412,
-        "percentageAbove": 23.529411764705884,
+        "percentageBelow": 68.75,
+        "percentageAbove": 31.25,
         "target": 0.85
     }
 }
