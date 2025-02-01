@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738340685414,
+  "lastUpdate": 1738447681822,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
@@ -5179,6 +5179,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
             "value": "5.001017835947625",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "424d751addbf51f843ee3f815e4ff83fdfd1d83a",
+          "message": "Merge pull request #776 from galacticusorg/featDocConstants\n\nAutomate listing of defined in-code constants in the documentation",
+          "timestamp": "2025-02-01T15:40:14Z",
+          "tree_id": "929fd4a36489e407a17813d747f577e31a301f08",
+          "url": "https://github.com/galacticusorg/galacticus/commit/424d751addbf51f843ee3f815e4ff83fdfd1d83a"
+        },
+        "date": 1738447681092,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": "13.931629727618084",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": "6.553741456971881",
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": "5.001018844185234",
             "unit": "-logℒ"
           }
         ]
