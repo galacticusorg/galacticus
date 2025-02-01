@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738340722483,
+  "lastUpdate": 1738447715203,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -201,6 +201,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "57.31680217714374",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "424d751addbf51f843ee3f815e4ff83fdfd1d83a",
+          "message": "Merge pull request #776 from galacticusorg/featDocConstants\n\nAutomate listing of defined in-code constants in the documentation",
+          "timestamp": "2025-02-01T15:40:14Z",
+          "tree_id": "929fd4a36489e407a17813d747f577e31a301f08",
+          "url": "https://github.com/galacticusorg/galacticus/commit/424d751addbf51f843ee3f815e4ff83fdfd1d83a"
+        },
+        "date": 1738447714711,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "8.025698759193773",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "58.35999577650115",
             "unit": "-logℒ"
           }
         ]
