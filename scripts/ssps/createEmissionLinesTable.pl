@@ -479,7 +479,8 @@ sub establishGridSSP {
     $grid->{'logHydrogenDensities'   } = pdl [ 1.0,  1.5,  2.0,  2.5,  3.0, 3.5, 4.0 ];
 
     # Specify the iterables in the grid.
-    @{$grid->{'iterables'}} = ( "ages", "logMetallicities", "logHydrogenLuminosities", "logHydrogenDensities" );
+    @{$grid->{'iterables'}} = ( "ages", "logMetallicities", "logHydrogenLuminosities"   , "logHydrogenDensities" );
+    @{$grid->{'names'    }} = ( "age" , "metallicity"     , "ionizingLuminosityHydrogen", "densityHydrogen"      );
 }
 
 sub establishGridAGN {
@@ -501,6 +502,7 @@ sub establishGridAGN {
 
     # Specify the iterables in the grid.
     @{$grid->{'iterables'}} = ( "spectralIndices", "logMetallicities", "logIonizationParameters", "logHydrogenDensities" );
+    @{$grid->{'names'    }} = ( "spectralIndex"  , "metallicity"     , "ionizationParameter"    , "densityHydrogen"      );
 
     # Construct spectra, and their bolometric luminosity normalization factors.
     ## Our spectrum is (Feltre, Charlot & Gutkin; 2016; MNRAS; 456; 3354; https://ui.adsabs.harvard.edu/abs/2016MNRAS.456.3354F):
@@ -1096,7 +1098,12 @@ sub outputSSP {
     $tableFile->dataset('densityHydrogen'                     )->attrSet(description => "Hydrogen density."                                             );
     $tableFile->dataset('densityHydrogen'                     )->attrSet(units       => "cm¯³"                                                          );
     $tableFile->dataset('densityHydrogen'                     )->attrSet(unitsInSI   => $mega                                                           );
-    
+    # Write index in the tables for each iterable.
+    my $i = 0;
+    foreach my $iterable ( @{$grid->{'names'}} ) {
+	$tableFile->dataset($iterable)->attrSet(index => pdl long $i);
+	++$i;
+    }
     # Write table of ionizing rates per unit mass of stars formed.
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->    set(               $grid->{'ionizingLuminosityPerMass'}                            );
     $tableFile->dataset('ionizingLuminosityHydrogenNormalized')->attrSet(description => "Hydrogen ionizing photon emission rate per unit mass of stars.");
@@ -1136,6 +1143,12 @@ sub outputAGN {
     $tableFile->dataset('densityHydrogen'    )->attrSet(description => "Hydrogen density."                                  );
     $tableFile->dataset('densityHydrogen'    )->attrSet(units       => "cm¯³"                                               );
     $tableFile->dataset('densityHydrogen'    )->attrSet(unitsInSI   => $mega                                                );
+    # Write index in the tables for each iterable.
+    my $i = 0;
+    foreach my $iterable ( @{$grid->{'names'}} ) {
+	$tableFile->dataset($iterable)->attrSet(index => pdl long $i);
+	++$i;
+    }
 
     # Write line data.
     my $lineGroup = $tableFile->group('lines');
