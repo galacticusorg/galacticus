@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of a cooling radius class for $\beta$-profile halos, assuming collisional ionization equilibrium such that cooling
-  time scales as inverse density.
+  Implementation of a cooling radius class for $\beta$-profile halos, assuming collisional ionization equilibrium such that
+  cooling time scales as inverse density.
   !!}
 
   use :: Cooling_Times          , only : coolingTimeClass
@@ -285,7 +285,7 @@ contains
        temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
        ! Compute density and cooling time at outer radius and zero radius.
        densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
-       coordinates             =  [outerRadius,0.0d0,0.0d0]
+       coordinates             =  [0.0d0      ,0.0d0,0.0d0]
        densityZero             =  massDistribution_             %density    (coordinates                                                                              )
        coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
        coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
@@ -377,7 +377,7 @@ contains
        temperature             =  kinematicsDistribution_       %temperature(coordinates                                                                              )
        ! Compute density and cooling time at outer radius and zero radius.
        densityOuter            =  massDistribution_             %density    (coordinates                                                                              )
-       coordinates             =  [outerRadius,0.0d0,0.0d0]
+       coordinates             =  [0.0d0      ,0.0d0,0.0d0]
        densityZero             =  massDistribution_             %density    (coordinates                                                                              )
        coolingTimeZero         =  self             %coolingTime_%time       (node,temperature,densityZero ,hotAbundances,chemicalFractions*densityZero ,self%radiation)
        coolingTimeOuter        =  self             %coolingTime_%time       (node,temperature,densityOuter,hotAbundances,chemicalFractions*densityOuter,self%radiation)
