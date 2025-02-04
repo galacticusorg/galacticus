@@ -280,12 +280,13 @@ contains
        class is (nodeComponentBlackHoleSimple)
           ! Get the spheroid component.
           spheroid => node%spheroid()
+          ! Get the NSC component.
           NSC      => node%NSC     ()
           ! Add accretion to the black hole.
           call blackHole%massRate       (     massAccretionRate)
-          ! Remove the accreted mass from the spheroid component.
-          call spheroid %massGasSinkRate(-restMassAccretionRate+accretionRateNSC)
-          call NSC      %massGasSinkRate(-accretionRateNSC                      )
+          ! Remove the accreted mass from the spheroid and NSC component.
+          call spheroid %massGasSinkRate(-accretionRateSpheroid)
+          call NSC      %massGasSinkRate(-accretionRateNSC     )
           ! Add heating to the hot halo component.
           if (heatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.

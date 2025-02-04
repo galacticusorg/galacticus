@@ -87,7 +87,7 @@ contains
     !!{
     Internal constructor for the ``starFormationHistory'' output extractor property extractor class.
     !!}
-    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNSC
+    use :: Galactic_Structure_Options, only : componentTypeDisk                     , componentTypeSpheroid, componentTypeNSC
     use :: Star_Formation_Histories  , only : starFormationHistoryAgesFixedPerOutput
     use :: Error                     , only : Error_Report
     implicit none

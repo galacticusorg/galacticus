@@ -43,7 +43,8 @@
      private
      double precision :: efficiency      , exponentVelocity , &
           &              timescaleMinimum
-     logical          :: diskSupported   , spheroidSupported, NSCSupported
+     logical          :: diskSupported   , spheroidSupported, &
+          &              NSCSupported
    contains
      procedure :: timescale => dynamicalTimeTimescale
   end type starFormationTimescaleDynamicalTime

@@ -116,7 +116,8 @@ contains
     implicit none
     class           (blackHoleAccretionRateSpheroidTracking), intent(inout) :: self
     class           (nodeComponentBlackHole                ), intent(inout) :: blackHole
-    double precision                                        , intent(  out) :: rateMassAccretionSpheroid,rateMassAccretionHotHalo, rateMassAccretionNSC
+    double precision                                        , intent(  out) :: rateMassAccretionSpheroid, rateMassAccretionHotHalo, &
+         &                                                                     rateMassAccretionNSC
     type            (treeNode                              ), pointer       :: node
 
     node                      =>  blackHole                            %host                        (    )

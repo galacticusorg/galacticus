@@ -58,7 +58,7 @@
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
           &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded, &
-          &                                                          NSCIsNeeded                            ,satelliteIsNeeded
+          &                                                          NSCIsNeeded                            , satelliteIsNeeded
    contains
      final     ::                       velocityDispersionDestructor
      procedure :: columnDescriptions => velocityDispersionColumnDescriptions

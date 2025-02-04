@@ -16,9 +16,11 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+ 
   !!{
   Implements a model of the ram pressure stripping force from hot halos based on orbital position within the host halo.
   !!}
+
   !![
   <hotHaloRamPressureForce name="hotHaloRamPressureForceOrbitalPosition">
    <description>
@@ -40,6 +42,7 @@
    contains
      procedure :: force => orbitalPositionForce
   end type hotHaloRamPressureForceOrbitalPosition
+  
   interface hotHaloRamPressureForceOrbitalPosition
      !!{
      Constructors for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class.
@@ -47,7 +50,9 @@
      module procedure orbitalPositionConstructorParameters
      module procedure orbitalPositionConstructorInternal
   end interface hotHaloRamPressureForceOrbitalPosition
+
 contains
+
   function orbitalPositionConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily orbitalPosition} hot halo ram pressure force class which builds the object from a parameter set.
@@ -112,6 +117,7 @@ contains
     class           (massDistributionClass                 ), pointer       :: massDistribution_
     type            (coordinateSpherical                   )                :: coordinates
     double precision                                                        :: radiusOrbital, velocityOrbital
+    
     ! Find the host node.
     nodeHost             =>  node%parent
     ! Get the satellite component.

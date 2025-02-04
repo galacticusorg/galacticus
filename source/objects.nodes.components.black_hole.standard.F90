@@ -459,8 +459,7 @@ contains
           ! Get the black hole.
           blackHole => node%blackHole(instance=instance)
           ! Set scale for mass.
-          call blackHole%massScale(1.0d0 )
-
+          call blackHole%massScale(1.0d0)
           ! Set scale for spin.
           call blackHole%spinScale(1.0d0)
           ! Set scale for radius.
@@ -540,6 +539,7 @@ contains
 
           call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
           call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
+          !Track if the origin of the black hole is due to runaway stellar collisions in NSCs.
           if (blackHoleHostCentral %NSCChannel().or.blackHole%NSCChannel()) then
              call blackHoleHostCentral%NSCChannelSet(              .true.)
           else

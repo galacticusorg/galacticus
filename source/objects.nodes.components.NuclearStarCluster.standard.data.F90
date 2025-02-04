@@ -28,6 +28,7 @@ module Node_Component_NSC_Standard_Data
   use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal
   implicit none
   public
+  ! Records the value of the normalization factor used to estimate the radius of the NSC
   double precision                            :: radiusNorm
   ! The mass distribution objects.
   class(massDistributionClass      ), pointer :: massDistributionStellar_, massDistributionGas_

@@ -46,8 +46,8 @@
      class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_        => null()
      class  (starFormationRateNSCsClass     ), pointer :: starFormationRateNSCs_             => null()
 
-     integer                                           :: starFormationRateDiskInterOutputID   , starFormationRateSpheroidInterOutputID, &
-          &                                               starFormationRateNSCInterOutputID    , starFormationRateInterOutputNextID
+     integer                                           :: starFormationRateDiskInterOutputID          , starFormationRateSpheroidInterOutputID, &
+          &                                               starFormationRateNSCInterOutputID           , starFormationRateInterOutputNextID
    contains
      final     ::                                starFormationRateInterOutputDestructor
      procedure :: galaxiesMerge               => starFormationRateInterOutputGalaxiesMerge
@@ -229,7 +229,8 @@ contains
     !!{
     Accumulate the mean rate of star formation between outputs.
     !!}
-    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, &
+       &                            nodeComponentNSC
     implicit none
     class           (nodeOperatorStarFormationRateInterOutput), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
@@ -249,7 +250,6 @@ contains
     disk     => node%disk    ()
     spheroid => node%spheroid()
     NSC      => node%NSC     ()
-
     ! Find the time interval for this inter-output.
     timeInterval=+          basic%floatRank0MetaPropertyGet             (self %starFormationRateInterOutputNextID  )  &
          &       -max(0.0d0,self %outputTimes_             %timePrevious(basic%time                              ()))
@@ -259,7 +259,7 @@ contains
     type is (nodeComponentDisk    )
        ! Disk does not yet exist - nothing to do here.
     class default
-       call disk    %floatRank0MetaPropertyRate(self%starFormationRateDiskInterOutputID    ,self%starFormationRateDisks_   %rate(node)/timeInterval)
+       call disk    %floatRank0MetaPropertyRate(self%starFormationRateDiskInterOutputID    ,self%starFormationRateDisks_    %rate(node)/timeInterval)
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)

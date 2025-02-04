@@ -24,7 +24,7 @@ Contains a module which implements a galactic high-pass filter for total stellar
   !![
   <galacticFilter name="galacticFilterStellarMass">
    <description>
-   A galactic high-pass filter for stellar mass. Galaxies with a combined disk, spheroid plus nuclear star cluster stellar mass greater than or equal
+   A galactic high-pass filter for stellar mass. Galaxies with a combined disk, spheroid, plus NSC stellar mass greater than or equal
    to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
    </description>
   </galacticFilter>

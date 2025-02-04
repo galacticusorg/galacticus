@@ -167,7 +167,8 @@ contains
     class           (nodeComponentNSC       ), pointer                       :: NSC
     double precision                         , parameter                     :: mass                    =1.0d+12
     double precision                         , parameter                     :: epsilon                 =1.0d-06
-    type            (history                )                                :: starFormationHistoryDisk        , starFormationHistorySpheroid, starFormationHistoryNSC
+    type            (history                )                                :: starFormationHistoryDisk        , starFormationHistorySpheroid, &
+         &                                                                      starFormationHistoryNSC
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance

@@ -731,7 +731,7 @@ contains
     use :: Abundances_Structure          , only : abs                   , abundances      , max                     , operator(*)            , &
           &                                       unitAbundances
     use :: Galacticus_Nodes              , only : defaultNSCComponent   , nodeComponentNSC, nodeComponentNSCStandard, nodeComponentSpheroid  , &
-          &                                       nodeComponentBlackHole, treeNode
+          &                                       treeNode
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : abs                   , max             , stellarLuminosities     , unitStellarLuminosities
     implicit none
@@ -739,6 +739,7 @@ contains
     class           (nodeComponentNSC      )               , pointer :: NSC
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     double precision                        , parameter              :: massMinimum                   =1.0d0
+    double precision                        , parameter              :: scaleMassRelative             =1.0d-3
     double precision                        , parameter              :: angularMomentumMinimum        =1.0d-1
     double precision                        , parameter              :: fractionTolerance             =1.0d-4
     double precision                        , parameter              :: luminosityMinimum             =1.0d+0
@@ -761,13 +762,12 @@ contains
             &          +abs(spheroid%angularMomentum())
        call NSC%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
        ! Set scale for masses.
-       !! The scale here (and for other quantities below) combines the mass of nuclear star cluster and spheroid.
-       ! mass     =    max(     scaleMassRelative*spheroid%massStellar(),  &
-       !     &              max(                       NSC%massStellar(),  &
-       !     &                  massMinimum                                &
-       !     &                 )                                           &
-       !     &             ) 
-       mass = massMinimum                                              
+       ! The scale here (and for other quantities below) combines the mass of nuclear star cluster and spheroid.
+        mass     =    max(     scaleMassRelative*spheroid%massStellar(),  &
+            &              max(                       NSC%massStellar(),  &
+            &                  massMinimum                                &
+            &                 )                                           &
+            &             ) 
 
        call NSC%massGasScale          (mass)
        call NSC%massStellarScale      (mass)
@@ -809,7 +809,6 @@ contains
     end select
     return
   end subroutine Node_Component_NSC_Standard_Scale_Set
-
 
   subroutine Node_Component_NSC_Standard_Create(node)
     !!{
@@ -861,6 +860,7 @@ contains
     end if
     ! Record that the nuclear star cluster has been initialized.
     call NSC%isInitializedSet(.true.  )
+    ! Allow the NSC to form a new black hole seed.
     call NSC%CollapseSet     (.false. )
     return
   end subroutine Node_Component_NSC_Standard_Create
@@ -1007,8 +1007,7 @@ contains
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
-       ! Move stellar material within the host if necessary.
-
+       ! Move stellar material within the host if necessary
        select case (destinationStarsHost%ID)
        case (destinationMergerDisk%ID)
           call diskHost%        massStellarSet(                                &
@@ -1122,7 +1121,7 @@ contains
           call diskHost%    angularMomentumSet(                                    &
                &                                diskHost    %angularMomentum    () &
                &                               +NSC         %massGas            () &
-               &                               *NSCSpecificAngularMomentum            &
+               &                               *NSCSpecificAngularMomentum         &
                &                              )
        case (destinationMergerSpheroid%ID)
           call spheroidHost%massGasSet        (                                    &

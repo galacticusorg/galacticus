@@ -129,7 +129,6 @@ contains
     class(nodeOperatorStarFormationNSCs), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
     class(nodeComponentNSC             ), pointer       :: NSC
-
     ! Mark the formed stellar mass as analytically-solvable (it is always zero) if we are not solving for luminosities as inactive
     ! properties.
     if (.not.self%luminositiesStellarInactive) then
@@ -159,11 +158,11 @@ contains
     procedure       (interruptTask                ), intent(inout), pointer :: functionInterrupt
     integer                                        , intent(in   )          :: propertyType
     class           (nodeComponentNSC             )               , pointer :: NSC
-    double precision                                                        :: rateStarFormation       , massFuel                , &
-         &                                                                     rateMassStellar         , rateEnergyInput         , &
+    double precision                                                        :: rateStarFormation       , massFuel             , &
+         &                                                                     rateMassStellar         , rateEnergyInput      , &
          &                                                                     rateMassFuel            
     logical                                                                 :: luminositiesCompute
-    type            (abundances                   )                         :: abundancesFuel          , rateAbundancesFuels     , &
+    type            (abundances                   )                         :: abundancesFuel          , rateAbundancesFuels  , &
          &                                                                     rateAbundancesStellar
     type            (history                      )                         :: rateHistoryStarFormation, ratePropertiesStellar
     type            (stellarLuminosities          )                         :: rateLuminositiesStellar 
@@ -209,7 +208,7 @@ contains
     ! Adjust rates.
     if (propertyEvaluate(propertyTypeActive,propertyIsInactive=.false.)) then
        rateHistoryStarFormation=NSC%starFormationHistory()
-       call        rateHistoryStarFormation%reset                      (                                                              )
+       call        rateHistoryStarFormation%reset                       (                                                              )
        call self  %starFormationHistory_   %                        rate(node,rateHistoryStarFormation,abundancesFuel,rateStarFormation)
        call        NSC                     %             massStellarRate(     rateMassStellar                                          )
        call        NSC                     %                 massGasRate(     rateMassFuel                                             )
@@ -221,7 +220,7 @@ contains
             & call NSC                     %    starFormationHistoryRate(     rateHistoryStarFormation                                 )
     end if
     if (luminositiesCompute                 )                                                                                            &
-        & call NSC                         %luminositiesStellarRate(rateLuminositiesStellar                                            )
+        & call NSC                         %luminositiesStellarRate     (rateLuminositiesStellar                                       )
     return
   end subroutine starFormationNSCsDifferentialEvolution
   

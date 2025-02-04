@@ -1,12 +1,12 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
 !!    Galacticus is free software: you can redistribute it and/or modify
 !!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
+!!    the Free Software Foundation, e ither version 3 of the License, or
 !!    (at your option) any later version.
 !!
 !!    Galacticus is distributed in the hope that it will be useful,
@@ -20,7 +20,6 @@
   !!{
   Implements a node operator class that handle the collapse of nuclear star clusters into a black hole.
   !!}
-
   use :: Mass_Distributions, only : massDistributionClass  , kinematicsDistributionClass
 
   !![
@@ -34,14 +33,13 @@
 
   type, extends(nodeOperatorClass) :: nodeOperatorNSCCollapse
      !!{
-     A node operator class that handle the collapse of nuclear star clusters into a black hole.
+     A node operator class that handle the formation of a BH seed within nuclear star clusters due to runaway stellar collisions.
      !!}
      private
      double precision                        :: massSingleStar        , radiusSingleStar            , &
          &                                      massEfficiency        , radiusEfficiency            , &
          &                                      massThreshold 
      integer                                 :: stellarMassFormedNSCID, timeStellarMassFormedNSCID     
-
    contains
      final     ::                          NSCCollapseDestructor 
      procedure :: differentialEvolution => NSCCollapseDifferentialEvolution
@@ -88,19 +86,19 @@ contains
     <inputParameter>
       <name>massEfficiency</name>
       <defaultValue>1.0d-1</defaultValue>
-      <description>Specifies the efficiency of the mass converted into a BH seed</description>
+      <description>Specifies the efficiency of the mass converted into a BH seed.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radiusEfficiency</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the efficiency of the radius used to compute the critcal mass</description>
+      <description>Specifies the efficiency of the radius used to compute the critcal mass.</description>
       <source>parameters</source>
     </inputParameter>
      <inputParameter>
       <name>massThreshold</name>
       <defaultValue>1.0d3</defaultValue>
-      <description>Specifies the minimum stellar mass to apply the operator</description>
+      <description>Specifies the minimum stellar mass to apply the operator.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -117,16 +115,17 @@ contains
     Internal constructor for the {\normalfont \ttfamily NSCCollapse} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorNSCCollapse)                        :: self
-    double precision                         , intent(in   )         :: massSingleStar
-    double precision                         , intent(in   )         :: radiusSingleStar
-    double precision                         , intent(in   )         :: massEfficiency
-    double precision                         , intent(in   )         :: radiusEfficiency
-    double precision                         , intent(in   )         :: massThreshold
+    type            (nodeOperatorNSCCollapse)                :: self
+    double precision                         , intent(in   ) :: massSingleStar
+    double precision                         , intent(in   ) :: radiusSingleStar
+    double precision                         , intent(in   ) :: massEfficiency
+    double precision                         , intent(in   ) :: radiusEfficiency
+    double precision                         , intent(in   ) :: massThreshold
 
     !![
     <constructorAssign variables="massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold"/>
     !!]
+
     !![
     <addMetaProperty   component="NSC" name="agesStellarMassFormed"     id="self%stellarMassFormedNSCID"     isEvolvable="yes" isCreator="no" />
     <addMetaProperty   component="NSC" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedNSCID" isEvolvable="yes" isCreator="no" />
@@ -134,25 +133,15 @@ contains
     return
   end function NSCCollapseConstructorInternal
 
-  subroutine NSCCollapseDestructor(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily nodeOperatorNSCCollapse} node operator class
-    !!} 
-    implicit none
-    type(nodeOperatorNSCCollapse), intent(inout) :: self
-    return
-  end subroutine NSCCollapseDestructor
-
   subroutine NSCCollapseDifferentialEvolution(self,node,interrupt,functioninterrupt,propertyType)
       !!{
         Compute the nuclear star cluster collapse condition.
       !!}
-    use :: Galacticus_Nodes                , only : interruptTask                  , nodeComponentNSC, nodeComponentNSCStandard, &
-                                                &   propertyInactive               , treeNode        , nodeComponentBasic
+    use :: Galacticus_Nodes                , only : interruptTask                  , nodeComponentNSC, nodeComponentNSCStandard, propertyInactive, &
+        &                                           nodeComponentBasic             , treeNode        
     use :: Galactic_Structure_Options      , only : componentTypeNSC               , massTypeStellar
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, parsec          , megaParsec              , &
-        &                                           gigaYear
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, parsec          , megaParsec              , gigaYear
     use :: Numerical_Constants_Prefixes    , only : mega, kilo
     implicit none
     class(nodeOperatorNSCCollapse ), intent(inout), target :: self
@@ -167,27 +156,29 @@ contains
         &                                                     Theta            , crossSectionNSC   , &
         &                                                     massFormedSeedNSC, massTimeStellarNSC, &
         &                                                     ageNSC           , time
-    double precision                                       :: velocity        = 100.0d0              !km s¯¹
-    double precision                                       :: sun_rad_to_pc   = 2.2567d-8   
+    double precision                                       :: velocity          = 100.0d0.  !km s¯¹
+    double precision                                       :: solarRadiusTopc   = 2.2567d-8 !pc
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
     
     ! Get the nuclear star cluster component.
     NSC         => node%NSC  ()
-    radiusNSC   =  self%radiusEfficiency*1.0d6*NSC%radius     () !pc
+    radiusNSC   =  self%radiusEfficiency*1.0d6*NSC%radius() !pc
     
-
     massDistributionStellarNSC_ => node%massDistribution(componentType=componentTypeNSC, massType=massTypeStellar)
-    velocityNSC = massDistributionStellarNSC_%rotationCurve(radiusNSC*1.0e-6)
+    !Evaluates the radius in parsec.
+    velocityNSC = massDistributionStellarNSC_%rotationCurve(radiusNSC*1.0e-6) 
     
     ! Detect nuclear star cluster component type.
     select type (NSC)
       type is (nodeComponentNSC)
+          ! Nothing to do here.
           return
 
       class is (nodeComponentNSCStandard)
-          if (NSC%massStellar()<= 0.0d0  .or.  NSC%radius() <= 0.0d0) return
+          ! Return for unphysical NSCs.
+          if (NSC%massStellar()<=0.0d0.or.NSC%radius() <= 0.0d0) return
 
           massStellarNSC        = NSC%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
           massTimeStellarNSC    = NSC%floatRank0MetaPropertyGet(self%timeStellarMassFormedNSCID)
@@ -209,10 +200,10 @@ contains
           if (ageNSC <= 0.0d0 .or. NSC%Collapse()) return 
 
           ! Safronov number defined by Binney & Tremaine (2008, https://ui.adsabs.harvard.edu/abs/2008gady.book.....B/abstract)
-          Theta            = 9.54d0*(self%massSingleStar/self%radiusSingleStar)*(velocity/velocityNSC)**2.0d0                   !Adimensional
+          Theta            = 9.54d0*(self%massSingleStar/self%radiusSingleStar)*(velocity/velocityNSC)**2.0d0
           
           ! Probabilistic mean free path defined as in Landau & Lifshitz (1980, https://ui.adsabs.harvard.edu/abs/1981PhT....34a..74L/abstract) and Shu (1991, https://ui.adsabs.harvard.edu/abs/1991pav..book.....S/abstract)
-          CrossSectionNSC  = 16.0d0* sqrt(Pi)*(1+Theta)*(self%radiusSingleStar*sun_rad_to_pc)**2.0d0      !pc²
+          CrossSectionNSC  = 16.0d0* sqrt(Pi)*(1+Theta)*(self%radiusSingleStar*solarRadiusTopc)**2.0d0
 
           ! Critical mass computation using equation (3) in the model of M.C. Vergara, A. Escala, D.R.G. Schleicher and B. Reinoso. (2023, https://ui.adsabs.harvard.edu/abs/2023MNRAS.522.4224V/abstract)
           massCriticalNSC  = radiusNSC**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*CrossSectionNSC*ageNSC*sqrt((gravitationalConstantGalacticus*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
@@ -225,12 +216,12 @@ contains
             interrupt=.true.
             functionInterrupt => BlackHoleStandardCreate
             call Collapse_Output   (node, radiusNSC, velocityNSC, NSC%massStellar(), NSC%massGas(), massCriticalNSC, ageNSC, massFormedSeedNSC)
-            call NSC%massStellarset(                                                        NSC%massStellar()-massFormedSeedNSC)
-            call NSC%CollapseSet   (                                                                                     .true.)
+            call NSC%massStellarset(                              NSC%massStellar()                                         -massFormedSeedNSC)
+            call NSC%CollapseSet   (                                                                                                    .true.)
             return
           end if 
        !![
-       <objectDestructor name="massDistributionStellarNSC_"    />
+       <objectDestructor name="massDistributionStellarNSC_"/>
        !!]
     end select
     return
@@ -281,7 +272,7 @@ contains
 
     ! Open the group to which black hole formation should be written.
     !$ call hdf5Access%set()
-    NSCCollapse=outputFile%openGroup("NSCCollapse","Data related to the NSC collapse.")
+    NSCCollapse=outputFile%openGroup("NSCCollapse","Data related to the black hole formation due to  stellar collisions in NSCs.")
     ! Append to the datasets.
     call    NSCCollapse%writeDataset([radiusNSC                 ],"radius"      ,"radius of the NSC."             ,appendTo=.true.)
     call    NSCCollapse%writeDataset([velocityNSC               ],"velocity"    ,"velocity mass of the NSC."      ,appendTo=.true.)
@@ -289,7 +280,7 @@ contains
     call    NSCCollapse%writeDataset([massGasNSC                ],"massGas"     ,"Gas mass of the NSC."           ,appendTo=.true.)
     call    NSCCollapse%writeDataset([massCriticalNSC           ],"massCritical","Critical mass of the NSC."      ,appendTo=.true.)
     call    NSCCollapse%writeDataset([ageNSC                    ],"Age"         ,"Age of the NSC."                ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([massFormedSeedNSC         ],"Mseed"       ,"Mass of the BH seed formed."    ,appendTo=.true.)
+    call    NSCCollapse%writeDataset([massFormedSeedNSC         ],"seedMass"    ,"Mass of the BH seed formed."    ,appendTo=.true.)
     call    NSCCollapse%writeDataset([basic%time()              ],"time"        ,"The time of the NSC collapse."  ,appendTo=.true.)
     call    NSCCollapse%writeDataset([node%hostTree%volumeWeight],"volumeWeight","The weight of the NSC."         ,appendTo=.true.)
     call    NSCCollapse%close       (                                                                                             )

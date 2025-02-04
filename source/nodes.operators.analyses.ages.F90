@@ -217,8 +217,8 @@ contains
     type is (nodeComponentNSC     )
        ! NSC does not yet exist - nothing to do here.
     class default
-       call NSC     %floatRank0MetaPropertyScale(self%    stellarMassFormedNSCID     ,massMinimum          )
-       call NSC     %floatRank0MetaPropertyScale(self%timeStellarMassFormedNSCID     ,massMinimum*timeScale)
+       call NSC     %floatRank0MetaPropertyScale(self%    stellarMassFormedNSCID     ,max(mass,massMinimum)          )
+       call NSC     %floatRank0MetaPropertyScale(self%timeStellarMassFormedNSCID     ,max(mass,massMinimum)*timeScale)
     end select
     return
   end subroutine agesStellarMassWeightedDifferentialEvolutionScales

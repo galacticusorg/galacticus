@@ -109,7 +109,8 @@ contains
     class           (nodeComponentSpheroid                            ), pointer                    :: spheroid
     class           (nodeComponentNSC                                 ), pointer                    :: NSC
 
-    double precision                                                                                :: starFormationRateDisk              , starFormationRateSpheroid, starFormationRateNSC
+    double precision                                                                                :: starFormationRateDisk              , starFormationRateSpheroid, &
+                   &                                                                                   starFormationRateNSC
     !$GLC attributes unused :: time, instance
 
     allocate(starFormationRateInterOutputExtract(3))

@@ -59,7 +59,7 @@
      class  (cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_          => null()
      type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastTopHat_ => null()
      type   (enumerationBryanNorman1998FitType                             )          :: fitType
-     logical                                                                          :: useFittingFunction                    , allowUnsupportedCosmology
+     logical                                                                          :: useFittingFunction           =  .true., allowUnsupportedCosmology
    contains
      final     ::                                bryanNorman1998Destructor
      procedure :: densityContrast             => bryanNorman1998DensityContrast
