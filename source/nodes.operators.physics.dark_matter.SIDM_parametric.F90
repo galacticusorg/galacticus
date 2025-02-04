@@ -733,10 +733,12 @@ contains
 
   double precision function rho_s0(Rs, Vmax)
     use Numerical_Constants_Math, only: Pi
-    use Numerical_Constants_Physical, only: gravitationalConstant
+!    use Numerical_Constants_Physical, only: gravitationalConstant
+    use :: Numerical_Constants_astronomical, only : gravitationalConstantGalacticus
     double precision, intent(in) :: Rs, Vmax
 
-    rho_s0 = Vmax ** 2 / (0.465d0 ** 2 * 4.0d0 * Pi * gravitationalConstant * Rs ** 2)
+!    gravitationalConstant = gravitationalConstantGalacticus*1e3
+    rho_s0 = Vmax ** 2 / (0.465d0 ** 2 * 4.0d0 * Pi * gravitationalConstantGalacticus * Rs ** 2)
   end function rho_s0
 
   double precision function get_rho_s(rho_s0, tau)
