@@ -23,7 +23,7 @@
   use :: Mass_Distributions, only : massDistributionClass  , kinematicsDistributionClass
 
   !![
-  <nodeOperator name="nodeOperatorNSCCollapse">
+  <nodeOperator name="nodeOperatorstellarCollisionsNSC">
    <description>
      A node operator class that handle the collapse of nuclear star clusters into a black hole. 
      Based on the model of \cite{Vergara_2023} and \cite{Escala_2021}.
@@ -31,7 +31,7 @@
   </nodeOperator>
   !!]
 
-  type, extends(nodeOperatorClass) :: nodeOperatorNSCCollapse
+  type, extends(nodeOperatorClass) :: nodeOperatorstellarCollisionsNSC
      !!{
      A node operator class that handle the formation of a BH seed within nuclear star clusters due to runaway stellar collisions.
      !!}
@@ -41,34 +41,33 @@
          &                                      massThreshold 
      integer                                 :: stellarMassFormedNSCID, timeStellarMassFormedNSCID     
    contains
-     final     ::                          NSCCollapseDestructor 
-     procedure :: differentialEvolution => NSCCollapseDifferentialEvolution
-  end type nodeOperatorNSCCollapse
+     procedure :: differentialEvolution => stellarCollisionsNSCDifferentialEvolution
+  end type nodeOperatorstellarCollisionsNSC
   
-  interface nodeOperatorNSCCollapse
+  interface nodeOperatorstellarCollisionsNSC
      !!{
-     Constructors for the {\normalfont \ttfamily NSCCollapse} node operator class.
+     Constructors for the {\normalfont \ttfamily stellarCollisionsNSC} node operator class.
      !!}
-     module procedure NSCCollapseConstructorParameters
-     module procedure NSCCollapseConstructorInternal
-  end interface nodeOperatorNSCCollapse
+     module procedure stellarCollisionsNSCConstructorParameters
+     module procedure stellarCollisionsNSCConstructorInternal
+  end interface nodeOperatorstellarCollisionsNSC
 
   class (massDistributionClass ), pointer :: massDistribution_, massDistributionStellarNSC_ 
   !$omp threadprivate(massDistribution_,massDistributionStellarNSC_)
 
 contains
 
-  function NSCCollapseConstructorParameters(parameters) result(self)
+  function stellarCollisionsNSCConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily NSCCollapse} node operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily stellarCollisionsNSC} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorNSCCollapse  )                :: self
-    type (inputParameters          ), intent(inout) :: parameters
-    double precision                                :: massSingleStar    , radiusSingleStar, &
-       &                                               massEfficiency    , radiusEfficiency, &
-       &                                               massThreshold
+    type (nodeOperatorstellarCollisionsNSC)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    double precision                                       :: massSingleStar    , radiusSingleStar, &
+       &                                                      massEfficiency    , radiusEfficiency, &
+       &                                                      massThreshold
 
     !![
     <inputParameter>
@@ -102,25 +101,25 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=nodeOperatorNSCCollapse(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold)
+    self=nodeOperatorstellarCollisionsNSC(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold)
 
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
-  end function NSCCollapseConstructorParameters
+  end function stellarCollisionsNSCConstructorParameters
   
-  function NSCCollapseConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold) result(self)
+  function stellarCollisionsNSCConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily NSCCollapse} node operator class.
+    Internal constructor for the {\normalfont \ttfamily stellarCollisionsNSC} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorNSCCollapse)                :: self
-    double precision                         , intent(in   ) :: massSingleStar
-    double precision                         , intent(in   ) :: radiusSingleStar
-    double precision                         , intent(in   ) :: massEfficiency
-    double precision                         , intent(in   ) :: radiusEfficiency
-    double precision                         , intent(in   ) :: massThreshold
+    type            (nodeOperatorstellarCollisionsNSC)                :: self
+    double precision                                  , intent(in   ) :: massSingleStar
+    double precision                                  , intent(in   ) :: radiusSingleStar
+    double precision                                  , intent(in   ) :: massEfficiency
+    double precision                                  , intent(in   ) :: radiusEfficiency
+    double precision                                  , intent(in   ) :: massThreshold
 
     !![
     <constructorAssign variables="massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold"/>
@@ -131,9 +130,9 @@ contains
     <addMetaProperty   component="NSC" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedNSCID" isEvolvable="yes" isCreator="no" />
     !!]
     return
-  end function NSCCollapseConstructorInternal
+  end function stellarCollisionsNSCConstructorInternal
 
-  subroutine NSCCollapseDifferentialEvolution(self,node,interrupt,functioninterrupt,propertyType)
+  subroutine stellarCollisionsNSCDifferentialEvolution(self,node,interrupt,functioninterrupt,propertyType)
       !!{
         Compute the nuclear star cluster collapse condition.
       !!}
@@ -144,20 +143,20 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, parsec          , megaParsec              , gigaYear
     use :: Numerical_Constants_Prefixes    , only : mega, kilo
     implicit none
-    class(nodeOperatorNSCCollapse ), intent(inout), target :: self
-    type (treeNode                ), intent(inout), target :: node
-    logical                        , intent(inout)         :: interrupt
-    procedure (interruptTask      ), intent(inout), pointer:: functioninterrupt
-    integer                        , intent(in   )         :: propertyType
-    class(nodeComponentNSC        )               , pointer:: NSC
-    class(nodeComponentBasic      )               , pointer:: basic
-    double precision                                       :: radiusNSC        , velocityNSC       , &
-        &                                                     massStellarNSC   , massCriticalNSC   , &
-        &                                                     Theta            , crossSectionNSC   , &
-        &                                                     massFormedSeedNSC, massTimeStellarNSC, &
-        &                                                     ageNSC           , time
-    double precision                                       :: velocity          = 100.0d0.  !km s¯¹
-    double precision                                       :: solarRadiusTopc   = 2.2567d-8 !pc
+    class(nodeOperatorstellarCollisionsNSC), intent(inout), target :: self
+    type (treeNode                        ), intent(inout), target :: node
+    logical                                , intent(inout)         :: interrupt
+    procedure (interruptTask              ), intent(inout), pointer:: functioninterrupt
+    integer                                , intent(in   )         :: propertyType
+    class(nodeComponentNSC                )               , pointer:: NSC
+    class(nodeComponentBasic              )               , pointer:: basic
+    double precision                                               :: radiusNSC                  , velocityNSC       , &
+        &                                                             massStellarNSC             , massCriticalNSC   , &
+        &                                                             Theta                      , crossSectionNSC   , &
+        &                                                             massFormedSeedNSC          , massTimeStellarNSC, &
+        &                                                             ageNSC                     , time
+    double precision                                               :: velocity        = 100.0d0                       !km s¯¹
+    double precision                                               :: solarRadiusTopc = 2.2567d-8                     !pc
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -225,7 +224,7 @@ contains
        !!]
     end select
     return
-  end subroutine NSCCollapseDifferentialEvolution
+  end subroutine stellarCollisionsNSCDifferentialEvolution
 
   subroutine BlackHoleStandardCreate(node,timeEnd)
     !!{
@@ -243,10 +242,10 @@ contains
     ! Create the black hole.
     blackHole => node%blackHole(autoCreate=.true.)
     ! Set to the seed mass.
-    call blackHole%          massSet(NSC      %massSeed())
-    call blackHole%          spinSet(               0.0d0)  
-    call blackHole%radialPositionSet(               0.0d0)
-    call blackHole%    NSCChannelSet(              .true.)
+    call blackHole%          massSet(NSC%massSeed())
+    call blackHole%          spinSet(         0.0d0)  
+    call blackHole%radialPositionSet(         0.0d0)
+    call blackHole%    NSCChannelSet(        .true.)
     return
   end subroutine BlackHoleStandardCreate
   
@@ -265,25 +264,25 @@ contains
         &                                                  massCriticalNSC  , ageNSC     , &
         &                                                  massFormedSeedNSC
     class           (nodeComponentBasic), pointer       :: basic
-    type            (hdf5Object        )                :: NSCCollapse
+    type            (hdf5Object        )                :: stellarCollisionsNSC
 
     ! Get the basic component.
     basic => node%basic()
 
     ! Open the group to which black hole formation should be written.
     !$ call hdf5Access%set()
-    NSCCollapse=outputFile%openGroup("NSCCollapse","Data related to the black hole formation due to  stellar collisions in NSCs.")
+    stellarCollisionsNSC=outputFile%openGroup("stellarCollisionsNSC","Data related to the black hole formation due to  stellar collisions in NSCs.")
     ! Append to the datasets.
-    call    NSCCollapse%writeDataset([radiusNSC                 ],"radius"      ,"radius of the NSC."             ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([velocityNSC               ],"velocity"    ,"velocity mass of the NSC."      ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([massStellarNSC            ],"massStellar" ,"Stellar mass of the NSC."       ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([massGasNSC                ],"massGas"     ,"Gas mass of the NSC."           ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([massCriticalNSC           ],"massCritical","Critical mass of the NSC."      ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([ageNSC                    ],"Age"         ,"Age of the NSC."                ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([massFormedSeedNSC         ],"seedMass"    ,"Mass of the BH seed formed."    ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([basic%time()              ],"time"        ,"The time of the NSC collapse."  ,appendTo=.true.)
-    call    NSCCollapse%writeDataset([node%hostTree%volumeWeight],"volumeWeight","The weight of the NSC."         ,appendTo=.true.)
-    call    NSCCollapse%close       (                                                                                             )
+    call    stellarCollisionsNSC%writeDataset([radiusNSC                 ],"radius"      ,"radius of the NSC."             ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([velocityNSC               ],"velocity"    ,"velocity mass of the NSC."      ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([massStellarNSC            ],"massStellar" ,"Stellar mass of the NSC."       ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([massGasNSC                ],"massGas"     ,"Gas mass of the NSC."           ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([massCriticalNSC           ],"massCritical","Critical mass of the NSC."      ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([ageNSC                    ],"Age"         ,"Age of the NSC."                ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([massFormedSeedNSC         ],"seedMass"    ,"Mass of the BH seed formed."    ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([basic%time()              ],"time"        ,"The time of the NSC collapse."  ,appendTo=.true.)
+    call    stellarCollisionsNSC%writeDataset([node%hostTree%volumeWeight],"volumeWeight","The weight of the NSC."         ,appendTo=.true.)
+    call    stellarCollisionsNSC%close       (                                                                                             )
     !$ call hdf5Access %unset       (                                                                                             )
     return
   end subroutine Collapse_Output
