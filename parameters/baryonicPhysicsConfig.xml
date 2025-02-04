@@ -294,7 +294,7 @@
      
      <!-- Black hole -->
      <modelParameter value="active">
-       <name value="componentBlackHole::growthRatioToStellarSpheroid"/>
+       <name value="blackHoleAccretionRate::growthRatioToStellarSpheroid"/>
        <distributionFunction1DPrior value="logUniform">
 	 <limitLower value="1.0e-1"/>
 	 <limitUpper value="1.0e+2"/>
@@ -330,11 +330,11 @@
        </distributionFunction1DPerturber>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="componentBlackHole::efficiencyWind"/>
+       <name value="blackHoleWind::efficiencyWind"/>
        <definition value="%[componentBlackHole::efficiency]*(1.0-%[componentBlackHole::fractionJet])"/>
      </modelParameter>
      <modelParameter value="derived">
-       <name value="componentBlackHole::efficiencyHeating"/>
+       <name value="blackHoleCGMHeating::efficiencyHeating"/>
        <definition value="%[componentBlackHole::efficiency]*%[componentBlackHole::fractionJet]"/>
      </modelParameter>
      

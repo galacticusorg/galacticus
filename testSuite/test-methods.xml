@@ -633,6 +633,19 @@
     <formatVersion>2</formatVersion>
     <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
     <componentBlackHole value="nonCentral"/>
+    <blackHoleAccretionRate value="standard">
+      <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+      <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+      <bondiHoyleAccretionHotModeOnly value="true"/>
+      <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+    </blackHoleAccretionRate>
+    <blackHoleWind value="ciotti2009">
+      <efficiencyWind value="2.4e-3"/>
+      <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+    </blackHoleWind>
+    <blackHoleCGMHeating value="jetPower">
+      <efficiencyRadioMode value="1.0"/>
+    </blackHoleCGMHeating>
     <blackHoleBinaryInitialSeparation value="spheroidRadiusFraction"/>
     <blackHoleBinaryInitialSeparation value="tidalRadius">
       <blackHoleBinaryRecoil value="zero" parameterLevel="top"/>
@@ -737,12 +750,22 @@
 
   </parameters>
   
-  <!-- Black hole comopnents. -->
+  <!-- Black hole components. -->
   <parameters>
     <formatVersion>2</formatVersion>
     <lastModified revision="165490f4968c699f7e5bb73ef60bcb7e626f51e6"/>
     <componentBlackHole value="standard"/>
-    <componentBlackHole value="simple"/>
+    <componentBlackHole value="simple">
+      <blackHoleAccretionRate value="spheroidTracking" parameterLevel="top">
+	<growthRatioToStellarSpheroid value="1.0e-3"/>
+      </blackHoleAccretionRate>
+      <blackHoleWind value="simple" parameterLevel="top">
+	<efficiencyWind value="2.2157e-3"/>
+      </blackHoleWind>
+      <blackHoleCGMHeating value="quasistatic" parameterLevel="top">
+	<efficiencyHeating value="1.0e-3"/>
+      </blackHoleCGMHeating>
+    </componentBlackHole>
   </parameters>
   
   <!-- Infall and freefall radii. -->

@@ -228,6 +228,9 @@
   <migration commit="085033d9d7d8f1956eb0b5b7918ce731229d57e2">
     <translation function="blackHoleSeedMass"/>
   </migration>
+  <migration commit="e87039e32d4d86a381ce015abf11e08a20c7e68e">
+    <translation function="blackHolePhysics"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
