@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "1b04d3b3ada8450b74846ce46dd44c32d6d28d48",
-        "message": "Merge pull request #778 from galacticusorg/featCloudyTableIndices\n\nStore (and use) indexing information in Cloudy emission line tables\n",
-        "timestamp": "2025-02-04 15:32:37+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/1b04d3b3ada8450b74846ce46dd44c32d6d28d48"
+        "id": "a9f3c8eeae414da3c314dd020d90964cf45ec29e",
+        "message": "fix: Correct citation label\n",
+        "timestamp": "2025-02-04 16:49:04-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/a9f3c8eeae414da3c314dd020d90964cf45ec29e"
     },
     "results": [
         {
