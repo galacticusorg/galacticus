@@ -26,7 +26,7 @@
   <nodeOperator name="nodeOperatorstellarCollisionsNSC">
    <description>
      A node operator class that handle the collapse of nuclear star clusters into a black hole. 
-     Based on the model of \cite{Vergara_2023} and \cite{Escala_2021}.
+     Based on the model of \cite{vergara_global_2023} and \cite{escala_observational_2021}.
    </description>
   </nodeOperator>
   !!]
@@ -194,7 +194,7 @@ contains
               ageNSC= 0.0d0
           end if 
 
-          call NSC%AgeSet(ageNSC)      !Gyr
+          call NSC%ageSet(ageNSC)      !Gyr
 
           if (ageNSC <= 0.0d0 .or. NSC%Collapse()) return 
 
@@ -208,7 +208,7 @@ contains
           massCriticalNSC  = radiusNSC**(7.0d0/3.0d0)*((4.0d0*Pi*self%massSingleStar)/(3.0d0*CrossSectionNSC*ageNSC*sqrt((gravitationalConstantGalacticus*megaParsec*(kilo*gigaYear)**2.0d0)*parsec**-3.0d0)))**(2.0d0/3.0d0)
           massFormedSeedNSC= self%massEfficiency*NSC%massStellar()
           
-          call NSC%CriticalMassSet(massCriticalNSC)
+          call NSC%massCriticalSet(massCriticalNSC)
           ! Generic type - interrupt and create a standard Black Hole if Nuclear Star Cluster mass is greater than the critical mass.
           if (0.0 <= massCriticalNSC .and. massCriticalNSC <= NSC%massStellar() .and. self%massThreshold <= NSC%massStellar()) then
             call NSC%massSeedSet   ( massFormedSeedNSC)

@@ -18,19 +18,25 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that handle the gas mass rate in the nuclear star cluster.
+  Implements a node operator class that handle the gas mass rate in the nuclear star cluster using the model of
+  \cite{antonini_coevolution_2015}..
   !!}
+  
   use :: Star_Formation_Rates_Spheroids , only : starFormationRateSpheroidsClass
 
   !![
   <nodeOperator name="nodeOperatorgasMassRateNSC">
-   <description>A node operator class that handle the gass mass rate in the nuclear star cluster.</description>
+    <description>
+      A node operator class that handle the gass mass rate in the nuclear star cluster using the model of
+      \cite{antonini_coevolution_2015}.
+    </description>
   </nodeOperator>
   !!]
 
   type, extends(nodeOperatorClass) :: nodeOperatorgasMassRateNSC
      !!{
-     A node operator class that handle the gas mass rate in the nuclear star cluster.
+     A node operator class that handle the gas mass rate in the nuclear star cluster using the model of
+     \cite{antonini_coevolution_2015}.
      !!}
      private
      class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
@@ -135,7 +141,7 @@ contains
     if  (rateStarFormationSpheroid <= 0.0d0) then
       gasMassAccretionRate = 0.0d0
     else
-      ! Gas mass accretion rate model from F. Antonini, E. Barausse & J. Silk (2015; https://ui.adsabs.harvard.edu/abs/2015ApJ...812...72A/abstract)
+      ! Gas mass accretion rate model from F. Antonini, E. Barausse & J. Silk (2015; https://ui.adsabs.harvard.edu/abs/2015ApJ...812...72A).
       gasMassAccretionRate = self%Ares*rateStarFormationSpheroid
     end if 
     

@@ -27,15 +27,20 @@ double precision function Node_Component_NSC_Standard_Radius(self) result(radius
    !!}
    use :: Node_Component_NSC_Standard_Data, only : radiusNorm
    implicit none
-   class(nodeComponentNSCStandard), intent(inout) :: self
-   double precision                               :: massNSC
+   class           (nodeComponentNSCStandard), intent(inout) :: self
+   double precision                                          :: massNuclearStarCluster
 
-   massNSC  = self%massGas()+self%massStellar()
-   !The radius is returned in Mpc
-   if (massNSC > 0.0d0) then
-      radius = radiusNorm* sqrt(massNSC/1.0d6)
+   massNuclearStarCluster=+self%massGas    () &
+        &                 +self%massStellar()
+   ! The radius is returned in Mpc.
+   if (massNuclearStarCluster > 0.0d0) then
+      radius=+radiusNorm                   &
+           & *sqrt(                        &
+           &       +massNuclearStarCluster &
+           &       /1.0d6                  &
+           &      )
    else 
-      radius = 0.0d0
+      radius=+0.0d0
    end if 
    return
 end function Node_Component_NSC_Standard_Radius
@@ -47,16 +52,24 @@ double precision function Node_Component_NSC_Standard_Velocity(self)
    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
    implicit none
    class(nodeComponentNSCStandard), intent(inout) :: self
-   double precision                               :: radiusNSC, massNSC
+   double precision                               :: radiusNuclearStarCluster, massNuclearStarCluster
 
-   radiusNSC= self%radius()
-   massNSC  = self%massGas()+self%massStellar()
-
-   !The velocity is returned in km/s units
-   if (massNSC>0.0d0.and.radiusNSC>0.0d0) then
-      Node_Component_NSC_Standard_Velocity = sqrt(gravitationalConstantGalacticus*massNSC/radiusNSC)
+   radiusNuclearStarCluster=+self%radius     ()
+   massNuclearStarCluster  =+self%massGas    () &
+        &                   +self%massStellar()
+   ! The velocity is returned in km/s units.
+   if     (                                  &
+        &   massNuclearStarCluster   > 0.0d0 &
+        &  .and.                             &
+        &   radiusNuclearStarCluster > 0.0d0 &
+        & ) then
+      Node_Component_NSC_Standard_Velocity=+sqrt(                                 &
+           &                                     +gravitationalConstantGalacticus &
+           &                                     *massNuclearStarCluster          &
+           &                                     /radiusNuclearStarCluster        &
+           &                                    )
    else 
-      Node_Component_NSC_Standard_Velocity = 0.0d0
+      Node_Component_NSC_Standard_Velocity=+0.0d0
    end if 
    return
 end function Node_Component_NSC_Standard_Velocity
@@ -107,7 +120,7 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   ! Determine which components to build.
   radiusScale=self%radius()
   if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
-     ! Disk has non-positive size, or no components matched. Return a null distribution.
+     ! Nuclear star cluster has non-positive size, or no components matched. Return a null distribution.
      massDistribution_ => null()
   else
      ! Build the individual distributions.
@@ -128,14 +141,14 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
         select type (massDistributionGas_    )
         class is (massDistributionSpherical)
            !![
-           <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
+           <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_    )"/>
            !!]
         end select
         call massDistributionGas    %setKinematicsDistribution(kinematicDistribution_)
      end if
      ! Combine the distributions as necessary.
      if      (includeStars .and. includeGas) then
-        ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any spheroid system, and then composite those.
+        ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any nuclear star cluster system, and then composite those.
         allocate(massDistributionTotal          )
         allocate(massDistributionComponents     )
         allocate(massDistributionComponents%next)
@@ -162,7 +175,7 @@ end function Node_Component_NSC_Standard_Mass_Distribution
 
 double precision function Node_Component_NSC_Standard_Mass_Baryonic(self) result(massBaryonic)
   !!{
-  Return the baryonic mass for the standard spheroid component.
+  Return the baryonic mass for the standard \gls{nsc} component.
   !!}
   implicit none
   class(nodeComponentNSCStandard), intent(inout) :: self
@@ -172,21 +185,23 @@ double precision function Node_Component_NSC_Standard_Mass_Baryonic(self) result
   return
 end function Node_Component_NSC_Standard_Mass_Baryonic
 
-double precision function Node_Component_NSC_Standard_Angular_Momentum(self)
+double precision function Node_Component_NSC_Standard_Angular_Momentum(self) result(angularMomentum)
    !!{
-   Return the specific angular momentum of the standard nuclear star cluster at a given radius.
+   Return the specific angular momentum of the standard \gls{nsc} at a given radius.
    !!}
    implicit none
-   class (nodeComponentNSCStandard), intent(inout) :: self
-   double precision                                :: dynamicalMassNSC, velocityNSC
-   !Get the velocity and the dunamical mass of the nuclear star cluster.
-   velocityNSC      = self%velocity()
-   dynamicalMassNSC = self%massGas ()+self%massStellar()
-
-   if (dynamicalMassNSC > 0.0d0) then
-       Node_Component_NSC_Standard_Angular_Momentum = dynamicalMassNSC * velocityNSC
+   class           (nodeComponentNSCStandard), intent(inout) :: self
+   double precision                                          :: massDynamical, velocity
+   
+   ! Get the velocity and the dynamical mass of the nuclear star cluster.
+   velocity     =+self%velocity   ()
+   massDynamical=+self%massGas    () &
+        &        +self%massStellar()
+   if (massDynamical > 0.0d0) then
+      angularMomentum=+massDynamical &
+           &          *velocity
    else
-       Node_Component_NSC_Standard_Angular_Momentum = 0.0d0
+       angularMomentum=+0.0d0
    end if
    return
 end function Node_Component_NSC_Standard_Angular_Momentum
@@ -206,7 +221,7 @@ double precision function Node_Component_NSC_Standard_Half_Mass_Radius(self) res
      radiusHalfMass=+massDistributionStellar_%radiusHalfMass() &
           &         *self                    %radius        ()
   class default
-     radiusHalfMass=0.0d0
+     radiusHalfMass=+0.0d0
      call Error_Report('nuclear star cluster mass distribution is not spherically-symmetric'//{introspection:location})
   end select
   return

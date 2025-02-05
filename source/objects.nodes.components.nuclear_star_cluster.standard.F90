@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements the standard nuclear star cluster node component.
+Contains a module which implements the standard \glc{nsc} node component.
 !!}
 
 module Node_Component_NSC_Standard
   !!{
-  Implements the standard nuclear star cluster node component.
+  Implements the standard \glc{nsc} node component.
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Histories                       , only : history
@@ -33,10 +33,10 @@ module Node_Component_NSC_Standard
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_NSC_Standard_Scale_Set        , Node_Component_NSC_Standard_Pre_Evolve                  , &
-       &    Node_Component_NSC_Standard_Post_Step        , Node_Component_NSC_Standard_Thread_Uninitialize         , &
-       &    Node_Component_NSC_Standard_Initialize       , Node_Component_NSC_Standard_Inactive                    , &
-       &    Node_Component_NSC_Standard_State_Store      , Node_Component_NSC_Standard_State_Retrieve              , &
+  public :: Node_Component_NSC_Standard_Scale_Set        , Node_Component_NSC_Standard_Pre_Evolve         , &
+       &    Node_Component_NSC_Standard_Post_Step        , Node_Component_NSC_Standard_Thread_Uninitialize, &
+       &    Node_Component_NSC_Standard_Initialize       , Node_Component_NSC_Standard_Inactive           , &
+       &    Node_Component_NSC_Standard_State_Store      , Node_Component_NSC_Standard_State_Retrieve     , &
        &    Node_Component_NSC_Standard_Thread_Initialize                     
 
   !![
@@ -53,18 +53,18 @@ module Node_Component_NSC_Standard
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>Age</name>
+      <name>age</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false"/>
       <output unitsInSI="gigaYear" comment="Age (in Gyr) of nuclear star cluster."/>
     </property>
     <property>
-      <name>CriticalMass</name>
+      <name>massCritical</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false"/>
-      <output unitsInSI="massSolar" comment="Critical Mass of the NSC at its last collapse"/>
+      <output unitsInSI="massSolar" comment="Critical aass of the nuclear star cluster at its last collapse."/>
     </property>
     <property>
       <name>Collapse</name>
@@ -90,7 +90,7 @@ module Node_Component_NSC_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="massSolar" comment="Mass of BH seed created in the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" comment="Mass of the black hole seed created in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>fractionMassRetained</name>
@@ -181,7 +181,7 @@ module Node_Component_NSC_Standard
     <binding method="massDistribution" function="Node_Component_NSC_Standard_Mass_Distribution" bindsTo="component"/>
     <binding method="massBaryonic"     function="Node_Component_NSC_Standard_Mass_Baryonic"     bindsTo="component"/>
    </bindings>
-   <functions>objects.nodes.components.NuclearStarCluster.standard.bound_functions.inc</functions>
+   <functions>objects.nodes.components.nuclear_star_cluster.standard.bound_functions.inc</functions>
   </component>
   !!]
 
@@ -197,19 +197,20 @@ module Node_Component_NSC_Standard
   integer                                     :: abundancesCount
   
   ! Storage for the star formation and stellar properties histories time range, used when extending this range.
-  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate   , stellarPropertiesHistoryTemplate
+  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate       , stellarPropertiesHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: toleranceAbsoluteMass      , toleranceRelativeMetallicity          
+  double precision                            :: toleranceAbsoluteMass              , toleranceRelativeMetallicity          
   logical                                     :: inactiveLuminositiesStellar
 
-  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a nuclear star cluster.
-  double precision, parameter                 :: angularMomentumMaximum                    =1.0d+1
-  double precision, parameter                 :: angularMomentumMinimum                    =1.0d-6
+  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be
+  ! physically plausible for a nuclear star cluster.
+  double precision, parameter                 :: angularMomentumMaximum      =1.0d+1
+  double precision, parameter                 :: angularMomentumMinimum      =1.0d-6
 
   ! A threadprivate object used to track to which thread events are attached.
-  integer :: thread
+  integer                                     :: thread
   !$omp threadprivate(thread)
 
 contains
@@ -281,7 +282,7 @@ contains
   !!]
   subroutine Node_Component_NSC_Standard_Thread_Initialize(parameters)
     !!{
-      Initializes the standard nuclear star cluster component module for each thread.
+    Initializes the standard nuclear star cluster component module for each thread.
     !!}
     use :: Events_Hooks                    , only : dependencyDirectionAfter , dependencyRegEx            , openMPThreadBindingAtLevel, &
           &                                         postEvolveEvent          , satelliteMergerEvent       , mergerTreeExtraOutputEvent
@@ -390,16 +391,16 @@ contains
     use :: Galacticus_Nodes, only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
     implicit none
     type (treeNode        ), intent(inout), pointer :: node
-    class(nodeComponentNSC)               , pointer :: NSC
+    class(nodeComponentNSC)               , pointer :: nuclearStarCluster
 
     ! Check if we are the default method.
     if (.not.defaultNSCComponent%standardIsActive()) return
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Check if an standard nuclear star cluster component exists.
-    select type (NSC)
+    select type (nuclearStarCluster)
     class is (nodeComponentNSCStandard)
-       ! Initialize the NSC
+       ! Initialize the NSC.
        call Node_Component_NSC_Standard_Create(node)
     end select
     return
@@ -414,21 +415,21 @@ contains
     implicit none
     class(*                 ), intent(inout) :: self
     type (treeNode          ), intent(inout) :: node
-    class(nodeComponentNSC  ), pointer       :: NSC
+    class(nodeComponentNSC  ), pointer       :: nuclearStarCluster
     class(nodeComponentBasic), pointer       :: basic
     type (history           )                :: stellarPropertiesHistory
     !$GLC attributes unused :: self
 
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Check if an standard nuclear star cluster component exists.
-    select type (NSC)
+    select type (nuclearStarCluster)
     class is (nodeComponentNSCStandard)
        ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=NSC%stellarPropertiesHistory()
+       basic                    => node              %basic                   ()
+       stellarPropertiesHistory =  nuclearStarCluster%stellarPropertiesHistory()
        call stellarPropertiesHistory%trim(basic%time())
-       call NSC%stellarPropertiesHistorySet(stellarPropertiesHistory)
+       call nuclearStarCluster%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end select
     return
   end subroutine postEvolve
@@ -453,10 +454,10 @@ contains
     implicit none
     type            (treeNode           ), intent(inout), pointer :: node
     integer                              , intent(inout)          :: status
-    class           (nodeComponentNSC   )               , pointer :: NSC
+    class           (nodeComponentNSC   )               , pointer :: nuclearStarCluster
     double precision                     , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                     , save                   :: fractionalErrorMaximum  =0.0d+0
-    double precision                                              :: massNSC                        , fractionalError, &
+    double precision                                              :: massNuclearStarCluster                        , fractionalError, &
          &                                                           specificAngularMomentum
     character       (len=20             )                         :: valueString
     type            (varying_string     ), save                   :: message
@@ -469,37 +470,37 @@ contains
     ! Return immediately if this class is not in use.
     if (.not.defaultNSCComponent%standardIsActive()) return
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Check if an standard nuclear star cluster component exists.
-    select type (NSC)
+    select type (nuclearStarCluster)
     class is (nodeComponentNSCStandard)
        ! Note that "status" is not set to failure as these changes in state of the nuclear star cluster should not change any calculation of
        ! differential evolution rates as a negative gas/stellar mass was unphysical anyway.
        !
        ! Trap negative gas masses.
-       if (NSC%massGas() < 0.0d0) then
+       if (nuclearStarCluster%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   abs(NSC%massGas    ()) &
-               &          /(                        &
-               &             abs(NSC%massGas    ()) &
-               &            +abs(NSC%massStellar()) &
+          fractionalError=+  abs(nuclearStarCluster%massGas    ()) &
+               &          /(                                       &
+               &            +abs(nuclearStarCluster%massGas    ()) &
+               &            +abs(nuclearStarCluster%massStellar()) &
                &           )
           !$omp critical (Standard_NSC_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: Nuclear star cluster has negative gas mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index        = '//node%index() //char(10)
-             write (valueString,'(e12.6)') NSC%massGas    ()
+             message=message//'  Node index                        = '//node%index()     //char(10)
+             write (valueString,'(e12.6)') nuclearStarCluster%massGas    ()
              message=message//'  Nuclear star cluster gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') NSC%massStellar()
+             write (valueString,'(e12.6)') nuclearStarCluster%massStellar()
              message=message//'  Nuclear star Cluster stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
-             message=message//'  Error measure     = '//trim(valueString)//char(10)
+             message=message//'  Error measure                     = '//trim(valueString)//char(10)
              if (fractionalErrorMaximum == 0.0d0) then
                 ! This is the first time this warning has been issued, so give some extra information.
-                message=message//'  Gas mass will be reset to zero (in future cases also).'//char(10)
+                message=message//'  Gas mass will be reset to zero (in future cases also).'                                 //char(10)
                 message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
-                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
+                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'                //char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
              call displayMessage(message,verbosityLevelWarn)
@@ -508,62 +509,64 @@ contains
           end if
           !$omp end critical (Standard_NSC_Post_Evolve_Check)
           ! Get the specific angular momentum of the nuclear star cluster material
-          massNSC= NSC%massGas    () &
-               &  +NSC%massStellar()
-          if (massNSC == 0.0d0) then
+          massNuclearStarCluster=+nuclearStarCluster%massGas    () &
+               &                 +nuclearStarCluster%massStellar()
+          if (massNuclearStarCluster == 0.0d0) then
              specificAngularMomentum=0.0d0
-             call NSC%        massStellarSet(                  0.0d0)
-             call NSC%  abundancesStellarSet(         zeroAbundances)
-             historyStellar= NSC%starFormationHistory   ()
-             call historyStellar%reset()
-             call NSC           %starFormationHistorySet    (historyStellar)
-             historyStellar=NSC%stellarPropertiesHistory()
-             call historyStellar%reset()
-             call NSC           %stellarPropertiesHistorySet(historyStellar)
+             call nuclearStarCluster%         massStellarSet    (                  0.0d0)
+             call nuclearStarCluster%   abundancesStellarSet    (         zeroAbundances)
+             historyStellar         =nuclearStarCluster%starFormationHistory    ()
+             call historyStellar    %reset()
+             call nuclearStarCluster%starFormationHistorySet    (         historyStellar)
+             historyStellar         =nuclearStarCluster%stellarPropertiesHistory()
+             call historyStellar    %reset()
+             call nuclearStarCluster%stellarPropertiesHistorySet(         historyStellar)
              ! We need to reset the stellar luminosities to zero. We can't simply use the "zeroStellarLuminosities" instance since
              ! our luminosities may have been truncated. If we were to use "zeroStellarLuminosities" then the number of stellar
              ! luminosities associated with the nuclear star cluster would change - but we are in the middle of differential evolution here and we
              ! cannot change the number of evolvable properties as doing so will lead to invalid memory accesses during
              ! deserialization of properties from the ODE solver.
-             call luminositiesStellar%destroy()
-             luminositiesStellar=NSC%luminositiesStellar()
-             call luminositiesStellar%reset()
-             call NSC%luminositiesStellarSet(luminositiesStellar)
+             call luminositiesStellar%destroy               (                   )
+             luminositiesStellar=nuclearStarCluster%luminositiesStellar()
+             call luminositiesStellar%reset                 (                   )
+             call nuclearStarCluster %luminositiesStellarSet(luminositiesStellar)
           else
-             specificAngularMomentum=NSC%angularMomentum()/massNSC
-             if (specificAngularMomentum < 0.0d0) specificAngularMomentum=NSC%radius()*NSC%velocity()
+             specificAngularMomentum=nuclearStarCluster%angularMomentum()/massNuclearStarCluster
+             if (specificAngularMomentum < 0.0d0)                          &
+                  & specificAngularMomentum=+nuclearStarCluster%radius  () &
+                  &                         *nuclearStarCluster%velocity()
           end if
           ! Reset the gas, abundances and angular momentum of the nuclear star cluster.
-          call NSC%        massGasSet(                                    0.0d0)
-          call NSC%  abundancesGasSet(                           zeroAbundances)
-          call NSC%angularMomentumSet(specificAngularMomentum*NSC%massStellar())
+          call nuclearStarCluster%        massGasSet(                                                   0.0d0)
+          call nuclearStarCluster%  abundancesGasSet(                                          zeroAbundances)
+          call nuclearStarCluster%angularMomentumSet(specificAngularMomentum*nuclearStarCluster%massStellar())
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative stellar masses.
-       if (NSC%massStellar() < 0.0d0) then
+       if (nuclearStarCluster%massStellar() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   abs(NSC%massStellar()) &
-               &          /(                        &
-               &             abs(NSC%massGas    ()) &
-               &            +abs(NSC%massStellar()) &
+          fractionalError=+  abs(nuclearStarCluster%massStellar()) &
+               &          /(                                       &
+               &            +abs(nuclearStarCluster%massGas    ()) &
+               &            +abs(nuclearStarCluster%massStellar()) &
                &           )
           !$omp critical (Standard_NSC_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
              ! Report a warning.
              message='Warning: Nuclear star cluster has negative stellar mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index        = '//node%index() //char(10)
-             write (valueString,'(e12.6)') NSC%massGas    ()
+             message=message//'  Node index                        = '//node%index()     //char(10)
+             write (valueString,'(e12.6)') nuclearStarCluster%massGas    ()
              message=message//'  Nuclear star cluster gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') NSC%massStellar()
+             write (valueString,'(e12.6)') nuclearStarCluster%massStellar()
              message=message//'  Nuclear star cluster stellar mass = '//trim(valueString)//char(10)
              write (valueString,'(e12.6)') fractionalError
-             message=message//'  Error measure     = '//trim(valueString)//char(10)
+             message=message//'  Error measure                     = '//trim(valueString)//char(10)
              if (fractionalErrorMaximum == 0.0d0) then
                 ! This is the first time this warning has been issued, so give some extra information.
-                message=message//'  Stellar mass will be reset to zero (in future cases also).'//char(10)
+                message=message//'  Stellar mass will be reset to zero (in future cases also).'                             //char(10)
                 message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
-                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
+                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'                //char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
              call displayMessage(message,verbosityLevelWarn)
@@ -572,37 +575,41 @@ contains
           end if
           !$omp end critical (Standard_NSC_Post_Evolve_Check)
           ! Get the specific angular momentum of the nuclear star cluster material
-          massNSC= NSC%massGas    () &
-               &   +NSC%massStellar()
-          if (massNSC == 0.0d0) then
+          massNuclearStarCluster=+nuclearStarCluster%massGas    () &
+               &                 +nuclearStarCluster%massStellar()
+          if (massNuclearStarCluster == 0.0d0) then
              specificAngularMomentum=0.0d0
-             call NSC%      massGasSet(         0.0d0)
-             call NSC%abundancesGasSet(zeroAbundances)
+             call nuclearStarCluster%      massGasSet(         0.0d0)
+             call nuclearStarCluster%abundancesGasSet(zeroAbundances)
           else
-             specificAngularMomentum=NSC%angularMomentum()/massNSC
-             if (specificAngularMomentum < 0.0d0) specificAngularMomentum=NSC%radius()*NSC%velocity()
+             specificAngularMomentum       =+nuclearStarCluster%angularMomentum       () &
+                  &                         /                   massNuclearStarCluster
+             if (specificAngularMomentum < 0.0d0) &
+                  & specificAngularMomentum=+nuclearStarCluster%radius  () &
+                  &                         *nuclearStarCluster%velocity()
           end if
           ! Reset the stellar, abundances and angular momentum of the nuclear star cluster.
-          call NSC%      massStellarSet(                                0.0d0)
-          call NSC%abundancesStellarSet(                       zeroAbundances)
-          call NSC%  angularMomentumSet(specificAngularMomentum*NSC%massGas())
-          historyStellar=NSC%starFormationHistory ()
-          call historyStellar%reset()
-          call NSC           %starFormationHistorySet    (historyStellar)
-          historyStellar=NSC%stellarPropertiesHistory()
-          call historyStellar%reset()
-          call NSC           %stellarPropertiesHistorySet(historyStellar)
+          call nuclearStarCluster%      massStellarSet(                                               0.0d0)
+          call nuclearStarCluster%abundancesStellarSet(                                      zeroAbundances)
+          call nuclearStarCluster%  angularMomentumSet(specificAngularMomentum*nuclearStarCluster%massGas())
+          historyStellar=nuclearStarCluster%starFormationHistory ()
+          call historyStellar    %reset                      (              )
+          call nuclearStarCluster%starFormationHistorySet    (historyStellar)
+          historyStellar=nuclearStarCluster%stellarPropertiesHistory()
+          call historyStellar    %reset                      (              )
+          call nuclearStarCluster%stellarPropertiesHistorySet(historyStellar)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
        ! Trap negative angular momentum.
-       if (NSC%angularMomentum() < 0.0d0) then
+       if (nuclearStarCluster%angularMomentum() < 0.0d0) then
           ! Estimate a reasonable specific angular momentum.
-          specificAngularMomentum=+NSC%radius()*NSC%velocity()
+          specificAngularMomentum=+nuclearStarCluster%radius     () &
+               &                  *nuclearStarCluster%velocity   ()
           ! Get the mass of the NSC.
-          massNSC                =+NSC%massGas    () &
-              &                   +NSC%massStellar()
-          call NSC%angularMomentumSet(specificAngularMomentum*massNSC)
+          massNuclearStarCluster =+nuclearStarCluster%massGas    () &
+              &                   +nuclearStarCluster%massStellar()
+          call nuclearStarCluster%angularMomentumSet(specificAngularMomentum*massNuclearStarCluster)
           ! Indicate that ODE evolution should continue after this state change.
           if (status == GSL_Success) status=GSL_Continue
        end if
@@ -626,9 +633,9 @@ contains
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Trap cases where an attempt is made to add gas via this sink function.
-    if (rate > 0.0d0) call Error_Report(                                                      &
+    if (rate > 0.0d0) call Error_Report(                                                                  &
          &                              'attempt to add mass via sink in standard nuclear star cluster'// &
-         &                              {introspection:location}                              &
+         &                              {introspection:location}                                          &
          &                             )
     ! Return if no adjustment is being made.
     if (rate == 0.0d0) return
@@ -736,7 +743,7 @@ contains
     use :: Stellar_Luminosities_Structure, only : abs                   , max             , stellarLuminosities     , unitStellarLuminosities
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentNSC      )               , pointer :: NSC
+    class           (nodeComponentNSC      )               , pointer :: nuclearStarCluster
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     double precision                        , parameter              :: massMinimum                   =1.0d0
     double precision                        , parameter              :: scaleMassRelative             =1.0d-3
@@ -751,61 +758,60 @@ contains
     ! Check if we are the default method.
     if (.not.defaultNSCComponent%standardIsActive()) return
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Check if an standard nuclear star cluster component exists.
-    select type (NSC)
+    select type (nuclearStarCluster)
     class is (nodeComponentNSCStandard)
        ! Get spheroid component.
        spheroid  => node%spheroid()
        ! Set scale for angular momentum.
-       angularMomentum=+abs(NSC    %angularMomentum()) &
+       angularMomentum=+abs(nuclearStarCluster    %angularMomentum()) &
             &          +abs(spheroid%angularMomentum())
-       call NSC%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
+       call nuclearStarCluster%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
        ! Set scale for masses.
        ! The scale here (and for other quantities below) combines the mass of nuclear star cluster and spheroid.
-        mass     =    max(     scaleMassRelative*spheroid%massStellar(),  &
-            &              max(                       NSC%massStellar(),  &
-            &                  massMinimum                                &
-            &                 )                                           &
+        mass     =    max(     scaleMassRelative*spheroid          %massStellar(), &
+            &              max(                  nuclearStarCluster%massStellar(), &
+            &                  massMinimum                                         &
+            &                 )                                                    &
             &             ) 
-
-       call NSC%massGasScale          (mass)
-       call NSC%massStellarScale      (mass)
-       call NSC%massStellarFormedScale(mass)
+       call nuclearStarCluster%massGasScale          (mass)
+       call nuclearStarCluster%massStellarScale      (mass)
+       call nuclearStarCluster%massStellarFormedScale(mass)
        ! Set the scale for the retained stellar mass fraction.
-       call NSC%fractionMassRetainedScale(fractionTolerance*NSC%fractionMassRetained())
+       call nuclearStarCluster%fractionMassRetainedScale(fractionTolerance*nuclearStarCluster%fractionMassRetained())
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for abundances.
-          abundancesScale= +max(                                &
-               &                +mass                           &
-               &                *toleranceRelativeMetallicity , &
-               &                +massMinimum                    &
-               &               )                                &
-               &                *unitAbundances
+          abundancesScale=+max(                                &
+               &               +mass                           &
+               &               *toleranceRelativeMetallicity , &
+               &               +massMinimum                    &
+               &              )                                &
+               &          *unitAbundances
           ! Set scale for gas abundances.
-          call NSC%abundancesGasScale    (abundancesScale)
+          call nuclearStarCluster%abundancesGasScale    (abundancesScale)
           ! Set scale for stellar abundances.
-          call NSC%abundancesStellarScale(abundancesScale)
+          call nuclearStarCluster%abundancesStellarScale(abundancesScale)
        end if
        ! Set scale for stellar luminosities.
-       stellarLuminositiesScale=max(                                      &
-            &                       +abs(NSC     %luminositiesStellar())  &
-            &                       +abs(spheroid%luminositiesStellar()), &
-            &                           +unitStellarLuminosities          &
-            &                           *luminosityMinimum                &
+       stellarLuminositiesScale=max(                                                 &
+            &                       +abs(nuclearStarCluster%luminositiesStellar())   &
+            &                       +abs(spheroid          %luminositiesStellar()) , &
+            &                           +                   unitStellarLuminosities  &
+            &                           *                   luminosityMinimum        &
             &                      )
-       call stellarLuminositiesScale%truncate                (NSC%luminositiesStellar())
-       call NSC                     %luminositiesStellarScale(stellarLuminositiesScale )
+       call stellarLuminositiesScale%truncate                (nuclearStarCluster%luminositiesStellar     ())
+       call nuclearStarCluster      %luminositiesStellarScale(                   stellarLuminositiesScale  )
        ! Set scales for stellar population properties and star formation histories.
-       stellarPopulationHistoryScales=NSC%stellarPropertiesHistory()
-       call stellarPopulationProperties_%scales   (NSC%massStellar(),NSC%abundancesStellar(),stellarPopulationHistoryScales)
-       call NSC%stellarPropertiesHistoryScale     (                                          stellarPopulationHistoryScales)
-       call stellarPopulationHistoryScales%destroy()
-       stellarPopulationHistoryScales=NSC%starFormationHistory()
-       call starFormationHistory_%scales          (stellarPopulationHistoryScales,node,NSC%massStellar(),NSC%massGas(),NSC%abundancesStellar())
-       call NSC%starFormationHistoryScale         (stellarPopulationHistoryScales                                          )
-       call stellarPopulationHistoryScales%destroy()
+       stellarPopulationHistoryScales=nuclearStarCluster%stellarPropertiesHistory()
+       call stellarPopulationProperties_  %scales                       (nuclearStarCluster%massStellar(),nuclearStarCluster%abundancesStellar(),stellarPopulationHistoryScales)
+       call nuclearStarCluster            %stellarPropertiesHistoryScale(                                                                        stellarPopulationHistoryScales)
+       call stellarPopulationHistoryScales%destroy                      (                                                                                                      )
+       stellarPopulationHistoryScales=nuclearStarCluster%starFormationHistory    ()
+       call starFormationHistory_         %scales                       (stellarPopulationHistoryScales,node,nuclearStarCluster%massStellar(),nuclearStarCluster%massGas(),nuclearStarCluster%abundancesStellar())
+       call nuclearStarCluster            %starFormationHistoryScale    (stellarPopulationHistoryScales                                                                                                          )
+       call stellarPopulationHistoryScales%destroy                      (                                                                                                                                        )
     end select
     return
   end subroutine Node_Component_NSC_Standard_Scale_Set
@@ -818,7 +824,7 @@ contains
     use :: Histories       , only : history
     implicit none
     type   (treeNode             ), intent(inout) , target  :: node
-    class  (nodeComponentNSC     )                , pointer :: NSC
+    class  (nodeComponentNSC     )                , pointer :: nuclearStarCluster
     class  (nodeComponentSpheroid)                , pointer :: spheroid
     class  (nodeComponentBasic   )                , pointer :: basic
     type   (history              )                          :: historyStarFormation        , stellarPropertiesHistory      , &
@@ -827,23 +833,23 @@ contains
     double precision                                        :: timeBegin
 
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Exit if already initialized.
-    if (NSC%isInitialized()) return
+    if (nuclearStarCluster%isInitialized()) return
     ! Determine which histories must be created.
-    historyStarFormation          =NSC%starFormationHistory           ()
+    historyStarFormation          =nuclearStarCluster%starFormationHistory           ()
     createStarFormationHistory    =.not.             historyStarFormation    %exists ()
     call                                             historyStarFormation    %destroy()
-    stellarPropertiesHistory      =NSC%stellarPropertiesHistory       ()
+    stellarPropertiesHistory      =nuclearStarCluster%stellarPropertiesHistory       ()
     createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
     call                                             stellarPropertiesHistory%destroy()
     ! Set the fraction of mass retained.
-    call NSC%fractionMassRetainedSet(1.0d0)
+    call nuclearStarCluster%fractionMassRetainedSet(1.0d0)
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
        call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
-       call NSC%stellarPropertiesHistorySet(stellarPropertiesHistory)
+       call nuclearStarCluster%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end if
     ! Create the star formation history.
     if (createStarFormationHistory) then
@@ -856,12 +862,12 @@ contains
           timeBegin=  basic%time ()
        end if
     call starFormationHistory_%create                 (node,historyStarFormation,timeBegin)
-    call NSC                  %starFormationHistorySet(     historyStarFormation          )
+    call nuclearStarCluster   %starFormationHistorySet(     historyStarFormation          )
     end if
     ! Record that the nuclear star cluster has been initialized.
-    call NSC%isInitializedSet(.true.  )
-    ! Allow the NSC to form a new black hole seed.
-    call NSC%CollapseSet     (.false. )
+    call nuclearStarCluster%isInitializedSet(.true. )
+    ! Allow the nuclear star cluster to form a new black hole seed.
+    call nuclearStarCluster%CollapseSet     (.false.)
     return
   end subroutine Node_Component_NSC_Standard_Create
 
@@ -877,14 +883,14 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentNSCStandard, treeNode
     implicit none
     type (treeNode        ), intent(inout), pointer :: node
-    class(nodeComponentNSC)               , pointer :: NSC
+    class(nodeComponentNSC)               , pointer :: nuclearStarCluster
 
     ! Get the nuclear star cluster component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Check if an standard nuclear star cluster component exists.
-    select type (NSC)
+    select type (nuclearStarCluster)
     class is (nodeComponentNSCStandard)
-       if (inactiveLuminositiesStellar) call NSC%luminositiesStellarInactive()
+       if (inactiveLuminositiesStellar) call nuclearStarCluster%luminositiesStellarInactive()
     end select
     return
   end subroutine Node_Component_NSC_Standard_Inactive
@@ -904,21 +910,21 @@ contains
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
     type            (treeNode                        ), pointer       :: nodeHost
-    class           (nodeComponentNSC                ), pointer       :: NSC
+    class           (nodeComponentNSC                ), pointer       :: nuclearStarCluster
     class           (nodeComponentSpheroid           ), pointer       :: spheroidHost           
     class           (nodeComponentDisk               ), pointer       :: diskHost               
-    type            (history                         )                :: historyDisk                    , historySpheroid          , &
-         &                                                               historyNSC                     , history_
-    double precision                                                  :: spheroidSpecificAngularMomentum, diskSpecificAngularMomentum, &
-         &                                                               NSCSpecificAngularMomentum     , massNSC
-    type            (enumerationDestinationMergerType)                :: destinationGasSatellite        , destinationGasHost       , &
-         &                                                               destinationStarsHost           , destinationStarsSatellite
+    type            (history                         )                :: historyDisk                              , historySpheroid            , &
+         &                                                               historyNuclearStarCluster                , history_
+    double precision                                                  :: spheroidSpecificAngularMomentum          , diskSpecificAngularMomentum, &
+         &                                                               angularMomentumSpecificNuclearStarCluster, massNuclearStarCluster
+    type            (enumerationDestinationMergerType)                :: destinationGasSatellite                  , destinationGasHost         , &
+         &                                                               destinationStarsHost                     , destinationStarsSatellite
     logical                                                           :: mergerIsMajor
     !$GLC attributes unused :: self
 
     ! Check that the nuclear star cluster is of the standard class.
-    NSC => node%NSC()
-    select type (NSC)
+    nuclearStarCluster => node%NSC()
+    select type (nuclearStarCluster)
     class is (nodeComponentNSCStandard)
        ! Find the node to merge with.
        nodeHost    => node    %mergesWith(                 )
@@ -926,82 +932,82 @@ contains
        diskHost    => nodeHost%disk      (autoCreate=.true.)
 
        ! Get specific angular momentum of the nuclear star cluster material.
-       if (NSC%massGas()+NSC%massStellar() > 0.0d0) then
-          NSCSpecificAngularMomentum=   NSC%angularMomentum() &
-            &                        /(                       &
-            &                           NSC%massGas        () &
-                                       +NSC%massStellar    () &
-            &                         )     
+       if (nuclearStarCluster%massGas()+nuclearStarCluster%massStellar() > 0.0d0) then
+          angularMomentumSpecificNuclearStarCluster=+  nuclearStarCluster%angularMomentum() &
+            &                                       /(                                      &
+            &                                         +nuclearStarCluster%massGas        () &
+            &                                         +nuclearStarCluster%massStellar    () &
+            &                                        )     
        else
-          NSCSpecificAngularMomentum=0.0d0
+          angularMomentumSpecificNuclearStarCluster=+0.0d0
        end if
-       if (spheroidHost%massGas()+spheroidHost%massStellar() > 0.0d0) then
-          spheroidSpecificAngularMomentum=   spheroidHost%angularMomentum() &
-               &                          /(                                &
-               &                             spheroidHost%massGas        () &
-               &                            +spheroidHost%massStellar    () &
-               &                           )
+       if (spheroidHost      %massGas()+spheroidHost      %massStellar() > 0.0d0) then
+          spheroidSpecificAngularMomentum          =+  spheroidHost      %angularMomentum() &
+               &                                    /(                                      &
+               &                                      +spheroidHost      %massGas        () &
+               &                                      +spheroidHost      %massStellar    () &
+               &                                     )
        else
-          spheroidSpecificAngularMomentum=0.0d0
+          spheroidSpecificAngularMomentum          =+0.0d0
        end if
-       if (diskHost%massGas()+diskHost%massStellar() > 0.0d0) then
-          diskSpecificAngularMomentum=   diskHost%angularMomentum() &
-               &                      /(                            &
-               &                         diskHost%massGas        () &
-               &                        +diskHost%massStellar    () &
-               &                       )
+       if (diskHost          %massGas()+diskHost          %massStellar() > 0.0d0) then
+          diskSpecificAngularMomentum              =+  diskHost          %angularMomentum() &
+               &                                    /(                                      &
+               &                                      +diskHost          %massGas        () &
+               &                                      +diskHost          %massStellar    () &
+               &                                     )
        else
-          diskSpecificAngularMomentum=0.0d0
+          diskSpecificAngularMomentum              =+0.0d0
        end if
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move gas material within the host if necessary
        select case (destinationGasHost%ID)
        case (destinationMergerDisk%ID)
-          call diskHost%            massGasSet(                                &
-               &                                diskHost    %massGas        () &
-               &                               +NSC         %massGas        () &
-               &                              )
-          call diskHost%      abundancesGasSet(                                &
-               &                                diskHost    %abundancesGas  () &
-               &                               +NSC         %abundancesGas  () &
-               &                              )
-          call diskHost%    angularMomentumSet(                                &
-               &                                diskHost    %angularMomentum() &
-               &                               +NSC         %massGas        () &
-               &                               *NSCSpecificAngularMomentum     &
-               &                              )
-          call NSC     %    angularMomentumSet(                                &
-               &                                NSC         %angularMomentum() &
-               &                               -NSC         %massGas        () &
-               &                               *NSCSpecificAngularMomentum     &        
-               &                              )
-          call NSC     %            massGasSet(                                &
-               &                                0.0d0                          &
-               &                              )
-          call NSC     %      abundancesGasSet(                                &
-               &                                zeroAbundances                 &
-               &                              )     
+          call diskHost              %        massGasSet(                                                                &
+               &                                         +diskHost          %      massGas                            () &
+               &                                         +nuclearStarCluster%      massGas                            () &
+               &                                        )
+          call diskHost              %  abundancesGasSet(                                                                &
+               &                                         +diskHost          %abundancesGas                            () &
+               &                                         +nuclearStarCluster%abundancesGas                            () &
+               &                                        )
+          call diskHost              %angularMomentumSet(                                                                &
+               &                                         +diskHost          %angularMomentum                          () &
+               &                                         +nuclearStarCluster%      massGas                            () &
+               &                                         *                   angularMomentumSpecificNuclearStarCluster   &
+               &                                        )
+          call nuclearStarCluster    %angularMomentumSet(                                                                &
+               &                                         +nuclearStarCluster%angularMomentum                          () &
+               &                                         -nuclearStarCluster%      massGas                            () &
+               &                                         *                   angularMomentumSpecificNuclearStarCluster   &        
+               &                                        )
+          call nuclearStarCluster    %        massGasSet(                                                                &
+               &                                         +0.0d0                                                          &
+               &                                        )
+          call nuclearStarCluster    %  abundancesGasSet(                                                                &
+               &                                          zeroAbundances                                                 &
+               &                                        )     
        case (destinationMergerSpheroid%ID)
-          call spheroidHost%        massGasSet(                                &
-               &                                spheroidHost%massGas        () &
-               &                               +NSC         %massGas        () &
-               &                              )
-          call spheroidHost%  abundancesGasSet(                                &
-               &                                spheroidHost%abundancesGas  () &
-               &                               +NSC         %abundancesGas  () &
-               &                              )
-          call spheroidHost%angularMomentumSet(                                &
-               &                                spheroidHost%angularMomentum() &
-               &                               +NSC         %massGas        () &
-               &                               *NSCSpecificAngularMomentum     &
-               &                              )
-          call NSC     %            massGasSet(                                &
-               &                                0.0d0                          &
-               &                              )
-          call NSC     %      abundancesGasSet(                                &
-               &                                zeroAbundances                 &
-               &                              )  
+          call spheroidHost          %        massGasSet(                                                                &
+               &                                         +spheroidHost      %      massGas                            () &
+               &                                         +nuclearStarCluster%      massGas                            () &
+               &                                        )
+          call spheroidHost          %  abundancesGasSet(                                                                &
+               &                                         +spheroidHost      %abundancesGas                            () &
+               &                                         +nuclearStarCluster%abundancesGas                            () &
+               &                                        )
+          call spheroidHost          %angularMomentumSet(                                                                &
+               &                                         +spheroidHost      %angularMomentum                          () &
+               &                                         +nuclearStarCluster%      massGas                            () &
+               &                                         *                   angularMomentumSpecificNuclearStarCluster   &
+               &                                        )
+          call nuclearStarCluster%            massGasSet(                                                                &
+               &                                         +0.0d0                                                          &
+               &                                        )
+          call nuclearStarCluster%      abundancesGasSet(                                                                &
+               &                                          zeroAbundances                                                 &
+               &                                        )  
        case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
@@ -1010,213 +1016,216 @@ contains
        ! Move stellar material within the host if necessary
        select case (destinationStarsHost%ID)
        case (destinationMergerDisk%ID)
-          call diskHost%        massStellarSet(                                &
-               &                                diskHost%        massStellar() &
-               &                               +NSC     %        massStellar() &
-               &                              )
-          call diskHost%  abundancesStellarSet(                                &
-               &                                diskHost%  abundancesStellar() &
-               &                               +NSC     %  abundancesStellar() &
-               &                              )
-          call diskHost%luminositiesStellarSet(                                &
-               &                                diskHost%luminositiesStellar() &
-               &                               +NSC     %luminositiesStellar() &
-               &                              )
-          call diskHost%    angularMomentumSet(                                &
-               &                                diskHost%    angularMomentum() &
-               &                               +NSC     %        massStellar() &
-               &                               *NSCSpecificAngularMomentum     &
-               &                              )
-          call NSC     %    angularMomentumSet(                                &
-               &                                NSC     %    angularMomentum() &
-               &                               -NSC     %        massStellar() &
-               &                               *NSCSpecificAngularMomentum     &
-               &                              )
-          call NSC     %        massStellarSet(                                &
-               &                               0.0d0                           &
-               &                              )
-          call NSC     %  abundancesStellarSet(                                &
-               &                               zeroAbundances                  &
-               &                              )
-          call NSC     %luminositiesStellarSet(                                &
-               &                               zeroStellarLuminosities         &
-               &                              )
+          call diskHost          %        massStellarSet(                                                                &
+               &                                         +diskHost          %        massStellar                      () &
+               &                                         +nuclearStarCluster%        massStellar                      () &
+               &                                        )
+          call diskHost          %  abundancesStellarSet(                                                                &
+               &                                         +diskHost          %  abundancesStellar                      () &
+               &                                         +nuclearStarCluster%  abundancesStellar                      () &
+               &                                        )
+          call diskHost          %luminositiesStellarSet(                                                                &
+               &                                         +diskHost          %luminositiesStellar                      () &
+               &                                         +nuclearStarCluster%luminositiesStellar                      () &
+               &                                        )
+          call diskHost          %    angularMomentumSet(                                                                &
+               &                                         +diskHost          %    angularMomentum                      () &
+               &                                         +nuclearStarCluster%        massStellar                      () &
+               &                                         *                   angularMomentumSpecificNuclearStarCluster   &
+               &                                        )
+          call nuclearStarCluster%    angularMomentumSet(                                                                &
+               &                                         +nuclearStarCluster%    angularMomentum                      () &
+               &                                         -nuclearStarCluster%        massStellar                      () &
+               &                                         *                   angularMomentumSpecificNuclearStarCluster   &
+               &                                        )
+          call nuclearStarCluster%        massStellarSet(                                                                &
+               &                                         +0.0d0                                                          &
+               &                                        )
+          call nuclearStarCluster%  abundancesStellarSet(                                                                &
+               &                                          zeroAbundances                                                 &
+               &                                        )
+          call nuclearStarCluster%luminositiesStellarSet(                                                                &
+               &                                          zeroStellarLuminosities                                        &
+               &                                        )
           ! Also add stellar properties histories.
-          historyDisk=diskHost%stellarPropertiesHistory()
-          historyNSC =NSC     %stellarPropertiesHistory()
-          call historyDisk%interpolatedIncrement(historyNSC    )
-          call historyNSC %               reset(               )
-          call diskHost%stellarPropertiesHistorySet(historyDisk)
-          call NSC     %stellarPropertiesHistorySet(historyNSC )
+          historyDisk              =diskHost          %stellarPropertiesHistory()
+          historyNuclearStarCluster=nuclearStarCluster%stellarPropertiesHistory()
+          call historyDisk              %interpolatedIncrement      (historyNuclearStarCluster)
+          call historyNuclearStarCluster%reset                      (                         )
+          call diskHost                 %stellarPropertiesHistorySet(historyDisk              )
+          call nuclearStarCluster       %stellarPropertiesHistorySet(historyNuclearStarCluster)
           ! Also add star formation histories.
-          historyDisk=diskHost%starFormationHistory()
-          historyNSC =NSC     %starFormationHistory()
-          call starFormationHistory_%move                   (nodeHost,nodeHost,historyDisk,historyNSC)
-          call diskHost             %starFormationHistorySet(                  historyDisk           )
-          call NSC                  %starFormationHistorySet(                              historyNSC)
-          call historyDisk          %destroy                (                                        )
-          call historyNSC           %destroy                (                                        )              
+          historyDisk              =diskHost          %starFormationHistory()
+          historyNuclearStarCluster=nuclearStarCluster%starFormationHistory()
+          call starFormationHistory_    %move                   (nodeHost,nodeHost,historyDisk,historyNuclearStarCluster)
+          call diskHost                 %starFormationHistorySet(                  historyDisk                          )
+          call nuclearStarCluster       %starFormationHistorySet(                              historyNuclearStarCluster)
+          call historyDisk              %destroy                (                                                       )
+          call historyNuclearStarCluster%destroy                (                                                       )              
        case (destinationMergerSpheroid%ID)
-          call spheroidHost%        massStellarSet(                                    &
-               &                                    spheroidHost%        massStellar() &
-               &                                   +NSC         %        massStellar() &
-               &                                  )
-          call spheroidHost%    angularMomentumSet( spheroidHost%    angularMomentum() &
-               &                                   +NSC         %        massStellar() &
-               &                                   *NSCSpecificAngularMomentum         &
-               &                                  )
-          call spheroidHost%  abundancesStellarSet(                                    &
-               &                                    spheroidHost%  abundancesStellar() &
-               &                                   +NSC         %  abundancesStellar() &
-               &                                  )
-          call spheroidHost%luminositiesStellarSet( spheroidHost%luminositiesStellar() &
-               &                                   +NSC         %luminositiesStellar() &
-               &                                  )
-          call          NSC%        massStellarSet(                                    &
-               &                                    0.0d0                              &
-               &                                  )
-          call          NSC%  abundancesStellarSet(                                    &
-               &                                    zeroAbundances                     &
-               &                                  )
-          call          NSC%luminositiesStellarSet(                                    &
-               &                                    zeroStellarLuminosities            &
-               &                                  )
+          call spheroidHost      %        massStellarSet(                                                                &
+               &                                         +spheroidHost      %        massStellar                      () &
+               &                                         +nuclearStarCluster%        massStellar                      () &
+               &                                        )
+          call spheroidHost      %    angularMomentumSet(                                                                &
+               &                                         +spheroidHost      %    angularMomentum                      () &
+               &                                         +nuclearStarCluster%        massStellar                      () &
+               &                                         *                   angularMomentumSpecificNuclearStarCluster   &
+               &                                        )
+          call spheroidHost      %  abundancesStellarSet(                                                                &
+               &                                         +spheroidHost      %  abundancesStellar                      () &
+               &                                         +nuclearStarCluster%  abundancesStellar                      () &
+               &                                        )
+          call spheroidHost      %luminositiesStellarSet(                                                                &
+               &                                         +spheroidHost      %luminositiesStellar                      () &
+               &                                         +nuclearStarCluster%luminositiesStellar                      () &
+               &                                        )
+          call nuclearStarCluster%        massStellarSet(                                                                &
+               &                                         +0.0d0                                                          &
+               &                                        )
+          call nuclearStarCluster%  abundancesStellarSet(                                                                &
+               &                                          zeroAbundances                                                 &
+               &                                        )
+          call nuclearStarCluster%luminositiesStellarSet(                                                                &
+               &                                          zeroStellarLuminosities                                        &
+               &                                        )
           ! Also add stellar properties histories.
-          historyNSC    =          NSC%stellarPropertiesHistory()
-          historySpheroid=spheroidHost%stellarPropertiesHistory()
-          call historySpheroid%interpolatedIncrement(historyNSC)
-          call historyNSC     %reset    (           )
-          call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
-          call NSC            %stellarPropertiesHistorySet(historyNSC     )
+          historyNuclearStarCluster=nuclearStarCluster%stellarPropertiesHistory()
+          historySpheroid          =spheroidHost      %stellarPropertiesHistory()
+          call historySpheroid          %interpolatedIncrement      (historyNuclearStarCluster)
+          call historyNuclearStarCluster%reset                      (                         )
+          call spheroidHost             %stellarPropertiesHistorySet(historySpheroid          )
+          call nuclearStarCluster       %stellarPropertiesHistorySet(historyNuclearStarCluster)
           ! Also add star formation histories.
-          historyNSC     =NSC         %starFormationHistory()
-          historySpheroid=spheroidHost%starFormationHistory()
-          call starFormationHistory_%move                   (nodeHost,nodeHost,historySpheroid,historyNSC)
-          call spheroidHost         %starFormationHistorySet(                  historySpheroid           )
-          call NSC                  %starFormationHistorySet(                                  historyNSC)
-          call historyNSC           %destroy                (                                            )
-          call historySpheroid      %destroy                (                                            )
-          historyNSC     =NSC         %starFormationHistory()
-          historySpheroid=spheroidHost%starFormationHistory()
+          historyNuclearStarCluster=nuclearStarCluster%starFormationHistory   ()
+          historySpheroid          =spheroidHost      %starFormationHistory   ()
+          call starFormationHistory_    %move                   (nodeHost,nodeHost,historySpheroid,historyNuclearStarCluster)
+          call spheroidHost             %starFormationHistorySet(                  historySpheroid                          )
+          call nuclearStarCluster       %starFormationHistorySet(                                  historyNuclearStarCluster)
+          call historyNuclearStarCluster%destroy                (                                                           )
+          call historySpheroid          %destroy                (                                                           )
+          historyNuclearStarCluster=nuclearStarCluster%starFormationHistory   ()
+          historySpheroid          =spheroidHost      %starFormationHistory   ()
        case (destinationMergerUnmoved%ID)
           ! Do nothing
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        ! Get specifit angular momentum of the nuclear star cluster material.
-       massNSC= NSC%massGas()+NSC%massStellar()
-       if (massNSC >0.0d0) then
-        NSCSpecificAngularMomentum=NSC%angularMomentum()/massNSC
-        ! Move the gas component of the standard nuclear star cluster to the host.
-        select case (destinationGasSatellite%ID)
-        case (destinationMergerDisk%ID)
-           call diskHost%           massGasSet(                                    &
-               &                                diskHost    %massGas            () &
-               &                               +NSC         %massGas            () &
-               &                              )
-          call diskHost%      abundancesGasSet(                                    &
-               &                                diskHost    %abundancesGas      () &
-               &                               +NSC         %abundancesGas      () &
-               &                                                      )
-          call diskHost%    angularMomentumSet(                                    &
-               &                                diskHost    %angularMomentum    () &
-               &                               +NSC         %massGas            () &
-               &                               *NSCSpecificAngularMomentum         &
-               &                              )
-       case (destinationMergerSpheroid%ID)
-          call spheroidHost%massGasSet        (                                    &
-               &                                spheroidHost%massGas            () &
-               &                               +NSC         %massGas            () &
-               &                              )
-          call spheroidHost%abundancesGasSet  (                                    &
-               &                                spheroidHost%abundancesGas      () &
-               &                               +NSC         %abundancesGas      () &
-               &                              )
-          call spheroidHost%angularMomentumSet(                                    &
-               &                                spheroidHost%angularMomentum    () &
-               &                               +NSC         %massGas            () &
-               &                               *NSCSpecificAngularMomentum         &
-               &                              )
-       case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
-       end select
-       call NSC%      massGasSet(         0.0d0)
-       call NSC%abundancesGasSet(zeroAbundances)
-       ! Move the stellar component of the standard nuclear star cluster to the host.
-       select case (destinationStarsSatellite%ID)
-       case (destinationMergerDisk%ID)
-          call diskHost   %massStellarSet        (                                 &
-               &                                   diskHost %        massStellar() &
-               &                                  +NSC      %        massStellar() &
-               &                                 )
-          call diskHost   %abundancesStellarSet  (                                 &
-               &                                   diskHost %  abundancesStellar() &
-               &                                  +NSC      %  abundancesStellar() &
-               &                                 )
-          call diskHost   %luminositiesStellarSet(                                 &
-               &                                   diskHost %luminositiesStellar() &
-               &                                  +NSC      %luminositiesStellar() &
-               &                                 )
-          call diskHost   %angularMomentumSet    (                                 &
-               &                                   diskHost %    angularMomentum() &
-               &                                  +NSC      %        massStellar() &
-               &                                  *NSCspecificAngularMomentum      & 
-               &                                 )
-          ! Also add stellar properties histories.
-          historyNSC=NSC     %stellarPropertiesHistory()
-          history_  =diskHost%stellarPropertiesHistory()
-          call history_   %interpolatedIncrement      (historyNSC)
-          call historyNSC%reset                       (          )
-          call diskHost   %stellarPropertiesHistorySet(history_  )
-          call NSC        %stellarPropertiesHistorySet(historyNSC)
-          ! Also add star formation histories.
-          historyNSC=NSC     %starFormationHistory    ()
-          history_  =diskHost%starFormationHistory    ()
-          call StarFormationHistory_%move                   (nodeHost,node,history_,historyNSC)
-          call diskHost             %starFormationHistorySet(              history_           )
-          call NSC                  %starFormationHistorySet(                       historyNSC)
-          call history_             %destroy                (                                 )
-          call historyNSC           %destroy                (                                 )
-       case (destinationMergerSpheroid%ID)
-          call spheroidHost%massStellarSet        (                                    &
-               &                                    spheroidHost%massStellar        () &
-               &                                   +NSC         %massStellar        () &
-               &                                  )
-          call spheroidHost%abundancesStellarSet  (                                    &
-               &                                    spheroidHost%abundancesStellar  () &
-               &                                   +NSC         %abundancesStellar  () &
-               &                                  )
-          call spheroidHost%luminositiesStellarSet(                                    &
-               &                                    spheroidHost%luminositiesStellar() &
-               &                                   +NSC         %luminositiesStellar() &
-               &                                  )
-          ! Also add stellar properties histories.
-          historyNSC=NSC         %stellarPropertiesHistory()
-          history_  =spheroidHost%stellarPropertiesHistory()
-          call history_    %interpolatedIncrement      (historyNSC)
-          call historyNSC  %reset                      (          )
-          call spheroidHost%stellarPropertiesHistorySet(history_  )
-          call NSC         %stellarPropertiesHistorySet(historyNSC)
-          ! Also add star formation histories.
-          historyNSC=NSC         %starFormationHistory    ()
-          history_  =spheroidHost%starFormationHistory    ()
-          call starFormationHistory_ %move                   (nodeHost,node,history_,historyNSC)
-          call spheroidHost          %starFormationHistorySet(              history_           )
-          call NSC                   %starFormationHistorySet(                       historyNSC)
-          call history_              %destroy                (                                 )
-          call historyNSC            %destroy                (                                 )
-       case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
-       end select
-       call NSC%        massStellarSet(                  0.0d0)
-       call NSC%  abundancesStellarSet(         zeroAbundances)
-       call NSC%luminositiesStellarSet(zeroStellarLuminosities)
-       call NSC%    angularMomentumSet(                  0.0d0)
-       call NSC%                AgeSet(                  0.0d0)
-       call NSC%           massSeedSet(                  0.0d0)
-       call NSC%           CollapseSet(                .false.)
-       call NSC%       CriticalMassSet(                  0.0d0)
-    end if
+       massNuclearStarCluster=+nuclearStarCluster%massGas    () &
+            &                 +nuclearStarCluster%massStellar()
+       if (massNuclearStarCluster > 0.0d0) then
+          angularMomentumSpecificNuclearStarCluster=nuclearStarCluster%angularMomentum()/massNuclearStarCluster
+          ! Move the gas component of the standard nuclear star cluster to the host.
+          select case (destinationGasSatellite%ID)
+          case (destinationMergerDisk%ID)
+             call diskHost    %       massGasSet     (                                                                &
+                  &                                   +diskHost          %massGas                                  () &
+                  &                                   +nuclearStarCluster%massGas                                  () &
+                  &                                  )
+             call diskHost    %  abundancesGasSet    (                                                                &
+                  &                                   +diskHost          %abundancesGas                            () &
+                  &                                   +nuclearStarCluster%abundancesGas                            () &
+                  &                                  )
+             call diskHost    %angularMomentumSet    (                                                                &
+                  &                                   +diskHost          %angularMomentum                          () &
+                  &                                   +nuclearStarCluster%massGas                                  () &
+                  &                                   *                   angularMomentumSpecificNuclearStarCluster   &
+                  &                                  )
+          case (destinationMergerSpheroid%ID)
+             call spheroidHost%massGasSet            (                                                                &
+                  &                                   +spheroidHost      %massGas                                  () &
+                  &                                   +nuclearStarCluster%massGas                                  () &
+                  &                                  )
+             call spheroidHost%abundancesGasSet      (                                                                &
+                  &                                   +spheroidHost      %abundancesGas                            () &
+                  &                                   +nuclearStarCluster%abundancesGas                            () &
+                  &                                  )
+             call spheroidHost%angularMomentumSet    (                                                                &
+                  &                                   +spheroidHost      %angularMomentum                          () &
+                  &                                   +nuclearStarCluster%massGas                                  () &
+                  &                                   *                   angularMomentumSpecificNuclearStarCluster   &
+                  &                                  )
+          case default
+             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          end select
+          call nuclearStarCluster%      massGasSet(         0.0d0)
+          call nuclearStarCluster%abundancesGasSet(zeroAbundances)
+          ! Move the stellar component of the standard nuclear star cluster to the host.
+          select case (destinationStarsSatellite%ID)
+          case (destinationMergerDisk%ID)
+             call diskHost    %massStellarSet        (                                                                &
+                  &                                   +diskHost          %        massStellar                      () &
+                  &                                   +nuclearStarCluster%        massStellar                      () &
+                  &                                  )
+             call diskHost    %abundancesStellarSet  (                                                                &
+                  &                                   +diskHost          %  abundancesStellar                      () &
+                  &                                   +nuclearStarCluster%  abundancesStellar                      () &
+                  &                                  )
+             call diskHost    %luminositiesStellarSet(                                                                &
+                  &                                   +diskHost          %luminositiesStellar                      () &
+                  &                                   +nuclearStarCluster%luminositiesStellar                      () &
+                  &                                  )
+             call diskHost    %angularMomentumSet    (                                                                &
+                  &                                   +diskHost          %angularMomentum                          () &
+                  &                                   +nuclearStarCluster%        massStellar                      () &
+                  &                                   *                   angularMomentumSpecificNuclearStarCluster   & 
+                  &                                  )
+             ! Also add stellar properties histories.
+             historyNuclearStarCluster=nuclearStarCluster%stellarPropertiesHistory()
+             history_                 =diskHost          %stellarPropertiesHistory()
+             call history_                 %interpolatedIncrement      (historyNuclearStarCluster)
+             call historyNuclearStarCluster%reset                      (                         )
+             call diskHost                 %stellarPropertiesHistorySet(history_                 )
+             call nuclearStarCluster       %stellarPropertiesHistorySet(historyNuclearStarCluster)
+             ! Also add star formation histories.
+             historyNuclearStarCluster=nuclearStarCluster%starFormationHistory    ()
+             history_                 =diskHost          %starFormationHistory    ()
+             call StarFormationHistory_    %move                   (nodeHost,node,history_,historyNuclearStarCluster)
+             call diskHost                 %starFormationHistorySet(              history_                          )
+             call nuclearStarCluster       %starFormationHistorySet(                       historyNuclearStarCluster)
+             call history_                 %destroy                (                                                )
+             call historyNuclearStarCluster%destroy                (                                                )
+          case (destinationMergerSpheroid%ID)
+             call spheroidHost%massStellarSet        (                                          &
+                  &                                   +spheroidHost      %massStellar        () &
+                  &                                   +nuclearStarCluster%massStellar        () &
+                  &                                  )
+             call spheroidHost%abundancesStellarSet  (                                          &
+                  &                                   +spheroidHost      %abundancesStellar  () &
+                  &                                   +nuclearStarCluster%abundancesStellar  () &
+                  &                                  )
+             call spheroidHost%luminositiesStellarSet(                                          &
+                  &                                   +spheroidHost      %luminositiesStellar() &
+                  &                                   +nuclearStarCluster%luminositiesStellar() &
+                  &                                  )
+             ! Also add stellar properties histories.
+             historyNuclearStarCluster=nuclearStarCluster%stellarPropertiesHistory()
+             history_                 =spheroidHost      %stellarPropertiesHistory()
+             call history_                 %interpolatedIncrement      (historyNuclearStarCluster)
+             call historyNuclearStarCluster%reset                      (                         )
+             call spheroidHost             %stellarPropertiesHistorySet(history_                 )
+             call nuclearStarCluster       %stellarPropertiesHistorySet(historyNuclearStarCluster)
+             ! Also add star formation histories.
+             historyNuclearStarCluster=nuclearStarCluster%starFormationHistory    ()
+             history_                 =spheroidHost      %starFormationHistory    ()
+             call starFormationHistory_    %move                   (nodeHost,node,history_,historyNuclearStarCluster)
+             call spheroidHost             %starFormationHistorySet(              history_                          )
+             call nuclearStarCluster       %starFormationHistorySet(                       historyNuclearStarCluster)
+             call history_                 %destroy                (                                                )
+             call historyNuclearStarCluster%destroy                (                                                )
+          case default
+             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          end select
+          call nuclearStarCluster%        massStellarSet(                  0.0d0)
+          call nuclearStarCluster%  abundancesStellarSet(         zeroAbundances)
+          call nuclearStarCluster%luminositiesStellarSet(zeroStellarLuminosities)
+          call nuclearStarCluster%    angularMomentumSet(                  0.0d0)
+          call nuclearStarCluster%                ageSet(                  0.0d0)
+          call nuclearStarCluster%           massSeedSet(                  0.0d0)
+          call nuclearStarCluster%           CollapseSet(                .false.)
+          call nuclearStarCluster%       massCriticalSet(                  0.0d0)
+       end if
     end select
     return
   end subroutine satelliteMerger
@@ -1229,16 +1238,16 @@ contains
     implicit none
     type            (treeNode        ), intent(inout), target   :: node
     double precision                  , intent(in   ), optional :: timeEnd
-    class           (nodeComponentNSC)               , pointer  :: NSC
+    class           (nodeComponentNSC)               , pointer  :: nuclearStarCluster
     type            (history         )                          :: historyStarFormation
     !$GLC attributes unused :: timeEnd
     
     ! Get the spheroid component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Extend the range as necessary.
-    historyStarFormation=NSC%starFormationHistory()
-    call starFormationHistory_%extend(historyStarFormation,starFormationHistoryTemplate)
-    call NSC%starFormationHistorySet(historyStarFormation)
+    historyStarFormation=nuclearStarCluster%starFormationHistory()
+    call starFormationHistory_%extend                 (historyStarFormation,starFormationHistoryTemplate)
+    call nuclearStarCluster   %starFormationHistorySet(historyStarFormation                             )
     return
   end subroutine Node_Component_NSC_Standard_Star_Formation_History_Extend
 
@@ -1250,19 +1259,18 @@ contains
     implicit none
     type            (treeNode        ), intent(inout), target   :: node
     double precision                  , intent(in   ), optional :: timeEnd
-    class           (nodeComponentNSC)               , pointer  :: NSC
+    class           (nodeComponentNSC)               , pointer  :: nuclearStarCluster
     type            (history         )                          :: stellarPropertiesHistory
     !$GLC attributes unused :: timeEnd
     
     ! Get the spheroid component.
-    NSC => node%NSC()
+    nuclearStarCluster => node%NSC()
     ! Extend the range as necessary.
-    stellarPropertiesHistory=NSC%stellarPropertiesHistory()
-    call stellarPropertiesHistory%extend(times=stellarPropertiesHistoryTemplate)
-    call NSC%stellarPropertiesHistorySet(stellarPropertiesHistory)
+    stellarPropertiesHistory=nuclearStarCluster%stellarPropertiesHistory()
+    call stellarPropertiesHistory%extend                     (times=stellarPropertiesHistoryTemplate)
+    call nuclearStarCluster      %stellarPropertiesHistorySet(      stellarPropertiesHistory        )
     return
   end subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend
-
 
   subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
    !!{
@@ -1281,20 +1289,20 @@ contains
      integer(kind=kind_int8  ), intent(in   )          :: treeIndex
      logical                  , intent(in   )          :: nodePassesFilter
      type   (ompLock         ), intent(inout)          :: treeLock
-     class  (nodeComponentNSC)               , pointer :: NSC
+     class  (nodeComponentNSC)               , pointer :: nuclearStarCluster
      type   (history         )                         :: historyStarFormation
      !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
 
      ! Check if we are the default method.
      if (.not.defaultNSCComponent%standardIsActive()) return
      ! Output the star formation history if a nuclear star cluster exists for this component.
-     NSC                  => node%NSC                 ()
-     historyStarFormation =  NSC %starFormationHistory()
+     nuclearStarCluster   => node%NSC                               ()
+     historyStarFormation =  nuclearStarCluster%starFormationHistory()
      call starFormationHistory_%update(node,iOutput,historyStarFormation)
      ! Update the star formation history only if a nuclear star cluster exists.
-     select type (NSC)
+     select type (nuclearStarCluster)
      class is (nodeComponentNSCStandard)
-        call NSC%starFormationHistorySet(historyStarFormation)
+        call nuclearStarCluster%starFormationHistorySet(historyStarFormation)
      end select
      return
    end subroutine mergerTreeExtraOutput

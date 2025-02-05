@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implementation of the \cite{Antonini_2015} star formation rate law for galactic NSCs.
+  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic NSCs.
   !!}
   use :: Abundances_Structure, only : abundances
 
   !![
   <starFormationRateNSCs name="starFormationRateNSCsKrumholz2009">
    <description>
-    A star formation rate implementing the model of \citep{Antonini_2015} for galactic NSCs. This model
+    A star formation rate implementing the model of \citep{antonini_coevolution_2015} for galactic NSCs. This model
     uses the \citep{krumholz_star_2009} star formation rule, with minor modifications.
     \begin{equation}
      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
@@ -46,13 +46,13 @@
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}$
+    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{2\pi r^\mathrm{NSC}}$
     is the surface density of the NSC gas reservoir. The timescale is given by 
     \begin{equation}
     t_\mathrm{SF}^{-1} = (2.6~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
     \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.34}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
     \end{equation}
-    with $\Sigma_\mathrm{th}=85M_\odot\,\box{pc}^{-2}$
+    with $\Sigma_\mathrm{th}=85\mathrm{M}_\odot\,\hbox{pc}^{-2}$
    </description>
   </starFormationRateNSCs>
   !!]
