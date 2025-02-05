@@ -668,7 +668,7 @@ contains
     starFormationHistory=self%starFormationHistory()
     ! Check if the range of this history is sufficient.
     if (starFormationHistory_%rangeIsSufficient(starFormationHistory,rate)) then
-       ! Range is sufficient, call the intrinsinc rate function.
+       ! Range is sufficient, call the intrinsic rate function.
        select type (self)
        class is (nodeComponentNSCStandard)
           call self%starFormationHistoryRateIntrinsic(rate)
@@ -1111,7 +1111,7 @@ contains
        case default
           call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
-       ! Get specifit angular momentum of the nuclear star cluster material.
+       ! Get specific angular momentum of the nuclear star cluster material.
        massNuclearStarCluster=+nuclearStarCluster%massGas    () &
             &                 +nuclearStarCluster%massStellar()
        if (massNuclearStarCluster > 0.0d0) then
@@ -1232,7 +1232,7 @@ contains
 
   subroutine Node_Component_NSC_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a star formation history in a standard nucelar star cluster component for {\normalfont \ttfamily node}.
+    Extend the range of a star formation history in a standard nuclear star cluster component for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -1314,7 +1314,7 @@ contains
   !!]
   subroutine Node_Component_NSC_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
-    Write the tablulation state to file.
+    Write the state to file.
     !!}
     use            :: Display                         , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                   , only : c_ptr                   , c_size_t
