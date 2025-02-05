@@ -439,7 +439,8 @@ contains
 
     select type (self)
     class is (radiationFieldIntergalacticBackgroundInternal)
-       ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new event here - we want only one event per universe.
+       ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new
+       ! event here - we want only one event per universe.
        if (.not.universe_%attributes%exists('radiationFieldIntergalacticBackgroundInternal')) then
           ! Create the first interrupt event in the universe object.
           event                       => universe_%createEvent( )
