@@ -123,7 +123,8 @@ contains
     integer                                                                   :: countBlackHole       , indexBlackHole
     double precision                                                          :: rateAccretionSpheroid, rateAccretionHotHalo, &
          &                                                                       efficiencyRadiative  , efficiencyJet       , &
-         &                                                                       rateAccretion        , rateSpinUp
+         &                                                                       rateAccretion        , rateSpinUp          , &
+         &                                                                       rateAccretionReduced
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     ! If there are no black holes in this node, we have nothing to do - return immediately.
@@ -139,24 +140,25 @@ contains
        call self%blackHoleAccretionRate_%rateAccretion(blackHole,rateAccretionSpheroid,rateAccretionHotHalo)
        rateAccretion=+rateAccretionSpheroid &
             &        +rateAccretionHotHalo
+       ! Finish if there is no accretion.
+       if (rateAccretion <= 0.0d0) cycle
        ! Find the radiative and jet efficiencies - these will be subtracted from the black hole mass growth rate.
-       if (rateAccretion > 0.0d0) then
-          efficiencyRadiative=+self%accretionDisks_%efficiencyRadiative(blackHole,rateAccretion)
-          efficiencyJet      =+self%accretionDisks_%powerJet           (blackHole,rateAccretion) &
-               &              /                                                   rateAccretion  &
-               &              /                     speedLight**2/kilo**2
-       else
-          efficiencyRadiative=+0.0d0
-          efficiencyJet      =+0.0d0
-       end if
+       efficiencyRadiative=+self%accretionDisks_%efficiencyRadiative(blackHole,rateAccretion)
+       efficiencyJet      =+self%accretionDisks_%powerJet           (blackHole,rateAccretion) &
+            &              /                                                   rateAccretion  &
+            &              /                     speedLight**2/kilo**2
+       ! Find the rate of increase in mass of the black hole.
+       rateAccretionReduced=rateAccretion*(1.0d0-efficiencyRadiative-efficiencyJet)
+       ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.
+       if (blackHole%mass() <= 0.0d0 .and. rateAccretionReduced < 0.0d0) cycle
        ! Find the spin-up rate for this black hole.
-       rateSpinUp         =+self%accretionDisks_%rateSpinUp         (blackHole,rateAccretion)
+       rateSpinUp=+self%accretionDisks_%rateSpinUp(blackHole,rateAccretion)
        ! Accumulate rates of mass accretion/loss to the relevant components.
-       call blackHole%       massRate(+rateAccretion        *(1.0d0-efficiencyRadiative-efficiencyJet)                            )
-       call spheroid %massGasSinkRate(-rateAccretionSpheroid                                                                      )
-       call hotHalo  %   massSinkRate(-rateAccretionHotHalo                                           ,interrupt,functionInterrupt)
+       call blackHole%       massRate(+rateAccretionReduced                             )
+       call spheroid %massGasSinkRate(-rateAccretionSpheroid                            )
+       call hotHalo  %   massSinkRate(-rateAccretionHotHalo ,interrupt,functionInterrupt)
        ! Set spin-up rate due to accretion.
-       call blackHole%       spinRate(+rateSpinUp                                                                                 )
+       call blackHole%       spinRate(+rateSpinUp                                       )
      end do
     return
   end subroutine blackHolesAccretionDifferentialEvolution
