@@ -113,9 +113,9 @@ module Node_Component_Black_Hole_Standard
 
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
-  double precision :: bondiHoyleAccretionEnhancementHotHalo , bondiHoyleAccretionEnhancementSpheroid, bondiHoyleAccretionEnhancementNSC
+  double precision :: bondiHoyleAccretionEnhancementHotHalo , bondiHoyleAccretionEnhancementSpheroid
   ! Temperature of accreting gas.
-  double precision :: bondiHoyleAccretionTemperatureSpheroid, bondiHoyleAccretionTemperatureNSC
+  double precision :: bondiHoyleAccretionTemperatureSpheroid
   ! Control for hot mode only accretion.
   logical          :: bondiHoyleAccretionHotModeOnly
 
@@ -171,12 +171,6 @@ contains
       <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
       <source>subParameters</source>
     </inputParameter>
-    <inputParameter>
-      <name>bondiHoyleAccretionEnhancementNSC</name>
-      <defaultValue>5.0d0</defaultValue>
-      <description> The factor by which the Bondi-Hoyle accretion rate of the NSC onto black holes in enhanced.</description>
-      <source>subParameters</source>
-    </inputParameter>
     !!]
     ! Get temperature of accreting gas.
     !![
@@ -184,12 +178,6 @@ contains
       <name>bondiHoyleAccretionTemperatureSpheroid</name>
       <defaultValue>1.0d2</defaultValue>
       <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
-      <source>subParameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>bondiHoyleAccretionTemperatureNSC</name>
-      <defaultValue>1.0d2</defaultValue>
-      <description>The assumed temperature (in Kelvin) of gas in the NSC when computing Bondi-Hoyle accretion rates onto black holes.</description>
       <source>subParameters</source>
     </inputParameter>
     !!]
@@ -327,7 +315,7 @@ contains
     class           (nodeComponentBlackHole)               , pointer   :: blackHoleCentral                                                                                                                                   , blackHole
     class           (nodeComponentSpheroid )               , pointer   :: spheroid
     class           (nodeComponentHotHalo  )               , pointer   :: hotHalo
-    class           (nodeComponentNSC      )               , pointer   :: NSC
+    class           (nodeComponentNSC      )               , pointer   :: nuclearStarCluster
     class           (nodeComponentBasic    )               , pointer   :: basic
     double precision                                       , parameter :: windVelocity                =1.0d4                                                                                                                                                     !    Velocity of disk wind.
     double precision                                       , parameter :: ismTemperature              =1.0d4                                                                                                                                                     !    Temperature of the ISM.
@@ -340,7 +328,7 @@ contains
          &                                                                restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
          &                                                                spheroidDensityRadius2                                                                                                                            , massGasSpheroid                                                , &
          &                                                                radiusSpheroid                                                                                                                                    , windEfficiencyNet                                              , &
-         &                                                                windFraction                                                                                                                                      , accretionRateNSC
+         &                                                                windFraction                                                                                                                                      , accretionRateNuclearStarCluster
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -350,17 +338,17 @@ contains
        ! Get the central black hole.
        blackHoleCentral => node%blackHole(instance=1)
        ! Get the basic, spheroid, and hot halo components.
-       basic    => node%basic   ()
-       spheroid => node%spheroid()
-       hotHalo  => node%hotHalo ()
-       NSC      => node%NSC     ()
+       basic              => node%basic   ()
+       spheroid           => node%spheroid()
+       hotHalo            => node%hotHalo ()
+       nuclearStarCluster => node%NSC     ()
        ! Iterate over instances.
        do iInstance=1,max(instanceCount,1)
           ! Get the black hole.
           blackHole => node%blackHole(instance=iInstance)
           ! Find the rate of rest mass accretion onto the black hole.
-          call blackHoleAccretionRate_%rateAccretion(blackHole,accretionRateSpheroid,accretionRateHotHalo,accretionRateNSC)
-          restMassAccretionRate=accretionRateSpheroid+accretionRateHotHalo+accretionRateNSC
+          call blackHoleAccretionRate_%rateAccretion(blackHole,accretionRateSpheroid,accretionRateHotHalo,accretionRateNuclearStarCluster)
+          restMassAccretionRate=accretionRateSpheroid+accretionRateHotHalo+accretionRateNuclearStarCluster
           ! Finish if there is no accretion.
           if (restMassAccretionRate <= 0.0d0) cycle
           ! Find the radiative efficiency of the accretion.
@@ -383,8 +371,8 @@ contains
           call blackHole%massRate       ( massAccretionRate                                 )
           ! Remove the accreted mass from the spheroid component.
           call spheroid %massGasSinkRate(-accretionRateSpheroid                             )
-          ! Remove the accreted mass from the NSC component.
-          call NSC      %massGasSinkRate(-accretionRateNSC                                  )
+          ! Remove the accreted mass from the nuclear star cluster component.
+          call nuclearStarCluster      %massGasSinkRate(-accretionRateNuclearStarCluster                                  )
           ! Remove the accreted mass from the hot halo component.
           call hotHalo  %   massSinkRate(-accretionRateHotHalo ,interrupt,interruptProcedure)
           ! Set spin-up rate due to accretion.
@@ -539,7 +527,7 @@ contains
 
           call blackHoleHostCentral%massSet(blackHoleSeeds_%mass(node))
           call blackHoleHostCentral%spinSet(blackHoleSeeds_%spin(node))
-          !Track if the origin of the black hole is due to runaway stellar collisions in NSCs.
+          !Track if the origin of the black hole is due to runaway stellar collisions in nuclear star clusters.
           if (blackHoleHostCentral %NSCChannel().or.blackHole%NSCChannel()) then
              call blackHoleHostCentral%NSCChannelSet(              .true.)
           else
@@ -649,10 +637,10 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
     implicit none
     class           (nodeComponentBlackHoleStandard), intent(inout) :: self
-    double precision                                                :: accretionRateSpheroid, accretionRateHotHalo, accretionRateNSC
+    double precision                                                :: accretionRateSpheroid, accretionRateHotHalo, accretionRateNuclearStarCluster
     
-    call blackHoleAccretionRate_%rateAccretion(self,accretionRateSpheroid,accretionRateHotHalo,accretionRateNSC)
-    Node_Component_Black_Hole_Standard_Accretion_Rate=accretionRateSpheroid+accretionRateHotHalo+accretionRateNSC
+    call blackHoleAccretionRate_%rateAccretion(self,accretionRateSpheroid,accretionRateHotHalo,accretionRateNuclearStarCluster)
+    Node_Component_Black_Hole_Standard_Accretion_Rate=accretionRateSpheroid+accretionRateHotHalo+accretionRateNuclearStarCluster
     return
   end function Node_Component_Black_Hole_Standard_Accretion_Rate
 

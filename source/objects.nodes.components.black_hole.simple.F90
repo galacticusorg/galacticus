@@ -244,14 +244,14 @@ contains
     class           (nodeComponentBlackHole  )               , pointer :: blackHole
     class           (nodeComponentSpheroid   )               , pointer :: spheroid
     class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    class           (nodeComponentNSC        )               , pointer :: NSC
+    class           (nodeComponentNSC        )               , pointer :: nuclearStarCluster
     double precision                          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision                          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
     double precision                                                   :: coolingRadiusFractional                       , couplingEfficiency   , &
          &                                                                energyInputRate                               , heatingRate          , &
          &                                                                massAccretionRate                             , restMassAccretionRate, &
          &                                                                accretionRateSpheroid                         , accretionRateHotHalo , &
-         &                                                                accretionRateNSC                              , x
+         &                                                                accretionRateNuclearStarCluster               , x
 
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
@@ -261,10 +261,10 @@ contains
        blackHole => node%blackHole()
 
        ! Find the rate of rest mass accretion onto the black hole.
-       call blackHoleAccretionRate_%rateAccretion(blackHole,accretionRateSpheroid,accretionRateHotHalo,accretionRateNSC)
-       restMassAccretionRate=+accretionRateSpheroid &
-            &                +accretionRateHotHalo  &
-            &                +accretionRateNSC
+       call blackHoleAccretionRate_%rateAccretion(blackHole,accretionRateSpheroid,accretionRateHotHalo,accretionRateNuclearStarCluster)
+       restMassAccretionRate=+accretionRateSpheroid           &
+            &                +accretionRateHotHalo            &
+            &                +accretionRateNuclearStarCluster
 
        ! Finish if there is no accretion.
        if (restMassAccretionRate <= 0.0d0) return
@@ -279,14 +279,14 @@ contains
           if (massAccretionRate /= 0.0d0) call Error_Report('accretion onto non-existant black hole'//{introspection:location})
        class is (nodeComponentBlackHoleSimple)
           ! Get the spheroid component.
-          spheroid => node%spheroid()
-          ! Get the NSC component.
-          NSC      => node%NSC     ()
+          spheroid           => node%spheroid()
+          ! Get the nuclear star cluster component.
+          nuclearStarCluster => node%NSC     ()
           ! Add accretion to the black hole.
-          call blackHole%massRate       (     massAccretionRate)
-          ! Remove the accreted mass from the spheroid and NSC component.
-          call spheroid %massGasSinkRate(-accretionRateSpheroid)
-          call NSC      %massGasSinkRate(-accretionRateNSC     )
+          call blackHole         %massRate       (     massAccretionRate          )
+          ! Remove the accreted mass from the spheroid and nuclear star cluster components.
+          call spheroid          %massGasSinkRate(-accretionRateSpheroid          )
+          call nuclearStarCluster%massGasSinkRate(-accretionRateNuclearStarCluster)
           ! Add heating to the hot halo component.
           if (heatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
