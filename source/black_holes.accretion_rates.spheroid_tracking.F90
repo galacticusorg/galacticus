@@ -108,7 +108,7 @@ contains
     return
   end subroutine spheroidTrackingDestructor
 
-  subroutine spheroidTrackingRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNSC)
+  subroutine spheroidTrackingRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
     !!{
     Compute the accretion rate onto a black hole.
     !!}
@@ -116,14 +116,14 @@ contains
     implicit none
     class           (blackHoleAccretionRateSpheroidTracking), intent(inout) :: self
     class           (nodeComponentBlackHole                ), intent(inout) :: blackHole
-    double precision                                        , intent(  out) :: rateMassAccretionSpheroid, rateMassAccretionHotHalo, &
-         &                                                                     rateMassAccretionNSC
+    double precision                                        , intent(  out) :: rateMassAccretionSpheroid          , rateMassAccretionHotHalo, &
+         &                                                                     rateMassAccretionNuclearStarCluster
     type            (treeNode                              ), pointer       :: node
 
-    node                      =>  blackHole                            %host                        (    )
-    rateMassAccretionSpheroid =  +self                                 %growthRatioToStellarSpheroid       &
-         &                       *self     %starFormationRateSpheroids_%rate                        (node)
-    rateMassAccretionHotHalo  =  +0.0d0
-    rateMassAccretionNSC      =  +0.0d0
+    node                                =>  blackHole                            %host                        (    )
+    rateMassAccretionSpheroid           =  +self                                 %growthRatioToStellarSpheroid       &
+         &                                 *self     %starFormationRateSpheroids_%rate                        (node)
+    rateMassAccretionHotHalo            =  +0.0d0
+    rateMassAccretionNuclearStarCluster =  +0.0d0
     return
   end subroutine spheroidTrackingRateAccretion

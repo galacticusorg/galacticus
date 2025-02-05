@@ -45,10 +45,10 @@
      class           (coolingRadiusClass                      ), pointer :: coolingRadius_                         => null()
      class           (darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_                   => null()
      ! Enhancement factors for the accretion rate.
-     double precision                                                    :: bondiHoyleAccretionEnhancementHotHalo           , bondiHoyleAccretionEnhancementSpheroid, &
-      &                                                                     bondiHoyleAccretionEnhancementNSC
+     double precision                                                    :: bondiHoyleAccretionEnhancementHotHalo           , bondiHoyleAccretionEnhancementSpheroid          , &
+      &                                                                     bondiHoyleAccretionEnhancementNuclearStarCluster
      ! Temperature of accreting gas.
-     double precision                                                    :: bondiHoyleAccretionTemperatureSpheroid          , bondiHoyleAccretionTemperatureNSC
+     double precision                                                    :: bondiHoyleAccretionTemperatureSpheroid          , bondiHoyleAccretionTemperatureNuclearStarCluster
      ! Control for hot mode only accretion.
      logical                                                             :: bondiHoyleAccretionHotModeOnly
      ! Record of whether cold mode is explicitly tracked.
@@ -90,10 +90,10 @@ contains
     class           (hotHaloTemperatureProfileClass          ), pointer       :: hotHaloTemperatureProfile_
     class           (coolingRadiusClass                      ), pointer       :: coolingRadius_
     class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
-    double precision                                                          :: bondiHoyleAccretionEnhancementHotHalo , bondiHoyleAccretionEnhancementSpheroid, &
-         &                                                                       bondiHoyleAccretionEnhancementNSC     , bondiHoyleAccretionTemperatureSpheroid, &
-         &                                                                       bondiHoyleAccretionTemperatureNSC
-    logical                                                                   :: bondiHoyleAccretionHotModeOnly        , stopAccretion
+    double precision                                                          :: bondiHoyleAccretionEnhancementHotHalo           , bondiHoyleAccretionEnhancementSpheroid, &
+         &                                                                       bondiHoyleAccretionEnhancementNuclearStarCluster, bondiHoyleAccretionTemperatureSpheroid, &
+         &                                                                       bondiHoyleAccretionTemperatureNuclearStarCluster
+    logical                                                                   :: bondiHoyleAccretionHotModeOnly                  , stopAccretion
 
     !![
     <inputParameter>
@@ -115,9 +115,9 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>bondiHoyleAccretionEnhancementNSC</name>
+      <name>bondiHoyleAccretionEnhancementNuclearStarCluster</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of NSC gas onto black holes in enhanced.</description>
+      <description>The factor by which the Bondi-Hoyle accretion rate of \gls{nsc} gas onto black holes in enhanced.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -133,9 +133,9 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>bondiHoyleAccretionTemperatureNSC</name>
+      <name>bondiHoyleAccretionTemperatureNuclearStarCluster</name>
       <defaultValue>1.0d2</defaultValue>
-      <description>The assumed temperature (in Kelvin) of gas in the NSC when computing Bondi-Hoyle accretion rates onto black holes.</description>
+      <description>The assumed temperature (in Kelvin) of gas in the \gls{nsc} when computing Bondi-Hoyle accretion rates onto black holes.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters"/>
@@ -144,7 +144,7 @@ contains
     <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
     !!]
-    self=blackHoleAccretionRateStandard(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
+    self=blackHoleAccretionRateStandard(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="accretionDisks_"                     />
@@ -156,7 +156,7 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
+  function standardConstructorInternal(stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily standard} node operator class.
     !!}
@@ -168,12 +168,12 @@ contains
     class           (hotHaloTemperatureProfileClass          ), target, intent(in   ) :: hotHaloTemperatureProfile_
     class           (coolingRadiusClass                      ), target, intent(in   ) :: coolingRadius_
     class           (darkMatterHaloScaleClass                ), target, intent(in   ) :: darkMatterHaloScale_
-    double precision                                                  , intent(in   ) :: bondiHoyleAccretionEnhancementHotHalo , bondiHoyleAccretionEnhancementSpheroid, &
-         &                                                                               bondiHoyleAccretionEnhancementNSC     , bondiHoyleAccretionTemperatureNSC     , &
+    double precision                                                  , intent(in   ) :: bondiHoyleAccretionEnhancementHotHalo           , bondiHoyleAccretionEnhancementSpheroid          , &
+         &                                                                               bondiHoyleAccretionEnhancementNuclearStarCluster, bondiHoyleAccretionTemperatureNuclearStarCluster, &
          &                                                                               bondiHoyleAccretionTemperatureSpheroid
-    logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly        , stopAccretion
+    logical                                                           , intent(in   ) :: bondiHoyleAccretionHotModeOnly                  , stopAccretion
     !![
-    <constructorAssign variables="stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNSC,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNSC,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="stopAccretion,bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly, *blackHoleBinarySeparationGrowthRate_, *hotHaloTemperatureProfile_, *accretionDisks_, *coolingRadius_, *darkMatterHaloScale_"/>
     !!]
 
     ! Check if cold mode is explicitly tracked.
@@ -194,11 +194,11 @@ contains
     <objectDestructor name="self%hotHaloTemperatureProfile_"          />
     <objectDestructor name="self%coolingRadius_"                      />
     <objectDestructor name="self%darkMatterHaloScale_"                />
-    !!]                                                                                                                                                                                                               
+    !!]
     return
   end subroutine standardDestructor
 
-  subroutine standardRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNSC)
+  subroutine standardRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
     !!{
     Compute the accretion rate onto a black hole.
     !!}
@@ -216,34 +216,34 @@ contains
     implicit none
     class           (blackHoleAccretionRateStandard), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
-    double precision                                , intent(  out) :: rateMassAccretionSpheroid      ,rateMassAccretionHotHalo, rateMassAccretionNSC
+    double precision                                , intent(  out) :: rateMassAccretionSpheroid                ,rateMassAccretionHotHalo             , &
+         &                                                             rateMassAccretionNuclearStarCluster
     type            (treeNode                      ), pointer       :: node
     class           (nodeComponentSpheroid         ), pointer       :: spheroid
     class           (nodeComponentHotHalo          ), pointer       :: hotHalo
-    class           (nodeComponentNSC              ), pointer       :: NSC
-    class           (massDistributionClass         ), pointer       :: massDistributionSpheroid_      , massDistributionHotHalo_, &
-         &                                                             massDistributionColdHalo_      , massDistributionNSC_
+    class           (nodeComponentNSC              ), pointer       :: nuclearStarCluster
+    class           (massDistributionClass         ), pointer       :: massDistributionSpheroid_                , massDistributionHotHalo_            , &
+         &                                                             massDistributionColdHalo_                , massDistributionNuclearStarCluster_
     class           (kinematicsDistributionClass   ), pointer       :: kinematicsDistribution_
     type            (coordinateSpherical           )                :: coordinates
     ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M☉/Mpc³).
-    double precision                                , parameter     :: densityGasMinimum        =1.0d0
-    double precision                                                :: radiusAccretion                , rateAccretionMaximum    , &
-         &                                                             massBlackHole                  , densityGas              , &
-         &                                                             temperatureHotHalo             , fractionHotMode         , &
-         &                                                             lengthJeans                    , fractionColdMode        , &
-         &                                                             efficiencyRadiative            , velocityRelative
+    double precision                                , parameter     :: densityGasMinimum                  =1.0d0
+    double precision                                                :: radiusAccretion                          , rateAccretionMaximum                , &
+         &                                                             massBlackHole                            , densityGas                          , &
+         &                                                             temperatureHotHalo                       , fractionHotMode                     , &
+         &                                                             lengthJeans                              , fractionColdMode                    , &
+         &                                                             efficiencyRadiative                      , velocityRelative
          
     ! Get the host node.
     node          => blackHole%host()
     ! Get black hole mass.
     massBlackHole =  blackHole%mass()
-
-    ! First, we check the formation channel of the BH.
+    ! First, we check the formation channel of the black hole.
     select case (blackHole%NSCChannel())
-    ! If the NSC was created via NSC, the accretion is allowed.
+    ! If the nuclear star cluster was created via nuclear star cluster, the accretion is allowed.
     case (.true.)
       self%stopAccretion = .false.
-    ! if the BH wasn't form via NSC collapse we need to check if the StopAccretion is set to true of false in the parameter file.
+    ! if the BH wasn't form via nuclear star cluster collapse we need to check if the StopAccretion is set to true of false in the parameter file.
     case (.false.)
       select case (self%stopAccretion)
     ! In case that StopAccretion=true in the parameter file, this stop the accretion for all the BHs, so the rest accretion rate is 0.0.
@@ -258,9 +258,9 @@ contains
 
     select case (self%stopAccretion)
     case(.true.)
-        rateMassAccretionSpheroid=0.0d0
-        rateMassAccretionHotHalo =0.0d0
-        rateMAssAccretionNSC     =0.0d0
+        rateMassAccretionSpheroid          =0.0d0
+        rateMassAccretionHotHalo           =0.0d0
+        rateMAssAccretionNuclearStarCluster=0.0d0
     case(.false.)
     ! Check black hole mass is positive.
     if (massBlackHole > 0.0d0) then
@@ -311,41 +311,47 @@ contains
           rateMassAccretionSpheroid=0.0d0
        end if
         ! Get the nuclear star cluster component
-         NSC => node%NSC()
-
-         radiusAccretion=max(                                                                                               &
-               &              Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,self%bondiHoyleAccretionTemperatureNSC)  &
-               &             ,blackHole%radialPosition()                                                                    &
-               &            )
+         nuclearStarCluster => node%NSC()
+         radiusAccretion    =  max(                                                                                                             &
+               &                   Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,self%bondiHoyleAccretionTemperatureNuclearStarCluster), &
+               &                   blackHole%radialPosition()                                                                                   &
+               &                  )
          ! Set the position.
-         coordinates         = [radiusAccretion,0.0d0,0.0d0]
-         massDistributionNSC_=> node              %massDistribution(componentTypeNSC,massTypeGaseous)
+         coordinates                         = [radiusAccretion,0.0d0,0.0d0]
+         massDistributionNuclearStarCluster_ => node                               %massDistribution(componentTypeNSC,massTypeGaseous)
          ! Get density of gas at the galactic center.
-         densityGas          =massDistributionNSC_%density         (coordinates                     )
+         densityGas                          =  massDistributionNuclearStarCluster_%density         (coordinates                     )
          ! Check if we have a non-negligible gas density.
          if (densityGas > densityGasMinimum) then
-            lengthJeans=Ideal_Gas_Jeans_Length(self%bondiHoyleAccretionTemperatureNSC,densityGas)
+            lengthJeans=Ideal_Gas_Jeans_Length(self%bondiHoyleAccretionTemperatureNuclearStarCluster,densityGas)
             ! Limit the smoothing scale to the scale of the nuclear star cluster.
-            lengthJeans=min(lengthJeans,NSC%radius())
+            lengthJeans=min(lengthJeans,nuclearStarCluster%radius())
             ! If the Jeans length exceeds the Bondi-Hoyle-Lyttleton accretion radius, then recompute gas density for a larger
             ! radius, as the gas should be smoothly distributed on scales below the Jeans length.
             if (lengthJeans > radiusAccretion) then
                ! Set the position.
                coordinates=[lengthJeans,0.0d0,0.0d0]
                ! Get density of gas at the galactic center.
-               densityGas =massDistributionNSC_%density(coordinates)
+               densityGas =massDistributionNuclearStarCluster_%density(coordinates)
             end if
             ! Compute the accretion rate.
-            rateMassAccretionNSC=max(self%bondiHoyleAccretionEnhancementNSC*Bondi_Hoyle_Lyttleton_Accretion_Rate(massBlackHole&
-                 &,densityGas ,velocityRelative,self%bondiHoyleAccretionTemperatureNSC),0.0d0)
+            rateMassAccretionNuclearStarCluster=max(                                                                                                                                        &
+                 &                                  +self%bondiHoyleAccretionEnhancementNuclearStarCluster                                                                                  &
+                 &                                  *Bondi_Hoyle_Lyttleton_Accretion_Rate(massBlackHole,densityGas,velocityRelative,self%bondiHoyleAccretionTemperatureNuclearStarCluster), &
+                 &                                  +0.0d0                                                                                                                                  &
+                 &                                 )
             ! Get the radiative efficiency of the accretion.
-            efficiencyRadiative=self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionNSC)
+            efficiencyRadiative=self%accretionDisks_%efficiencyRadiative(blackHole,rateMassAccretionNuclearStarCluster)
             ! Limit the accretion rate to the Eddington limit.
-            if (efficiencyRadiative > 0.0d0) rateMassAccretionNSC=min(rateMassAccretionNSC    &
-                 &,Black_Hole_Eddington_Accretion_Rate(blackHole) /efficiencyRadiative)
+            if (efficiencyRadiative > 0.0d0)&
+                 & rateMassAccretionNuclearStarCluster=min(                                                 &
+                 &                                         +rateMassAccretionNuclearStarCluster           , &
+                 &                                         +Black_Hole_Eddington_Accretion_Rate(blackHole)  &
+                 &                                         /efficiencyRadiative                            &
+                 &                                        )
          else
             ! Gas density is negative - set zero accretion rate.
-            rateMassAccretionNSC=0.0d0
+            rateMassAccretionNuclearStarCluster=0.0d0
          end if
        ! Contribution from hot halo:
        ! Get the hot halo component.
@@ -423,15 +429,15 @@ contains
           rateMassAccretionHotHalo=0.0d0
        end if
        !![
-       <objectDestructor name="massDistributionSpheroid_"/>
-       <objectDestructor name="massDistributionHotHalo_" />
-       <objectDestructor name="massDistributionNSC_"     />
-       <objectDestructor name="kinematicsDistribution_"  />
+       <objectDestructor name="massDistributionSpheroid_"          />
+       <objectDestructor name="massDistributionHotHalo_"           />
+       <objectDestructor name="massDistributionNuclearStarCluster_"/>
+       <objectDestructor name="kinematicsDistribution_"            />
        !!]
     else
-       rateMassAccretionSpheroid=0.0d0
-       rateMassAccretionHotHalo =0.0d0
-       rateMassAccretionNSC     =0.0d0
+       rateMassAccretionSpheroid          =0.0d0
+       rateMassAccretionHotHalo           =0.0d0
+       rateMassAccretionNuclearStarCluster=0.0d0
     end if
     end select
     return
