@@ -199,7 +199,7 @@ contains
     integer         (c_size_t                                   )               , dimension(3        ) :: permutation
     type            (hdf5Object                                 )                                      :: emissionLinesFile                 , lines                             , &
          &                                                                                                dataset
-    integer         (c_size_t                                   )                                      :: i                                 , k
+    integer         (c_size_t                                   )                                      :: i                                 , k, age_i
     !![
     <constructorAssign variables="cloudyTableFileName, lineNames, component, toleranceRelative, *starFormationHistory_, *outputTimes_, *hiiRegionLuminosityFunction_, *hiiRegionDensityDistribution_, *hiiRegionEscapeFraction_"/>
     !!]
