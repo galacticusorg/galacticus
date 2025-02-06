@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "a9f3c8eeae414da3c314dd020d90964cf45ec29e",
-        "message": "fix: Correct citation label\n",
-        "timestamp": "2025-02-04 16:49:04-08:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/a9f3c8eeae414da3c314dd020d90964cf45ec29e"
+        "id": "1592ccb48d3bec0901e87c9e5ce5c084666e3964",
+        "message": "Merge pull request #782 from galacticusorg/fixBetaProfileCoolingRadius\n\nThe central density of the β-profile was evaluated at the wrong radius in cooling radius calculations\n",
+        "timestamp": "2025-02-05 16:08:06+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/1592ccb48d3bec0901e87c9e5ce5c084666e3964"
     },
     "results": [
         {
