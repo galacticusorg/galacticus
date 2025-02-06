@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738767758612,
+  "lastUpdate": 1738805248347,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -303,6 +303,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": "8.507962960656991",
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1592ccb48d3bec0901e87c9e5ce5c084666e3964",
+          "message": "Merge pull request #782 from galacticusorg/fixBetaProfileCoolingRadius\n\nThe central density of the β-profile was evaluated at the wrong radius in cooling radius calculations",
+          "timestamp": "2025-02-05T16:08:06Z",
+          "tree_id": "f79db8f1f6d18cf65a9df956e9c46b213b717ed9",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1592ccb48d3bec0901e87c9e5ce5c084666e3964"
+        },
+        "date": 1738805247471,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": "6.018527144448202",
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": "9.577874156584857",
             "unit": "-logℒ"
           }
         ]
